@@ -1,0 +1,25 @@
+{
+  "name": "@flink-reactor/ui-embeddings",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "embed": "tsx src/index.ts",
+    "search": "tsx src/search-cli.ts",
+    "benchmark": "tsx src/benchmark.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@lancedb/lancedb": "^0.13.0",
+    "apache-arrow": "^17.0.0",
+    "chromadb": "^1.9.2",
+    "chromadb-default-embed": "^2.13.2",
+    "glob": "^11.0.1",
+    "ollama": "^0.5.14"
+  },
+  "devDependencies": {
+    "@types/node": "^22.12.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
