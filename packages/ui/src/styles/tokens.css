@@ -1,0 +1,35 @@
+/* ── FlinkReactor theme tokens ────────────────────── */
+/* Design system color palette based on Tokyo Night theme */
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Brand colors */
+  --color-fr-bg: #0a0a0f;
+  --color-fr-subtle: #0c0c16;
+  --color-fr-coral: #d97085;
+  --color-fr-purple: #9b6bbf;
+  --color-fr-amber: #e8983e;
+
+  /* Severity colors (Tokyo Night palette) */
+  --color-log-trace: #565f89;
+  --color-log-debug: #7aa2f7;
+  --color-log-info: #7dcfff;
+  --color-log-warn: #e0af68;
+  --color-log-error: #f7768e;
+
+  /* Dashboard surface tokens */
+  --color-dash-surface: #12121a;
+  --color-dash-panel: #16161e;
+  --color-dash-elevated: #1f2335;
+  --color-dash-border: #1e1e2e;
+  --color-dash-hover: #1a1a28;
+
+  /* Job status colors (Tokyo Night palette) */
+  --color-job-running: #73daca;
+  --color-job-finished: #7aa2f7;
+  --color-job-cancelled: #e0af68;
+  --color-job-failed: #f7768e;
+  --color-job-created: #565f89;
+}
