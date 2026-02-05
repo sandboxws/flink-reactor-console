@@ -15,6 +15,20 @@ packages/ui/src/
 
 All public components and types are exported from `src/index.ts`.
 
+## Adding to a Next.js App
+
+Full installation guide: `web/content/docs/ui/installation.mdx`
+
+Quick summary:
+1. `pnpm add @flink-reactor/ui@workspace:*` (monorepo) or use `create-fr-app add` (external)
+2. Install peers: `pnpm add geist lucide-react`
+3. Set up Tailwind v4: `@tailwindcss/postcss` in `postcss.config.mjs`
+4. Import styles: `@import "@flink-reactor/ui/styles"` in global CSS, or inline `@theme` tokens
+5. Configure Geist fonts on `<html>` element with `GeistSans.variable` + `GeistMono.variable`
+6. Import components: `import { Button, Card, Shell } from "@flink-reactor/ui"`
+
+Reference implementation: `apps/dashboard/` (uses local layout wrappers over UI primitives with Zustand state)
+
 ## Semantic Search
 
 This package has a vector embedding index (LanceDB + nomic-embed-text-v2-moe) for efficient exploration.
