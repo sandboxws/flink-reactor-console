@@ -22,6 +22,10 @@ import type {
   TaskCounts,
   TaskManager,
   TaskManagerMetrics,
+  ThreadDumpEntry,
+  ThreadDumpInfo,
+  ThreadInfoRaw,
+  ThreadState,
   UploadedJar,
 } from "./cluster-types";
 import { PLACEHOLDER_VALUES, pickRandom, TASK_MANAGERS } from "./flink-loggers";
@@ -1008,7 +1012,580 @@ export function generateJobManagerInfo(): JobManagerInfo {
     jvm: generateJvmInfo(),
     classpath: generateClasspath(),
     logFiles: generateLogFiles(),
+    threadDump: generateThreadDump(),
   };
+}
+
+// ---------------------------------------------------------------------------
+// 2.5b — generateThreadDump
+// ---------------------------------------------------------------------------
+
+function threadToStringifiedInfo(t: ThreadDumpEntry): string {
+  const nativeSuffix = t.isNative ? " (in native)" : "";
+  const onLock = t.lockObject ? ` on ${t.lockObject}` : "";
+  const header = `"${t.name}" Id=${t.id} ${t.state}${nativeSuffix}${onLock}`;
+
+  const lines = [header];
+  for (const frame of t.stackFrames) {
+    lines.push(`\t${frame}`);
+  }
+  if (t.lockedSynchronizers.length > 0) {
+    lines.push("");
+    lines.push(`\tNumber of locked synchronizers = ${t.lockedSynchronizers.length}`);
+    for (const sync of t.lockedSynchronizers) {
+      lines.push(`\t- ${sync}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+function generateThreadDump(): ThreadDumpInfo {
+  const threads: ThreadDumpEntry[] = [
+    // --- main thread ---
+    {
+      name: "main",
+      id: 1,
+      state: "WAITING",
+      lockObject: "java.util.concurrent.CompletableFuture$Signaller@68cd5176",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.CompletableFuture$Signaller@68cd5176",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:221)",
+        "at java.base@21.0.9/java.util.concurrent.CompletableFuture$Signaller.block(CompletableFuture.java:1864)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
+        "at java.base@21.0.9/java.util.concurrent.CompletableFuture.waitingGet(CompletableFuture.java:1898)",
+        "at java.base@21.0.9/java.util.concurrent.CompletableFuture.get(CompletableFuture.java:2072)",
+        "at app//org.apache.flink.runtime.entrypoint.ClusterEntrypoint.runClusterEntrypoint(ClusterEntrypoint.java:733)",
+        "at app//org.apache.flink.runtime.entrypoint.StandaloneSessionClusterEntrypoint.main(StandaloneSessionClusterEntrypoint.java:59)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- JVM internal threads ---
+    {
+      name: "Reference Handler",
+      id: 9,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/java.lang.ref.Reference.waitForReferencePendingList(Native Method)",
+        "at java.base@21.0.9/java.lang.ref.Reference.processPendingReferences(Reference.java:246)",
+        "at java.base@21.0.9/java.lang.ref.Reference$ReferenceHandler.run(Reference.java:208)",
+      ],
+      lockedSynchronizers: [],
+    },
+    {
+      name: "Finalizer",
+      id: 10,
+      state: "WAITING",
+      lockObject: "java.lang.ref.NativeReferenceQueue$Lock@1d758edf",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/java.lang.Object.wait0(Native Method)",
+        "-  waiting on java.lang.ref.NativeReferenceQueue$Lock@1d758edf",
+        "at java.base@21.0.9/java.lang.Object.wait(Object.java:366)",
+        "at java.base@21.0.9/java.lang.Object.wait(Object.java:339)",
+        "at java.base@21.0.9/java.lang.ref.NativeReferenceQueue.await(NativeReferenceQueue.java:48)",
+        "at java.base@21.0.9/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:158)",
+        "at java.base@21.0.9/java.lang.ref.NativeReferenceQueue.remove(NativeReferenceQueue.java:89)",
+        "at java.base@21.0.9/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:173)",
+      ],
+      lockedSynchronizers: [],
+    },
+    {
+      name: "Signal Dispatcher",
+      id: 11,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [],
+      lockedSynchronizers: [],
+    },
+    {
+      name: "Notification Thread",
+      id: 18,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [],
+      lockedSynchronizers: [],
+    },
+    {
+      name: "Common-Cleaner",
+      id: 19,
+      state: "TIMED_WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@65236733",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@65236733",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1886)",
+        "at java.base@21.0.9/java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:71)",
+        "at java.base@21.0.9/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:143)",
+        "at java.base@21.0.9/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:218)",
+        "at java.base@21.0.9/jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:140)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+        "at java.base@21.0.9/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:186)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Log4j threads ---
+    {
+      name: "Log4j2-TF-3-Scheduled-1",
+      id: 21,
+      state: "TIMED_WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@4789e64",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@4789e64",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1797)",
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)",
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Flink scheduler ---
+    {
+      name: "flink-scheduler-1",
+      id: 34,
+      state: "TIMED_WAITING",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/java.lang.Thread.sleep0(Native Method)",
+        "at java.base@21.0.9/java.lang.Thread.sleep(Thread.java:509)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler.waitNanos(LightArrayRevolverScheduler.scala:121)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler$anon$3.nextTick(LightArrayRevolverScheduler.scala:314)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler$anon$3.run(LightArrayRevolverScheduler.scala:284)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Pekko actor dispatchers ---
+    ...([5, 11, 12] as const).map((n): ThreadDumpEntry => ({
+      name: `flink-pekko.actor.default-dispatcher-${n}`,
+      id: 34 + n,
+      state: "WAITING",
+      lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@378e5c02",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@378e5c02",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Pekko remote dispatchers ---
+    ...([6, 7, 14, 15, 16, 17] as const).map((n, i): ThreadDumpEntry => ({
+      name: `flink-pekko.remote.default-remote-dispatcher-${n}`,
+      id: 40 + i,
+      state: i === 3 ? "TIMED_WAITING" : "WAITING",
+      lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@496aaf3f",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@496aaf3f",
+        i === 3
+          ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkUntil(LockSupport.java:449)"
+          : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Flink Netty event loops ---
+    ...([8, 13] as const).map((n): ThreadDumpEntry => ({
+      name: `flink-${n}`,
+      id: 43 + (n - 8),
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: true,
+      stackFrames: [
+        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Timer ---
+    {
+      name: "Timer-0",
+      id: 47,
+      state: "TIMED_WAITING",
+      lockObject: "java.util.TaskQueue@2b9a13c1",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/java.lang.Object.wait0(Native Method)",
+        "-  waiting on java.util.TaskQueue@2b9a13c1",
+        "at java.base@21.0.9/java.lang.Object.wait(Object.java:366)",
+        "at java.base@21.0.9/java.util.TimerThread.mainLoop(Timer.java:563)",
+        "at java.base@21.0.9/java.util.TimerThread.run(Timer.java:516)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- BLOB server (with locked synchronizers) ---
+    {
+      name: "BLOB Server listener at 57383",
+      id: 46,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: true,
+      stackFrames: [
+        "at java.base@21.0.9/sun.nio.ch.Net.accept(Native Method)",
+        "at java.base@21.0.9/sun.nio.ch.NioSocketImpl.accept(NioSocketImpl.java:748)",
+        "at java.base@21.0.9/java.net.ServerSocket.implAccept(ServerSocket.java:698)",
+        "at java.base@21.0.9/java.net.ServerSocket.platformImplAccept(ServerSocket.java:663)",
+        "at java.base@21.0.9/java.net.ServerSocket.implAccept(ServerSocket.java:639)",
+        "at java.base@21.0.9/java.net.ServerSocket.implAccept(ServerSocket.java:585)",
+        "at java.base@21.0.9/java.net.ServerSocket.accept(ServerSocket.java:543)",
+        "at app//org.apache.flink.util.NetUtils.acceptWithoutTimeout(NetUtils.java:172)",
+        "at app//org.apache.flink.runtime.blob.BlobServer.run(BlobServer.java:317)",
+      ],
+      lockedSynchronizers: [
+        "java.util.concurrent.locks.ReentrantLock$NonfairSync@379552da",
+      ],
+    },
+    // --- Metrics scheduler ---
+    {
+      name: "flink-metrics-scheduler-1",
+      id: 49,
+      state: "TIMED_WAITING",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/java.lang.Thread.sleep0(Native Method)",
+        "at java.base@21.0.9/java.lang.Thread.sleep(Thread.java:509)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler.waitNanos(LightArrayRevolverScheduler.scala:121)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler$anon$3.nextTick(LightArrayRevolverScheduler.scala:314)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler$anon$3.run(LightArrayRevolverScheduler.scala:284)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Metrics remote dispatchers ---
+    ...([6, 7, 8, 11, 12, 13, 15, 18] as const).map((n, i): ThreadDumpEntry => ({
+      name: `flink-metrics-pekko.remote.default-remote-dispatcher-${n}`,
+      id: 54 + i,
+      state: i === 1 ? "TIMED_WAITING" : "WAITING",
+      lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@32af3833",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@32af3833",
+        i === 1
+          ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkUntil(LockSupport.java:449)"
+          : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Metrics netty event loop ---
+    {
+      name: "flink-metrics-9",
+      id: 57,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: true,
+      stackFrames: [
+        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Metric View Updater ---
+    {
+      name: "Flink-Metric-View-Updater-thread-1",
+      id: 60,
+      state: "TIMED_WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@33fa98b6",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@33fa98b6",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1797)",
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)",
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- REST server boss ---
+    {
+      name: "flink-rest-server-netty-boss-thread-1",
+      id: 61,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: true,
+      stackFrames: [
+        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Dispatcher REST endpoint thread pool ---
+    ...([1, 2, 3, 4] as const).map((n, i): ThreadDumpEntry => ({
+      name: `Flink-DispatcherRestEndpoint-thread-${n}`,
+      id: 62 + i,
+      state: i === 1 ? "TIMED_WAITING" : "WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7b88d8d5",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7b88d8d5",
+        i === 1
+          ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)"
+          : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+        i === 1
+          ? "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1797)"
+          : "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
+        ...(i === 1
+          ? []
+          : [
+              "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+              "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
+              "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1746)",
+            ]),
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)",
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Cluster IO threads ---
+    ...([1, 2, 3] as const).map((n): ThreadDumpEntry => ({
+      name: `cluster-io-thread-${n}`,
+      id: 63 + n * 2,
+      state: "WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1cd0c03a",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1cd0c03a",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1746)",
+        "at java.base@21.0.9/java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:435)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Thread pool worker ---
+    {
+      name: "pool-2-thread-1",
+      id: 64,
+      state: "WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1e0f0e6a",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1e0f0e6a",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1746)",
+        "at java.base@21.0.9/java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:435)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- ResourceManager scheduler ---
+    {
+      name: "resourcemanager_1-main-scheduler-thread-1",
+      id: 66,
+      state: "TIMED_WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@71996377",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@71996377",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1797)",
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)",
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- REST server worker threads ---
+    ...Array.from({ length: 20 }, (_, i): ThreadDumpEntry => ({
+      name: `flink-rest-server-netty-worker-thread-${i + 1}`,
+      id: 73 + i,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: true,
+      stackFrames: [
+        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Metrics netty event loop 2 ---
+    {
+      name: "flink-metrics-14",
+      id: 81,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: true,
+      stackFrames: [
+        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- The active thread taking the dump ---
+    {
+      name: "flink-pekko.actor.default-dispatcher-18",
+      id: 102,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at java.management@21.0.9/sun.management.ThreadImpl.dumpThreads0(Native Method)",
+        "at java.management@21.0.9/sun.management.ThreadImpl.dumpAllThreads(ThreadImpl.java:518)",
+        "at java.management@21.0.9/sun.management.ThreadImpl.dumpAllThreads(ThreadImpl.java:506)",
+        "at app//org.apache.flink.runtime.util.JvmUtils.createThreadDump(JvmUtils.java:50)",
+        "at app//org.apache.flink.runtime.rest.messages.ThreadDumpInfo.dumpAndCreate(ThreadDumpInfo.java:59)",
+        "at app//org.apache.flink.runtime.dispatcher.Dispatcher.requestThreadDump(Dispatcher.java:982)",
+        "at java.base@21.0.9/java.lang.invoke.LambdaForm$DMH/0x0000009801198000.invokeVirtual(LambdaForm$DMH)",
+        "at java.base@21.0.9/java.lang.invoke.LambdaForm$MH/0x00000098012b4400.invoke(LambdaForm$MH)",
+        "at java.base@21.0.9/java.lang.invoke.Invokers$Holder.invokeExact_MT(Invokers$Holder)",
+        "at java.base@21.0.9/jdk.internal.reflect.DirectMethodHandleAccessor.invokeImpl(DirectMethodHandleAccessor.java:154)",
+        "at java.base@21.0.9/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)",
+        "at java.base@21.0.9/java.lang.reflect.Method.invoke(Method.java:580)",
+        "at org.apache.flink.runtime.rpc.pekko.PekkoRpcActor.lambda$handleRpcInvocation$1(PekkoRpcActor.java:318)",
+        "at app//org.apache.flink.runtime.concurrent.ClassLoadingUtils.runWithContextClassLoader(ClassLoadingUtils.java:83)",
+        "at org.apache.flink.runtime.rpc.pekko.PekkoRpcActor.handleRpcInvocation(PekkoRpcActor.java:316)",
+        "at org.apache.flink.runtime.rpc.pekko.PekkoRpcActor.handleRpcMessage(PekkoRpcActor.java:229)",
+        "at org.apache.flink.runtime.rpc.pekko.FencedPekkoRpcActor.handleRpcMessage(FencedPekkoRpcActor.java:88)",
+        "at org.apache.flink.runtime.rpc.pekko.PekkoRpcActor.handleMessage(PekkoRpcActor.java:174)",
+        "at org.apache.pekko.japi.pf.UnitCaseStatement.apply(CaseStatements.scala:33)",
+        "at org.apache.pekko.japi.pf.UnitCaseStatement.apply(CaseStatements.scala:29)",
+        "at scala.PartialFunction.applyOrElse(PartialFunction.scala:127)",
+        "at scala.PartialFunction.applyOrElse$(PartialFunction.scala:126)",
+        "at org.apache.pekko.japi.pf.UnitCaseStatement.applyOrElse(CaseStatements.scala:29)",
+        "at scala.PartialFunction$OrElse.applyOrElse(PartialFunction.scala:175)",
+        "at scala.PartialFunction$OrElse.applyOrElse(PartialFunction.scala:176)",
+        "at scala.PartialFunction$OrElse.applyOrElse(PartialFunction.scala:176)",
+        "at org.apache.pekko.actor.Actor.aroundReceive(Actor.scala:547)",
+        "at org.apache.pekko.actor.Actor.aroundReceive$(Actor.scala:545)",
+        "at org.apache.pekko.actor.AbstractActor.aroundReceive(AbstractActor.scala:229)",
+        "at org.apache.pekko.actor.ActorCell.receiveMessage(ActorCell.scala:590)",
+        "at org.apache.pekko.actor.ActorCell.invoke(ActorCell.scala:557)",
+        "at org.apache.pekko.dispatch.Mailbox.processMailbox(Mailbox.scala:272)",
+        "at org.apache.pekko.dispatch.Mailbox.run(Mailbox.scala:233)",
+        "at org.apache.pekko.dispatch.Mailbox.exec(Mailbox.scala:245)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+      ],
+      lockedSynchronizers: [],
+    },
+  ];
+
+  const threadInfos: ThreadInfoRaw[] = threads.map((t) => ({
+    threadName: t.name,
+    stringifiedThreadInfo: threadToStringifiedInfo(t),
+  }));
+  return { threadInfos };
 }
 
 function generateJmMetrics(): JobManagerMetrics {

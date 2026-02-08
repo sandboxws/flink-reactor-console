@@ -104,7 +104,7 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
           />
         </TabsContent>
         <TabsContent value="thread-dump">
-          <JmThreadDumpTab />
+          <JmThreadDumpTab threadDump={jm.threadDump} />
         </TabsContent>
         <TabsContent value="profiler">
           <JmProfilerTab />

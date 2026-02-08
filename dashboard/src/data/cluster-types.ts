@@ -220,6 +220,37 @@ export type LogFileContent = {
   content: string;
 };
 
+// --- Thread dump types ---
+
+export type ThreadState =
+  | "RUNNABLE"
+  | "WAITING"
+  | "TIMED_WAITING"
+  | "BLOCKED"
+  | "NEW"
+  | "TERMINATED";
+
+/** Raw API response entry — one per thread, as returned by Flink REST API */
+export type ThreadInfoRaw = {
+  threadName: string;
+  stringifiedThreadInfo: string;
+};
+
+/** Parsed thread entry — structured form the UI renders */
+export type ThreadDumpEntry = {
+  name: string;
+  id: number;
+  state: ThreadState;
+  lockObject: string | null;
+  isNative: boolean;
+  stackFrames: string[];
+  lockedSynchronizers: string[];
+};
+
+export type ThreadDumpInfo = {
+  threadInfos: ThreadInfoRaw[];
+};
+
 export type JobManagerInfo = {
   config: JobManagerConfig[];
   metrics: JobManagerMetrics;
@@ -228,6 +259,7 @@ export type JobManagerInfo = {
   jvm: JvmInfo;
   classpath: ClasspathEntry[];
   logFiles: LogFileEntry[];
+  threadDump: ThreadDumpInfo;
 };
 
 // --- Cluster overview types ---
