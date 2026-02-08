@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Cpu } from "lucide-react";
 import type { ThreadDumpInfo } from "@/data/cluster-types";
 import { parseThreadInfos } from "@/data/thread-dump-parser";
@@ -17,6 +17,13 @@ export function JmThreadDumpTab({
     [threadDump.threadInfos],
   );
 
+  const handleCopyAll = useCallback(() => {
+    const raw = threadDump.threadInfos
+      .map((info) => info.stringifiedThreadInfo)
+      .join("\n\n");
+    navigator.clipboard.writeText(raw);
+  }, [threadDump.threadInfos]);
+
   if (threads.length === 0) {
     return (
       <div className="pt-4">
@@ -27,7 +34,10 @@ export function JmThreadDumpTab({
 
   return (
     <div className="pt-4">
-      <ThreadDumpViewer threads={threads} />
+      <ThreadDumpViewer
+        threads={threads}
+        onCopyAll={handleCopyAll}
+      />
     </div>
   );
 }

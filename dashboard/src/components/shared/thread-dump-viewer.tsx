@@ -1,19 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Check,
   ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
   Copy,
   Lock,
   Search,
   Cpu,
+  RefreshCw,
 } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { cn } from "@/lib/cn";
 import type { ThreadDumpEntry, ThreadState } from "@/data/cluster-types";
 
@@ -23,37 +21,43 @@ import type { ThreadDumpEntry, ThreadState } from "@/data/cluster-types";
 
 const STATE_COLORS: Record<
   ThreadState,
-  { text: string; bg: string; border: string }
+  { text: string; bg: string; border: string; bar: string }
 > = {
   RUNNABLE: {
     text: "text-job-running",
     bg: "bg-job-running/10",
     border: "border-job-running/30",
+    bar: "bg-job-running",
   },
   WAITING: {
     text: "text-log-warn",
     bg: "bg-log-warn/10",
     border: "border-log-warn/30",
+    bar: "bg-log-warn",
   },
   TIMED_WAITING: {
     text: "text-log-debug",
     bg: "bg-log-debug/10",
     border: "border-log-debug/30",
+    bar: "bg-log-debug",
   },
   BLOCKED: {
     text: "text-log-error",
     bg: "bg-log-error/10",
     border: "border-log-error/30",
+    bar: "bg-log-error",
   },
   NEW: {
     text: "text-zinc-500",
     bg: "bg-zinc-500/10",
     border: "border-zinc-500/30",
+    bar: "bg-zinc-500",
   },
   TERMINATED: {
     text: "text-zinc-500",
     bg: "bg-zinc-500/10",
     border: "border-zinc-500/30",
+    bar: "bg-zinc-600",
   },
 };
 
@@ -93,6 +97,40 @@ function isLockAnnotation(frame: string): "waiting" | "locked" | null {
   if (frame.startsWith("-  locked") || frame.startsWith("- locked"))
     return "locked";
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// State distribution bar
+// ---------------------------------------------------------------------------
+
+function StateDistributionBar({
+  counts,
+  total,
+}: {
+  counts: Record<string, number>;
+  total: number;
+}) {
+  if (total === 0) return null;
+
+  const segments = STATE_ORDER.filter((s) => (counts[s] || 0) > 0).map(
+    (state) => ({
+      state,
+      count: counts[state] || 0,
+      pct: ((counts[state] || 0) / total) * 100,
+    }),
+  );
+
+  return (
+    <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+      {segments.map(({ state, pct }) => (
+        <div
+          key={state}
+          className={cn("h-full transition-all", STATE_COLORS[state].bar)}
+          style={{ width: `${pct}%` }}
+        />
+      ))}
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -138,17 +176,29 @@ function StateBadge({
 
 function SummaryBar({
   threads,
+  filteredCount,
   activeFilter,
   onFilterChange,
   searchQuery,
   onSearchChange,
+  allExpanded,
+  onToggleExpandAll,
+  onCopyAll,
+  onRefresh,
 }: {
   threads: ThreadDumpEntry[];
+  filteredCount: number;
   activeFilter: ThreadState | null;
   onFilterChange: (state: ThreadState | null) => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
+  allExpanded: boolean;
+  onToggleExpandAll: () => void;
+  onCopyAll?: () => void;
+  onRefresh?: () => void;
 }) {
+  const [copiedAll, setCopiedAll] = useState(false);
+
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
     for (const t of threads) {
@@ -157,28 +207,92 @@ function SummaryBar({
     return c;
   }, [threads]);
 
+  const isFiltered = activeFilter !== null || searchQuery.trim() !== "";
+
+  function handleCopyAll() {
+    onCopyAll?.();
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2000);
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      {/* Total + state badges */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium text-zinc-300">
-          {threads.length} threads
-        </span>
-        <span className="text-zinc-700">|</span>
-        {STATE_ORDER.map((state) => (
-          <StateBadge
-            key={state}
-            state={state}
-            count={counts[state] || 0}
-            active={activeFilter === state}
-            onClick={() =>
-              onFilterChange(activeFilter === state ? null : state)
-            }
-          />
-        ))}
+      {/* Row 1: Total + state badges + actions */}
+      <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 flex-1">
+          <span className="text-sm font-medium text-zinc-300">
+            {isFiltered ? (
+              <>
+                <span className="tabular-nums">{filteredCount}</span>
+                <span className="text-zinc-600">
+                  {" "}
+                  / {threads.length}
+                </span>
+              </>
+            ) : (
+              threads.length
+            )}{" "}
+            threads
+          </span>
+          <span className="text-zinc-700">|</span>
+          {STATE_ORDER.map((state) => (
+            <StateBadge
+              key={state}
+              state={state}
+              count={counts[state] || 0}
+              active={activeFilter === state}
+              onClick={() =>
+                onFilterChange(activeFilter === state ? null : state)
+              }
+            />
+          ))}
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={onToggleExpandAll}
+            className="rounded p-1.5 text-zinc-600 transition-colors hover:bg-white/5 hover:text-zinc-400"
+            title={allExpanded ? "Collapse all" : "Expand all"}
+          >
+            {allExpanded ? (
+              <ChevronsDownUp className="size-3.5" />
+            ) : (
+              <ChevronsUpDown className="size-3.5" />
+            )}
+          </button>
+          {onCopyAll && (
+            <button
+              type="button"
+              onClick={handleCopyAll}
+              className="rounded p-1.5 text-zinc-600 transition-colors hover:bg-white/5 hover:text-zinc-400"
+              title="Copy all thread dumps"
+            >
+              {copiedAll ? (
+                <Check className="size-3.5" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
+            </button>
+          )}
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="rounded p-1.5 text-zinc-600 transition-colors hover:bg-white/5 hover:text-zinc-400"
+              title="Refresh thread dump"
+            >
+              <RefreshCw className="size-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Search */}
+      {/* Row 2: Distribution bar */}
+      <StateDistributionBar counts={counts} total={threads.length} />
+
+      {/* Row 3: Search */}
       <div className="relative max-w-sm">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-600" />
         <input
@@ -230,8 +344,15 @@ function ThreadFrameList({ frames }: { frames: string[] }) {
   );
 }
 
-function ThreadCard({ thread }: { thread: ThreadDumpEntry }) {
-  const [open, setOpen] = useState(false);
+function ThreadCard({
+  thread,
+  expanded,
+  onToggle,
+}: {
+  thread: ThreadDumpEntry;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   const colors = STATE_COLORS[thread.state];
   const hasFrames =
@@ -260,8 +381,8 @@ function ThreadCard({ thread }: { thread: ThreadDumpEntry }) {
     <div
       className={cn(
         "glass-card overflow-hidden transition-all",
-        open && "border-l-2",
-        open && colors.border.replace("/30", "/50"),
+        expanded && "border-l-2",
+        expanded && colors.border.replace("/30", "/50"),
       )}
     >
       {/* Card header */}
@@ -270,13 +391,13 @@ function ThreadCard({ thread }: { thread: ThreadDumpEntry }) {
         {hasFrames ? (
           <button
             type="button"
-            onClick={() => setOpen(!open)}
+            onClick={onToggle}
             className="mt-0.5 shrink-0 text-zinc-600 transition-colors hover:text-zinc-400"
           >
             <ChevronRight
               className={cn(
                 "size-3.5 transition-transform",
-                open && "rotate-90",
+                expanded && "rotate-90",
               )}
             />
           </button>
@@ -357,7 +478,7 @@ function ThreadCard({ thread }: { thread: ThreadDumpEntry }) {
       </div>
 
       {/* Collapsible frames */}
-      {hasFrames && open && (
+      {hasFrames && expanded && (
         <div className="border-t border-white/5 bg-black/20 px-4 py-3">
           <ThreadFrameList frames={thread.stackFrames} />
 
@@ -390,12 +511,17 @@ function ThreadCard({ thread }: { thread: ThreadDumpEntry }) {
 export function ThreadDumpViewer({
   threads,
   className,
+  onCopyAll,
+  onRefresh,
 }: {
   threads: ThreadDumpEntry[];
   className?: string;
+  onCopyAll?: () => void;
+  onRefresh?: () => void;
 }) {
   const [activeFilter, setActiveFilter] = useState<ThreadState | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
     let result = threads;
@@ -409,14 +535,58 @@ export function ThreadDumpViewer({
     return result;
   }, [threads, activeFilter, searchQuery]);
 
+  const threadKey = useCallback(
+    (t: ThreadDumpEntry) => `${t.name}-${t.id}`,
+    [],
+  );
+
+  // Check if all filtered threads with frames are expanded
+  const expandableFiltered = useMemo(
+    () =>
+      filtered.filter(
+        (t) => t.stackFrames.length > 0 || t.lockedSynchronizers.length > 0,
+      ),
+    [filtered],
+  );
+
+  const allExpanded =
+    expandableFiltered.length > 0 &&
+    expandableFiltered.every((t) => expandedIds.has(threadKey(t)));
+
+  function handleToggleExpandAll() {
+    if (allExpanded) {
+      setExpandedIds(new Set());
+    } else {
+      setExpandedIds(new Set(expandableFiltered.map(threadKey)));
+    }
+  }
+
+  function handleToggle(thread: ThreadDumpEntry) {
+    const key = threadKey(thread);
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       <SummaryBar
         threads={threads}
+        filteredCount={filtered.length}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        allExpanded={allExpanded}
+        onToggleExpandAll={handleToggleExpandAll}
+        onCopyAll={onCopyAll}
+        onRefresh={onRefresh}
       />
 
       {/* Thread list */}
@@ -427,7 +597,12 @@ export function ThreadDumpViewer({
           </div>
         ) : (
           filtered.map((thread) => (
-            <ThreadCard key={`${thread.name}-${thread.id}`} thread={thread} />
+            <ThreadCard
+              key={threadKey(thread)}
+              thread={thread}
+              expanded={expandedIds.has(threadKey(thread))}
+              onToggle={() => handleToggle(thread)}
+            />
           ))
         )}
       </div>
