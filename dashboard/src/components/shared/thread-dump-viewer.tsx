@@ -409,7 +409,7 @@ function ThreadCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             {/* Thread name */}
-            <span className="font-mono text-xs font-medium text-zinc-400 break-all">
+            <span className="font-mono text-xs font-medium text-zinc-300 break-all">
               {thread.name}
             </span>
 
