@@ -185,11 +185,37 @@ export type JobManagerMetrics = {
   gcTime: JvmMetricSample[];
 };
 
+export type JvmMemoryConfig = {
+  heapMax: number;
+  heapUsed: number;
+  nonHeapMax: number;
+  nonHeapUsed: number;
+  metaspaceMax: number;
+  metaspaceUsed: number;
+  directMax: number;
+  directUsed: number;
+};
+
+export type JvmInfo = {
+  arguments: string[];
+  systemProperties: { key: string; value: string }[];
+  memoryConfig: JvmMemoryConfig;
+};
+
+export type ClasspathEntry = {
+  path: string;
+  filename: string;
+  size: number;
+  tag: string;
+};
+
 export type JobManagerInfo = {
   config: JobManagerConfig[];
   metrics: JobManagerMetrics;
   logs: string;
   stdout: string;
+  jvm: JvmInfo;
+  classpath: ClasspathEntry[];
 };
 
 // --- Cluster overview types ---

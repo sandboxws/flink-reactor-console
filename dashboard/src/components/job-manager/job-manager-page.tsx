@@ -8,6 +8,9 @@ import { JmConfigTab } from "./jm-config-tab";
 import { JmMetricsTab } from "./jm-metrics-tab";
 import { JmLogsTab } from "./jm-logs-tab";
 import { JmStdoutTab } from "./jm-stdout-tab";
+import { JmLogListTab } from "./jm-log-list-tab";
+import { JmThreadDumpTab } from "./jm-thread-dump-tab";
+import { JmProfilerTab } from "./jm-profiler-tab";
 
 // ---------------------------------------------------------------------------
 // JobManagerPage — tabbed detail view for the Job Manager
@@ -51,10 +54,23 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
           <TabsTrigger value="stdout" className="detail-tab">
             Stdout
           </TabsTrigger>
+          <TabsTrigger value="log-list" className="detail-tab">
+            Log List
+          </TabsTrigger>
+          <TabsTrigger value="thread-dump" className="detail-tab">
+            Thread Dump
+          </TabsTrigger>
+          <TabsTrigger value="profiler" className="detail-tab">
+            Profiler
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="configuration">
-          <JmConfigTab config={jm.config} />
+          <JmConfigTab
+            config={jm.config}
+            jvm={jm.jvm}
+            classpath={jm.classpath}
+          />
         </TabsContent>
         <TabsContent value="metrics">
           <JmMetricsTab metrics={jm.metrics} />
@@ -64,6 +80,15 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
         </TabsContent>
         <TabsContent value="stdout">
           <JmStdoutTab stdout={jm.stdout} />
+        </TabsContent>
+        <TabsContent value="log-list">
+          <JmLogListTab />
+        </TabsContent>
+        <TabsContent value="thread-dump">
+          <JmThreadDumpTab />
+        </TabsContent>
+        <TabsContent value="profiler">
+          <JmProfilerTab />
         </TabsContent>
       </Tabs>
     </div>

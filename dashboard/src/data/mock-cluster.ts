@@ -1,6 +1,7 @@
 import type {
   Checkpoint,
   CheckpointConfig,
+  ClasspathEntry,
   ClusterOverview,
   FlinkJob,
   JobConfiguration,
@@ -13,6 +14,7 @@ import type {
   JobStatus,
   JobVertex,
   JobVertexStatus,
+  JvmInfo,
   JvmMetricSample,
   ShipStrategy,
   SubtaskMetrics,
@@ -726,12 +728,128 @@ function generateJmMetricSeries(
   return samples;
 }
 
+// ---------------------------------------------------------------------------
+// JVM info generator
+// ---------------------------------------------------------------------------
+
+function generateJvmInfo(): JvmInfo {
+  return {
+    arguments: [
+      "-Xmx1024m",
+      "-Xms1024m",
+      "-XX:MaxMetaspaceSize=256m",
+      "-XX:+UseG1GC",
+      "-XX:MaxGCPauseMillis=100",
+      "-XX:+ParallelRefProcEnabled",
+      "-XX:+ExplicitGCInvokesConcurrent",
+      "-XX:+HeapDumpOnOutOfMemoryError",
+      "-XX:HeapDumpPath=/opt/flink/log",
+      "-Dlog4j.configurationFile=/opt/flink/conf/log4j.properties",
+      "-Dlog.file=/opt/flink/log/flink-jobmanager.log",
+      "-Dflink.log.dir=/opt/flink/log",
+      "-Dlogback.configurationFile=/opt/flink/conf/logback.xml",
+      "-Djava.io.tmpdir=/tmp",
+    ],
+    systemProperties: [
+      { key: "java.version", value: "11.0.21" },
+      { key: "java.vendor", value: "Eclipse Adoptium" },
+      { key: "java.vm.name", value: "OpenJDK 64-Bit Server VM" },
+      { key: "java.vm.version", value: "11.0.21+9" },
+      { key: "os.name", value: "Linux" },
+      { key: "os.version", value: "5.15.0-91-generic" },
+      { key: "os.arch", value: "amd64" },
+      { key: "user.dir", value: "/opt/flink" },
+      { key: "user.name", value: "flink" },
+      { key: "file.encoding", value: "UTF-8" },
+      { key: "java.class.path", value: "/opt/flink/lib/*" },
+      { key: "sun.boot.class.path", value: "/usr/lib/jvm/java-11/lib/modules" },
+    ],
+    memoryConfig: {
+      heapMax: 1024 * MB,
+      heapUsed: Math.floor(jitter(620 * MB, 0.1)),
+      nonHeapMax: 256 * MB,
+      nonHeapUsed: Math.floor(jitter(120 * MB, 0.1)),
+      metaspaceMax: 256 * MB,
+      metaspaceUsed: Math.floor(jitter(95 * MB, 0.1)),
+      directMax: 128 * MB,
+      directUsed: Math.floor(jitter(42 * MB, 0.15)),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Classpath generator
+// ---------------------------------------------------------------------------
+
+function classifyJar(filename: string): string {
+  if (/^flink-dist/.test(filename)) return "flink-core";
+  if (/^flink-runtime/.test(filename)) return "flink-core";
+  if (/^flink-core/.test(filename)) return "flink-core";
+  if (/^flink-optimizer/.test(filename)) return "flink-core";
+  if (/^flink-rpc/.test(filename)) return "flink-core";
+  if (/^flink-csv/.test(filename)) return "flink-core";
+  if (/^flink-json/.test(filename)) return "flink-core";
+  if (/^flink-connector-files/.test(filename)) return "flink-core";
+  if (/^flink-table|^flink-sql-parser|^flink-cep/.test(filename)) return "flink-sql";
+  if (/connector|kafka|jdbc|elasticsearch|hive|hbase|pulsar/.test(filename)) return "connector";
+  if (/^log4j|^slf4j|logback/.test(filename)) return "log4j";
+  if (/^hadoop|^hdfs/.test(filename)) return "hadoop";
+  if (/^scala-|^flink-scala/.test(filename)) return "scala";
+  return "other";
+}
+
+const CLASSPATH_JARS: { filename: string; size: number }[] = [
+  // Core Flink distribution
+  { filename: "flink-dist-2.0.1.jar", size: 142_567_890 },
+  { filename: "flink-cep-2.0.1.jar", size: 1_567_890 },
+  { filename: "flink-connector-files-2.0.1.jar", size: 2_345_678 },
+  { filename: "flink-csv-2.0.1.jar", size: 456_789 },
+  { filename: "flink-json-2.0.1.jar", size: 678_901 },
+  // SQL / Table API
+  { filename: "flink-table-api-java-uber-2.0.1.jar", size: 48_901_234 },
+  { filename: "flink-table-planner-loader-2.0.1.jar", size: 45_678_901 },
+  { filename: "flink-table-runtime-2.0.1.jar", size: 8_901_234 },
+  // Scala
+  { filename: "flink-scala_2.12-2.0.1.jar", size: 5_456_789 },
+  // Logging
+  { filename: "log4j-1.2-api-2.24.3.jar", size: 67_890 },
+  { filename: "log4j-api-2.24.3.jar", size: 301_234 },
+  { filename: "log4j-core-2.24.3.jar", size: 1_789_012 },
+  { filename: "log4j-slf4j-impl-2.24.3.jar", size: 24_567 },
+  // User-added connectors (typical additions)
+  { filename: "flink-sql-connector-kafka-3.3.0-2.0.jar", size: 15_678_901 },
+  { filename: "flink-connector-jdbc-3.2.0-2.0.jar", size: 4_567_890 },
+  { filename: "flink-sql-connector-elasticsearch7-4.0.0-2.0.jar", size: 8_234_567 },
+  { filename: "flink-sql-connector-hive-3.1.3-2.0.jar", size: 18_901_234 },
+  // Hadoop ecosystem
+  { filename: "hadoop-common-3.3.4.jar", size: 4_123_456 },
+  { filename: "hadoop-hdfs-client-3.3.4.jar", size: 5_678_901 },
+  { filename: "hadoop-auth-3.3.4.jar", size: 234_567 },
+  { filename: "hadoop-mapreduce-client-core-3.3.4.jar", size: 1_890_123 },
+  // Other libraries
+  { filename: "commons-math3-3.6.1.jar", size: 2_123_456 },
+  { filename: "commons-lang3-3.12.0.jar", size: 612_345 },
+  { filename: "guava-31.1-jre.jar", size: 2_890_123 },
+  { filename: "jackson-core-2.15.3.jar", size: 567_890 },
+];
+
+function generateClasspath(): ClasspathEntry[] {
+  return CLASSPATH_JARS.map((jar) => ({
+    path: `/opt/flink/lib/${jar.filename}`,
+    filename: jar.filename,
+    size: jar.size,
+    tag: classifyJar(jar.filename),
+  }));
+}
+
 export function generateJobManagerInfo(): JobManagerInfo {
   return {
     config: FLINK_CONFIG,
     metrics: generateJmMetrics(),
     logs: generateJmLogs(),
     stdout: generateJmStdout(),
+    jvm: generateJvmInfo(),
+    classpath: generateClasspath(),
   };
 }
 
