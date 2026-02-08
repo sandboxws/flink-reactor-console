@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowLeft, Settings } from "lucide-react";
 import Link from "next/link";
 import type { JobManagerInfo } from "@/data/cluster-types";
@@ -17,6 +18,9 @@ import { JmProfilerTab } from "./jm-profiler-tab";
 // ---------------------------------------------------------------------------
 
 export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
+  const [activeTab, setActiveTab] = useState("configuration");
+  const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null);
+
   return (
     <div className="flex flex-col gap-4 p-4">
       {/* Back link */}
@@ -40,7 +44,14 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="configuration">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          setActiveTab(v);
+          // Reset log viewer when switching away
+          if (v !== "log-list") setSelectedLogFile(null);
+        }}
+      >
         <TabsList className="detail-tabs-list">
           <TabsTrigger value="configuration" className="detail-tab">
             Configuration
@@ -54,7 +65,11 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
           <TabsTrigger value="stdout" className="detail-tab">
             Stdout
           </TabsTrigger>
-          <TabsTrigger value="log-list" className="detail-tab">
+          <TabsTrigger
+            value="log-list"
+            className="detail-tab"
+            onClick={() => setSelectedLogFile(null)}
+          >
             Log List
           </TabsTrigger>
           <TabsTrigger value="thread-dump" className="detail-tab">
@@ -82,7 +97,11 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
           <JmStdoutTab stdout={jm.stdout} />
         </TabsContent>
         <TabsContent value="log-list">
-          <JmLogListTab />
+          <JmLogListTab
+            logFiles={jm.logFiles}
+            selectedLog={selectedLogFile}
+            onSelectLog={setSelectedLogFile}
+          />
         </TabsContent>
         <TabsContent value="thread-dump">
           <JmThreadDumpTab />

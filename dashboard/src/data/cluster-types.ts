@@ -209,6 +209,17 @@ export type ClasspathEntry = {
   tag: string;
 };
 
+export type LogFileEntry = {
+  name: string;
+  lastModified: Date;
+  size: number; // KB
+};
+
+export type LogFileContent = {
+  name: string;
+  content: string;
+};
+
 export type JobManagerInfo = {
   config: JobManagerConfig[];
   metrics: JobManagerMetrics;
@@ -216,6 +227,7 @@ export type JobManagerInfo = {
   stdout: string;
   jvm: JvmInfo;
   classpath: ClasspathEntry[];
+  logFiles: LogFileEntry[];
 };
 
 // --- Cluster overview types ---

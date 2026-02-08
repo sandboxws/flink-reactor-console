@@ -16,6 +16,7 @@ import type {
   JobVertexStatus,
   JvmInfo,
   JvmMetricSample,
+  LogFileEntry,
   ShipStrategy,
   SubtaskMetrics,
   TaskCounts,
@@ -842,6 +843,162 @@ function generateClasspath(): ClasspathEntry[] {
   }));
 }
 
+// ---------------------------------------------------------------------------
+// Log file list generator
+// ---------------------------------------------------------------------------
+
+const LOG_HOST = "FA:54:01:54:A8:3D";
+const LOG_USER = "ahmed";
+
+const LOG_FILES_TEMPLATE: { component: string; ordinal: string; ext: string; sizeKB: number; rotations: number }[] = [
+  { component: "standalonesession", ordinal: "0", ext: "log", sizeKB: 41.9, rotations: 3 },
+  { component: "standalonesession", ordinal: "0", ext: "out", sizeKB: 0, rotations: 0 },
+  { component: "taskexecutor", ordinal: "0", ext: "log", sizeKB: 33.42, rotations: 1 },
+  { component: "taskexecutor", ordinal: "0", ext: "out", sizeKB: 0, rotations: 0 },
+  { component: "client", ordinal: "", ext: "log", sizeKB: 13.18, rotations: 0 },
+];
+
+function generateLogFiles(): LogFileEntry[] {
+  const now = Date.now();
+  const entries: LogFileEntry[] = [];
+
+  for (const tmpl of LOG_FILES_TEMPLATE) {
+    const ordinalSuffix = tmpl.ordinal ? `-${tmpl.ordinal}` : "";
+    const baseName = `flink-${LOG_USER}-${tmpl.component}${ordinalSuffix}-${LOG_HOST}`;
+
+    // Primary file (most recently modified)
+    entries.push({
+      name: `${baseName}.${tmpl.ext}`,
+      lastModified: new Date(now - Math.floor(Math.random() * 3_600_000)),
+      size: tmpl.sizeKB,
+    });
+
+    // Rotated files (.log.1, .log.2, etc.) — older timestamps
+    for (let r = 1; r <= tmpl.rotations; r++) {
+      const daysAgo = r * 1 + Math.floor(Math.random() * 3);
+      entries.push({
+        name: `${baseName}.${tmpl.ext}.${r}`,
+        lastModified: new Date(now - daysAgo * 86_400_000 - Math.floor(Math.random() * 43_200_000)),
+        size: Number((5 + Math.random() * 45).toFixed(2)),
+      });
+    }
+  }
+
+  // Sort by lastModified descending
+  entries.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+  return entries;
+}
+
+/** Generate realistic log content for a given log file name. */
+export function generateLogFileContent(fileName: string): string {
+  const isOut = fileName.endsWith(".out");
+  if (isOut) {
+    // .out files are typically empty or contain JVM startup info
+    const isStdout = fileName.includes("standalonesession");
+    if (isStdout) {
+      return [
+        "Starting Flink StandaloneSession (StandaloneSessionClusterEntrypoint)",
+        "  JVM version: 11.0.21+9",
+        "  Max heap size: 1024 MB",
+        "  Working directory: /opt/flink",
+      ].join("\n");
+    }
+    return "";
+  }
+
+  const isClient = fileName.includes("client");
+  const isTm = fileName.includes("taskexecutor");
+  const isRotated = /\.\d+$/.test(fileName);
+
+  // Generate realistic log4j entries
+  const lines: string[] = [];
+  const baseDate = isRotated
+    ? new Date(Date.now() - 4 * 86_400_000)
+    : new Date(Date.now() - 3_600_000);
+  const lineCount = isClient ? 40 : isRotated ? 80 : 120;
+
+  const componentLoggers = isTm
+    ? [
+        "org.apache.flink.runtime.taskexecutor.TaskExecutor",
+        "org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl",
+        "org.apache.flink.runtime.taskmanager.Task",
+        "org.apache.flink.runtime.io.network.netty.NettyServer",
+        "org.apache.flink.runtime.io.network.partition.ResultPartitionManager",
+        "org.apache.flink.runtime.state.heap.HeapKeyedStateBackend",
+        "org.apache.flink.streaming.runtime.tasks.StreamTask",
+        "org.apache.flink.runtime.checkpoint.CheckpointCoordinator",
+      ]
+    : isClient
+      ? [
+          "org.apache.flink.client.cli.CliFrontend",
+          "org.apache.flink.client.program.PackagedProgram",
+          "org.apache.flink.client.deployment.StandaloneClientFactory",
+          "org.apache.flink.configuration.GlobalConfiguration",
+        ]
+      : [
+          "org.apache.flink.runtime.entrypoint.ClusterEntrypoint",
+          "org.apache.flink.runtime.dispatcher.DispatcherRestEndpoint",
+          "org.apache.flink.runtime.resourcemanager.StandaloneResourceManager",
+          "org.apache.flink.runtime.dispatcher.StandaloneDispatcher",
+          "org.apache.flink.runtime.jobmaster.JobMaster",
+          "org.apache.flink.runtime.blob.BlobServer",
+          "org.apache.flink.runtime.checkpoint.CheckpointCoordinator",
+          "org.apache.flink.runtime.executiongraph.ExecutionGraph",
+        ];
+
+  const levels = ["INFO", "INFO", "INFO", "INFO", "INFO", "DEBUG", "WARN"];
+
+  for (let i = 0; i < lineCount; i++) {
+    const ts = new Date(baseDate.getTime() + i * 1500 + Math.floor(Math.random() * 500));
+    const yyyy = ts.getFullYear();
+    const MM = String(ts.getMonth() + 1).padStart(2, "0");
+    const dd = String(ts.getDate()).padStart(2, "0");
+    const HH = String(ts.getHours()).padStart(2, "0");
+    const mm = String(ts.getMinutes()).padStart(2, "0");
+    const ss = String(ts.getSeconds()).padStart(2, "0");
+    const ms = String(ts.getMilliseconds()).padStart(3, "0");
+    const timestamp = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss},${ms}`;
+
+    const level = pickRandom(levels);
+    const logger = pickRandom(componentLoggers);
+    const loggerPadded = logger.padEnd(60);
+
+    let message: string;
+    if (level === "WARN") {
+      message = pickRandom([
+        "Slow garbage collection detected: G1 Young Generation GC took 245ms.",
+        "Network buffer pool is running low on available buffers.",
+        "Checkpoint completion time exceeded threshold: 8500ms > 5000ms.",
+        "Task slot request timed out after 30000ms, retrying.",
+      ]);
+    } else if (level === "DEBUG") {
+      message = pickRandom([
+        "Received heartbeat from TaskManager container_1234567890_0001_01_000001.",
+        "Processing watermark W(1706875234000).",
+        "Buffer pool usage: 847/1024 buffers.",
+        "RocksDB compaction completed in 124ms.",
+      ]);
+    } else {
+      message = pickRandom([
+        "Successfully completed checkpoint 42 in 2345ms.",
+        "Registering TaskManager with ResourceID container_1234567890_0001_01_000001.",
+        "Job ClickCountJob switched from RUNNING to RUNNING.",
+        "Checkpoint storage: received acknowledgement for checkpoint 42 from task Source: KafkaSource (1/4).",
+        "Connected to ResourceManager at flink-jobmanager:6123.",
+        "Starting task Source: KafkaSource (1/4) in thread Thread-12.",
+        "Allocated 4 network buffers for output gate.",
+        "State backend initialized with RocksDB at /tmp/flink-rocksdb/job_001.",
+        "Received JobGraph submission 'FraudDetectionPipeline'.",
+        "Deployed task Aggregate (2/4) to slot container_1234567890_0001_01_000002.",
+      ]);
+    }
+
+    lines.push(`${timestamp} ${level.padEnd(5)} ${loggerPadded} - ${message}`);
+  }
+
+  return lines.join("\n");
+}
+
 export function generateJobManagerInfo(): JobManagerInfo {
   return {
     config: FLINK_CONFIG,
@@ -850,6 +1007,7 @@ export function generateJobManagerInfo(): JobManagerInfo {
     stdout: generateJmStdout(),
     jvm: generateJvmInfo(),
     classpath: generateClasspath(),
+    logFiles: generateLogFiles(),
   };
 }
 
