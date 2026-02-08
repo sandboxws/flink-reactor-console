@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, Settings } from "lucide-react";
 import type { JobManagerConfig } from "@/data/cluster-types";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -13,9 +13,8 @@ import { TagBadge, TagChip, classifyConfigKey } from "./tag-filter";
 export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
-  const scrollYRef = useRef(0);
-  const tableRef = useRef<HTMLDivElement>(null);
-  const naturalHeightRef = useRef(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [rowsBelow, setRowsBelow] = useState(0);
 
   // Tag each config entry
   const taggedConfig = useMemo(
@@ -51,22 +50,27 @@ export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
     return results;
   }, [taggedConfig, activeTag, search]);
 
-  const isFiltered = activeTag !== null || search !== "";
-
-  // Stabilize page height during filtering to prevent scroll jump
-  useLayoutEffect(() => {
-    const el = tableRef.current;
-    if (!el) return;
-
-    if (!isFiltered) {
-      el.style.minHeight = "";
-      naturalHeightRef.current = el.offsetHeight;
-    } else if (naturalHeightRef.current > 0) {
-      el.style.minHeight = `${naturalHeightRef.current}px`;
+  // Compute how many rows remain below the visible scroll fold
+  const computeRowsBelow = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || filtered.length === 0) {
+      setRowsBelow(0);
+      return;
     }
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const remaining = scrollHeight - scrollTop - clientHeight;
+    if (remaining < 1) {
+      setRowsBelow(0);
+    } else {
+      const rowHeight = scrollHeight / (filtered.length + 1);
+      setRowsBelow(Math.ceil(remaining / rowHeight));
+    }
+  }, [filtered.length]);
 
-    window.scrollTo(0, scrollYRef.current);
-  }, [filtered, isFiltered]);
+  // Recompute when filtered data changes
+  useEffect(() => {
+    computeRowsBelow();
+  }, [computeRowsBelow]);
 
   if (config.length === 0) {
     return <EmptyState icon={Settings} message="No configuration available" />;
@@ -95,10 +99,9 @@ export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
               tag={tag}
               count={count}
               active={activeTag === tag}
-              onClick={() => {
-                scrollYRef.current = window.scrollY;
-                setActiveTag((prev) => (prev === tag ? null : tag));
-              }}
+              onClick={() =>
+                setActiveTag((prev) => (prev === tag ? null : tag))
+              }
             />
           ))}
         </div>
@@ -109,10 +112,7 @@ export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
           <input
             type="text"
             value={search}
-            onChange={(e) => {
-              scrollYRef.current = window.scrollY;
-              setSearch(e.target.value);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search configuration..."
             className="h-8 w-full rounded-md border border-dash-border bg-dash-surface pl-9 pr-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-fr-purple focus:outline-none"
           />
@@ -125,45 +125,62 @@ export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
       </div>
 
       {/* Config table */}
-      <div ref={tableRef}>
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-dash-border">
-              <th className="px-4 py-2 text-left font-medium text-zinc-500">
-                Key
-              </th>
-              <th className="px-4 py-2 text-left font-medium text-zinc-500">
-                Value
-              </th>
-              <th className="px-4 py-2 text-left font-medium text-zinc-500">
-                Tag
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((entry) => (
-              <tr
-                key={entry.key}
-                className="border-b border-dash-border/50 even:bg-dash-panel transition-colors hover:bg-dash-hover"
-              >
-                <td className="w-5/12 px-4 py-1.5 font-mono text-zinc-300">
-                  {entry.key}
-                </td>
-                <td className="w-5/12 px-4 py-1.5 font-mono text-zinc-400 break-all">
-                  {entry.value}
-                </td>
-                <td className="w-2/12 px-4 py-1.5">
-                  <TagBadge tag={entry.tag} />
-                </td>
+      <div className="relative">
+        <div
+          ref={scrollRef}
+          className="h-[480px] overflow-y-auto scrollbar-hide"
+          onScroll={computeRowsBelow}
+        >
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-dash-border">
+                <th className="px-4 py-2 text-left font-medium text-zinc-500">
+                  Key
+                </th>
+                <th className="px-4 py-2 text-left font-medium text-zinc-500">
+                  Value
+                </th>
+                <th className="px-4 py-2 text-left font-medium text-zinc-500">
+                  Tag
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && (
-          <div className="px-4 py-8 text-center text-xs text-zinc-500">
-            No matching configuration entries
-          </div>
-        )}
+            </thead>
+            <tbody>
+              {filtered.map((entry) => (
+                <tr
+                  key={entry.key}
+                  className="border-b border-dash-border/50 even:bg-dash-panel transition-colors hover:bg-dash-hover"
+                >
+                  <td className="w-5/12 px-4 py-1.5 font-mono text-zinc-300">
+                    {entry.key}
+                  </td>
+                  <td className="w-5/12 px-4 py-1.5 font-mono text-zinc-400 break-all">
+                    {entry.value}
+                  </td>
+                  <td className="w-2/12 px-4 py-1.5">
+                    <TagBadge tag={entry.tag} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filtered.length === 0 && (
+            <div className="px-4 py-8 text-center text-xs text-zinc-500">
+              No matching configuration entries
+            </div>
+          )}
+        </div>
+
+        {/* Scroll indicator overlay */}
+        <div
+          className={`pointer-events-none absolute bottom-0 left-0 right-0 flex h-8 items-end justify-center bg-gradient-to-t from-[#12121a] to-transparent pb-1.5 transition-opacity duration-200 ${
+            rowsBelow > 0 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <span className="font-mono text-[10px] tabular-nums text-zinc-500">
+            {rowsBelow} more row{rowsBelow !== 1 ? "s" : ""} below
+          </span>
+        </div>
       </div>
     </div>
   );
