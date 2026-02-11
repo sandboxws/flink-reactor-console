@@ -14,7 +14,7 @@ import {
   generateUploadedJars,
   refreshMetrics,
 } from "@/data/mock-cluster";
-import { fetchOverviewPageData } from "@/lib/flink-api-client";
+import { fetchOverviewPageData, fetchJobDetail } from "@/lib/flink-api-client";
 import { useConfigStore } from "./config-store";
 
 // ---------------------------------------------------------------------------
@@ -34,6 +34,9 @@ interface ClusterState {
   lastUpdated: Date | null;
   fetchError: string | null;
   isLoading: boolean;
+  jobDetail: FlinkJob | null;
+  jobDetailLoading: boolean;
+  jobDetailError: string | null;
 }
 
 interface ClusterActions {
@@ -47,6 +50,8 @@ interface ClusterActions {
   cancelJob: (jobId: string) => void;
   uploadJar: (jar: UploadedJar) => void;
   deleteJar: (jarId: string) => void;
+  fetchJobDetail: (jobId: string) => Promise<void>;
+  clearJobDetail: () => void;
 }
 
 export type ClusterStore = ClusterState & ClusterActions;
@@ -75,6 +80,9 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
   lastUpdated: null,
   fetchError: null,
   isLoading: false,
+  jobDetail: null,
+  jobDetailLoading: false,
+  jobDetailError: null,
 
   initialize: async () => {
     if (initialized) return;
@@ -244,5 +252,23 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
     set((state) => ({
       uploadedJars: state.uploadedJars.filter((j) => j.id !== jarId),
     }));
+  },
+
+  fetchJobDetail: async (jobId) => {
+    set({ jobDetailLoading: true, jobDetailError: null });
+    try {
+      const job = await fetchJobDetail(jobId);
+      set({ jobDetail: job, jobDetailLoading: false, jobDetailError: null });
+    } catch (err) {
+      set({
+        jobDetailLoading: false,
+        jobDetailError:
+          err instanceof Error ? err.message : "Failed to fetch job detail",
+      });
+    }
+  },
+
+  clearJobDetail: () => {
+    set({ jobDetail: null, jobDetailLoading: false, jobDetailError: null });
   },
 }));

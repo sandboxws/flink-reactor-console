@@ -2,8 +2,8 @@
 // Browser-side API client — fetches from Next.js proxy routes, applies mappers.
 // ---------------------------------------------------------------------------
 
-import type { FlinkOverviewResponse, FlinkJobsOverviewResponse } from "@/data/flink-api-types";
-import { mapOverviewResponse, mapJobsOverviewResponse } from "@/data/flink-api-mappers";
+import type { FlinkOverviewResponse, FlinkJobsOverviewResponse, FlinkJobDetailAggregate } from "@/data/flink-api-types";
+import { mapOverviewResponse, mapJobsOverviewResponse, mapJobDetailAggregate } from "@/data/flink-api-mappers";
 import type { ClusterOverview, FlinkJob } from "@/data/cluster-types";
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -49,4 +49,11 @@ export async function fetchOverviewPageData(): Promise<OverviewPageData> {
     runningJobs: jobs.runningJobs,
     completedJobs: jobs.completedJobs,
   };
+}
+
+export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
+  const raw = await fetchJson<FlinkJobDetailAggregate>(
+    `/api/flink/jobs/${jobId}/detail`,
+  );
+  return mapJobDetailAggregate(raw);
 }

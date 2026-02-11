@@ -3,13 +3,45 @@
 // Used by proxy routes when mockMode=true so the full pipeline is exercised.
 // ---------------------------------------------------------------------------
 
-import type { FlinkOverviewResponse, FlinkJobsOverviewResponse, FlinkTaskCounts } from "./flink-api-types";
-import type { ClusterOverview, FlinkJob, TaskCounts } from "./cluster-types";
+import type {
+  FlinkOverviewResponse,
+  FlinkJobsOverviewResponse,
+  FlinkTaskCounts,
+  FlinkJobDetailAggregate,
+  FlinkJobDetailResponse,
+  FlinkJobPlan,
+  FlinkVertexInfo,
+  FlinkVertexMetrics,
+  FlinkJobExceptionsResponse,
+  FlinkCheckpointingStatistics,
+  FlinkCheckpointConfigResponse,
+  FlinkJobConfigResponse,
+  FlinkVertexDetailResponse,
+  FlinkPlanNode,
+} from "./flink-api-types";
+import type {
+  Checkpoint,
+  CheckpointConfig,
+  ClusterOverview,
+  FlinkJob,
+  JobConfiguration,
+  JobEdge,
+  JobException,
+  JobPlan,
+  JobVertex,
+  SubtaskMetrics,
+  TaskCounts,
+} from "./cluster-types";
 import {
   generateClusterOverview,
   generateRunningJobs,
   generateCompletedJobs,
   generateTaskManagers,
+  generateJobPlan,
+  generateJobExceptions,
+  generateCheckpoints,
+  generateSubtaskMetrics,
+  generateJobConfiguration,
 } from "./mock-cluster";
 
 // ---------------------------------------------------------------------------
@@ -80,4 +112,295 @@ export function generateMockJobsOverviewApiResponse(): FlinkJobsOverviewResponse
   const running = generateRunningJobs();
   const completed = generateCompletedJobs();
   return jobsToApi([...running, ...completed]);
+}
+
+// ---------------------------------------------------------------------------
+// Job detail reverse mappers: domain → API format
+// ---------------------------------------------------------------------------
+
+function domainTaskCountsToUppercase(tc: TaskCounts): Record<string, number> {
+  return {
+    CREATED: 0,
+    SCHEDULED: tc.pending,
+    DEPLOYING: 0,
+    RUNNING: tc.running,
+    FINISHED: tc.finished,
+    CANCELING: tc.canceling,
+    CANCELED: 0,
+    FAILED: tc.failed,
+    RECONCILING: 0,
+    INITIALIZING: 0,
+  };
+}
+
+function domainVertexToApi(v: JobVertex, jobDurationMs: number): FlinkVertexInfo {
+  const durationSec = Math.max(1, jobDurationMs / 1000);
+  const metrics: FlinkVertexMetrics = {
+    "read-bytes": v.metrics.bytesIn,
+    "read-bytes-complete": true,
+    "write-bytes": v.metrics.bytesOut,
+    "write-bytes-complete": true,
+    "read-records": v.metrics.recordsIn,
+    "read-records-complete": true,
+    "write-records": v.metrics.recordsOut,
+    "write-records-complete": true,
+    "accumulated-backpressured-time": Math.round(
+      v.metrics.backPressuredTimeMsPerSecond * durationSec,
+    ),
+    "accumulated-idle-time": 0,
+    "accumulated-busy-time": Math.round(
+      v.metrics.busyTimeMsPerSecond * durationSec,
+    ),
+  };
+
+  return {
+    id: v.id,
+    name: v.name,
+    maxParallelism: v.parallelism * 4,
+    parallelism: v.parallelism,
+    status: v.status,
+    "start-time": v.startTime,
+    "end-time": v.status === "RUNNING" ? -1 : v.startTime + v.duration,
+    duration: v.duration,
+    tasks: domainTaskCountsToUppercase(v.tasks),
+    metrics,
+  };
+}
+
+function domainPlanToApi(
+  plan: JobPlan,
+  jobId: string,
+  jobName: string,
+  edges: JobEdge[],
+): FlinkJobPlan {
+  // Build a lookup: target → edges arriving at that target
+  const edgesByTarget = new Map<string, JobEdge[]>();
+  for (const e of edges) {
+    const list = edgesByTarget.get(e.target) ?? [];
+    list.push(e);
+    edgesByTarget.set(e.target, list);
+  }
+
+  const nodes: FlinkPlanNode[] = plan.vertices.map((v, i) => {
+    const incoming = edgesByTarget.get(v.id) ?? [];
+    return {
+      id: v.id,
+      parallelism: v.parallelism,
+      operator: v.name,
+      operator_strategy: "NONE",
+      description: v.name,
+      ...(incoming.length > 0
+        ? {
+            inputs: incoming.map((e, idx) => ({
+              num: idx,
+              id: e.source,
+              ship_strategy: e.shipStrategy,
+              exchange: "pipelined",
+            })),
+          }
+        : {}),
+    };
+  });
+
+  return { jid: jobId, name: jobName, type: "STREAMING", nodes };
+}
+
+function domainExceptionsToApi(
+  exceptions: JobException[],
+): FlinkJobExceptionsResponse {
+  return {
+    exceptionHistory: {
+      entries: exceptions.map((e) => ({
+        exceptionName: e.name,
+        stacktrace: e.stacktrace,
+        timestamp: e.timestamp.getTime(),
+        taskName: e.taskName,
+        endpoint: e.location,
+        taskManagerId: null,
+        failureLabels: {},
+      })),
+      truncated: false,
+    },
+  };
+}
+
+function domainCheckpointsToApi(
+  checkpoints: Checkpoint[],
+): FlinkCheckpointingStatistics {
+  return {
+    counts: {
+      completed: checkpoints.filter((c) => c.status === "COMPLETED").length,
+      in_progress: checkpoints.filter((c) => c.status === "IN_PROGRESS").length,
+      failed: checkpoints.filter((c) => c.status === "FAILED").length,
+      total: checkpoints.length,
+    },
+    history: checkpoints.map((c) => ({
+      id: c.id,
+      status: c.status,
+      is_savepoint: c.isSavepoint,
+      trigger_timestamp: c.triggerTimestamp.getTime(),
+      latest_ack_timestamp: c.triggerTimestamp.getTime() + c.duration,
+      state_size: c.size,
+      end_to_end_duration: c.duration,
+      processed_data: c.processedData,
+      persisted_data: c.size,
+      num_subtasks: 4,
+      num_acknowledged_subtasks: c.status === "IN_PROGRESS" ? 2 : 4,
+    })),
+  };
+}
+
+function domainCheckpointConfigToApi(
+  config: CheckpointConfig,
+): FlinkCheckpointConfigResponse {
+  return {
+    mode: config.mode,
+    interval: config.interval,
+    timeout: config.timeout,
+    min_pause: config.minPause,
+    max_concurrent: config.maxConcurrent,
+    externalization: {
+      enabled: true,
+      delete_on_cancellation: false,
+    },
+    unaligned_checkpoints: true,
+  };
+}
+
+function domainJobConfigToApi(
+  configuration: JobConfiguration[],
+  jobId: string,
+  jobName: string,
+): FlinkJobConfigResponse {
+  const userConfig: Record<string, string> = {};
+  for (const c of configuration) {
+    userConfig[c.key] = c.value;
+  }
+  return {
+    jid: jobId,
+    name: jobName,
+    "execution-config": {
+      "execution-mode": "PIPELINED",
+      "restart-strategy": "fixed-delay",
+      "job-parallelism": 4,
+      "object-reuse-mode": true,
+      "user-config": userConfig,
+    },
+  };
+}
+
+function domainSubtaskMetricsToApi(
+  subtaskMetrics: Record<string, SubtaskMetrics[]>,
+  vertices: JobVertex[],
+): Record<string, FlinkVertexDetailResponse> {
+  const result: Record<string, FlinkVertexDetailResponse> = {};
+  const now = Date.now();
+
+  for (const vertex of vertices) {
+    const subtasks = subtaskMetrics[vertex.id] ?? [];
+    result[vertex.id] = {
+      id: vertex.id,
+      name: vertex.name,
+      parallelism: vertex.parallelism,
+      now,
+      subtasks: subtasks.map((s) => {
+        const accBusy = Math.round(
+          s.busyTimeMsPerSecond * Math.max(1, vertex.duration / 1000),
+        );
+        return {
+          subtask: s.subtaskIndex,
+          status: vertex.status,
+          attempt: 0,
+          endpoint: `tm-${(s.subtaskIndex % 3) + 1}:6122`,
+          "start-time": vertex.startTime,
+          "end-time": vertex.status === "RUNNING" ? -1 : vertex.startTime + vertex.duration,
+          duration: vertex.duration,
+          metrics: {
+            "read-bytes": s.bytesIn,
+            "read-bytes-complete": true,
+            "write-bytes": s.bytesOut,
+            "write-bytes-complete": true,
+            "read-records": s.recordsIn,
+            "read-records-complete": true,
+            "write-records": s.recordsOut,
+            "write-records-complete": true,
+            "accumulated-backpressured-time": 0,
+            "accumulated-idle-time": 0,
+            "accumulated-busy-time": accBusy,
+          },
+          "taskmanager-id": `tm-${(s.subtaskIndex % 3) + 1}`,
+        };
+      }),
+    };
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Public mock generator for job detail aggregate
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate a mock FlinkJobDetailAggregate for a given job ID.
+ * Uses domain generators, then reverse-maps to API format.
+ */
+export function generateMockJobDetailApiResponse(
+  jobId: string,
+): FlinkJobDetailAggregate {
+  // Find the job in our mock data (or generate a default one)
+  const running = generateRunningJobs();
+  const completed = generateCompletedJobs();
+  const allJobs = [...running, ...completed];
+  const domainJob = allJobs.find((j) => j.id === jobId);
+
+  // If job not found, generate a standalone one (shouldn't happen in practice)
+  const jobName = domainJob?.name ?? "UnknownJob";
+  const jobStatus = domainJob?.status ?? "RUNNING";
+  const startTime = domainJob?.startTime ?? new Date();
+  const endTime = domainJob?.endTime;
+  const duration = domainJob?.duration ?? 60_000;
+  const parallelism = domainJob?.parallelism ?? 4;
+
+  // Generate domain detail data
+  const plan = generateJobPlan(parallelism, jobStatus, startTime);
+  const exceptions = generateJobExceptions(jobStatus, plan.vertices);
+  const { checkpoints, config: ckpConfig } = generateCheckpoints(jobStatus);
+  const subtaskMetrics = generateSubtaskMetrics(plan.vertices);
+  const configuration = generateJobConfiguration();
+
+  // Reverse-map to API format
+  const apiVertices = plan.vertices.map((v) => domainVertexToApi(v, duration));
+  const apiPlan = domainPlanToApi(plan, jobId, jobName, plan.edges);
+
+  // Assemble status-counts from all vertices
+  const statusCounts: Record<string, number> = {};
+  for (const v of apiVertices) {
+    for (const [state, count] of Object.entries(v.tasks)) {
+      statusCounts[state] = (statusCounts[state] ?? 0) + count;
+    }
+  }
+
+  const jobResponse: FlinkJobDetailResponse = {
+    jid: jobId,
+    name: jobName,
+    state: jobStatus,
+    "start-time": startTime.getTime(),
+    "end-time": endTime ? endTime.getTime() : -1,
+    duration,
+    now: Date.now(),
+    timestamps: { [jobStatus]: startTime.getTime() },
+    vertices: apiVertices,
+    "status-counts": statusCounts,
+    plan: apiPlan,
+  };
+
+  return {
+    job: jobResponse,
+    exceptions: domainExceptionsToApi(exceptions),
+    checkpoints: domainCheckpointsToApi(checkpoints),
+    checkpointConfig: domainCheckpointConfigToApi(ckpConfig),
+    jobConfig: domainJobConfigToApi(configuration, jobId, jobName),
+    vertexDetails: domainSubtaskMetricsToApi(subtaskMetrics, plan.vertices),
+  };
 }
