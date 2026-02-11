@@ -17,6 +17,9 @@ import type {
   FlinkCheckpointConfigResponse,
   FlinkJobConfigResponse,
   FlinkVertexDetailResponse,
+  FlinkWatermarksResponse,
+  FlinkVertexBackPressureResponse,
+  FlinkVertexAccumulatorsResponse,
 } from "./flink-api-types";
 import type {
   Checkpoint,
@@ -34,7 +37,11 @@ import type {
   JobVertexStatus,
   ShipStrategy,
   SubtaskMetrics,
+  SubtaskBackPressure,
   TaskCounts,
+  UserAccumulator,
+  VertexBackPressure,
+  VertexWatermark,
 } from "./cluster-types";
 
 // ---------------------------------------------------------------------------
@@ -118,6 +125,9 @@ function mapJobEntry(entry: FlinkJobOverviewEntry): FlinkJob {
     checkpointConfig: null,
     subtaskMetrics: {},
     configuration: [],
+    watermarks: {},
+    backpressure: {},
+    accumulators: {},
   };
 }
 
@@ -376,16 +386,107 @@ export function mapSubtaskMetrics(
   const result: Record<string, SubtaskMetrics[]> = {};
 
   for (const [vertexId, detail] of Object.entries(vertexDetails)) {
-    result[vertexId] = detail.subtasks.map((s) => ({
-      subtaskIndex: s.subtask,
-      recordsIn: s.metrics["read-records"],
-      recordsOut: s.metrics["write-records"],
-      bytesIn: s.metrics["read-bytes"],
-      bytesOut: s.metrics["write-bytes"],
-      busyTimeMsPerSecond: Math.round(
-        s.metrics["accumulated-busy-time"] / Math.max(1, s.duration / 1000),
+    result[vertexId] = detail.subtasks.map((s) => {
+      const durationSec = Math.max(1, s.duration / 1000);
+      return {
+        subtaskIndex: s.subtask,
+        status: s.status,
+        attempt: s.attempt,
+        endpoint: s.endpoint,
+        taskManagerId: s["taskmanager-id"],
+        startTime: s["start-time"],
+        endTime: s["end-time"],
+        duration: s.duration,
+        recordsIn: s.metrics["read-records"],
+        recordsOut: s.metrics["write-records"],
+        bytesIn: s.metrics["read-bytes"],
+        bytesOut: s.metrics["write-bytes"],
+        busyTimeMsPerSecond: Math.round(
+          s.metrics["accumulated-busy-time"] / durationSec,
+        ),
+        backPressuredTimeMsPerSecond: Math.round(
+          s.metrics["accumulated-backpressured-time"] / durationSec,
+        ),
+        idleTimeMsPerSecond: Math.round(
+          s.metrics["accumulated-idle-time"] / durationSec,
+        ),
+      };
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Map watermark responses → domain Record<vertexId, VertexWatermark[]>.
+ * Watermark metric IDs follow the pattern: "N.currentInputWatermark" where N is the subtask index.
+ */
+export function mapWatermarks(
+  watermarks: Record<string, FlinkWatermarksResponse>,
+): Record<string, VertexWatermark[]> {
+  const result: Record<string, VertexWatermark[]> = {};
+
+  for (const [vertexId, metrics] of Object.entries(watermarks)) {
+    const arr = Array.isArray(metrics) ? metrics : [];
+    result[vertexId] = arr
+      .filter((m) => m.id.endsWith(".currentInputWatermark"))
+      .map((m) => {
+        const subtaskIndex = parseInt(m.id.split(".")[0], 10);
+        const value = parseFloat(m.value);
+        return {
+          subtaskIndex: isNaN(subtaskIndex) ? 0 : subtaskIndex,
+          watermark: isNaN(value) ? -Infinity : value,
+        };
+      })
+      .sort((a, b) => a.subtaskIndex - b.subtaskIndex);
+  }
+
+  return result;
+}
+
+/**
+ * Map backpressure responses → domain Record<vertexId, VertexBackPressure>.
+ */
+export function mapBackPressure(
+  backpressure: Record<string, FlinkVertexBackPressureResponse>,
+): Record<string, VertexBackPressure> {
+  const result: Record<string, VertexBackPressure> = {};
+
+  for (const [vertexId, response] of Object.entries(backpressure)) {
+    result[vertexId] = {
+      level: response.backpressureLevel,
+      endTimestamp: response["end-timestamp"],
+      subtasks: (response.subtasks ?? []).map(
+        (s): SubtaskBackPressure => ({
+          subtaskIndex: s.subtask,
+          level: s.backpressureLevel,
+          ratio: s.ratio,
+          busyRatio: s.busyRatio,
+          idleRatio: s.idleRatio,
+        }),
       ),
-    }));
+    };
+  }
+
+  return result;
+}
+
+/**
+ * Map accumulators responses → domain Record<vertexId, UserAccumulator[]>.
+ */
+export function mapAccumulators(
+  accumulators: Record<string, FlinkVertexAccumulatorsResponse>,
+): Record<string, UserAccumulator[]> {
+  const result: Record<string, UserAccumulator[]> = {};
+
+  for (const [vertexId, response] of Object.entries(accumulators)) {
+    result[vertexId] = (response["user-accumulators"] ?? []).map(
+      (a): UserAccumulator => ({
+        name: a.name,
+        type: a.type,
+        value: a.value,
+      }),
+    );
   }
 
   return result;
@@ -402,6 +503,9 @@ export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
   const checkpointConfig = mapCheckpointConfig(api.checkpointConfig);
   const configuration = mapJobConfiguration(api.jobConfig);
   const subtaskMetrics = mapSubtaskMetrics(api.vertexDetails);
+  const watermarks = mapWatermarks(api.watermarks ?? {});
+  const backpressure = mapBackPressure(api.backpressure ?? {});
+  const accumulators = mapAccumulators(api.accumulators ?? {});
 
   return {
     id: job.jid,
@@ -421,5 +525,8 @@ export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
     checkpointConfig,
     subtaskMetrics,
     configuration,
+    watermarks,
+    backpressure,
+    accumulators,
   };
 }

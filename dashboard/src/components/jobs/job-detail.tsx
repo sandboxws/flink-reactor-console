@@ -10,6 +10,7 @@ import { DataSkewTab } from "./detail/data-skew-tab";
 import { TimelineTab } from "./detail/timeline-tab";
 import { CheckpointsTab } from "./detail/checkpoints-tab";
 import { ConfigurationTab } from "./detail/configuration-tab";
+import { VerticesTab } from "./detail/vertices-tab";
 
 // Dynamic import for ReactFlow component (dagre uses CJS require which breaks SSR)
 const JobGraph = dynamic(() => import("./detail/job-graph").then((m) => m.JobGraph), {
@@ -31,6 +32,13 @@ export function JobDetail({
   onCreateSavepoint?: () => void;
 }) {
   const [savepointFeedback, setSavepointFeedback] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedVertexId, setSelectedVertexId] = useState<string | undefined>();
+
+  const handleSelectVertex = (vertexId: string) => {
+    setSelectedVertexId(vertexId);
+    setActiveTab("vertices");
+  };
 
   const handleSavepoint = () => {
     setSavepointFeedback(true);
@@ -52,10 +60,13 @@ export function JobDetail({
         </div>
       )}
 
-      <Tabs defaultValue="overview">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="detail-tabs-list">
           <TabsTrigger value="overview" className="detail-tab">
             Overview
+          </TabsTrigger>
+          <TabsTrigger value="vertices" className="detail-tab">
+            Vertices
           </TabsTrigger>
           <TabsTrigger value="exceptions" className="detail-tab">
             Exceptions
@@ -81,12 +92,16 @@ export function JobDetail({
 
         <TabsContent value="overview" className="mt-4">
           {job.plan ? (
-            <JobGraph plan={job.plan} />
+            <JobGraph plan={job.plan} onSelectVertex={handleSelectVertex} />
           ) : (
             <div className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500">
               No execution plan available
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="vertices" className="mt-4">
+          <VerticesTab job={job} selectedVertexId={selectedVertexId} />
         </TabsContent>
 
         <TabsContent value="exceptions" className="mt-4">

@@ -19,6 +19,7 @@ import type {
   LogFileEntry,
   ShipStrategy,
   SubtaskMetrics,
+  SubtaskBackPressure,
   TaskCounts,
   TaskManager,
   TaskManagerMetrics,
@@ -27,6 +28,9 @@ import type {
   ThreadInfoRaw,
   ThreadState,
   UploadedJar,
+  UserAccumulator,
+  VertexBackPressure,
+  VertexWatermark,
 } from "./cluster-types";
 import { PLACEHOLDER_VALUES, pickRandom, TASK_MANAGERS } from "./flink-loggers";
 
@@ -373,18 +377,109 @@ export function generateSubtaskMetrics(
       const multiplier = i === skewedIdx ? skewFactor : 0.8 + Math.random() * 0.4;
       const recordsIn = Math.floor(baseRecords * multiplier);
       const recordsOut = Math.floor(recordsIn * (0.7 + Math.random() * 0.3));
+      const busyMs = Math.floor(200 + Math.random() * 700);
+      const bpMs = Math.floor(Math.random() * 300);
+      const idleMs = Math.max(0, 1000 - busyMs - bpMs);
+      const tmIdx = (i % 3) + 1;
 
       subtasks.push({
         subtaskIndex: i,
+        status: vertex.status,
+        attempt: 0,
+        endpoint: `tm-${tmIdx}:6122`,
+        taskManagerId: `tm-${tmIdx}`,
+        startTime: vertex.startTime,
+        endTime: vertex.status === "RUNNING" ? -1 : vertex.startTime + vertex.duration,
+        duration: vertex.duration,
         recordsIn,
         recordsOut,
         bytesIn: recordsIn * 256,
         bytesOut: recordsOut * 200,
-        busyTimeMsPerSecond: Math.floor(200 + Math.random() * 700),
+        busyTimeMsPerSecond: busyMs,
+        backPressuredTimeMsPerSecond: bpMs,
+        idleTimeMsPerSecond: idleMs,
       });
     }
 
     result[vertex.id] = subtasks;
+  }
+
+  return result;
+}
+
+export function generateWatermarks(
+  vertices: JobVertex[],
+): Record<string, VertexWatermark[]> {
+  const result: Record<string, VertexWatermark[]> = {};
+  const now = Date.now();
+
+  for (const vertex of vertices) {
+    const wms: VertexWatermark[] = [];
+    for (let i = 0; i < vertex.parallelism; i++) {
+      // Watermarks are slightly behind current time (1-30 seconds lag)
+      const lag = 1000 + Math.floor(Math.random() * 29_000);
+      wms.push({
+        subtaskIndex: i,
+        watermark: vertex.status === "RUNNING" ? now - lag : -Infinity,
+      });
+    }
+    result[vertex.id] = wms;
+  }
+
+  return result;
+}
+
+export function generateBackPressure(
+  vertices: JobVertex[],
+): Record<string, VertexBackPressure> {
+  const result: Record<string, VertexBackPressure> = {};
+  const levels: Array<"ok" | "low" | "high"> = ["ok", "ok", "ok", "low", "high"];
+
+  for (const vertex of vertices) {
+    const subtasks: SubtaskBackPressure[] = [];
+    for (let i = 0; i < vertex.parallelism; i++) {
+      const level = pickRandom(levels);
+      const ratio = level === "ok" ? Math.random() * 0.1 : level === "low" ? 0.1 + Math.random() * 0.4 : 0.5 + Math.random() * 0.5;
+      const busyRatio = 0.3 + Math.random() * 0.5;
+      const idleRatio = Math.max(0, 1 - ratio - busyRatio);
+      subtasks.push({ subtaskIndex: i, level, ratio, busyRatio, idleRatio });
+    }
+
+    // Overall level is the worst across subtasks
+    const overallLevel = subtasks.some((s) => s.level === "high")
+      ? "high"
+      : subtasks.some((s) => s.level === "low")
+        ? "low"
+        : "ok";
+
+    result[vertex.id] = {
+      level: overallLevel,
+      endTimestamp: Date.now(),
+      subtasks,
+    };
+  }
+
+  return result;
+}
+
+export function generateAccumulators(
+  vertices: JobVertex[],
+): Record<string, UserAccumulator[]> {
+  const result: Record<string, UserAccumulator[]> = {};
+
+  const sampleAccumulators: UserAccumulator[][] = [
+    [
+      { name: "numRecordsProcessed", type: "LongCounter", value: String(10_000 + Math.floor(Math.random() * 500_000)) },
+      { name: "numBytesProcessed", type: "LongCounter", value: String(2_000_000 + Math.floor(Math.random() * 100_000_000)) },
+    ],
+    [
+      { name: "numLateRecordsDropped", type: "LongCounter", value: String(Math.floor(Math.random() * 100)) },
+    ],
+    [], // some vertices have no accumulators
+  ];
+
+  for (const vertex of vertices) {
+    result[vertex.id] = pickRandom(sampleAccumulators);
   }
 
   return result;
@@ -427,12 +522,15 @@ function generateJobDetailFields(
   parallelism: number,
   jobStatus: JobStatus,
   startTime: Date,
-): Pick<FlinkJob, "plan" | "exceptions" | "checkpoints" | "checkpointConfig" | "subtaskMetrics" | "configuration"> {
+): Pick<FlinkJob, "plan" | "exceptions" | "checkpoints" | "checkpointConfig" | "subtaskMetrics" | "configuration" | "watermarks" | "backpressure" | "accumulators"> {
   const plan = generateJobPlan(parallelism, jobStatus, startTime);
   const exceptions = generateJobExceptions(jobStatus, plan.vertices);
   const { checkpoints, config } = generateCheckpoints(jobStatus);
   const subtaskMetrics = generateSubtaskMetrics(plan.vertices);
   const configuration = generateJobConfiguration();
+  const watermarks = generateWatermarks(plan.vertices);
+  const backpressure = generateBackPressure(plan.vertices);
+  const accumulators = generateAccumulators(plan.vertices);
 
   return {
     plan,
@@ -441,6 +539,9 @@ function generateJobDetailFields(
     checkpointConfig: config,
     subtaskMetrics,
     configuration,
+    watermarks,
+    backpressure,
+    accumulators,
   };
 }
 

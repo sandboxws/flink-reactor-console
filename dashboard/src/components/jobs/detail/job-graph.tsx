@@ -106,7 +106,13 @@ const edgeTypes = { strategy: StrategyEdge };
 // Inner component (needs ReactFlow context)
 // ---------------------------------------------------------------------------
 
-function JobGraphInner({ plan }: { plan: JobPlan }) {
+function JobGraphInner({
+  plan,
+  onSelectVertex,
+}: {
+  plan: JobPlan;
+  onSelectVertex?: (vertexId: string) => void;
+}) {
   const { fitView } = useReactFlow();
 
   const layouted = useMemo(() => {
@@ -114,7 +120,7 @@ function JobGraphInner({ plan }: { plan: JobPlan }) {
       id: v.id,
       type: "operator",
       position: { x: 0, y: 0 },
-      data: { vertex: v },
+      data: { vertex: v, onSelectVertex },
     }));
 
     const rawEdges: Edge[] = plan.edges.map((e, i) => ({
@@ -126,7 +132,7 @@ function JobGraphInner({ plan }: { plan: JobPlan }) {
     }));
 
     return layoutElements(rawNodes, rawEdges);
-  }, [plan]);
+  }, [plan, onSelectVertex]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layouted.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layouted.edges);
@@ -186,14 +192,16 @@ function JobGraphInner({ plan }: { plan: JobPlan }) {
 export function JobGraph({
   plan,
   className,
+  onSelectVertex,
 }: {
   plan: JobPlan;
   className?: string;
+  onSelectVertex?: (vertexId: string) => void;
 }) {
   return (
     <div className={`glass-card ${className ?? ""}`} style={{ height: 500 }}>
       <ReactFlowProvider>
-        <JobGraphInner plan={plan} />
+        <JobGraphInner plan={plan} onSelectVertex={onSelectVertex} />
       </ReactFlowProvider>
     </div>
   );

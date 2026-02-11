@@ -102,11 +102,45 @@ export type CheckpointConfig = {
 
 export type SubtaskMetrics = {
   subtaskIndex: number;
+  status: string;
+  attempt: number;
+  endpoint: string;
+  taskManagerId: string;
+  startTime: number;
+  endTime: number;
+  duration: number;
   recordsIn: number;
   recordsOut: number;
   bytesIn: number;
   bytesOut: number;
   busyTimeMsPerSecond: number;
+  backPressuredTimeMsPerSecond: number;
+  idleTimeMsPerSecond: number;
+};
+
+export type VertexWatermark = {
+  subtaskIndex: number;
+  watermark: number; // epoch ms, or -Infinity sentinel
+};
+
+export type SubtaskBackPressure = {
+  subtaskIndex: number;
+  level: "ok" | "low" | "high";
+  ratio: number;
+  busyRatio: number;
+  idleRatio: number;
+};
+
+export type VertexBackPressure = {
+  level: "ok" | "low" | "high";
+  endTimestamp: number;
+  subtasks: SubtaskBackPressure[];
+};
+
+export type UserAccumulator = {
+  name: string;
+  type: string;
+  value: string;
 };
 
 export type JobConfiguration = {
@@ -129,6 +163,9 @@ export type FlinkJob = {
   checkpointConfig: CheckpointConfig | null;
   subtaskMetrics: Record<string, SubtaskMetrics[]>;
   configuration: JobConfiguration[];
+  watermarks: Record<string, VertexWatermark[]>;
+  backpressure: Record<string, VertexBackPressure>;
+  accumulators: Record<string, UserAccumulator[]>;
 };
 
 // --- Task Manager types ---

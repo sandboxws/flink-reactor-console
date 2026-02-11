@@ -159,7 +159,7 @@ function StatusDot({ status }: { status: JobVertexStatus }) {
 // OperatorNode
 // ---------------------------------------------------------------------------
 
-type OperatorNodeData = { vertex: JobVertex };
+type OperatorNodeData = { vertex: JobVertex; onSelectVertex?: (vertexId: string) => void };
 
 export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
   const { vertex } = data;
@@ -169,6 +169,7 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
 
   const nodeContent = (
     <div
+      title=""
       className={cn(
         "glass-card w-[320px] border-l-[3px] overflow-hidden",
         bpColor(metrics.busyTimeMsPerSecond),
@@ -227,10 +228,25 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
         </span>
       </div>
 
-      {/* ── Footer: task bar ───────────────────────────────────── */}
+      {/* ── Footer: task bar + action link ────────────────────── */}
       <div className="px-3 pb-2">
         <MiniTaskBar vertex={vertex} />
       </div>
+
+      {data.onSelectVertex && (
+        <div className="border-t border-white/5 px-3 py-1.5">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onSelectVertex!(vertex.id);
+            }}
+            className="text-[10px] text-zinc-500 hover:text-fr-purple transition-colors"
+          >
+            View details &rarr;
+          </button>
+        </div>
+      )}
 
       <Handle type="source" position={Position.Right} className="!bg-dash-border !border-dash-elevated !size-2" />
     </div>

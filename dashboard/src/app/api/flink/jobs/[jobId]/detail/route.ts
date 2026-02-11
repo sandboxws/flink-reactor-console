@@ -10,6 +10,9 @@ import type {
   FlinkCheckpointConfigResponse,
   FlinkJobConfigResponse,
   FlinkVertexDetailResponse,
+  FlinkWatermarksResponse,
+  FlinkVertexBackPressureResponse,
+  FlinkVertexAccumulatorsResponse,
 } from "@/data/flink-api-types";
 
 export async function GET(
@@ -38,19 +41,54 @@ export async function GET(
         fetchFlink<FlinkJobConfigResponse>(`/jobs/${jobId}/config`),
       ]);
 
-    // Phase 2: Fetch per-vertex details (vertex IDs come from Phase 1)
+    // Phase 2: Fetch per-vertex details (required) + supplementary data (best-effort)
     const vertexIds = job.vertices.map((v) => v.id);
-    const vertexResponses = await Promise.all(
-      vertexIds.map((vid) =>
-        fetchFlink<FlinkVertexDetailResponse>(
-          `/jobs/${jobId}/vertices/${vid}`,
+
+    // Helper: fetch per-vertex, returning empty fallback on failure
+    const fetchAllVertices = <T,>(
+      path: (vid: string) => string,
+      fallback: T,
+    ) =>
+      Promise.all(
+        vertexIds.map((vid) =>
+          fetchFlink<T>(path(vid)).catch(() => fallback),
         ),
-      ),
-    );
+      );
+
+    const [vertexResponses, watermarkResponses, bpResponses, accResponses] =
+      await Promise.all([
+        // Vertex details are critical — let errors propagate
+        Promise.all(
+          vertexIds.map((vid) =>
+            fetchFlink<FlinkVertexDetailResponse>(
+              `/jobs/${jobId}/vertices/${vid}`,
+            ),
+          ),
+        ),
+        // Supplementary endpoints degrade gracefully
+        fetchAllVertices<FlinkWatermarksResponse>(
+          (vid) => `/jobs/${jobId}/vertices/${vid}/watermarks`,
+          [],
+        ),
+        fetchAllVertices<FlinkVertexBackPressureResponse>(
+          (vid) => `/jobs/${jobId}/vertices/${vid}/backpressure`,
+          { status: "ok", backpressureLevel: "ok", "end-timestamp": 0, subtasks: [] },
+        ),
+        fetchAllVertices<FlinkVertexAccumulatorsResponse>(
+          (vid) => `/jobs/${jobId}/vertices/${vid}/accumulators`,
+          { id: "", "user-accumulators": [] },
+        ),
+      ]);
 
     const vertexDetails: Record<string, FlinkVertexDetailResponse> = {};
+    const watermarks: Record<string, FlinkWatermarksResponse> = {};
+    const backpressure: Record<string, FlinkVertexBackPressureResponse> = {};
+    const accumulators: Record<string, FlinkVertexAccumulatorsResponse> = {};
     for (let i = 0; i < vertexIds.length; i++) {
       vertexDetails[vertexIds[i]] = vertexResponses[i];
+      watermarks[vertexIds[i]] = watermarkResponses[i];
+      backpressure[vertexIds[i]] = bpResponses[i];
+      accumulators[vertexIds[i]] = accResponses[i];
     }
 
     const aggregate: FlinkJobDetailAggregate = {
@@ -60,6 +98,9 @@ export async function GET(
       checkpointConfig,
       jobConfig,
       vertexDetails,
+      watermarks,
+      backpressure,
+      accumulators,
     };
 
     return NextResponse.json(aggregate);

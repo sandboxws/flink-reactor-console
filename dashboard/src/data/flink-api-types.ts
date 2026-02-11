@@ -258,6 +258,56 @@ export interface FlinkVertexDetailResponse {
   subtasks: FlinkSubtaskInfo[];
 }
 
+// ---------------------------------------------------------------------------
+// Per-vertex endpoint types — watermarks, backpressure, accumulators
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /jobs/:jobid/vertices/:vertexid/watermarks
+ * Flink serializes this as a bare JSON array (MetricCollectionResponseBody).
+ */
+export type FlinkWatermarkMetric = { id: string; value: string };
+export type FlinkWatermarksResponse = FlinkWatermarkMetric[];
+
+/**
+ * Single subtask backpressure entry within the backpressure response.
+ */
+export interface FlinkSubtaskBackPressureInfo {
+  subtask: number;
+  "attempt-number": number;
+  backpressureLevel: "ok" | "low" | "high";
+  ratio: number;
+  busyRatio: number;
+  idleRatio: number;
+}
+
+/**
+ * GET /jobs/:jobid/vertices/:vertexid/backpressure
+ */
+export interface FlinkVertexBackPressureResponse {
+  status: "deprecated" | "ok";
+  backpressureLevel: "ok" | "low" | "high";
+  "end-timestamp": number;
+  subtasks: FlinkSubtaskBackPressureInfo[];
+}
+
+/**
+ * Single user accumulator entry.
+ */
+export interface FlinkUserAccumulator {
+  name: string;
+  type: string;
+  value: string;
+}
+
+/**
+ * GET /jobs/:jobid/vertices/:vertexid/accumulators
+ */
+export interface FlinkVertexAccumulatorsResponse {
+  id: string;
+  "user-accumulators": FlinkUserAccumulator[];
+}
+
 /**
  * Aggregate envelope combining all job detail endpoint responses.
  * Assembled by the proxy route, consumed by the browser-side mapper.
@@ -269,4 +319,7 @@ export interface FlinkJobDetailAggregate {
   checkpointConfig: FlinkCheckpointConfigResponse;
   jobConfig: FlinkJobConfigResponse;
   vertexDetails: Record<string, FlinkVertexDetailResponse>;
+  watermarks: Record<string, FlinkWatermarksResponse>;
+  backpressure: Record<string, FlinkVertexBackPressureResponse>;
+  accumulators: Record<string, FlinkVertexAccumulatorsResponse>;
 }

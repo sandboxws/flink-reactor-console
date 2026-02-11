@@ -18,6 +18,9 @@ import type {
   FlinkJobConfigResponse,
   FlinkVertexDetailResponse,
   FlinkPlanNode,
+  FlinkWatermarksResponse,
+  FlinkVertexBackPressureResponse,
+  FlinkVertexAccumulatorsResponse,
 } from "./flink-api-types";
 import type {
   Checkpoint,
@@ -31,6 +34,9 @@ import type {
   JobVertex,
   SubtaskMetrics,
   TaskCounts,
+  UserAccumulator,
+  VertexBackPressure,
+  VertexWatermark,
 } from "./cluster-types";
 import {
   generateClusterOverview,
@@ -42,6 +48,9 @@ import {
   generateCheckpoints,
   generateSubtaskMetrics,
   generateJobConfiguration,
+  generateWatermarks,
+  generateBackPressure,
+  generateAccumulators,
 } from "./mock-cluster";
 
 // ---------------------------------------------------------------------------
@@ -304,17 +313,15 @@ function domainSubtaskMetricsToApi(
       parallelism: vertex.parallelism,
       now,
       subtasks: subtasks.map((s) => {
-        const accBusy = Math.round(
-          s.busyTimeMsPerSecond * Math.max(1, vertex.duration / 1000),
-        );
+        const durationSec = Math.max(1, s.duration / 1000);
         return {
           subtask: s.subtaskIndex,
-          status: vertex.status,
-          attempt: 0,
-          endpoint: `tm-${(s.subtaskIndex % 3) + 1}:6122`,
-          "start-time": vertex.startTime,
-          "end-time": vertex.status === "RUNNING" ? -1 : vertex.startTime + vertex.duration,
-          duration: vertex.duration,
+          status: s.status,
+          attempt: s.attempt,
+          endpoint: s.endpoint,
+          "start-time": s.startTime,
+          "end-time": s.endTime,
+          duration: s.duration,
           metrics: {
             "read-bytes": s.bytesIn,
             "read-bytes-complete": true,
@@ -324,13 +331,71 @@ function domainSubtaskMetricsToApi(
             "read-records-complete": true,
             "write-records": s.recordsOut,
             "write-records-complete": true,
-            "accumulated-backpressured-time": 0,
-            "accumulated-idle-time": 0,
-            "accumulated-busy-time": accBusy,
+            "accumulated-backpressured-time": Math.round(s.backPressuredTimeMsPerSecond * durationSec),
+            "accumulated-idle-time": Math.round(s.idleTimeMsPerSecond * durationSec),
+            "accumulated-busy-time": Math.round(s.busyTimeMsPerSecond * durationSec),
           },
-          "taskmanager-id": `tm-${(s.subtaskIndex % 3) + 1}`,
+          "taskmanager-id": s.taskManagerId,
         };
       }),
+    };
+  }
+
+  return result;
+}
+
+function domainWatermarksToApi(
+  watermarks: Record<string, VertexWatermark[]>,
+): Record<string, FlinkWatermarksResponse> {
+  const result: Record<string, FlinkWatermarksResponse> = {};
+
+  for (const [vertexId, wms] of Object.entries(watermarks)) {
+    result[vertexId] = wms.map((w) => ({
+      id: `${w.subtaskIndex}.currentInputWatermark`,
+      value: w.watermark === -Infinity ? "-9223372036854775808" : String(w.watermark),
+    }));
+  }
+
+  return result;
+}
+
+function domainBackPressureToApi(
+  backpressure: Record<string, VertexBackPressure>,
+): Record<string, FlinkVertexBackPressureResponse> {
+  const result: Record<string, FlinkVertexBackPressureResponse> = {};
+
+  for (const [vertexId, bp] of Object.entries(backpressure)) {
+    result[vertexId] = {
+      status: "ok",
+      backpressureLevel: bp.level,
+      "end-timestamp": bp.endTimestamp,
+      subtasks: bp.subtasks.map((s) => ({
+        subtask: s.subtaskIndex,
+        "attempt-number": 0,
+        backpressureLevel: s.level,
+        ratio: s.ratio,
+        busyRatio: s.busyRatio,
+        idleRatio: s.idleRatio,
+      })),
+    };
+  }
+
+  return result;
+}
+
+function domainAccumulatorsToApi(
+  accumulators: Record<string, UserAccumulator[]>,
+): Record<string, FlinkVertexAccumulatorsResponse> {
+  const result: Record<string, FlinkVertexAccumulatorsResponse> = {};
+
+  for (const [vertexId, accs] of Object.entries(accumulators)) {
+    result[vertexId] = {
+      id: vertexId,
+      "user-accumulators": accs.map((a) => ({
+        name: a.name,
+        type: a.type,
+        value: a.value,
+      })),
     };
   }
 
@@ -368,6 +433,9 @@ export function generateMockJobDetailApiResponse(
   const { checkpoints, config: ckpConfig } = generateCheckpoints(jobStatus);
   const subtaskMetrics = generateSubtaskMetrics(plan.vertices);
   const configuration = generateJobConfiguration();
+  const watermarks = generateWatermarks(plan.vertices);
+  const backpressure = generateBackPressure(plan.vertices);
+  const accumulators = generateAccumulators(plan.vertices);
 
   // Reverse-map to API format
   const apiVertices = plan.vertices.map((v) => domainVertexToApi(v, duration));
@@ -402,5 +470,8 @@ export function generateMockJobDetailApiResponse(
     checkpointConfig: domainCheckpointConfigToApi(ckpConfig),
     jobConfig: domainJobConfigToApi(configuration, jobId, jobName),
     vertexDetails: domainSubtaskMetricsToApi(subtaskMetrics, plan.vertices),
+    watermarks: domainWatermarksToApi(watermarks),
+    backpressure: domainBackPressureToApi(backpressure),
+    accumulators: domainAccumulatorsToApi(accumulators),
   };
 }

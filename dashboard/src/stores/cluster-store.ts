@@ -202,6 +202,9 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
       checkpointConfig: null,
       subtaskMetrics: {},
       configuration: [],
+      watermarks: {},
+      backpressure: {},
+      accumulators: {},
     };
 
     const updatedRunning = [newJob, ...runningJobs];
