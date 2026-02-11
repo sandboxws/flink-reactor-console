@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useConfigStore } from "@/stores/config-store";
 import { useUiStore } from "@/stores/ui-store";
 import { CommandPalette } from "./command-palette";
 import { Header } from "./header";
@@ -8,6 +9,14 @@ import { Sidebar } from "./sidebar";
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const toggleCommandPalette = useUiStore((s) => s.toggleCommandPalette);
+  const fetchConfig = useConfigStore((s) => s.fetchConfig);
+  const configLoading = useConfigStore((s) => s.loading);
+  const configError = useConfigStore((s) => s.error);
+
+  // Fetch runtime config on mount
+  useEffect(() => {
+    fetchConfig();
+  }, [fetchConfig]);
 
   // cmd+k / ctrl+k keyboard listener
   useEffect(() => {
@@ -20,6 +29,24 @@ export function Shell({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [toggleCommandPalette]);
+
+  if (configLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
+      </div>
+    );
+  }
+
+  if (configError) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <p className="text-sm text-red-400">
+          Failed to load dashboard configuration: {configError}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
