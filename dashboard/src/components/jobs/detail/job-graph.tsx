@@ -22,8 +22,8 @@ import "@xyflow/react/dist/style.css";
 // Simple top-to-bottom layout (replaces dagre — our graphs are linear DAGs)
 // ---------------------------------------------------------------------------
 
-const NODE_WIDTH = 260;
-const NODE_HEIGHT = 100;
+const NODE_WIDTH = 320;
+const NODE_HEIGHT = 170;
 const COL_GAP = 80;
 const ROW_GAP = 50;
 
