@@ -15,16 +15,20 @@ function HoverCardContent({
   ...props
 }: React.ComponentProps<typeof HoverCardPrimitive.Content>) {
   return (
-    <HoverCardPrimitive.Content
-      align={align}
-      sideOffset={sideOffset}
-      className={cn(
-        "z-50 w-64 rounded-md border border-dash-border bg-dash-elevated p-4 text-zinc-200 shadow-md shadow-black/50 outline-none",
-        className,
-      )}
-      {...props}
-    />
+    <HoverCardPrimitive.Portal>
+      <HoverCardPrimitive.Content
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(
+          "z-50 w-64 rounded-md border border-dash-border bg-dash-elevated p-4 text-zinc-200 shadow-md shadow-black/50 outline-none",
+          className,
+        )}
+        {...props}
+      />
+    </HoverCardPrimitive.Portal>
   );
 }
 
-export { HoverCard, HoverCardTrigger, HoverCardContent };
+const HoverCardArrow = HoverCardPrimitive.Arrow;
+
+export { HoverCard, HoverCardTrigger, HoverCardContent, HoverCardArrow };
