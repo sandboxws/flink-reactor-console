@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getConfig } from "@/lib/config";
+import { generateMockTapManifest, generateMockStreamingRows } from "@/data/mock-tap-manifest";
 
 /**
  * Catch-all proxy route for SQL Gateway v1 REST API.
@@ -44,22 +45,52 @@ function generateMockStatusResponse(): object {
   return { status: "FINISHED" };
 }
 
-function generateMockResultResponse(): object {
+/**
+ * Generate mock result response for SQL Gateway operations.
+ *
+ * For tap observation queries, returns streaming-style results (PAYLOAD)
+ * with realistic data matching the tap manifest schema. Each request
+ * returns new rows, simulating live streaming from Kafka.
+ *
+ * The first result page (token 0) includes column metadata.
+ * Subsequent pages return additional rows.
+ */
+function generateMockResultResponse(
+  sessionHandle: string,
+  operationHandle: string,
+  resultToken: number,
+): object {
+  // Use the first tap operator's schema for realistic column/data generation
+  const manifest = generateMockTapManifest();
+  // Pick the enriched-orders-sink (has the most columns) for mock streaming
+  const tap = manifest.taps[2] ?? manifest.taps[0];
+  const schema = tap.schema;
+
+  const columns = Object.entries(schema).map(([name, type]) => ({
+    name,
+    logicalType: { type, nullable: type !== "BIGINT" },
+  }));
+
+  // Generate 2-5 rows per page to simulate streaming
+  const batchSize = 2 + (resultToken % 4);
+  const rows = generateMockStreamingRows(schema, batchSize);
+  const columnNames = Object.keys(schema);
+
+  const data = rows.map((row) => ({
+    kind: "INSERT" as const,
+    fields: columnNames.map((col) => row[col] ?? null),
+  }));
+
+  // Always return PAYLOAD (streaming) — the client decides when to stop
+  const nextToken = resultToken + 1;
+
   return {
     results: {
-      columns: [
-        { name: "id", logicalType: { type: "BIGINT", nullable: false } },
-        { name: "name", logicalType: { type: "VARCHAR(255)", nullable: true } },
-        { name: "value", logicalType: { type: "DOUBLE", nullable: true } },
-      ],
-      data: [
-        { kind: "INSERT", fields: [1, "mock-row-1", 42.5] },
-        { kind: "INSERT", fields: [2, "mock-row-2", 99.1] },
-        { kind: "INSERT", fields: [3, "mock-row-3", 17.3] },
-      ],
+      columns: resultToken === 0 ? columns : undefined,
+      data,
     },
-    resultType: "EOS",
-    nextResultUri: null,
+    resultType: "PAYLOAD",
+    nextResultUri: `v1/sessions/${sessionHandle}/operations/${operationHandle}/result/${nextToken}`,
   };
 }
 
@@ -77,8 +108,17 @@ function getMockResponse(path: string, method: string): object | null {
     return generateMockStatusResponse();
   }
   // GET /v1/sessions/:id/operations/:id/result/:token → fetch results
-  if (/\/operations\/[^/]+\/result\/\d+$/.test(path) && method === "GET") {
-    return generateMockResultResponse();
+  {
+    const resultMatch = path.match(
+      /^v1\/sessions\/([^/]+)\/operations\/([^/]+)\/result\/(\d+)$/,
+    );
+    if (resultMatch && method === "GET") {
+      return generateMockResultResponse(
+        resultMatch[1],
+        resultMatch[2],
+        Number.parseInt(resultMatch[3], 10),
+      );
+    }
   }
   // DELETE /v1/sessions/:id → close session
   if (/^v1\/sessions\/[^/]+$/.test(path) && method === "DELETE") {

@@ -184,6 +184,21 @@ button:not(:disabled),
   background-color: rgba(122, 162, 247, 0.08);
 }
 
+/* ── Tap row flash animation ──────────────────────── */
+
+@keyframes tap-row-flash {
+  0% {
+    background-color: rgba(155, 107, 191, 0.15);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-tap-row-flash {
+  animation: tap-row-flash 0.8s ease-out;
+}
+
 /* ── Scrollbar hide ───────────────────────────────── */
 
 .scrollbar-hide::-webkit-scrollbar {

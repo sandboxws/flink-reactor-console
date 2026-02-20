@@ -21,16 +21,24 @@ export interface ActiveTapSession {
   error?: string;
 }
 
+/** First result page data returned by startTap */
+export interface FirstPageResult {
+  columns: ColumnInfo[];
+  rows: Array<{ kind: string; fields: unknown[] }>;
+}
+
 interface SqlGatewayState {
   /** Active tap sessions keyed by tapNodeId */
   sessions: Record<string, ActiveTapSession>;
 
-  /** Start a tap observation session — opens session, submits SQL, transitions to streaming */
+  /** Start a tap observation session — opens session, submits SQL, transitions to streaming.
+   *  Returns the first result page (columns + any initial rows) so the caller
+   *  can feed them to the store and start polling from token 1. */
   startTap: (
     tapNodeId: string,
     tapName: string,
     observationSql: string,
-  ) => Promise<void>;
+  ) => Promise<FirstPageResult | null>;
 
   /** Pause result fetching for a session (consumer stops polling) */
   pauseTap: (tapNodeId: string) => void;
@@ -106,13 +114,14 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
         statement: observationSql,
       });
 
-      // Fetch first result page for column metadata
+      // Fetch first result page for column metadata + initial rows
       const resultData = await apiRequest<{
         results: {
           columns: Array<{
             name: string;
             logicalType: { type: string; nullable: boolean };
           }>;
+          data: Array<{ kind: string; fields: unknown[] }>;
         };
         resultType: string;
       }>(
@@ -141,6 +150,12 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
           },
         },
       }));
+
+      // Return first page data so the caller can process initial rows
+      return {
+        columns,
+        rows: resultData.results?.data ?? [],
+      };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Connection failed";
       set((state) => ({
@@ -153,6 +168,7 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
           },
         },
       }));
+      return null;
     }
   },
 

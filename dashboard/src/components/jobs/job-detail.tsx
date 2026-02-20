@@ -11,6 +11,7 @@ import { TimelineTab } from "./detail/timeline-tab";
 import { CheckpointsTab } from "./detail/checkpoints-tab";
 import { ConfigurationTab } from "./detail/configuration-tab";
 import { VerticesTab } from "./detail/vertices-tab";
+import { TapPanel } from "../tap/tap-panel";
 
 // Dynamic import for ReactFlow component (dagre uses CJS require which breaks SSR)
 const JobGraph = dynamic(() => import("./detail/job-graph").then((m) => m.JobGraph), {
@@ -88,6 +89,9 @@ export function JobDetail({
           <TabsTrigger value="configuration" className="detail-tab">
             Configuration
           </TabsTrigger>
+          <TabsTrigger value="tap" className="detail-tab">
+            Tap
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -131,6 +135,10 @@ export function JobDetail({
 
         <TabsContent value="configuration" className="mt-4">
           <ConfigurationTab configuration={job.configuration} />
+        </TabsContent>
+
+        <TabsContent value="tap" className="mt-4">
+          <TapPanel jobId={job.id} />
         </TabsContent>
       </Tabs>
     </div>
