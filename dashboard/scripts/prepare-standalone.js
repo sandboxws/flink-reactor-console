@@ -57,11 +57,7 @@ function findAppRoot() {
 
 function findServerRecursive(dir, depth) {
   if (depth <= 0) return null;
-  if (existsSync(join(dir, "server.js"))) {
-    // Skip node_modules directories — Next.js bundles its own
-    if (dir.includes("node_modules")) return null;
-    return dir;
-  }
+  if (existsSync(join(dir, "server.js"))) return dir;
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       if (!entry.isDirectory() || entry.name === "node_modules") continue;

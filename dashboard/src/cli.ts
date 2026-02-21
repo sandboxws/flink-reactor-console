@@ -12,8 +12,7 @@ const PACKAGE_ROOT = resolve(__dirname, "..");
 
 function findServerRecursive(dir: string, depth: number): string | null {
   if (depth <= 0) return null;
-  const candidate = join(dir, "server.js");
-  if (existsSync(candidate) && !dir.includes("node_modules")) return candidate;
+  if (existsSync(join(dir, "server.js"))) return join(dir, "server.js");
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       if (!entry.isDirectory() || entry.name === "node_modules") continue;
