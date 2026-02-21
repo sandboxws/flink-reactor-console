@@ -2,6 +2,8 @@
 // Dashboard configuration — server-side only
 // ---------------------------------------------------------------------------
 
+import { readFileSync, existsSync } from "node:fs";
+
 export interface ClusterEntry {
   name: string;
   url: string;
@@ -63,6 +65,33 @@ export interface PublicDashboardConfig {
   rbacEnabled: boolean;
   prometheusEnabled: boolean;
   alertWebhookEnabled: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Resolved JSON shape (written by CLI, read by dashboard)
+// ---------------------------------------------------------------------------
+
+interface ResolvedDashboardJson {
+  _version: number;
+  flinkRestUrl?: string;
+  dashboardPort?: number;
+  authType?: string;
+  authUsername?: string;
+  authPassword?: string;
+  authToken?: string;
+  sslEnabled?: boolean;
+  sslCaPath?: string;
+  pollIntervalMs?: number;
+  logBufferSize?: number;
+  clusterDisplayName?: string;
+  mockMode?: boolean;
+  rbacEnabled?: boolean;
+  rbacProvider?: string;
+  rbacRoles?: Record<string, string[]>;
+  prometheusUrl?: string;
+  prometheusEnabled?: boolean;
+  alertWebhookUrl?: string;
+  alertWebhookEnabled?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -191,18 +220,61 @@ function validate(config: DashboardConfig): void {
 }
 
 // ---------------------------------------------------------------------------
-// Main loader (cached singleton)
+// Loading from resolved JSON (written by CLI)
 // ---------------------------------------------------------------------------
 
-let cached: DashboardConfig | null = null;
+/**
+ * Load dashboard config from a resolved JSON file.
+ * Returns a partial config — must be merged with defaults.
+ */
+function loadFromResolvedJson(path: string): Partial<DashboardConfig> {
+  if (!existsSync(path)) {
+    throw new Error(`Resolved dashboard config not found: ${path}`);
+  }
 
-export function getConfig(): DashboardConfig {
-  if (cached) return cached;
+  const raw = readFileSync(path, "utf-8");
+  const json = JSON.parse(raw) as ResolvedDashboardJson;
 
+  if (json._version !== 1) {
+    throw new Error(
+      `Unsupported resolved config version: ${json._version}. Expected 1.`,
+    );
+  }
+
+  const result: Partial<DashboardConfig> = {};
+
+  if (json.flinkRestUrl) result.flinkRestUrl = json.flinkRestUrl;
+  if (json.dashboardPort != null) result.dashboardPort = json.dashboardPort;
+  if (json.authType) result.authType = parseAuthType(json.authType);
+  if (json.authUsername) result.authUsername = json.authUsername;
+  if (json.authPassword) result.authPassword = json.authPassword;
+  if (json.authToken) result.authToken = json.authToken;
+  if (json.sslEnabled != null) result.sslEnabled = json.sslEnabled;
+  if (json.sslCaPath) result.sslCaPath = json.sslCaPath;
+  if (json.pollIntervalMs != null) result.pollIntervalMs = json.pollIntervalMs;
+  if (json.logBufferSize != null) result.logBufferSize = json.logBufferSize;
+  if (json.clusterDisplayName) result.clusterDisplayName = json.clusterDisplayName;
+  if (json.mockMode != null) result.mockMode = json.mockMode;
+  if (json.rbacEnabled != null) result.rbacEnabled = json.rbacEnabled;
+  if (json.rbacProvider) result.rbacProvider = parseRbacProvider(json.rbacProvider);
+  if (json.rbacRoles) result.rbacRoles = json.rbacRoles;
+  if (json.prometheusUrl) result.prometheusUrl = json.prometheusUrl;
+  if (json.prometheusEnabled != null) result.prometheusEnabled = json.prometheusEnabled;
+  if (json.alertWebhookUrl) result.alertWebhookUrl = json.alertWebhookUrl;
+  if (json.alertWebhookEnabled != null) result.alertWebhookEnabled = json.alertWebhookEnabled;
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Loading from environment variables (existing behavior)
+// ---------------------------------------------------------------------------
+
+function loadFromEnvVars(): DashboardConfig {
   const env = process.env;
   const flinkRestUrl = env.FLINK_REST_URL || null;
 
-  const config: DashboardConfig = {
+  return {
     flinkRestUrl,
     dashboardPort: parseInt(env.DASHBOARD_PORT, 3001),
 
@@ -233,6 +305,62 @@ export function getConfig(): DashboardConfig {
 
     mockMode: parseMockMode(env.DASHBOARD_MOCK_MODE, !!flinkRestUrl),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Main loader (cached singleton)
+//
+// Merge priority: Explicit env var > Resolved JSON > Built-in default
+// ---------------------------------------------------------------------------
+
+let cached: DashboardConfig | null = null;
+
+export function getConfig(): DashboardConfig {
+  if (cached) return cached;
+
+  // Start with env-var-based config (includes built-in defaults)
+  const envConfig = loadFromEnvVars();
+  let config = envConfig;
+
+  // If FLINK_REACTOR_CONFIG points to a JSON file, merge it in
+  const resolvedJsonPath = process.env.FLINK_REACTOR_CONFIG;
+  if (resolvedJsonPath) {
+    const jsonConfig = loadFromResolvedJson(resolvedJsonPath);
+
+    // Merge: JSON values are the base, env vars override when explicitly set
+    config = {
+      ...envConfig,
+      // Use JSON values as defaults — env vars override only when explicitly set
+      flinkRestUrl: process.env.FLINK_REST_URL ? envConfig.flinkRestUrl : (jsonConfig.flinkRestUrl ?? envConfig.flinkRestUrl),
+      dashboardPort: process.env.DASHBOARD_PORT ? envConfig.dashboardPort : (jsonConfig.dashboardPort ?? envConfig.dashboardPort),
+
+      authType: process.env.FLINK_AUTH_TYPE ? envConfig.authType : (jsonConfig.authType ?? envConfig.authType),
+      authUsername: process.env.FLINK_AUTH_USERNAME ? envConfig.authUsername : (jsonConfig.authUsername ?? envConfig.authUsername),
+      authPassword: process.env.FLINK_AUTH_PASSWORD ? envConfig.authPassword : (jsonConfig.authPassword ?? envConfig.authPassword),
+      authToken: process.env.FLINK_AUTH_TOKEN ? envConfig.authToken : (jsonConfig.authToken ?? envConfig.authToken),
+
+      sslEnabled: process.env.FLINK_SSL_ENABLED ? envConfig.sslEnabled : (jsonConfig.sslEnabled ?? envConfig.sslEnabled),
+      sslCaPath: process.env.FLINK_SSL_CA_PATH ? envConfig.sslCaPath : (jsonConfig.sslCaPath ?? envConfig.sslCaPath),
+
+      pollIntervalMs: process.env.DASHBOARD_POLL_INTERVAL ? envConfig.pollIntervalMs : (jsonConfig.pollIntervalMs ?? envConfig.pollIntervalMs),
+      logBufferSize: process.env.DASHBOARD_LOG_BUFFER_SIZE ? envConfig.logBufferSize : (jsonConfig.logBufferSize ?? envConfig.logBufferSize),
+
+      clusterDisplayName: process.env.CLUSTER_DISPLAY_NAME ? envConfig.clusterDisplayName : (jsonConfig.clusterDisplayName ?? envConfig.clusterDisplayName),
+      clusters: process.env.FLINK_CLUSTERS ? envConfig.clusters : envConfig.clusters,
+
+      rbacEnabled: process.env.DASHBOARD_RBAC_ENABLED ? envConfig.rbacEnabled : (jsonConfig.rbacEnabled ?? envConfig.rbacEnabled),
+      rbacProvider: process.env.DASHBOARD_RBAC_PROVIDER ? envConfig.rbacProvider : (jsonConfig.rbacProvider ?? envConfig.rbacProvider),
+      rbacRoles: process.env.DASHBOARD_RBAC_ROLES ? envConfig.rbacRoles : (jsonConfig.rbacRoles ?? envConfig.rbacRoles),
+
+      prometheusUrl: process.env.PROMETHEUS_URL ? envConfig.prometheusUrl : (jsonConfig.prometheusUrl ?? envConfig.prometheusUrl),
+      prometheusEnabled: process.env.PROMETHEUS_ENABLED ? envConfig.prometheusEnabled : (jsonConfig.prometheusEnabled ?? envConfig.prometheusEnabled),
+
+      alertWebhookUrl: process.env.ALERT_WEBHOOK_URL ? envConfig.alertWebhookUrl : (jsonConfig.alertWebhookUrl ?? envConfig.alertWebhookUrl),
+      alertWebhookEnabled: process.env.ALERT_WEBHOOK_ENABLED ? envConfig.alertWebhookEnabled : (jsonConfig.alertWebhookEnabled ?? envConfig.alertWebhookEnabled),
+
+      mockMode: process.env.DASHBOARD_MOCK_MODE ? envConfig.mockMode : (jsonConfig.mockMode ?? envConfig.mockMode),
+    };
+  }
 
   validate(config);
   cached = config;

@@ -55,22 +55,22 @@ function findServerJs(): string {
   process.exit(1);
 }
 
-function resolveEnvFile(env: string, customPath?: string): string | null {
+function resolveEnvFile(env: string, customPath?: string): { path: string; isJson: boolean } | null {
   if (customPath) {
     const absPath = resolve(customPath);
     if (!existsSync(absPath)) {
       console.error(`\x1b[31m✗ Config file not found: ${absPath}\x1b[0m`);
       process.exit(1);
     }
-    return absPath;
+    return { path: absPath, isJson: absPath.endsWith(".json") };
   }
 
   const envFile = join(PACKAGE_ROOT, `.env.${env}`);
-  if (existsSync(envFile)) return envFile;
+  if (existsSync(envFile)) return { path: envFile, isJson: false };
 
   // Fall back to .env
   const dotenv = join(PACKAGE_ROOT, ".env");
-  if (existsSync(dotenv)) return dotenv;
+  if (existsSync(dotenv)) return { path: dotenv, isJson: false };
 
   return null;
 }
@@ -91,7 +91,7 @@ program
     "Environment: development | staging | production",
     "production",
   )
-  .option("-c, --config <path>", "Custom .env file path (overrides --env)")
+  .option("-c, --config <path>", "Custom .env or .json config file (overrides --env)")
   .option("--mock", "Force mock mode (ignore FLINK_REST_URL)")
   .action(
     (options: {
@@ -103,7 +103,12 @@ program
       // 1. Load environment file
       const envFile = resolveEnvFile(options.env, options.config);
       if (envFile) {
-        loadDotenv({ path: envFile });
+        if (envFile.isJson) {
+          // JSON config: set FLINK_REACTOR_CONFIG for the dashboard to read
+          process.env.FLINK_REACTOR_CONFIG = envFile.path;
+        } else {
+          loadDotenv({ path: envFile.path });
+        }
       }
 
       // 2. Apply CLI overrides

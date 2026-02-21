@@ -28,6 +28,36 @@ The `design.md` is mandatory for every dashboard change — it serves as the imp
 - **Icons**: `lucide-react` exclusively
 - **Utilities**: `cn()` from `@/lib/cn`, `date-fns` for formatting
 
+## Configuration Resolution
+
+The dashboard's config can come from two sources, with this merge priority:
+
+```
+Explicit env var  →  highest (e.g., FLINK_REST_URL overrides JSON)
+       ↓
+FLINK_REACTOR_CONFIG JSON  →  resolved by CLI
+       ↓
+Built-in defaults  →  dashboard defaults
+```
+
+**Resolution flow (dev mode):**
+```
+flink-reactor dev --env development
+  → resolveConfig() merges common + environment, resolves env() markers
+  → buildResolvedDashboardJson() → flat JSON shape
+  → writes .flink-reactor/resolved-dashboard.json
+  → spawns dashboard with FLINK_REACTOR_CONFIG=/path/to/json
+```
+
+**Resolution flow (production):**
+```
+flink-reactor dashboard export --env production -o dist/dashboard-config.json
+  → bake JSON into Docker image
+  → ENV FLINK_REACTOR_CONFIG=/app/dashboard-config.json
+```
+
+The `getConfig()` function in `src/lib/config.ts` checks `FLINK_REACTOR_CONFIG` first, falls back to env vars. Explicit env vars always override JSON values for production flexibility.
+
 ## Data Flow
 
 ```
