@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Radio, X, Plus, Loader2, AlertTriangle } from "lucide-react";
 import { useTapStore, cleanupThroughputTracking } from "@/stores/tap-store";
 import { useSqlGatewayStore } from "@/stores/sql-gateway-store";
+import { useClusterStore } from "@/stores/cluster-store";
 import type { ColumnInfo, FirstPageResult } from "@/stores/sql-gateway-store";
 import { buildRuntimeObservationSql } from "@/lib/tap-manifest";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -41,6 +42,12 @@ export function TapPanel({ jobId }: TapPanelProps) {
     clearRows,
   } = useTapStore();
 
+  // Look up the Flink job name — with SET 'pipeline.name', this matches the pipeline name
+  const jobName = useClusterStore((s) => {
+    const all = [...s.runningJobs, ...s.completedJobs];
+    return all.find((j) => j.id === jobId)?.name ?? jobId;
+  });
+
   const sessions = useSqlGatewayStore((s) => s.sessions);
   const startTap = useSqlGatewayStore((s) => s.startTap);
   const pauseTap = useSqlGatewayStore((s) => s.pauseTap);
@@ -51,10 +58,10 @@ export function TapPanel({ jobId }: TapPanelProps) {
   // Active polling refs — keyed by nodeId
   const pollingRefs = useRef<Map<string, boolean>>(new Map());
 
-  // Load manifest on mount
+  // Load manifest on mount — uses the job name as the pipeline name
   useEffect(() => {
-    loadManifest(jobId);
-  }, [jobId, loadManifest]);
+    loadManifest(jobName);
+  }, [jobName, loadManifest]);
 
   // Cleanup on unmount — stop all sessions and throughput timer
   useEffect(() => {

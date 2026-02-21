@@ -5,9 +5,9 @@
 
 import type { TapManifest, TapMetadata } from "@/data/tap-types";
 
-/** Load tap manifest for a job from the API route */
-export async function loadTapManifest(jobId: string): Promise<TapManifest> {
-  const res = await fetch(`/api/flink/tap-manifest?jobId=${encodeURIComponent(jobId)}`);
+/** Load tap manifest for a pipeline by name (matches the Flink job name set via pipeline.name) */
+export async function loadTapManifest(pipelineName: string): Promise<TapManifest> {
+  const res = await fetch(`/api/flink/tap-manifest?pipeline=${encodeURIComponent(pipelineName)}`);
 
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string };

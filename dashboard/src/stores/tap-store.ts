@@ -32,8 +32,8 @@ export interface TapTab {
 }
 
 interface TapState {
-  /** Job ID the current manifest was loaded for */
-  currentJobId: string | null;
+  /** Pipeline name the current manifest was loaded for */
+  currentPipelineName: string | null;
   /** Available operators from tap manifest */
   availableOperators: TapMetadata[];
   /** Whether the manifest is loading */
@@ -45,8 +45,8 @@ interface TapState {
   /** Currently active tab nodeId */
   activeTabId: string | null;
 
-  /** Load tap manifest for a pipeline */
-  loadManifest: (jobId: string) => Promise<void>;
+  /** Load tap manifest by pipeline name (matches Flink job name) */
+  loadManifest: (pipelineName: string) => Promise<void>;
   /** Open a new tap tab for an operator */
   openTab: (nodeId: string) => void;
   /** Close a tap tab */
@@ -111,19 +111,18 @@ function ensureThroughputTracking(getState: () => TapState, setState: (partial: 
 }
 
 export const useTapStore = create<TapState>((set, get) => ({
-  currentJobId: null,
+  currentPipelineName: null,
   availableOperators: [],
   manifestLoading: false,
   manifestError: null,
   tabs: {},
   activeTabId: null,
 
-  loadManifest: async (jobId: string) => {
+  loadManifest: async (pipelineName: string) => {
     const state = get();
 
-    // If switching jobs, clean up existing tabs
-    if (state.currentJobId && state.currentJobId !== jobId) {
-      // Close all tabs from the previous job
+    // If switching pipelines, clean up existing tabs
+    if (state.currentPipelineName && state.currentPipelineName !== pipelineName) {
       set({
         tabs: {},
         activeTabId: null,
@@ -131,10 +130,10 @@ export const useTapStore = create<TapState>((set, get) => ({
       });
     }
 
-    set({ manifestLoading: true, manifestError: null, currentJobId: jobId });
+    set({ manifestLoading: true, manifestError: null, currentPipelineName: pipelineName });
 
     try {
-      const manifest = await loadTapManifest(jobId);
+      const manifest = await loadTapManifest(pipelineName);
       const operators = getAvailableOperators(manifest);
       set({
         availableOperators: operators,

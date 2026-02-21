@@ -16,7 +16,7 @@ vi.stubGlobal(
 beforeEach(() => {
   // Reset the store between tests
   useTapStore.setState({
-    currentJobId: null,
+    currentPipelineName: null,
     availableOperators: [],
     manifestLoading: false,
     manifestError: null,
@@ -34,7 +34,7 @@ describe("loadManifest", () => {
     await useTapStore.getState().loadManifest("job-123");
 
     const state = useTapStore.getState();
-    expect(state.currentJobId).toBe("job-123");
+    expect(state.currentPipelineName).toBe("job-123");
     expect(state.availableOperators.length).toBe(mockManifest.taps.length);
     expect(state.manifestLoading).toBe(false);
     expect(state.manifestError).toBeNull();
@@ -49,7 +49,7 @@ describe("loadManifest", () => {
     await useTapStore.getState().loadManifest("job-2");
 
     const state = useTapStore.getState();
-    expect(state.currentJobId).toBe("job-2");
+    expect(state.currentPipelineName).toBe("job-2");
     expect(Object.keys(state.tabs).length).toBe(0);
     expect(state.activeTabId).toBeNull();
   });
