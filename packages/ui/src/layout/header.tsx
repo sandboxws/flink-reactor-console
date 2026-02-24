@@ -9,6 +9,8 @@ export interface Breadcrumb {
 }
 
 export interface HeaderProps {
+  /** Content rendered at the far left (e.g. sidebar toggle) */
+  leftContent?: React.ReactNode;
   /** Root label shown before breadcrumbs */
   rootLabel?: string;
   /** Breadcrumb items */
@@ -43,6 +45,7 @@ export interface HeaderProps {
  * ```
  */
 export function Header({
+  leftContent,
   rootLabel = "Dashboard",
   breadcrumbs = [],
   rightContent,
@@ -63,8 +66,9 @@ export function Header({
         className,
       )}
     >
-      {/* Left: back button + breadcrumbs */}
+      {/* Left: optional content + back button + breadcrumbs */}
       <div className="flex items-center gap-1.5 text-xs">
+        {leftContent}
         {onBack && (
           <button
             type="button"

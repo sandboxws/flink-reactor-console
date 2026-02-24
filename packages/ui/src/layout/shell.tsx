@@ -42,10 +42,10 @@ export function Shell({
   }, [onCommandPalette]);
 
   return (
-    <div className={cn("flex h-screen w-screen overflow-hidden", className)}>
-      {sidebar}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {header}
+    <div className={cn("flex h-screen w-screen flex-col overflow-hidden", className)}>
+      {header}
+      <div className="flex flex-1 overflow-hidden">
+        {sidebar}
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
       {commandPalette}

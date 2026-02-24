@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, PanelLeft } from "lucide-react";
 import { cn } from "../lib/cn";
 
 export interface NavItem {
@@ -22,6 +22,8 @@ export interface SidebarProps {
   collapsed?: boolean;
   /** Toggle collapse callback */
   onToggle?: () => void;
+  /** Where to render the collapse toggle: "bottom" (default) or "top" (next to window controls) */
+  togglePosition?: "top" | "bottom";
   /** Current active path for highlighting */
   activePath?: string;
   /** Logo component or content */
@@ -46,6 +48,7 @@ export function Sidebar({
   navGroups,
   collapsed = false,
   onToggle,
+  togglePosition = "bottom",
   activePath = "",
   logo,
   brandName = "FlinkReactor",
@@ -58,6 +61,10 @@ export function Sidebar({
     children: React.ReactNode;
   }>;
 
+  const showTopToggle = onToggle && togglePosition === "top";
+  const showBottomToggle = onToggle && togglePosition === "bottom";
+  const showBrand = logo !== false || brandName;
+
   return (
     <aside
       className={cn(
@@ -66,17 +73,37 @@ export function Sidebar({
         className,
       )}
     >
-      {/* Logo */}
-      <div className="flex h-11 items-center gap-2 border-b border-dash-border px-3">
-        {logo ?? (
-          <div className="size-5 shrink-0 rounded bg-gradient-to-br from-fr-coral to-fr-purple" />
-        )}
-        {!collapsed && (
-          <span className="text-xs font-semibold tracking-wide text-zinc-300">
-            {brandName}
-          </span>
-        )}
-      </div>
+      {/* Top area: brand and/or toggle */}
+      {(showBrand || showTopToggle) && (
+        <div
+          className={cn(
+            "flex items-center border-b border-dash-border px-3 h-11",
+            showBrand && showTopToggle && "justify-between",
+          )}
+        >
+          {showBrand && (
+            <div className="flex items-center gap-2">
+              {logo ?? (
+                <div className="size-5 shrink-0 rounded bg-gradient-to-br from-fr-coral to-fr-purple" />
+              )}
+              {!collapsed && brandName && (
+                <span className="text-xs font-semibold tracking-wide text-zinc-300">
+                  {brandName}
+                </span>
+              )}
+            </div>
+          )}
+          {showTopToggle && (
+            <button
+              type="button"
+              onClick={onToggle}
+              className="flex size-6 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-300"
+            >
+              <PanelLeft className="size-3.5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-1.5">
@@ -112,8 +139,8 @@ export function Sidebar({
         ))}
       </nav>
 
-      {/* Collapse toggle */}
-      {onToggle && (
+      {/* Bottom collapse toggle */}
+      {showBottomToggle && (
         <button
           type="button"
           onClick={onToggle}
