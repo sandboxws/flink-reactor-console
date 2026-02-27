@@ -61,14 +61,14 @@ function sortTms(tms: TaskManager[], key: SortKey, dir: SortDir): TaskManager[] 
       case "physicalMemory":
         return a.physicalMemory - b.physicalMemory;
       case "jvmHeap":
-        return a.metrics.jvmHeapUsed / a.metrics.jvmHeapMax -
-          b.metrics.jvmHeapUsed / b.metrics.jvmHeapMax;
+        return a.metrics.heapUsed / a.metrics.heapMax -
+          b.metrics.heapUsed / b.metrics.heapMax;
       case "managedMemory":
         return a.metrics.managedMemoryUsed / a.metrics.managedMemoryTotal -
           b.metrics.managedMemoryUsed / b.metrics.managedMemoryTotal;
       case "networkMemory":
-        return a.metrics.networkMemoryUsed / a.metrics.networkMemoryTotal -
-          b.metrics.networkMemoryUsed / b.metrics.networkMemoryTotal;
+        return a.metrics.nettyShuffleMemoryUsed / a.metrics.nettyShuffleMemoryTotal -
+          b.metrics.nettyShuffleMemoryUsed / b.metrics.nettyShuffleMemoryTotal;
     }
   });
   return dir === "desc" ? sorted.reverse() : sorted;
@@ -271,8 +271,8 @@ export function TaskManagerList({
             </TableCell>
             <TableCell>
               <MemoryBar
-                used={tm.metrics.jvmHeapUsed}
-                total={tm.metrics.jvmHeapMax}
+                used={tm.metrics.heapUsed}
+                total={tm.metrics.heapMax}
               />
             </TableCell>
             <TableCell>
@@ -283,8 +283,8 @@ export function TaskManagerList({
             </TableCell>
             <TableCell>
               <MemoryBar
-                used={tm.metrics.networkMemoryUsed}
-                total={tm.metrics.networkMemoryTotal}
+                used={tm.metrics.nettyShuffleMemoryUsed}
+                total={tm.metrics.nettyShuffleMemoryTotal}
               />
             </TableCell>
           </TableRow>

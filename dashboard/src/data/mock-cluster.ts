@@ -22,7 +22,9 @@ import type {
   SubtaskBackPressure,
   TaskCounts,
   TaskManager,
+  TaskManagerMemoryConfiguration,
   TaskManagerMetrics,
+  TaskManagerResource,
   ThreadDumpEntry,
   ThreadDumpInfo,
   ThreadInfoRaw,
@@ -663,25 +665,94 @@ export function generateCompletedJobs(): FlinkJob[] {
 // 2.4 — generateTaskManagers
 // ---------------------------------------------------------------------------
 
-function generateTmMetrics(): TaskManagerMetrics {
-  const heapMax = 4 * GB;
-  const nonHeapMax = 256 * MB;
-  const managedTotal = 2 * GB;
-  const networkTotal = 512 * MB;
+function generateTmMetrics(memCfg: TaskManagerMemoryConfiguration): TaskManagerMetrics {
+  const heapMax = memCfg.frameworkHeap + memCfg.taskHeap;
+  const nonHeapMax = 738 * MB;
+  const directMax = memCfg.frameworkOffHeap + memCfg.taskOffHeap + memCfg.networkMemory;
+  const nettyTotal = memCfg.networkMemory;
+
+  const heapUsed = jitter(heapMax * 0.3, 0.15);
+  const nonHeapUsed = jitter(64 * MB, 0.2);
+  const directUsed = jitter(directMax * 0.5, 0.25);
+  const nettyUsed = jitter(nettyTotal * 0.1, 0.3);
+  const managedUsed = jitter(memCfg.managedMemory * 0.05, 0.5);
+  const metaspaceUsed = jitter(41 * MB, 0.2);
+  const segmentsTotal = Math.round(nettyTotal / (32 * 1024)); // 32KB per segment
 
   return {
     cpuUsage: 15 + Math.random() * 60,
-    jvmHeapUsed: jitter(heapMax * 0.6, 0.15),
-    jvmHeapMax: heapMax,
-    jvmNonHeapUsed: jitter(nonHeapMax * 0.5, 0.2),
-    jvmNonHeapMax: nonHeapMax,
-    managedMemoryUsed: jitter(managedTotal * 0.45, 0.2),
-    managedMemoryTotal: managedTotal,
-    networkMemoryUsed: jitter(networkTotal * 0.3, 0.25),
-    networkMemoryTotal: networkTotal,
-    gcCount: 120 + Math.floor(Math.random() * 200),
-    gcTime: 3000 + Math.floor(Math.random() * 5000),
+    // JVM heap
+    heapUsed,
+    heapCommitted: heapMax,
+    heapMax,
+    // JVM non-heap
+    nonHeapUsed,
+    nonHeapCommitted: jitter(nonHeapUsed * 1.05, 0.02),
+    nonHeapMax,
+    // Direct / mapped
+    directCount: 3000 + Math.floor(Math.random() * 2000),
+    directUsed,
+    directMax,
+    mappedCount: 0,
+    mappedUsed: 0,
+    mappedMax: 0,
+    // Netty shuffle
+    nettyShuffleMemoryAvailable: nettyTotal - nettyUsed,
+    nettyShuffleMemoryUsed: nettyUsed,
+    nettyShuffleMemoryTotal: nettyTotal,
+    nettyShuffleSegmentsAvailable: segmentsTotal - Math.floor(nettyUsed / (32 * 1024)),
+    nettyShuffleSegmentsUsed: Math.floor(nettyUsed / (32 * 1024)),
+    nettyShuffleSegmentsTotal: segmentsTotal,
+    // Managed
+    managedMemoryUsed: managedUsed,
+    managedMemoryTotal: memCfg.managedMemory,
+    // Metaspace
+    metaspaceUsed,
+    metaspaceMax: memCfg.jvmMetaspace,
+    // GC
+    garbageCollectors: [
+      { name: "G1_Young_Generation", count: 80 + Math.floor(Math.random() * 150), time: 2000 + Math.floor(Math.random() * 3000) },
+      { name: "G1_Old_Generation", count: Math.floor(Math.random() * 5), time: Math.floor(Math.random() * 500) },
+      { name: "G1_Concurrent_GC", count: 3 + Math.floor(Math.random() * 10), time: 1 + Math.floor(Math.random() * 20) },
+    ],
+    // Threads
     threadCount: 40 + Math.floor(Math.random() * 30),
+  };
+}
+
+function generateTmMemoryConfig(): TaskManagerMemoryConfiguration {
+  const frameworkHeap = 128 * MB;
+  const taskHeap = 384 * MB;
+  const frameworkOffHeap = 128 * MB;
+  const taskOffHeap = 0;
+  const networkMemory = 128 * MB;
+  const managedMemory = 512 * MB;
+  const jvmMetaspace = 256 * MB;
+  const jvmOverhead = 192 * MB;
+  const totalFlinkMemory = frameworkHeap + taskHeap + frameworkOffHeap + taskOffHeap + networkMemory + managedMemory;
+  const totalProcessMemory = totalFlinkMemory + jvmMetaspace + jvmOverhead;
+
+  return {
+    frameworkHeap,
+    taskHeap,
+    frameworkOffHeap,
+    taskOffHeap,
+    networkMemory,
+    managedMemory,
+    jvmMetaspace,
+    jvmOverhead,
+    totalFlinkMemory,
+    totalProcessMemory,
+  };
+}
+
+function generateTmResource(slotsTotal: number): TaskManagerResource {
+  return {
+    cpuCores: slotsTotal,
+    taskHeapMemory: 383,
+    taskOffHeapMemory: 0,
+    managedMemory: 512,
+    networkMemory: 128,
   };
 }
 
@@ -689,22 +760,38 @@ export function generateTaskManagers(): TaskManager[] {
   const tmIds = PLACEHOLDER_VALUES.TM_ID;
   const tmAddrs = PLACEHOLDER_VALUES.TM_ADDR;
 
-  return TASK_MANAGERS.map((src, i) => ({
-    id: tmIds[i] ?? `container_unknown_${i}`,
-    path:
-      tmAddrs[i] ?? `akka.tcp://flink@tm-${i + 1}:6122/user/rpc/taskmanager_0`,
-    dataPort: 6121,
-    lastHeartbeat: new Date(Date.now() - Math.floor(Math.random() * 5000)),
-    slotsTotal: 4,
-    slotsFree: 1 + Math.floor(Math.random() * 2),
-    cpuCores: 4,
-    physicalMemory: 8 * GB,
-    jvmHeapSize: 4 * GB,
-    managedMemory: 2 * GB,
-    networkMemory: 512 * MB,
-    metrics: generateTmMetrics(),
-    _sourceLabel: src.label, // keep association for display
-  })) as TaskManager[];
+  return TASK_MANAGERS.map((src, i) => {
+    const slotsTotal = 4;
+    const slotsFree = 1 + Math.floor(Math.random() * 2);
+    const memCfg = generateTmMemoryConfig();
+    const totalResource = generateTmResource(slotsTotal);
+    const freeResource: TaskManagerResource = {
+      cpuCores: slotsFree,
+      taskHeapMemory: Math.round(totalResource.taskHeapMemory * (slotsFree / slotsTotal)),
+      taskOffHeapMemory: 0,
+      managedMemory: Math.round(totalResource.managedMemory * (slotsFree / slotsTotal)),
+      networkMemory: Math.round(totalResource.networkMemory * (slotsFree / slotsTotal)),
+    };
+
+    return {
+      id: tmIds[i] ?? `container_unknown_${i}`,
+      path:
+        tmAddrs[i] ?? `pekko.tcp://flink@tm-${i + 1}:6122/user/rpc/taskmanager_0`,
+      dataPort: 6121,
+      jmxPort: -1,
+      lastHeartbeat: new Date(Date.now() - Math.floor(Math.random() * 5000)),
+      slotsTotal,
+      slotsFree,
+      cpuCores: 8,
+      physicalMemory: 32 * GB,
+      freeMemory: memCfg.frameworkHeap + memCfg.taskHeap,
+      totalResource,
+      freeResource,
+      memoryConfiguration: memCfg,
+      allocatedSlots: [],
+      metrics: generateTmMetrics(memCfg),
+    };
+  }) as TaskManager[];
 }
 
 // ---------------------------------------------------------------------------
@@ -1785,25 +1872,21 @@ export function refreshMetrics(
   for (const tm of tms) {
     const m = tm.metrics;
     m.cpuUsage = Math.max(0, Math.min(100, jitter(m.cpuUsage, 0.05)));
-    m.jvmHeapUsed = Math.max(
-      0,
-      Math.min(m.jvmHeapMax, jitter(m.jvmHeapUsed, 0.03)),
-    );
-    m.jvmNonHeapUsed = Math.max(
-      0,
-      Math.min(m.jvmNonHeapMax, jitter(m.jvmNonHeapUsed, 0.02)),
-    );
-    m.managedMemoryUsed = Math.max(
-      0,
-      Math.min(m.managedMemoryTotal, jitter(m.managedMemoryUsed, 0.02)),
-    );
-    m.networkMemoryUsed = Math.max(
-      0,
-      Math.min(m.networkMemoryTotal, jitter(m.networkMemoryUsed, 0.04)),
-    );
+    m.heapUsed = Math.max(0, Math.min(m.heapMax, jitter(m.heapUsed, 0.03)));
+    m.nonHeapUsed = Math.max(0, Math.min(m.nonHeapMax, jitter(m.nonHeapUsed, 0.02)));
+    m.managedMemoryUsed = Math.max(0, Math.min(m.managedMemoryTotal, jitter(m.managedMemoryUsed, 0.02)));
+    m.nettyShuffleMemoryUsed = Math.max(0, Math.min(m.nettyShuffleMemoryTotal, jitter(m.nettyShuffleMemoryUsed, 0.04)));
+    m.nettyShuffleMemoryAvailable = m.nettyShuffleMemoryTotal - m.nettyShuffleMemoryUsed;
+    m.directUsed = Math.max(0, Math.min(m.directMax, jitter(m.directUsed, 0.03)));
+    m.metaspaceUsed = Math.max(0, Math.min(m.metaspaceMax, jitter(m.metaspaceUsed, 0.02)));
     m.threadCount = Math.max(10, Math.round(jitter(m.threadCount, 0.03)));
-    m.gcCount += Math.random() < 0.3 ? 1 : 0;
-    m.gcTime += Math.random() < 0.3 ? Math.floor(Math.random() * 50) : 0;
+    // Increment GC counters occasionally
+    for (const gc of m.garbageCollectors) {
+      if (Math.random() < 0.3) {
+        gc.count += 1;
+        gc.time += Math.floor(Math.random() * 50);
+      }
+    }
     tm.lastHeartbeat = now;
   }
 

@@ -227,18 +227,21 @@ function MetricChart({
 }
 
 // ---------------------------------------------------------------------------
-// TmMetricsTab
+// TmMetricsTab — time-series charts for CPU, memory, GC, threads
 // ---------------------------------------------------------------------------
 
 export function TmMetricsTab({ tm }: { tm: TaskManager }) {
   const m = tm.metrics;
 
   const cpuData = useMemo(() => generateSeries(m.cpuUsage, 0.08, 30), [m.cpuUsage]);
-  const heapData = useMemo(() => generateSeries(m.jvmHeapUsed, 0.06, 30), [m.jvmHeapUsed]);
-  const nonHeapData = useMemo(() => generateSeries(m.jvmNonHeapUsed, 0.05, 30), [m.jvmNonHeapUsed]);
+  const heapData = useMemo(() => generateSeries(m.heapUsed, 0.06, 30), [m.heapUsed]);
+  const nonHeapData = useMemo(() => generateSeries(m.nonHeapUsed, 0.05, 30), [m.nonHeapUsed]);
   const threadData = useMemo(() => generateSeries(m.threadCount, 0.04, 30), [m.threadCount]);
-  const gcCountData = useMemo(() => generateSeries(m.gcCount, 0.02, 30), [m.gcCount]);
-  const gcTimeData = useMemo(() => generateSeries(m.gcTime, 0.03, 30), [m.gcTime]);
+
+  const totalGcCount = m.garbageCollectors.reduce((s, gc) => s + gc.count, 0);
+  const totalGcTime = m.garbageCollectors.reduce((s, gc) => s + gc.time, 0);
+  const gcCountData = useMemo(() => generateSeries(totalGcCount, 0.02, 30), [totalGcCount]);
+  const gcTimeData = useMemo(() => generateSeries(totalGcTime, 0.03, 30), [totalGcTime]);
 
   return (
     <div className="grid gap-4 pt-4 sm:grid-cols-2">
@@ -254,7 +257,7 @@ export function TmMetricsTab({ tm }: { tm: TaskManager }) {
         data={heapData}
         color="#d97085"
         unit="bytes"
-        refValue={m.jvmHeapMax}
+        refValue={m.heapMax}
         refLabel="Max"
         gradient
       />

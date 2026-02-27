@@ -170,33 +170,97 @@ export type FlinkJob = {
 
 // --- Task Manager types ---
 
+export type GarbageCollectorInfo = {
+  name: string;
+  count: number;
+  time: number;
+};
+
 export type TaskManagerMetrics = {
   cpuUsage: number;
-  jvmHeapUsed: number;
-  jvmHeapMax: number;
-  jvmNonHeapUsed: number;
-  jvmNonHeapMax: number;
+  // JVM heap
+  heapUsed: number;
+  heapCommitted: number;
+  heapMax: number;
+  // JVM non-heap
+  nonHeapUsed: number;
+  nonHeapCommitted: number;
+  nonHeapMax: number;
+  // Direct / mapped buffers
+  directCount: number;
+  directUsed: number;
+  directMax: number;
+  mappedCount: number;
+  mappedUsed: number;
+  mappedMax: number;
+  // Netty shuffle memory
+  nettyShuffleMemoryAvailable: number;
+  nettyShuffleMemoryUsed: number;
+  nettyShuffleMemoryTotal: number;
+  nettyShuffleSegmentsAvailable: number;
+  nettyShuffleSegmentsUsed: number;
+  nettyShuffleSegmentsTotal: number;
+  // Managed / network (from metrics endpoint)
   managedMemoryUsed: number;
   managedMemoryTotal: number;
-  networkMemoryUsed: number;
-  networkMemoryTotal: number;
-  gcCount: number;
-  gcTime: number;
+  // Metaspace
+  metaspaceUsed: number;
+  metaspaceMax: number;
+  // Garbage collectors
+  garbageCollectors: GarbageCollectorInfo[];
+  // Thread count
   threadCount: number;
+};
+
+/** Flink memory model — effective configuration in bytes */
+export type TaskManagerMemoryConfiguration = {
+  frameworkHeap: number;
+  taskHeap: number;
+  frameworkOffHeap: number;
+  taskOffHeap: number;
+  networkMemory: number;
+  managedMemory: number;
+  jvmMetaspace: number;
+  jvmOverhead: number;
+  totalFlinkMemory: number;
+  totalProcessMemory: number;
+};
+
+/** Resource profile for total/free resource accounting */
+export type TaskManagerResource = {
+  cpuCores: number;
+  taskHeapMemory: number;
+  taskOffHeapMemory: number;
+  managedMemory: number;
+  networkMemory: number;
+};
+
+export type AllocatedSlot = {
+  index: number;
+  jobId: string;
+  resource: TaskManagerResource;
 };
 
 export type TaskManager = {
   id: string;
   path: string;
   dataPort: number;
+  jmxPort: number;
   lastHeartbeat: Date;
   slotsTotal: number;
   slotsFree: number;
+  // Hardware
   cpuCores: number;
   physicalMemory: number;
-  jvmHeapSize: number;
-  managedMemory: number;
-  networkMemory: number;
+  freeMemory: number;
+  // Resource accounting
+  totalResource: TaskManagerResource;
+  freeResource: TaskManagerResource;
+  // Memory model
+  memoryConfiguration: TaskManagerMemoryConfiguration;
+  // Allocated slots
+  allocatedSlots: AllocatedSlot[];
+  // Live metrics
   metrics: TaskManagerMetrics;
 };
 
