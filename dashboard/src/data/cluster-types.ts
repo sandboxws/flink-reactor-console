@@ -262,6 +262,11 @@ export type TaskManager = {
   allocatedSlots: AllocatedSlot[];
   // Live metrics
   metrics: TaskManagerMetrics;
+  // Tab data (mirrors Flink REST /taskmanagers/:id/* endpoints)
+  logs: string;
+  stdout: string;
+  logFiles: LogFileEntry[];
+  threadDump: ThreadDumpInfo;
 };
 
 // --- Job Manager types ---

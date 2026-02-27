@@ -756,6 +756,381 @@ function generateTmResource(slotsTotal: number): TaskManagerResource {
   };
 }
 
+// ---------------------------------------------------------------------------
+// TM logs, stdout, log files, thread dump generators
+// ---------------------------------------------------------------------------
+
+function generateTmLogs(tmId: string): string {
+  const lines = [
+    `2025-01-15 10:00:01,234 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor             - Connecting to ResourceManager at akka.tcp://flink@flink-jobmanager:6123/user/rpc/resourcemanager_0.`,
+    `2025-01-15 10:00:01,567 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor             - Successfully registered at ResourceManager.`,
+    `2025-01-15 10:00:02,012 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl   - Allocated slot for alloc-001 in slot index 0.`,
+    `2025-01-15 10:00:02,345 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor             - Received task Source: KafkaSource -> Map (1/4), deploy into slot with allocation id alloc-001.`,
+    `2025-01-15 10:00:02,678 INFO  org.apache.flink.runtime.taskmanager.Task                      - Source: KafkaSource -> Map (1/4) switched from CREATED to DEPLOYING.`,
+    `2025-01-15 10:00:03,001 INFO  org.apache.flink.runtime.taskmanager.Task                      - Source: KafkaSource -> Map (1/4) switched from DEPLOYING to INITIALIZING.`,
+    `2025-01-15 10:00:03,234 INFO  org.apache.flink.connector.kafka.source.reader.KafkaSourceReader - Consumer subtask 0 assigned to partitions [clicks-0, clicks-1].`,
+    `2025-01-15 10:00:03,567 INFO  org.apache.flink.connector.kafka.source.reader.KafkaSourceReader - Consumer subtask 0 seeking to offset 50782 for partition clicks-0.`,
+    `2025-01-15 10:00:04,012 INFO  org.apache.flink.runtime.taskmanager.Task                      - Source: KafkaSource -> Map (1/4) switched from INITIALIZING to RUNNING.`,
+    `2025-01-15 10:00:05,234 INFO  org.apache.flink.runtime.io.network.netty.NettyServer          - Successful initialization (transport type: nio). Listening on port 6121.`,
+    `2025-01-15 10:00:10,456 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask            - Triggering checkpoint 1 on behalf of the CheckpointCoordinator.`,
+    `2025-01-15 10:00:10,789 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask            - Acknowledging checkpoint 1.`,
+    `2025-01-15 10:00:15,123 INFO  org.apache.flink.runtime.state.heap.HeapKeyedStateBackend      - State backend initialized with heap memory at /tmp/flink-state/${tmId}/job_001.`,
+    `2025-01-15 10:00:20,456 WARN  org.apache.flink.runtime.io.network.partition.ResultPartitionManager - Network buffer pool is running low on available buffers.`,
+    `2025-01-15 10:00:25,789 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask            - Triggering checkpoint 2 on behalf of the CheckpointCoordinator.`,
+    `2025-01-15 10:00:26,012 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask            - Acknowledging checkpoint 2.`,
+    `2025-01-15 10:00:30,234 DEBUG org.apache.flink.streaming.runtime.tasks.StreamTask            - Processing watermark W(1706875234000).`,
+    `2025-01-15 10:00:35,567 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor             - Received task Window(TumblingEventTimeWindows) -> Sink: Print (1/4), deploy into slot with allocation id alloc-002.`,
+    `2025-01-15 10:00:35,890 INFO  org.apache.flink.runtime.taskmanager.Task                      - Window(TumblingEventTimeWindows) -> Sink: Print (1/4) switched from CREATED to DEPLOYING.`,
+    `2025-01-15 10:00:36,123 INFO  org.apache.flink.runtime.taskmanager.Task                      - Window(TumblingEventTimeWindows) -> Sink: Print (1/4) switched from DEPLOYING to INITIALIZING.`,
+    `2025-01-15 10:00:36,456 INFO  org.apache.flink.runtime.taskmanager.Task                      - Window(TumblingEventTimeWindows) -> Sink: Print (1/4) switched from INITIALIZING to RUNNING.`,
+    `2025-01-15 10:00:40,789 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask            - Triggering checkpoint 3 on behalf of the CheckpointCoordinator.`,
+    `2025-01-15 10:00:41,012 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask            - Acknowledging checkpoint 3.`,
+    `2025-01-15 10:00:45,234 WARN  org.apache.flink.runtime.taskexecutor.TaskExecutor             - Slow garbage collection detected: G1 Young Generation GC took 245ms.`,
+    `2025-01-15 10:00:50,567 INFO  org.apache.flink.connector.kafka.sink.KafkaWriter              - Kafka writer flushed 512 records to topic 'orders'.`,
+    `2025-01-15 10:00:55,890 INFO  org.apache.flink.connector.kafka.sink.KafkaWriter              - Committing transaction for checkpoint 3.`,
+  ];
+  return lines.join("\n");
+}
+
+function generateTmStdoutText(tm: {
+  id: string;
+  slotsTotal: number;
+  cpuCores: number;
+  physicalMemory: number;
+  metrics: TaskManagerMetrics;
+  memoryConfiguration: TaskManagerMemoryConfiguration;
+  path: string;
+}): string {
+  return [
+    `Starting Flink TaskManager (TaskManagerRunner)`,
+    `  JVM version: 11.0.21+9`,
+    `  Max heap size: ${Math.round(tm.metrics.heapMax / MB)} MB`,
+    `  JVM args: -Xmx${Math.round(tm.metrics.heapMax / MB)}m -Xms${Math.round(tm.metrics.heapMax / MB)}m -XX:MaxMetaspaceSize=${Math.round(tm.memoryConfiguration.jvmMetaspace / MB)}m -XX:MaxDirectMemorySize=${Math.round(tm.memoryConfiguration.networkMemory / MB)}m`,
+    `  Classpath: /opt/flink/lib/*`,
+    `  Working directory: /opt/flink`,
+    ``,
+    `Flink version: 1.20.0`,
+    `Scala version: 2.12`,
+    `Build date: 2025-01-10T08:30:00Z`,
+    `Commit: a1b2c3d`,
+    ``,
+    `TaskManager ID: ${tm.id}`,
+    `Resource ID: ${tm.id}`,
+    `Data port: 6121`,
+    `Total task slots: ${tm.slotsTotal}`,
+    `CPU cores: ${tm.cpuCores}`,
+    `Physical memory: ${Math.round(tm.physicalMemory / GB)} GB`,
+    `JVM heap size: ${Math.round(tm.metrics.heapMax / MB)} MB`,
+    `Managed memory: ${Math.round(tm.memoryConfiguration.managedMemory / MB)} MB`,
+    `Network memory: ${Math.round(tm.memoryConfiguration.networkMemory / MB)} MB`,
+    ``,
+    `Connecting to ResourceManager at ${tm.path.split("/user")[0]}`,
+    `Successfully registered at ResourceManager.`,
+  ].join("\n");
+}
+
+function generateTmLogFiles(tmIndex: number): LogFileEntry[] {
+  const now = Date.now();
+  const entries: LogFileEntry[] = [];
+  const ordinal = String(tmIndex);
+
+  // Primary taskexecutor log
+  entries.push({
+    name: `flink-${LOG_USER}-taskexecutor-${ordinal}-${LOG_HOST}.log`,
+    lastModified: new Date(now - Math.floor(Math.random() * 3_600_000)),
+    size: 33.42,
+  });
+
+  // Rotated taskexecutor logs
+  for (let r = 1; r <= 2; r++) {
+    const daysAgo = r + Math.floor(Math.random() * 3);
+    entries.push({
+      name: `flink-${LOG_USER}-taskexecutor-${ordinal}-${LOG_HOST}.log.${r}`,
+      lastModified: new Date(now - daysAgo * 86_400_000 - Math.floor(Math.random() * 43_200_000)),
+      size: Number((5 + Math.random() * 45).toFixed(2)),
+    });
+  }
+
+  // Taskexecutor .out file
+  entries.push({
+    name: `flink-${LOG_USER}-taskexecutor-${ordinal}-${LOG_HOST}.out`,
+    lastModified: new Date(now - 2 * 86_400_000 - Math.floor(Math.random() * 43_200_000)),
+    size: 0,
+  });
+
+  // GC log
+  entries.push({
+    name: `flink-${LOG_USER}-taskexecutor-${ordinal}-${LOG_HOST}-gc.log`,
+    lastModified: new Date(now - Math.floor(Math.random() * 7_200_000)),
+    size: Number((2 + Math.random() * 15).toFixed(2)),
+  });
+
+  entries.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+  return entries;
+}
+
+function generateTmThreadDump(): ThreadDumpInfo {
+  const threads: ThreadDumpEntry[] = [
+    // --- main thread ---
+    {
+      name: "main",
+      id: 1,
+      state: "WAITING",
+      lockObject: "java.util.concurrent.CompletableFuture$Signaller@48cd2176",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.CompletableFuture$Signaller@48cd2176",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:221)",
+        "at java.base@21.0.9/java.util.concurrent.CompletableFuture$Signaller.block(CompletableFuture.java:1864)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+        "at java.base@21.0.9/java.util.concurrent.CompletableFuture.waitingGet(CompletableFuture.java:1898)",
+        "at java.base@21.0.9/java.util.concurrent.CompletableFuture.get(CompletableFuture.java:2072)",
+        "at app//org.apache.flink.runtime.taskexecutor.TaskManagerRunner.runTaskManager(TaskManagerRunner.java:342)",
+        "at app//org.apache.flink.runtime.taskexecutor.TaskManagerRunner.main(TaskManagerRunner.java:405)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Task execution threads ---
+    {
+      name: "Source: KafkaSource -> Map (1/4)#0",
+      id: 30,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at app//org.apache.flink.connector.kafka.source.reader.KafkaSourceReader.pollNext(KafkaSourceReader.java:127)",
+        "at app//org.apache.flink.streaming.api.operators.SourceOperator.emitNext(SourceOperator.java:419)",
+        "at app//org.apache.flink.streaming.runtime.io.StreamTaskSourceInput.emitNext(StreamTaskSourceInput.java:68)",
+        "at app//org.apache.flink.streaming.runtime.io.StreamOneInputProcessor.processInput(StreamOneInputProcessor.java:65)",
+        "at app//org.apache.flink.streaming.runtime.tasks.StreamTask.processInput(StreamTask.java:550)",
+        "at app//org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor.runMailboxLoop(MailboxProcessor.java:231)",
+        "at app//org.apache.flink.streaming.runtime.tasks.StreamTask.runMailboxLoop(StreamTask.java:839)",
+        "at app//org.apache.flink.streaming.runtime.tasks.StreamTask.invoke(StreamTask.java:788)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.runWithSystemExitMonitoring(Task.java:952)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.restoreAndInvoke(Task.java:931)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.doRun(Task.java:745)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.run(Task.java:562)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    {
+      name: "Source: KafkaSource -> Map (2/4)#0",
+      id: 31,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at app//org.apache.flink.connector.kafka.source.reader.KafkaSourceReader.pollNext(KafkaSourceReader.java:127)",
+        "at app//org.apache.flink.streaming.api.operators.SourceOperator.emitNext(SourceOperator.java:419)",
+        "at app//org.apache.flink.streaming.runtime.io.StreamTaskSourceInput.emitNext(StreamTaskSourceInput.java:68)",
+        "at app//org.apache.flink.streaming.runtime.io.StreamOneInputProcessor.processInput(StreamOneInputProcessor.java:65)",
+        "at app//org.apache.flink.streaming.runtime.tasks.StreamTask.processInput(StreamTask.java:550)",
+        "at app//org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor.runMailboxLoop(MailboxProcessor.java:231)",
+        "at app//org.apache.flink.streaming.runtime.tasks.StreamTask.runMailboxLoop(StreamTask.java:839)",
+        "at app//org.apache.flink.streaming.runtime.tasks.StreamTask.invoke(StreamTask.java:788)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.runWithSystemExitMonitoring(Task.java:952)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.restoreAndInvoke(Task.java:931)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.doRun(Task.java:745)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.run(Task.java:562)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    {
+      name: "Window(TumblingEventTimeWindows) -> Sink: Print (1/4)#0",
+      id: 32,
+      state: "WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@5a5b1e04",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@5a5b1e04",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:221)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+        "at app//org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor.runMailboxLoop(MailboxProcessor.java:196)",
+        "at app//org.apache.flink.streaming.runtime.tasks.StreamTask.runMailboxLoop(StreamTask.java:839)",
+        "at app//org.apache.flink.streaming.runtime.tasks.StreamTask.invoke(StreamTask.java:788)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.runWithSystemExitMonitoring(Task.java:952)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.restoreAndInvoke(Task.java:931)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.doRun(Task.java:745)",
+        "at app//org.apache.flink.runtime.taskmanager.Task.run(Task.java:562)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Checkpoint timer ---
+    {
+      name: "Checkpoint Timer",
+      id: 33,
+      state: "TIMED_WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@3e7b1d02",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@3e7b1d02",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1797)",
+        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Netty data server threads ---
+    ...([1, 2, 3, 4] as const).map((n): ThreadDumpEntry => ({
+      name: `flink-netty-server-${n}`,
+      id: 34 + n,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: true,
+      stackFrames: [
+        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Pekko actor dispatchers ---
+    ...([3, 5, 7] as const).map((n): ThreadDumpEntry => ({
+      name: `flink-pekko.actor.default-dispatcher-${n}`,
+      id: 40 + n,
+      state: "WAITING",
+      lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@1a2b3c4d",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@1a2b3c4d",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+      ],
+      lockedSynchronizers: [],
+    })),
+    // --- Memory manager thread ---
+    {
+      name: "flink-memory-manager-io-0",
+      id: 50,
+      state: "WAITING",
+      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7c8d9e0f",
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7c8d9e0f",
+        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:221)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
+        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1746)",
+        "at java.base@21.0.9/java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:435)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Metrics reporter ---
+    {
+      name: "flink-metrics-scheduler-1",
+      id: 51,
+      state: "TIMED_WAITING",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/java.lang.Thread.sleep0(Native Method)",
+        "at java.base@21.0.9/java.lang.Thread.sleep(Thread.java:509)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler.waitNanos(LightArrayRevolverScheduler.scala:121)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler$anon$3.nextTick(LightArrayRevolverScheduler.scala:314)",
+        "at org.apache.pekko.actor.LightArrayRevolverScheduler$anon$3.run(LightArrayRevolverScheduler.scala:284)",
+        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- GC thread ---
+    {
+      name: "G1 Young RemSet Sampling",
+      id: 15,
+      state: "TIMED_WAITING",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/java.lang.Thread.sleep0(Native Method)",
+        "at java.base@21.0.9/java.lang.Thread.sleep(Thread.java:509)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- Reference Handler ---
+    {
+      name: "Reference Handler",
+      id: 9,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at java.base@21.0.9/java.lang.ref.Reference.waitForReferencePendingList(Native Method)",
+        "at java.base@21.0.9/java.lang.ref.Reference.processPendingReferences(Reference.java:246)",
+        "at java.base@21.0.9/java.lang.ref.Reference$ReferenceHandler.run(Reference.java:208)",
+      ],
+      lockedSynchronizers: [],
+    },
+    // --- The active thread taking the dump ---
+    {
+      name: "flink-pekko.actor.default-dispatcher-12",
+      id: 52,
+      state: "RUNNABLE",
+      lockObject: null,
+      isNative: false,
+      stackFrames: [
+        "at java.management@21.0.9/sun.management.ThreadImpl.dumpThreads0(Native Method)",
+        "at java.management@21.0.9/sun.management.ThreadImpl.dumpAllThreads(ThreadImpl.java:518)",
+        "at java.management@21.0.9/sun.management.ThreadImpl.dumpAllThreads(ThreadImpl.java:506)",
+        "at app//org.apache.flink.runtime.util.JvmUtils.createThreadDump(JvmUtils.java:50)",
+        "at app//org.apache.flink.runtime.rest.messages.ThreadDumpInfo.dumpAndCreate(ThreadDumpInfo.java:59)",
+        "at app//org.apache.flink.runtime.taskexecutor.TaskExecutor.requestThreadDump(TaskExecutor.java:1428)",
+        "at java.base@21.0.9/java.lang.invoke.LambdaForm$DMH/0x0000009801198000.invokeVirtual(LambdaForm$DMH)",
+        "at java.base@21.0.9/java.lang.invoke.LambdaForm$MH/0x00000098012b4400.invoke(LambdaForm$MH)",
+        "at java.base@21.0.9/java.lang.invoke.Invokers$Holder.invokeExact_MT(Invokers$Holder)",
+        "at java.base@21.0.9/jdk.internal.reflect.DirectMethodHandleAccessor.invokeImpl(DirectMethodHandleAccessor.java:154)",
+        "at java.base@21.0.9/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)",
+        "at java.base@21.0.9/java.lang.reflect.Method.invoke(Method.java:580)",
+        "at org.apache.flink.runtime.rpc.pekko.PekkoRpcActor.lambda$handleRpcInvocation$1(PekkoRpcActor.java:318)",
+        "at app//org.apache.flink.runtime.concurrent.ClassLoadingUtils.runWithContextClassLoader(ClassLoadingUtils.java:83)",
+        "at org.apache.flink.runtime.rpc.pekko.PekkoRpcActor.handleRpcInvocation(PekkoRpcActor.java:316)",
+        "at org.apache.flink.runtime.rpc.pekko.PekkoRpcActor.handleRpcMessage(PekkoRpcActor.java:229)",
+      ],
+      lockedSynchronizers: [],
+    },
+  ];
+
+  const threadInfos: ThreadInfoRaw[] = threads.map((t) => ({
+    threadName: t.name,
+    stringifiedThreadInfo: threadToStringifiedInfo(t),
+  }));
+  return { threadInfos };
+}
+
 export function generateTaskManagers(): TaskManager[] {
   const tmIds = PLACEHOLDER_VALUES.TM_ID;
   const tmAddrs = PLACEHOLDER_VALUES.TM_ADDR;
@@ -773,10 +1148,13 @@ export function generateTaskManagers(): TaskManager[] {
       networkMemory: Math.round(totalResource.networkMemory * (slotsFree / slotsTotal)),
     };
 
+    const tmId = tmIds[i] ?? `container_unknown_${i}`;
+    const tmPath = tmAddrs[i] ?? `pekko.tcp://flink@tm-${i + 1}:6122/user/rpc/taskmanager_0`;
+    const metrics = generateTmMetrics(memCfg);
+
     return {
-      id: tmIds[i] ?? `container_unknown_${i}`,
-      path:
-        tmAddrs[i] ?? `pekko.tcp://flink@tm-${i + 1}:6122/user/rpc/taskmanager_0`,
+      id: tmId,
+      path: tmPath,
       dataPort: 6121,
       jmxPort: -1,
       lastHeartbeat: new Date(Date.now() - Math.floor(Math.random() * 5000)),
@@ -789,7 +1167,19 @@ export function generateTaskManagers(): TaskManager[] {
       freeResource,
       memoryConfiguration: memCfg,
       allocatedSlots: [],
-      metrics: generateTmMetrics(memCfg),
+      metrics,
+      logs: generateTmLogs(tmId),
+      stdout: generateTmStdoutText({
+        id: tmId,
+        slotsTotal,
+        cpuCores: 8,
+        physicalMemory: 32 * GB,
+        metrics,
+        memoryConfiguration: memCfg,
+        path: tmPath,
+      }),
+      logFiles: generateTmLogFiles(i),
+      threadDump: generateTmThreadDump(),
     };
   }) as TaskManager[];
 }

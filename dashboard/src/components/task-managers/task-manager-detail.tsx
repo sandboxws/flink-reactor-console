@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowLeft, Server, Clock, Cpu, HardDrive } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -9,6 +10,9 @@ import { TmOverviewTab } from "./tm-overview-tab";
 import { TmMetricsTab } from "./tm-metrics-tab";
 import { TmLogsTab } from "./tm-logs-tab";
 import { TmStdoutTab } from "./tm-stdout-tab";
+import { TmLogListTab } from "./tm-log-list-tab";
+import { TmThreadDumpTab } from "./tm-thread-dump-tab";
+import { TmProfilerTab } from "./tm-profiler-tab";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -39,6 +43,9 @@ function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
 // ---------------------------------------------------------------------------
 
 export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null);
+
   return (
     <div className="flex flex-col gap-4 p-4">
       {/* Back link */}
@@ -99,7 +106,14 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          setActiveTab(v);
+          // Reset log viewer when switching away
+          if (v !== "log-list") setSelectedLogFile(null);
+        }}
+      >
         <TabsList className="detail-tabs-list">
           <TabsTrigger value="overview" className="detail-tab">
             Overview
@@ -113,6 +127,19 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
           <TabsTrigger value="stdout" className="detail-tab">
             Stdout
           </TabsTrigger>
+          <TabsTrigger
+            value="log-list"
+            className="detail-tab"
+            onClick={() => setSelectedLogFile(null)}
+          >
+            Log List
+          </TabsTrigger>
+          <TabsTrigger value="thread-dump" className="detail-tab">
+            Thread Dump
+          </TabsTrigger>
+          <TabsTrigger value="profiler" className="detail-tab">
+            Profiler
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -122,10 +149,23 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
           <TmMetricsTab tm={tm} />
         </TabsContent>
         <TabsContent value="logs">
-          <TmLogsTab tm={tm} />
+          <TmLogsTab logs={tm.logs} />
         </TabsContent>
         <TabsContent value="stdout">
-          <TmStdoutTab tm={tm} />
+          <TmStdoutTab stdout={tm.stdout} />
+        </TabsContent>
+        <TabsContent value="log-list">
+          <TmLogListTab
+            logFiles={tm.logFiles}
+            selectedLog={selectedLogFile}
+            onSelectLog={setSelectedLogFile}
+          />
+        </TabsContent>
+        <TabsContent value="thread-dump">
+          <TmThreadDumpTab threadDump={tm.threadDump} />
+        </TabsContent>
+        <TabsContent value="profiler">
+          <TmProfilerTab />
         </TabsContent>
       </Tabs>
     </div>
