@@ -16,6 +16,7 @@ import Link from "next/link";
 import type { FlinkJob } from "@/data/cluster-types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
+import { useClusterStore } from "@/stores/cluster-store";
 
 // ---------------------------------------------------------------------------
 // Status colors
@@ -182,7 +183,9 @@ export function JobHeader({
   onCancelJob?: () => void;
   onCreateSavepoint?: () => void;
 }) {
+  const featureFlags = useClusterStore((s) => s.featureFlags);
   const isRunning = job.status === "RUNNING";
+  const canCancel = featureFlags?.webCancel !== false;
   const taskTotal = Object.values(job.tasks).reduce((a, b) => a + b, 0);
   const taskFinished = job.tasks.finished;
   const taskPct =
@@ -234,14 +237,16 @@ export function JobHeader({
           {isRunning && <ProgressRing percentage={taskPct} />}
           {isRunning && (
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onCancelJob}
-                className="flex items-center gap-1.5 rounded-md bg-job-failed/10 px-3 py-1.5 text-xs font-medium text-job-failed transition-colors hover:bg-job-failed/20"
-              >
-                <XCircle className="size-3.5" />
-                Cancel
-              </button>
+              {canCancel && (
+                <button
+                  type="button"
+                  onClick={onCancelJob}
+                  className="flex items-center gap-1.5 rounded-md bg-job-failed/10 px-3 py-1.5 text-xs font-medium text-job-failed transition-colors hover:bg-job-failed/20"
+                >
+                  <XCircle className="size-3.5" />
+                  Cancel
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onCreateSavepoint}

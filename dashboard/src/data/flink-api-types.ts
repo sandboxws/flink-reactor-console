@@ -323,3 +323,339 @@ export interface FlinkJobDetailAggregate {
   backpressure: Record<string, FlinkVertexBackPressureResponse>;
   accumulators: Record<string, FlinkVertexAccumulatorsResponse>;
 }
+
+// ---------------------------------------------------------------------------
+// Task Manager types — GET /taskmanagers and related endpoints
+// ---------------------------------------------------------------------------
+
+/**
+ * Hardware description within a task manager entry.
+ */
+export interface FlinkTaskManagerHardware {
+  cpuCores: number;
+  physicalMemory: number;
+  freeMemory: number;
+  managedMemory: number;
+}
+
+/**
+ * Resource profile (total/free) within a task manager entry.
+ */
+export interface FlinkTaskManagerResourceProfile {
+  cpuCores: number;
+  taskHeapMemory: number;
+  taskOffHeapMemory: number;
+  managedMemory: number;
+  networkMemory: number;
+}
+
+/**
+ * Memory configuration within task manager detail.
+ */
+export interface FlinkTaskManagerMemoryConfiguration {
+  frameworkHeap: number;
+  taskHeap: number;
+  frameworkOffHeap: number;
+  taskOffHeap: number;
+  networkMemory: number;
+  managedMemory: number;
+  jvmMetaspace: number;
+  jvmOverhead: number;
+  totalFlinkMemory: number;
+  totalProcessMemory: number;
+}
+
+/**
+ * Allocated slot info within task manager detail.
+ */
+export interface FlinkAllocatedSlot {
+  index: number;
+  jobId: string;
+  resource: FlinkTaskManagerResourceProfile;
+}
+
+/**
+ * Single task manager entry within GET /taskmanagers response.
+ */
+export interface FlinkTaskManagerItem {
+  id: string;
+  path: string;
+  dataPort: number;
+  jmxPort: number;
+  timeSinceLastHeartbeat: number;
+  slotsNumber: number;
+  freeSlots: number;
+  totalResource: FlinkTaskManagerResourceProfile;
+  freeResource: FlinkTaskManagerResourceProfile;
+  hardware: FlinkTaskManagerHardware;
+  memoryConfiguration: FlinkTaskManagerMemoryConfiguration;
+  allocatedSlots: FlinkAllocatedSlot[];
+}
+
+/**
+ * GET /taskmanagers
+ * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#taskmanagers
+ */
+export interface FlinkTaskManagersResponse {
+  taskmanagers: FlinkTaskManagerItem[];
+}
+
+/**
+ * GET /taskmanagers/:tmid — same shape as FlinkTaskManagerItem but standalone
+ * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#taskmanagers-taskmanagerid
+ */
+export type FlinkTaskManagerDetailResponse = FlinkTaskManagerItem;
+
+/**
+ * Reusable metric entry — GET /taskmanagers/:tmid/metrics?get=... or /jobmanager/metrics?get=...
+ */
+export interface FlinkMetricItem {
+  id: string;
+  value: string;
+}
+
+/**
+ * GET /taskmanagers/:tmid/thread-dump or /jobmanager/thread-dump
+ * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#taskmanagers-taskmanagerid-thread-dump
+ */
+export interface FlinkThreadDumpResponse {
+  threadInfos: Array<{
+    threadName: string;
+    stringifiedThreadInfo: string;
+  }>;
+}
+
+/**
+ * Single log file entry in the log list response.
+ */
+export interface FlinkLogFileInfo {
+  name: string;
+  size: number;
+}
+
+/**
+ * GET /taskmanagers/:tmid/logs or /jobmanager/logs
+ * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#taskmanagers-taskmanagerid-logs
+ */
+export interface FlinkLogListResponse {
+  logs: FlinkLogFileInfo[];
+}
+
+// ---------------------------------------------------------------------------
+// Task Manager detail aggregate — assembled by the proxy route
+// ---------------------------------------------------------------------------
+
+/**
+ * Aggregate envelope for task manager detail.
+ * Combines the TM detail + metrics in a single response.
+ */
+export interface FlinkTaskManagerDetailAggregate {
+  detail: FlinkTaskManagerDetailResponse;
+  metrics: FlinkMetricItem[];
+}
+
+// ---------------------------------------------------------------------------
+// Job Manager types — GET /jobmanager/* endpoints
+// ---------------------------------------------------------------------------
+
+/**
+ * Single config entry in GET /jobmanager/config response.
+ */
+export interface FlinkJobManagerConfigEntry {
+  key: string;
+  value: string;
+}
+
+/**
+ * GET /jobmanager/config — returns an array of {key, value} pairs
+ * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#jobmanager-config
+ */
+export type FlinkJobManagerConfigResponse = FlinkJobManagerConfigEntry[];
+
+/**
+ * JVM info within GET /jobmanager/environment.
+ */
+export interface FlinkJvmInfo {
+  version: string;
+  arch: string;
+  options: string[];
+}
+
+/**
+ * GET /jobmanager/environment — returns JVM info, classpath, system properties
+ */
+export interface FlinkJobManagerEnvironmentResponse {
+  jvm: FlinkJvmInfo;
+  classpath: string[];
+  "system-properties": Record<string, string>;
+}
+
+/**
+ * Aggregate envelope for Job Manager detail.
+ * Combines config + environment + metrics in a single response.
+ */
+export interface FlinkJobManagerDetailAggregate {
+  config: FlinkJobManagerConfigResponse;
+  environment: FlinkJobManagerEnvironmentResponse;
+  metrics: FlinkMetricItem[];
+}
+
+// ---------------------------------------------------------------------------
+// Cluster config — GET /config (feature flags)
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /config — Returns cluster-level configuration including feature flags.
+ * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#config
+ */
+export type FlinkClusterConfigResponse = FlinkJobManagerConfigEntry[];
+
+// ---------------------------------------------------------------------------
+// Vertex metrics — GET /jobs/:jid/vertices/:vid/metrics
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /jobs/:jid/vertices/:vid/metrics?get=...
+ * Returns an array of FlinkMetricItem (reuses the same shape as TM/JM metrics).
+ */
+export type FlinkVertexMetricsResponse = FlinkMetricItem[];
+
+// ---------------------------------------------------------------------------
+// Checkpoint detail — GET /jobs/:jid/checkpoints/:cpid/details
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-subtask checkpoint stats within the checkpoint detail response.
+ */
+export interface FlinkCheckpointSubtaskStats {
+  index: number;
+  status: string;
+  ack_timestamp: number;
+  end_to_end_duration: number;
+  state_size: number;
+  checkpoint_duration: {
+    sync: number;
+    async: number;
+  };
+  alignment: {
+    buffered: number;
+    duration: number;
+  };
+  start_delay: number;
+}
+
+/**
+ * Per-vertex checkpoint summary within the checkpoint detail response.
+ */
+export interface FlinkCheckpointTaskStats {
+  id: string;
+  status: string;
+  latest_ack_timestamp: number;
+  state_size: number;
+  end_to_end_duration: number;
+  num_subtasks: number;
+  num_acknowledged_subtasks: number;
+}
+
+/**
+ * GET /jobs/:jid/checkpoints/:cpid/details
+ * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#jobs-jobid-checkpoints-details-checkpointid
+ */
+export interface FlinkCheckpointDetailResponse {
+  id: number;
+  status: string;
+  is_savepoint: boolean;
+  trigger_timestamp: number;
+  latest_ack_timestamp: number;
+  state_size: number;
+  end_to_end_duration: number;
+  num_subtasks: number;
+  num_acknowledged_subtasks: number;
+  tasks: Record<string, FlinkCheckpointTaskStats>;
+}
+
+// ---------------------------------------------------------------------------
+// Subtask times — GET /jobs/:jid/vertices/:vid/subtasktimes
+// ---------------------------------------------------------------------------
+
+/**
+ * Single subtask timing entry.
+ */
+export interface FlinkSubtaskTimeEntry {
+  subtask: number;
+  host: string;
+  duration: number;
+  timestamps: Record<string, number>;
+}
+
+/**
+ * GET /jobs/:jid/vertices/:vid/subtasktimes
+ */
+export interface FlinkSubtaskTimesResponse {
+  id: string;
+  name: string;
+  now: number;
+  subtasks: FlinkSubtaskTimeEntry[];
+}
+
+// ---------------------------------------------------------------------------
+// Flamegraph — GET /jobs/:jid/vertices/:vid/flamegraph
+// ---------------------------------------------------------------------------
+
+/**
+ * Flamegraph node entry — recursive tree structure.
+ */
+export interface FlinkFlamegraphNode {
+  name: string;
+  value: number;
+  children?: FlinkFlamegraphNode[];
+}
+
+/**
+ * GET /jobs/:jid/vertices/:vid/flamegraph?type=...
+ */
+export interface FlinkFlamegraphResponse {
+  "end-timestamp": number;
+  data: FlinkFlamegraphNode;
+}
+
+// ---------------------------------------------------------------------------
+// JAR management — GET/POST /jars, DELETE /jars/:jarid, POST /jars/:jarid/run
+// ---------------------------------------------------------------------------
+
+/**
+ * Single JAR entry in the jars list response.
+ */
+export interface FlinkJarEntry {
+  id: string;
+  name: string;
+  uploaded: number;
+  entry: Array<{
+    name: string;
+    description: string | null;
+  }>;
+}
+
+/**
+ * GET /jars — list uploaded JARs
+ * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#jars
+ */
+export interface FlinkJarsResponse {
+  address: string;
+  files: FlinkJarEntry[];
+}
+
+/**
+ * POST /jars/upload — response after uploading a JAR
+ */
+export interface FlinkJarUploadResponse {
+  filename: string;
+  status: string;
+}
+
+/**
+ * POST /jars/:jarid/run — response after running a JAR
+ */
+export interface FlinkJarRunResponse {
+  jobid: string;
+}

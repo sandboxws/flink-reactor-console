@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Server, Clock, Cpu, HardDrive } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ArrowLeft, Server, Clock, Cpu, HardDrive, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
-import type { TaskManager } from "@/data/cluster-types";
+import type { TaskManager, LogFileEntry, ThreadDumpInfo } from "@/data/cluster-types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TmOverviewTab } from "./tm-overview-tab";
 import { TmMetricsTab } from "./tm-metrics-tab";
@@ -13,6 +13,12 @@ import { TmStdoutTab } from "./tm-stdout-tab";
 import { TmLogListTab } from "./tm-log-list-tab";
 import { TmThreadDumpTab } from "./tm-thread-dump-tab";
 import { TmProfilerTab } from "./tm-profiler-tab";
+import {
+  fetchTaskManagerLog,
+  fetchTaskManagerStdout,
+  fetchTaskManagerLogs,
+  fetchTaskManagerThreadDump,
+} from "@/lib/flink-api-client";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -45,6 +51,55 @@ function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
 export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null);
+
+  // Lazy-loaded tab data — fetched on demand when tab is activated
+  const [logs, setLogs] = useState<string | null>(null);
+  const [stdout, setStdout] = useState<string | null>(null);
+  const [logFiles, setLogFiles] = useState<LogFileEntry[] | null>(null);
+  const [threadDump, setThreadDump] = useState<ThreadDumpInfo | null>(null);
+
+  const loadLogs = useCallback(async () => {
+    if (logs !== null) return;
+    try {
+      setLogs(await fetchTaskManagerLog(tm.id));
+    } catch {
+      setLogs("");
+    }
+  }, [tm.id, logs]);
+
+  const loadStdout = useCallback(async () => {
+    if (stdout !== null) return;
+    try {
+      setStdout(await fetchTaskManagerStdout(tm.id));
+    } catch {
+      setStdout("");
+    }
+  }, [tm.id, stdout]);
+
+  const loadLogFiles = useCallback(async () => {
+    if (logFiles !== null) return;
+    try {
+      setLogFiles(await fetchTaskManagerLogs(tm.id));
+    } catch {
+      setLogFiles([]);
+    }
+  }, [tm.id, logFiles]);
+
+  const loadThreadDump = useCallback(async () => {
+    try {
+      setThreadDump(await fetchTaskManagerThreadDump(tm.id));
+    } catch {
+      setThreadDump({ threadInfos: [] });
+    }
+  }, [tm.id]);
+
+  // Fetch tab data when tab activates
+  useEffect(() => {
+    if (activeTab === "logs") loadLogs();
+    else if (activeTab === "stdout") loadStdout();
+    else if (activeTab === "log-list") loadLogFiles();
+    else if (activeTab === "thread-dump") loadThreadDump();
+  }, [activeTab, loadLogs, loadStdout, loadLogFiles, loadThreadDump]);
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -149,20 +204,45 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
           <TmMetricsTab tm={tm} />
         </TabsContent>
         <TabsContent value="logs">
-          <TmLogsTab logs={tm.logs} />
+          {logs === null ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-5 animate-spin text-zinc-500" />
+            </div>
+          ) : (
+            <TmLogsTab logs={logs} />
+          )}
         </TabsContent>
         <TabsContent value="stdout">
-          <TmStdoutTab stdout={tm.stdout} />
+          {stdout === null ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-5 animate-spin text-zinc-500" />
+            </div>
+          ) : (
+            <TmStdoutTab stdout={stdout} />
+          )}
         </TabsContent>
         <TabsContent value="log-list">
-          <TmLogListTab
-            logFiles={tm.logFiles}
-            selectedLog={selectedLogFile}
-            onSelectLog={setSelectedLogFile}
-          />
+          {logFiles === null ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-5 animate-spin text-zinc-500" />
+            </div>
+          ) : (
+            <TmLogListTab
+              logFiles={logFiles}
+              selectedLog={selectedLogFile}
+              onSelectLog={setSelectedLogFile}
+              tmId={tm.id}
+            />
+          )}
         </TabsContent>
         <TabsContent value="thread-dump">
-          <TmThreadDumpTab threadDump={tm.threadDump} />
+          {threadDump === null ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-5 animate-spin text-zinc-500" />
+            </div>
+          ) : (
+            <TmThreadDumpTab threadDump={threadDump} />
+          )}
         </TabsContent>
         <TabsContent value="profiler">
           <TmProfilerTab />

@@ -21,6 +21,19 @@ import type {
   FlinkWatermarksResponse,
   FlinkVertexBackPressureResponse,
   FlinkVertexAccumulatorsResponse,
+  FlinkTaskManagersResponse,
+  FlinkTaskManagerDetailAggregate,
+  FlinkMetricItem,
+  FlinkThreadDumpResponse,
+  FlinkLogListResponse,
+  FlinkJobManagerDetailAggregate,
+  FlinkClusterConfigResponse,
+  FlinkCheckpointDetailResponse,
+  FlinkSubtaskTimesResponse,
+  FlinkFlamegraphResponse,
+  FlinkJarsResponse,
+  FlinkJarUploadResponse,
+  FlinkJarRunResponse,
 } from "./flink-api-types";
 import type {
   Checkpoint,
@@ -30,10 +43,12 @@ import type {
   JobConfiguration,
   JobEdge,
   JobException,
+  JobManagerInfo,
   JobPlan,
   JobVertex,
   SubtaskMetrics,
   TaskCounts,
+  TaskManager,
   UserAccumulator,
   VertexBackPressure,
   VertexWatermark,
@@ -43,6 +58,7 @@ import {
   generateRunningJobs,
   generateCompletedJobs,
   generateTaskManagers,
+  generateJobManagerInfo,
   generateJobPlan,
   generateJobExceptions,
   generateCheckpoints,
@@ -474,4 +490,437 @@ export function generateMockJobDetailApiResponse(
     backpressure: domainBackPressureToApi(backpressure),
     accumulators: domainAccumulatorsToApi(accumulators),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Task Manager mock API responses
+// ---------------------------------------------------------------------------
+
+function domainTmToApiItem(tm: TaskManager) {
+  return {
+    id: tm.id,
+    path: tm.path,
+    dataPort: tm.dataPort,
+    jmxPort: tm.jmxPort,
+    timeSinceLastHeartbeat: Date.now() - tm.lastHeartbeat.getTime(),
+    slotsNumber: tm.slotsTotal,
+    freeSlots: tm.slotsFree,
+    totalResource: tm.totalResource,
+    freeResource: tm.freeResource,
+    hardware: {
+      cpuCores: tm.cpuCores,
+      physicalMemory: tm.physicalMemory,
+      freeMemory: tm.freeMemory,
+      managedMemory: tm.memoryConfiguration.managedMemory,
+    },
+    memoryConfiguration: tm.memoryConfiguration,
+    allocatedSlots: tm.allocatedSlots.map((s) => ({
+      index: s.index,
+      jobId: s.jobId,
+      resource: s.resource,
+    })),
+  };
+}
+
+function domainTmMetricsToApi(tm: TaskManager): FlinkMetricItem[] {
+  const m = tm.metrics;
+  const items: FlinkMetricItem[] = [
+    { id: "Status.JVM.CPU.Load", value: String(m.cpuUsage / 100) },
+    { id: "Status.JVM.Memory.Heap.Used", value: String(m.heapUsed) },
+    { id: "Status.JVM.Memory.Heap.Committed", value: String(m.heapCommitted) },
+    { id: "Status.JVM.Memory.Heap.Max", value: String(m.heapMax) },
+    { id: "Status.JVM.Memory.NonHeap.Used", value: String(m.nonHeapUsed) },
+    { id: "Status.JVM.Memory.NonHeap.Committed", value: String(m.nonHeapCommitted) },
+    { id: "Status.JVM.Memory.NonHeap.Max", value: String(m.nonHeapMax) },
+    { id: "Status.JVM.Memory.Direct.Count", value: String(m.directCount) },
+    { id: "Status.JVM.Memory.Direct.MemoryUsed", value: String(m.directUsed) },
+    { id: "Status.JVM.Memory.Direct.TotalCapacity", value: String(m.directMax) },
+    { id: "Status.JVM.Memory.Mapped.Count", value: String(m.mappedCount) },
+    { id: "Status.JVM.Memory.Mapped.MemoryUsed", value: String(m.mappedUsed) },
+    { id: "Status.JVM.Memory.Mapped.TotalCapacity", value: String(m.mappedMax) },
+    { id: "Status.Shuffle.Netty.AvailableMemory", value: String(m.nettyShuffleMemoryAvailable) },
+    { id: "Status.Shuffle.Netty.UsedMemory", value: String(m.nettyShuffleMemoryUsed) },
+    { id: "Status.Shuffle.Netty.TotalMemory", value: String(m.nettyShuffleMemoryTotal) },
+    { id: "Status.Shuffle.Netty.AvailableMemorySegments", value: String(m.nettyShuffleSegmentsAvailable) },
+    { id: "Status.Shuffle.Netty.UsedMemorySegments", value: String(m.nettyShuffleSegmentsUsed) },
+    { id: "Status.Shuffle.Netty.TotalMemorySegments", value: String(m.nettyShuffleSegmentsTotal) },
+    { id: "Status.Flink.Memory.Managed.Used", value: String(m.managedMemoryUsed) },
+    { id: "Status.Flink.Memory.Managed.Total", value: String(m.managedMemoryTotal) },
+    { id: "Status.JVM.Memory.Metaspace.Used", value: String(m.metaspaceUsed) },
+    { id: "Status.JVM.Memory.Metaspace.Max", value: String(m.metaspaceMax) },
+    { id: "Status.JVM.Threads.Count", value: String(m.threadCount) },
+  ];
+
+  for (const gc of m.garbageCollectors) {
+    items.push(
+      { id: `Status.JVM.GarbageCollector.${gc.name}.Count`, value: String(gc.count) },
+      { id: `Status.JVM.GarbageCollector.${gc.name}.Time`, value: String(gc.time) },
+    );
+  }
+
+  return items;
+}
+
+export function generateMockTaskManagersApiResponse(): FlinkTaskManagersResponse {
+  const tms = generateTaskManagers();
+  return { taskmanagers: tms.map(domainTmToApiItem) };
+}
+
+export function generateMockTaskManagerDetailApiResponse(
+  tmId: string,
+): FlinkTaskManagerDetailAggregate {
+  const tms = generateTaskManagers();
+  const tm = tms.find((t) => t.id === tmId) ?? tms[0];
+  return {
+    detail: domainTmToApiItem(tm),
+    metrics: domainTmMetricsToApi(tm),
+  };
+}
+
+export function generateMockTaskManagerMetricsApiResponse(
+  tmId: string,
+): FlinkMetricItem[] {
+  const tms = generateTaskManagers();
+  const tm = tms.find((t) => t.id === tmId) ?? tms[0];
+  return domainTmMetricsToApi(tm);
+}
+
+export function generateMockThreadDumpApiResponse(
+  source: "taskmanager" | "jobmanager",
+  tmId?: string,
+): FlinkThreadDumpResponse {
+  if (source === "taskmanager") {
+    const tms = generateTaskManagers();
+    const tm = tms.find((t) => t.id === tmId) ?? tms[0];
+    return { threadInfos: tm.threadDump.threadInfos };
+  }
+  const jm = generateJobManagerInfo();
+  return { threadInfos: jm.threadDump.threadInfos };
+}
+
+export function generateMockLogListApiResponse(
+  source: "taskmanager" | "jobmanager",
+  tmId?: string,
+): FlinkLogListResponse {
+  if (source === "taskmanager") {
+    const tms = generateTaskManagers();
+    const tm = tms.find((t) => t.id === tmId) ?? tms[0];
+    return {
+      logs: tm.logFiles.map((f) => ({
+        name: f.name,
+        size: f.size * 1024, // domain uses KB, API uses bytes
+      })),
+    };
+  }
+  const jm = generateJobManagerInfo();
+  return {
+    logs: jm.logFiles.map((f) => ({
+      name: f.name,
+      size: f.size * 1024,
+    })),
+  };
+}
+
+export function generateMockLogTextApiResponse(
+  source: "taskmanager" | "jobmanager",
+  variant: "log" | "stdout",
+  tmId?: string,
+): string {
+  if (source === "taskmanager") {
+    const tms = generateTaskManagers();
+    const tm = tms.find((t) => t.id === tmId) ?? tms[0];
+    return variant === "log" ? tm.logs : tm.stdout;
+  }
+  const jm = generateJobManagerInfo();
+  return variant === "log" ? jm.logs : jm.stdout;
+}
+
+export function generateMockLogFileContentApiResponse(
+  source: "taskmanager" | "jobmanager",
+  _logName: string,
+  tmId?: string,
+): string {
+  // In mock mode, return a subset of the main log
+  if (source === "taskmanager") {
+    const tms = generateTaskManagers();
+    const tm = tms.find((t) => t.id === tmId) ?? tms[0];
+    return tm.logs.split("\n").slice(0, 200).join("\n");
+  }
+  const jm = generateJobManagerInfo();
+  return jm.logs.split("\n").slice(0, 200).join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// Job Manager mock API responses
+// ---------------------------------------------------------------------------
+
+export function generateMockJobManagerDetailApiResponse(): FlinkJobManagerDetailAggregate {
+  const jm = generateJobManagerInfo();
+
+  const config: FlinkClusterConfigResponse = jm.config.map((c) => ({
+    key: c.key,
+    value: c.value,
+  }));
+
+  const systemProperties: Record<string, string> = {};
+  for (const sp of jm.jvm.systemProperties) {
+    systemProperties[sp.key] = sp.value;
+  }
+
+  const environment = {
+    jvm: {
+      version: "17.0.9+9",
+      arch: "amd64",
+      options: jm.jvm.arguments,
+    },
+    classpath: jm.classpath.map((c) => c.path),
+    "system-properties": systemProperties,
+  };
+
+  const m = jm.metrics;
+  const latestHeapUsed = m.jvmHeapUsed[m.jvmHeapUsed.length - 1]?.value ?? 0;
+  const latestNonHeapUsed = m.jvmNonHeapUsed[m.jvmNonHeapUsed.length - 1]?.value ?? 0;
+  const latestThreadCount = m.threadCount[m.threadCount.length - 1]?.value ?? 0;
+  const latestGcCount = m.gcCount[m.gcCount.length - 1]?.value ?? 0;
+  const latestGcTime = m.gcTime[m.gcTime.length - 1]?.value ?? 0;
+
+  const metrics: FlinkMetricItem[] = [
+    { id: "Status.JVM.Memory.Heap.Used", value: String(latestHeapUsed) },
+    { id: "Status.JVM.Memory.Heap.Max", value: String(m.jvmHeapMax) },
+    { id: "Status.JVM.Memory.NonHeap.Used", value: String(latestNonHeapUsed) },
+    { id: "Status.JVM.Memory.NonHeap.Max", value: String(m.jvmNonHeapMax) },
+    { id: "Status.JVM.Memory.Metaspace.Used", value: String(jm.jvm.memoryConfig.metaspaceUsed) },
+    { id: "Status.JVM.Memory.Metaspace.Max", value: String(jm.jvm.memoryConfig.metaspaceMax) },
+    { id: "Status.JVM.Memory.Direct.MemoryUsed", value: String(jm.jvm.memoryConfig.directUsed) },
+    { id: "Status.JVM.Memory.Direct.TotalCapacity", value: String(jm.jvm.memoryConfig.directMax) },
+    { id: "Status.JVM.Threads.Count", value: String(latestThreadCount) },
+    { id: "Status.JVM.GarbageCollector.G1_Young_Generation.Count", value: String(latestGcCount) },
+    { id: "Status.JVM.GarbageCollector.G1_Young_Generation.Time", value: String(latestGcTime) },
+  ];
+
+  return { config, environment, metrics };
+}
+
+export function generateMockJobManagerMetricsApiResponse(): FlinkMetricItem[] {
+  const jm = generateJobManagerInfo();
+  const m = jm.metrics;
+  const latestHeapUsed = m.jvmHeapUsed[m.jvmHeapUsed.length - 1]?.value ?? 0;
+  const latestNonHeapUsed = m.jvmNonHeapUsed[m.jvmNonHeapUsed.length - 1]?.value ?? 0;
+  const latestThreadCount = m.threadCount[m.threadCount.length - 1]?.value ?? 0;
+  const latestGcCount = m.gcCount[m.gcCount.length - 1]?.value ?? 0;
+  const latestGcTime = m.gcTime[m.gcTime.length - 1]?.value ?? 0;
+
+  return [
+    { id: "Status.JVM.Memory.Heap.Used", value: String(latestHeapUsed) },
+    { id: "Status.JVM.Memory.Heap.Max", value: String(m.jvmHeapMax) },
+    { id: "Status.JVM.Memory.NonHeap.Used", value: String(latestNonHeapUsed) },
+    { id: "Status.JVM.Memory.NonHeap.Max", value: String(m.jvmNonHeapMax) },
+    { id: "Status.JVM.Memory.Metaspace.Used", value: String(jm.jvm.memoryConfig.metaspaceUsed) },
+    { id: "Status.JVM.Memory.Metaspace.Max", value: String(jm.jvm.memoryConfig.metaspaceMax) },
+    { id: "Status.JVM.Memory.Direct.MemoryUsed", value: String(jm.jvm.memoryConfig.directUsed) },
+    { id: "Status.JVM.Memory.Direct.TotalCapacity", value: String(jm.jvm.memoryConfig.directMax) },
+    { id: "Status.JVM.Threads.Count", value: String(latestThreadCount) },
+    { id: "Status.JVM.GarbageCollector.G1_Young_Generation.Count", value: String(latestGcCount) },
+    { id: "Status.JVM.GarbageCollector.G1_Young_Generation.Time", value: String(latestGcTime) },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Cluster config mock API response
+// ---------------------------------------------------------------------------
+
+export function generateMockClusterConfigApiResponse(): FlinkClusterConfigResponse {
+  return [
+    { key: "web.submit.enable", value: "true" },
+    { key: "web.cancel.enable", value: "true" },
+    { key: "web.rescale.enable", value: "false" },
+    { key: "web.history", value: "false" },
+    { key: "web.profiler.enable", value: "false" },
+    { key: "taskmanager.numberOfTaskSlots", value: "4" },
+    { key: "parallelism.default", value: "1" },
+    { key: "jobmanager.rpc.address", value: "localhost" },
+    { key: "jobmanager.rpc.port", value: "6123" },
+    { key: "jobmanager.memory.process.size", value: "1600m" },
+    { key: "taskmanager.memory.process.size", value: "1728m" },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Checkpoint detail mock API response
+// ---------------------------------------------------------------------------
+
+export function generateMockCheckpointDetailApiResponse(
+  checkpointId: number,
+): FlinkCheckpointDetailResponse {
+  const now = Date.now();
+  // Use vertex IDs from the first mock job
+  const vertexIds = [
+    "bc764cd8ddf7a0cff126f51c16239658",
+    "0a448493b4782967b150582570326227",
+    "6d2677a0ecc3fd8df0b72ec675edf8f4",
+    "ea632d67b7d595e5b851708ae9ad4571",
+  ];
+
+  const tasks: Record<string, FlinkCheckpointDetailResponse["tasks"][string]> = {};
+  for (const vid of vertexIds) {
+    tasks[vid] = {
+      id: vid,
+      status: "COMPLETED",
+      latest_ack_timestamp: now - 500,
+      state_size: Math.floor(Math.random() * 5_000_000) + 100_000,
+      end_to_end_duration: Math.floor(Math.random() * 3000) + 200,
+      num_subtasks: 4,
+      num_acknowledged_subtasks: 4,
+    };
+  }
+
+  return {
+    id: checkpointId,
+    status: "COMPLETED",
+    is_savepoint: false,
+    trigger_timestamp: now - 5000,
+    latest_ack_timestamp: now - 500,
+    state_size: Object.values(tasks).reduce((sum, t) => sum + t.state_size, 0),
+    end_to_end_duration: 4500,
+    num_subtasks: 16,
+    num_acknowledged_subtasks: 16,
+    tasks,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Subtask times mock API response
+// ---------------------------------------------------------------------------
+
+export function generateMockSubtaskTimesApiResponse(
+  vertexId: string,
+): FlinkSubtaskTimesResponse {
+  const now = Date.now();
+  const states = ["CREATED", "SCHEDULED", "DEPLOYING", "INITIALIZING", "RUNNING"];
+  const subtasks = Array.from({ length: 4 }, (_, i) => {
+    const timestamps: Record<string, number> = {};
+    let t = now - 60_000 - Math.floor(Math.random() * 5000);
+    for (const state of states) {
+      timestamps[state] = t;
+      t += Math.floor(Math.random() * 1000) + 100;
+    }
+    return {
+      subtask: i,
+      host: `taskmanager-${i % 2}:6121`,
+      duration: now - timestamps.CREATED,
+      timestamps,
+    };
+  });
+
+  return {
+    id: vertexId,
+    name: `Vertex ${vertexId.slice(0, 8)}`,
+    now,
+    subtasks,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Flamegraph mock API response
+// ---------------------------------------------------------------------------
+
+export function generateMockFlamegraphApiResponse(): FlinkFlamegraphResponse {
+  return {
+    "end-timestamp": Date.now(),
+    data: {
+      name: "root",
+      value: 1000,
+      children: [
+        {
+          name: "org.apache.flink.streaming.runtime.tasks.StreamTask.run",
+          value: 800,
+          children: [
+            {
+              name: "org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor.runMailboxLoop",
+              value: 600,
+              children: [
+                {
+                  name: "org.apache.flink.streaming.runtime.tasks.StreamTask.processInput",
+                  value: 400,
+                  children: [
+                    { name: "org.apache.flink.api.common.functions.MapFunction.map", value: 250 },
+                    { name: "org.apache.flink.streaming.api.operators.StreamSink.processElement", value: 150 },
+                  ],
+                },
+                { name: "org.apache.flink.runtime.io.network.partition.consumer.InputGate.pollNext", value: 200 },
+              ],
+            },
+            { name: "org.apache.flink.streaming.runtime.tasks.StreamTask.triggerCheckpoint", value: 200 },
+          ],
+        },
+        {
+          name: "java.lang.Thread.sleep",
+          value: 100,
+        },
+        {
+          name: "org.apache.flink.runtime.taskmanager.Task.run",
+          value: 100,
+        },
+      ],
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Vertex metrics mock API response
+// ---------------------------------------------------------------------------
+
+export function generateMockVertexMetricsApiResponse(): FlinkMetricItem[] {
+  return [
+    { id: "numRecordsInPerSecond", value: String(Math.floor(Math.random() * 10000) + 500) },
+    { id: "numRecordsOutPerSecond", value: String(Math.floor(Math.random() * 10000) + 400) },
+    { id: "numBytesInPerSecond", value: String(Math.floor(Math.random() * 5_000_000) + 100_000) },
+    { id: "numBytesOutPerSecond", value: String(Math.floor(Math.random() * 5_000_000) + 80_000) },
+    { id: "busyTimeMsPerSecond", value: String(Math.floor(Math.random() * 800) + 100) },
+    { id: "backPressuredTimeMsPerSecond", value: String(Math.floor(Math.random() * 200)) },
+    { id: "idleTimeMsPerSecond", value: String(Math.floor(Math.random() * 300)) },
+    { id: "currentInputWatermark", value: String(Date.now() - Math.floor(Math.random() * 5000)) },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// JAR management mock API responses
+// ---------------------------------------------------------------------------
+
+export function generateMockJarsApiResponse(): FlinkJarsResponse {
+  return {
+    address: "http://localhost:8081",
+    files: [
+      {
+        id: "7a9e2a10-6e66-4b3e-a7de-3b84e9e1c2f5_WordCount.jar",
+        name: "WordCount.jar",
+        uploaded: Date.now() - 3_600_000,
+        entry: [
+          { name: "org.apache.flink.examples.java.wordcount.WordCount", description: null },
+        ],
+      },
+      {
+        id: "c3f2b1a0-8d44-4e2a-b5c1-9f8e7d6c5b4a_TopSpeedWindowing.jar",
+        name: "TopSpeedWindowing.jar",
+        uploaded: Date.now() - 7_200_000,
+        entry: [
+          { name: "org.apache.flink.streaming.examples.windowing.TopSpeedWindowing", description: null },
+        ],
+      },
+    ],
+  };
+}
+
+export function generateMockJarUploadApiResponse(filename: string): FlinkJarUploadResponse {
+  return {
+    filename: `/tmp/flink-web-upload/${crypto.randomUUID()}_${filename}`,
+    status: "success",
+  };
+}
+
+export function generateMockJarRunApiResponse(): FlinkJarRunResponse {
+  const hex = Array.from({ length: 32 }, () =>
+    Math.floor(Math.random() * 16).toString(16),
+  ).join("");
+  return { jobid: hex };
 }

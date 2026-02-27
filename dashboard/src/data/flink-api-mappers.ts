@@ -20,25 +20,54 @@ import type {
   FlinkWatermarksResponse,
   FlinkVertexBackPressureResponse,
   FlinkVertexAccumulatorsResponse,
+  FlinkTaskManagersResponse,
+  FlinkTaskManagerDetailAggregate,
+  FlinkMetricItem,
+  FlinkJobManagerDetailAggregate,
+  FlinkThreadDumpResponse,
+  FlinkLogListResponse,
+  FlinkClusterConfigResponse,
+  FlinkCheckpointDetailResponse,
+  FlinkSubtaskTimesResponse,
+  FlinkFlamegraphResponse,
+  FlinkFlamegraphNode,
+  FlinkJarsResponse,
 } from "./flink-api-types";
 import type {
   Checkpoint,
   CheckpointConfig,
+  CheckpointDetail,
   CheckpointStatus,
+  CheckpointTaskDetail,
+  ClasspathEntry,
   ClusterOverview,
+  FlamegraphData,
+  FlamegraphNode,
+  FlinkFeatureFlags,
   FlinkJob,
   JobConfiguration,
   JobEdge,
   JobException,
+  JobManagerConfig,
+  JobManagerInfo,
+  JobManagerMetrics,
   JobPlan,
   JobStatus,
   JobVertex,
   JobVertexMetrics,
   JobVertexStatus,
+  JvmInfo,
+  JvmMemoryConfig,
+  LogFileEntry,
   ShipStrategy,
   SubtaskMetrics,
   SubtaskBackPressure,
+  SubtaskTimeline,
   TaskCounts,
+  TaskManager,
+  TaskManagerMetrics,
+  ThreadDumpInfo,
+  UploadedJar,
   UserAccumulator,
   VertexBackPressure,
   VertexWatermark,
@@ -529,4 +558,489 @@ export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
     backpressure,
     accumulators,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Task Manager mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract a numeric metric value from a FlinkMetricItem array by ID.
+ */
+function metricValue(metrics: FlinkMetricItem[], id: string): number {
+  const item = metrics.find((m) => m.id === id);
+  if (!item) return 0;
+  const v = parseFloat(item.value);
+  return isNaN(v) ? 0 : v;
+}
+
+/**
+ * Map a FlinkMetricItem[] to TaskManagerMetrics.
+ * Flink metric IDs follow the pattern: Status.JVM.Memory.Heap.Used, etc.
+ */
+export function mapTaskManagerMetrics(metrics: FlinkMetricItem[]): TaskManagerMetrics {
+  return {
+    cpuUsage: metricValue(metrics, "Status.JVM.CPU.Load") * 100,
+    heapUsed: metricValue(metrics, "Status.JVM.Memory.Heap.Used"),
+    heapCommitted: metricValue(metrics, "Status.JVM.Memory.Heap.Committed"),
+    heapMax: metricValue(metrics, "Status.JVM.Memory.Heap.Max"),
+    nonHeapUsed: metricValue(metrics, "Status.JVM.Memory.NonHeap.Used"),
+    nonHeapCommitted: metricValue(metrics, "Status.JVM.Memory.NonHeap.Committed"),
+    nonHeapMax: metricValue(metrics, "Status.JVM.Memory.NonHeap.Max"),
+    directCount: metricValue(metrics, "Status.JVM.Memory.Direct.Count"),
+    directUsed: metricValue(metrics, "Status.JVM.Memory.Direct.MemoryUsed"),
+    directMax: metricValue(metrics, "Status.JVM.Memory.Direct.TotalCapacity"),
+    mappedCount: metricValue(metrics, "Status.JVM.Memory.Mapped.Count"),
+    mappedUsed: metricValue(metrics, "Status.JVM.Memory.Mapped.MemoryUsed"),
+    mappedMax: metricValue(metrics, "Status.JVM.Memory.Mapped.TotalCapacity"),
+    nettyShuffleMemoryAvailable: metricValue(metrics, "Status.Shuffle.Netty.AvailableMemory"),
+    nettyShuffleMemoryUsed: metricValue(metrics, "Status.Shuffle.Netty.UsedMemory"),
+    nettyShuffleMemoryTotal: metricValue(metrics, "Status.Shuffle.Netty.TotalMemory"),
+    nettyShuffleSegmentsAvailable: metricValue(metrics, "Status.Shuffle.Netty.AvailableMemorySegments"),
+    nettyShuffleSegmentsUsed: metricValue(metrics, "Status.Shuffle.Netty.UsedMemorySegments"),
+    nettyShuffleSegmentsTotal: metricValue(metrics, "Status.Shuffle.Netty.TotalMemorySegments"),
+    managedMemoryUsed: metricValue(metrics, "Status.Flink.Memory.Managed.Used"),
+    managedMemoryTotal: metricValue(metrics, "Status.Flink.Memory.Managed.Total"),
+    metaspaceUsed: metricValue(metrics, "Status.JVM.Memory.Metaspace.Used"),
+    metaspaceMax: metricValue(metrics, "Status.JVM.Memory.Metaspace.Max"),
+    garbageCollectors: extractGarbageCollectors(metrics),
+    threadCount: metricValue(metrics, "Status.JVM.Threads.Count"),
+  };
+}
+
+/**
+ * Extract garbage collector metrics from the flat metric list.
+ * GC metrics follow pattern: Status.JVM.GarbageCollector.<Name>.Count / .Time
+ */
+function extractGarbageCollectors(
+  metrics: FlinkMetricItem[],
+): TaskManagerMetrics["garbageCollectors"] {
+  const gcPrefix = "Status.JVM.GarbageCollector.";
+  const gcNames = new Set<string>();
+
+  for (const m of metrics) {
+    if (m.id.startsWith(gcPrefix)) {
+      const rest = m.id.slice(gcPrefix.length);
+      const dotIdx = rest.lastIndexOf(".");
+      if (dotIdx > 0) {
+        gcNames.add(rest.slice(0, dotIdx));
+      }
+    }
+  }
+
+  return Array.from(gcNames).map((name) => ({
+    name,
+    count: metricValue(metrics, `${gcPrefix}${name}.Count`),
+    time: metricValue(metrics, `${gcPrefix}${name}.Time`),
+  }));
+}
+
+/**
+ * Map GET /taskmanagers response → TaskManager[] domain list.
+ * Note: metrics and tab data (logs, stdout, etc.) are NOT available from the list endpoint.
+ * They are populated by the detail/metrics endpoints.
+ */
+export function mapTaskManagers(api: FlinkTaskManagersResponse): TaskManager[] {
+  return api.taskmanagers.map((tm) => ({
+    id: tm.id,
+    path: tm.path,
+    dataPort: tm.dataPort,
+    jmxPort: tm.jmxPort,
+    lastHeartbeat: new Date(Date.now() - tm.timeSinceLastHeartbeat),
+    slotsTotal: tm.slotsNumber,
+    slotsFree: tm.freeSlots,
+    cpuCores: tm.hardware.cpuCores,
+    physicalMemory: tm.hardware.physicalMemory,
+    freeMemory: tm.hardware.freeMemory,
+    totalResource: {
+      cpuCores: tm.totalResource.cpuCores,
+      taskHeapMemory: tm.totalResource.taskHeapMemory,
+      taskOffHeapMemory: tm.totalResource.taskOffHeapMemory,
+      managedMemory: tm.totalResource.managedMemory,
+      networkMemory: tm.totalResource.networkMemory,
+    },
+    freeResource: {
+      cpuCores: tm.freeResource.cpuCores,
+      taskHeapMemory: tm.freeResource.taskHeapMemory,
+      taskOffHeapMemory: tm.freeResource.taskOffHeapMemory,
+      managedMemory: tm.freeResource.managedMemory,
+      networkMemory: tm.freeResource.networkMemory,
+    },
+    memoryConfiguration: {
+      frameworkHeap: tm.memoryConfiguration.frameworkHeap,
+      taskHeap: tm.memoryConfiguration.taskHeap,
+      frameworkOffHeap: tm.memoryConfiguration.frameworkOffHeap,
+      taskOffHeap: tm.memoryConfiguration.taskOffHeap,
+      networkMemory: tm.memoryConfiguration.networkMemory,
+      managedMemory: tm.memoryConfiguration.managedMemory,
+      jvmMetaspace: tm.memoryConfiguration.jvmMetaspace,
+      jvmOverhead: tm.memoryConfiguration.jvmOverhead,
+      totalFlinkMemory: tm.memoryConfiguration.totalFlinkMemory,
+      totalProcessMemory: tm.memoryConfiguration.totalProcessMemory,
+    },
+    allocatedSlots: tm.allocatedSlots.map((s) => ({
+      index: s.index,
+      jobId: s.jobId,
+      resource: {
+        cpuCores: s.resource.cpuCores,
+        taskHeapMemory: s.resource.taskHeapMemory,
+        taskOffHeapMemory: s.resource.taskOffHeapMemory,
+        managedMemory: s.resource.managedMemory,
+        networkMemory: s.resource.networkMemory,
+      },
+    })),
+    metrics: {
+      cpuUsage: 0, heapUsed: 0, heapCommitted: 0, heapMax: 0,
+      nonHeapUsed: 0, nonHeapCommitted: 0, nonHeapMax: 0,
+      directCount: 0, directUsed: 0, directMax: 0,
+      mappedCount: 0, mappedUsed: 0, mappedMax: 0,
+      nettyShuffleMemoryAvailable: 0, nettyShuffleMemoryUsed: 0, nettyShuffleMemoryTotal: 0,
+      nettyShuffleSegmentsAvailable: 0, nettyShuffleSegmentsUsed: 0, nettyShuffleSegmentsTotal: 0,
+      managedMemoryUsed: 0, managedMemoryTotal: 0,
+      metaspaceUsed: 0, metaspaceMax: 0,
+      garbageCollectors: [], threadCount: 0,
+    },
+    logs: "",
+    stdout: "",
+    logFiles: [],
+    threadDump: { threadInfos: [] },
+  }));
+}
+
+/**
+ * Map the TM detail aggregate → a fully-populated TaskManager.
+ */
+export function mapTaskManagerDetail(api: FlinkTaskManagerDetailAggregate): TaskManager {
+  const tm = api.detail;
+  return {
+    id: tm.id,
+    path: tm.path,
+    dataPort: tm.dataPort,
+    jmxPort: tm.jmxPort,
+    lastHeartbeat: new Date(Date.now() - tm.timeSinceLastHeartbeat),
+    slotsTotal: tm.slotsNumber,
+    slotsFree: tm.freeSlots,
+    cpuCores: tm.hardware.cpuCores,
+    physicalMemory: tm.hardware.physicalMemory,
+    freeMemory: tm.hardware.freeMemory,
+    totalResource: {
+      cpuCores: tm.totalResource.cpuCores,
+      taskHeapMemory: tm.totalResource.taskHeapMemory,
+      taskOffHeapMemory: tm.totalResource.taskOffHeapMemory,
+      managedMemory: tm.totalResource.managedMemory,
+      networkMemory: tm.totalResource.networkMemory,
+    },
+    freeResource: {
+      cpuCores: tm.freeResource.cpuCores,
+      taskHeapMemory: tm.freeResource.taskHeapMemory,
+      taskOffHeapMemory: tm.freeResource.taskOffHeapMemory,
+      managedMemory: tm.freeResource.managedMemory,
+      networkMemory: tm.freeResource.networkMemory,
+    },
+    memoryConfiguration: {
+      frameworkHeap: tm.memoryConfiguration.frameworkHeap,
+      taskHeap: tm.memoryConfiguration.taskHeap,
+      frameworkOffHeap: tm.memoryConfiguration.frameworkOffHeap,
+      taskOffHeap: tm.memoryConfiguration.taskOffHeap,
+      networkMemory: tm.memoryConfiguration.networkMemory,
+      managedMemory: tm.memoryConfiguration.managedMemory,
+      jvmMetaspace: tm.memoryConfiguration.jvmMetaspace,
+      jvmOverhead: tm.memoryConfiguration.jvmOverhead,
+      totalFlinkMemory: tm.memoryConfiguration.totalFlinkMemory,
+      totalProcessMemory: tm.memoryConfiguration.totalProcessMemory,
+    },
+    allocatedSlots: tm.allocatedSlots.map((s) => ({
+      index: s.index,
+      jobId: s.jobId,
+      resource: {
+        cpuCores: s.resource.cpuCores,
+        taskHeapMemory: s.resource.taskHeapMemory,
+        taskOffHeapMemory: s.resource.taskOffHeapMemory,
+        managedMemory: s.resource.managedMemory,
+        networkMemory: s.resource.networkMemory,
+      },
+    })),
+    metrics: mapTaskManagerMetrics(api.metrics),
+    logs: "",
+    stdout: "",
+    logFiles: [],
+    threadDump: { threadInfos: [] },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Job Manager mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Map Job Manager metrics (FlinkMetricItem[]) → JobManagerMetrics snapshot.
+ * Unlike TM metrics, JM metrics are used to populate a single-point snapshot
+ * that the component accumulates into time-series arrays.
+ */
+export function mapJobManagerMetrics(metrics: FlinkMetricItem[]): {
+  heapUsed: number;
+  heapMax: number;
+  nonHeapUsed: number;
+  nonHeapMax: number;
+  threadCount: number;
+  gcCount: number;
+  gcTime: number;
+} {
+  return {
+    heapUsed: metricValue(metrics, "Status.JVM.Memory.Heap.Used"),
+    heapMax: metricValue(metrics, "Status.JVM.Memory.Heap.Max"),
+    nonHeapUsed: metricValue(metrics, "Status.JVM.Memory.NonHeap.Used"),
+    nonHeapMax: metricValue(metrics, "Status.JVM.Memory.NonHeap.Max"),
+    threadCount: metricValue(metrics, "Status.JVM.Threads.Count"),
+    gcCount: extractGcTotal(metrics, "Count"),
+    gcTime: extractGcTotal(metrics, "Time"),
+  };
+}
+
+function extractGcTotal(metrics: FlinkMetricItem[], suffix: string): number {
+  const gcPrefix = "Status.JVM.GarbageCollector.";
+  let total = 0;
+  for (const m of metrics) {
+    if (m.id.startsWith(gcPrefix) && m.id.endsWith(`.${suffix}`)) {
+      const v = parseFloat(m.value);
+      if (!isNaN(v)) total += v;
+    }
+  }
+  return total;
+}
+
+/**
+ * Map JM config + environment aggregate → JobManagerInfo.
+ * Note: logs, stdout, logFiles, threadDump are populated separately.
+ */
+export function mapJobManagerDetail(api: FlinkJobManagerDetailAggregate): JobManagerInfo {
+  const config: JobManagerConfig[] = api.config.map((c) => ({
+    key: c.key,
+    value: c.value,
+  }));
+
+  const jvmArgs = api.environment.jvm.options;
+  const systemProperties = Object.entries(api.environment["system-properties"]).map(
+    ([key, value]) => ({ key, value }),
+  );
+
+  const metricsSnapshot = mapJobManagerMetrics(api.metrics);
+
+  const jvmMemory: JvmMemoryConfig = {
+    heapMax: metricsSnapshot.heapMax,
+    heapUsed: metricsSnapshot.heapUsed,
+    nonHeapMax: metricsSnapshot.nonHeapMax,
+    nonHeapUsed: metricsSnapshot.nonHeapUsed,
+    metaspaceMax: metricValue(api.metrics, "Status.JVM.Memory.Metaspace.Max"),
+    metaspaceUsed: metricValue(api.metrics, "Status.JVM.Memory.Metaspace.Used"),
+    directMax: metricValue(api.metrics, "Status.JVM.Memory.Direct.TotalCapacity"),
+    directUsed: metricValue(api.metrics, "Status.JVM.Memory.Direct.MemoryUsed"),
+  };
+
+  const jvm: JvmInfo = {
+    arguments: jvmArgs,
+    systemProperties,
+    memoryConfig: jvmMemory,
+  };
+
+  const classpath: ClasspathEntry[] = api.environment.classpath.map((p) => {
+    const parts = p.split("/");
+    const filename = parts[parts.length - 1] ?? p;
+    return {
+      path: p,
+      filename,
+      size: 0,
+      tag: classifyJarTag(filename),
+    };
+  });
+
+  const now = new Date();
+  const metrics: JobManagerMetrics = {
+    jvmHeapUsed: [{ timestamp: now, value: metricsSnapshot.heapUsed }],
+    jvmHeapMax: metricsSnapshot.heapMax,
+    jvmNonHeapUsed: [{ timestamp: now, value: metricsSnapshot.nonHeapUsed }],
+    jvmNonHeapMax: metricsSnapshot.nonHeapMax,
+    threadCount: [{ timestamp: now, value: metricsSnapshot.threadCount }],
+    gcCount: [{ timestamp: now, value: metricsSnapshot.gcCount }],
+    gcTime: [{ timestamp: now, value: metricsSnapshot.gcTime }],
+  };
+
+  return {
+    config,
+    metrics,
+    logs: "",
+    stdout: "",
+    jvm,
+    classpath,
+    logFiles: [],
+    threadDump: { threadInfos: [] },
+  };
+}
+
+/**
+ * Classify a JAR filename into a tag for the classpath table.
+ */
+function classifyJarTag(filename: string): string {
+  const lower = filename.toLowerCase();
+  if (lower.includes("flink-sql") || lower.includes("flink-table")) return "flink-sql";
+  if (lower.includes("flink-connector") || lower.includes("connector")) return "connector";
+  if (lower.includes("flink-core") || lower.includes("flink-dist")) return "flink-core";
+  if (lower.includes("hadoop")) return "hadoop";
+  if (lower.includes("log4j") || lower.includes("slf4j") || lower.includes("logging")) return "log4j";
+  if (lower.includes("scala")) return "scala";
+  if (lower.includes("kafka")) return "connector";
+  if (lower.includes("jdbc")) return "connector";
+  return "other";
+}
+
+// ---------------------------------------------------------------------------
+// Thread dump mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Map GET /thread-dump response → domain ThreadDumpInfo.
+ */
+export function mapThreadDump(api: FlinkThreadDumpResponse): ThreadDumpInfo {
+  return {
+    threadInfos: api.threadInfos.map((t) => ({
+      threadName: t.threadName,
+      stringifiedThreadInfo: t.stringifiedThreadInfo,
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Log file list mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Map GET /logs response → domain LogFileEntry[].
+ */
+export function mapLogFileList(api: FlinkLogListResponse): LogFileEntry[] {
+  return api.logs.map((f) => ({
+    name: f.name,
+    lastModified: new Date(), // Flink doesn't provide last-modified; use current time
+    size: Math.round(f.size / 1024), // API returns bytes, domain uses KB
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// Cluster config / feature flags mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Map GET /config response → FlinkFeatureFlags.
+ * Feature keys use the Flink config format: web.submit.enable, web.cancel.enable, etc.
+ */
+export function mapClusterConfig(api: FlinkClusterConfigResponse): FlinkFeatureFlags {
+  const configMap = new Map<string, string>();
+  for (const entry of api) {
+    configMap.set(entry.key, entry.value);
+  }
+
+  return {
+    webSubmit: configMap.get("web.submit.enable") !== "false",
+    webCancel: configMap.get("web.cancel.enable") !== "false",
+    webRescale: configMap.get("web.rescale.enable") === "true",
+    webHistory: configMap.get("web.history") === "true",
+    webProfiler: configMap.get("web.profiler.enable") === "true",
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Checkpoint detail mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Map GET /jobs/:jid/checkpoints/:cpid/details → domain CheckpointDetail.
+ */
+export function mapCheckpointDetail(api: FlinkCheckpointDetailResponse): CheckpointDetail {
+  const tasks: Record<string, CheckpointTaskDetail> = {};
+  for (const [vid, t] of Object.entries(api.tasks)) {
+    tasks[vid] = {
+      vertexId: t.id,
+      status: t.status,
+      latestAckTimestamp: t.latest_ack_timestamp,
+      stateSize: t.state_size,
+      endToEndDuration: t.end_to_end_duration,
+      numSubtasks: t.num_subtasks,
+      numAcknowledgedSubtasks: t.num_acknowledged_subtasks,
+    };
+  }
+
+  const status = (["COMPLETED", "IN_PROGRESS", "FAILED"].includes(api.status)
+    ? api.status
+    : "IN_PROGRESS") as CheckpointStatus;
+
+  return {
+    id: api.id,
+    status,
+    isSavepoint: api.is_savepoint,
+    triggerTimestamp: new Date(api.trigger_timestamp),
+    latestAckTimestamp: new Date(api.latest_ack_timestamp),
+    stateSize: api.state_size,
+    endToEndDuration: api.end_to_end_duration,
+    numSubtasks: api.num_subtasks,
+    numAcknowledgedSubtasks: api.num_acknowledged_subtasks,
+    tasks,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Subtask times mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Map GET /jobs/:jid/vertices/:vid/subtasktimes → domain SubtaskTimeline.
+ */
+export function mapSubtaskTimes(api: FlinkSubtaskTimesResponse): SubtaskTimeline {
+  return {
+    vertexId: api.id,
+    vertexName: api.name,
+    now: api.now,
+    subtasks: api.subtasks.map((s) => ({
+      subtask: s.subtask,
+      host: s.host,
+      duration: s.duration,
+      timestamps: s.timestamps,
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Flamegraph mapping
+// ---------------------------------------------------------------------------
+
+function mapFlamegraphNode(node: FlinkFlamegraphNode): FlamegraphNode {
+  return {
+    name: node.name,
+    value: node.value,
+    children: (node.children ?? []).map(mapFlamegraphNode),
+  };
+}
+
+/**
+ * Map GET /jobs/:jid/vertices/:vid/flamegraph → domain FlamegraphData.
+ */
+export function mapFlamegraph(api: FlinkFlamegraphResponse): FlamegraphData {
+  return {
+    endTimestamp: api["end-timestamp"],
+    root: mapFlamegraphNode(api.data),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// JAR list mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Map GET /jars → domain UploadedJar[].
+ */
+export function mapJars(api: FlinkJarsResponse): UploadedJar[] {
+  return api.files.map((f) => ({
+    id: f.id,
+    name: f.name,
+    uploadTime: new Date(f.uploaded),
+    entryClasses: f.entry.map((e) => e.name),
+  }));
 }

@@ -382,6 +382,16 @@ export type ClusterOverview = {
   taskManagerCount: number;
 };
 
+// --- Feature flags ---
+
+export type FlinkFeatureFlags = {
+  webSubmit: boolean;
+  webCancel: boolean;
+  webRescale: boolean;
+  webHistory: boolean;
+  webProfiler: boolean;
+};
+
 // --- Submit Job types ---
 
 export type UploadedJar = {
@@ -398,4 +408,58 @@ export type SubmitJobRequest = {
   programArgs: string;
   savepointPath: string | null;
   allowNonRestoredState: boolean;
+};
+
+// --- Checkpoint detail types ---
+
+export type CheckpointTaskDetail = {
+  vertexId: string;
+  status: string;
+  latestAckTimestamp: number;
+  stateSize: number;
+  endToEndDuration: number;
+  numSubtasks: number;
+  numAcknowledgedSubtasks: number;
+};
+
+export type CheckpointDetail = {
+  id: number;
+  status: CheckpointStatus;
+  isSavepoint: boolean;
+  triggerTimestamp: Date;
+  latestAckTimestamp: Date;
+  stateSize: number;
+  endToEndDuration: number;
+  numSubtasks: number;
+  numAcknowledgedSubtasks: number;
+  tasks: Record<string, CheckpointTaskDetail>;
+};
+
+// --- Subtask timeline types ---
+
+export type SubtaskTimelineEntry = {
+  subtask: number;
+  host: string;
+  duration: number;
+  timestamps: Record<string, number>;
+};
+
+export type SubtaskTimeline = {
+  vertexId: string;
+  vertexName: string;
+  now: number;
+  subtasks: SubtaskTimelineEntry[];
+};
+
+// --- Flamegraph types ---
+
+export type FlamegraphNode = {
+  name: string;
+  value: number;
+  children: FlamegraphNode[];
+};
+
+export type FlamegraphData = {
+  endTimestamp: number;
+  root: FlamegraphNode;
 };

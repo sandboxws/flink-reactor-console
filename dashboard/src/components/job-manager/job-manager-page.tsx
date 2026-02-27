@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Settings, MemoryStick, Layers, Cpu, Timer } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ArrowLeft, Settings, MemoryStick, Layers, Cpu, Timer, Loader2 } from "lucide-react";
 import Link from "next/link";
-import type { JobManagerInfo, JvmMetricSample } from "@/data/cluster-types";
+import type { JobManagerInfo, JvmMetricSample, LogFileEntry, ThreadDumpInfo } from "@/data/cluster-types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { JmConfigTab } from "./jm-config-tab";
 import { JmMetricsTab } from "./jm-metrics-tab";
@@ -12,6 +12,12 @@ import { JmStdoutTab } from "./jm-stdout-tab";
 import { JmLogListTab } from "./jm-log-list-tab";
 import { JmThreadDumpTab } from "./jm-thread-dump-tab";
 import { JmProfilerTab } from "./jm-profiler-tab";
+import {
+  fetchJobManagerLog,
+  fetchJobManagerStdout,
+  fetchJobManagerLogs,
+  fetchJobManagerThreadDump,
+} from "@/lib/flink-api-client";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -54,6 +60,54 @@ function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
 export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
   const [activeTab, setActiveTab] = useState("configuration");
   const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null);
+
+  // Lazy-loaded tab data
+  const [logs, setLogs] = useState<string | null>(null);
+  const [stdout, setStdout] = useState<string | null>(null);
+  const [logFiles, setLogFiles] = useState<LogFileEntry[] | null>(null);
+  const [threadDump, setThreadDump] = useState<ThreadDumpInfo | null>(null);
+
+  const loadLogs = useCallback(async () => {
+    if (logs !== null) return;
+    try {
+      setLogs(await fetchJobManagerLog());
+    } catch {
+      setLogs("");
+    }
+  }, [logs]);
+
+  const loadStdout = useCallback(async () => {
+    if (stdout !== null) return;
+    try {
+      setStdout(await fetchJobManagerStdout());
+    } catch {
+      setStdout("");
+    }
+  }, [stdout]);
+
+  const loadLogFiles = useCallback(async () => {
+    if (logFiles !== null) return;
+    try {
+      setLogFiles(await fetchJobManagerLogs());
+    } catch {
+      setLogFiles([]);
+    }
+  }, [logFiles]);
+
+  const loadThreadDump = useCallback(async () => {
+    try {
+      setThreadDump(await fetchJobManagerThreadDump());
+    } catch {
+      setThreadDump({ threadInfos: [] });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "logs") loadLogs();
+    else if (activeTab === "stdout") loadStdout();
+    else if (activeTab === "log-list") loadLogFiles();
+    else if (activeTab === "thread-dump") loadThreadDump();
+  }, [activeTab, loadLogs, loadStdout, loadLogFiles, loadThreadDump]);
 
   const mem = jm.jvm.memoryConfig;
 
@@ -132,7 +186,6 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
         value={activeTab}
         onValueChange={(v) => {
           setActiveTab(v);
-          // Reset log viewer when switching away
           if (v !== "log-list") setSelectedLogFile(null);
         }}
       >
@@ -175,20 +228,44 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
           <JmMetricsTab metrics={jm.metrics} />
         </TabsContent>
         <TabsContent value="logs">
-          <JmLogsTab logs={jm.logs} />
+          {logs === null ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-5 animate-spin text-zinc-500" />
+            </div>
+          ) : (
+            <JmLogsTab logs={logs} />
+          )}
         </TabsContent>
         <TabsContent value="stdout">
-          <JmStdoutTab stdout={jm.stdout} />
+          {stdout === null ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-5 animate-spin text-zinc-500" />
+            </div>
+          ) : (
+            <JmStdoutTab stdout={stdout} />
+          )}
         </TabsContent>
         <TabsContent value="log-list">
-          <JmLogListTab
-            logFiles={jm.logFiles}
-            selectedLog={selectedLogFile}
-            onSelectLog={setSelectedLogFile}
-          />
+          {logFiles === null ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-5 animate-spin text-zinc-500" />
+            </div>
+          ) : (
+            <JmLogListTab
+              logFiles={logFiles}
+              selectedLog={selectedLogFile}
+              onSelectLog={setSelectedLogFile}
+            />
+          )}
         </TabsContent>
         <TabsContent value="thread-dump">
-          <JmThreadDumpTab threadDump={jm.threadDump} />
+          {threadDump === null ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-5 animate-spin text-zinc-500" />
+            </div>
+          ) : (
+            <JmThreadDumpTab threadDump={threadDump} />
+          )}
         </TabsContent>
         <TabsContent value="profiler">
           <JmProfilerTab />

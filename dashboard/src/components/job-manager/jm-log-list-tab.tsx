@@ -1,21 +1,22 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
   ArrowLeft,
   Download,
   FileText,
+  Loader2,
   Maximize,
   Minimize,
   RefreshCw,
 } from "lucide-react";
 import type { LogFileEntry } from "@/data/cluster-types";
 import type { LogSource } from "@/data/types";
-import { generateLogFileContent } from "@/data/mock-cluster";
 import { parseLogBlock } from "@/data/log-parser";
 import { StaticLogExplorer } from "@/components/shared/static-log-explorer";
+import { fetchJobManagerLogFile } from "@/lib/flink-api-client";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -111,22 +112,38 @@ function LogViewer({
   fileName: string;
   onBack: () => void;
 }) {
-  const [contentKey, setContentKey] = useState(0);
+  const [rawContent, setRawContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const loadContent = useCallback(async () => {
+    setLoading(true);
+    try {
+      const text = await fetchJobManagerLogFile(fileName);
+      setRawContent(text);
+    } catch {
+      setRawContent("");
+    } finally {
+      setLoading(false);
+    }
+  }, [fileName]);
+
+  useEffect(() => {
+    loadContent();
+  }, [loadContent]);
+
   // Parse raw log content into structured LogEntry[]
   const entries = useMemo(() => {
-    const raw = generateLogFileContent(fileName);
+    if (!rawContent) return [];
     const source = sourceFromFileName(fileName);
-    const { entries } = parseLogBlock(raw, source);
+    const { entries } = parseLogBlock(rawContent, source);
     return entries;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileName, contentKey]);
+  }, [rawContent, fileName]);
 
   const handleReload = useCallback(() => {
-    setContentKey((k) => k + 1);
-  }, []);
+    loadContent();
+  }, [loadContent]);
 
   const handleDownload = useCallback(() => {
     const raw = entries.map((e) => e.raw).join("\n");
@@ -204,10 +221,16 @@ function LogViewer({
       </div>
 
       {/* Log content — unified explorer view */}
-      <StaticLogExplorer
-        entries={entries}
-        className={isFullscreen ? "h-screen" : "h-[calc(100vh-12rem)]"}
-      />
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="size-5 animate-spin text-zinc-500" />
+        </div>
+      ) : (
+        <StaticLogExplorer
+          entries={entries}
+          className={isFullscreen ? "h-screen" : "h-[calc(100vh-12rem)]"}
+        />
+      )}
     </div>
   );
 }

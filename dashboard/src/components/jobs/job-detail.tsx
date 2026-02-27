@@ -124,6 +124,7 @@ export function JobDetail({
 
         <TabsContent value="checkpoints" className="mt-4">
           <CheckpointsTab
+            jobId={job.id}
             checkpoints={job.checkpoints}
             config={job.checkpointConfig}
           />

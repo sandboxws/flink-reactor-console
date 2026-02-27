@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import {
   AreaChart,
@@ -9,11 +9,17 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
-import type { Checkpoint, CheckpointConfig, CheckpointStatus } from "@/data/cluster-types";
+import type {
+  Checkpoint,
+  CheckpointConfig,
+  CheckpointDetail,
+  CheckpointStatus,
+} from "@/data/cluster-types";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Database, ArrowUpDown } from "lucide-react";
+import { Database, ArrowUpDown, ArrowLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { fetchCheckpointDetail } from "@/lib/flink-api-client";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -103,18 +109,204 @@ function SparkTooltip({
 }
 
 // ---------------------------------------------------------------------------
+// CheckpointDetailView — drill-down for a single checkpoint
+// ---------------------------------------------------------------------------
+
+function CheckpointDetailView({
+  jobId,
+  checkpointId,
+  onBack,
+}: {
+  jobId: string;
+  checkpointId: number;
+  onBack: () => void;
+}) {
+  const [detail, setDetail] = useState<CheckpointDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetchCheckpointDetail(jobId, checkpointId)
+      .then((d) => {
+        if (!cancelled) setDetail(d);
+      })
+      .catch(() => {
+        if (!cancelled) setDetail(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId, checkpointId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="size-5 animate-spin text-zinc-500" />
+      </div>
+    );
+  }
+
+  if (!detail) {
+    return (
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex w-fit items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+        >
+          <ArrowLeft className="size-3" />
+          Back to Checkpoints
+        </button>
+        <EmptyState icon={Database} message="Failed to load checkpoint detail" />
+      </div>
+    );
+  }
+
+  const tasks = Object.entries(detail.tasks);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Back link */}
+      <button
+        type="button"
+        onClick={onBack}
+        className="flex w-fit items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+      >
+        <ArrowLeft className="size-3" />
+        Back to Checkpoints
+      </button>
+
+      {/* Summary */}
+      <div className="glass-card p-4">
+        <h3 className="mb-3 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+          Checkpoint #{detail.id} — {detail.isSavepoint ? "Savepoint" : "Checkpoint"}
+        </h3>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs lg:grid-cols-5">
+          <div>
+            <span className="text-zinc-500">Status</span>
+            <div>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "mt-0.5 border-0 text-[10px]",
+                  checkpointStatusStyles[detail.status],
+                )}
+              >
+                {detail.status}
+              </Badge>
+            </div>
+          </div>
+          <div>
+            <span className="text-zinc-500">Trigger Time</span>
+            <p className="font-mono tabular-nums text-zinc-200">
+              {format(detail.triggerTimestamp, "HH:mm:ss")}
+            </p>
+          </div>
+          <div>
+            <span className="text-zinc-500">Duration</span>
+            <p className="font-medium tabular-nums text-zinc-200">
+              {formatDuration(detail.endToEndDuration)}
+            </p>
+          </div>
+          <div>
+            <span className="text-zinc-500">State Size</span>
+            <p className="font-medium tabular-nums text-zinc-200">
+              {formatBytes(detail.stateSize)}
+            </p>
+          </div>
+          <div>
+            <span className="text-zinc-500">Subtasks</span>
+            <p className="font-medium tabular-nums text-zinc-200">
+              {detail.numAcknowledgedSubtasks} / {detail.numSubtasks}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Per-vertex breakdown */}
+      {tasks.length > 0 && (
+        <div className="glass-card overflow-hidden">
+          <div className="flex items-center gap-2 border-b border-dash-border px-3 py-2">
+            <h3 className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+              Per-Vertex Breakdown
+            </h3>
+            <span className="ml-auto font-mono text-[10px] text-zinc-600">
+              {tasks.length} vertices
+            </span>
+          </div>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-dash-border">
+                <th className="px-3 py-2 text-left font-medium text-zinc-500">Vertex</th>
+                <th className="px-3 py-2 text-left font-medium text-zinc-500">Status</th>
+                <th className="px-3 py-2 text-right font-medium text-zinc-500">Duration</th>
+                <th className="px-3 py-2 text-right font-medium text-zinc-500">State Size</th>
+                <th className="px-3 py-2 text-right font-medium text-zinc-500">Subtasks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tasks.map(([vid, t]) => (
+                <tr
+                  key={vid}
+                  className="border-b border-dash-border/50 transition-colors hover:bg-dash-hover"
+                >
+                  <td className="max-w-[200px] truncate px-3 py-2 font-mono text-zinc-300">
+                    {vid.slice(0, 12)}…
+                  </td>
+                  <td className="px-3 py-2">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "border-0 text-[10px]",
+                        t.status === "COMPLETED"
+                          ? "bg-job-finished/15 text-job-finished"
+                          : t.status === "FAILED"
+                            ? "bg-job-failed/15 text-job-failed"
+                            : "bg-job-running/15 text-job-running",
+                      )}
+                    >
+                      {t.status}
+                    </Badge>
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+                    {formatDuration(t.endToEndDuration)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+                    {formatBytes(t.stateSize)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+                    {t.numAcknowledgedSubtasks} / {t.numSubtasks}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // CheckpointsTab
 // ---------------------------------------------------------------------------
 
 export function CheckpointsTab({
+  jobId,
   checkpoints,
   config,
 }: {
+  jobId: string;
   checkpoints: Checkpoint[];
   config: CheckpointConfig | null;
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("id");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [selectedCheckpoint, setSelectedCheckpoint] = useState<number | null>(null);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -124,6 +316,10 @@ export function CheckpointsTab({
       setSortDir("desc");
     }
   };
+
+  const handleRowClick = useCallback((checkpointId: number) => {
+    setSelectedCheckpoint(checkpointId);
+  }, []);
 
   const sorted = useMemo(
     () => [...checkpoints].sort((a, b) => compareCheckpoints(a, b, sortKey, sortDir)),
@@ -144,6 +340,17 @@ export function CheckpointsTab({
         })),
     [completed],
   );
+
+  // Drill-down view
+  if (selectedCheckpoint !== null) {
+    return (
+      <CheckpointDetailView
+        jobId={jobId}
+        checkpointId={selectedCheckpoint}
+        onBack={() => setSelectedCheckpoint(null)}
+      />
+    );
+  }
 
   if (checkpoints.length === 0 && !config) {
     return (
@@ -276,7 +483,8 @@ export function CheckpointsTab({
               {sorted.map((cp) => (
                 <tr
                   key={cp.id}
-                  className="border-b border-dash-border/50 transition-colors hover:bg-dash-hover"
+                  className="cursor-pointer border-b border-dash-border/50 transition-colors hover:bg-dash-hover"
+                  onClick={() => handleRowClick(cp.id)}
                 >
                   <td className="px-3 py-2 tabular-nums text-zinc-300">
                     #{cp.id}

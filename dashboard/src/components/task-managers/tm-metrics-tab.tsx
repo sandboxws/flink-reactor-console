@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   AreaChart,
   Area,
@@ -13,7 +13,9 @@ import {
   ReferenceLine,
 } from "recharts";
 import { format } from "date-fns";
-import type { TaskManager } from "@/data/cluster-types";
+import type { TaskManager, TaskManagerMetrics } from "@/data/cluster-types";
+import { fetchTaskManagerMetrics } from "@/lib/flink-api-client";
+import { useConfigStore } from "@/stores/config-store";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -21,6 +23,7 @@ import type { TaskManager } from "@/data/cluster-types";
 
 const GB = 1024 ** 3;
 const MB = 1024 ** 2;
+const MAX_SAMPLES = 30;
 
 function formatBytes(bytes: number): string {
   if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`;
@@ -28,34 +31,50 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024).toFixed(0)} KB`;
 }
 
-function jitter(base: number, pct: number): number {
-  const delta = base * pct;
-  return base + (Math.random() * 2 - 1) * delta;
-}
-
 type DataPoint = { time: string; timestamp: number; value: number };
 
-function generateSeries(
-  currentValue: number,
-  variance: number,
-  points: number,
-): DataPoint[] {
+function metricToPoint(value: number): DataPoint {
   const now = Date.now();
-  const series: DataPoint[] = [];
-  let value = currentValue;
+  return {
+    time: format(new Date(now), "HH:mm:ss"),
+    timestamp: now,
+    value,
+  };
+}
 
-  // Build backwards then reverse for chronological order
-  for (let i = points - 1; i >= 0; i--) {
-    const ts = now - i * 5000;
-    series.push({
-      time: format(new Date(ts), "HH:mm:ss"),
-      timestamp: ts,
-      value: Math.max(0, i === 0 ? currentValue : jitter(value, variance)),
-    });
-    value = series[series.length - 1].value;
-  }
+type MetricSeries = {
+  cpu: DataPoint[];
+  heap: DataPoint[];
+  nonHeap: DataPoint[];
+  threads: DataPoint[];
+  gcCount: DataPoint[];
+  gcTime: DataPoint[];
+  heapMax: number;
+};
 
-  return series;
+function appendSample(series: DataPoint[], point: DataPoint): DataPoint[] {
+  const next = [...series, point];
+  if (next.length > MAX_SAMPLES) return next.slice(next.length - MAX_SAMPLES);
+  return next;
+}
+
+function metricsToSeries(m: TaskManagerMetrics): MetricSeries {
+  const totalGcCount = m.garbageCollectors.reduce((s, gc) => s + gc.count, 0);
+  const totalGcTime = m.garbageCollectors.reduce((s, gc) => s + gc.time, 0);
+  return {
+    cpu: [metricToPoint(m.cpuUsage)],
+    heap: [metricToPoint(m.heapUsed)],
+    nonHeap: [metricToPoint(m.nonHeapUsed)],
+    threads: [metricToPoint(m.threadCount)],
+    gcCount: [metricToPoint(totalGcCount)],
+    gcTime: [metricToPoint(totalGcTime)],
+    heapMax: m.heapMax,
+  };
+}
+
+function useForceUpdate() {
+  const [, setTick] = useState(0);
+  return useCallback(() => setTick((n) => n + 1), []);
 }
 
 // ---------------------------------------------------------------------------
@@ -227,60 +246,95 @@ function MetricChart({
 }
 
 // ---------------------------------------------------------------------------
-// TmMetricsTab — time-series charts for CPU, memory, GC, threads
+// TmMetricsTab — live-polling time-series charts for CPU, memory, GC, threads
 // ---------------------------------------------------------------------------
 
 export function TmMetricsTab({ tm }: { tm: TaskManager }) {
-  const m = tm.metrics;
+  const seriesRef = useRef<MetricSeries>(metricsToSeries(tm.metrics));
+  const pollIntervalMs = useConfigStore((s) => s.config?.pollIntervalMs ?? 5000);
+  const forceUpdate = useForceUpdate();
 
-  const cpuData = useMemo(() => generateSeries(m.cpuUsage, 0.08, 30), [m.cpuUsage]);
-  const heapData = useMemo(() => generateSeries(m.heapUsed, 0.06, 30), [m.heapUsed]);
-  const nonHeapData = useMemo(() => generateSeries(m.nonHeapUsed, 0.05, 30), [m.nonHeapUsed]);
-  const threadData = useMemo(() => generateSeries(m.threadCount, 0.04, 30), [m.threadCount]);
+  // Reset series when TM changes
+  useEffect(() => {
+    seriesRef.current = metricsToSeries(tm.metrics);
+    forceUpdate();
+  }, [tm.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const totalGcCount = m.garbageCollectors.reduce((s, gc) => s + gc.count, 0);
-  const totalGcTime = m.garbageCollectors.reduce((s, gc) => s + gc.time, 0);
-  const gcCountData = useMemo(() => generateSeries(totalGcCount, 0.02, 30), [totalGcCount]);
-  const gcTimeData = useMemo(() => generateSeries(totalGcTime, 0.03, 30), [totalGcTime]);
+  // Poll for live metrics and accumulate samples
+  useEffect(() => {
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const m = await fetchTaskManagerMetrics(tm.id);
+        if (cancelled) return;
+
+        const s = seriesRef.current;
+        const totalGcCount = m.garbageCollectors.reduce((acc, gc) => acc + gc.count, 0);
+        const totalGcTime = m.garbageCollectors.reduce((acc, gc) => acc + gc.time, 0);
+
+        seriesRef.current = {
+          cpu: appendSample(s.cpu, metricToPoint(m.cpuUsage)),
+          heap: appendSample(s.heap, metricToPoint(m.heapUsed)),
+          nonHeap: appendSample(s.nonHeap, metricToPoint(m.nonHeapUsed)),
+          threads: appendSample(s.threads, metricToPoint(m.threadCount)),
+          gcCount: appendSample(s.gcCount, metricToPoint(totalGcCount)),
+          gcTime: appendSample(s.gcTime, metricToPoint(totalGcTime)),
+          heapMax: m.heapMax,
+        };
+        forceUpdate();
+      } catch {
+        // Silently ignore poll failures — stale charts stay visible
+      }
+    };
+
+    const interval = setInterval(poll, pollIntervalMs);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [tm.id, pollIntervalMs, forceUpdate]);
+
+  const s = seriesRef.current;
 
   return (
     <div className="grid gap-4 pt-4 sm:grid-cols-2">
       <MetricChart
         title="CPU Usage"
-        data={cpuData}
+        data={s.cpu}
         color="#d97085"
         unit="pct"
         gradient
       />
       <MetricChart
         title="JVM Heap"
-        data={heapData}
+        data={s.heap}
         color="#d97085"
         unit="bytes"
-        refValue={m.heapMax}
+        refValue={s.heapMax}
         refLabel="Max"
         gradient
       />
       <MetricChart
         title="JVM Non-Heap"
-        data={nonHeapData}
+        data={s.nonHeap}
         color="#9b6bbf"
         unit="bytes"
         gradient
       />
       <MetricChart
         title="Thread Count"
-        data={threadData}
+        data={s.threads}
         color="#7aa2f7"
       />
       <MetricChart
         title="GC Count"
-        data={gcCountData}
+        data={s.gcCount}
         color="#e0af68"
       />
       <MetricChart
         title="GC Time"
-        data={gcTimeData}
+        data={s.gcTime}
         color="#e0af68"
         unit="ms"
       />

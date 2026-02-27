@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
   AreaChart,
   Area,
@@ -14,6 +14,8 @@ import {
 } from "recharts";
 import { format } from "date-fns";
 import type { JobManagerMetrics, JvmMetricSample } from "@/data/cluster-types";
+import { fetchJobManagerMetrics } from "@/lib/flink-api-client";
+import { useConfigStore } from "@/stores/config-store";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -331,22 +333,75 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
 // JmMetricsTab
 // ---------------------------------------------------------------------------
 
+const MAX_SAMPLES = 30;
+
+function appendSample(arr: JvmMetricSample[], sample: JvmMetricSample): JvmMetricSample[] {
+  const next = [...arr, sample];
+  if (next.length > MAX_SAMPLES) return next.slice(next.length - MAX_SAMPLES);
+  return next;
+}
+
+function useForceUpdate() {
+  const [, setTick] = useState(0);
+  return useCallback(() => setTick((n) => n + 1), []);
+}
+
 export function JmMetricsTab({ metrics }: { metrics: JobManagerMetrics }) {
+  const seriesRef = useRef<JobManagerMetrics>({ ...metrics });
+  const pollIntervalMs = useConfigStore((s) => s.config?.pollIntervalMs ?? 5000);
+  const forceUpdate = useForceUpdate();
+
+  // Poll for live metrics and accumulate samples
+  useEffect(() => {
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const m = await fetchJobManagerMetrics();
+        if (cancelled) return;
+
+        const now = new Date();
+        const s = seriesRef.current;
+
+        seriesRef.current = {
+          jvmHeapUsed: appendSample(s.jvmHeapUsed, { timestamp: now, value: m.heapUsed }),
+          jvmHeapMax: m.heapMax,
+          jvmNonHeapUsed: appendSample(s.jvmNonHeapUsed, { timestamp: now, value: m.nonHeapUsed }),
+          jvmNonHeapMax: m.nonHeapMax,
+          threadCount: appendSample(s.threadCount, { timestamp: now, value: m.threadCount }),
+          gcCount: appendSample(s.gcCount, { timestamp: now, value: m.gcCount }),
+          gcTime: appendSample(s.gcTime, { timestamp: now, value: m.gcTime }),
+        };
+        forceUpdate();
+      } catch {
+        // Silently ignore poll failures
+      }
+    };
+
+    const interval = setInterval(poll, pollIntervalMs);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [pollIntervalMs, forceUpdate]);
+
+  const s = seriesRef.current;
+
   const heapData = useMemo(
-    () => toDataPoints(metrics.jvmHeapUsed),
-    [metrics.jvmHeapUsed],
+    () => toDataPoints(s.jvmHeapUsed),
+    [s.jvmHeapUsed],
   );
   const nonHeapData = useMemo(
-    () => toDataPoints(metrics.jvmNonHeapUsed),
-    [metrics.jvmNonHeapUsed],
+    () => toDataPoints(s.jvmNonHeapUsed),
+    [s.jvmNonHeapUsed],
   );
   const threadData = useMemo(
-    () => toDataPoints(metrics.threadCount),
-    [metrics.threadCount],
+    () => toDataPoints(s.threadCount),
+    [s.threadCount],
   );
   const gcData = useMemo(
-    () => toDualDataPoints(metrics.gcCount, metrics.gcTime),
-    [metrics.gcCount, metrics.gcTime],
+    () => toDualDataPoints(s.gcCount, s.gcTime),
+    [s.gcCount, s.gcTime],
   );
 
   return (
@@ -355,13 +410,13 @@ export function JmMetricsTab({ metrics }: { metrics: JobManagerMetrics }) {
         title="JVM Heap Used"
         data={heapData}
         color="#d97085"
-        maxValue={metrics.jvmHeapMax}
+        maxValue={s.jvmHeapMax}
       />
       <MemoryChart
         title="JVM Non-Heap Used"
         data={nonHeapData}
         color="#9b6bbf"
-        maxValue={metrics.jvmNonHeapMax}
+        maxValue={s.jvmNonHeapMax}
       />
       <SimpleLineChart
         title="Thread Count"
