@@ -158,6 +158,52 @@ html[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
   color: #d4be98;
 }
 
+/* ── Gruvpuccin light component overrides ─────────── */
+
+html.light[data-palette="gruvpuccin"] .glass-card {
+  background: rgba(250, 246, 238, 0.8);
+  border-color: var(--color-dash-border);
+  box-shadow: 0 1px 3px rgba(60, 56, 54, 0.06);
+}
+
+html.light[data-palette="gruvpuccin"] .glass-card:hover {
+  border-color: rgba(195, 92, 32, 0.35);
+  box-shadow: 0 2px 12px rgba(195, 92, 32, 0.08);
+}
+
+html.light[data-palette="gruvpuccin"] .log-line-selected {
+  background-color: rgba(66, 123, 88, 0.08);
+}
+
+html.light[data-palette="gruvpuccin"] .log-line-error {
+  background-color: rgba(193, 74, 74, 0.06);
+}
+
+html.light[data-palette="gruvpuccin"] .log-line-warn {
+  background-color: rgba(181, 118, 20, 0.06);
+}
+
+html.light[data-palette="gruvpuccin"] .source-badge {
+  background-color: rgba(60, 56, 54, 0.06);
+  color: rgba(60, 56, 54, 0.6);
+}
+
+html.light[data-palette="gruvpuccin"] .data-row-selected {
+  background-color: rgba(66, 123, 88, 0.08);
+}
+
+html.light[data-palette="gruvpuccin"] .detail-tab {
+  color: #928374;
+}
+
+html.light[data-palette="gruvpuccin"] .detail-tab:hover {
+  color: #7c6f64;
+}
+
+html.light[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
+  color: #3c3836;
+}
+
 /* ── Collapsible panel ───────────────────────────── */
 
 .collapsible-panel {

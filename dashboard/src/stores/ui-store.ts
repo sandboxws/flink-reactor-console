@@ -128,12 +128,6 @@ export const useUiStore = create<UiStore>((set) => ({
 
   setPalette: (palette: Palette) => {
     applyPalette(palette);
-    // Gruvpuccin only supports dark mode for now — auto-force dark
-    if (palette === "gruvpuccin") {
-      applyTheme("dark");
-      set({ palette, theme: "dark" });
-    } else {
-      set({ palette });
-    }
+    set({ palette });
   },
 }));

@@ -152,8 +152,6 @@ function ThemeSwitcher() {
   const toggleTheme = useUiStore((s) => s.toggleTheme);
   const setPalette = useUiStore((s) => s.setPalette);
 
-  const lightDisabled = palette === "gruvpuccin";
-
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -209,34 +207,28 @@ function ThemeSwitcher() {
         <div className="flex items-center gap-2 px-3 pb-2.5">
           <button
             type="button"
-            onClick={() => !lightDisabled && toggleTheme()}
-            disabled={lightDisabled}
+            onClick={toggleTheme}
             className={cn(
               "flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors",
-              lightDisabled
-                ? "cursor-not-allowed text-zinc-600"
-                : theme === "dark"
-                  ? "bg-white/[0.08] text-zinc-200"
-                  : "text-zinc-400 hover:bg-white/[0.06]",
+              theme === "dark"
+                ? "bg-white/[0.08] text-zinc-200"
+                : "text-zinc-400 hover:bg-white/[0.06]",
             )}
-            title={lightDisabled ? "Light mode coming soon for Gruvpuccin" : "Dark mode"}
+            title="Dark mode"
           >
             <Moon className="size-3" />
             Dark
           </button>
           <button
             type="button"
-            onClick={() => !lightDisabled && toggleTheme()}
-            disabled={lightDisabled}
+            onClick={toggleTheme}
             className={cn(
               "flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors",
-              lightDisabled
-                ? "cursor-not-allowed text-zinc-600"
-                : theme === "light"
-                  ? "bg-white/[0.08] text-zinc-200"
-                  : "text-zinc-400 hover:bg-white/[0.06]",
+              theme === "light"
+                ? "bg-white/[0.08] text-zinc-200"
+                : "text-zinc-400 hover:bg-white/[0.06]",
             )}
-            title={lightDisabled ? "Light mode coming soon for Gruvpuccin" : "Light mode"}
+            title="Light mode"
           >
             <Sun className="size-3" />
             Light

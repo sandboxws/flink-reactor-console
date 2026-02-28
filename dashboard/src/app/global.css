@@ -94,7 +94,7 @@ html.light {
 }
 
 /* ── Gruvpuccin palette overrides ─────────────────── */
-/* Applied when <html data-palette="gruvpuccin"> is set (dark only) */
+/* Applied when <html data-palette="gruvpuccin"> is set */
 
 html[data-palette="gruvpuccin"] {
   --color-fr-bg: #101213;
@@ -129,6 +129,50 @@ html[data-palette="gruvpuccin"] {
 
   --color-chart-cursor: rgba(212, 190, 152, 0.08);
   --color-chart-cursor-fill: rgba(212, 190, 152, 0.04);
+}
+
+/* ── Gruvpuccin light palette ─────────────────────── */
+/* Applied when both <html class="light" data-palette="gruvpuccin"> */
+
+html.light[data-palette="gruvpuccin"] {
+  /* Warm cream surfaces */
+  --color-fr-bg: #f5f0e6;
+  --color-fr-subtle: #ece7dd;
+  --color-fr-coral: #c35c20;
+  --color-fr-purple: #6c782e;
+  --color-fr-amber: #b07d1a;
+
+  /* Severity — darkened earth tones for light readability */
+  --color-log-trace: #928374;
+  --color-log-debug: #427b58;
+  --color-log-info: #5b7a3e;
+  --color-log-warn: #b57614;
+  --color-log-error: #c14a4a;
+
+  /* Dashboard surfaces — warm cream panels */
+  --color-dash-surface: #ece7dd;
+  --color-dash-panel: #faf6ee;
+  --color-dash-elevated: #f0ebe2;
+  --color-dash-border: #d4cec3;
+  --color-dash-hover: #e5e0d7;
+
+  /* Job status — darkened for light contrast */
+  --color-job-running: #6c782e;
+  --color-job-finished: #427b58;
+  --color-job-cancelled: #b57614;
+  --color-job-failed: #c14a4a;
+  --color-job-created: #928374;
+
+  /* Semantic foreground — warm dark hierarchy */
+  --color-fg: #3c3836;
+  --color-fg-secondary: #504945;
+  --color-fg-muted: #7c6f64;
+  --color-fg-dim: #928374;
+  --color-fg-faint: #b0a392;
+
+  /* Chart cursor overlays — dark on warm light */
+  --color-chart-cursor: rgba(60, 56, 54, 0.08);
+  --color-chart-cursor-fill: rgba(60, 56, 54, 0.04);
 }
 
 /* ── Gruvpuccin utility overrides ─────────────────── */
@@ -386,6 +430,114 @@ html[data-palette="gruvpuccin"] .detail-tab:hover {
 
 html[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
   color: #d4be98;
+}
+
+/* ── Gruvpuccin light utility overrides ──────────── */
+/* Warm brown text hierarchy instead of cool blue-gray */
+
+html.light[data-palette="gruvpuccin"] .text-zinc-100 {
+  color: #3c3836;
+}
+
+html.light[data-palette="gruvpuccin"] .text-zinc-200 {
+  color: #45403d;
+}
+
+html.light[data-palette="gruvpuccin"] .text-zinc-300 {
+  color: #504945;
+}
+
+html.light[data-palette="gruvpuccin"] .text-zinc-400 {
+  color: #7c6f64;
+}
+
+html.light[data-palette="gruvpuccin"] .text-zinc-500 {
+  color: #928374;
+}
+
+html.light[data-palette="gruvpuccin"] .text-zinc-600 {
+  color: #b0a392;
+}
+
+/* Hover text — warm browns */
+html.light[data-palette="gruvpuccin"] .hover\:text-zinc-100:hover {
+  color: #3c3836;
+}
+
+html.light[data-palette="gruvpuccin"] .hover\:text-zinc-200:hover {
+  color: #45403d;
+}
+
+html.light[data-palette="gruvpuccin"] .hover\:text-zinc-300:hover {
+  color: #504945;
+}
+
+html.light[data-palette="gruvpuccin"] .hover\:text-zinc-400:hover {
+  color: #7c6f64;
+}
+
+/* Emerald → dark sage */
+html.light[data-palette="gruvpuccin"] .bg-emerald-400 {
+  background-color: #6c782e;
+}
+
+html.light[data-palette="gruvpuccin"] .text-emerald-400 {
+  color: #6c782e;
+}
+
+/* Placeholder text — warm */
+html.light[data-palette="gruvpuccin"] .placeholder\:text-zinc-500::placeholder {
+  color: #928374;
+}
+
+html.light[data-palette="gruvpuccin"] .placeholder\:text-zinc-600::placeholder {
+  color: #b0a392;
+}
+
+/* ── Gruvpuccin light component overrides ─────────── */
+
+html.light[data-palette="gruvpuccin"] .glass-card {
+  background: rgba(250, 246, 238, 0.8);
+  border-color: var(--color-dash-border);
+  box-shadow: 0 1px 3px rgba(60, 56, 54, 0.06);
+}
+
+html.light[data-palette="gruvpuccin"] .glass-card:hover {
+  border-color: rgba(195, 92, 32, 0.35);
+  box-shadow: 0 2px 12px rgba(195, 92, 32, 0.08);
+}
+
+html.light[data-palette="gruvpuccin"] .log-line-selected {
+  background-color: rgba(66, 123, 88, 0.08);
+}
+
+html.light[data-palette="gruvpuccin"] .log-line-error {
+  background-color: rgba(193, 74, 74, 0.06);
+}
+
+html.light[data-palette="gruvpuccin"] .log-line-warn {
+  background-color: rgba(181, 118, 20, 0.06);
+}
+
+html.light[data-palette="gruvpuccin"] .source-badge {
+  background-color: rgba(60, 56, 54, 0.06);
+  color: rgba(60, 56, 54, 0.6);
+}
+
+html.light[data-palette="gruvpuccin"] .data-row-selected {
+  background-color: rgba(66, 123, 88, 0.08);
+}
+
+html.light[data-palette="gruvpuccin"] .detail-tab {
+  color: #928374;
+}
+
+html.light[data-palette="gruvpuccin"] .detail-tab:hover {
+  color: #7c6f64;
+}
+
+html.light[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
+  color: #3c3836;
 }
 
 /* ── Light mode utility overrides ─────────────────── */
