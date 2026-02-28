@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  HeartPulse,
   LayoutDashboard,
   Play,
   ScrollText,
@@ -39,6 +40,12 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/jobs/running", label: "Running Jobs", icon: Play },
       { href: "/jobs/completed", label: "Completed Jobs", icon: CheckCircle2 },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { href: "/insights/health", label: "Cluster Health", icon: HeartPulse },
     ],
   },
   {
