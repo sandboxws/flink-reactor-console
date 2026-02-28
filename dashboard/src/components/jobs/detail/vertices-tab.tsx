@@ -539,9 +539,9 @@ function MetricsChartTooltip({
   if (!active || !payload?.length) return null;
   const data = payload[0].payload;
   return (
-    <div className="rounded-md border border-zinc-800 px-2 py-1.5" style={{ backgroundColor: "#171717" }}>
-      <p className="text-[10px] text-zinc-400">Subtask {data.subtask}</p>
-      <p className="text-[10px] text-zinc-200">{formatSI(data.value)}</p>
+    <div className="rounded-md border border-dash-border px-2 py-1.5" style={{ backgroundColor: "var(--color-dash-panel)" }}>
+      <p className="text-[10px] text-fg-muted">Subtask {data.subtask}</p>
+      <p className="text-[10px] text-fg-secondary">{formatSI(data.value)}</p>
     </div>
   );
 }
@@ -592,18 +592,18 @@ function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
           <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
             <XAxis
               dataKey="subtask"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               label={{
                 value: "Subtask Index",
                 position: "insideBottom",
                 offset: -2,
-                style: { fontSize: 10, fill: "#52525b" },
+                style: { fontSize: 10, fill: "var(--color-fg-faint)" },
               }}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               tickFormatter={formatSI}
@@ -611,7 +611,7 @@ function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
             />
             <Tooltip
               content={<MetricsChartTooltip />}
-              cursor={{ fill: "rgba(255,255,255,0.04)" }}
+              cursor={{ fill: "var(--color-chart-cursor-fill)" }}
               isAnimationActive={false}
             />
             <Bar dataKey="value" radius={[3, 3, 0, 0]} isAnimationActive={false}>

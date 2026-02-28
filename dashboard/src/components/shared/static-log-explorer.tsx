@@ -129,10 +129,10 @@ function HistogramTooltip({
 
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2 py-1.5"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <p className="mb-0.5 text-[10px] text-zinc-400">{label}</p>
+      <p className="mb-0.5 text-[10px] text-fg-muted">{label}</p>
       {items.map((item) => (
         <div key={item.name} className="flex items-center gap-1.5 text-[10px]">
           <span
@@ -140,7 +140,7 @@ function HistogramTooltip({
             style={{ backgroundColor: item.color }}
           />
           <span style={{ color: item.color }}>{item.name}</span>
-          <span className="text-zinc-300">{item.value}</span>
+          <span className="text-fg-secondary">{item.value}</span>
         </div>
       ))}
     </div>
@@ -197,7 +197,7 @@ function StaticHistogram({ entries }: { entries: LogEntry[] }) {
           <XAxis dataKey="label" hide />
           <Tooltip
             content={<HistogramTooltip />}
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            cursor={{ fill: "var(--color-chart-cursor-fill)" }}
             isAnimationActive={false}
             wrapperStyle={{
               opacity: 1,

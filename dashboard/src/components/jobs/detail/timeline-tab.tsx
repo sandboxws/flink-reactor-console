@@ -49,17 +49,17 @@ function GanttTooltip({
 }) {
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2.5 py-1.5"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2.5 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <p className="text-[10px] font-medium text-zinc-200">{vertex.name}</p>
-      <p className="text-[10px] text-zinc-400">
+      <p className="text-[10px] font-medium text-fg-secondary">{vertex.name}</p>
+      <p className="text-[10px] text-fg-muted">
         Start: +{formatTimeOffset(vertex.startTime - jobStartMs)}
       </p>
-      <p className="text-[10px] text-zinc-400">
+      <p className="text-[10px] text-fg-muted">
         Duration: {formatDuration(vertex.duration)}
       </p>
-      <p className="text-[10px] text-zinc-400">Status: {vertex.status}</p>
+      <p className="text-[10px] text-fg-muted">Status: {vertex.status}</p>
     </div>
   );
 }

@@ -432,7 +432,7 @@ function ThreadCard({
 
             {/* Native badge */}
             {thread.isNative && (
-              <span className="inline-flex items-center gap-0.5 rounded-full border border-zinc-700/50 bg-zinc-800/50 px-1.5 py-0.5 text-[10px] text-zinc-500">
+              <span className="inline-flex items-center gap-0.5 rounded-full border border-white/10 bg-white/8 px-1.5 py-0.5 text-[10px] text-fg-dim">
                 <Cpu className="size-2.5" />
                 native
               </span>

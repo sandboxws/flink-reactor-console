@@ -1,5 +1,5 @@
 /* ── FlinkReactor theme tokens ────────────────────── */
-/* Design system color palette based on Tokyo Night theme */
+/* Design system color palette — dark mode (Tokyo Night) is the default */
 
 @theme {
   --font-sans: var(--font-geist-sans);
@@ -32,4 +32,60 @@
   --color-job-cancelled: #e0af68;
   --color-job-failed: #f7768e;
   --color-job-created: #565f89;
+
+  /* Semantic foreground tokens */
+  --color-fg: #ffffff;
+  --color-fg-secondary: #d4d4d8;
+  --color-fg-muted: #a1a1aa;
+  --color-fg-dim: #71717a;
+  --color-fg-faint: #52525b;
+
+  /* Chart cursor overlays */
+  --color-chart-cursor: rgba(255, 255, 255, 0.08);
+  --color-chart-cursor-fill: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Light theme overrides ────────────────────────── */
+
+html.light {
+  color-scheme: light;
+
+  /* Brand surfaces */
+  --color-fr-bg: #f5f6fa;
+  --color-fr-subtle: #edeef5;
+  --color-fr-coral: #c4566d;
+  --color-fr-purple: #8254a3;
+  --color-fr-amber: #c47a2a;
+
+  /* Severity — deeper for readability on white */
+  --color-log-trace: #8990ad;
+  --color-log-debug: #3b6dd4;
+  --color-log-info: #0b84b4;
+  --color-log-warn: #b58105;
+  --color-log-error: #d93b48;
+
+  /* Dashboard surfaces */
+  --color-dash-surface: #edeef5;
+  --color-dash-panel: #ffffff;
+  --color-dash-elevated: #f0f1f8;
+  --color-dash-border: #dfe1eb;
+  --color-dash-hover: #e8e9f2;
+
+  /* Job status — deeper for light background contrast */
+  --color-job-running: #1a9a7a;
+  --color-job-finished: #3b6dd4;
+  --color-job-cancelled: #b58105;
+  --color-job-failed: #d93b48;
+  --color-job-created: #8990ad;
+
+  /* Semantic foreground — inverted hierarchy */
+  --color-fg: #1a1b2e;
+  --color-fg-secondary: #343b58;
+  --color-fg-muted: #6b7394;
+  --color-fg-dim: #8990ad;
+  --color-fg-faint: #a8aec4;
+
+  /* Chart cursor overlays — dark on light backgrounds */
+  --color-chart-cursor: rgba(0, 0, 0, 0.08);
+  --color-chart-cursor-fill: rgba(0, 0, 0, 0.04);
 }

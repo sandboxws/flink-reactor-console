@@ -71,17 +71,17 @@ function ChartTooltip({
 
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2 py-1.5"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <p className="mb-0.5 text-[10px] text-zinc-400">{label}</p>
+      <p className="mb-0.5 text-[10px] text-fg-muted">{label}</p>
       {payload.map((item) => (
         <div key={item.name} className="flex items-center gap-1.5 text-[10px]">
           <span
             className="inline-block size-1.5 rounded-full"
             style={{ backgroundColor: item.color }}
           />
-          <span className="text-zinc-300">
+          <span className="text-fg-secondary">
             {unit === "bytes"
               ? formatBytes(item.value)
               : unit === "ms"
@@ -107,17 +107,17 @@ function DualChartTooltip({
 
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2 py-1.5"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <p className="mb-0.5 text-[10px] text-zinc-400">{label}</p>
+      <p className="mb-0.5 text-[10px] text-fg-muted">{label}</p>
       {payload.map((item) => (
         <div key={item.name} className="flex items-center gap-1.5 text-[10px]">
           <span
             className="inline-block size-1.5 rounded-full"
             style={{ backgroundColor: item.color }}
           />
-          <span className="text-zinc-300">
+          <span className="text-fg-secondary">
             {item.dataKey === "timeMs"
               ? `${item.value.toFixed(0)} ms`
               : item.value.toFixed(0)}
@@ -164,13 +164,13 @@ function MemoryChart({
             </defs>
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               width={55}
@@ -178,7 +178,7 @@ function MemoryChart({
             />
             <Tooltip
               content={<ChartTooltip unit="bytes" />}
-              cursor={{ stroke: "rgba(255,255,255,0.08)" }}
+              cursor={{ stroke: "var(--color-chart-cursor)" }}
               isAnimationActive={false}
             />
             <ReferenceLine
@@ -229,13 +229,13 @@ function SimpleLineChart({
           >
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               width={55}
@@ -243,7 +243,7 @@ function SimpleLineChart({
             />
             <Tooltip
               content={<ChartTooltip />}
-              cursor={{ stroke: "rgba(255,255,255,0.08)" }}
+              cursor={{ stroke: "var(--color-chart-cursor)" }}
               isAnimationActive={false}
             />
             <Line
@@ -275,14 +275,14 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
           >
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
               yAxisId="left"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               width={45}
@@ -291,7 +291,7 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
             <YAxis
               yAxisId="right"
               orientation="right"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               width={50}
@@ -299,7 +299,7 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
             />
             <Tooltip
               content={<DualChartTooltip />}
-              cursor={{ stroke: "rgba(255,255,255,0.08)" }}
+              cursor={{ stroke: "var(--color-chart-cursor)" }}
               isAnimationActive={false}
             />
             <Line

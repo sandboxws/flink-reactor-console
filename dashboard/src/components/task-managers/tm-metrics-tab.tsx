@@ -96,17 +96,17 @@ function ChartTooltip({
 
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2 py-1.5"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <p className="mb-0.5 text-[10px] text-zinc-400">{label}</p>
+      <p className="mb-0.5 text-[10px] text-fg-muted">{label}</p>
       {payload.map((item) => (
         <div key={item.name} className="flex items-center gap-1.5 text-[10px]">
           <span
             className="inline-block size-1.5 rounded-full"
             style={{ backgroundColor: item.color }}
           />
-          <span className="text-zinc-300">
+          <span className="text-fg-secondary">
             {unit === "bytes"
               ? formatBytes(item.value)
               : unit === "pct"
@@ -161,13 +161,13 @@ function MetricChart({
               </defs>
               <XAxis
                 dataKey="time"
-                tick={{ fontSize: 10, fill: "#52525b" }}
+                tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
                 tickLine={false}
                 axisLine={false}
                 interval="preserveStartEnd"
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#52525b" }}
+                tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
                 tickLine={false}
                 axisLine={false}
                 width={55}
@@ -181,7 +181,7 @@ function MetricChart({
               />
               <Tooltip
                 content={<ChartTooltip unit={unit} />}
-                cursor={{ stroke: "rgba(255,255,255,0.08)" }}
+                cursor={{ stroke: "var(--color-chart-cursor)" }}
                 isAnimationActive={false}
               />
               {refValue != null && (
@@ -210,13 +210,13 @@ function MetricChart({
             <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
               <XAxis
                 dataKey="time"
-                tick={{ fontSize: 10, fill: "#52525b" }}
+                tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
                 tickLine={false}
                 axisLine={false}
                 interval="preserveStartEnd"
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#52525b" }}
+                tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
                 tickLine={false}
                 axisLine={false}
                 width={55}
@@ -226,7 +226,7 @@ function MetricChart({
               />
               <Tooltip
                 content={<ChartTooltip unit={unit} />}
-                cursor={{ stroke: "rgba(255,255,255,0.08)" }}
+                cursor={{ stroke: "var(--color-chart-cursor)" }}
                 isAnimationActive={false}
               />
               <Line

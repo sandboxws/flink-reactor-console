@@ -98,10 +98,10 @@ function SparkTooltip({
 
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2 py-1"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2 py-1"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <span className="text-[10px] text-zinc-200">
+      <span className="text-[10px] text-fg-secondary">
         {unit === "bytes" ? formatBytes(val) : formatDuration(val)}
       </span>
     </div>

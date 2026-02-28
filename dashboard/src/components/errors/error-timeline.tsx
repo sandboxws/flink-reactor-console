@@ -61,22 +61,22 @@ export function ErrorTimeline({ occurrences }: { occurrences: Date[] }) {
         >
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 9, fill: "#565f89" }}
+            tick={{ fontSize: 9, fill: "var(--color-fg-faint)" }}
             tickLine={false}
             axisLine={false}
             interval="preserveStartEnd"
           />
           <Tooltip
             contentStyle={{
-              background: "#16161e",
-              border: "1px solid #1e1e2e",
+              background: "var(--color-dash-panel)",
+              border: "1px solid var(--color-dash-border)",
               borderRadius: 6,
               fontSize: 11,
               padding: "4px 8px",
             }}
-            itemStyle={{ padding: 0, fontSize: 10, color: "#f7768e" }}
-            labelStyle={{ color: "#a1a1aa", fontSize: 10 }}
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            itemStyle={{ padding: 0, fontSize: 10, color: "var(--color-log-error)" }}
+            labelStyle={{ color: "var(--color-fg-muted)", fontSize: 10 }}
+            cursor={{ fill: "var(--color-chart-cursor-fill)" }}
           />
           <Bar
             dataKey="count"
