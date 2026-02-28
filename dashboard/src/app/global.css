@@ -93,6 +93,301 @@ html.light {
   --color-chart-cursor-fill: rgba(0, 0, 0, 0.04);
 }
 
+/* ── Gruvpuccin palette overrides ─────────────────── */
+/* Applied when <html data-palette="gruvpuccin"> is set (dark only) */
+
+html[data-palette="gruvpuccin"] {
+  --color-fr-bg: #101213;
+  --color-fr-subtle: #141617;
+  --color-fr-coral: #e78a4e;
+  --color-fr-purple: #a9b665;
+  --color-fr-amber: #d8a657;
+
+  --color-log-trace: #5a524c;
+  --color-log-debug: #7daea3;
+  --color-log-info: #89b482;
+  --color-log-warn: #d8a657;
+  --color-log-error: #ea6962;
+
+  --color-dash-surface: #141617;
+  --color-dash-panel: #181a1b;
+  --color-dash-elevated: #242424;
+  --color-dash-border: #2e2c2b;
+  --color-dash-hover: #242424;
+
+  --color-job-running: #a9b665;
+  --color-job-finished: #7daea3;
+  --color-job-cancelled: #d8a657;
+  --color-job-failed: #ea6962;
+  --color-job-created: #5a524c;
+
+  --color-fg: #d4be98;
+  --color-fg-secondary: #bfb3a2;
+  --color-fg-muted: #a69a8a;
+  --color-fg-dim: #7c7269;
+  --color-fg-faint: #5a524c;
+
+  --color-chart-cursor: rgba(212, 190, 152, 0.08);
+  --color-chart-cursor-fill: rgba(212, 190, 152, 0.04);
+}
+
+/* ── Gruvpuccin utility overrides ─────────────────── */
+
+html[data-palette="gruvpuccin"] .text-white {
+  color: #d4be98;
+}
+
+html[data-palette="gruvpuccin"] .text-zinc-100 {
+  color: #d4be98;
+}
+
+html[data-palette="gruvpuccin"] .text-zinc-200 {
+  color: #bfb3a2;
+}
+
+html[data-palette="gruvpuccin"] .text-zinc-300 {
+  color: #bfb3a2;
+}
+
+html[data-palette="gruvpuccin"] .text-zinc-400 {
+  color: #a69a8a;
+}
+
+html[data-palette="gruvpuccin"] .text-zinc-500 {
+  color: #7c7269;
+}
+
+html[data-palette="gruvpuccin"] .text-zinc-600 {
+  color: #5a524c;
+}
+
+/* White overlay → warm cream overlay */
+html[data-palette="gruvpuccin"] .bg-white\/\[0\.02\] {
+  background-color: rgba(212, 190, 152, 0.02);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/\[0\.03\] {
+  background-color: rgba(212, 190, 152, 0.03);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/\[0\.04\] {
+  background-color: rgba(212, 190, 152, 0.04);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/\[0\.05\] {
+  background-color: rgba(212, 190, 152, 0.05);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/\[0\.06\] {
+  background-color: rgba(212, 190, 152, 0.06);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/\[0\.08\] {
+  background-color: rgba(212, 190, 152, 0.08);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/\[0\.1\] {
+  background-color: rgba(212, 190, 152, 0.1);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/10 {
+  background-color: rgba(212, 190, 152, 0.1);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/3 {
+  background-color: rgba(212, 190, 152, 0.03);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/5 {
+  background-color: rgba(212, 190, 152, 0.05);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/8 {
+  background-color: rgba(212, 190, 152, 0.08);
+}
+
+html[data-palette="gruvpuccin"] .bg-white\/15 {
+  background-color: rgba(212, 190, 152, 0.15);
+}
+
+/* Hover variants */
+html[data-palette="gruvpuccin"] .hover\:bg-white\/\[0\.04\]:hover {
+  background-color: rgba(212, 190, 152, 0.04);
+}
+
+html[data-palette="gruvpuccin"] .hover\:bg-white\/\[0\.06\]:hover {
+  background-color: rgba(212, 190, 152, 0.06);
+}
+
+html[data-palette="gruvpuccin"] .hover\:bg-white\/\[0\.08\]:hover {
+  background-color: rgba(212, 190, 152, 0.08);
+}
+
+html[data-palette="gruvpuccin"] .hover\:bg-white\/\[0\.1\]:hover {
+  background-color: rgba(212, 190, 152, 0.1);
+}
+
+html[data-palette="gruvpuccin"] .hover\:bg-white\/5:hover {
+  background-color: rgba(212, 190, 152, 0.05);
+}
+
+html[data-palette="gruvpuccin"] .hover\:bg-white\/8:hover {
+  background-color: rgba(212, 190, 152, 0.08);
+}
+
+html[data-palette="gruvpuccin"] .hover\:bg-white\/15:hover {
+  background-color: rgba(212, 190, 152, 0.15);
+}
+
+/* Focus/data variant overrides */
+html[data-palette="gruvpuccin"] .focus\:bg-white\/\[0\.08\]:focus {
+  background-color: rgba(212, 190, 152, 0.08);
+}
+
+html[data-palette="gruvpuccin"] .data-\[selected\=true\]\:bg-white\/\[0\.08\][data-selected="true"] {
+  background-color: rgba(212, 190, 152, 0.08);
+}
+
+/* Border overrides */
+html[data-palette="gruvpuccin"] .border-zinc-700 {
+  border-color: #2e2c2b;
+}
+
+html[data-palette="gruvpuccin"] .border-zinc-800 {
+  border-color: #2e2c2b;
+}
+
+html[data-palette="gruvpuccin"] .border-white\/5 {
+  border-color: rgba(212, 190, 152, 0.05);
+}
+
+html[data-palette="gruvpuccin"] .border-white\/10 {
+  border-color: rgba(212, 190, 152, 0.1);
+}
+
+/* Background zinc surface overrides */
+html[data-palette="gruvpuccin"] .bg-zinc-900 {
+  background-color: #141617;
+}
+
+html[data-palette="gruvpuccin"] .bg-zinc-800 {
+  background-color: #181a1b;
+}
+
+html[data-palette="gruvpuccin"] .bg-black\/20 {
+  background-color: rgba(16, 18, 19, 0.8);
+}
+
+html[data-palette="gruvpuccin"] .bg-black\/30 {
+  background-color: rgba(16, 18, 19, 0.85);
+}
+
+html[data-palette="gruvpuccin"] .bg-black\/60 {
+  background-color: rgba(16, 18, 19, 0.9);
+}
+
+/* Preserve dark text on accent backgrounds (sage green is light) */
+html[data-palette="gruvpuccin"] .bg-fr-purple {
+  color: #181a1b;
+}
+
+/* Emerald → sage green */
+html[data-palette="gruvpuccin"] .bg-emerald-400 {
+  background-color: #a9b665;
+}
+
+html[data-palette="gruvpuccin"] .text-emerald-400 {
+  color: #a9b665;
+}
+
+/* Hover text variants */
+html[data-palette="gruvpuccin"] .hover\:text-white:hover {
+  color: #d4be98;
+}
+
+html[data-palette="gruvpuccin"] .hover\:text-zinc-100:hover {
+  color: #d4be98;
+}
+
+html[data-palette="gruvpuccin"] .hover\:text-zinc-200:hover {
+  color: #bfb3a2;
+}
+
+html[data-palette="gruvpuccin"] .hover\:text-zinc-300:hover {
+  color: #bfb3a2;
+}
+
+html[data-palette="gruvpuccin"] .hover\:text-zinc-400:hover {
+  color: #a69a8a;
+}
+
+/* Ring/outline overrides */
+html[data-palette="gruvpuccin"] .ring-white\/10 {
+  --tw-ring-color: rgba(212, 190, 152, 0.1);
+}
+
+/* Placeholder text */
+html[data-palette="gruvpuccin"] .placeholder\:text-zinc-500::placeholder {
+  color: #7c7269;
+}
+
+html[data-palette="gruvpuccin"] .placeholder\:text-zinc-600::placeholder {
+  color: #5a524c;
+}
+
+/* Focus border */
+html[data-palette="gruvpuccin"] .focus\:border-zinc-600:focus {
+  border-color: #413c39;
+}
+
+/* ── Gruvpuccin component overrides ──────────────── */
+
+html[data-palette="gruvpuccin"] .glass-card {
+  background: rgba(212, 190, 152, 0.03);
+  border-color: rgba(212, 190, 152, 0.06);
+}
+
+html[data-palette="gruvpuccin"] .glass-card:hover {
+  border-color: rgba(231, 138, 78, 0.25);
+  box-shadow: 0 0 24px rgba(231, 138, 78, 0.06);
+}
+
+html[data-palette="gruvpuccin"] .log-line-selected {
+  background-color: rgba(125, 174, 163, 0.08);
+  border-left-color: var(--color-log-debug);
+}
+
+html[data-palette="gruvpuccin"] .log-line-error {
+  background-color: rgba(234, 105, 98, 0.06);
+  border-left-color: var(--color-log-error);
+}
+
+html[data-palette="gruvpuccin"] .log-line-warn {
+  background-color: rgba(216, 166, 87, 0.06);
+  border-left-color: var(--color-log-warn);
+}
+
+html[data-palette="gruvpuccin"] .source-badge {
+  background-color: rgba(212, 190, 152, 0.05);
+  color: rgba(212, 190, 152, 0.6);
+}
+
+html[data-palette="gruvpuccin"] .data-row-selected {
+  background-color: rgba(125, 174, 163, 0.08);
+}
+
+html[data-palette="gruvpuccin"] .detail-tab {
+  color: #7c7269;
+}
+
+html[data-palette="gruvpuccin"] .detail-tab:hover {
+  color: #a69a8a;
+}
+
+html[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
+  color: #d4be98;
+}
+
 /* ── Light mode utility overrides ─────────────────── */
 /* Override Tailwind utilities that use hardcoded white/zinc values.
    These are unlayered so they beat @layer utilities. */

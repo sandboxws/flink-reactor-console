@@ -180,10 +180,10 @@ export function JmJvmSection({ jvm }: { jvm: JvmInfo }) {
             Memory Configuration
           </span>
           <div className="grid gap-3 sm:grid-cols-2">
-            <MemoryStat label="Heap" used={mem.heapUsed} max={mem.heapMax} color="#d97085" />
-            <MemoryStat label="Non-Heap" used={mem.nonHeapUsed} max={mem.nonHeapMax} color="#9b6bbf" />
-            <MemoryStat label="Metaspace" used={mem.metaspaceUsed} max={mem.metaspaceMax} color="#7aa2f7" />
-            <MemoryStat label="Direct" used={mem.directUsed} max={mem.directMax} color="#e0af68" />
+            <MemoryStat label="Heap" used={mem.heapUsed} max={mem.heapMax} color="var(--color-fr-coral)" />
+            <MemoryStat label="Non-Heap" used={mem.nonHeapUsed} max={mem.nonHeapMax} color="var(--color-fr-purple)" />
+            <MemoryStat label="Metaspace" used={mem.metaspaceUsed} max={mem.metaspaceMax} color="var(--color-log-debug)" />
+            <MemoryStat label="Direct" used={mem.directUsed} max={mem.directMax} color="var(--color-fr-amber)" />
           </div>
         </div>
       </div>

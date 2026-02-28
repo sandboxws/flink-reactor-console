@@ -45,6 +45,43 @@
   --color-chart-cursor-fill: rgba(255, 255, 255, 0.04);
 }
 
+/* ── Gruvpuccin palette overrides ─────────────────── */
+
+html[data-palette="gruvpuccin"] {
+  --color-fr-bg: #101213;
+  --color-fr-subtle: #141617;
+  --color-fr-coral: #e78a4e;
+  --color-fr-purple: #a9b665;
+  --color-fr-amber: #d8a657;
+
+  --color-log-trace: #5a524c;
+  --color-log-debug: #7daea3;
+  --color-log-info: #89b482;
+  --color-log-warn: #d8a657;
+  --color-log-error: #ea6962;
+
+  --color-dash-surface: #141617;
+  --color-dash-panel: #181a1b;
+  --color-dash-elevated: #242424;
+  --color-dash-border: #2e2c2b;
+  --color-dash-hover: #242424;
+
+  --color-job-running: #a9b665;
+  --color-job-finished: #7daea3;
+  --color-job-cancelled: #d8a657;
+  --color-job-failed: #ea6962;
+  --color-job-created: #5a524c;
+
+  --color-fg: #d4be98;
+  --color-fg-secondary: #bfb3a2;
+  --color-fg-muted: #a69a8a;
+  --color-fg-dim: #7c7269;
+  --color-fg-faint: #5a524c;
+
+  --color-chart-cursor: rgba(212, 190, 152, 0.08);
+  --color-chart-cursor-fill: rgba(212, 190, 152, 0.04);
+}
+
 /* ── Light theme overrides ────────────────────────── */
 
 html.light {

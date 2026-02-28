@@ -48,7 +48,7 @@ function MiniSparkline({ occurrences }: { occurrences: Date[] }) {
       data={data}
       margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
     >
-      <Bar dataKey="v" fill="#f7768e" radius={[1, 1, 0, 0]} />
+      <Bar dataKey="v" fill="var(--color-log-error)" radius={[1, 1, 0, 0]} />
     </BarChart>
   );
 }

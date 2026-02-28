@@ -186,7 +186,7 @@ export function JmClasspathSection({
 
         {/* Scroll indicator overlay */}
         <div
-          className={`pointer-events-none absolute bottom-0 left-0 right-0 flex h-8 items-end justify-center bg-gradient-to-t from-[#12121a] to-transparent pb-1.5 transition-opacity duration-200 ${
+          className={`pointer-events-none absolute bottom-0 left-0 right-0 flex h-8 items-end justify-center bg-gradient-to-t from-dash-surface to-transparent pb-1.5 transition-opacity duration-200 ${
             rowsBelow > 0 ? "opacity-100" : "opacity-0"
           }`}
         >

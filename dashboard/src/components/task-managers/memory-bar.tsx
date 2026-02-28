@@ -13,9 +13,9 @@ function formatBytes(bytes: number): string {
 }
 
 function utilizationColor(pct: number): string {
-  if (pct > 85) return "#f7768e"; // red — job-failed
-  if (pct >= 60) return "#e0af68"; // amber — log-warn
-  return "#73daca"; // green — job-running
+  if (pct > 85) return "var(--color-job-failed)";
+  if (pct >= 60) return "var(--color-log-warn)";
+  return "var(--color-job-running)";
 }
 
 export function MemoryBar({

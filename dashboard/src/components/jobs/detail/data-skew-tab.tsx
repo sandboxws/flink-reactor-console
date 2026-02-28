@@ -203,7 +203,7 @@ export function DataSkewTab({
                 label={{
                   value: "2x median",
                   position: "right",
-                  style: { fontSize: 10, fill: "#f7768e" },
+                  style: { fontSize: 10, fill: "var(--color-job-failed)" },
                 }}
               />
             )}

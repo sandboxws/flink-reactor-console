@@ -80,7 +80,7 @@ export function ErrorTimeline({ occurrences }: { occurrences: Date[] }) {
           />
           <Bar
             dataKey="count"
-            fill="#f7768e"
+            fill="var(--color-log-error)"
             radius={[2, 2, 0, 0]}
             name="Occurrences"
           />

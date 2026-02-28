@@ -1,11 +1,17 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { Check, Moon, Paintbrush, RefreshCw, Sun } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { TIMESTAMP_FORMATS } from "@/lib/constants";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useClusterStore } from "@/stores/cluster-store";
 import { useLogStore } from "@/stores/log-store";
+import type { Palette } from "@/stores/ui-store";
 import { useUiStore } from "@/stores/ui-store";
 
 const FORMAT_CYCLE: (keyof typeof TIMESTAMP_FORMATS)[] = [
@@ -123,6 +129,124 @@ function ClusterHeaderRight() {
   );
 }
 
+const PALETTES: {
+  id: Palette;
+  label: string;
+  swatches: string[];
+}[] = [
+  {
+    id: "tokyo-night",
+    label: "Tokyo Night",
+    swatches: ["#d97085", "#9b6bbf", "#7aa2f7", "#73daca"],
+  },
+  {
+    id: "gruvpuccin",
+    label: "Gruvpuccin",
+    swatches: ["#e78a4e", "#a9b665", "#7daea3", "#d8a657"],
+  },
+];
+
+function ThemeSwitcher() {
+  const theme = useUiStore((s) => s.theme);
+  const palette = useUiStore((s) => s.palette);
+  const toggleTheme = useUiStore((s) => s.toggleTheme);
+  const setPalette = useUiStore((s) => s.setPalette);
+
+  const lightDisabled = palette === "gruvpuccin";
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="rounded p-1 text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-300"
+          title="Theme"
+        >
+          <Paintbrush className="size-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" sideOffset={6} className="w-52 p-0">
+        {/* Palette picker */}
+        <div className="border-b border-dash-border px-3 py-2">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+            Palette
+          </span>
+        </div>
+        <div className="flex flex-col">
+          {PALETTES.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setPalette(p.id)}
+              className={cn(
+                "flex items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors hover:bg-white/[0.06]",
+                palette === p.id ? "text-zinc-200" : "text-zinc-400",
+              )}
+            >
+              <div className="flex gap-1">
+                {p.swatches.map((color) => (
+                  <div
+                    key={color}
+                    className="size-2.5 rounded-full"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              <span className="flex-1">{p.label}</span>
+              {palette === p.id && (
+                <Check className="size-3 text-zinc-400" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Mode toggle */}
+        <div className="border-t border-dash-border px-3 py-2">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+            Mode
+          </span>
+        </div>
+        <div className="flex items-center gap-2 px-3 pb-2.5">
+          <button
+            type="button"
+            onClick={() => !lightDisabled && toggleTheme()}
+            disabled={lightDisabled}
+            className={cn(
+              "flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors",
+              lightDisabled
+                ? "cursor-not-allowed text-zinc-600"
+                : theme === "dark"
+                  ? "bg-white/[0.08] text-zinc-200"
+                  : "text-zinc-400 hover:bg-white/[0.06]",
+            )}
+            title={lightDisabled ? "Light mode coming soon for Gruvpuccin" : "Dark mode"}
+          >
+            <Moon className="size-3" />
+            Dark
+          </button>
+          <button
+            type="button"
+            onClick={() => !lightDisabled && toggleTheme()}
+            disabled={lightDisabled}
+            className={cn(
+              "flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors",
+              lightDisabled
+                ? "cursor-not-allowed text-zinc-600"
+                : theme === "light"
+                  ? "bg-white/[0.08] text-zinc-200"
+                  : "text-zinc-400 hover:bg-white/[0.06]",
+            )}
+            title={lightDisabled ? "Light mode coming soon for Gruvpuccin" : "Light mode"}
+          >
+            <Sun className="size-3" />
+            Light
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function Header() {
   const pathname = usePathname();
   const crumbs = breadcrumbFromPath(pathname);
@@ -140,10 +264,11 @@ export function Header() {
         ))}
       </div>
 
-      {/* Right: context-aware controls */}
+      {/* Right: context-aware controls + theme toggle */}
       <div className="flex items-center gap-3 text-xs">
         {isLogPage(pathname) && <LogHeaderRight />}
         {isClusterPage(pathname) && <ClusterHeaderRight />}
+        <ThemeSwitcher />
       </div>
     </header>
   );

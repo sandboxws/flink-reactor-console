@@ -106,7 +106,12 @@ function ResourceBar({
   unit: string;
 }) {
   const percent = total > 0 ? pct(used, total) : 0;
-  const color = percent > 85 ? "#f7768e" : percent >= 60 ? "#e0af68" : "#7aa2f7";
+  const color =
+    percent > 85
+      ? "var(--color-job-failed)"
+      : percent >= 60
+        ? "var(--color-log-warn)"
+        : "var(--color-log-debug)";
 
   return (
     <div className="flex flex-col gap-1.5 py-2">
@@ -160,50 +165,50 @@ export function TmOverviewTab({ tm }: { tm: TaskManager }) {
             <MemoryModelRow
               label="Framework Heap"
               configuredBytes={mc.frameworkHeap}
-              color="#d97085"
+              color="var(--color-fr-coral)"
             />
             <MemoryModelRow
               label="Task Heap"
               configuredBytes={mc.taskHeap}
               usedBytes={m.heapUsed}
               maxBytes={m.heapMax}
-              color="#d97085"
+              color="var(--color-fr-coral)"
             />
             <MemoryModelRow
               label="Managed Memory"
               configuredBytes={mc.managedMemory}
               usedBytes={m.managedMemoryUsed}
               maxBytes={m.managedMemoryTotal}
-              color="#9b6bbf"
+              color="var(--color-fr-purple)"
             />
             <MemoryModelRow
               label="Framework Off-Heap"
               configuredBytes={mc.frameworkOffHeap}
-              color="#7aa2f7"
+              color="var(--color-log-debug)"
             />
             <MemoryModelRow
               label="Task Off-Heap"
               configuredBytes={mc.taskOffHeap}
-              color="#7aa2f7"
+              color="var(--color-log-debug)"
             />
             <MemoryModelRow
               label="Network"
               configuredBytes={mc.networkMemory}
               usedBytes={m.nettyShuffleMemoryUsed}
               maxBytes={m.nettyShuffleMemoryTotal}
-              color="#73daca"
+              color="var(--color-job-running)"
             />
             <MemoryModelRow
               label="JVM Metaspace"
               configuredBytes={mc.jvmMetaspace}
               usedBytes={m.metaspaceUsed}
               maxBytes={m.metaspaceMax}
-              color="#7aa2f7"
+              color="var(--color-log-debug)"
             />
             <MemoryModelRow
               label="JVM Overhead"
               configuredBytes={mc.jvmOverhead}
-              color="#e0af68"
+              color="var(--color-fr-amber)"
             />
           </div>
           {/* Totals */}

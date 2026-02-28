@@ -183,13 +183,13 @@ function MemoryChart({
             />
             <ReferenceLine
               y={maxValue}
-              stroke="#f7768e"
+              stroke="var(--color-log-error)"
               strokeDasharray="4 4"
               strokeOpacity={0.6}
               label={{
                 value: "Max",
                 position: "right",
-                style: { fontSize: 10, fill: "#f7768e" },
+                style: { fontSize: 10, fill: "var(--color-log-error)" },
               }}
             />
             <Area
@@ -307,7 +307,7 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
               type="monotone"
               dataKey="count"
               name="GC Count"
-              stroke="#e0af68"
+              stroke="var(--color-fr-amber)"
               strokeWidth={1.5}
               dot={false}
               isAnimationActive={false}
@@ -317,7 +317,7 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
               type="monotone"
               dataKey="timeMs"
               name="GC Time"
-              stroke="#d97085"
+              stroke="var(--color-fr-coral)"
               strokeWidth={1.5}
               dot={false}
               isAnimationActive={false}
@@ -409,19 +409,19 @@ export function JmMetricsTab({ metrics }: { metrics: JobManagerMetrics }) {
       <MemoryChart
         title="JVM Heap Used"
         data={heapData}
-        color="#d97085"
+        color="var(--color-fr-coral)"
         maxValue={s.jvmHeapMax}
       />
       <MemoryChart
         title="JVM Non-Heap Used"
         data={nonHeapData}
-        color="#9b6bbf"
+        color="var(--color-fr-purple)"
         maxValue={s.jvmNonHeapMax}
       />
       <SimpleLineChart
         title="Thread Count"
         data={threadData}
-        color="#d4d4d8"
+        color="var(--color-fg-secondary)"
       />
       <DualAxisGcChart data={gcData} />
     </div>

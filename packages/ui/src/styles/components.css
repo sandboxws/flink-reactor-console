@@ -36,6 +36,18 @@ button:not(:disabled),
   border-left-color: var(--color-log-warn);
 }
 
+html.light .log-line-selected {
+  background-color: rgba(59, 109, 212, 0.08);
+}
+
+html.light .log-line-error {
+  background-color: rgba(217, 59, 72, 0.06);
+}
+
+html.light .log-line-warn {
+  background-color: rgba(181, 129, 5, 0.06);
+}
+
 /* ── Badges ───────────────────────────────────────── */
 
 .severity-badge {
@@ -65,6 +77,11 @@ button:not(:disabled),
   color: rgba(255, 255, 255, 0.6);
 }
 
+html.light .source-badge {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.55);
+}
+
 /* ── Glass card ───────────────────────────────────── */
 
 .glass-card {
@@ -80,6 +97,65 @@ button:not(:disabled),
 .glass-card:hover {
   border-color: rgba(217, 112, 133, 0.25);
   box-shadow: 0 0 24px rgba(217, 112, 133, 0.06);
+}
+
+html.light .glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--color-dash-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+html.light .glass-card:hover {
+  border-color: rgba(130, 84, 163, 0.35);
+  box-shadow: 0 2px 12px rgba(130, 84, 163, 0.08);
+}
+
+/* ── Gruvpuccin component overrides ──────────────── */
+
+html[data-palette="gruvpuccin"] .glass-card {
+  background: rgba(212, 190, 152, 0.03);
+  border-color: rgba(212, 190, 152, 0.06);
+}
+
+html[data-palette="gruvpuccin"] .glass-card:hover {
+  border-color: rgba(231, 138, 78, 0.25);
+  box-shadow: 0 0 24px rgba(231, 138, 78, 0.06);
+}
+
+html[data-palette="gruvpuccin"] .log-line-selected {
+  background-color: rgba(125, 174, 163, 0.08);
+  border-left-color: var(--color-log-debug);
+}
+
+html[data-palette="gruvpuccin"] .log-line-error {
+  background-color: rgba(234, 105, 98, 0.06);
+  border-left-color: var(--color-log-error);
+}
+
+html[data-palette="gruvpuccin"] .log-line-warn {
+  background-color: rgba(216, 166, 87, 0.06);
+  border-left-color: var(--color-log-warn);
+}
+
+html[data-palette="gruvpuccin"] .source-badge {
+  background-color: rgba(212, 190, 152, 0.05);
+  color: rgba(212, 190, 152, 0.6);
+}
+
+html[data-palette="gruvpuccin"] .data-row-selected {
+  background-color: rgba(125, 174, 163, 0.08);
+}
+
+html[data-palette="gruvpuccin"] .detail-tab {
+  color: #7c7269;
+}
+
+html[data-palette="gruvpuccin"] .detail-tab:hover {
+  color: #a69a8a;
+}
+
+html[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
+  color: #d4be98;
 }
 
 /* ── Collapsible panel ───────────────────────────── */
@@ -133,6 +209,18 @@ button:not(:disabled),
   border-radius: 1px;
 }
 
+html.light .detail-tab {
+  color: #8990ad;
+}
+
+html.light .detail-tab:hover {
+  color: #6b7394;
+}
+
+html.light .detail-tab[data-state="active"] {
+  color: #1a1b2e;
+}
+
 /* ── Data table rows ─────────────────────────────── */
 
 .data-row {
@@ -145,6 +233,10 @@ button:not(:disabled),
 
 .data-row-selected {
   background-color: rgba(122, 162, 247, 0.08);
+}
+
+html.light .data-row-selected {
+  background-color: rgba(59, 109, 212, 0.08);
 }
 
 /* ── Scrollbar hide ───────────────────────────────── */

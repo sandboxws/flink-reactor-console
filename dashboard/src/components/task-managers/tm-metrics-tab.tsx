@@ -187,13 +187,13 @@ function MetricChart({
               {refValue != null && (
                 <ReferenceLine
                   y={refValue}
-                  stroke="#f7768e"
+                  stroke="var(--color-log-error)"
                   strokeDasharray="4 4"
                   strokeOpacity={0.6}
                   label={{
                     value: refLabel ?? "",
                     position: "right",
-                    style: { fontSize: 10, fill: "#f7768e" },
+                    style: { fontSize: 10, fill: "var(--color-log-error)" },
                   }}
                 />
               )}
@@ -302,14 +302,14 @@ export function TmMetricsTab({ tm }: { tm: TaskManager }) {
       <MetricChart
         title="CPU Usage"
         data={s.cpu}
-        color="#d97085"
+        color="var(--color-fr-coral)"
         unit="pct"
         gradient
       />
       <MetricChart
         title="JVM Heap"
         data={s.heap}
-        color="#d97085"
+        color="var(--color-fr-coral)"
         unit="bytes"
         refValue={s.heapMax}
         refLabel="Max"
@@ -318,24 +318,24 @@ export function TmMetricsTab({ tm }: { tm: TaskManager }) {
       <MetricChart
         title="JVM Non-Heap"
         data={s.nonHeap}
-        color="#9b6bbf"
+        color="var(--color-fr-purple)"
         unit="bytes"
         gradient
       />
       <MetricChart
         title="Thread Count"
         data={s.threads}
-        color="#7aa2f7"
+        color="var(--color-log-debug)"
       />
       <MetricChart
         title="GC Count"
         data={s.gcCount}
-        color="#e0af68"
+        color="var(--color-fr-amber)"
       />
       <MetricChart
         title="GC Time"
         data={s.gcTime}
-        color="#e0af68"
+        color="var(--color-fr-amber)"
         unit="ms"
       />
     </div>
