@@ -337,22 +337,28 @@ export function generateCheckpoints(jobStatus: JobStatus): {
     maxConcurrent: 1,
   };
 
-  const count = 5 + Math.floor(Math.random() * 11); // 5-15
+  const count = 20 + Math.floor(Math.random() * 11); // 20-30
   const checkpoints: Checkpoint[] = [];
   const now = Date.now();
 
+  // State size grows gradually over time (simulates state accumulation)
+  const baseSizeStart = 10 + Math.floor(Math.random() * 100); // 10-110 MB
+  const growthRate = 1 + Math.random() * 0.03; // 0-3% per checkpoint
+
   for (let i = 0; i < count; i++) {
     const triggerOffset = (count - i) * config.interval + Math.floor(Math.random() * 5000);
-    const duration = 500 + Math.floor(Math.random() * 9500); // 500ms-10s
-    const baseSize = 10 + Math.floor(Math.random() * 490); // 10-500 MB
+    const duration = 100 + Math.floor(Math.random() * 400) + Math.floor(i * Math.random() * 5); // 100-500ms, slight drift
+    const baseSize = Math.floor(baseSizeStart * Math.pow(growthRate, i)); // growing state
+    // ~5% failure rate
+    const isFailed = Math.random() < 0.05;
 
     checkpoints.push({
       id: i + 1,
-      status: "COMPLETED",
+      status: isFailed ? "FAILED" : "COMPLETED",
       triggerTimestamp: new Date(now - triggerOffset),
-      duration,
-      size: baseSize * MB,
-      processedData: Math.floor(baseSize * MB * (0.8 + Math.random() * 0.4)),
+      duration: isFailed ? 0 : duration,
+      size: isFailed ? 0 : baseSize * MB,
+      processedData: isFailed ? 0 : Math.floor(baseSize * MB * (0.8 + Math.random() * 0.4)),
       isSavepoint: i === 0 && Math.random() < 0.2,
     });
   }

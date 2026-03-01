@@ -3,9 +3,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
+  BarChart3,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  GitFork,
   HeartPulse,
   LayoutDashboard,
   Play,
@@ -46,6 +48,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Insights",
     items: [
       { href: "/insights/health", label: "Cluster Health", icon: HeartPulse },
+      { href: "/insights/bottlenecks", label: "Bottleneck Analyzer", icon: GitFork },
     ],
   },
   {
@@ -53,6 +56,12 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/task-managers", label: "Task Managers", icon: Server },
       { href: "/job-manager", label: "Job Manager", icon: Settings },
+    ],
+  },
+  {
+    label: "Monitoring",
+    items: [
+      { href: "/monitoring/checkpoints", label: "Checkpoint Analytics", icon: BarChart3 },
     ],
   },
   {
