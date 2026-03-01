@@ -65,6 +65,16 @@ const GB = 1024 ** 3;
 const MB = 1024 ** 2;
 
 // ---------------------------------------------------------------------------
+// Module-level caches — mock data must return stable IDs across poll cycles
+// so that cross-endpoint references (job ID in overview → job detail fetch)
+// work correctly, just like a real Flink cluster.
+// ---------------------------------------------------------------------------
+
+let cachedRunningJobs: FlinkJob[] | null = null;
+let cachedCompletedJobs: FlinkJob[] | null = null;
+let cachedTaskManagers: TaskManager[] | null = null;
+
+// ---------------------------------------------------------------------------
 // Job names (reuse PLACEHOLDER_VALUES for cross-page consistency)
 // ---------------------------------------------------------------------------
 
@@ -583,6 +593,8 @@ export function generateClusterOverview(
 // ---------------------------------------------------------------------------
 
 export function generateRunningJobs(): FlinkJob[] {
+  if (cachedRunningJobs) return cachedRunningJobs;
+
   const count = 2 + Math.floor(Math.random() * 3); // 2–4
   const used = new Set<string>();
   const jobs: FlinkJob[] = [];
@@ -611,6 +623,7 @@ export function generateRunningJobs(): FlinkJob[] {
     });
   }
 
+  cachedRunningJobs = jobs;
   return jobs;
 }
 
@@ -619,6 +632,8 @@ export function generateRunningJobs(): FlinkJob[] {
 // ---------------------------------------------------------------------------
 
 export function generateCompletedJobs(): FlinkJob[] {
+  if (cachedCompletedJobs) return cachedCompletedJobs;
+
   const count = 5 + Math.floor(Math.random() * 6); // 5–10
   const statuses: JobStatus[] = [
     "FINISHED",
@@ -658,6 +673,7 @@ export function generateCompletedJobs(): FlinkJob[] {
     (a, b) => (b.endTime?.getTime() ?? 0) - (a.endTime?.getTime() ?? 0),
   );
 
+  cachedCompletedJobs = jobs;
   return jobs;
 }
 
@@ -1132,10 +1148,12 @@ function generateTmThreadDump(): ThreadDumpInfo {
 }
 
 export function generateTaskManagers(): TaskManager[] {
+  if (cachedTaskManagers) return cachedTaskManagers;
+
   const tmIds = PLACEHOLDER_VALUES.TM_ID;
   const tmAddrs = PLACEHOLDER_VALUES.TM_ADDR;
 
-  return TASK_MANAGERS.map((src, i) => {
+  const result = TASK_MANAGERS.map((src, i) => {
     const slotsTotal = 4;
     const slotsFree = 1 + Math.floor(Math.random() * 2);
     const memCfg = generateTmMemoryConfig();
@@ -1182,6 +1200,9 @@ export function generateTaskManagers(): TaskManager[] {
       threadDump: generateTmThreadDump(),
     };
   }) as TaskManager[];
+
+  cachedTaskManagers = result;
+  return result;
 }
 
 // ---------------------------------------------------------------------------
