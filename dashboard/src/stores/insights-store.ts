@@ -4,6 +4,12 @@ import type {
   FlinkJob,
   TaskManager,
 } from "@/data/cluster-types";
+import {
+  analyzeJob,
+  type BottleneckScore,
+  type Recommendation,
+} from "@/data/bottleneck-analyzer";
+import { fetchJobDetail as fetchJobDetailApi } from "@/lib/flink-api-client";
 import { useClusterStore } from "./cluster-store";
 import { useConfigStore } from "./config-store";
 
@@ -395,9 +401,17 @@ interface InsightsState {
   issues: HealthIssue[];
   healthLoading: boolean;
 
+  // Bottleneck analysis
+  bottleneckScores: BottleneckScore[];
+  recommendations: Recommendation[];
+  selectedBottleneckJobId: string | null;
+  bottleneckLoading: boolean;
+
   initialize: () => void;
   startPolling: () => void;
   stopPolling: () => void;
+  setSelectedBottleneckJob: (jobId: string | null) => void;
+  refreshBottleneckAnalysis: () => void;
 }
 
 const RING_BUFFER_SIZE = 60;
@@ -411,6 +425,38 @@ let fetchQueuePtr = 0;
 
 const healthRingBuffer = new RingBuffer<HealthSnapshot>(RING_BUFFER_SIZE);
 
+// Cache of fully-detailed jobs (with plan, backpressure, subtaskMetrics).
+// Overview jobs only have summary data — detail fields are null/empty.
+// The staggered fetch populates this cache so bottleneck analysis has
+// the vertex-level data it needs.
+const jobDetailsCache = new Map<string, FlinkJob>();
+
+function computeBottleneckState(
+  selectedJobId: string | null,
+): { bottleneckScores: BottleneckScore[]; recommendations: Recommendation[] } {
+  const { runningJobs } = useClusterStore.getState();
+
+  // Use cached detail jobs where available, fall back to overview jobs
+  const enrichedJobs = runningJobs.map((j) => jobDetailsCache.get(j.id) ?? j);
+  const jobsToAnalyze = selectedJobId
+    ? enrichedJobs.filter((j) => j.id === selectedJobId)
+    : enrichedJobs;
+
+  let allScores: BottleneckScore[] = [];
+  let allRecommendations: Recommendation[] = [];
+
+  for (const job of jobsToAnalyze) {
+    const { scores, recommendations: recs } = analyzeJob(job);
+    allScores = allScores.concat(scores);
+    allRecommendations = allRecommendations.concat(recs);
+  }
+
+  // Sort recommendations by score descending globally
+  allRecommendations.sort((a, b) => b.score - a.score);
+
+  return { bottleneckScores: allScores, recommendations: allRecommendations };
+}
+
 function computeAndSet(set: (partial: Partial<InsightsState>) => void) {
   const { overview, runningJobs, completedJobs, taskManagers } =
     useClusterStore.getState();
@@ -421,17 +467,31 @@ function computeAndSet(set: (partial: Partial<InsightsState>) => void) {
 
   healthRingBuffer.push(snapshot);
 
+  // Bottleneck analysis — reuses the same cluster-store data
+  const selectedJobId = useInsightsStore.getState().selectedBottleneckJobId;
+  const { bottleneckScores, recommendations } =
+    computeBottleneckState(selectedJobId);
+
   set({
     currentHealth: snapshot,
     healthHistory: healthRingBuffer.toArray(),
     issues,
     healthLoading: false,
+    bottleneckScores,
+    recommendations,
+    bottleneckLoading: false,
   });
 }
 
 async function staggeredFetchJobDetails() {
   const { runningJobs } = useClusterStore.getState();
   const runningIds = runningJobs.map((j) => j.id);
+
+  // Evict cached jobs that are no longer running
+  const runningSet = new Set(runningIds);
+  for (const cachedId of jobDetailsCache.keys()) {
+    if (!runningSet.has(cachedId)) jobDetailsCache.delete(cachedId);
+  }
 
   // Sync fetch queue with current running jobs
   fetchQueue = runningIds;
@@ -445,9 +505,15 @@ async function staggeredFetchJobDetails() {
   fetchQueuePtr =
     (fetchQueuePtr + batch.length) % Math.max(1, fetchQueue.length);
 
-  // Fetch details for each job (fire and forget — cluster store caches them)
-  const fetchDetail = useClusterStore.getState().fetchJobDetail;
-  await Promise.allSettled(batch.map((id) => fetchDetail(id)));
+  // Fetch details and cache them for bottleneck analysis
+  const results = await Promise.allSettled(
+    batch.map((id) => fetchJobDetailApi(id)),
+  );
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      jobDetailsCache.set(result.value.id, result.value);
+    }
+  }
 }
 
 export const useInsightsStore = create<InsightsState>((set) => ({
@@ -455,6 +521,12 @@ export const useInsightsStore = create<InsightsState>((set) => ({
   healthHistory: [],
   issues: [],
   healthLoading: true,
+
+  // Bottleneck analysis
+  bottleneckScores: [],
+  recommendations: [],
+  selectedBottleneckJobId: null,
+  bottleneckLoading: true,
 
   initialize: () => {
     if (insightsInitialized) return;
@@ -467,14 +539,18 @@ export const useInsightsStore = create<InsightsState>((set) => ({
 
     // Compute initial snapshot from current cluster-store state
     computeAndSet(set);
+
+    // Kick off initial staggered fetch so bottleneck data appears
+    // without waiting for the first polling tick
+    staggeredFetchJobDetails().then(() => computeAndSet(set));
   },
 
   startPolling: () => {
     if (insightsPollInterval) return;
     const intervalMs = useConfigStore.getState().config?.pollIntervalMs ?? 5000;
 
-    insightsPollInterval = setInterval(() => {
-      staggeredFetchJobDetails();
+    insightsPollInterval = setInterval(async () => {
+      await staggeredFetchJobDetails();
       computeAndSet(set);
     }, intervalMs);
   },
@@ -488,6 +564,21 @@ export const useInsightsStore = create<InsightsState>((set) => ({
       unsubClusterStore();
       unsubClusterStore = null;
     }
+    jobDetailsCache.clear();
     insightsInitialized = false;
+  },
+
+  setSelectedBottleneckJob: (jobId: string | null) => {
+    set({ selectedBottleneckJobId: jobId });
+    // Re-run analysis with new filter
+    const { bottleneckScores, recommendations } = computeBottleneckState(jobId);
+    set({ bottleneckScores, recommendations });
+  },
+
+  refreshBottleneckAnalysis: () => {
+    const selectedJobId = useInsightsStore.getState().selectedBottleneckJobId;
+    const { bottleneckScores, recommendations } =
+      computeBottleneckState(selectedJobId);
+    set({ bottleneckScores, recommendations, bottleneckLoading: false });
   },
 }));

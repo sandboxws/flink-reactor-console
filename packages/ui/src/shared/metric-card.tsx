@@ -27,7 +27,7 @@ export function MetricCard({
   return (
     <div className={cn("glass-card p-4", className)}>
       <div className="flex items-center gap-2 text-zinc-500">
-        <Icon className={cn("size-4", accent)} />
+        <Icon className={cn("size-4 shrink-0", accent)} />
         <span className="text-xs font-medium uppercase tracking-wide">
           {label}
         </span>
