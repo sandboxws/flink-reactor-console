@@ -131,9 +131,26 @@ export async function fetchTaskManagerDetail(tmId: string): Promise<TaskManager>
   return mapTaskManagerDetail(raw);
 }
 
+const TM_METRIC_IDS = [
+  "Status.JVM.CPU.Load",
+  "Status.JVM.Memory.Heap.Used",
+  "Status.JVM.Memory.Heap.Committed",
+  "Status.JVM.Memory.Heap.Max",
+  "Status.JVM.Memory.NonHeap.Used",
+  "Status.JVM.Memory.NonHeap.Committed",
+  "Status.JVM.Memory.NonHeap.Max",
+  "Status.JVM.Memory.Metaspace.Used",
+  "Status.JVM.Memory.Metaspace.Max",
+  "Status.JVM.Threads.Count",
+  "Status.JVM.GarbageCollector.G1_Young_Generation.Count",
+  "Status.JVM.GarbageCollector.G1_Young_Generation.Time",
+  "Status.JVM.GarbageCollector.G1_Old_Generation.Count",
+  "Status.JVM.GarbageCollector.G1_Old_Generation.Time",
+].join(",");
+
 export async function fetchTaskManagerMetrics(tmId: string): Promise<TaskManagerMetrics> {
   const raw = await fetchJson<FlinkMetricItem[]>(
-    `/api/flink/taskmanagers/${tmId}/metrics`,
+    `/api/flink/taskmanagers/${tmId}/metrics?get=${TM_METRIC_IDS}`,
   );
   return mapTaskManagerMetrics(raw);
 }
@@ -178,6 +195,22 @@ export async function fetchJobManagerDetail(): Promise<JobManagerInfo> {
   return mapJobManagerDetail(raw);
 }
 
+const JM_METRIC_IDS = [
+  "Status.JVM.Memory.Heap.Used",
+  "Status.JVM.Memory.Heap.Max",
+  "Status.JVM.Memory.NonHeap.Used",
+  "Status.JVM.Memory.NonHeap.Max",
+  "Status.JVM.Memory.Metaspace.Used",
+  "Status.JVM.Memory.Metaspace.Max",
+  "Status.JVM.Memory.Direct.MemoryUsed",
+  "Status.JVM.Memory.Direct.TotalCapacity",
+  "Status.JVM.Threads.Count",
+  "Status.JVM.GarbageCollector.G1_Young_Generation.Count",
+  "Status.JVM.GarbageCollector.G1_Young_Generation.Time",
+  "Status.JVM.GarbageCollector.G1_Old_Generation.Count",
+  "Status.JVM.GarbageCollector.G1_Old_Generation.Time",
+].join(",");
+
 export async function fetchJobManagerMetrics(): Promise<{
   heapUsed: number;
   heapMax: number;
@@ -187,7 +220,9 @@ export async function fetchJobManagerMetrics(): Promise<{
   gcCount: number;
   gcTime: number;
 }> {
-  const raw = await fetchJson<FlinkMetricItem[]>("/api/flink/jobmanager/metrics");
+  const raw = await fetchJson<FlinkMetricItem[]>(
+    `/api/flink/jobmanager/metrics?get=${JM_METRIC_IDS}`,
+  );
   return mapJobManagerMetrics(raw);
 }
 
@@ -246,13 +281,51 @@ export async function cancelJob(jobId: string): Promise<void> {
 // Vertex metrics
 // ---------------------------------------------------------------------------
 
+const VERTEX_METRIC_IDS = [
+  "numRecordsInPerSecond",
+  "numRecordsOutPerSecond",
+  "numBytesInPerSecond",
+  "numBytesOutPerSecond",
+  "busyTimeMsPerSecond",
+  "backPressuredTimeMsPerSecond",
+  "idleTimeMsPerSecond",
+  "currentInputWatermark",
+].join(",");
+
 export async function fetchVertexMetrics(
   jobId: string,
   vertexId: string,
 ): Promise<FlinkMetricItem[]> {
   return fetchJson<FlinkMetricItem[]>(
-    `/api/flink/jobs/${jobId}/vertices/${vertexId}/metrics`,
+    `/api/flink/jobs/${jobId}/vertices/${vertexId}/metrics?get=${VERTEX_METRIC_IDS}`,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Generic metric browsing (Metrics Explorer)
+// ---------------------------------------------------------------------------
+
+export async function fetchMetricList(proxyUrl: string): Promise<string[]> {
+  const raw = await fetchJson<FlinkMetricItem[]>(proxyUrl);
+  return raw.map((item) => item.id);
+}
+
+export async function fetchMetricValues(
+  proxyUrl: string,
+  metricIds: string[],
+): Promise<Record<string, number>> {
+  const separator = proxyUrl.includes("?") ? "&" : "?";
+  const raw = await fetchJson<FlinkMetricItem[]>(
+    `${proxyUrl}${separator}get=${metricIds.join(",")}`,
+  );
+  const result: Record<string, number> = {};
+  for (const item of raw) {
+    const parsed = parseFloat(item.value);
+    if (!isNaN(parsed)) {
+      result[item.id] = parsed;
+    }
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------

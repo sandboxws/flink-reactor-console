@@ -924,3 +924,105 @@ export function generateMockJarRunApiResponse(): FlinkJarRunResponse {
   ).join("");
   return { jobid: hex };
 }
+
+// ---------------------------------------------------------------------------
+// Metrics Explorer — mock metric list and time-varying values
+// ---------------------------------------------------------------------------
+
+const JM_METRIC_NAMES = [
+  "Status.JVM.Memory.Heap.Used",
+  "Status.JVM.Memory.Heap.Max",
+  "Status.JVM.Memory.Heap.Committed",
+  "Status.JVM.Memory.NonHeap.Used",
+  "Status.JVM.Memory.NonHeap.Max",
+  "Status.JVM.Memory.Metaspace.Used",
+  "Status.JVM.Memory.Metaspace.Max",
+  "Status.JVM.Memory.Direct.MemoryUsed",
+  "Status.JVM.Memory.Direct.TotalCapacity",
+  "Status.JVM.Threads.Count",
+  "Status.JVM.GarbageCollector.G1_Young_Generation.Count",
+  "Status.JVM.GarbageCollector.G1_Young_Generation.Time",
+  "Status.JVM.GarbageCollector.G1_Old_Generation.Count",
+  "Status.JVM.GarbageCollector.G1_Old_Generation.Time",
+  "Status.JVM.CPU.Load",
+  "Status.Shuffle.Netty.UsedMemory",
+  "Status.Shuffle.Netty.AvailableMemory",
+  "Status.Network.AvailableMemorySegments",
+  "Status.Network.TotalMemorySegments",
+];
+
+const TM_METRIC_NAMES = [
+  "Status.JVM.CPU.Load",
+  "Status.JVM.Memory.Heap.Used",
+  "Status.JVM.Memory.Heap.Committed",
+  "Status.JVM.Memory.Heap.Max",
+  "Status.JVM.Memory.NonHeap.Used",
+  "Status.JVM.Memory.NonHeap.Max",
+  "Status.JVM.Memory.Metaspace.Used",
+  "Status.JVM.Memory.Metaspace.Max",
+  "Status.JVM.Threads.Count",
+  "Status.JVM.GarbageCollector.G1_Young_Generation.Count",
+  "Status.JVM.GarbageCollector.G1_Young_Generation.Time",
+  "Status.JVM.GarbageCollector.G1_Old_Generation.Count",
+  "Status.JVM.GarbageCollector.G1_Old_Generation.Time",
+  "Status.Shuffle.Netty.UsedMemory",
+  "Status.Shuffle.Netty.AvailableMemory",
+  "Status.Shuffle.Netty.TotalMemory",
+  "Status.Flink.Memory.Managed.Used",
+  "Status.Flink.Memory.Managed.Total",
+];
+
+const VERTEX_METRIC_NAMES = [
+  "numRecordsInPerSecond",
+  "numRecordsOutPerSecond",
+  "numBytesInPerSecond",
+  "numBytesOutPerSecond",
+  "busyTimeMsPerSecond",
+  "backPressuredTimeMsPerSecond",
+  "idleTimeMsPerSecond",
+  "currentInputWatermark",
+  "lastCheckpointDuration",
+  "lastCheckpointSize",
+  "numberOfCompletedCheckpoints",
+  "numberOfFailedCheckpoints",
+];
+
+export function generateMockMetricList(
+  sourceType: "jm" | "tm" | "job-vertex",
+): FlinkMetricItem[] {
+  const names =
+    sourceType === "jm"
+      ? JM_METRIC_NAMES
+      : sourceType === "tm"
+        ? TM_METRIC_NAMES
+        : VERTEX_METRIC_NAMES;
+  return names.map((id) => ({ id, value: "" }));
+}
+
+/** Deterministic hash for a string — produces a consistent seed per metric name. */
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+export function generateMockMetricValues(
+  metricIds: string[],
+): FlinkMetricItem[] {
+  const now = Date.now();
+  return metricIds.map((id) => {
+    const seed = hashCode(id);
+    // Each metric gets a unique base, amplitude, and period
+    const base = (seed % 900) + 100; // 100–999
+    const amplitude = (seed % 50) + 10; // 10–59
+    const period = ((seed % 7) + 3) * 1000; // 3s–9s
+    const phase = (seed % 628) / 100; // 0–6.28
+    const value =
+      base +
+      amplitude * Math.sin((now / period) * Math.PI * 2 + phase) +
+      (Math.random() - 0.5) * amplitude * 0.3;
+    return { id, value: String(Math.max(0, Math.round(value))) };
+  });
+}

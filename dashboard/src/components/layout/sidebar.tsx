@@ -11,6 +11,7 @@ import {
   GitFork,
   HeartPulse,
   LayoutDashboard,
+  LineChart,
   Play,
   ScrollText,
   Server,
@@ -50,6 +51,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/insights/health", label: "Cluster Health", icon: HeartPulse },
       { href: "/insights/bottlenecks", label: "Bottleneck Analyzer", icon: GitFork },
+      { href: "/insights/metrics", label: "Metrics Explorer", icon: LineChart },
     ],
   },
   {
