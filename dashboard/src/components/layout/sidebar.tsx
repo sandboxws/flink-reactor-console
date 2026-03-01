@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
   BarChart3,
+  Bell,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -61,6 +62,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Monitoring",
     items: [
+      { href: "/monitoring/alerts", label: "Alerts & Rules", icon: Bell },
       { href: "/monitoring/checkpoints", label: "Checkpoint Analytics", icon: BarChart3 },
     ],
   },
