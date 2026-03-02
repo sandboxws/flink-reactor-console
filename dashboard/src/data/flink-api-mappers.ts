@@ -676,7 +676,9 @@ export function mapTaskManagers(api: FlinkTaskManagersResponse): TaskManager[] {
     path: tm.path,
     dataPort: tm.dataPort,
     jmxPort: tm.jmxPort,
-    lastHeartbeat: new Date(Date.now() - tm.timeSinceLastHeartbeat),
+    // Flink's "timeSinceLastHeartbeat" is actually an absolute epoch timestamp
+    // (the Java field is named `lastHeartbeat`; the JSON key is a misnomer).
+    lastHeartbeat: new Date(tm.timeSinceLastHeartbeat),
     slotsTotal: tm.slotsNumber,
     slotsFree: tm.freeSlots,
     cpuCores: tm.hardware.cpuCores,
@@ -765,7 +767,7 @@ export function mapTaskManagerDetail(
     path: tm.path,
     dataPort: tm.dataPort,
     jmxPort: tm.jmxPort,
-    lastHeartbeat: new Date(Date.now() - tm.timeSinceLastHeartbeat),
+    lastHeartbeat: new Date(tm.timeSinceLastHeartbeat),
     slotsTotal: tm.slotsNumber,
     slotsFree: tm.freeSlots,
     cpuCores: tm.hardware.cpuCores,

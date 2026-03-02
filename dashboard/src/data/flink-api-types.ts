@@ -382,6 +382,7 @@ export interface FlinkTaskManagerItem {
   path: string
   dataPort: number
   jmxPort: number
+  /** Misleading name — actually an absolute epoch timestamp (ms) of the last heartbeat. */
   timeSinceLastHeartbeat: number
   slotsNumber: number
   freeSlots: number

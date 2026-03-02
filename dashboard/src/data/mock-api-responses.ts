@@ -514,7 +514,7 @@ function domainTmToApiItem(tm: TaskManager) {
     path: tm.path,
     dataPort: tm.dataPort,
     jmxPort: tm.jmxPort,
-    timeSinceLastHeartbeat: Date.now() - tm.lastHeartbeat.getTime(),
+    timeSinceLastHeartbeat: tm.lastHeartbeat.getTime(),
     slotsNumber: tm.slotsTotal,
     freeSlots: tm.slotsFree,
     totalResource: tm.totalResource,

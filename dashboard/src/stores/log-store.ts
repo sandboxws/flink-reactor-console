@@ -70,12 +70,13 @@ const JM_SOURCE: LogSource = {
   label: "JobManager",
 }
 
-/** Build a TM log source from its ID. */
+/** Build a TM log source from its ID. Label matches SourceBadge format. */
 function tmSource(tmId: string): LogSource {
+  const digits = tmId.replace(/\D/g, "")
   return {
     type: "taskmanager",
     id: tmId,
-    label: `TM ${tmId.substring(0, 8)}`,
+    label: `TM-${digits || tmId}`,
   }
 }
 
