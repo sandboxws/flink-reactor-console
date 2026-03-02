@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import { useInsightsStore } from "@/stores/insights-store";
-import { HealthScoreGauge } from "./health-score-gauge";
-import { HealthTrendChart } from "./health-trend-chart";
-import { SubScoreGrid } from "./sub-score-grid";
-import { TopIssuesList } from "./top-issues-list";
+import { useInsightsStore } from "@/stores/insights-store"
+import { HealthScoreGauge } from "./health-score-gauge"
+import { HealthTrendChart } from "./health-trend-chart"
+import { SubScoreGrid } from "./sub-score-grid"
+import { TopIssuesList } from "./top-issues-list"
 
 function LoadingSkeleton() {
   return (
@@ -25,17 +25,17 @@ function LoadingSkeleton() {
       </div>
       <div className="glass-card h-48 animate-pulse" />
     </div>
-  );
+  )
 }
 
 export function HealthDashboard() {
-  const currentHealth = useInsightsStore((s) => s.currentHealth);
-  const healthHistory = useInsightsStore((s) => s.healthHistory);
-  const issues = useInsightsStore((s) => s.issues);
-  const healthLoading = useInsightsStore((s) => s.healthLoading);
+  const currentHealth = useInsightsStore((s) => s.currentHealth)
+  const healthHistory = useInsightsStore((s) => s.healthHistory)
+  const issues = useInsightsStore((s) => s.issues)
+  const healthLoading = useInsightsStore((s) => s.healthLoading)
 
   if (healthLoading && !currentHealth) {
-    return <LoadingSkeleton />;
+    return <LoadingSkeleton />
   }
 
   return (
@@ -56,5 +56,5 @@ export function HealthDashboard() {
       {/* Issues list */}
       <TopIssuesList issues={issues} />
     </div>
-  );
+  )
 }

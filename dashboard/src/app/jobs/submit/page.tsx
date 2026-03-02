@@ -1,15 +1,15 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useClusterStore } from "@/stores/cluster-store";
-import { SubmitJobPage } from "@/components/jobs/submit-job-page";
+import { useEffect } from "react"
+import { SubmitJobPage } from "@/components/jobs/submit-job-page"
+import { useClusterStore } from "@/stores/cluster-store"
 
 export default function SubmitPage() {
-  const initialize = useClusterStore((s) => s.initialize);
+  const initialize = useClusterStore((s) => s.initialize)
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initialize()
+  }, [initialize])
 
-  return <SubmitJobPage />;
+  return <SubmitJobPage />
 }

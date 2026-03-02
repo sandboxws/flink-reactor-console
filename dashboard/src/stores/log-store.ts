@@ -1,38 +1,38 @@
-import { create } from "zustand";
-import { createMockGenerator, type MockGenerator } from "@/data/mock-generator";
-import type { LogEntry } from "@/data/types";
-import { LOG_BUFFER_LIMIT } from "@/lib/constants";
+import { create } from "zustand"
+import { createMockGenerator, type MockGenerator } from "@/data/mock-generator"
+import type { LogEntry } from "@/data/types"
+import { LOG_BUFFER_LIMIT } from "@/lib/constants"
 
 // ---------------------------------------------------------------------------
 // Log store — buffered log entries with FIFO eviction and streaming controls
 // ---------------------------------------------------------------------------
 
 interface LogState {
-  entries: LogEntry[];
-  isStreaming: boolean;
-  streamSpeed: number;
+  entries: LogEntry[]
+  isStreaming: boolean
+  streamSpeed: number
 }
 
 interface LogActions {
-  appendEntries: (newEntries: LogEntry[]) => void;
-  clear: () => void;
-  toggleStreaming: () => void;
-  setStreamSpeed: (speed: number) => void;
-  startStreaming: () => void;
-  stopStreaming: () => void;
+  appendEntries: (newEntries: LogEntry[]) => void
+  clear: () => void
+  toggleStreaming: () => void
+  setStreamSpeed: (speed: number) => void
+  startStreaming: () => void
+  stopStreaming: () => void
 }
 
-export type LogStore = LogState & LogActions;
+export type LogStore = LogState & LogActions
 
-let generator: MockGenerator | null = null;
+let generator: MockGenerator | null = null
 
 function getGenerator(
   appendEntries: (entries: LogEntry[]) => void,
 ): MockGenerator {
   if (!generator) {
-    generator = createMockGenerator(appendEntries);
+    generator = createMockGenerator(appendEntries)
   }
-  return generator;
+  return generator
 }
 
 export const useLogStore = create<LogStore>((set, get) => ({
@@ -42,44 +42,44 @@ export const useLogStore = create<LogStore>((set, get) => ({
 
   appendEntries: (newEntries: LogEntry[]) => {
     set((state) => {
-      const combined = [...state.entries, ...newEntries];
+      const combined = [...state.entries, ...newEntries]
       // FIFO eviction: drop oldest entries beyond the cap
-      const start = Math.max(0, combined.length - LOG_BUFFER_LIMIT);
-      return { entries: combined.slice(start) };
-    });
+      const start = Math.max(0, combined.length - LOG_BUFFER_LIMIT)
+      return { entries: combined.slice(start) }
+    })
   },
 
   clear: () => {
-    set({ entries: [] });
+    set({ entries: [] })
   },
 
   toggleStreaming: () => {
-    const { isStreaming } = get();
+    const { isStreaming } = get()
     if (isStreaming) {
-      get().stopStreaming();
+      get().stopStreaming()
     } else {
-      get().startStreaming();
+      get().startStreaming()
     }
   },
 
   setStreamSpeed: (speed: number) => {
-    set({ streamSpeed: speed });
+    set({ streamSpeed: speed })
     if (generator) {
-      generator.setSpeed(speed);
+      generator.setSpeed(speed)
     }
   },
 
   startStreaming: () => {
-    const gen = getGenerator(get().appendEntries);
-    gen.setSpeed(get().streamSpeed);
-    gen.start();
-    set({ isStreaming: true });
+    const gen = getGenerator(get().appendEntries)
+    gen.setSpeed(get().streamSpeed)
+    gen.start()
+    set({ isStreaming: true })
   },
 
   stopStreaming: () => {
     if (generator) {
-      generator.stop();
+      generator.stop()
     }
-    set({ isStreaming: false });
+    set({ isStreaming: false })
   },
-}));
+}))

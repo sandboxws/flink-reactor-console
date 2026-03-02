@@ -1,48 +1,48 @@
-import { create } from "zustand";
-import { useClusterStore } from "./cluster-store";
-import { useInsightsStore } from "./insights-store";
-import { useCheckpointAnalyticsStore } from "./checkpoint-analytics-store";
+import { create } from "zustand"
+import { useCheckpointAnalyticsStore } from "./checkpoint-analytics-store"
+import { useClusterStore } from "./cluster-store"
+import { useInsightsStore } from "./insights-store"
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-export type AlertCondition = ">" | "<" | "==" | "!=" | ">=" | "<=";
-export type AlertSeverity = "info" | "warning" | "critical";
+export type AlertCondition = ">" | "<" | "==" | "!=" | ">=" | "<="
+export type AlertSeverity = "info" | "warning" | "critical"
 
 export type AlertRule = {
-  id: string;
-  name: string;
-  metric: string;
-  condition: AlertCondition;
-  threshold: number;
-  requiredConsecutive: number;
-  severity: AlertSeverity;
-  enabled: boolean;
-  isPreset: boolean;
-};
+  id: string
+  name: string
+  metric: string
+  condition: AlertCondition
+  threshold: number
+  requiredConsecutive: number
+  severity: AlertSeverity
+  enabled: boolean
+  isPreset: boolean
+}
 
 export type ActiveAlert = {
-  id: string;
-  ruleId: string;
-  ruleName: string;
-  severity: AlertSeverity;
-  message: string;
-  currentValue: number;
-  threshold: number;
-  triggeredAt: Date;
-  acknowledged: boolean;
-};
+  id: string
+  ruleId: string
+  ruleName: string
+  severity: AlertSeverity
+  message: string
+  currentValue: number
+  threshold: number
+  triggeredAt: Date
+  acknowledged: boolean
+}
 
 // ---------------------------------------------------------------------------
 // Metric definitions — available metrics grouped by source
 // ---------------------------------------------------------------------------
 
 export type MetricDefinition = {
-  id: string;
-  label: string;
-  group: string;
-};
+  id: string
+  label: string
+  group: string
+}
 
 export const METRIC_DEFINITIONS: MetricDefinition[] = [
   // Cluster
@@ -102,94 +102,94 @@ export const METRIC_DEFINITIONS: MetricDefinition[] = [
   // Jobs
   { id: "jobs.runningCount", label: "Running Jobs", group: "Jobs" },
   { id: "jobs.failedCount", label: "Failed Jobs", group: "Jobs" },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Metric value extractors
 // ---------------------------------------------------------------------------
 
 function getMetricValue(metricId: string): number | null {
-  const cluster = useClusterStore.getState();
-  const insights = useInsightsStore.getState();
-  const checkpoints = useCheckpointAnalyticsStore.getState();
+  const cluster = useClusterStore.getState()
+  const insights = useInsightsStore.getState()
+  const checkpoints = useCheckpointAnalyticsStore.getState()
 
   switch (metricId) {
     // Cluster metrics
     case "slots.freePercent": {
-      const { overview } = cluster;
-      if (!overview || overview.totalTaskSlots === 0) return null;
-      return (overview.availableTaskSlots / overview.totalTaskSlots) * 100;
+      const { overview } = cluster
+      if (!overview || overview.totalTaskSlots === 0) return null
+      return (overview.availableTaskSlots / overview.totalTaskSlots) * 100
     }
     case "slots.total":
-      return cluster.overview?.totalTaskSlots ?? null;
+      return cluster.overview?.totalTaskSlots ?? null
     case "taskManagers.count":
-      return cluster.overview?.taskManagerCount ?? null;
+      return cluster.overview?.taskManagerCount ?? null
 
     // Health metrics — null if insights store not initialized
     case "health.score":
-      return insights.currentHealth?.score ?? null;
+      return insights.currentHealth?.score ?? null
     case "health.slotUtilization": {
       const sub = insights.currentHealth?.subScores.find(
         (s) => s.name === "Slot Utilization",
-      );
-      return sub?.score ?? null;
+      )
+      return sub?.score ?? null
     }
     case "health.backpressure": {
       const sub = insights.currentHealth?.subScores.find(
         (s) => s.name === "Backpressure",
-      );
-      return sub?.score ?? null;
+      )
+      return sub?.score ?? null
     }
     case "health.checkpointHealth": {
       const sub = insights.currentHealth?.subScores.find(
         (s) => s.name === "Checkpoint Health",
-      );
-      return sub?.score ?? null;
+      )
+      return sub?.score ?? null
     }
     case "health.memoryPressure": {
       const sub = insights.currentHealth?.subScores.find(
         (s) => s.name === "Memory Pressure",
-      );
-      return sub?.score ?? null;
+      )
+      return sub?.score ?? null
     }
     case "health.exceptionRate": {
       const sub = insights.currentHealth?.subScores.find(
         (s) => s.name === "Exception Rate",
-      );
-      return sub?.score ?? null;
+      )
+      return sub?.score ?? null
     }
 
     // Checkpoint metrics — null if checkpoint store not initialized
     case "checkpoints.successRate":
-      return checkpoints.aggregates?.overallSuccessRate ?? null;
+      return checkpoints.aggregates?.overallSuccessRate ?? null
     case "checkpoints.avgDuration":
-      return checkpoints.aggregates?.avgDuration ?? null;
+      return checkpoints.aggregates?.avgDuration ?? null
     case "checkpoints.totalStateSize":
-      return checkpoints.aggregates?.totalStateSize ?? null;
+      return checkpoints.aggregates?.totalStateSize ?? null
 
     // Task Manager metrics
     case "taskManagers.maxHeapPercent": {
-      const { taskManagers } = cluster;
-      if (taskManagers.length === 0) return null;
-      let maxHeapPct = 0;
+      const { taskManagers } = cluster
+      if (taskManagers.length === 0) return null
+      let maxHeapPct = 0
       for (const tm of taskManagers) {
-        if (!tm.metrics || tm.metrics.heapMax === 0) continue;
-        const pct = (tm.metrics.heapUsed / tm.metrics.heapMax) * 100;
-        if (pct > maxHeapPct) maxHeapPct = pct;
+        if (!tm.metrics || tm.metrics.heapMax === 0) continue
+        const pct = (tm.metrics.heapUsed / tm.metrics.heapMax) * 100
+        if (pct > maxHeapPct) maxHeapPct = pct
       }
-      return maxHeapPct;
+      return maxHeapPct
     }
     case "taskManagers.activeCount":
-      return cluster.taskManagers.length;
+      return cluster.taskManagers.length
 
     // Job metrics
     case "jobs.runningCount":
-      return cluster.runningJobs.length;
+      return cluster.runningJobs.length
     case "jobs.failedCount":
-      return cluster.completedJobs.filter((j) => j.status === "FAILED").length;
+      return cluster.completedJobs.filter((j) => j.status === "FAILED").length
 
     default:
-      return null;
+      return null
   }
 }
 
@@ -204,17 +204,17 @@ function evaluateCondition(
 ): boolean {
   switch (condition) {
     case ">":
-      return value > threshold;
+      return value > threshold
     case "<":
-      return value < threshold;
+      return value < threshold
     case "==":
-      return value === threshold;
+      return value === threshold
     case "!=":
-      return value !== threshold;
+      return value !== threshold
     case ">=":
-      return value >= threshold;
+      return value >= threshold
     case "<=":
-      return value <= threshold;
+      return value <= threshold
   }
 }
 
@@ -222,48 +222,48 @@ function evaluateCondition(
 // localStorage helpers
 // ---------------------------------------------------------------------------
 
-const RULES_KEY = "flink-reactor-alert-rules";
-const ALERTS_KEY = "flink-reactor-active-alerts";
+const RULES_KEY = "flink-reactor-alert-rules"
+const ALERTS_KEY = "flink-reactor-active-alerts"
 
 function loadFromStorage<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
+  if (typeof window === "undefined") return fallback
   try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : fallback;
+    const stored = localStorage.getItem(key)
+    return stored ? JSON.parse(stored) : fallback
   } catch {
-    return fallback;
+    return fallback
   }
 }
 
 function saveToStorage<T>(key: string, value: T): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") return
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(key, JSON.stringify(value))
   } catch {
     // localStorage may be unavailable
   }
 }
 
 function loadRules(): AlertRule[] {
-  return loadFromStorage<AlertRule[]>(RULES_KEY, []);
+  return loadFromStorage<AlertRule[]>(RULES_KEY, [])
 }
 
 function loadAlerts(): ActiveAlert[] {
   const raw = loadFromStorage<
     Array<Omit<ActiveAlert, "triggeredAt"> & { triggeredAt: string }>
-  >(ALERTS_KEY, []);
+  >(ALERTS_KEY, [])
   return raw.map((a) => ({
     ...a,
     triggeredAt: new Date(a.triggeredAt),
-  }));
+  }))
 }
 
 function saveRules(rules: AlertRule[]): void {
-  saveToStorage(RULES_KEY, rules);
+  saveToStorage(RULES_KEY, rules)
 }
 
 function saveAlerts(alerts: ActiveAlert[]): void {
-  saveToStorage(ALERTS_KEY, alerts);
+  saveToStorage(ALERTS_KEY, alerts)
 }
 
 // ---------------------------------------------------------------------------
@@ -271,7 +271,7 @@ function saveAlerts(alerts: ActiveAlert[]): void {
 // ---------------------------------------------------------------------------
 
 function generateId(): string {
-  return crypto.randomUUID();
+  return crypto.randomUUID()
 }
 
 function createPresetRules(): AlertRule[] {
@@ -331,7 +331,7 @@ function createPresetRules(): AlertRule[] {
       enabled: true,
       isPreset: true,
     },
-  ];
+  ]
 }
 
 // ---------------------------------------------------------------------------
@@ -339,24 +339,24 @@ function createPresetRules(): AlertRule[] {
 // ---------------------------------------------------------------------------
 
 interface AlertsState {
-  rules: AlertRule[];
-  activeAlerts: ActiveAlert[];
-  consecutiveViolations: Record<string, number>;
+  rules: AlertRule[]
+  activeAlerts: ActiveAlert[]
+  consecutiveViolations: Record<string, number>
 
-  initialize: () => void;
-  stopListening: () => void;
-  createRule: (rule: Omit<AlertRule, "id" | "isPreset">) => void;
-  updateRule: (id: string, updates: Partial<AlertRule>) => void;
-  deleteRule: (id: string) => void;
-  toggleRule: (id: string) => void;
-  acknowledgeAlert: (alertId: string) => void;
-  resolveAlert: (alertId: string) => void;
-  resolveAllAlerts: () => void;
-  installPresets: () => void;
+  initialize: () => void
+  stopListening: () => void
+  createRule: (rule: Omit<AlertRule, "id" | "isPreset">) => void
+  updateRule: (id: string, updates: Partial<AlertRule>) => void
+  deleteRule: (id: string) => void
+  toggleRule: (id: string) => void
+  acknowledgeAlert: (alertId: string) => void
+  resolveAlert: (alertId: string) => void
+  resolveAllAlerts: () => void
+  installPresets: () => void
 }
 
-let alertsInitialized = false;
-let unsubCluster: (() => void) | null = null;
+let alertsInitialized = false
+let unsubCluster: (() => void) | null = null
 
 function evaluateRules(
   set: (
@@ -366,27 +366,30 @@ function evaluateRules(
   ) => void,
   get: () => AlertsState,
 ): void {
-  const { rules, activeAlerts, consecutiveViolations } = get();
-  const newViolations = { ...consecutiveViolations };
-  let newAlerts = [...activeAlerts];
-  let changed = false;
+  const { rules, activeAlerts, consecutiveViolations } = get()
+  const newViolations = { ...consecutiveViolations }
+  let newAlerts = [...activeAlerts]
+  let changed = false
 
   for (const rule of rules) {
-    if (!rule.enabled) continue;
+    if (!rule.enabled) continue
 
-    const value = getMetricValue(rule.metric);
+    const value = getMetricValue(rule.metric)
 
     // Metric unavailable — skip (don't fire, don't reset)
-    if (value === null) continue;
+    if (value === null) continue
 
-    const violated = evaluateCondition(value, rule.condition, rule.threshold);
-    const existingAlert = newAlerts.find((a) => a.ruleId === rule.id);
+    const violated = evaluateCondition(value, rule.condition, rule.threshold)
+    const existingAlert = newAlerts.find((a) => a.ruleId === rule.id)
 
     if (violated) {
-      const prev = newViolations[rule.id] ?? 0;
-      newViolations[rule.id] = prev + 1;
+      const prev = newViolations[rule.id] ?? 0
+      newViolations[rule.id] = prev + 1
 
-      if (newViolations[rule.id] >= rule.requiredConsecutive && !existingAlert) {
+      if (
+        newViolations[rule.id] >= rule.requiredConsecutive &&
+        !existingAlert
+      ) {
         // Fire new alert
         newAlerts.push({
           id: generateId(),
@@ -398,26 +401,26 @@ function evaluateRules(
           threshold: rule.threshold,
           triggeredAt: new Date(),
           acknowledged: false,
-        });
-        changed = true;
+        })
+        changed = true
       } else if (existingAlert) {
         // Update the current value on existing alert
-        const idx = newAlerts.indexOf(existingAlert);
+        const idx = newAlerts.indexOf(existingAlert)
         newAlerts[idx] = {
           ...existingAlert,
           currentValue: value,
           message: formatAlertMessage(rule, value),
-        };
-        changed = true;
+        }
+        changed = true
       }
     } else {
       // Condition cleared
-      newViolations[rule.id] = 0;
+      newViolations[rule.id] = 0
 
       if (existingAlert) {
         // Auto-resolve
-        newAlerts = newAlerts.filter((a) => a.ruleId !== rule.id);
-        changed = true;
+        newAlerts = newAlerts.filter((a) => a.ruleId !== rule.id)
+        changed = true
       }
     }
   }
@@ -430,18 +433,18 @@ function evaluateRules(
     set({
       activeAlerts: newAlerts,
       consecutiveViolations: newViolations,
-    });
-    saveAlerts(newAlerts);
+    })
+    saveAlerts(newAlerts)
   }
 }
 
 function formatAlertMessage(rule: AlertRule, currentValue: number): string {
-  const metricDef = METRIC_DEFINITIONS.find((m) => m.id === rule.metric);
-  const label = metricDef?.label ?? rule.metric;
+  const metricDef = METRIC_DEFINITIONS.find((m) => m.id === rule.metric)
+  const label = metricDef?.label ?? rule.metric
   const formatted = Number.isInteger(currentValue)
     ? String(currentValue)
-    : currentValue.toFixed(1);
-  return `${label} at ${formatted} (threshold: ${rule.condition} ${rule.threshold})`;
+    : currentValue.toFixed(1)
+  return `${label} at ${formatted} (threshold: ${rule.condition} ${rule.threshold})`
 }
 
 export const useAlertsStore = create<AlertsState>((set, get) => ({
@@ -450,52 +453,52 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
   consecutiveViolations: {},
 
   initialize: () => {
-    if (alertsInitialized) return;
-    alertsInitialized = true;
+    if (alertsInitialized) return
+    alertsInitialized = true
 
     // Load from localStorage
-    const rules = loadRules();
-    const activeAlerts = loadAlerts();
-    set({ rules, activeAlerts });
+    const rules = loadRules()
+    const activeAlerts = loadAlerts()
+    set({ rules, activeAlerts })
 
     // Install presets if needed
     if (!rules.some((r) => r.isPreset)) {
-      get().installPresets();
+      get().installPresets()
     }
 
     // Subscribe to cluster-store changes for evaluation
     unsubCluster = useClusterStore.subscribe(() => {
-      evaluateRules(set, get);
-    });
+      evaluateRules(set, get)
+    })
 
     // Run initial evaluation
-    evaluateRules(set, get);
+    evaluateRules(set, get)
   },
 
   stopListening: () => {
     if (unsubCluster) {
-      unsubCluster();
-      unsubCluster = null;
+      unsubCluster()
+      unsubCluster = null
     }
-    alertsInitialized = false;
+    alertsInitialized = false
   },
 
   installPresets: () => {
-    const { rules } = get();
-    if (rules.some((r) => r.isPreset)) return;
+    const { rules } = get()
+    if (rules.some((r) => r.isPreset)) return
 
-    const presets = createPresetRules();
+    const presets = createPresetRules()
 
     // Set dynamic threshold for "Task Manager Lost"
-    const tmCount = useClusterStore.getState().taskManagers.length;
-    const tmLostPreset = presets.find((p) => p.name === "Task Manager Lost");
+    const tmCount = useClusterStore.getState().taskManagers.length
+    const tmLostPreset = presets.find((p) => p.name === "Task Manager Lost")
     if (tmLostPreset) {
-      tmLostPreset.threshold = tmCount;
+      tmLostPreset.threshold = tmCount
     }
 
-    const updated = [...rules, ...presets];
-    set({ rules: updated });
-    saveRules(updated);
+    const updated = [...rules, ...presets]
+    set({ rules: updated })
+    saveRules(updated)
   },
 
   createRule: (ruleInput) => {
@@ -503,79 +506,79 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       ...ruleInput,
       id: generateId(),
       isPreset: false,
-    };
-    const updated = [...get().rules, rule];
-    set({ rules: updated });
-    saveRules(updated);
+    }
+    const updated = [...get().rules, rule]
+    set({ rules: updated })
+    saveRules(updated)
   },
 
   updateRule: (id, updates) => {
     const updated = get().rules.map((r) =>
       r.id === id ? { ...r, ...updates } : r,
-    );
-    set({ rules: updated });
-    saveRules(updated);
+    )
+    set({ rules: updated })
+    saveRules(updated)
   },
 
   deleteRule: (id) => {
-    const rule = get().rules.find((r) => r.id === id);
-    if (!rule || rule.isPreset) return;
+    const rule = get().rules.find((r) => r.id === id)
+    if (!rule || rule.isPreset) return
 
-    const updatedRules = get().rules.filter((r) => r.id !== id);
-    const updatedAlerts = get().activeAlerts.filter((a) => a.ruleId !== id);
-    const { [id]: _, ...updatedViolations } = get().consecutiveViolations;
+    const updatedRules = get().rules.filter((r) => r.id !== id)
+    const updatedAlerts = get().activeAlerts.filter((a) => a.ruleId !== id)
+    const { [id]: _, ...updatedViolations } = get().consecutiveViolations
 
     set({
       rules: updatedRules,
       activeAlerts: updatedAlerts,
       consecutiveViolations: updatedViolations,
-    });
-    saveRules(updatedRules);
-    saveAlerts(updatedAlerts);
+    })
+    saveRules(updatedRules)
+    saveAlerts(updatedAlerts)
   },
 
   toggleRule: (id) => {
-    const rules = get().rules;
-    const rule = rules.find((r) => r.id === id);
-    if (!rule) return;
+    const rules = get().rules
+    const rule = rules.find((r) => r.id === id)
+    if (!rule) return
 
     const updatedRules = rules.map((r) =>
       r.id === id ? { ...r, enabled: !r.enabled } : r,
-    );
+    )
 
     // If disabling, resolve any active alert and reset violations
-    let updatedAlerts = get().activeAlerts;
-    const updatedViolations = { ...get().consecutiveViolations };
+    let updatedAlerts = get().activeAlerts
+    const updatedViolations = { ...get().consecutiveViolations }
     if (rule.enabled) {
-      updatedAlerts = updatedAlerts.filter((a) => a.ruleId !== id);
-      updatedViolations[id] = 0;
+      updatedAlerts = updatedAlerts.filter((a) => a.ruleId !== id)
+      updatedViolations[id] = 0
     }
 
     set({
       rules: updatedRules,
       activeAlerts: updatedAlerts,
       consecutiveViolations: updatedViolations,
-    });
-    saveRules(updatedRules);
-    saveAlerts(updatedAlerts);
+    })
+    saveRules(updatedRules)
+    saveAlerts(updatedAlerts)
   },
 
   acknowledgeAlert: (alertId) => {
     const updated = get().activeAlerts.map((a) =>
       a.id === alertId ? { ...a, acknowledged: true } : a,
-    );
-    set({ activeAlerts: updated });
-    saveAlerts(updated);
+    )
+    set({ activeAlerts: updated })
+    saveAlerts(updated)
   },
 
   resolveAlert: (alertId) => {
-    const updated = get().activeAlerts.filter((a) => a.id !== alertId);
-    set({ activeAlerts: updated });
-    saveAlerts(updated);
+    const updated = get().activeAlerts.filter((a) => a.id !== alertId)
+    set({ activeAlerts: updated })
+    saveAlerts(updated)
   },
 
   resolveAllAlerts: () => {
-    set({ activeAlerts: [] });
-    saveAlerts([]);
+    set({ activeAlerts: [] })
+    saveAlerts([])
   },
-}));
+}))

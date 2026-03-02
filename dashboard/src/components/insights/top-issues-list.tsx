@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
-import type { HealthIssue } from "@/stores/insights-store";
+import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react"
+import type { HealthIssue } from "@/stores/insights-store"
 
 const SEVERITY_CONFIG = {
   critical: {
@@ -16,24 +16,24 @@ const SEVERITY_CONFIG = {
     icon: Info,
     iconClass: "text-log-info",
   },
-} as const;
+} as const
 
 function formatRelativeTime(date: Date): string {
-  const seconds = Math.round((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.round(seconds / 60);
-  return `${minutes}m ago`;
+  const seconds = Math.round((Date.now() - date.getTime()) / 1000)
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.round(seconds / 60)
+  return `${minutes}m ago`
 }
 
 export function TopIssuesList({
   issues,
   maxItems = 10,
 }: {
-  issues: HealthIssue[];
-  maxItems?: number;
+  issues: HealthIssue[]
+  maxItems?: number
 }) {
-  const visible = issues.slice(0, maxItems);
-  const remaining = issues.length - maxItems;
+  const visible = issues.slice(0, maxItems)
+  const remaining = issues.length - maxItems
 
   return (
     <div className="glass-card p-4">
@@ -49,8 +49,8 @@ export function TopIssuesList({
       ) : (
         <div className="space-y-2">
           {visible.map((issue) => {
-            const config = SEVERITY_CONFIG[issue.severity];
-            const SeverityIcon = config.icon;
+            const config = SEVERITY_CONFIG[issue.severity]
+            const SeverityIcon = config.icon
 
             return (
               <div
@@ -70,7 +70,7 @@ export function TopIssuesList({
                   {formatRelativeTime(issue.timestamp)}
                 </span>
               </div>
-            );
+            )
           })}
           {remaining > 0 && (
             <p className="px-3 text-xs text-zinc-600">and {remaining} more…</p>
@@ -78,5 +78,5 @@ export function TopIssuesList({
         </div>
       )}
     </div>
-  );
+  )
 }

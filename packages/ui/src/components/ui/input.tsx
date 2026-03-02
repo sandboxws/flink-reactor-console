@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { cn } from "../../lib/cn";
+import { cn } from "../../lib/cn"
 
 function Input({
   className,
@@ -16,7 +16,7 @@ function Input({
       )}
       {...props}
     />
-  );
+  )
 }
 
-export { Input };
+export { Input }

@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import { Group, Panel, Separator } from "react-resizable-panels";
+import { Group, Panel, Separator } from "react-resizable-panels"
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"
 
 function ResizablePanelGroup({
   className,
   ...props
 }: React.ComponentProps<typeof Group>) {
-  return <Group className={cn("h-full w-full", className)} {...props} />;
+  return <Group className={cn("h-full w-full", className)} {...props} />
 }
 
-const ResizablePanel = Panel;
+const ResizablePanel = Panel
 
 function ResizableHandle({
   className,
@@ -28,7 +28,7 @@ function ResizableHandle({
       )}
       {...props}
     />
-  );
+  )
 }
 
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle };
+export { ResizablePanelGroup, ResizablePanel, ResizableHandle }

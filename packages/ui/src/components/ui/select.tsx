@@ -1,13 +1,13 @@
-"use client";
+"use client"
 
-import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
-import { cn } from "../../lib/cn";
+import { cn } from "../../lib/cn"
 
-const Select = SelectPrimitive.Root;
-const SelectGroup = SelectPrimitive.Group;
-const SelectValue = SelectPrimitive.Value;
+const Select = SelectPrimitive.Root
+const SelectGroup = SelectPrimitive.Group
+const SelectValue = SelectPrimitive.Value
 
 function SelectTrigger({
   className,
@@ -27,7 +27,7 @@ function SelectTrigger({
         <ChevronDown className="size-3.5 text-zinc-500" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
-  );
+  )
 }
 
 function SelectScrollUpButton({
@@ -44,7 +44,7 @@ function SelectScrollUpButton({
     >
       <ChevronUp className="size-3.5" />
     </SelectPrimitive.ScrollUpButton>
-  );
+  )
 }
 
 function SelectScrollDownButton({
@@ -61,7 +61,7 @@ function SelectScrollDownButton({
     >
       <ChevronDown className="size-3.5" />
     </SelectPrimitive.ScrollDownButton>
-  );
+  )
 }
 
 function SelectContent({
@@ -95,7 +95,7 @@ function SelectContent({
         <SelectScrollDownButton />
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
-  );
+  )
 }
 
 function SelectLabel({
@@ -107,7 +107,7 @@ function SelectLabel({
       className={cn("px-2 py-1.5 text-xs font-medium text-zinc-500", className)}
       {...props}
     />
-  );
+  )
 }
 
 function SelectItem({
@@ -130,7 +130,7 @@ function SelectItem({
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
-  );
+  )
 }
 
 function SelectSeparator({
@@ -142,7 +142,7 @@ function SelectSeparator({
       className={cn("-mx-1 my-1 h-px bg-dash-border", className)}
       {...props}
     />
-  );
+  )
 }
 
 export {
@@ -156,4 +156,4 @@ export {
   SelectSeparator,
   SelectScrollUpButton,
   SelectScrollDownButton,
-};
+}

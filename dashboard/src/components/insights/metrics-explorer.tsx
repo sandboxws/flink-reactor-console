@@ -1,41 +1,41 @@
-"use client";
+"use client"
 
-import { LineChart, Pause, Play, Trash2 } from "lucide-react";
-import { useMetricsExplorerStore } from "@/stores/metrics-explorer-store";
-import type { RefreshInterval } from "@/stores/metrics-explorer-store";
-import { MetricsBrowser } from "./metrics-browser";
-import { MetricChart, getChartColor } from "./metric-chart";
-import { PresetSelector } from "./preset-selector";
-import { cn } from "@/lib/cn";
+import { LineChart, Pause, Play, Trash2 } from "lucide-react"
+import { cn } from "@/lib/cn"
+import type { RefreshInterval } from "@/stores/metrics-explorer-store"
+import { useMetricsExplorerStore } from "@/stores/metrics-explorer-store"
+import { getChartColor, MetricChart } from "./metric-chart"
+import { MetricsBrowser } from "./metrics-browser"
+import { PresetSelector } from "./preset-selector"
 
 const INTERVAL_OPTIONS: { value: RefreshInterval; label: string }[] = [
   { value: 5000, label: "5s" },
   { value: 10000, label: "10s" },
   { value: 30000, label: "30s" },
   { value: 60000, label: "1m" },
-];
+]
 
 export function MetricsExplorer() {
-  const selectedSource = useMetricsExplorerStore((s) => s.selectedSource);
-  const availableMetrics = useMetricsExplorerStore((s) => s.availableMetrics);
-  const metricsLoading = useMetricsExplorerStore((s) => s.metricsLoading);
-  const series = useMetricsExplorerStore((s) => s.series);
-  const refreshInterval = useMetricsExplorerStore((s) => s.refreshInterval);
-  const isPaused = useMetricsExplorerStore((s) => s.isPaused);
+  const selectedSource = useMetricsExplorerStore((s) => s.selectedSource)
+  const availableMetrics = useMetricsExplorerStore((s) => s.availableMetrics)
+  const metricsLoading = useMetricsExplorerStore((s) => s.metricsLoading)
+  const series = useMetricsExplorerStore((s) => s.series)
+  const refreshInterval = useMetricsExplorerStore((s) => s.refreshInterval)
+  const isPaused = useMetricsExplorerStore((s) => s.isPaused)
 
-  const selectSource = useMetricsExplorerStore((s) => s.selectSource);
-  const addMetric = useMetricsExplorerStore((s) => s.addMetric);
-  const removeMetric = useMetricsExplorerStore((s) => s.removeMetric);
-  const clearAllMetrics = useMetricsExplorerStore((s) => s.clearAllMetrics);
-  const applyPreset = useMetricsExplorerStore((s) => s.applyPreset);
+  const selectSource = useMetricsExplorerStore((s) => s.selectSource)
+  const addMetric = useMetricsExplorerStore((s) => s.addMetric)
+  const removeMetric = useMetricsExplorerStore((s) => s.removeMetric)
+  const clearAllMetrics = useMetricsExplorerStore((s) => s.clearAllMetrics)
+  const applyPreset = useMetricsExplorerStore((s) => s.applyPreset)
   const setRefreshInterval = useMetricsExplorerStore(
     (s) => s.setRefreshInterval,
-  );
-  const togglePause = useMetricsExplorerStore((s) => s.togglePause);
+  )
+  const togglePause = useMetricsExplorerStore((s) => s.togglePause)
 
   function handleAddMetric(metricName: string) {
     if (selectedSource) {
-      addMetric(selectedSource, metricName);
+      addMetric(selectedSource, metricName)
     }
   }
 
@@ -144,5 +144,5 @@ export function MetricsExplorer() {
         </div>
       </div>
     </div>
-  );
+  )
 }

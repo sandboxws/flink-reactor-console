@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   AlertTriangle,
@@ -6,16 +6,19 @@ import {
   CheckCircle2,
   Cpu,
   GitFork,
-} from "lucide-react";
-import type { Recommendation, RecommendationType } from "@/data/bottleneck-analyzer";
-import { cn } from "@/lib/cn";
+} from "lucide-react"
+import type {
+  Recommendation,
+  RecommendationType,
+} from "@/data/bottleneck-analyzer"
+import { cn } from "@/lib/cn"
 
 const typeConfig: Record<
   RecommendationType,
   {
-    icon: React.ComponentType<{ className?: string }>;
-    color: string;
-    bgColor: string;
+    icon: React.ComponentType<{ className?: string }>
+    color: string
+    bgColor: string
   }
 > = {
   "increase-parallelism": {
@@ -38,12 +41,12 @@ const typeConfig: Record<
     color: "text-fr-purple",
     bgColor: "bg-fr-purple/10",
   },
-};
+}
 
 export function RecommendationsPanel({
   recommendations,
 }: {
-  recommendations: Recommendation[];
+  recommendations: Recommendation[]
 }) {
   if (recommendations.length === 0) {
     return (
@@ -56,7 +59,7 @@ export function RecommendationsPanel({
           All vertices are performing within normal parameters
         </p>
       </div>
-    );
+    )
   }
 
   return (
@@ -66,8 +69,8 @@ export function RecommendationsPanel({
       </h2>
       <div className="flex flex-col gap-2">
         {recommendations.map((rec, i) => {
-          const config = typeConfig[rec.type];
-          const Icon = config.icon;
+          const config = typeConfig[rec.type]
+          const Icon = config.icon
           return (
             <div
               key={`${rec.jobId}-${rec.vertexId}-${i}`}
@@ -91,9 +94,9 @@ export function RecommendationsPanel({
                 </p>
               </div>
             </div>
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }

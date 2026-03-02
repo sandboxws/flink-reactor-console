@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 // ---------------------------------------------------------------------------
 // Shared tag badge + filter chip components for config & classpath sections
@@ -9,31 +9,31 @@
 const TAG_COLORS: Record<string, string> = {
   // Classpath tags
   "flink-core": "var(--color-log-debug)",
-  "flink-sql":  "var(--color-log-info)",
-  connector:    "var(--color-job-running)",
-  log4j:        "var(--color-log-warn)",
-  hadoop:       "var(--color-fr-purple)",
-  scala:        "var(--color-fr-coral)",
+  "flink-sql": "var(--color-log-info)",
+  connector: "var(--color-job-running)",
+  log4j: "var(--color-log-warn)",
+  hadoop: "var(--color-fr-purple)",
+  scala: "var(--color-fr-coral)",
   // Config tags
-  jobmanager:   "var(--color-log-debug)",
-  taskmanager:  "var(--color-job-running)",
-  state:        "var(--color-fr-purple)",
-  checkpoint:   "var(--color-log-warn)",
-  restart:      "var(--color-log-error)",
-  kubernetes:   "var(--color-log-info)",
-  ha:           "var(--color-fr-coral)",
-  metrics:      "var(--color-fr-purple)",
-  rest:         "var(--color-fg-muted)",
-  web:          "var(--color-fg-muted)",
-  pipeline:     "var(--color-job-running)",
-  security:     "var(--color-log-error)",
-  table:        "var(--color-log-info)",
+  jobmanager: "var(--color-log-debug)",
+  taskmanager: "var(--color-job-running)",
+  state: "var(--color-fr-purple)",
+  checkpoint: "var(--color-log-warn)",
+  restart: "var(--color-log-error)",
+  kubernetes: "var(--color-log-info)",
+  ha: "var(--color-fr-coral)",
+  metrics: "var(--color-fr-purple)",
+  rest: "var(--color-fg-muted)",
+  web: "var(--color-fg-muted)",
+  pipeline: "var(--color-job-running)",
+  security: "var(--color-log-error)",
+  table: "var(--color-log-info)",
   // Fallback
-  other:        "var(--color-log-trace)",
-};
+  other: "var(--color-log-trace)",
+}
 
 function getTagColor(tag: string): string {
-  return TAG_COLORS[tag] ?? TAG_COLORS.other;
+  return TAG_COLORS[tag] ?? TAG_COLORS.other
 }
 
 function tagStyle(color: string) {
@@ -41,12 +41,12 @@ function tagStyle(color: string) {
     bg: `color-mix(in srgb, ${color} 12%, transparent)`,
     text: color,
     border: `color-mix(in srgb, ${color} 25%, transparent)`,
-  };
+  }
 }
 
 export function TagBadge({ tag }: { tag: string }) {
-  const color = getTagColor(tag);
-  const s = tagStyle(color);
+  const color = getTagColor(tag)
+  const s = tagStyle(color)
 
   return (
     <span
@@ -59,7 +59,7 @@ export function TagBadge({ tag }: { tag: string }) {
     >
       {tag}
     </span>
-  );
+  )
 }
 
 export function TagChip({
@@ -68,13 +68,13 @@ export function TagChip({
   active,
   onClick,
 }: {
-  tag: string;
-  count: number;
-  active: boolean;
-  onClick: () => void;
+  tag: string
+  count: number
+  active: boolean
+  onClick: () => void
 }) {
-  const color = getTagColor(tag);
-  const s = tagStyle(color);
+  const color = getTagColor(tag)
+  const s = tagStyle(color)
 
   return (
     <button
@@ -97,7 +97,7 @@ export function TagChip({
         {count}
       </span>
     </button>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -105,35 +105,35 @@ export function TagChip({
 // ---------------------------------------------------------------------------
 
 const CONFIG_TAG_MAP: Record<string, string> = {
-  "jobmanager": "jobmanager",
-  "taskmanager": "taskmanager",
-  "state": "state",
-  "execution": "checkpoint",
+  jobmanager: "jobmanager",
+  taskmanager: "taskmanager",
+  state: "state",
+  execution: "checkpoint",
   "restart-strategy": "restart",
-  "rest": "rest",
-  "web": "web",
-  "parallelism": "pipeline",
-  "pipeline": "pipeline",
+  rest: "rest",
+  web: "web",
+  parallelism: "pipeline",
+  pipeline: "pipeline",
   "high-availability": "ha",
-  "kubernetes": "kubernetes",
-  "metrics": "metrics",
-  "blob": "other",
-  "classloader": "other",
-  "akka": "other",
-  "security": "security",
-  "table": "table",
-};
+  kubernetes: "kubernetes",
+  metrics: "metrics",
+  blob: "other",
+  classloader: "other",
+  akka: "other",
+  security: "security",
+  table: "table",
+}
 
 export function classifyConfigKey(key: string): string {
   // Try the first dotted segment, then check for hyphenated prefixes
-  const firstDot = key.indexOf(".");
-  const firstSegment = firstDot > 0 ? key.slice(0, firstDot) : key;
+  const firstDot = key.indexOf(".")
+  const firstSegment = firstDot > 0 ? key.slice(0, firstDot) : key
 
-  if (CONFIG_TAG_MAP[firstSegment]) return CONFIG_TAG_MAP[firstSegment];
+  if (CONFIG_TAG_MAP[firstSegment]) return CONFIG_TAG_MAP[firstSegment]
 
   // Handle hyphenated keys like "restart-strategy"
-  const hyphenatedPrefix = key.split(".")[0];
-  if (CONFIG_TAG_MAP[hyphenatedPrefix]) return CONFIG_TAG_MAP[hyphenatedPrefix];
+  const hyphenatedPrefix = key.split(".")[0]
+  if (CONFIG_TAG_MAP[hyphenatedPrefix]) return CONFIG_TAG_MAP[hyphenatedPrefix]
 
-  return "other";
+  return "other"
 }

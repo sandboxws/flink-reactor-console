@@ -288,7 +288,8 @@ html[data-palette="gruvpuccin"] .focus\:bg-white\/\[0\.08\]:focus {
   background-color: rgba(212, 190, 152, 0.08);
 }
 
-html[data-palette="gruvpuccin"] .data-\[selected\=true\]\:bg-white\/\[0\.08\][data-selected="true"] {
+html[data-palette="gruvpuccin"]
+  .data-\[selected\=true\]\:bg-white\/\[0\.08\][data-selected="true"] {
   background-color: rgba(212, 190, 152, 0.08);
 }
 

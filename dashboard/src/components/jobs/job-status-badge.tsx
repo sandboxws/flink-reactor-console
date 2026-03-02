@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import type { JobStatus } from "@/data/cluster-types";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/cn";
+import { Badge } from "@/components/ui/badge"
+import type { JobStatus } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
 
 const statusStyles: Record<JobStatus, string> = {
   RUNNING: "bg-job-running/15 text-job-running",
@@ -15,18 +15,15 @@ const statusStyles: Record<JobStatus, string> = {
   RESTARTING: "bg-job-running/15 text-job-running",
   SUSPENDED: "bg-job-created/15 text-job-created",
   RECONCILING: "bg-job-created/15 text-job-created",
-};
+}
 
 export function JobStatusBadge({ status }: { status: JobStatus }) {
   return (
     <Badge
       variant="outline"
-      className={cn(
-        "border-0 text-[0.625rem] uppercase",
-        statusStyles[status],
-      )}
+      className={cn("border-0 text-[0.625rem] uppercase", statusStyles[status])}
     >
       {status}
     </Badge>
-  );
+  )
 }

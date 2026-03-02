@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useClusterStore } from "@/stores/cluster-store";
-import { JobsTable } from "@/components/jobs/jobs-table";
+import { useEffect } from "react"
+import { JobsTable } from "@/components/jobs/jobs-table"
+import { useClusterStore } from "@/stores/cluster-store"
 
 export default function CompletedJobsPage() {
-  const initialize = useClusterStore((s) => s.initialize);
-  const startPolling = useClusterStore((s) => s.startPolling);
-  const stopPolling = useClusterStore((s) => s.stopPolling);
-  const completedJobs = useClusterStore((s) => s.completedJobs);
+  const initialize = useClusterStore((s) => s.initialize)
+  const startPolling = useClusterStore((s) => s.startPolling)
+  const stopPolling = useClusterStore((s) => s.stopPolling)
+  const completedJobs = useClusterStore((s) => s.completedJobs)
 
   useEffect(() => {
-    initialize();
-    startPolling();
-    return () => stopPolling();
-  }, [initialize, startPolling, stopPolling]);
+    initialize()
+    startPolling()
+    return () => stopPolling()
+  }, [initialize, startPolling, stopPolling])
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -28,5 +28,5 @@ export default function CompletedJobsPage() {
         <JobsTable mode="completed" jobs={completedJobs} />
       </div>
     </div>
-  );
+  )
 }

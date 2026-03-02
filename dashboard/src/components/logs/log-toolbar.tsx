@@ -1,22 +1,22 @@
-"use client";
+"use client"
 
-import { Check, ChevronDown, Pause, Play } from "lucide-react";
-import { SearchInput } from "@/components/shared/search-input";
-import { TimeRange } from "@/components/shared/time-range";
+import { Check, ChevronDown, Pause, Play } from "lucide-react"
+import { SearchInput } from "@/components/shared/search-input"
+import { TimeRange } from "@/components/shared/time-range"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { ALL_SOURCES } from "@/data/flink-loggers";
-import { cn } from "@/lib/cn";
-import { useFilterStore } from "@/stores/filter-store";
-import { useLogStore } from "@/stores/log-store";
-import { SeverityFilter } from "./severity-filter";
+} from "@/components/ui/popover"
+import { ALL_SOURCES } from "@/data/flink-loggers"
+import { cn } from "@/lib/cn"
+import { useFilterStore } from "@/stores/filter-store"
+import { useLogStore } from "@/stores/log-store"
+import { SeverityFilter } from "./severity-filter"
 
 export function LogToolbar() {
-  const toggleStreaming = useLogStore((s) => s.toggleStreaming);
-  const isStreaming = useLogStore((s) => s.isStreaming);
+  const toggleStreaming = useLogStore((s) => s.toggleStreaming)
+  const isStreaming = useLogStore((s) => s.isStreaming)
 
   return (
     <div className="flex items-center gap-2 border-b border-dash-border bg-dash-panel px-3 py-1.5">
@@ -55,7 +55,7 @@ export function LogToolbar() {
 
       <TimeRange />
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -63,14 +63,14 @@ export function LogToolbar() {
 // ---------------------------------------------------------------------------
 
 function SourceDropdown() {
-  const selectedSources = useFilterStore((s) => s.selectedSources);
-  const toggleSource = useFilterStore((s) => s.toggleSource);
-  const clearSources = useFilterStore((s) => s.clearSources);
+  const selectedSources = useFilterStore((s) => s.selectedSources)
+  const toggleSource = useFilterStore((s) => s.toggleSource)
+  const clearSources = useFilterStore((s) => s.clearSources)
 
   const label =
     selectedSources.size === 0
       ? "All sources"
-      : `${selectedSources.size} source${selectedSources.size > 1 ? "s" : ""}`;
+      : `${selectedSources.size} source${selectedSources.size > 1 ? "s" : ""}`
 
   return (
     <Popover>
@@ -124,5 +124,5 @@ function SourceDropdown() {
         ))}
       </PopoverContent>
     </Popover>
-  );
+  )
 }

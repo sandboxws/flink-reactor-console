@@ -1,5 +1,9 @@
-import * as lancedb from "@lancedb/lancedb";
-import type { VectorDbAdapter, EmbeddingRecord, SearchResult } from "../types.js";
+import * as lancedb from "@lancedb/lancedb"
+import type {
+  EmbeddingRecord,
+  SearchResult,
+  VectorDbAdapter,
+} from "../types.js"
 
 /**
  * LanceDB adapter — fully embedded, no server process needed.
@@ -8,18 +12,17 @@ import type { VectorDbAdapter, EmbeddingRecord, SearchResult } from "../types.js
  * Uses L2 distance by default; we convert to cosine similarity in results.
  */
 export class LanceDbAdapter implements VectorDbAdapter {
-  name = "lancedb";
-  private db: lancedb.Connection | null = null;
-  private table: lancedb.Table | null = null;
-  private dbPath = "";
+  name = "lancedb"
+  private db: lancedb.Connection | null = null
+  private table: lancedb.Table | null = null
 
   async connect(path: string): Promise<void> {
-    this.dbPath = path;
-    this.db = await lancedb.connect(path);
+    this.dbPath = path
+    this.db = await lancedb.connect(path)
   }
 
   async addRecords(records: EmbeddingRecord[]): Promise<void> {
-    if (!this.db) throw new Error("Not connected");
+    if (!this.db) throw new Error("Not connected")
 
     // Convert to plain objects for LanceDB
     const rows = records.map((r) => ({
@@ -30,28 +33,25 @@ export class LanceDbAdapter implements VectorDbAdapter {
       path: r.path,
       component: r.component ?? "",
       metadata_json: JSON.stringify(r.metadata),
-    }));
+    }))
 
     // Overwrite existing table
-    const tableNames = await this.db.tableNames();
+    const tableNames = await this.db.tableNames()
     if (tableNames.includes("ui_components")) {
-      await this.db.dropTable("ui_components");
+      await this.db.dropTable("ui_components")
     }
 
-    this.table = await this.db.createTable("ui_components", rows);
+    this.table = await this.db.createTable("ui_components", rows)
   }
 
   async search(queryVector: number[], topK: number): Promise<SearchResult[]> {
-    if (!this.db) throw new Error("Not connected");
+    if (!this.db) throw new Error("Not connected")
 
     if (!this.table) {
-      this.table = await this.db.openTable("ui_components");
+      this.table = await this.db.openTable("ui_components")
     }
 
-    const results = await this.table
-      .search(queryVector)
-      .limit(topK)
-      .toArray();
+    const results = await this.table.search(queryVector).limit(topK).toArray()
 
     return results.map((row) => ({
       id: row.id as string,
@@ -62,19 +62,19 @@ export class LanceDbAdapter implements VectorDbAdapter {
       // LanceDB returns _distance (L2). Convert to similarity: 1 / (1 + distance)
       score: 1 / (1 + (row._distance as number)),
       metadata: JSON.parse(row.metadata_json as string),
-    }));
+    }))
   }
 
   async count(): Promise<number> {
-    if (!this.db) throw new Error("Not connected");
+    if (!this.db) throw new Error("Not connected")
     if (!this.table) {
-      this.table = await this.db.openTable("ui_components");
+      this.table = await this.db.openTable("ui_components")
     }
-    return this.table.countRows();
+    return this.table.countRows()
   }
 
   async close(): Promise<void> {
-    this.db = null;
-    this.table = null;
+    this.db = null
+    this.table = null
   }
 }

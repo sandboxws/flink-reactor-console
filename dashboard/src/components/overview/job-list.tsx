@@ -1,12 +1,11 @@
-"use client";
+"use client"
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
-import { ArrowUpDown, ArrowUp, ArrowDown, ArrowRight } from "lucide-react";
-import type { FlinkJob, JobStatus } from "@/data/cluster-types";
-import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from "date-fns"
+import { ArrowDown, ArrowRight, ArrowUp, ArrowUpDown } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useMemo, useState } from "react"
+import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -14,8 +13,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { cn } from "@/lib/cn";
+} from "@/components/ui/table"
+import type { FlinkJob, JobStatus } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
 
 const statusColor: Record<string, string> = {
   RUNNING: "bg-job-running/15 text-job-running",
@@ -28,7 +28,7 @@ const statusColor: Record<string, string> = {
   RESTARTING: "bg-job-running/15 text-job-running",
   SUSPENDED: "bg-job-created/15 text-job-created",
   RECONCILING: "bg-job-created/15 text-job-created",
-};
+}
 
 function StatusBadge({ status }: { status: JobStatus }) {
   return (
@@ -38,49 +38,62 @@ function StatusBadge({ status }: { status: JobStatus }) {
     >
       {status}
     </Badge>
-  );
+  )
 }
 
 function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
-  if (totalSec < 60) return `${totalSec}s`;
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  if (min < 60) return `${min}m ${sec}s`;
-  const hr = Math.floor(min / 60);
-  return `${hr}h ${min % 60}m`;
+  const totalSec = Math.floor(ms / 1000)
+  if (totalSec < 60) return `${totalSec}s`
+  const min = Math.floor(totalSec / 60)
+  const sec = totalSec % 60
+  if (min < 60) return `${min}m ${sec}s`
+  const hr = Math.floor(min / 60)
+  return `${hr}h ${min % 60}m`
 }
 
-type SortKey = "name" | "status" | "started" | "duration";
-type SortDir = "asc" | "desc";
+type SortKey = "name" | "status" | "started" | "duration"
+type SortDir = "asc" | "desc"
 
 function getDuration(job: FlinkJob): number {
   return job.status === "RUNNING"
     ? Date.now() - job.startTime.getTime()
-    : job.duration;
+    : job.duration
 }
 
 function sortJobs(jobs: FlinkJob[], key: SortKey, dir: SortDir): FlinkJob[] {
   const sorted = [...jobs].sort((a, b) => {
     switch (key) {
       case "name":
-        return a.name.localeCompare(b.name);
+        return a.name.localeCompare(b.name)
       case "status":
-        return a.status.localeCompare(b.status);
+        return a.status.localeCompare(b.status)
       case "started":
-        return a.startTime.getTime() - b.startTime.getTime();
+        return a.startTime.getTime() - b.startTime.getTime()
       case "duration":
-        return getDuration(a) - getDuration(b);
+        return getDuration(a) - getDuration(b)
+      default:
+        return 0
     }
-  });
-  return dir === "desc" ? sorted.reverse() : sorted;
+  })
+  return dir === "desc" ? sorted.reverse() : sorted
 }
 
-function SortIcon({ column, active, dir }: { column: string; active: string; dir: SortDir }) {
-  if (column !== active) return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />;
-  return dir === "asc"
-    ? <ArrowUp className="size-3" />
-    : <ArrowDown className="size-3" />;
+function SortIcon({
+  column,
+  active,
+  dir,
+}: {
+  column: string
+  active: string
+  dir: SortDir
+}) {
+  if (column !== active)
+    return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />
+  return dir === "asc" ? (
+    <ArrowUp className="size-3" />
+  ) : (
+    <ArrowDown className="size-3" />
+  )
 }
 
 export function JobList({
@@ -91,26 +104,29 @@ export function JobList({
   accent,
   limit = 5,
 }: {
-  title: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  jobs: FlinkJob[];
-  accent?: string;
-  limit?: number;
+  title: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  jobs: FlinkJob[]
+  accent?: string
+  limit?: number
 }) {
-  const router = useRouter();
-  const [sortKey, setSortKey] = useState<SortKey>("started");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const router = useRouter()
+  const [sortKey, setSortKey] = useState<SortKey>("started")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
 
-  const sorted = useMemo(() => sortJobs(jobs, sortKey, sortDir), [jobs, sortKey, sortDir]);
-  const visible = sorted.slice(0, limit);
+  const sorted = useMemo(
+    () => sortJobs(jobs, sortKey, sortDir),
+    [jobs, sortKey, sortDir],
+  )
+  const visible = sorted.slice(0, limit)
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
     } else {
-      setSortKey(key);
-      setSortDir("desc");
+      setSortKey(key)
+      setSortDir("desc")
     }
   }
 
@@ -119,7 +135,7 @@ export function JobList({
     { key: "status", label: "Status" },
     { key: "started", label: "Started", align: "text-right" },
     { key: "duration", label: "Duration", align: "text-right" },
-  ];
+  ]
 
   return (
     <div className="glass-card overflow-hidden">
@@ -193,5 +209,5 @@ export function JobList({
         </Link>
       )}
     </div>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"
 
 export function MetricCard({
   icon: Icon,
@@ -8,12 +8,12 @@ export function MetricCard({
   className,
   children,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: React.ReactNode;
-  accent?: string;
-  className?: string;
-  children?: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: React.ReactNode
+  accent?: string
+  className?: string
+  children?: React.ReactNode
 }) {
   return (
     <div className={cn("glass-card p-4", className)}>
@@ -26,5 +26,5 @@ export function MetricCard({
       <div className="mt-2 text-2xl font-semibold text-zinc-100">{value}</div>
       {children}
     </div>
-  );
+  )
 }

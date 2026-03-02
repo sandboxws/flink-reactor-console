@@ -1,11 +1,11 @@
-import { resolve } from "node:path";
-import { glob } from "glob";
-import type { ContentChunk } from "./types.js";
-import { extractComponentChunks } from "./extractors/component.js";
-import { extractStyleChunks } from "./extractors/styles.js";
+import { resolve } from "node:path"
+import { glob } from "glob"
+import { extractComponentChunks } from "./extractors/component.js"
+import { extractStyleChunks } from "./extractors/styles.js"
+import type { ContentChunk } from "./types.js"
 
-const REPO_ROOT = resolve(import.meta.dirname, "../../..");
-const UI_SRC = resolve(REPO_ROOT, "packages/ui/src");
+const REPO_ROOT = resolve(import.meta.dirname, "../../..")
+const UI_SRC = resolve(REPO_ROOT, "packages/ui/src")
 
 /**
  * Scan the entire UI package and produce semantic content chunks.
@@ -16,18 +16,18 @@ const UI_SRC = resolve(REPO_ROOT, "packages/ui/src");
  *   - Utility files (.ts) — constants, helpers
  */
 export async function extractAllChunks(): Promise<ContentChunk[]> {
-  const chunks: ContentChunk[] = [];
+  const chunks: ContentChunk[] = []
 
   // Component and utility files
   const tsFiles = await glob("**/*.{tsx,ts}", {
     cwd: UI_SRC,
     absolute: true,
     ignore: ["**/index.ts"], // Skip barrel re-exports
-  });
+  })
 
   for (const file of tsFiles) {
-    const fileChunks = extractComponentChunks(file, REPO_ROOT);
-    chunks.push(...fileChunks);
+    const fileChunks = extractComponentChunks(file, REPO_ROOT)
+    chunks.push(...fileChunks)
   }
 
   // CSS style files
@@ -35,28 +35,28 @@ export async function extractAllChunks(): Promise<ContentChunk[]> {
     cwd: UI_SRC,
     absolute: true,
     ignore: ["**/index.css"], // Skip the import-only entry
-  });
+  })
 
   for (const file of cssFiles) {
-    const fileChunks = extractStyleChunks(file, REPO_ROOT);
-    chunks.push(...fileChunks);
+    const fileChunks = extractStyleChunks(file, REPO_ROOT)
+    chunks.push(...fileChunks)
   }
 
-  return chunks;
+  return chunks
 }
 
 /** Print a summary table of extracted chunks. */
 export function printChunkSummary(chunks: ContentChunk[]): void {
-  const byType = new Map<string, number>();
+  const byType = new Map<string, number>()
   for (const chunk of chunks) {
-    byType.set(chunk.type, (byType.get(chunk.type) ?? 0) + 1);
+    byType.set(chunk.type, (byType.get(chunk.type) ?? 0) + 1)
   }
 
-  console.log(`\n  Extracted ${chunks.length} chunks:\n`);
+  console.log(`\n  Extracted ${chunks.length} chunks:\n`)
   for (const [type, count] of [...byType.entries()].sort()) {
-    console.log(`    ${type.padEnd(20)} ${count}`);
+    console.log(`    ${type.padEnd(20)} ${count}`)
   }
 
-  const totalChars = chunks.reduce((sum, c) => sum + c.content.length, 0);
-  console.log(`\n    Total content: ${(totalChars / 1024).toFixed(1)} KB`);
+  const totalChars = chunks.reduce((sum, c) => sum + c.content.length, 0)
+  console.log(`\n    Total content: ${(totalChars / 1024).toFixed(1)} KB`)
 }

@@ -1,9 +1,13 @@
-"use client";
+"use client"
 
-import type { ClasspathEntry, JobManagerConfig, JvmInfo } from "@/data/cluster-types";
-import { JmConfigSection } from "./jm-config-section";
-import { JmJvmSection } from "./jm-jvm-section";
-import { JmClasspathSection } from "./jm-classpath-section";
+import type {
+  ClasspathEntry,
+  JobManagerConfig,
+  JvmInfo,
+} from "@/data/cluster-types"
+import { JmClasspathSection } from "./jm-classpath-section"
+import { JmConfigSection } from "./jm-config-section"
+import { JmJvmSection } from "./jm-jvm-section"
 
 // ---------------------------------------------------------------------------
 // JmConfigTab — composes three sections: Configurations, JVM, Classpath
@@ -14,9 +18,9 @@ export function JmConfigTab({
   jvm,
   classpath,
 }: {
-  config: JobManagerConfig[];
-  jvm: JvmInfo;
-  classpath: ClasspathEntry[];
+  config: JobManagerConfig[]
+  jvm: JvmInfo
+  classpath: ClasspathEntry[]
 }) {
   return (
     <div className="flex flex-col gap-4 pt-4">
@@ -24,5 +28,5 @@ export function JmConfigTab({
       <JmJvmSection jvm={jvm} />
       <JmClasspathSection classpath={classpath} />
     </div>
-  );
+  )
 }

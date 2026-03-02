@@ -1,21 +1,15 @@
-"use client";
+"use client"
 
-import {
-  AlertCircle,
-  AlertTriangle,
-  Check,
-  Info,
-  X,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import type { ActiveAlert } from "@/stores/alerts-store";
-import { cn } from "@/lib/cn";
+import { formatDistanceToNow } from "date-fns"
+import { AlertCircle, AlertTriangle, Check, Info, X } from "lucide-react"
+import { cn } from "@/lib/cn"
+import type { ActiveAlert } from "@/stores/alerts-store"
 
 type AlertCardProps = {
-  alert: ActiveAlert;
-  onAcknowledge: (id: string) => void;
-  onResolve: (id: string) => void;
-};
+  alert: ActiveAlert
+  onAcknowledge: (id: string) => void
+  onResolve: (id: string) => void
+}
 
 const SEVERITY_CONFIG = {
   critical: {
@@ -36,11 +30,11 @@ const SEVERITY_CONFIG = {
     bgColor: "bg-fr-purple/10",
     borderColor: "border-fr-purple/20",
   },
-} as const;
+} as const
 
 export function AlertCard({ alert, onAcknowledge, onResolve }: AlertCardProps) {
-  const config = SEVERITY_CONFIG[alert.severity];
-  const Icon = config.icon;
+  const config = SEVERITY_CONFIG[alert.severity]
+  const Icon = config.icon
 
   return (
     <div
@@ -66,7 +60,10 @@ export function AlertCard({ alert, onAcknowledge, onResolve }: AlertCardProps) {
         <p className="mt-0.5 text-xs text-zinc-400">{alert.message}</p>
         <div className="mt-1 flex items-center gap-3 text-[10px] text-zinc-600">
           <span>
-            Current: {Number.isInteger(alert.currentValue) ? alert.currentValue : alert.currentValue.toFixed(1)}
+            Current:{" "}
+            {Number.isInteger(alert.currentValue)
+              ? alert.currentValue
+              : alert.currentValue.toFixed(1)}
           </span>
           <span>|</span>
           <span>Threshold: {alert.threshold}</span>
@@ -99,5 +96,5 @@ export function AlertCard({ alert, onAcknowledge, onResolve }: AlertCardProps) {
         </button>
       </div>
     </div>
-  );
+  )
 }

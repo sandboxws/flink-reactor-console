@@ -1,21 +1,21 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FolderOpen, Search } from "lucide-react";
-import type { ClasspathEntry } from "@/data/cluster-types";
-import { TagBadge, TagChip } from "./tag-filter";
+import { FolderOpen, Search } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import type { ClasspathEntry } from "@/data/cluster-types"
+import { TagBadge, TagChip } from "./tag-filter"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const MB = 1024 ** 2;
-const KB = 1024;
+const MB = 1024 ** 2
+const KB = 1024
 
 function formatSize(bytes: number): string {
-  if (bytes >= MB) return `${(bytes / MB).toFixed(1)} MB`;
-  if (bytes >= KB) return `${(bytes / KB).toFixed(0)} KB`;
-  return `${bytes} B`;
+  if (bytes >= MB) return `${(bytes / MB).toFixed(1)} MB`
+  if (bytes >= KB) return `${(bytes / KB).toFixed(0)} KB`
+  return `${bytes} B`
 }
 
 // ---------------------------------------------------------------------------
@@ -25,63 +25,63 @@ function formatSize(bytes: number): string {
 export function JmClasspathSection({
   classpath,
 }: {
-  classpath: ClasspathEntry[];
+  classpath: ClasspathEntry[]
 }) {
-  const [search, setSearch] = useState("");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [rowsBelow, setRowsBelow] = useState(0);
+  const [search, setSearch] = useState("")
+  const [activeTag, setActiveTag] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [rowsBelow, setRowsBelow] = useState(0)
 
   // Compute tag counts
   const tagCounts = useMemo(() => {
-    const counts = new Map<string, number>();
+    const counts = new Map<string, number>()
     for (const entry of classpath) {
-      counts.set(entry.tag, (counts.get(entry.tag) ?? 0) + 1);
+      counts.set(entry.tag, (counts.get(entry.tag) ?? 0) + 1)
     }
     // Sort by count descending
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
-      .map(([tag, count]) => ({ tag, count }));
-  }, [classpath]);
+      .map(([tag, count]) => ({ tag, count }))
+  }, [classpath])
 
   // Apply both filters (AND logic)
   const filtered = useMemo(() => {
-    let results = classpath;
+    let results = classpath
     if (activeTag) {
-      results = results.filter((e) => e.tag === activeTag);
+      results = results.filter((e) => e.tag === activeTag)
     }
     if (search) {
-      const lower = search.toLowerCase();
+      const lower = search.toLowerCase()
       results = results.filter(
         (e) =>
           e.filename.toLowerCase().includes(lower) ||
           e.path.toLowerCase().includes(lower),
-      );
+      )
     }
-    return results;
-  }, [classpath, activeTag, search]);
+    return results
+  }, [classpath, activeTag, search])
 
   // Compute how many rows remain below the visible scroll fold
   const computeRowsBelow = useCallback(() => {
-    const el = scrollRef.current;
+    const el = scrollRef.current
     if (!el || filtered.length === 0) {
-      setRowsBelow(0);
-      return;
+      setRowsBelow(0)
+      return
     }
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    const remaining = scrollHeight - scrollTop - clientHeight;
+    const { scrollTop, scrollHeight, clientHeight } = el
+    const remaining = scrollHeight - scrollTop - clientHeight
     if (remaining < 1) {
-      setRowsBelow(0);
+      setRowsBelow(0)
     } else {
-      const rowHeight = scrollHeight / (filtered.length + 1);
-      setRowsBelow(Math.ceil(remaining / rowHeight));
+      const rowHeight = scrollHeight / (filtered.length + 1)
+      setRowsBelow(Math.ceil(remaining / rowHeight))
     }
-  }, [filtered.length]);
+  }, [filtered.length])
 
   // Recompute when filtered data changes
   useEffect(() => {
-    computeRowsBelow();
-  }, [computeRowsBelow]);
+    computeRowsBelow()
+  }, [computeRowsBelow])
 
   return (
     <div className="glass-card overflow-hidden">
@@ -196,5 +196,5 @@ export function JmClasspathSection({
         </div>
       </div>
     </div>
-  );
+  )
 }

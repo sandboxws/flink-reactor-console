@@ -1,45 +1,58 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Settings, MemoryStick, Layers, Cpu, Timer, Loader2 } from "lucide-react";
-import Link from "next/link";
-import type { JobManagerInfo, JvmMetricSample, LogFileEntry, ThreadDumpInfo } from "@/data/cluster-types";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { JmConfigTab } from "./jm-config-tab";
-import { JmMetricsTab } from "./jm-metrics-tab";
-import { JmLogsTab } from "./jm-logs-tab";
-import { JmStdoutTab } from "./jm-stdout-tab";
-import { JmLogListTab } from "./jm-log-list-tab";
-import { JmThreadDumpTab } from "./jm-thread-dump-tab";
-import { JmProfilerTab } from "./jm-profiler-tab";
+import {
+  ArrowLeft,
+  Cpu,
+  Layers,
+  Loader2,
+  MemoryStick,
+  Settings,
+  Timer,
+} from "lucide-react"
+import Link from "next/link"
+import { useCallback, useEffect, useState } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type {
+  JobManagerInfo,
+  JvmMetricSample,
+  LogFileEntry,
+  ThreadDumpInfo,
+} from "@/data/cluster-types"
 import {
   fetchJobManagerLog,
-  fetchJobManagerStdout,
   fetchJobManagerLogs,
+  fetchJobManagerStdout,
   fetchJobManagerThreadDump,
-} from "@/lib/flink-api-client";
+} from "@/lib/flink-api-client"
+import { JmConfigTab } from "./jm-config-tab"
+import { JmLogListTab } from "./jm-log-list-tab"
+import { JmLogsTab } from "./jm-logs-tab"
+import { JmMetricsTab } from "./jm-metrics-tab"
+import { JmProfilerTab } from "./jm-profiler-tab"
+import { JmStdoutTab } from "./jm-stdout-tab"
+import { JmThreadDumpTab } from "./jm-thread-dump-tab"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const GB = 1024 ** 3;
-const MB = 1024 ** 2;
+const GB = 1024 ** 3
+const MB = 1024 ** 2
 
 function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`;
-  if (bytes >= MB) return `${Math.round(bytes / MB)} MB`;
-  return `${Math.round(bytes / 1024)} KB`;
+  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
+  if (bytes >= MB) return `${Math.round(bytes / MB)} MB`
+  return `${Math.round(bytes / 1024)} KB`
 }
 
 function pct(used: number, max: number): number {
-  if (max === 0) return 0;
-  return Math.min(100, Math.round((used / max) * 100));
+  if (max === 0) return 0
+  return Math.min(100, Math.round((used / max) * 100))
 }
 
 function latest(samples: JvmMetricSample[]): number {
-  if (samples.length === 0) return 0;
-  return samples[samples.length - 1].value;
+  if (samples.length === 0) return 0
+  return samples[samples.length - 1].value
 }
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
@@ -50,7 +63,7 @@ function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
       </span>
       <span className="text-xs text-zinc-300">{value}</span>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -58,58 +71,58 @@ function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
 // ---------------------------------------------------------------------------
 
 export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
-  const [activeTab, setActiveTab] = useState("configuration");
-  const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("configuration")
+  const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null)
 
   // Lazy-loaded tab data
-  const [logs, setLogs] = useState<string | null>(null);
-  const [stdout, setStdout] = useState<string | null>(null);
-  const [logFiles, setLogFiles] = useState<LogFileEntry[] | null>(null);
-  const [threadDump, setThreadDump] = useState<ThreadDumpInfo | null>(null);
+  const [logs, setLogs] = useState<string | null>(null)
+  const [stdout, setStdout] = useState<string | null>(null)
+  const [logFiles, setLogFiles] = useState<LogFileEntry[] | null>(null)
+  const [threadDump, setThreadDump] = useState<ThreadDumpInfo | null>(null)
 
   const loadLogs = useCallback(async () => {
-    if (logs !== null) return;
+    if (logs !== null) return
     try {
-      setLogs(await fetchJobManagerLog());
+      setLogs(await fetchJobManagerLog())
     } catch {
-      setLogs("");
+      setLogs("")
     }
-  }, [logs]);
+  }, [logs])
 
   const loadStdout = useCallback(async () => {
-    if (stdout !== null) return;
+    if (stdout !== null) return
     try {
-      setStdout(await fetchJobManagerStdout());
+      setStdout(await fetchJobManagerStdout())
     } catch {
-      setStdout("");
+      setStdout("")
     }
-  }, [stdout]);
+  }, [stdout])
 
   const loadLogFiles = useCallback(async () => {
-    if (logFiles !== null) return;
+    if (logFiles !== null) return
     try {
-      setLogFiles(await fetchJobManagerLogs());
+      setLogFiles(await fetchJobManagerLogs())
     } catch {
-      setLogFiles([]);
+      setLogFiles([])
     }
-  }, [logFiles]);
+  }, [logFiles])
 
   const loadThreadDump = useCallback(async () => {
     try {
-      setThreadDump(await fetchJobManagerThreadDump());
+      setThreadDump(await fetchJobManagerThreadDump())
     } catch {
-      setThreadDump({ threadInfos: [] });
+      setThreadDump({ threadInfos: [] })
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    if (activeTab === "logs") loadLogs();
-    else if (activeTab === "stdout") loadStdout();
-    else if (activeTab === "log-list") loadLogFiles();
-    else if (activeTab === "thread-dump") loadThreadDump();
-  }, [activeTab, loadLogs, loadStdout, loadLogFiles, loadThreadDump]);
+    if (activeTab === "logs") loadLogs()
+    else if (activeTab === "stdout") loadStdout()
+    else if (activeTab === "log-list") loadLogFiles()
+    else if (activeTab === "thread-dump") loadThreadDump()
+  }, [activeTab, loadLogs, loadStdout, loadLogFiles, loadThreadDump])
 
-  const mem = jm.jvm.memoryConfig;
+  const mem = jm.jvm.memoryConfig
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -135,58 +148,98 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
 
       {/* Summary panel */}
       <div className="glass-card grid gap-x-8 gap-y-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <InfoItem label="JVM Heap" value={
-          <span className="inline-flex items-center gap-1 tabular-nums">
-            <MemoryStick className="size-3 text-zinc-600" />
-            {formatBytes(mem.heapUsed)} <span className="text-zinc-600">/</span> {formatBytes(mem.heapMax)}
-            <span className="text-zinc-600">({pct(mem.heapUsed, mem.heapMax)}%)</span>
-          </span>
-        } />
-        <InfoItem label="Non-Heap" value={
-          <span className="inline-flex items-center gap-1 tabular-nums">
-            <Layers className="size-3 text-zinc-600" />
-            {formatBytes(mem.nonHeapUsed)} <span className="text-zinc-600">/</span> {formatBytes(mem.nonHeapMax)}
-            <span className="text-zinc-600">({pct(mem.nonHeapUsed, mem.nonHeapMax)}%)</span>
-          </span>
-        } />
-        <InfoItem label="Metaspace" value={
-          <span className="tabular-nums">
-            {formatBytes(mem.metaspaceUsed)} <span className="text-zinc-600">/</span> {formatBytes(mem.metaspaceMax)}
-            <span className="text-zinc-600"> ({pct(mem.metaspaceUsed, mem.metaspaceMax)}%)</span>
-          </span>
-        } />
-        <InfoItem label="Direct Memory" value={
-          <span className="tabular-nums">
-            {formatBytes(mem.directUsed)} <span className="text-zinc-600">/</span> {formatBytes(mem.directMax)}
-            <span className="text-zinc-600"> ({pct(mem.directUsed, mem.directMax)}%)</span>
-          </span>
-        } />
-        <InfoItem label="Threads" value={
-          <span className="inline-flex items-center gap-1 tabular-nums">
-            <Cpu className="size-3 text-zinc-600" />
-            {latest(jm.metrics.threadCount)}
-          </span>
-        } />
-        <InfoItem label="GC Count" value={
-          <span className="tabular-nums">{latest(jm.metrics.gcCount)}</span>
-        } />
-        <InfoItem label="GC Time" value={
-          <span className="inline-flex items-center gap-1 tabular-nums">
-            <Timer className="size-3 text-zinc-600" />
-            {latest(jm.metrics.gcTime)} ms
-          </span>
-        } />
-        <InfoItem label="Config Entries" value={
-          <span className="tabular-nums">{jm.config.length}</span>
-        } />
+        <InfoItem
+          label="JVM Heap"
+          value={
+            <span className="inline-flex items-center gap-1 tabular-nums">
+              <MemoryStick className="size-3 text-zinc-600" />
+              {formatBytes(mem.heapUsed)}{" "}
+              <span className="text-zinc-600">/</span>{" "}
+              {formatBytes(mem.heapMax)}
+              <span className="text-zinc-600">
+                ({pct(mem.heapUsed, mem.heapMax)}%)
+              </span>
+            </span>
+          }
+        />
+        <InfoItem
+          label="Non-Heap"
+          value={
+            <span className="inline-flex items-center gap-1 tabular-nums">
+              <Layers className="size-3 text-zinc-600" />
+              {formatBytes(mem.nonHeapUsed)}{" "}
+              <span className="text-zinc-600">/</span>{" "}
+              {formatBytes(mem.nonHeapMax)}
+              <span className="text-zinc-600">
+                ({pct(mem.nonHeapUsed, mem.nonHeapMax)}%)
+              </span>
+            </span>
+          }
+        />
+        <InfoItem
+          label="Metaspace"
+          value={
+            <span className="tabular-nums">
+              {formatBytes(mem.metaspaceUsed)}{" "}
+              <span className="text-zinc-600">/</span>{" "}
+              {formatBytes(mem.metaspaceMax)}
+              <span className="text-zinc-600">
+                {" "}
+                ({pct(mem.metaspaceUsed, mem.metaspaceMax)}%)
+              </span>
+            </span>
+          }
+        />
+        <InfoItem
+          label="Direct Memory"
+          value={
+            <span className="tabular-nums">
+              {formatBytes(mem.directUsed)}{" "}
+              <span className="text-zinc-600">/</span>{" "}
+              {formatBytes(mem.directMax)}
+              <span className="text-zinc-600">
+                {" "}
+                ({pct(mem.directUsed, mem.directMax)}%)
+              </span>
+            </span>
+          }
+        />
+        <InfoItem
+          label="Threads"
+          value={
+            <span className="inline-flex items-center gap-1 tabular-nums">
+              <Cpu className="size-3 text-zinc-600" />
+              {latest(jm.metrics.threadCount)}
+            </span>
+          }
+        />
+        <InfoItem
+          label="GC Count"
+          value={
+            <span className="tabular-nums">{latest(jm.metrics.gcCount)}</span>
+          }
+        />
+        <InfoItem
+          label="GC Time"
+          value={
+            <span className="inline-flex items-center gap-1 tabular-nums">
+              <Timer className="size-3 text-zinc-600" />
+              {latest(jm.metrics.gcTime)} ms
+            </span>
+          }
+        />
+        <InfoItem
+          label="Config Entries"
+          value={<span className="tabular-nums">{jm.config.length}</span>}
+        />
       </div>
 
       {/* Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={(v) => {
-          setActiveTab(v);
-          if (v !== "log-list") setSelectedLogFile(null);
+          setActiveTab(v)
+          if (v !== "log-list") setSelectedLogFile(null)
         }}
       >
         <TabsList className="detail-tabs-list">
@@ -272,5 +325,5 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

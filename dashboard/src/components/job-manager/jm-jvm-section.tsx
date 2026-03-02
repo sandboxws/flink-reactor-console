@@ -1,24 +1,24 @@
-"use client";
+"use client"
 
-import { Cpu, Terminal, Database } from "lucide-react";
-import type { JvmInfo } from "@/data/cluster-types";
+import { Cpu, Database, Terminal } from "lucide-react"
+import type { JvmInfo } from "@/data/cluster-types"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const GB = 1024 ** 3;
-const MB = 1024 ** 2;
+const GB = 1024 ** 3
+const MB = 1024 ** 2
 
 function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`;
-  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`;
-  return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
+  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`
+  return `${(bytes / 1024).toFixed(0)} KB`
 }
 
 function pct(used: number, max: number): number {
-  if (max === 0) return 0;
-  return Math.min(100, Math.round((used / max) * 100));
+  if (max === 0) return 0
+  return Math.min(100, Math.round((used / max) * 100))
 }
 
 // Syntax-highlight JVM argument prefixes
@@ -29,7 +29,7 @@ function JvmArg({ arg }: { arg: string }) {
         <span className="text-fr-purple">-XX:</span>
         <span className="text-zinc-300">{arg.slice(4)}</span>
       </span>
-    );
+    )
   }
   if (arg.startsWith("-Xm") || arg.startsWith("-Xss")) {
     return (
@@ -37,10 +37,10 @@ function JvmArg({ arg }: { arg: string }) {
         <span className="text-fr-coral">{arg.slice(0, 4)}</span>
         <span className="text-zinc-300">{arg.slice(4)}</span>
       </span>
-    );
+    )
   }
   if (arg.startsWith("-D")) {
-    const eqIdx = arg.indexOf("=");
+    const eqIdx = arg.indexOf("=")
     if (eqIdx > 0) {
       return (
         <span>
@@ -49,16 +49,16 @@ function JvmArg({ arg }: { arg: string }) {
           <span className="text-zinc-600">=</span>
           <span className="text-zinc-400">{arg.slice(eqIdx + 1)}</span>
         </span>
-      );
+      )
     }
     return (
       <span>
         <span className="text-log-info">-D</span>
         <span className="text-zinc-300">{arg.slice(2)}</span>
       </span>
-    );
+    )
   }
-  return <span className="text-zinc-300">{arg}</span>;
+  return <span className="text-zinc-300">{arg}</span>
 }
 
 // Memory stat bar
@@ -68,12 +68,12 @@ function MemoryStat({
   max,
   color,
 }: {
-  label: string;
-  used: number;
-  max: number;
-  color: string;
+  label: string
+  used: number
+  max: number
+  color: string
 }) {
-  const percent = pct(used, max);
+  const percent = pct(used, max)
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -95,7 +95,7 @@ function MemoryStat({
         {percent}%
       </span>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +103,7 @@ function MemoryStat({
 // ---------------------------------------------------------------------------
 
 export function JmJvmSection({ jvm }: { jvm: JvmInfo }) {
-  const mem = jvm.memoryConfig;
+  const mem = jvm.memoryConfig
 
   return (
     <div className="glass-card overflow-hidden">
@@ -180,13 +180,33 @@ export function JmJvmSection({ jvm }: { jvm: JvmInfo }) {
             Memory Configuration
           </span>
           <div className="grid gap-3 sm:grid-cols-2">
-            <MemoryStat label="Heap" used={mem.heapUsed} max={mem.heapMax} color="var(--color-fr-coral)" />
-            <MemoryStat label="Non-Heap" used={mem.nonHeapUsed} max={mem.nonHeapMax} color="var(--color-fr-purple)" />
-            <MemoryStat label="Metaspace" used={mem.metaspaceUsed} max={mem.metaspaceMax} color="var(--color-log-debug)" />
-            <MemoryStat label="Direct" used={mem.directUsed} max={mem.directMax} color="var(--color-fr-amber)" />
+            <MemoryStat
+              label="Heap"
+              used={mem.heapUsed}
+              max={mem.heapMax}
+              color="var(--color-fr-coral)"
+            />
+            <MemoryStat
+              label="Non-Heap"
+              used={mem.nonHeapUsed}
+              max={mem.nonHeapMax}
+              color="var(--color-fr-purple)"
+            />
+            <MemoryStat
+              label="Metaspace"
+              used={mem.metaspaceUsed}
+              max={mem.metaspaceMax}
+              color="var(--color-log-debug)"
+            />
+            <MemoryStat
+              label="Direct"
+              used={mem.directUsed}
+              max={mem.directMax}
+              color="var(--color-fr-amber)"
+            />
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

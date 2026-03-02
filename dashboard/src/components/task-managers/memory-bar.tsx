@@ -1,21 +1,21 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // MemoryBar — inline progress bar with used/total labels and color thresholds
 // ---------------------------------------------------------------------------
 
 function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`;
-  return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`
+  return `${(bytes / 1024).toFixed(0)} KB`
 }
 
 function utilizationColor(pct: number): string {
-  if (pct > 85) return "var(--color-job-failed)";
-  if (pct >= 60) return "var(--color-log-warn)";
-  return "var(--color-job-running)";
+  if (pct > 85) return "var(--color-job-failed)"
+  if (pct >= 60) return "var(--color-log-warn)"
+  return "var(--color-job-running)"
 }
 
 export function MemoryBar({
@@ -23,12 +23,12 @@ export function MemoryBar({
   total,
   className,
 }: {
-  used: number;
-  total: number;
-  className?: string;
+  used: number
+  total: number
+  className?: string
 }) {
-  const pct = total > 0 ? (used / total) * 100 : 0;
-  const color = utilizationColor(pct);
+  const pct = total > 0 ? (used / total) * 100 : 0
+  const color = utilizationColor(pct)
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -42,5 +42,5 @@ export function MemoryBar({
         {formatBytes(used)} / {formatBytes(total)}
       </span>
     </div>
-  );
+  )
 }

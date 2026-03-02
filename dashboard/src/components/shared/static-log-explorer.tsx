@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { format } from "date-fns";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual"
+import { format } from "date-fns"
 import {
   ArrowDown,
   ChevronRight,
@@ -9,31 +9,31 @@ import {
   ScrollText,
   Search,
   X,
-} from "lucide-react";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { StackTrace } from "@/components/errors/stack-trace";
-import { SeverityBadge } from "@/components/shared/severity-badge";
-import { SourceBadge } from "@/components/shared/source-badge";
-import { EmptyState } from "@/components/shared/empty-state";
+} from "lucide-react"
+import { memo, useCallback, useMemo, useRef, useState } from "react"
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
+import { StackTrace } from "@/components/errors/stack-trace"
+import { EmptyState } from "@/components/shared/empty-state"
+import { SeverityBadge } from "@/components/shared/severity-badge"
+import { SourceBadge } from "@/components/shared/source-badge"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { LogEntry, LogLevel } from "@/data/types";
-import { cn } from "@/lib/cn";
-import { DEFAULT_LEVEL_FILTER, SEVERITY_COLORS } from "@/lib/constants";
+} from "@/components/ui/collapsible"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { LogEntry, LogLevel } from "@/data/types"
+import { cn } from "@/lib/cn"
+import { DEFAULT_LEVEL_FILTER, SEVERITY_COLORS } from "@/lib/constants"
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const LEVELS: LogLevel[] = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR"];
-const ROW_HEIGHT = 24;
-const BUCKET_COUNT = 60;
-const TIMESTAMP_FMT = "yyyy-MM-dd HH:mm:ss.SSS";
+const LEVELS: LogLevel[] = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]
+const ROW_HEIGHT = 24
+const BUCKET_COUNT = 60
+const TIMESTAMP_FMT = "yyyy-MM-dd HH:mm:ss.SSS"
 
 const LEVEL_STYLES: Record<LogLevel, { active: string; inactive: string }> = {
   TRACE: {
@@ -56,33 +56,30 @@ const LEVEL_STYLES: Record<LogLevel, { active: string; inactive: string }> = {
     active: "bg-log-error/20 text-log-error border-log-error/40",
     inactive: "text-zinc-600 border-zinc-700/50 hover:text-log-error/60",
   },
-};
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function highlightText(
-  text: string,
-  query: string,
-): React.ReactNode {
-  if (!query) return text;
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query) return text
 
-  let regex: RegExp;
+  let regex: RegExp
   try {
     regex = new RegExp(
       `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
       "gi",
-    );
+    )
   } catch {
-    return text;
+    return text
   }
 
-  const parts = text.split(regex);
-  if (parts.length === 1) return text;
+  const parts = text.split(regex)
+  if (parts.length === 1) return text
 
-  const result: React.ReactNode[] = [];
-  let matchCounter = 0;
+  const result: React.ReactNode[] = []
+  let matchCounter = 0
   for (const part of parts) {
     if (regex.test(part)) {
       result.push(
@@ -92,12 +89,12 @@ function highlightText(
         >
           {part}
         </mark>,
-      );
+      )
     } else {
-      result.push(part);
+      result.push(part)
     }
   }
-  return result;
+  return result
 }
 
 // ---------------------------------------------------------------------------
@@ -105,13 +102,13 @@ function highlightText(
 // ---------------------------------------------------------------------------
 
 interface Bucket {
-  time: number;
-  label: string;
-  TRACE: number;
-  DEBUG: number;
-  INFO: number;
-  WARN: number;
-  ERROR: number;
+  time: number
+  label: string
+  TRACE: number
+  DEBUG: number
+  INFO: number
+  WARN: number
+  ERROR: number
 }
 
 function HistogramTooltip({
@@ -119,13 +116,13 @@ function HistogramTooltip({
   payload,
   label,
 }: {
-  active?: boolean;
-  payload?: Array<{ name: string; value: number; color: string }>;
-  label?: string;
+  active?: boolean
+  payload?: Array<{ name: string; value: number; color: string }>
+  label?: string
 }) {
-  if (!active || !payload?.length) return null;
-  const items = payload.filter((p) => p.value > 0);
-  if (items.length === 0) return null;
+  if (!active || !payload?.length) return null
+  const items = payload.filter((p) => p.value > 0)
+  if (items.length === 0) return null
 
   return (
     <div
@@ -144,20 +141,20 @@ function HistogramTooltip({
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 function bucketize(entries: LogEntry[]): Bucket[] {
-  if (entries.length === 0) return [];
+  if (entries.length === 0) return []
 
-  const first = entries[0].timestamp.getTime();
-  const last = entries[entries.length - 1].timestamp.getTime();
-  const range = Math.max(last - first, 60_000);
-  const bucketSize = range / BUCKET_COUNT;
+  const first = entries[0].timestamp.getTime()
+  const last = entries[entries.length - 1].timestamp.getTime()
+  const range = Math.max(last - first, 60_000)
+  const bucketSize = range / BUCKET_COUNT
 
   const buckets: Bucket[] = Array.from({ length: BUCKET_COUNT }, (_, i) => {
-    const t = first + i * bucketSize;
-    const d = new Date(t);
+    const t = first + i * bucketSize
+    const d = new Date(t)
     return {
       time: t,
       label: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`,
@@ -166,25 +163,25 @@ function bucketize(entries: LogEntry[]): Bucket[] {
       INFO: 0,
       WARN: 0,
       ERROR: 0,
-    };
-  });
+    }
+  })
 
   for (const entry of entries) {
     const idx = Math.min(
       Math.floor((entry.timestamp.getTime() - first) / bucketSize),
       BUCKET_COUNT - 1,
-    );
+    )
     if (idx >= 0) {
-      buckets[idx][entry.level]++;
+      buckets[idx][entry.level]++
     }
   }
 
-  return buckets;
+  return buckets
 }
 
 function StaticHistogram({ entries }: { entries: LogEntry[] }) {
-  const data = useMemo(() => bucketize(entries), [entries]);
-  if (data.length === 0) return null;
+  const data = useMemo(() => bucketize(entries), [entries])
+  if (data.length === 0) return null
 
   return (
     <div className="relative z-20 h-10 w-full border-b border-dash-border bg-dash-surface">
@@ -217,7 +214,7 @@ function StaticHistogram({ entries }: { entries: LogEntry[] }) {
         </BarChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -231,21 +228,21 @@ const StaticLogLine = memo(function StaticLogLine({
   searchQuery,
   onClick,
 }: {
-  entry: LogEntry;
-  isSelected: boolean;
-  isExpanded: boolean;
-  searchQuery: string;
-  onClick: () => void;
+  entry: LogEntry
+  isSelected: boolean
+  isExpanded: boolean
+  searchQuery: string
+  onClick: () => void
 }) {
   const formattedTimestamp = useMemo(
     () => format(entry.timestamp, TIMESTAMP_FMT),
     [entry.timestamp],
-  );
+  )
 
   const highlighted = useMemo(
     () => highlightText(entry.message, searchQuery),
     [entry.message, searchQuery],
-  );
+  )
 
   return (
     <button
@@ -294,8 +291,8 @@ const StaticLogLine = memo(function StaticLogLine({
         {highlighted}
       </span>
     </button>
-  );
-});
+  )
+})
 
 // ---------------------------------------------------------------------------
 // Detail panel — simplified inline panel
@@ -306,9 +303,9 @@ function DetailField({
   children,
   mono,
 }: {
-  label: string;
-  children: React.ReactNode;
-  mono?: boolean;
+  label: string
+  children: React.ReactNode
+  mono?: boolean
 }) {
   return (
     <div className="flex gap-2 text-xs">
@@ -317,7 +314,7 @@ function DetailField({
         {children}
       </span>
     </div>
-  );
+  )
 }
 
 function StaticDetailPanel({
@@ -325,20 +322,20 @@ function StaticDetailPanel({
   entries,
   onClose,
 }: {
-  entry: LogEntry;
-  entries: LogEntry[];
-  onClose: () => void;
+  entry: LogEntry
+  entries: LogEntry[]
+  onClose: () => void
 }) {
   const contextLines = useMemo(() => {
-    const idx = entries.indexOf(entry);
-    if (idx === -1) return [];
-    const start = Math.max(0, idx - 5);
-    const end = Math.min(entries.length, idx + 6);
-    return entries.slice(start, end);
-  }, [entries, entry]);
+    const idx = entries.indexOf(entry)
+    if (idx === -1) return []
+    const start = Math.max(0, idx - 5)
+    const end = Math.min(entries.length, idx + 6)
+    return entries.slice(start, end)
+  }, [entries, entry])
 
   function copyRaw() {
-    navigator.clipboard.writeText(entry.raw);
+    navigator.clipboard.writeText(entry.raw)
   }
 
   return (
@@ -430,10 +427,7 @@ function StaticDetailPanel({
 
         {/* Stack Trace tab */}
         {entry.stackTrace && (
-          <TabsContent
-            value="stacktrace"
-            className="flex-1 overflow-auto p-4"
-          >
+          <TabsContent value="stacktrace" className="flex-1 overflow-auto p-4">
             <h3 className="mb-2 text-xs font-medium text-zinc-400">
               Stack Trace
             </h3>
@@ -475,16 +469,14 @@ function StaticDetailPanel({
 
         {/* Raw tab */}
         <TabsContent value="raw" className="flex-1 overflow-auto p-4">
-          <h3 className="mb-2 text-xs font-medium text-zinc-400">
-            Raw Output
-          </h3>
+          <h3 className="mb-2 text-xs font-medium text-zinc-400">Raw Output</h3>
           <pre className="whitespace-pre-wrap rounded bg-black/30 p-3 font-mono text-[11px] leading-relaxed text-zinc-400">
             {entry.raw}
           </pre>
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -495,72 +487,72 @@ export function StaticLogExplorer({
   entries,
   className,
 }: {
-  entries: LogEntry[];
-  className?: string;
+  entries: LogEntry[]
+  className?: string
 }) {
   const [enabledLevels, setEnabledLevels] = useState<Record<LogLevel, boolean>>(
     () => ({ ...DEFAULT_LEVEL_FILTER }),
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isAtBottom, setIsAtBottom] = useState(true);
+  )
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isAtBottom, setIsAtBottom] = useState(true)
 
   // Filter entries
   const filtered = useMemo(() => {
-    let result = entries;
-    result = result.filter((e) => enabledLevels[e.level]);
+    let result = entries
+    result = result.filter((e) => enabledLevels[e.level])
     if (searchQuery) {
-      const lower = searchQuery.toLowerCase();
+      const lower = searchQuery.toLowerCase()
       result = result.filter(
         (e) =>
           e.message.toLowerCase().includes(lower) ||
           e.logger.toLowerCase().includes(lower),
-      );
+      )
     }
-    return result;
-  }, [entries, enabledLevels, searchQuery]);
+    return result
+  }, [entries, enabledLevels, searchQuery])
 
   const selectedEntry = useMemo(
     () =>
       selectedEntryId
-        ? entries.find((e) => e.id === selectedEntryId) ?? null
+        ? (entries.find((e) => e.id === selectedEntryId) ?? null)
         : null,
     [entries, selectedEntryId],
-  );
+  )
 
   const toggleLevel = useCallback((level: LogLevel) => {
-    setEnabledLevels((prev) => ({ ...prev, [level]: !prev[level] }));
-  }, []);
+    setEnabledLevels((prev) => ({ ...prev, [level]: !prev[level] }))
+  }, [])
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
 
   const virtualizer = useVirtualizer({
     count: filtered.length,
     getScrollElement: () => containerRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 30,
-  });
+  })
 
   const handleScroll = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    setIsAtBottom(scrollHeight - scrollTop - clientHeight < 50);
-  }, []);
+    const el = containerRef.current
+    if (!el) return
+    const { scrollTop, scrollHeight, clientHeight } = el
+    setIsAtBottom(scrollHeight - scrollTop - clientHeight < 50)
+  }, [])
 
   const scrollToBottom = useCallback(() => {
-    const el = containerRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, []);
+    const el = containerRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [])
 
   return (
     <div
@@ -599,8 +591,8 @@ export function StaticLogExplorer({
           {/* Severity filter */}
           <div className="flex items-center gap-1">
             {LEVELS.map((level) => {
-              const enabled = enabledLevels[level];
-              const style = LEVEL_STYLES[level];
+              const enabled = enabledLevels[level]
+              const style = LEVEL_STYLES[level]
               return (
                 <button
                   key={level}
@@ -613,7 +605,7 @@ export function StaticLogExplorer({
                 >
                   {level}
                 </button>
-              );
+              )
             })}
           </div>
 
@@ -646,8 +638,8 @@ export function StaticLogExplorer({
                 style={{ height: virtualizer.getTotalSize() }}
               >
                 {virtualizer.getVirtualItems().map((virtualRow) => {
-                  const entry = filtered[virtualRow.index];
-                  const isExpanded = expandedIds.has(entry.id);
+                  const entry = filtered[virtualRow.index]
+                  const isExpanded = expandedIds.has(entry.id)
                   return (
                     <div
                       key={entry.id}
@@ -676,7 +668,7 @@ export function StaticLogExplorer({
                         )}
                       </Collapsible>
                     </div>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -709,5 +701,5 @@ export function StaticLogExplorer({
         />
       )}
     </div>
-  );
+  )
 }

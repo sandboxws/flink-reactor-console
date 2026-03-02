@@ -1,23 +1,23 @@
-"use client";
+"use client"
 
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowDown, ScrollText } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { StackTrace } from "@/components/errors/stack-trace";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
-import type { LogEntry } from "@/data/types";
-import { cn } from "@/lib/cn";
-import { useAutoScroll, useSearchMatches } from "@/lib/hooks";
-import { useUiStore } from "@/stores/ui-store";
-import { LogLine } from "./log-line";
+import { useVirtualizer } from "@tanstack/react-virtual"
+import { ArrowDown, ScrollText } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { StackTrace } from "@/components/errors/stack-trace"
+import { EmptyState } from "@/components/shared/empty-state"
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
+import type { LogEntry } from "@/data/types"
+import { cn } from "@/lib/cn"
+import { useAutoScroll, useSearchMatches } from "@/lib/hooks"
+import { useUiStore } from "@/stores/ui-store"
+import { LogLine } from "./log-line"
 
-const ROW_HEIGHT = 24;
+const ROW_HEIGHT = 24
 
 export function LogList({ entries }: { entries: LogEntry[] }) {
-  const selectedEntryId = useUiStore((s) => s.selectedEntryId);
-  const setSelectedEntryId = useUiStore((s) => s.setSelectedEntryId);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const selectedEntryId = useUiStore((s) => s.selectedEntryId)
+  const setSelectedEntryId = useUiStore((s) => s.setSelectedEntryId)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
 
   const {
     containerRef,
@@ -25,46 +25,46 @@ export function LogList({ entries }: { entries: LogEntry[] }) {
     handleScroll,
     scrollToBottom,
     scrollIfNeeded,
-  } = useAutoScroll<HTMLDivElement>();
+  } = useAutoScroll<HTMLDivElement>()
 
-  const { currentMatchId } = useSearchMatches();
+  const { currentMatchId } = useSearchMatches()
 
   const virtualizer = useVirtualizer({
     count: entries.length,
     getScrollElement: () => containerRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 30,
-  });
+  })
 
   // Auto-scroll when entries change
-  const prevLengthRef = useRef(entries.length);
+  const prevLengthRef = useRef(entries.length)
   useEffect(() => {
     if (entries.length > prevLengthRef.current) {
-      scrollIfNeeded();
+      scrollIfNeeded()
     }
-    prevLengthRef.current = entries.length;
-  }, [entries.length, scrollIfNeeded]);
+    prevLengthRef.current = entries.length
+  }, [entries.length, scrollIfNeeded])
 
   // Scroll to search match
   useEffect(() => {
-    if (!currentMatchId) return;
-    const idx = entries.findIndex((e) => e.id === currentMatchId);
+    if (!currentMatchId) return
+    const idx = entries.findIndex((e) => e.id === currentMatchId)
     if (idx !== -1) {
-      virtualizer.scrollToIndex(idx, { align: "center" });
+      virtualizer.scrollToIndex(idx, { align: "center" })
     }
-  }, [currentMatchId, entries, virtualizer]);
+  }, [currentMatchId, entries, virtualizer])
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(id)) {
-        next.delete(id);
+        next.delete(id)
       } else {
-        next.add(id);
+        next.add(id)
       }
-      return next;
-    });
-  }, []);
+      return next
+    })
+  }, [])
 
   if (entries.length === 0) {
     return (
@@ -72,7 +72,7 @@ export function LogList({ entries }: { entries: LogEntry[] }) {
         icon={ScrollText}
         message="No log entries. Press Stream to start generating mock data."
       />
-    );
+    )
   }
 
   return (
@@ -87,8 +87,8 @@ export function LogList({ entries }: { entries: LogEntry[] }) {
           style={{ height: virtualizer.getTotalSize() }}
         >
           {virtualizer.getVirtualItems().map((virtualRow) => {
-            const entry = entries[virtualRow.index];
-            const isExpanded = expandedIds.has(entry.id);
+            const entry = entries[virtualRow.index]
+            const isExpanded = expandedIds.has(entry.id)
             return (
               <div
                 key={entry.id}
@@ -116,7 +116,7 @@ export function LogList({ entries }: { entries: LogEntry[] }) {
                   )}
                 </Collapsible>
               </div>
-            );
+            )
           })}
         </div>
       </div>
@@ -137,5 +137,5 @@ export function LogList({ entries }: { entries: LogEntry[] }) {
         </button>
       )}
     </div>
-  );
+  )
 }

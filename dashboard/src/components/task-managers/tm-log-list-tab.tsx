@@ -1,64 +1,64 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
-  ArrowUp,
   ArrowLeft,
+  ArrowUp,
   Download,
   FileText,
   Loader2,
   Maximize,
   Minimize,
   RefreshCw,
-} from "lucide-react";
-import type { LogFileEntry } from "@/data/cluster-types";
-import type { LogSource } from "@/data/types";
-import { parseLogBlock } from "@/data/log-parser";
-import { StaticLogExplorer } from "@/components/shared/static-log-explorer";
-import { fetchTaskManagerLogFile } from "@/lib/flink-api-client";
+} from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { StaticLogExplorer } from "@/components/shared/static-log-explorer"
+import type { LogFileEntry } from "@/data/cluster-types"
+import { parseLogBlock } from "@/data/log-parser"
+import type { LogSource } from "@/data/types"
+import { fetchTaskManagerLogFile } from "@/lib/flink-api-client"
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type SortField = "name" | "lastModified" | "size";
-type SortDir = "asc" | "desc";
+type SortField = "name" | "lastModified" | "size"
+type SortDir = "asc" | "desc"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function formatDateTime(date: Date): string {
-  const yyyy = date.getFullYear();
-  const MM = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const HH = String(date.getHours()).padStart(2, "0");
-  const mm = String(date.getMinutes()).padStart(2, "0");
-  const ss = String(date.getSeconds()).padStart(2, "0");
-  const ms = String(date.getMilliseconds()).padStart(3, "0");
-  return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}.${ms}`;
+  const yyyy = date.getFullYear()
+  const MM = String(date.getMonth() + 1).padStart(2, "0")
+  const dd = String(date.getDate()).padStart(2, "0")
+  const HH = String(date.getHours()).padStart(2, "0")
+  const mm = String(date.getMinutes()).padStart(2, "0")
+  const ss = String(date.getSeconds()).padStart(2, "0")
+  const ms = String(date.getMilliseconds()).padStart(3, "0")
+  return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}.${ms}`
 }
 
 function comparator(field: SortField, dir: SortDir) {
-  const mul = dir === "asc" ? 1 : -1;
+  const mul = dir === "asc" ? 1 : -1
   return (a: LogFileEntry, b: LogFileEntry): number => {
-    if (field === "name") return mul * a.name.localeCompare(b.name);
+    if (field === "name") return mul * a.name.localeCompare(b.name)
     if (field === "lastModified")
-      return mul * (a.lastModified.getTime() - b.lastModified.getTime());
-    return mul * (a.size - b.size);
-  };
+      return mul * (a.lastModified.getTime() - b.lastModified.getTime())
+    return mul * (a.size - b.size)
+  }
 }
 
 /** Derive a LogSource from a log filename. */
 function sourceFromFileName(fileName: string): LogSource {
   if (fileName.includes("taskexecutor")) {
-    return { type: "taskmanager", id: "tm-0", label: "TaskManager 0" };
+    return { type: "taskmanager", id: "tm-0", label: "TaskManager 0" }
   }
   if (fileName.includes("client")) {
-    return { type: "client", id: "client", label: "Client" };
+    return { type: "client", id: "client", label: "Client" }
   }
-  return { type: "jobmanager", id: "jm", label: "JobManager" };
+  return { type: "jobmanager", id: "jm", label: "JobManager" }
 }
 
 // ---------------------------------------------------------------------------
@@ -73,14 +73,14 @@ function SortHeader({
   onSort,
   align = "left",
 }: {
-  label: string;
-  field: SortField;
-  activeField: SortField;
-  dir: SortDir;
-  onSort: (f: SortField) => void;
-  align?: "left" | "right";
+  label: string
+  field: SortField
+  activeField: SortField
+  dir: SortDir
+  onSort: (f: SortField) => void
+  align?: "left" | "right"
 }) {
-  const active = field === activeField;
+  const active = field === activeField
   return (
     <th
       className={`cursor-pointer select-none px-4 py-2 font-medium transition-colors hover:text-zinc-300 ${
@@ -98,7 +98,7 @@ function SortHeader({
           ))}
       </span>
     </th>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -110,66 +110,66 @@ function LogViewer({
   tmId,
   onBack,
 }: {
-  fileName: string;
-  tmId: string;
-  onBack: () => void;
+  fileName: string
+  tmId: string
+  onBack: () => void
 }) {
-  const [rawContent, setRawContent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [rawContent, setRawContent] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const loadContent = useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const text = await fetchTaskManagerLogFile(tmId, fileName);
-      setRawContent(text);
+      const text = await fetchTaskManagerLogFile(tmId, fileName)
+      setRawContent(text)
     } catch {
-      setRawContent("");
+      setRawContent("")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [tmId, fileName]);
+  }, [tmId, fileName])
 
   useEffect(() => {
-    loadContent();
-  }, [loadContent]);
+    loadContent()
+  }, [loadContent])
 
   // Parse raw log content into structured LogEntry[]
   const entries = useMemo(() => {
-    if (!rawContent) return [];
-    const source = sourceFromFileName(fileName);
-    const { entries } = parseLogBlock(rawContent, source);
-    return entries;
-  }, [rawContent, fileName]);
+    if (!rawContent) return []
+    const source = sourceFromFileName(fileName)
+    const { entries } = parseLogBlock(rawContent, source)
+    return entries
+  }, [rawContent, fileName])
 
   const handleReload = useCallback(() => {
-    loadContent();
-  }, [loadContent]);
+    loadContent()
+  }, [loadContent])
 
   const handleDownload = useCallback(() => {
-    const raw = entries.map((e) => e.raw).join("\n");
-    const blob = new Blob([raw], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [entries, fileName]);
+    const raw = entries.map((e) => e.raw).join("\n")
+    const blob = new Blob([raw], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [entries, fileName])
 
   const handleFullscreen = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    const el = containerRef.current
+    if (!el) return
 
     if (!document.fullscreenElement) {
-      el.requestFullscreen().then(() => setIsFullscreen(true));
+      el.requestFullscreen().then(() => setIsFullscreen(true))
     } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false));
+      document.exitFullscreen().then(() => setIsFullscreen(false))
     }
-  }, []);
+  }, [])
 
   return (
     <div ref={containerRef} className="flex flex-col gap-3 bg-dash-bg">
@@ -234,7 +234,7 @@ function LogViewer({
         />
       )}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -247,30 +247,30 @@ export function TmLogListTab({
   onSelectLog,
   tmId,
 }: {
-  logFiles: LogFileEntry[];
-  selectedLog: string | null;
-  onSelectLog: (name: string | null) => void;
-  tmId: string;
+  logFiles: LogFileEntry[]
+  selectedLog: string | null
+  onSelectLog: (name: string | null) => void
+  tmId: string
 }) {
-  const [sortField, setSortField] = useState<SortField>("lastModified");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [sortField, setSortField] = useState<SortField>("lastModified")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
 
   const handleSort = useCallback(
     (field: SortField) => {
       if (field === sortField) {
-        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+        setSortDir((d) => (d === "asc" ? "desc" : "asc"))
       } else {
-        setSortField(field);
-        setSortDir(field === "name" ? "asc" : "desc");
+        setSortField(field)
+        setSortDir(field === "name" ? "asc" : "desc")
       }
     },
     [sortField],
-  );
+  )
 
   const sorted = useMemo(
     () => [...logFiles].sort(comparator(sortField, sortDir)),
     [logFiles, sortField, sortDir],
-  );
+  )
 
   // Drill-down view
   if (selectedLog) {
@@ -282,7 +282,7 @@ export function TmLogListTab({
           onBack={() => onSelectLog(null)}
         />
       </div>
-    );
+    )
   }
 
   // List view
@@ -357,5 +357,5 @@ export function TmLogListTab({
         </div>
       </div>
     </div>
-  );
+  )
 }

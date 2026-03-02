@@ -1,45 +1,45 @@
-"use client";
+"use client"
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { format } from "date-fns"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  AreaChart,
   Area,
-  LineChart,
+  AreaChart,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
-import { format } from "date-fns";
-import type { JobManagerMetrics, JvmMetricSample } from "@/data/cluster-types";
-import { fetchJobManagerMetrics } from "@/lib/flink-api-client";
-import { useConfigStore } from "@/stores/config-store";
+} from "recharts"
+import type { JobManagerMetrics, JvmMetricSample } from "@/data/cluster-types"
+import { fetchJobManagerMetrics } from "@/lib/flink-api-client"
+import { useConfigStore } from "@/stores/config-store"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const GB = 1024 ** 3;
-const MB = 1024 ** 2;
+const GB = 1024 ** 3
+const MB = 1024 ** 2
 
 function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`;
-  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`;
-  return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
+  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`
+  return `${(bytes / 1024).toFixed(0)} KB`
 }
 
-type DataPoint = { time: string; value: number };
+type DataPoint = { time: string; value: number }
 
 function toDataPoints(samples: JvmMetricSample[]): DataPoint[] {
   return samples.map((s) => ({
     time: format(s.timestamp, "HH:mm:ss"),
     value: s.value,
-  }));
+  }))
 }
 
-type DualDataPoint = { time: string; count: number; timeMs: number };
+type DualDataPoint = { time: string; count: number; timeMs: number }
 
 function toDualDataPoints(
   countSamples: JvmMetricSample[],
@@ -49,7 +49,7 @@ function toDualDataPoints(
     time: format(s.timestamp, "HH:mm:ss"),
     count: s.value,
     timeMs: timeSamples[i]?.value ?? 0,
-  }));
+  }))
 }
 
 // ---------------------------------------------------------------------------
@@ -62,12 +62,12 @@ function ChartTooltip({
   label,
   unit,
 }: {
-  active?: boolean;
-  payload?: Array<{ value: number; color: string; name: string }>;
-  label?: string;
-  unit?: string;
+  active?: boolean
+  payload?: Array<{ value: number; color: string; name: string }>
+  label?: string
+  unit?: string
 }) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) return null
 
   return (
     <div
@@ -91,7 +91,7 @@ function ChartTooltip({
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 function DualChartTooltip({
@@ -99,11 +99,16 @@ function DualChartTooltip({
   payload,
   label,
 }: {
-  active?: boolean;
-  payload?: Array<{ value: number; color: string; name: string; dataKey: string }>;
-  label?: string;
+  active?: boolean
+  payload?: Array<{
+    value: number
+    color: string
+    name: string
+    dataKey: string
+  }>
+  label?: string
 }) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) return null
 
   return (
     <div
@@ -125,7 +130,7 @@ function DualChartTooltip({
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -138,12 +143,12 @@ function MemoryChart({
   color,
   maxValue,
 }: {
-  title: string;
-  data: DataPoint[];
-  color: string;
-  maxValue: number;
+  title: string
+  data: DataPoint[]
+  color: string
+  maxValue: number
 }) {
-  const gradientId = `grad-${title.replace(/\s/g, "")}`;
+  const gradientId = `grad-${title.replace(/\s/g, "")}`
 
   return (
     <div className="glass-card p-4">
@@ -204,7 +209,7 @@ function MemoryChart({
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 function SimpleLineChart({
@@ -212,9 +217,9 @@ function SimpleLineChart({
   data,
   color,
 }: {
-  title: string;
-  data: DataPoint[];
-  color: string;
+  title: string
+  data: DataPoint[]
+  color: string
 }) {
   return (
     <div className="glass-card p-4">
@@ -258,7 +263,7 @@ function SimpleLineChart({
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
@@ -326,83 +331,92 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
 // JmMetricsTab
 // ---------------------------------------------------------------------------
 
-const MAX_SAMPLES = 30;
+const MAX_SAMPLES = 30
 
-function appendSample(arr: JvmMetricSample[], sample: JvmMetricSample): JvmMetricSample[] {
-  const next = [...arr, sample];
-  if (next.length > MAX_SAMPLES) return next.slice(next.length - MAX_SAMPLES);
-  return next;
+function appendSample(
+  arr: JvmMetricSample[],
+  sample: JvmMetricSample,
+): JvmMetricSample[] {
+  const next = [...arr, sample]
+  if (next.length > MAX_SAMPLES) return next.slice(next.length - MAX_SAMPLES)
+  return next
 }
 
 function useForceUpdate() {
-  const [, setTick] = useState(0);
-  return useCallback(() => setTick((n) => n + 1), []);
+  const [, setTick] = useState(0)
+  return useCallback(() => setTick((n) => n + 1), [])
 }
 
 export function JmMetricsTab({ metrics }: { metrics: JobManagerMetrics }) {
-  const seriesRef = useRef<JobManagerMetrics>({ ...metrics });
-  const pollIntervalMs = useConfigStore((s) => s.config?.pollIntervalMs ?? 5000);
-  const forceUpdate = useForceUpdate();
+  const seriesRef = useRef<JobManagerMetrics>({ ...metrics })
+  const pollIntervalMs = useConfigStore((s) => s.config?.pollIntervalMs ?? 5000)
+  const forceUpdate = useForceUpdate()
 
   // Poll for live metrics and accumulate samples
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
     const poll = async () => {
       try {
-        const m = await fetchJobManagerMetrics();
-        if (cancelled) return;
+        const m = await fetchJobManagerMetrics()
+        if (cancelled) return
 
-        const now = new Date();
-        const s = seriesRef.current;
+        const now = new Date()
+        const s = seriesRef.current
 
         seriesRef.current = {
-          jvmHeapUsed: appendSample(s.jvmHeapUsed, { timestamp: now, value: m.heapUsed }),
+          jvmHeapUsed: appendSample(s.jvmHeapUsed, {
+            timestamp: now,
+            value: m.heapUsed,
+          }),
           jvmHeapMax: m.heapMax,
-          jvmNonHeapUsed: appendSample(s.jvmNonHeapUsed, { timestamp: now, value: m.nonHeapUsed }),
+          jvmNonHeapUsed: appendSample(s.jvmNonHeapUsed, {
+            timestamp: now,
+            value: m.nonHeapUsed,
+          }),
           jvmNonHeapMax: m.nonHeapMax,
-          threadCount: appendSample(s.threadCount, { timestamp: now, value: m.threadCount }),
-          gcCount: appendSample(s.gcCount, { timestamp: now, value: m.gcCount }),
+          threadCount: appendSample(s.threadCount, {
+            timestamp: now,
+            value: m.threadCount,
+          }),
+          gcCount: appendSample(s.gcCount, {
+            timestamp: now,
+            value: m.gcCount,
+          }),
           gcTime: appendSample(s.gcTime, { timestamp: now, value: m.gcTime }),
-        };
-        forceUpdate();
+        }
+        forceUpdate()
       } catch {
         // Silently ignore poll failures
       }
-    };
+    }
 
-    const interval = setInterval(poll, pollIntervalMs);
+    const interval = setInterval(poll, pollIntervalMs)
     return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [pollIntervalMs, forceUpdate]);
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [pollIntervalMs, forceUpdate])
 
-  const s = seriesRef.current;
+  const s = seriesRef.current
 
-  const heapData = useMemo(
-    () => toDataPoints(s.jvmHeapUsed),
-    [s.jvmHeapUsed],
-  );
+  const heapData = useMemo(() => toDataPoints(s.jvmHeapUsed), [s.jvmHeapUsed])
   const nonHeapData = useMemo(
     () => toDataPoints(s.jvmNonHeapUsed),
     [s.jvmNonHeapUsed],
-  );
-  const threadData = useMemo(
-    () => toDataPoints(s.threadCount),
-    [s.threadCount],
-  );
+  )
+  const threadData = useMemo(() => toDataPoints(s.threadCount), [s.threadCount])
   const gcData = useMemo(
     () => toDualDataPoints(s.gcCount, s.gcTime),
     [s.gcCount, s.gcTime],
-  );
+  )
 
   return (
     <div className="grid gap-4 pt-4 sm:grid-cols-2">
@@ -425,5 +439,5 @@ export function JmMetricsTab({ metrics }: { metrics: JobManagerMetrics }) {
       />
       <DualAxisGcChart data={gcData} />
     </div>
-  );
+  )
 }

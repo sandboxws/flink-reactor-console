@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import { cn } from "../lib/cn";
+import { cn } from "../lib/cn"
 
 export interface TimeRangePreset {
-  label: string;
-  minutes: number;
+  label: string
+  minutes: number
 }
 
 const DEFAULT_PRESETS: TimeRangePreset[] = [
@@ -14,21 +14,21 @@ const DEFAULT_PRESETS: TimeRangePreset[] = [
   { label: "6h", minutes: 360 },
   { label: "24h", minutes: 1440 },
   { label: "All", minutes: 0 },
-];
+]
 
 export interface TimeRangeValue {
-  start?: Date;
-  end?: Date;
+  start?: Date
+  end?: Date
 }
 
 export interface TimeRangeProps {
   /** Current time range value */
-  value: TimeRangeValue;
+  value: TimeRangeValue
   /** Called when a preset is selected */
-  onChange: (value: TimeRangeValue) => void;
+  onChange: (value: TimeRangeValue) => void
   /** Custom presets (default: 5m, 15m, 1h, 6h, 24h, All) */
-  presets?: TimeRangePreset[];
-  className?: string;
+  presets?: TimeRangePreset[]
+  className?: string
 }
 
 /**
@@ -42,24 +42,24 @@ export function TimeRange({
   presets = DEFAULT_PRESETS,
   className,
 }: TimeRangeProps) {
-  const isAll = !value.start && !value.end;
+  const isAll = !value.start && !value.end
 
   function selectPreset(minutes: number) {
     if (minutes === 0) {
-      onChange({});
+      onChange({})
     } else {
-      const end = new Date();
-      const start = new Date(end.getTime() - minutes * 60_000);
-      onChange({ start, end });
+      const end = new Date()
+      const start = new Date(end.getTime() - minutes * 60_000)
+      onChange({ start, end })
     }
   }
 
   // Determine which preset is active (approximate)
   function isPresetActive(minutes: number): boolean {
-    if (minutes === 0) return isAll;
-    if (!value.start) return false;
-    const diff = (Date.now() - value.start.getTime()) / 60_000;
-    return Math.abs(diff - minutes) < minutes * 0.1;
+    if (minutes === 0) return isAll
+    if (!value.start) return false
+    const diff = (Date.now() - value.start.getTime()) / 60_000
+    return Math.abs(diff - minutes) < minutes * 0.1
   }
 
   return (
@@ -85,5 +85,5 @@ export function TimeRange({
         </button>
       ))}
     </div>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-import type { LogSource } from "@/data/types";
+import type { LogSource } from "@/data/types"
 
 // ---------------------------------------------------------------------------
 // Log sources — 1 JobManager + 3 TaskManagers
@@ -8,15 +8,15 @@ export const JOB_MANAGER: LogSource = {
   type: "jobmanager",
   id: "jm-001",
   label: "JobManager",
-};
+}
 
 export const TASK_MANAGERS: LogSource[] = [
   { type: "taskmanager", id: "tm-001", label: "TaskManager 1" },
   { type: "taskmanager", id: "tm-002", label: "TaskManager 2" },
   { type: "taskmanager", id: "tm-003", label: "TaskManager 3" },
-];
+]
 
-export const ALL_SOURCES: LogSource[] = [JOB_MANAGER, ...TASK_MANAGERS];
+export const ALL_SOURCES: LogSource[] = [JOB_MANAGER, ...TASK_MANAGERS]
 
 // ---------------------------------------------------------------------------
 // Thread name patterns
@@ -29,7 +29,7 @@ export const JM_THREADS = [
   "jobmanager-io-0",
   "Checkpoint Timer",
   "flink-rest-server-netty-worker-0",
-];
+]
 
 export const TM_THREADS = [
   "flink-akka.actor.default-dispatcher-3",
@@ -40,15 +40,15 @@ export const TM_THREADS = [
   "Async I/O Thread (1/4)#0",
   "taskmanager-main",
   "taskmanager-io-0",
-];
+]
 
 // ---------------------------------------------------------------------------
 // JobManager logger names and message templates
 // ---------------------------------------------------------------------------
 
 export interface LoggerTemplate {
-  logger: string;
-  messages: string[];
+  logger: string
+  messages: string[]
 }
 
 export const JM_LOGGERS: LoggerTemplate[] = [
@@ -93,7 +93,7 @@ export const JM_LOGGERS: LoggerTemplate[] = [
       "Requesting new TaskManager container.",
     ],
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // TaskManager logger names and message templates
@@ -147,7 +147,7 @@ export const TM_LOGGERS: LoggerTemplate[] = [
       "Committing transaction for checkpoint %CHECKPOINT_ID%.",
     ],
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Checkpoint sequence templates (emitted as a correlated group)
@@ -178,7 +178,7 @@ export const CHECKPOINT_SEQUENCE = {
     message:
       "Checkpoint %CHECKPOINT_ID% of job %JOB_ID% expired before completing. %PENDING_COUNT% pending checkpoint(s) discarded.",
   },
-};
+}
 
 // ---------------------------------------------------------------------------
 // Placeholder fill values
@@ -241,7 +241,7 @@ export const PLACEHOLDER_VALUES: Record<string, string[]> = {
     "java.lang.RuntimeException: Test exception",
     "org.apache.flink.util.FlinkException: An error occurred",
   ],
-};
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -249,13 +249,13 @@ export const PLACEHOLDER_VALUES: Record<string, string[]> = {
 
 /** Pick a random element from an array. */
 export function pickRandom<T>(arr: readonly T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)]
 }
 
 /** Replace %PLACEHOLDER% tokens with random values from PLACEHOLDER_VALUES. */
 export function fillTemplate(template: string): string {
   return template.replace(/%([A-Z_]+)%/g, (_match, key: string) => {
-    const values = PLACEHOLDER_VALUES[key];
-    return values ? pickRandom(values) : `<${key}>`;
-  });
+    const values = PLACEHOLDER_VALUES[key]
+    return values ? pickRandom(values) : `<${key}>`
+  })
 }

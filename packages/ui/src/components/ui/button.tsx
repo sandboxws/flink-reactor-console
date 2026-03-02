@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { cn } from "../../lib/cn";
+import { cn } from "../../lib/cn"
 
 type ButtonVariant =
   | "default"
@@ -8,12 +8,12 @@ type ButtonVariant =
   | "destructive"
   | "outline"
   | "ghost"
-  | "link";
-type ButtonSize = "default" | "sm" | "lg" | "icon";
+  | "link"
+type ButtonSize = "default" | "sm" | "lg" | "icon"
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+  variant?: ButtonVariant
+  size?: ButtonSize
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -24,14 +24,14 @@ const variantStyles: Record<ButtonVariant, string> = {
     "border border-dash-border bg-transparent text-zinc-300 hover:bg-white/5",
   ghost: "text-zinc-400 hover:bg-white/5 hover:text-zinc-200",
   link: "text-fr-purple underline-offset-4 hover:underline",
-};
+}
 
 const sizeStyles: Record<ButtonSize, string> = {
   default: "h-8 px-3 py-1.5",
   sm: "h-7 rounded-md px-2.5 text-xs",
   lg: "h-10 rounded-md px-6",
   icon: "size-8",
-};
+}
 
 function Button({
   className,
@@ -50,8 +50,8 @@ function Button({
       )}
       {...props}
     />
-  );
+  )
 }
 
-export { Button };
-export type { ButtonProps, ButtonVariant, ButtonSize };
+export { Button }
+export type { ButtonProps, ButtonVariant, ButtonSize }

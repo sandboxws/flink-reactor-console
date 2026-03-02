@@ -1,66 +1,66 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { format } from "date-fns"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
-  AreaChart,
   Area,
-  LineChart,
+  AreaChart,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
-import { format } from "date-fns";
-import type { TaskManager, TaskManagerMetrics } from "@/data/cluster-types";
-import { fetchTaskManagerMetrics } from "@/lib/flink-api-client";
-import { useConfigStore } from "@/stores/config-store";
+} from "recharts"
+import type { TaskManager, TaskManagerMetrics } from "@/data/cluster-types"
+import { fetchTaskManagerMetrics } from "@/lib/flink-api-client"
+import { useConfigStore } from "@/stores/config-store"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const GB = 1024 ** 3;
-const MB = 1024 ** 2;
-const MAX_SAMPLES = 30;
+const GB = 1024 ** 3
+const MB = 1024 ** 2
+const MAX_SAMPLES = 30
 
 function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`;
-  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`;
-  return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
+  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`
+  return `${(bytes / 1024).toFixed(0)} KB`
 }
 
-type DataPoint = { time: string; timestamp: number; value: number };
+type DataPoint = { time: string; timestamp: number; value: number }
 
 function metricToPoint(value: number): DataPoint {
-  const now = Date.now();
+  const now = Date.now()
   return {
     time: format(new Date(now), "HH:mm:ss"),
     timestamp: now,
     value,
-  };
+  }
 }
 
 type MetricSeries = {
-  cpu: DataPoint[];
-  heap: DataPoint[];
-  nonHeap: DataPoint[];
-  threads: DataPoint[];
-  gcCount: DataPoint[];
-  gcTime: DataPoint[];
-  heapMax: number;
-};
+  cpu: DataPoint[]
+  heap: DataPoint[]
+  nonHeap: DataPoint[]
+  threads: DataPoint[]
+  gcCount: DataPoint[]
+  gcTime: DataPoint[]
+  heapMax: number
+}
 
 function appendSample(series: DataPoint[], point: DataPoint): DataPoint[] {
-  const next = [...series, point];
-  if (next.length > MAX_SAMPLES) return next.slice(next.length - MAX_SAMPLES);
-  return next;
+  const next = [...series, point]
+  if (next.length > MAX_SAMPLES) return next.slice(next.length - MAX_SAMPLES)
+  return next
 }
 
 function metricsToSeries(m: TaskManagerMetrics): MetricSeries {
-  const totalGcCount = m.garbageCollectors.reduce((s, gc) => s + gc.count, 0);
-  const totalGcTime = m.garbageCollectors.reduce((s, gc) => s + gc.time, 0);
+  const totalGcCount = m.garbageCollectors.reduce((s, gc) => s + gc.count, 0)
+  const totalGcTime = m.garbageCollectors.reduce((s, gc) => s + gc.time, 0)
   return {
     cpu: [metricToPoint(m.cpuUsage)],
     heap: [metricToPoint(m.heapUsed)],
@@ -69,12 +69,12 @@ function metricsToSeries(m: TaskManagerMetrics): MetricSeries {
     gcCount: [metricToPoint(totalGcCount)],
     gcTime: [metricToPoint(totalGcTime)],
     heapMax: m.heapMax,
-  };
+  }
 }
 
 function useForceUpdate() {
-  const [, setTick] = useState(0);
-  return useCallback(() => setTick((n) => n + 1), []);
+  const [, setTick] = useState(0)
+  return useCallback(() => setTick((n) => n + 1), [])
 }
 
 // ---------------------------------------------------------------------------
@@ -87,12 +87,12 @@ function ChartTooltip({
   label,
   unit,
 }: {
-  active?: boolean;
-  payload?: Array<{ value: number; color: string; name: string }>;
-  label?: string;
-  unit?: string;
+  active?: boolean
+  payload?: Array<{ value: number; color: string; name: string }>
+  label?: string
+  unit?: string
 }) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) return null
 
   return (
     <div
@@ -118,7 +118,7 @@ function ChartTooltip({
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -134,15 +134,15 @@ function MetricChart({
   refLabel,
   gradient,
 }: {
-  title: string;
-  data: DataPoint[];
-  color: string;
-  unit?: string;
-  refValue?: number;
-  refLabel?: string;
-  gradient?: boolean;
+  title: string
+  data: DataPoint[]
+  color: string
+  unit?: string
+  refValue?: number
+  refLabel?: string
+  gradient?: boolean
 }) {
-  const gradientId = `grad-${title.replace(/\s/g, "")}`;
+  const gradientId = `grad-${title.replace(/\s/g, "")}`
 
   return (
     <div className="glass-card p-4">
@@ -152,7 +152,10 @@ function MetricChart({
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
           {gradient ? (
-            <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+            <AreaChart
+              data={data}
+              margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+            >
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={color} stopOpacity={0.3} />
@@ -207,7 +210,10 @@ function MetricChart({
               />
             </AreaChart>
           ) : (
-            <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+            <LineChart
+              data={data}
+              margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+            >
               <XAxis
                 dataKey="time"
                 tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
@@ -242,7 +248,7 @@ function MetricChart({
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -250,28 +256,34 @@ function MetricChart({
 // ---------------------------------------------------------------------------
 
 export function TmMetricsTab({ tm }: { tm: TaskManager }) {
-  const seriesRef = useRef<MetricSeries>(metricsToSeries(tm.metrics));
-  const pollIntervalMs = useConfigStore((s) => s.config?.pollIntervalMs ?? 5000);
-  const forceUpdate = useForceUpdate();
+  const seriesRef = useRef<MetricSeries>(metricsToSeries(tm.metrics))
+  const pollIntervalMs = useConfigStore((s) => s.config?.pollIntervalMs ?? 5000)
+  const forceUpdate = useForceUpdate()
 
   // Reset series when TM changes
   useEffect(() => {
-    seriesRef.current = metricsToSeries(tm.metrics);
-    forceUpdate();
-  }, [tm.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    seriesRef.current = metricsToSeries(tm.metrics)
+    forceUpdate()
+  }, [forceUpdate, tm.metrics]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Poll for live metrics and accumulate samples
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
     const poll = async () => {
       try {
-        const m = await fetchTaskManagerMetrics(tm.id);
-        if (cancelled) return;
+        const m = await fetchTaskManagerMetrics(tm.id)
+        if (cancelled) return
 
-        const s = seriesRef.current;
-        const totalGcCount = m.garbageCollectors.reduce((acc, gc) => acc + gc.count, 0);
-        const totalGcTime = m.garbageCollectors.reduce((acc, gc) => acc + gc.time, 0);
+        const s = seriesRef.current
+        const totalGcCount = m.garbageCollectors.reduce(
+          (acc, gc) => acc + gc.count,
+          0,
+        )
+        const totalGcTime = m.garbageCollectors.reduce(
+          (acc, gc) => acc + gc.time,
+          0,
+        )
 
         seriesRef.current = {
           cpu: appendSample(s.cpu, metricToPoint(m.cpuUsage)),
@@ -281,21 +293,21 @@ export function TmMetricsTab({ tm }: { tm: TaskManager }) {
           gcCount: appendSample(s.gcCount, metricToPoint(totalGcCount)),
           gcTime: appendSample(s.gcTime, metricToPoint(totalGcTime)),
           heapMax: m.heapMax,
-        };
-        forceUpdate();
+        }
+        forceUpdate()
       } catch {
         // Silently ignore poll failures — stale charts stay visible
       }
-    };
+    }
 
-    const interval = setInterval(poll, pollIntervalMs);
+    const interval = setInterval(poll, pollIntervalMs)
     return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [tm.id, pollIntervalMs, forceUpdate]);
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [tm.id, pollIntervalMs, forceUpdate])
 
-  const s = seriesRef.current;
+  const s = seriesRef.current
 
   return (
     <div className="grid gap-4 pt-4 sm:grid-cols-2">
@@ -339,5 +351,5 @@ export function TmMetricsTab({ tm }: { tm: TaskManager }) {
         unit="ms"
       />
     </div>
-  );
+  )
 }

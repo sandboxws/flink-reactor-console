@@ -1,13 +1,13 @@
-"use client";
+"use client"
 
-import type { TaskCounts, TaskStatus } from "@/data/cluster-types";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/cn";
+} from "@/components/ui/tooltip"
+import type { TaskCounts, TaskStatus } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
 
 const segments: { key: TaskStatus; label: string; color: string }[] = [
   { key: "pending", label: "Pending", color: "bg-job-created" },
@@ -15,11 +15,11 @@ const segments: { key: TaskStatus; label: string; color: string }[] = [
   { key: "finished", label: "Finished", color: "bg-job-finished" },
   { key: "canceling", label: "Canceling", color: "bg-job-cancelled" },
   { key: "failed", label: "Failed", color: "bg-job-failed" },
-];
+]
 
 export function TaskCountsBar({ tasks }: { tasks: TaskCounts }) {
-  const total = Object.values(tasks).reduce((a, b) => a + b, 0);
-  if (total === 0) return null;
+  const total = Object.values(tasks).reduce((a, b) => a + b, 0)
+  if (total === 0) return null
 
   return (
     <TooltipProvider>
@@ -52,9 +52,7 @@ export function TaskCountsBar({ tasks }: { tasks: TaskCounts }) {
                     key={seg.key}
                     className="flex items-center gap-2 text-xs"
                   >
-                    <span
-                      className={cn("size-2 rounded-full", seg.color)}
-                    />
+                    <span className={cn("size-2 rounded-full", seg.color)} />
                     <span className="text-zinc-400">{seg.label}</span>
                     <span className="ml-auto tabular-nums font-medium text-zinc-200">
                       {tasks[seg.key]}
@@ -66,5 +64,5 @@ export function TaskCountsBar({ tasks }: { tasks: TaskCounts }) {
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
+  )
 }

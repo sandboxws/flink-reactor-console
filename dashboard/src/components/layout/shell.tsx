@@ -1,41 +1,41 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useConfigStore } from "@/stores/config-store";
-import { useUiStore } from "@/stores/ui-store";
-import { CommandPalette } from "./command-palette";
-import { Header } from "./header";
-import { Sidebar } from "./sidebar";
+import { useEffect } from "react"
+import { useConfigStore } from "@/stores/config-store"
+import { useUiStore } from "@/stores/ui-store"
+import { CommandPalette } from "./command-palette"
+import { Header } from "./header"
+import { Sidebar } from "./sidebar"
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  const toggleCommandPalette = useUiStore((s) => s.toggleCommandPalette);
-  const fetchConfig = useConfigStore((s) => s.fetchConfig);
-  const configLoading = useConfigStore((s) => s.loading);
-  const configError = useConfigStore((s) => s.error);
+  const toggleCommandPalette = useUiStore((s) => s.toggleCommandPalette)
+  const fetchConfig = useConfigStore((s) => s.fetchConfig)
+  const configLoading = useConfigStore((s) => s.loading)
+  const configError = useConfigStore((s) => s.error)
 
   // Fetch runtime config on mount
   useEffect(() => {
-    fetchConfig();
-  }, [fetchConfig]);
+    fetchConfig()
+  }, [fetchConfig])
 
   // cmd+k / ctrl+k keyboard listener
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        toggleCommandPalette();
+        e.preventDefault()
+        toggleCommandPalette()
       }
     }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [toggleCommandPalette]);
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [toggleCommandPalette])
 
   if (configLoading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
       </div>
-    );
+    )
   }
 
   if (configError) {
@@ -45,7 +45,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           Failed to load dashboard configuration: {configError}
         </p>
       </div>
-    );
+    )
   }
 
   return (
@@ -57,5 +57,5 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
       <CommandPalette />
     </div>
-  );
+  )
 }

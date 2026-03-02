@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { X } from "lucide-react";
+import { X } from "lucide-react"
 import {
-  LineChart,
   Line,
-  XAxis,
-  YAxis,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
-} from "recharts";
-import type { MetricSeries } from "@/stores/metrics-explorer-store";
-import { cn } from "@/lib/cn";
+  XAxis,
+  YAxis,
+} from "recharts"
+import { cn } from "@/lib/cn"
+import type { MetricSeries } from "@/stores/metrics-explorer-store"
 
 // Rotating color palette for chart lines
 const CHART_COLORS = [
@@ -19,45 +19,45 @@ const CHART_COLORS = [
   "#e0af68", // amber
   "#f7768e", // red/coral
   "#bb9af7", // purple
-];
+]
 
 export function getChartColor(index: number): string {
-  return CHART_COLORS[index % CHART_COLORS.length];
+  return CHART_COLORS[index % CHART_COLORS.length]
 }
 
 function formatTime(timestamp: number): string {
-  const d = new Date(timestamp);
+  const d = new Date(timestamp)
   return d.toLocaleTimeString("en-US", {
     hour12: false,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-  });
+  })
 }
 
 function formatValue(value: number | null): string {
-  if (value === null) return "—";
+  if (value === null) return "—"
   if (Math.abs(value) >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(1)}G`;
+    return `${(value / 1_000_000_000).toFixed(1)}G`
   }
   if (Math.abs(value) >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
+    return `${(value / 1_000_000).toFixed(1)}M`
   }
   if (Math.abs(value) >= 1_000) {
-    return `${(value / 1_000).toFixed(1)}K`;
+    return `${(value / 1_000).toFixed(1)}K`
   }
-  return value.toFixed(value % 1 !== 0 ? 1 : 0);
+  return value.toFixed(value % 1 !== 0 ? 1 : 0)
 }
 
 type MetricChartProps = {
-  series: MetricSeries;
-  color: string;
-  onRemove: (seriesId: string) => void;
-};
+  series: MetricSeries
+  color: string
+  onRemove: (seriesId: string) => void
+}
 
 export function MetricChart({ series, color, onRemove }: MetricChartProps) {
   // Short metric name (last segment)
-  const shortName = series.metricName.split(".").slice(-2).join(".");
+  const shortName = series.metricName.split(".").slice(-2).join(".")
 
   return (
     <div className="glass-card flex flex-col overflow-hidden">
@@ -149,5 +149,5 @@ export function MetricChart({ series, color, onRemove }: MetricChartProps) {
         <span>Max: {formatValue(series.maxValue)}</span>
       </div>
     </div>
-  );
+  )
 }

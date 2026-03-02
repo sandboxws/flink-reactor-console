@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
-import { getConfig } from "@/lib/config";
-import { createFlinkFetcher } from "@/lib/flink-fetcher";
-import { generateMockTaskManagerDetailApiResponse } from "@/data/mock-api-responses";
+import { NextResponse } from "next/server"
 import type {
-  FlinkTaskManagerDetailResponse,
   FlinkMetricItem,
   FlinkTaskManagerDetailAggregate,
-} from "@/data/flink-api-types";
+  FlinkTaskManagerDetailResponse,
+} from "@/data/flink-api-types"
+import { generateMockTaskManagerDetailApiResponse } from "@/data/mock-api-responses"
+import { getConfig } from "@/lib/config"
+import { createFlinkFetcher } from "@/lib/flink-fetcher"
 
 /** All TM metrics we request in a single call. */
 const TM_METRIC_IDS = [
@@ -38,36 +38,36 @@ const TM_METRIC_IDS = [
   "Status.JVM.GarbageCollector.G1_Young_Generation.Time",
   "Status.JVM.GarbageCollector.G1_Old_Generation.Count",
   "Status.JVM.GarbageCollector.G1_Old_Generation.Time",
-].join(",");
+].join(",")
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ tmId: string }> },
 ) {
-  const { tmId } = await params;
-  const config = getConfig();
+  const { tmId } = await params
+  const config = getConfig()
 
   if (config.mockMode) {
-    return NextResponse.json(generateMockTaskManagerDetailApiResponse(tmId));
+    return NextResponse.json(generateMockTaskManagerDetailApiResponse(tmId))
   }
 
   try {
-    const fetchFlink = createFlinkFetcher(config);
+    const fetchFlink = createFlinkFetcher(config)
 
     const [detail, metrics] = await Promise.all([
       fetchFlink<FlinkTaskManagerDetailResponse>(`/taskmanagers/${tmId}`),
       fetchFlink<FlinkMetricItem[]>(
         `/taskmanagers/${tmId}/metrics?get=${TM_METRIC_IDS}`,
       ),
-    ]);
+    ])
 
-    const aggregate: FlinkTaskManagerDetailAggregate = { detail, metrics };
-    return NextResponse.json(aggregate);
+    const aggregate: FlinkTaskManagerDetailAggregate = { detail, metrics }
+    return NextResponse.json(aggregate)
   } catch (err) {
     const message =
       err instanceof Error
         ? err.message
-        : "Failed to fetch task manager detail from Flink";
-    return NextResponse.json({ error: message }, { status: 502 });
+        : "Failed to fetch task manager detail from Flink"
+    return NextResponse.json({ error: message }, { status: 502 })
   }
 }

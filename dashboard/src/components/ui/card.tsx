@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"
 
 function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
@@ -11,7 +11,7 @@ function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
       )}
       {...props}
     />
-  );
+  )
 }
 
 function CardHeader({
@@ -23,7 +23,7 @@ function CardHeader({
       className={cn("flex flex-col space-y-1.5 p-4", className)}
       {...props}
     />
-  );
+  )
 }
 
 function CardTitle({
@@ -38,21 +38,21 @@ function CardTitle({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function CardDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("text-xs text-zinc-500", className)} {...props} />;
+  return <div className={cn("text-xs text-zinc-500", className)} {...props} />
 }
 
 function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-4 pt-0", className)} {...props} />;
+  return <div className={cn("p-4 pt-0", className)} {...props} />
 }
 
 function CardFooter({
@@ -61,14 +61,7 @@ function CardFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn("flex items-center p-4 pt-0", className)} {...props} />
-  );
+  )
 }
 
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-};
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }

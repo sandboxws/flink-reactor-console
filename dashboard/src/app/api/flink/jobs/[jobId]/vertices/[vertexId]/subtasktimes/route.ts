@@ -1,29 +1,31 @@
-import { NextResponse } from "next/server";
-import { getConfig } from "@/lib/config";
-import { createFlinkFetcher } from "@/lib/flink-fetcher";
-import { generateMockSubtaskTimesApiResponse } from "@/data/mock-api-responses";
-import type { FlinkSubtaskTimesResponse } from "@/data/flink-api-types";
+import { NextResponse } from "next/server"
+import type { FlinkSubtaskTimesResponse } from "@/data/flink-api-types"
+import { generateMockSubtaskTimesApiResponse } from "@/data/mock-api-responses"
+import { getConfig } from "@/lib/config"
+import { createFlinkFetcher } from "@/lib/flink-fetcher"
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ jobId: string; vertexId: string }> },
 ) {
-  const { jobId, vertexId } = await params;
-  const config = getConfig();
+  const { jobId, vertexId } = await params
+  const config = getConfig()
 
   if (config.mockMode) {
-    return NextResponse.json(generateMockSubtaskTimesApiResponse(vertexId));
+    return NextResponse.json(generateMockSubtaskTimesApiResponse(vertexId))
   }
 
   try {
-    const fetchFlink = createFlinkFetcher(config);
+    const fetchFlink = createFlinkFetcher(config)
     const data = await fetchFlink<FlinkSubtaskTimesResponse>(
       `/jobs/${jobId}/vertices/${vertexId}/subtasktimes`,
-    );
-    return NextResponse.json(data);
+    )
+    return NextResponse.json(data)
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Failed to fetch subtask times from Flink";
-    return NextResponse.json({ error: message }, { status: 502 });
+      err instanceof Error
+        ? err.message
+        : "Failed to fetch subtask times from Flink"
+    return NextResponse.json({ error: message }, { status: 502 })
   }
 }

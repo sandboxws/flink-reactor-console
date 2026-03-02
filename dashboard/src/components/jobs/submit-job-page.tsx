@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
-import { useCallback, useRef, useState } from "react";
-import { format } from "date-fns";
+import { format } from "date-fns"
 import {
-  Upload,
-  Trash2,
-  Play,
-  Loader2,
-  Package,
-  FileCode,
   AlertCircle,
   Check,
-} from "lucide-react";
-import type { UploadedJar, SubmitJobRequest } from "@/data/cluster-types";
-import { useClusterStore } from "@/stores/cluster-store";
-import { cn } from "@/lib/cn";
+  FileCode,
+  Loader2,
+  Package,
+  Play,
+  Trash2,
+  Upload,
+} from "lucide-react"
+import { useCallback, useRef, useState } from "react"
+import type { SubmitJobRequest, UploadedJar } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
+import { useClusterStore } from "@/stores/cluster-store"
 
 // ---------------------------------------------------------------------------
 // JarListSection — uploaded JARs with upload + delete
@@ -28,24 +28,24 @@ function JarListSection({
   onDelete,
   uploading,
 }: {
-  jars: UploadedJar[];
-  selectedJarId: string | null;
-  onSelect: (id: string) => void;
-  onUpload: (file: File) => void;
-  onDelete: (id: string) => void;
-  uploading: boolean;
+  jars: UploadedJar[]
+  selectedJarId: string | null
+  onSelect: (id: string) => void
+  onUpload: (file: File) => void
+  onDelete: (id: string) => void
+  uploading: boolean
 }) {
-  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) onUpload(file);
+      const file = e.target.files?.[0]
+      if (file) onUpload(file)
       // Reset so re-selecting the same file triggers onChange
-      e.target.value = "";
+      e.target.value = ""
     },
     [onUpload],
-  );
+  )
 
   return (
     <div className="glass-card overflow-hidden">
@@ -101,7 +101,7 @@ function JarListSection({
               )}
               onClick={() => onSelect(jar.id)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") onSelect(jar.id);
+                if (e.key === "Enter" || e.key === " ") onSelect(jar.id)
               }}
               role="button"
               tabIndex={0}
@@ -124,8 +124,8 @@ function JarListSection({
               <button
                 type="button"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(jar.id);
+                  e.stopPropagation()
+                  onDelete(jar.id)
                 }}
                 className="rounded-md p-1 text-zinc-600 transition-colors hover:bg-job-failed/10 hover:text-job-failed"
                 title="Delete JAR"
@@ -137,7 +137,7 @@ function JarListSection({
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -149,19 +149,19 @@ function SubmitForm({
   onSubmit,
   submitting,
 }: {
-  jar: UploadedJar;
-  onSubmit: (request: SubmitJobRequest) => void;
-  submitting: boolean;
+  jar: UploadedJar
+  onSubmit: (request: SubmitJobRequest) => void
+  submitting: boolean
 }) {
-  const [entryClass, setEntryClass] = useState(jar.entryClasses[0] ?? "");
-  const [parallelism, setParallelism] = useState(1);
-  const [programArgs, setProgramArgs] = useState("");
-  const [savepointPath, setSavepointPath] = useState("");
-  const [allowNonRestoredState, setAllowNonRestoredState] = useState(false);
+  const [entryClass, setEntryClass] = useState(jar.entryClasses[0] ?? "")
+  const [parallelism, setParallelism] = useState(1)
+  const [programArgs, setProgramArgs] = useState("")
+  const [savepointPath, setSavepointPath] = useState("")
+  const [allowNonRestoredState, setAllowNonRestoredState] = useState(false)
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
-      e.preventDefault();
+      e.preventDefault()
       onSubmit({
         jarId: jar.id,
         entryClass,
@@ -169,10 +169,18 @@ function SubmitForm({
         programArgs,
         savepointPath: savepointPath || null,
         allowNonRestoredState,
-      });
+      })
     },
-    [jar.id, entryClass, parallelism, programArgs, savepointPath, allowNonRestoredState, onSubmit],
-  );
+    [
+      jar.id,
+      entryClass,
+      parallelism,
+      programArgs,
+      savepointPath,
+      allowNonRestoredState,
+      onSubmit,
+    ],
+  )
 
   return (
     <div className="glass-card p-4">
@@ -278,7 +286,7 @@ function SubmitForm({
         </button>
       </form>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -286,49 +294,49 @@ function SubmitForm({
 // ---------------------------------------------------------------------------
 
 export function SubmitJobPage() {
-  const uploadedJars = useClusterStore((s) => s.uploadedJars);
-  const uploadJar = useClusterStore((s) => s.uploadJar);
-  const deleteJar = useClusterStore((s) => s.deleteJar);
-  const submitJob = useClusterStore((s) => s.submitJob);
-  const featureFlags = useClusterStore((s) => s.featureFlags);
-  const fetchError = useClusterStore((s) => s.fetchError);
+  const uploadedJars = useClusterStore((s) => s.uploadedJars)
+  const uploadJar = useClusterStore((s) => s.uploadJar)
+  const deleteJar = useClusterStore((s) => s.deleteJar)
+  const submitJob = useClusterStore((s) => s.submitJob)
+  const featureFlags = useClusterStore((s) => s.featureFlags)
+  const fetchError = useClusterStore((s) => s.fetchError)
 
-  const [selectedJarId, setSelectedJarId] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [selectedJarId, setSelectedJarId] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const selectedJar = uploadedJars.find((j) => j.id === selectedJarId) ?? null;
+  const selectedJar = uploadedJars.find((j) => j.id === selectedJarId) ?? null
 
   const handleUpload = useCallback(
     async (file: File) => {
-      setUploading(true);
-      await uploadJar(file);
-      setUploading(false);
+      setUploading(true)
+      await uploadJar(file)
+      setUploading(false)
     },
     [uploadJar],
-  );
+  )
 
   const handleDelete = useCallback(
     async (jarId: string) => {
-      if (selectedJarId === jarId) setSelectedJarId(null);
-      await deleteJar(jarId);
+      if (selectedJarId === jarId) setSelectedJarId(null)
+      await deleteJar(jarId)
     },
     [deleteJar, selectedJarId],
-  );
+  )
 
   const handleSubmit = useCallback(
     async (request: SubmitJobRequest) => {
-      setSubmitting(true);
-      await submitJob(request);
-      setSubmitting(false);
-      setSubmitSuccess(true);
-      setTimeout(() => setSubmitSuccess(false), 3000);
+      setSubmitting(true)
+      await submitJob(request)
+      setSubmitting(false)
+      setSubmitSuccess(true)
+      setTimeout(() => setSubmitSuccess(false), 3000)
     },
     [submitJob],
-  );
+  )
 
-  const submitDisabled = featureFlags?.webSubmit === false;
+  const submitDisabled = featureFlags?.webSubmit === false
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -341,7 +349,8 @@ export function SubmitJobPage() {
       {submitDisabled && (
         <div className="flex items-center gap-2 rounded-md bg-fr-amber/10 px-4 py-3 text-xs text-fr-amber">
           <AlertCircle className="size-4 shrink-0" />
-          Job submission is disabled on this cluster (web.submit.enable = false).
+          Job submission is disabled on this cluster (web.submit.enable =
+          false).
         </div>
       )}
 
@@ -389,5 +398,5 @@ export function SubmitJobPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

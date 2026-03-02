@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
 function scoreColor(score: number): string {
-  if (score >= 80) return "var(--color-job-running)";
-  if (score >= 50) return "var(--color-fr-amber)";
-  return "var(--color-job-failed)";
+  if (score >= 80) return "var(--color-job-running)"
+  if (score >= 50) return "var(--color-fr-amber)"
+  return "var(--color-job-failed)"
 }
 
 export function HealthScoreGauge({
@@ -11,16 +11,16 @@ export function HealthScoreGauge({
   size = 200,
   strokeWidth = 12,
 }: {
-  score: number;
-  size?: number;
-  strokeWidth?: number;
+  score: number
+  size?: number
+  strokeWidth?: number
 }) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const progress = Math.max(0, Math.min(100, score)) / 100;
-  const dashOffset = circumference * (1 - progress);
-  const color = scoreColor(score);
-  const center = size / 2;
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const progress = Math.max(0, Math.min(100, score)) / 100
+  const dashOffset = circumference * (1 - progress)
+  const color = scoreColor(score)
+  const center = size / 2
 
   return (
     <div className="flex flex-col items-center">
@@ -82,5 +82,5 @@ export function HealthScoreGauge({
         </text>
       </svg>
     </div>
-  );
+  )
 }

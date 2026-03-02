@@ -1,37 +1,36 @@
-"use client";
+"use client"
 
-import { useLayoutEffect } from "react";
-import { usePanelRef } from "react-resizable-panels";
-
-import { useFilteredLogs } from "@/lib/hooks";
-import { useUiStore } from "@/stores/ui-store";
+import { useLayoutEffect } from "react"
+import { usePanelRef } from "react-resizable-panels"
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
-import { LogDetailPanel } from "./log-detail-panel";
-import { LogHistogram } from "./log-histogram";
-import { LogList } from "./log-list";
-import { LogToolbar } from "./log-toolbar";
+} from "@/components/ui/resizable"
+import { useFilteredLogs } from "@/lib/hooks"
+import { useUiStore } from "@/stores/ui-store"
+import { LogDetailPanel } from "./log-detail-panel"
+import { LogHistogram } from "./log-histogram"
+import { LogList } from "./log-list"
+import { LogToolbar } from "./log-toolbar"
 
-const DETAIL_PANEL_DEFAULT_PX = 360;
+const DETAIL_PANEL_DEFAULT_PX = 360
 
 export function LogExplorer() {
-  const filteredLogs = useFilteredLogs();
-  const detailPanelOpen = useUiStore((s) => s.detailPanelOpen);
-  const detailRef = usePanelRef();
+  const filteredLogs = useFilteredLogs()
+  const detailPanelOpen = useUiStore((s) => s.detailPanelOpen)
+  const detailRef = usePanelRef()
 
   useLayoutEffect(() => {
-    const panel = detailRef.current;
-    if (!panel) return;
+    const panel = detailRef.current
+    if (!panel) return
 
     if (detailPanelOpen) {
-      panel.resize(DETAIL_PANEL_DEFAULT_PX);
+      panel.resize(DETAIL_PANEL_DEFAULT_PX)
     } else {
-      panel.collapse();
+      panel.collapse()
     }
-  }, [detailPanelOpen, detailRef]);
+  }, [detailPanelOpen, detailRef])
 
   return (
     <ResizablePanelGroup orientation="horizontal">
@@ -54,9 +53,9 @@ export function LogExplorer() {
         collapsedSize={0}
         onResize={(panelSize) => {
           if (panelSize.inPixels === 0) {
-            const store = useUiStore.getState();
+            const store = useUiStore.getState()
             if (store.detailPanelOpen) {
-              store.setSelectedEntryId(null);
+              store.setSelectedEntryId(null)
             }
           }
         }}
@@ -64,5 +63,5 @@ export function LogExplorer() {
         <LogDetailPanel />
       </ResizablePanel>
     </ResizablePanelGroup>
-  );
+  )
 }

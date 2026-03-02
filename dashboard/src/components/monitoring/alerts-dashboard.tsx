@@ -1,21 +1,20 @@
-"use client";
+"use client"
 
-import { useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
-  Bell,
   CheckCircle2,
   Info,
   Plus,
   Shield,
-} from "lucide-react";
-import { MetricCard } from "@/components/shared/metric-card";
-import { useAlertsStore } from "@/stores/alerts-store";
-import { AlertCard } from "./alert-card";
-import { RuleList } from "./rule-list";
-import { CreateRuleDialog } from "./create-rule-dialog";
-import { cn } from "@/lib/cn";
+} from "lucide-react"
+import { useState } from "react"
+import { MetricCard } from "@/components/shared/metric-card"
+import { cn } from "@/lib/cn"
+import { useAlertsStore } from "@/stores/alerts-store"
+import { AlertCard } from "./alert-card"
+import { CreateRuleDialog } from "./create-rule-dialog"
+import { RuleList } from "./rule-list"
 
 // Loading skeleton
 
@@ -34,7 +33,7 @@ function LoadingSkeleton() {
       <div className="h-48 animate-pulse rounded-lg bg-white/[0.03]" />
       <div className="h-64 animate-pulse rounded-lg bg-white/[0.03]" />
     </div>
-  );
+  )
 }
 
 // Severity icon helper
@@ -43,31 +42,31 @@ const SEVERITY_ICON = {
   critical: { icon: AlertCircle, color: "text-job-failed" },
   warning: { icon: AlertTriangle, color: "text-fr-amber" },
   info: { icon: Info, color: "text-fr-purple" },
-} as const;
+} as const
 
 // Main component
 
 export function AlertsDashboard() {
-  const rules = useAlertsStore((s) => s.rules);
-  const activeAlerts = useAlertsStore((s) => s.activeAlerts);
-  const acknowledgeAlert = useAlertsStore((s) => s.acknowledgeAlert);
-  const resolveAlert = useAlertsStore((s) => s.resolveAlert);
-  const toggleRule = useAlertsStore((s) => s.toggleRule);
-  const deleteRule = useAlertsStore((s) => s.deleteRule);
-  const createRule = useAlertsStore((s) => s.createRule);
+  const rules = useAlertsStore((s) => s.rules)
+  const activeAlerts = useAlertsStore((s) => s.activeAlerts)
+  const acknowledgeAlert = useAlertsStore((s) => s.acknowledgeAlert)
+  const resolveAlert = useAlertsStore((s) => s.resolveAlert)
+  const toggleRule = useAlertsStore((s) => s.toggleRule)
+  const deleteRule = useAlertsStore((s) => s.deleteRule)
+  const createRule = useAlertsStore((s) => s.createRule)
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   // If store hasn't loaded yet (no rules at all, even presets)
-  if (rules.length === 0) return <LoadingSkeleton />;
+  if (rules.length === 0) return <LoadingSkeleton />
 
   const criticalCount = activeAlerts.filter(
     (a) => a.severity === "critical",
-  ).length;
+  ).length
   const warningCount = activeAlerts.filter(
     (a) => a.severity === "warning",
-  ).length;
-  const infoCount = activeAlerts.filter((a) => a.severity === "info").length;
+  ).length
+  const infoCount = activeAlerts.filter((a) => a.severity === "info").length
 
   // Determine highest severity for the badge
   const highestSeverity =
@@ -77,7 +76,7 @@ export function AlertsDashboard() {
         ? "warning"
         : infoCount > 0
           ? "info"
-          : null;
+          : null
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -95,9 +94,9 @@ export function AlertsDashboard() {
             )}
           >
             {(() => {
-              const cfg = SEVERITY_ICON[highestSeverity];
-              const Icon = cfg.icon;
-              return <Icon className={cn("size-3", cfg.color)} />;
+              const cfg = SEVERITY_ICON[highestSeverity]
+              const Icon = cfg.icon
+              return <Icon className={cn("size-3", cfg.color)} />
             })()}
             {activeAlerts.length} active
           </span>
@@ -143,8 +142,8 @@ export function AlertsDashboard() {
           <div className="space-y-2">
             {activeAlerts
               .sort((a, b) => {
-                const order = { critical: 0, warning: 1, info: 2 };
-                return order[a.severity] - order[b.severity];
+                const order = { critical: 0, warning: 1, info: 2 }
+                return order[a.severity] - order[b.severity]
               })
               .map((alert) => (
                 <AlertCard
@@ -183,5 +182,5 @@ export function AlertsDashboard() {
         onCreate={createRule}
       />
     </div>
-  );
+  )
 }

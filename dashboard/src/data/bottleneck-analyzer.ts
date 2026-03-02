@@ -7,50 +7,50 @@
 
 import type {
   FlinkJob,
-  JobVertex,
   JobEdge,
+  JobVertex,
   SubtaskMetrics,
   VertexBackPressure,
-} from "./cluster-types";
+} from "./cluster-types"
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-export type BottleneckSeverity = "low" | "medium" | "high";
+export type BottleneckSeverity = "low" | "medium" | "high"
 
 export type BottleneckScore = {
-  vertexId: string;
-  vertexName: string;
-  jobId: string;
-  jobName: string;
-  parallelism: number;
-  score: number; // 0-100 composite
-  severity: BottleneckSeverity;
+  vertexId: string
+  vertexName: string
+  jobId: string
+  jobName: string
+  parallelism: number
+  score: number // 0-100 composite
+  severity: BottleneckSeverity
   factors: {
-    backpressure: number; // 0-100
-    busyTime: number; // 0-100
-    throughputRatio: number; // 0-100
-    skew: number; // 0-100
-  };
-};
+    backpressure: number // 0-100
+    busyTime: number // 0-100
+    throughputRatio: number // 0-100
+    skew: number // 0-100
+  }
+}
 
 export type RecommendationType =
   | "increase-parallelism"
   | "data-skew"
   | "slow-operator"
-  | "backpressure-cascade";
+  | "backpressure-cascade"
 
 export type Recommendation = {
-  type: RecommendationType;
-  vertexId: string;
-  vertexName: string;
-  jobId: string;
-  jobName: string;
-  score: number;
-  message: string;
-  detail: string;
-};
+  type: RecommendationType
+  vertexId: string
+  vertexName: string
+  jobId: string
+  jobName: string
+  score: number
+  message: string
+  detail: string
+}
 
 // ---------------------------------------------------------------------------
 // Scoring weights
@@ -61,59 +61,57 @@ const WEIGHTS = {
   busyTime: 0.3,
   throughputRatio: 0.2,
   skew: 0.1,
-} as const;
+} as const
 
 // ---------------------------------------------------------------------------
 // Severity thresholds
 // ---------------------------------------------------------------------------
 
 function scoreSeverity(score: number): BottleneckSeverity {
-  if (score <= 30) return "low";
-  if (score <= 60) return "medium";
-  return "high";
+  if (score <= 30) return "low"
+  if (score <= 60) return "medium"
+  return "high"
 }
 
 // ---------------------------------------------------------------------------
 // Factor computation helpers
 // ---------------------------------------------------------------------------
 
-function computeBackpressureFactor(
-  bp: VertexBackPressure | undefined,
-): number {
-  if (!bp) return 0;
+function computeBackpressureFactor(bp: VertexBackPressure | undefined): number {
+  if (!bp) return 0
 
   // If per-subtask ratios are available, use average ratio
   if (bp.subtasks && bp.subtasks.length > 0) {
     const avgRatio =
-      bp.subtasks.reduce((sum, s) => sum + s.ratio, 0) / bp.subtasks.length;
-    return Math.round(avgRatio * 100);
+      bp.subtasks.reduce((sum, s) => sum + s.ratio, 0) / bp.subtasks.length
+    return Math.round(avgRatio * 100)
   }
 
   // Fall back to level-based mapping
   switch (bp.level) {
     case "ok":
-      return 0;
+      return 0
     case "low":
-      return 50;
+      return 50
     case "high":
-      return 100;
+      return 100
     default:
-      return 0;
+      return 0
   }
 }
 
 function computeBusyTimeFactor(busyTimeMsPerSecond: number): number {
   // 1000ms/s means fully busy = 100
-  return Math.min(100, Math.round((busyTimeMsPerSecond / 1000) * 100));
+  return Math.min(100, Math.round((busyTimeMsPerSecond / 1000) * 100))
 }
 
 function computeThroughputRatioFactor(
   recordsIn: number,
   recordsOut: number,
 ): number {
-  if (recordsIn <= 0) return 0;
-  const dropRatio = 1 - recordsOut / recordsIn;
-  return Math.min(100, Math.max(0, Math.round(dropRatio * 100)));
+  if (recordsIn <= 0) return 0
+  const dropRatio = 1 - recordsOut / recordsIn
+  return Math.min(100, Math.max(0, Math.round(dropRatio * 100)))
 }
 
 /**
@@ -121,25 +119,21 @@ function computeThroughputRatioFactor(
  * Skew = (max - median) / median × 100, capped at 100.
  * Returns 0 if no subtask data is available.
  */
-export function computeSkewFactor(
-  subtaskMetrics?: SubtaskMetrics[],
-): number {
-  if (!subtaskMetrics || subtaskMetrics.length < 2) return 0;
+export function computeSkewFactor(subtaskMetrics?: SubtaskMetrics[]): number {
+  if (!subtaskMetrics || subtaskMetrics.length < 2) return 0
 
-  const outputs = subtaskMetrics
-    .map((s) => s.recordsOut)
-    .sort((a, b) => a - b);
+  const outputs = subtaskMetrics.map((s) => s.recordsOut).sort((a, b) => a - b)
 
   const median =
     outputs.length % 2 === 0
       ? (outputs[outputs.length / 2 - 1] + outputs[outputs.length / 2]) / 2
-      : outputs[Math.floor(outputs.length / 2)];
+      : outputs[Math.floor(outputs.length / 2)]
 
-  if (median <= 0) return 0;
+  if (median <= 0) return 0
 
-  const max = outputs[outputs.length - 1];
-  const skew = ((max - median) / median) * 100;
-  return Math.min(100, Math.round(Math.max(0, skew)));
+  const max = outputs[outputs.length - 1]
+  const skew = ((max - median) / median) * 100
+  return Math.min(100, Math.round(Math.max(0, skew)))
 }
 
 // ---------------------------------------------------------------------------
@@ -158,20 +152,20 @@ export function computeBottleneckScore(
   backpressure?: VertexBackPressure,
   subtaskMetrics?: SubtaskMetrics[],
 ): BottleneckScore {
-  const bpFactor = computeBackpressureFactor(backpressure);
-  const busyFactor = computeBusyTimeFactor(vertex.metrics.busyTimeMsPerSecond);
+  const bpFactor = computeBackpressureFactor(backpressure)
+  const busyFactor = computeBusyTimeFactor(vertex.metrics.busyTimeMsPerSecond)
   const tpFactor = computeThroughputRatioFactor(
     vertex.metrics.recordsIn,
     vertex.metrics.recordsOut,
-  );
-  const skewFactor = computeSkewFactor(subtaskMetrics);
+  )
+  const skewFactor = computeSkewFactor(subtaskMetrics)
 
   const score = Math.round(
     bpFactor * WEIGHTS.backpressure +
       busyFactor * WEIGHTS.busyTime +
       tpFactor * WEIGHTS.throughputRatio +
       skewFactor * WEIGHTS.skew,
-  );
+  )
 
   return {
     vertexId: vertex.id,
@@ -187,7 +181,7 @@ export function computeBottleneckScore(
       throughputRatio: tpFactor,
       skew: skewFactor,
     },
-  };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -203,8 +197,8 @@ export function generateRecommendations(
   scores: BottleneckScore[],
   edges: JobEdge[],
 ): Recommendation[] {
-  const recommendations: Recommendation[] = [];
-  const scoreByVertex = new Map(scores.map((s) => [s.vertexId, s]));
+  const recommendations: Recommendation[] = []
+  const scoreByVertex = new Map(scores.map((s) => [s.vertexId, s]))
 
   for (const s of scores) {
     // 1. Increase parallelism: BP > 70 AND busy > 70
@@ -218,7 +212,7 @@ export function generateRecommendations(
         score: s.score,
         message: `Increase parallelism on ${s.vertexName}`,
         detail: `High backpressure (${s.factors.backpressure}%) combined with high CPU utilization (${s.factors.busyTime}%) suggests this operator needs more parallel instances to keep up with input throughput.`,
-      });
+      })
     }
 
     // 2. Data skew: skew factor > 50
@@ -232,7 +226,7 @@ export function generateRecommendations(
         score: s.score,
         message: `Data skew detected on ${s.vertexName}`,
         detail: `Subtask output variance is ${s.factors.skew}% above median. Some subtasks process significantly more data than others. Consider using a different partitioning strategy.`,
-      });
+      })
     }
 
     // 3. Slow operator: busy > 80 AND throughput ratio > 50
@@ -246,7 +240,7 @@ export function generateRecommendations(
         score: s.score,
         message: `Slow operator: ${s.vertexName}`,
         detail: `This operator is CPU-bound (${s.factors.busyTime}% busy) with a significant throughput drop (${s.factors.throughputRatio}%). Consider optimizing the operator logic or reducing input volume.`,
-      });
+      })
     }
 
     // 4. Backpressure cascade: vertex has high BP AND upstream has ok/low BP
@@ -254,10 +248,10 @@ export function generateRecommendations(
       // Find upstream vertices via edges (edges point source → target)
       const upstreamIds = edges
         .filter((e) => e.target === s.vertexId)
-        .map((e) => e.source);
+        .map((e) => e.source)
 
       for (const upId of upstreamIds) {
-        const upstream = scoreByVertex.get(upId);
+        const upstream = scoreByVertex.get(upId)
         if (upstream && upstream.factors.backpressure <= 50) {
           recommendations.push({
             type: "backpressure-cascade",
@@ -268,23 +262,23 @@ export function generateRecommendations(
             score: s.score,
             message: `Backpressure cascade: ${s.vertexName} is slowing ${upstream.vertexName}`,
             detail: `${s.vertexName} has high backpressure (${s.factors.backpressure}%) while upstream ${upstream.vertexName} has low backpressure (${upstream.factors.backpressure}%). The downstream operator is the bottleneck causing the cascade.`,
-          });
+          })
         }
       }
     }
   }
 
   // Sort by score descending
-  recommendations.sort((a, b) => b.score - a.score);
+  recommendations.sort((a, b) => b.score - a.score)
 
   // Deduplicate per vertex: keep highest-priority recommendation
-  const seen = new Set<string>();
+  const seen = new Set<string>()
   return recommendations.filter((r) => {
-    const key = `${r.jobId}-${r.vertexId}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    const key = `${r.jobId}-${r.vertexId}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -296,11 +290,11 @@ export function generateRecommendations(
  * Returns scores and recommendations for the job.
  */
 export function analyzeJob(job: FlinkJob): {
-  scores: BottleneckScore[];
-  recommendations: Recommendation[];
+  scores: BottleneckScore[]
+  recommendations: Recommendation[]
 } {
   if (!job.plan || job.status !== "RUNNING") {
-    return { scores: [], recommendations: [] };
+    return { scores: [], recommendations: [] }
   }
 
   const scores = job.plan.vertices.map((vertex) =>
@@ -311,9 +305,9 @@ export function analyzeJob(job: FlinkJob): {
       job.backpressure[vertex.id],
       job.subtaskMetrics[vertex.id],
     ),
-  );
+  )
 
-  const recommendations = generateRecommendations(scores, job.plan.edges);
+  const recommendations = generateRecommendations(scores, job.plan.edges)
 
-  return { scores, recommendations };
+  return { scores, recommendations }
 }

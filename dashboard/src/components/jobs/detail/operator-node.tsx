@@ -1,65 +1,71 @@
-"use client";
+"use client"
 
-import { Handle, Position } from "@xyflow/react";
-import type { NodeProps } from "@xyflow/react";
-import type { JobVertex, JobVertexStatus, TaskStatus } from "@/data/cluster-types";
-import { cn } from "@/lib/cn";
+import type { NodeProps } from "@xyflow/react"
+import { Handle, Position } from "@xyflow/react"
+import type { IconType } from "react-icons"
 import {
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-  HoverCardArrow,
-} from "@/components/ui/hover-card";
-import type { IconType } from "react-icons";
-import {
-  PiHeartbeatBold,
-  PiTimerBold,
   PiArrowFatLinesDownBold,
   PiArrowFatLinesUpBold,
-  PiDownloadSimpleBold,
-  PiUploadSimpleBold,
   PiCpuBold,
+  PiDownloadSimpleBold,
   PiGaugeBold,
-} from "react-icons/pi";
+  PiHeartbeatBold,
+  PiTimerBold,
+  PiUploadSimpleBold,
+} from "react-icons/pi"
+import {
+  HoverCard,
+  HoverCardArrow,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
+import type {
+  JobVertex,
+  JobVertexStatus,
+  TaskStatus,
+} from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // Format helpers
 // ---------------------------------------------------------------------------
 
 function formatSI(n: number): string {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  return String(n)
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${bytes} B`;
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${bytes} B`
 }
 
 function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
-  if (totalSec < 60) return `${totalSec}s`;
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  if (min < 60) return `${min}m ${sec}s`;
-  const hr = Math.floor(min / 60);
-  return `${hr}h ${min % 60}m`;
+  const totalSec = Math.floor(ms / 1000)
+  if (totalSec < 60) return `${totalSec}s`
+  const min = Math.floor(totalSec / 60)
+  const sec = totalSec % 60
+  if (min < 60) return `${min}m ${sec}s`
+  const hr = Math.floor(min / 60)
+  return `${hr}h ${min % 60}m`
 }
 
 // ---------------------------------------------------------------------------
 // Node type detection + color tokens
 // ---------------------------------------------------------------------------
 
-type NodeType = "source" | "sink" | "operator";
+type NodeType = "source" | "sink" | "operator"
 
 function parseNodeType(name: string): { type: NodeType; displayName: string } {
-  if (name.startsWith("Source: ")) return { type: "source", displayName: name.slice(8) };
-  if (name.startsWith("Sink: ")) return { type: "sink", displayName: name.slice(6) };
-  return { type: "operator", displayName: name };
+  if (name.startsWith("Source: "))
+    return { type: "source", displayName: name.slice(8) }
+  if (name.startsWith("Sink: "))
+    return { type: "sink", displayName: name.slice(6) }
+  return { type: "operator", displayName: name }
 }
 
 const METRIC_ICONS: Record<string, IconType> = {
@@ -71,13 +77,25 @@ const METRIC_ICONS: Record<string, IconType> = {
   "Bytes Out": PiUploadSimpleBold,
   "Busy Time": PiCpuBold,
   Backpressure: PiGaugeBold,
-};
+}
 
 const NODE_TYPE_COLORS = {
-  source:   { bg: "bg-fr-coral/10",  text: "text-fr-coral",  border: "border-t-fr-coral" },
-  sink:     { bg: "bg-fr-amber/10",  text: "text-fr-amber",  border: "border-t-fr-amber" },
-  operator: { bg: "bg-fr-purple/10", text: "text-fr-purple", border: "border-t-fr-purple" },
-} as const;
+  source: {
+    bg: "bg-fr-coral/10",
+    text: "text-fr-coral",
+    border: "border-t-fr-coral",
+  },
+  sink: {
+    bg: "bg-fr-amber/10",
+    text: "text-fr-amber",
+    border: "border-t-fr-amber",
+  },
+  operator: {
+    bg: "bg-fr-purple/10",
+    text: "text-fr-purple",
+    border: "border-t-fr-purple",
+  },
+} as const
 
 // ---------------------------------------------------------------------------
 // Mini task-status bar (same colors as TaskCountsBar)
@@ -89,11 +107,11 @@ const segments: { key: TaskStatus; color: string }[] = [
   { key: "finished", color: "bg-job-finished" },
   { key: "canceling", color: "bg-job-cancelled" },
   { key: "failed", color: "bg-job-failed" },
-];
+]
 
 function MiniTaskBar({ vertex }: { vertex: JobVertex }) {
-  const total = Object.values(vertex.tasks).reduce((a, b) => a + b, 0);
-  if (total === 0) return null;
+  const total = Object.values(vertex.tasks).reduce((a, b) => a + b, 0)
+  if (total === 0) return null
 
   return (
     <div className="flex h-1.5 overflow-hidden rounded-full bg-white/5">
@@ -108,7 +126,7 @@ function MiniTaskBar({ vertex }: { vertex: JobVertex }) {
           ),
       )}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -116,10 +134,10 @@ function MiniTaskBar({ vertex }: { vertex: JobVertex }) {
 // ---------------------------------------------------------------------------
 
 function bpColor(busyTimeMsPerSecond: number): string {
-  const pct = busyTimeMsPerSecond / 10; // ms/s → percentage (0-100)
-  if (pct < 30) return "border-l-job-running"; // green
-  if (pct < 60) return "border-l-fr-amber"; // amber
-  return "border-l-job-failed"; // red
+  const pct = busyTimeMsPerSecond / 10 // ms/s → percentage (0-100)
+  if (pct < 30) return "border-l-job-running" // green
+  if (pct < 60) return "border-l-fr-amber" // amber
+  return "border-l-job-failed" // red
 }
 
 // ---------------------------------------------------------------------------
@@ -127,9 +145,9 @@ function bpColor(busyTimeMsPerSecond: number): string {
 // ---------------------------------------------------------------------------
 
 function bpTextColor(backPressuredMsPerSecond: number): string {
-  if (backPressuredMsPerSecond < 300) return "text-job-running";
-  if (backPressuredMsPerSecond < 600) return "text-fr-amber";
-  return "text-job-failed";
+  if (backPressuredMsPerSecond < 300) return "text-job-running"
+  if (backPressuredMsPerSecond < 600) return "text-fr-amber"
+  return "text-job-failed"
 }
 
 // ---------------------------------------------------------------------------
@@ -142,7 +160,7 @@ const STATUS_DOT_COLORS: Record<JobVertexStatus, string> = {
   FAILED: "bg-job-failed",
   CANCELED: "bg-job-cancelled",
   CREATED: "bg-job-created",
-};
+}
 
 function StatusDot({ status }: { status: JobVertexStatus }) {
   return (
@@ -152,20 +170,23 @@ function StatusDot({ status }: { status: JobVertexStatus }) {
         STATUS_DOT_COLORS[status] ?? "bg-zinc-500",
       )}
     />
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
 // OperatorNode
 // ---------------------------------------------------------------------------
 
-type OperatorNodeData = { vertex: JobVertex; onSelectVertex?: (vertexId: string) => void };
+type OperatorNodeData = {
+  vertex: JobVertex
+  onSelectVertex?: (vertexId: string) => void
+}
 
 export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
-  const { vertex } = data;
-  const { metrics } = vertex;
-  const { type, displayName } = parseNodeType(vertex.name);
-  const colors = NODE_TYPE_COLORS[type];
+  const { vertex } = data
+  const { metrics } = vertex
+  const { type, displayName } = parseNodeType(vertex.name)
+  const colors = NODE_TYPE_COLORS[type]
 
   const nodeContent = (
     <div
@@ -175,7 +196,11 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
         bpColor(metrics.busyTimeMsPerSecond),
       )}
     >
-      <Handle type="target" position={Position.Left} className="!bg-dash-border !border-dash-elevated !size-2" />
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="!bg-dash-border !border-dash-elevated !size-2"
+      />
 
       {/* ── Header ─────────────────────────────────────────────── */}
       <div className={cn("flex items-center gap-2 px-3 py-2", colors.bg)}>
@@ -238,8 +263,8 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
           <button
             type="button"
             onClick={(e) => {
-              e.stopPropagation();
-              data.onSelectVertex!(vertex.id);
+              e.stopPropagation()
+              data.onSelectVertex?.(vertex.id)
             }}
             className="text-[10px] text-zinc-500 hover:text-fr-purple transition-colors"
           >
@@ -248,9 +273,13 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
         </div>
       )}
 
-      <Handle type="source" position={Position.Right} className="!bg-dash-border !border-dash-elevated !size-2" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!bg-dash-border !border-dash-elevated !size-2"
+      />
     </div>
-  );
+  )
 
   return (
     <HoverCard openDelay={400} closeDelay={150}>
@@ -265,7 +294,9 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
 
         {/* ── Hover header ──────────────────────────────────────── */}
         <div className="px-3 py-2 border-b border-white/5">
-          <div className="font-semibold text-sm text-zinc-100">{vertex.name}</div>
+          <div className="font-semibold text-sm text-zinc-100">
+            {vertex.name}
+          </div>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={cn("text-xs font-medium capitalize", colors.text)}>
               {type}
@@ -279,33 +310,44 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
         {/* ── Hover metrics ─────────────────────────────────────── */}
         <div className="px-3 py-2 border-b border-white/5">
           <div className="space-y-1.5">
-            {([
-              ["Status", vertex.status],
-              ["Duration", formatDuration(vertex.duration)],
-              ["Records In", formatSI(metrics.recordsIn)],
-              ["Records Out", formatSI(metrics.recordsOut)],
-              ["Bytes In", formatBytes(metrics.bytesIn)],
-              ["Bytes Out", formatBytes(metrics.bytesOut)],
-              ["Busy Time", `${metrics.busyTimeMsPerSecond} ms/s`],
-              ["Backpressure", `${metrics.backPressuredTimeMsPerSecond} ms/s`],
-            ] as const).map(([label, value]) => {
-              const MIcon = METRIC_ICONS[label];
+            {(
+              [
+                ["Status", vertex.status],
+                ["Duration", formatDuration(vertex.duration)],
+                ["Records In", formatSI(metrics.recordsIn)],
+                ["Records Out", formatSI(metrics.recordsOut)],
+                ["Bytes In", formatBytes(metrics.bytesIn)],
+                ["Bytes Out", formatBytes(metrics.bytesOut)],
+                ["Busy Time", `${metrics.busyTimeMsPerSecond} ms/s`],
+                [
+                  "Backpressure",
+                  `${metrics.backPressuredTimeMsPerSecond} ms/s`,
+                ],
+              ] as const
+            ).map(([label, value]) => {
+              const MIcon = METRIC_ICONS[label]
               return (
-                <div key={label} className="flex items-center justify-between text-xs">
+                <div
+                  key={label}
+                  className="flex items-center justify-between text-xs"
+                >
                   <span className="flex items-center gap-1.5 text-zinc-400">
-                    {MIcon && <MIcon className="h-3 w-3 shrink-0 text-zinc-500" />}
+                    {MIcon && (
+                      <MIcon className="h-3 w-3 shrink-0 text-zinc-500" />
+                    )}
                     {label}
                   </span>
                   <span
                     className={cn(
                       "text-zinc-200 font-mono text-[11px]",
-                      label === "Backpressure" && bpTextColor(metrics.backPressuredTimeMsPerSecond),
+                      label === "Backpressure" &&
+                        bpTextColor(metrics.backPressuredTimeMsPerSecond),
                     )}
                   >
                     {value}
                   </span>
                 </div>
-              );
+              )
             })}
           </div>
         </div>
@@ -320,7 +362,12 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
               .filter((seg) => vertex.tasks[seg.key] > 0)
               .map((seg) => (
                 <div key={seg.key} className="flex items-center gap-1">
-                  <span className={cn("inline-block size-2 rounded-full", seg.color)} />
+                  <span
+                    className={cn(
+                      "inline-block size-2 rounded-full",
+                      seg.color,
+                    )}
+                  />
                   <span className="text-zinc-400 capitalize">{seg.key}</span>
                   <span className="text-zinc-200 font-mono text-[11px]">
                     {vertex.tasks[seg.key]}
@@ -331,5 +378,5 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
         </div>
       </HoverCardContent>
     </HoverCard>
-  );
+  )
 }

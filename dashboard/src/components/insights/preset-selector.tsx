@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import { Zap } from "lucide-react";
-import { PRESETS } from "@/stores/metrics-explorer-store";
-import type { MetricSource } from "@/stores/metrics-explorer-store";
-import { cn } from "@/lib/cn";
+import { Zap } from "lucide-react"
+import { cn } from "@/lib/cn"
+import type { MetricSource } from "@/stores/metrics-explorer-store"
+import { PRESETS } from "@/stores/metrics-explorer-store"
 
 type PresetSelectorProps = {
-  selectedSource: MetricSource | null;
-  onApply: (presetName: string) => void;
-};
+  selectedSource: MetricSource | null
+  onApply: (presetName: string) => void
+}
 
 export function PresetSelector({
   selectedSource,
@@ -24,7 +24,7 @@ export function PresetSelector({
         {Object.entries(PRESETS).map(([name, preset]) => {
           const needsJobVertex =
             preset.source === "job-vertex" &&
-            (!selectedSource || selectedSource.type !== "job-vertex");
+            (!selectedSource || selectedSource.type !== "job-vertex")
 
           return (
             <button
@@ -39,14 +39,16 @@ export function PresetSelector({
                   : "border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200",
               )}
               title={
-                needsJobVertex ? "Requires job + vertex selection" : `Apply ${name} preset`
+                needsJobVertex
+                  ? "Requires job + vertex selection"
+                  : `Apply ${name} preset`
               }
             >
               {name}
             </button>
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }

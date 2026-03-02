@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import { cn } from "../lib/cn";
+import { cn } from "../lib/cn"
 
 export interface MetricCardProps {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: React.ReactNode;
-  accent?: string;
-  className?: string;
-  children?: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: React.ReactNode
+  accent?: string
+  className?: string
+  children?: React.ReactNode
 }
 
 /**
@@ -35,5 +35,5 @@ export function MetricCard({
       <div className="mt-2 text-2xl font-semibold text-zinc-100">{value}</div>
       {children}
     </div>
-  );
+  )
 }

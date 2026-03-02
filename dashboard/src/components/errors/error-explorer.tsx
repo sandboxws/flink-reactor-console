@@ -1,27 +1,27 @@
-"use client";
+"use client"
 
-import { useMemo } from "react";
-import { AlertTriangle } from "lucide-react";
-import { EmptyState } from "@/components/shared/empty-state";
-import { useErrorStore } from "@/stores/error-store";
-import { ErrorDetail } from "./error-detail";
-import { ErrorGroupList } from "./error-group-list";
-import { ErrorTimeline } from "./error-timeline";
+import { AlertTriangle } from "lucide-react"
+import { useMemo } from "react"
+import { EmptyState } from "@/components/shared/empty-state"
+import { useErrorStore } from "@/stores/error-store"
+import { ErrorDetail } from "./error-detail"
+import { ErrorGroupList } from "./error-group-list"
+import { ErrorTimeline } from "./error-timeline"
 
 // ---------------------------------------------------------------------------
 // Error Explorer — master-detail layout
 // ---------------------------------------------------------------------------
 
 export function ErrorExplorer() {
-  const groupsMap = useErrorStore((s) => s.groups);
-  const selectedGroupId = useErrorStore((s) => s.selectedGroupId);
+  const groupsMap = useErrorStore((s) => s.groups)
+  const selectedGroupId = useErrorStore((s) => s.selectedGroupId)
 
-  const groups = useMemo(() => Array.from(groupsMap.values()), [groupsMap]);
+  const groups = useMemo(() => Array.from(groupsMap.values()), [groupsMap])
 
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === selectedGroupId) ?? null,
     [groups, selectedGroupId],
-  );
+  )
 
   if (groups.length === 0) {
     return (
@@ -29,7 +29,7 @@ export function ErrorExplorer() {
         icon={AlertTriangle}
         message="No exceptions recorded yet. Errors will appear here as they are detected in the log stream."
       />
-    );
+    )
   }
 
   return (
@@ -65,5 +65,5 @@ export function ErrorExplorer() {
         )}
       </div>
     </div>
-  );
+  )
 }

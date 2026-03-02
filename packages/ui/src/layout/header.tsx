@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
-import { cn } from "../lib/cn";
+import { cn } from "../lib/cn"
 
 export interface Breadcrumb {
-  key: string;
-  label: string;
+  key: string
+  label: string
 }
 
 export interface HeaderProps {
   /** Root label shown before breadcrumbs */
-  rootLabel?: string;
+  rootLabel?: string
   /** Breadcrumb items */
-  breadcrumbs?: Breadcrumb[];
+  breadcrumbs?: Breadcrumb[]
   /** Right-side content (status indicators, buttons, etc.) */
-  rightContent?: React.ReactNode;
-  className?: string;
+  rightContent?: React.ReactNode
+  className?: string
 }
 
 /**
@@ -62,21 +62,21 @@ export function Header({
         <div className="flex items-center gap-3 text-xs">{rightContent}</div>
       )}
     </header>
-  );
+  )
 }
 
 /**
  * Utility to generate breadcrumbs from a pathname
  */
 export function breadcrumbFromPath(pathname: string): Breadcrumb[] {
-  const segments = pathname.split("/").filter(Boolean);
-  let path = "";
+  const segments = pathname.split("/").filter(Boolean)
+  let path = ""
   return segments.map((s) => {
-    path += `/${s}`;
+    path += `/${s}`
     const label = s
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
-    return { key: path, label };
-  });
+      .join(" ")
+    return { key: path, label }
+  })
 }

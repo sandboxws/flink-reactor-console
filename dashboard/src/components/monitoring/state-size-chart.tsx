@@ -1,18 +1,18 @@
-"use client";
+"use client"
 
-import { useState } from "react";
+import { useState } from "react"
 import {
-  AreaChart,
   Area,
-  LineChart,
+  AreaChart,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { cn } from "@/lib/cn";
-import type { JobCheckpointSummary } from "@/stores/checkpoint-analytics-store";
+} from "recharts"
+import { cn } from "@/lib/cn"
+import type { JobCheckpointSummary } from "@/stores/checkpoint-analytics-store"
 
 // Rotating palette for per-job colors
 const JOB_COLORS = [
@@ -24,88 +24,86 @@ const JOB_COLORS = [
   "#e879f9", // fuchsia
   "#38bdf8", // sky
   "#a3e635", // lime
-];
+]
 
 function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`;
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${bytes} B`;
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${bytes} B`
 }
 
 function formatDuration(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 1000) return `${Math.round(ms)}ms`
+  return `${(ms / 1000).toFixed(1)}s`
 }
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
-type ViewMode = "stateSize" | "duration";
+type ViewMode = "stateSize" | "duration"
 
 // Build chart data: each checkpoint becomes a data point with per-job values
 function buildChartData(
   summaries: JobCheckpointSummary[],
   mode: ViewMode,
-): { data: Array<Record<string, number | string>>; jobNames: string[] } {
+): { data: Record<string, number | string>[]; jobNames: string[] } {
   // Collect all checkpoints with timestamps, keyed by job
   const allPoints: Array<{
-    timestamp: number;
-    jobName: string;
-    value: number;
-  }> = [];
+    timestamp: number
+    jobName: string
+    value: number
+  }> = []
 
   for (const summary of summaries) {
     for (const cp of summary.recentCheckpoints) {
-      if (cp.status !== "COMPLETED") continue;
+      if (cp.status !== "COMPLETED") continue
       allPoints.push({
         timestamp: cp.triggerTimestamp.getTime(),
         jobName: summary.jobName,
         value: mode === "stateSize" ? cp.size : cp.duration,
-      });
+      })
     }
   }
 
-  if (allPoints.length === 0) return { data: [], jobNames: [] };
+  if (allPoints.length === 0) return { data: [], jobNames: [] }
 
   // Group by 1-minute buckets
   const bucketMap = new Map<
     number,
     Record<string, { total: number; count: number }>
-  >();
-  const jobNameSet = new Set<string>();
+  >()
+  const jobNameSet = new Set<string>()
 
   for (const point of allPoints) {
-    const bucketTime =
-      Math.floor(point.timestamp / 60_000) * 60_000;
-    jobNameSet.add(point.jobName);
+    const bucketTime = Math.floor(point.timestamp / 60_000) * 60_000
+    jobNameSet.add(point.jobName)
 
-    if (!bucketMap.has(bucketTime)) bucketMap.set(bucketTime, {});
-    const bucket = bucketMap.get(bucketTime)!;
+    if (!bucketMap.has(bucketTime)) bucketMap.set(bucketTime, {})
+    const bucket = bucketMap.get(bucketTime)!
 
-    if (!bucket[point.jobName])
-      bucket[point.jobName] = { total: 0, count: 0 };
-    bucket[point.jobName].total += point.value;
-    bucket[point.jobName].count += 1;
+    if (!bucket[point.jobName]) bucket[point.jobName] = { total: 0, count: 0 }
+    bucket[point.jobName].total += point.value
+    bucket[point.jobName].count += 1
   }
 
-  const jobNames = Array.from(jobNameSet);
+  const jobNames = Array.from(jobNameSet)
 
   const data = Array.from(bucketMap.entries())
     .sort((a, b) => a[0] - b[0])
     .map(([ts, bucket]) => {
       const point: Record<string, number | string> = {
         time: formatTime(new Date(ts)),
-      };
-      for (const name of jobNames) {
-        const entry = bucket[name];
-        point[name] = entry ? Math.round(entry.total / entry.count) : 0;
       }
-      return point;
-    });
+      for (const name of jobNames) {
+        const entry = bucket[name]
+        point[name] = entry ? Math.round(entry.total / entry.count) : 0
+      }
+      return point
+    })
 
-  return { data, jobNames };
+  return { data, jobNames }
 }
 
 function ChartTooltip({
@@ -114,12 +112,12 @@ function ChartTooltip({
   label,
   mode,
 }: {
-  active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string }>;
-  label?: string;
-  mode: ViewMode;
+  active?: boolean
+  payload?: Array<{ dataKey: string; value: number; color: string }>
+  label?: string
+  mode: ViewMode
 }) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) return null
   return (
     <div
       className="rounded-md border border-dash-border px-2 py-1.5"
@@ -131,9 +129,7 @@ function ChartTooltip({
         .map((p) => (
           <p key={p.dataKey} className="text-xs text-zinc-100">
             <span style={{ color: p.color }}>
-              {p.dataKey.length > 20
-                ? `${p.dataKey.slice(0, 20)}…`
-                : p.dataKey}
+              {p.dataKey.length > 20 ? `${p.dataKey.slice(0, 20)}…` : p.dataKey}
             </span>
             :{" "}
             {mode === "stateSize"
@@ -142,16 +138,16 @@ function ChartTooltip({
           </p>
         ))}
     </div>
-  );
+  )
 }
 
 export function StateSizeChart({
   summaries,
 }: {
-  summaries: JobCheckpointSummary[];
+  summaries: JobCheckpointSummary[]
 }) {
-  const [mode, setMode] = useState<ViewMode>("stateSize");
-  const { data, jobNames } = buildChartData(summaries, mode);
+  const [mode, setMode] = useState<ViewMode>("stateSize")
+  const { data, jobNames } = buildChartData(summaries, mode)
 
   return (
     <div className="glass-card p-4">
@@ -293,5 +289,5 @@ export function StateSizeChart({
         )}
       </div>
     </div>
-  );
+  )
 }

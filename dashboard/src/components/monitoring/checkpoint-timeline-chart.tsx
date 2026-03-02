@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
 import {
-  BarChart,
   Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import type { CheckpointTimelineEntry } from "@/stores/checkpoint-analytics-store";
+} from "recharts"
+import type { CheckpointTimelineEntry } from "@/stores/checkpoint-analytics-store"
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
 function TimelineTooltip({
@@ -19,11 +19,11 @@ function TimelineTooltip({
   payload,
   label,
 }: {
-  active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string }>;
-  label?: string;
+  active?: boolean
+  payload?: Array<{ dataKey: string; value: number; color: string }>
+  label?: string
 }) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) return null
   return (
     <div
       className="rounded-md border border-dash-border px-2 py-1.5"
@@ -39,19 +39,19 @@ function TimelineTooltip({
         </p>
       ))}
     </div>
-  );
+  )
 }
 
 export function CheckpointTimelineChart({
   timeline,
 }: {
-  timeline: CheckpointTimelineEntry[];
+  timeline: CheckpointTimelineEntry[]
 }) {
   const chartData = timeline.map((entry) => ({
     time: formatTime(entry.timestamp),
     successes: entry.successes,
     failures: entry.failures,
-  }));
+  }))
 
   return (
     <div className="glass-card p-4">
@@ -107,5 +107,5 @@ export function CheckpointTimelineChart({
         )}
       </div>
     </div>
-  );
+  )
 }

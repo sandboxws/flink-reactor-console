@@ -1,30 +1,33 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useMemo } from "react";
+import type { Edge, Node, NodeProps } from "@xyflow/react"
 import {
-  ReactFlow,
-  ReactFlowProvider,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-  Controls,
   Background,
   BackgroundVariant,
-} from "@xyflow/react";
-import type { Node, Edge, NodeProps } from "@xyflow/react";
-import type { BottleneckScore, BottleneckSeverity } from "@/data/bottleneck-analyzer";
-import type { JobEdge } from "@/data/cluster-types";
-import { cn } from "@/lib/cn";
-import "@xyflow/react/dist/style.css";
+  Controls,
+  ReactFlow,
+  ReactFlowProvider,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
+} from "@xyflow/react"
+import { useCallback, useEffect, useMemo } from "react"
+import type {
+  BottleneckScore,
+  BottleneckSeverity,
+} from "@/data/bottleneck-analyzer"
+import type { JobEdge } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
+import "@xyflow/react/dist/style.css"
 
 // ---------------------------------------------------------------------------
 // Layout constants
 // ---------------------------------------------------------------------------
 
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 72;
-const COL_GAP = 60;
-const ROW_GAP = 32;
+const NODE_WIDTH = 200
+const NODE_HEIGHT = 72
+const COL_GAP = 60
+const ROW_GAP = 32
 
 // ---------------------------------------------------------------------------
 // Simple topological layout (reuses job-graph.tsx pattern)
@@ -34,79 +37,79 @@ function layoutElements(
   nodes: Node[],
   edges: Edge[],
 ): { nodes: Node[]; edges: Edge[] } {
-  const incoming = new Map<string, Set<string>>();
-  const outgoing = new Map<string, Set<string>>();
+  const incoming = new Map<string, Set<string>>()
+  const outgoing = new Map<string, Set<string>>()
   for (const node of nodes) {
-    incoming.set(node.id, new Set());
-    outgoing.set(node.id, new Set());
+    incoming.set(node.id, new Set())
+    outgoing.set(node.id, new Set())
   }
   for (const edge of edges) {
     if (incoming.has(edge.target) && outgoing.has(edge.source)) {
-      incoming.get(edge.target)!.add(edge.source);
-      outgoing.get(edge.source)!.add(edge.target);
+      incoming.get(edge.target)?.add(edge.source)
+      outgoing.get(edge.source)?.add(edge.target)
     }
   }
 
   // Kahn's algorithm for topological layering
-  const columns: string[][] = [];
-  const colOf = new Map<string, number>();
-  const queue: string[] = [];
+  const columns: string[][] = []
+  const colOf = new Map<string, number>()
+  const queue: string[] = []
 
   for (const node of nodes) {
-    if (incoming.get(node.id)!.size === 0) {
-      queue.push(node.id);
-      colOf.set(node.id, 0);
+    if (incoming.get(node.id)?.size === 0) {
+      queue.push(node.id)
+      colOf.set(node.id, 0)
     }
   }
 
   while (queue.length > 0) {
-    const id = queue.shift()!;
-    const col = colOf.get(id)!;
-    if (!columns[col]) columns[col] = [];
-    columns[col].push(id);
+    const id = queue.shift()!
+    const col = colOf.get(id)!
+    if (!columns[col]) columns[col] = []
+    columns[col].push(id)
 
     for (const target of outgoing.get(id) ?? []) {
-      const targetIn = incoming.get(target)!;
-      targetIn.delete(id);
+      const targetIn = incoming.get(target)!
+      targetIn.delete(id)
       if (targetIn.size === 0) {
-        colOf.set(target, col + 1);
-        queue.push(target);
+        colOf.set(target, col + 1)
+        queue.push(target)
       }
     }
   }
 
   // Handle any nodes not reached by topological sort (disconnected)
-  const positioned = new Set(colOf.keys());
+  const positioned = new Set(colOf.keys())
   for (const node of nodes) {
     if (!positioned.has(node.id)) {
-      if (!columns[0]) columns[0] = [];
-      columns[0].push(node.id);
+      if (!columns[0]) columns[0] = []
+      columns[0].push(node.id)
     }
   }
 
   // Position: top-to-bottom columns
-  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
-  const layoutedNodes: Node[] = [];
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]))
+  const layoutedNodes: Node[] = []
 
   for (let col = 0; col < columns.length; col++) {
-    const ids = columns[col];
-    const totalHeight = ids.length * NODE_HEIGHT + (ids.length - 1) * ROW_GAP;
-    const startY = -totalHeight / 2;
+    const ids = columns[col]
+    const totalHeight = ids.length * NODE_HEIGHT + (ids.length - 1) * ROW_GAP
+    const startY = -totalHeight / 2
 
     for (let row = 0; row < ids.length; row++) {
-      const node = nodeMap.get(ids[row]);
-      if (!node) continue;
+      const node = nodeMap.get(ids[row])
+      if (!node) continue
       layoutedNodes.push({
         ...node,
         position: {
           x: col * (NODE_WIDTH + COL_GAP),
           y: startY + row * (NODE_HEIGHT + ROW_GAP),
         },
-      });
+      })
     }
   }
 
-  return { nodes: layoutedNodes, edges };
+  return { nodes: layoutedNodes, edges }
 }
 
 // ---------------------------------------------------------------------------
@@ -132,21 +135,21 @@ const severityStyles: Record<
     border: "border-job-failed/30",
     text: "text-job-failed",
   },
-};
+}
 
 // ---------------------------------------------------------------------------
 // Custom bottleneck node
 // ---------------------------------------------------------------------------
 
 type BottleneckNodeData = {
-  label: string;
-  parallelism: number;
-  score: number;
-  severity: BottleneckSeverity;
-};
+  label: string
+  parallelism: number
+  score: number
+  severity: BottleneckSeverity
+}
 
 function BottleneckNode({ data }: NodeProps & { data: BottleneckNodeData }) {
-  const style = severityStyles[data.severity];
+  const style = severityStyles[data.severity]
 
   return (
     <div
@@ -161,18 +164,16 @@ function BottleneckNode({ data }: NodeProps & { data: BottleneckNodeData }) {
         {data.label}
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-zinc-500">
-          P={data.parallelism}
-        </span>
+        <span className="text-[10px] text-zinc-500">P={data.parallelism}</span>
         <span className={cn("text-xs font-semibold", style.text)}>
           {data.score}
         </span>
       </div>
     </div>
-  );
+  )
 }
 
-const nodeTypes = { bottleneck: BottleneckNode };
+const nodeTypes = { bottleneck: BottleneckNode }
 
 // ---------------------------------------------------------------------------
 // Inner component (needs ReactFlow context)
@@ -182,14 +183,14 @@ function BottleneckDAGInner({
   scores,
   edges,
 }: {
-  scores: BottleneckScore[];
-  edges: JobEdge[];
+  scores: BottleneckScore[]
+  edges: JobEdge[]
 }) {
-  const { fitView } = useReactFlow();
+  const { fitView } = useReactFlow()
 
   const layouted = useMemo(() => {
     // Build a set of vertex IDs present in scores
-    const vertexIds = new Set(scores.map((s) => s.vertexId));
+    const vertexIds = new Set(scores.map((s) => s.vertexId))
 
     const rawNodes: Node[] = scores.map((s) => ({
       id: s.vertexId,
@@ -201,7 +202,7 @@ function BottleneckDAGInner({
         score: s.score,
         severity: s.severity,
       },
-    }));
+    }))
 
     // Only include edges whose source and target are in the scored vertices
     const rawEdges: Edge[] = edges
@@ -212,23 +213,23 @@ function BottleneckDAGInner({
         target: e.target,
         type: "smoothstep",
         style: { stroke: "var(--color-dash-border)" },
-      }));
+      }))
 
-    return layoutElements(rawNodes, rawEdges);
-  }, [scores, edges]);
+    return layoutElements(rawNodes, rawEdges)
+  }, [scores, edges])
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(layouted.nodes);
-  const [rfEdges, setEdges, onEdgesChange] = useEdgesState(layouted.edges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(layouted.nodes)
+  const [rfEdges, setEdges, onEdgesChange] = useEdgesState(layouted.edges)
 
   useEffect(() => {
-    setNodes(layouted.nodes);
-    setEdges(layouted.edges);
-    requestAnimationFrame(() => fitView({ padding: 0.2 }));
-  }, [layouted, setNodes, setEdges, fitView]);
+    setNodes(layouted.nodes)
+    setEdges(layouted.edges)
+    requestAnimationFrame(() => fitView({ padding: 0.2 }))
+  }, [layouted, setNodes, setEdges, fitView])
 
   const onInit = useCallback(() => {
-    fitView({ padding: 0.2 });
-  }, [fitView]);
+    fitView({ padding: 0.2 })
+  }, [fitView])
 
   return (
     <ReactFlow
@@ -256,7 +257,7 @@ function BottleneckDAGInner({
         color="var(--color-dash-border)"
       />
     </ReactFlow>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -267,15 +268,15 @@ export function BottleneckDAG({
   scores,
   edges,
 }: {
-  scores: BottleneckScore[];
-  edges: JobEdge[];
+  scores: BottleneckScore[]
+  edges: JobEdge[]
 }) {
   if (scores.length === 0) {
     return (
       <div className="glass-card flex items-center justify-center py-16 text-sm text-zinc-500">
         No vertices to display
       </div>
-    );
+    )
   }
 
   return (
@@ -284,5 +285,5 @@ export function BottleneckDAG({
         <BottleneckDAGInner scores={scores} edges={edges} />
       </ReactFlowProvider>
     </div>
-  );
+  )
 }

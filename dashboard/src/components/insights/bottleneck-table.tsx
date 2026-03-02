@@ -1,9 +1,7 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import type { BottleneckScore } from "@/data/bottleneck-analyzer";
-import { cn } from "@/lib/cn";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
+import { useState } from "react"
 import {
   Table,
   TableBody,
@@ -11,21 +9,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
+import type { BottleneckScore } from "@/data/bottleneck-analyzer"
+import { cn } from "@/lib/cn"
 
-type SortColumn = "score" | "vertex" | "job" | "parallelism" | "bp" | "busy";
-type SortDir = "asc" | "desc";
+type SortColumn = "score" | "vertex" | "job" | "parallelism" | "bp" | "busy"
+type SortDir = "asc" | "desc"
 
-const bpColors: Record<string, string> = {
+const _bpColors: Record<string, string> = {
   low: "text-job-running",
   medium: "text-fr-amber",
   high: "text-job-failed",
-};
+}
 
 function bpLabel(factor: number): { label: string; color: string } {
-  if (factor <= 25) return { label: "ok", color: "text-job-running" };
-  if (factor <= 60) return { label: "low", color: "text-fr-amber" };
-  return { label: "high", color: "text-job-failed" };
+  if (factor <= 25) return { label: "ok", color: "text-job-running" }
+  if (factor <= 60) return { label: "low", color: "text-fr-amber" }
+  return { label: "high", color: "text-job-failed" }
 }
 
 const severityBadge: Record<string, { label: string; className: string }> = {
@@ -41,58 +41,54 @@ const severityBadge: Record<string, { label: string; className: string }> = {
     label: "High",
     className: "bg-job-failed/10 text-job-failed border-job-failed/30",
   },
-};
-
-function scoreBarColor(score: number): string {
-  if (score <= 30) return "bg-job-running";
-  if (score <= 60) return "bg-fr-amber";
-  return "bg-job-failed";
 }
 
-export function BottleneckTable({
-  scores,
-}: {
-  scores: BottleneckScore[];
-}) {
-  const [sortCol, setSortCol] = useState<SortColumn>("score");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+function scoreBarColor(score: number): string {
+  if (score <= 30) return "bg-job-running"
+  if (score <= 60) return "bg-fr-amber"
+  return "bg-job-failed"
+}
+
+export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
+  const [sortCol, setSortCol] = useState<SortColumn>("score")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
 
   const handleSort = (col: SortColumn) => {
     if (sortCol === col) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
     } else {
-      setSortCol(col);
-      setSortDir("desc");
+      setSortCol(col)
+      setSortDir("desc")
     }
-  };
+  }
 
   const sorted = [...scores].sort((a, b) => {
-    const mul = sortDir === "asc" ? 1 : -1;
+    const mul = sortDir === "asc" ? 1 : -1
     switch (sortCol) {
       case "score":
-        return (a.score - b.score) * mul;
+        return (a.score - b.score) * mul
       case "vertex":
-        return a.vertexName.localeCompare(b.vertexName) * mul;
+        return a.vertexName.localeCompare(b.vertexName) * mul
       case "job":
-        return a.jobName.localeCompare(b.jobName) * mul;
+        return a.jobName.localeCompare(b.jobName) * mul
       case "parallelism":
-        return (a.parallelism - b.parallelism) * mul;
+        return (a.parallelism - b.parallelism) * mul
       case "bp":
-        return (a.factors.backpressure - b.factors.backpressure) * mul;
+        return (a.factors.backpressure - b.factors.backpressure) * mul
       case "busy":
-        return (a.factors.busyTime - b.factors.busyTime) * mul;
+        return (a.factors.busyTime - b.factors.busyTime) * mul
       default:
-        return 0;
+        return 0
     }
-  });
+  })
 
   function SortIcon({ col }: { col: SortColumn }) {
-    if (sortCol !== col) return <ArrowUpDown className="size-3 text-zinc-600" />;
+    if (sortCol !== col) return <ArrowUpDown className="size-3 text-zinc-600" />
     return sortDir === "asc" ? (
       <ArrowUp className="size-3 text-zinc-300" />
     ) : (
       <ArrowDown className="size-3 text-zinc-300" />
-    );
+    )
   }
 
   if (scores.length === 0) {
@@ -100,7 +96,7 @@ export function BottleneckTable({
       <div className="glass-card flex items-center justify-center py-12 text-sm text-zinc-500">
         No vertices to display
       </div>
-    );
+    )
   }
 
   return (
@@ -167,8 +163,8 @@ export function BottleneckTable({
         </TableHeader>
         <TableBody>
           {sorted.map((s) => {
-            const bp = bpLabel(s.factors.backpressure);
-            const badge = severityBadge[s.severity];
+            const bp = bpLabel(s.factors.backpressure)
+            const badge = severityBadge[s.severity]
             return (
               <TableRow
                 key={`${s.jobId}-${s.vertexId}`}
@@ -218,10 +214,10 @@ export function BottleneckTable({
                   </span>
                 </TableCell>
               </TableRow>
-            );
+            )
           })}
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

@@ -3,40 +3,6 @@
 // ---------------------------------------------------------------------------
 
 import type {
-  FlinkOverviewResponse,
-  FlinkJobsOverviewResponse,
-  FlinkJobDetailAggregate,
-  FlinkTaskManagersResponse,
-  FlinkTaskManagerDetailAggregate,
-  FlinkThreadDumpResponse,
-  FlinkLogListResponse,
-  FlinkMetricItem,
-  FlinkJobManagerDetailAggregate,
-  FlinkClusterConfigResponse,
-  FlinkCheckpointDetailResponse,
-  FlinkSubtaskTimesResponse,
-  FlinkFlamegraphResponse,
-  FlinkJarsResponse,
-  FlinkJarRunResponse,
-} from "@/data/flink-api-types";
-import {
-  mapOverviewResponse,
-  mapJobsOverviewResponse,
-  mapJobDetailAggregate,
-  mapTaskManagers,
-  mapTaskManagerDetail,
-  mapTaskManagerMetrics,
-  mapJobManagerDetail,
-  mapJobManagerMetrics,
-  mapThreadDump,
-  mapLogFileList,
-  mapClusterConfig,
-  mapCheckpointDetail,
-  mapSubtaskTimes,
-  mapFlamegraph,
-  mapJars,
-} from "@/data/flink-api-mappers";
-import type {
   CheckpointDetail,
   ClusterOverview,
   FlamegraphData,
@@ -49,27 +15,61 @@ import type {
   TaskManagerMetrics,
   ThreadDumpInfo,
   UploadedJar,
-} from "@/data/cluster-types";
+} from "@/data/cluster-types"
+import {
+  mapCheckpointDetail,
+  mapClusterConfig,
+  mapFlamegraph,
+  mapJars,
+  mapJobDetailAggregate,
+  mapJobManagerDetail,
+  mapJobManagerMetrics,
+  mapJobsOverviewResponse,
+  mapLogFileList,
+  mapOverviewResponse,
+  mapSubtaskTimes,
+  mapTaskManagerDetail,
+  mapTaskManagerMetrics,
+  mapTaskManagers,
+  mapThreadDump,
+} from "@/data/flink-api-mappers"
+import type {
+  FlinkCheckpointDetailResponse,
+  FlinkClusterConfigResponse,
+  FlinkFlamegraphResponse,
+  FlinkJarRunResponse,
+  FlinkJarsResponse,
+  FlinkJobDetailAggregate,
+  FlinkJobManagerDetailAggregate,
+  FlinkJobsOverviewResponse,
+  FlinkLogListResponse,
+  FlinkMetricItem,
+  FlinkOverviewResponse,
+  FlinkSubtaskTimesResponse,
+  FlinkTaskManagerDetailAggregate,
+  FlinkTaskManagersResponse,
+  FlinkThreadDumpResponse,
+} from "@/data/flink-api-types"
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
+  const res = await fetch(url)
   if (!res.ok) {
-    const body = await res.json().catch(() => null);
+    const body = await res.json().catch(() => null)
     const message =
       body && typeof body === "object" && "error" in body
         ? String((body as { error: string }).error)
-        : `API request failed: ${res.status}`;
-    throw new Error(message);
+        : `API request failed: ${res.status}`
+    throw new Error(message)
   }
-  return res.json() as Promise<T>;
+  return res.json() as Promise<T>
 }
 
 async function fetchText(url: string): Promise<string> {
-  const res = await fetch(url);
+  const res = await fetch(url)
   if (!res.ok) {
-    throw new Error(`API request failed: ${res.status}`);
+    throw new Error(`API request failed: ${res.status}`)
   }
-  return res.text();
+  return res.text()
 }
 
 // ---------------------------------------------------------------------------
@@ -77,42 +77,44 @@ async function fetchText(url: string): Promise<string> {
 // ---------------------------------------------------------------------------
 
 export async function fetchClusterOverview(): Promise<ClusterOverview> {
-  const raw = await fetchJson<FlinkOverviewResponse>("/api/flink/overview");
-  return mapOverviewResponse(raw);
+  const raw = await fetchJson<FlinkOverviewResponse>("/api/flink/overview")
+  return mapOverviewResponse(raw)
 }
 
 export async function fetchJobsOverview(): Promise<{
-  runningJobs: FlinkJob[];
-  completedJobs: FlinkJob[];
+  runningJobs: FlinkJob[]
+  completedJobs: FlinkJob[]
 }> {
-  const raw = await fetchJson<FlinkJobsOverviewResponse>("/api/flink/jobs/overview");
-  return mapJobsOverviewResponse(raw);
+  const raw = await fetchJson<FlinkJobsOverviewResponse>(
+    "/api/flink/jobs/overview",
+  )
+  return mapJobsOverviewResponse(raw)
 }
 
 export type OverviewPageData = {
-  overview: ClusterOverview;
-  runningJobs: FlinkJob[];
-  completedJobs: FlinkJob[];
-};
+  overview: ClusterOverview
+  runningJobs: FlinkJob[]
+  completedJobs: FlinkJob[]
+}
 
 export async function fetchOverviewPageData(): Promise<OverviewPageData> {
   const [overview, jobs] = await Promise.all([
     fetchClusterOverview(),
     fetchJobsOverview(),
-  ]);
+  ])
 
   return {
     overview,
     runningJobs: jobs.runningJobs,
     completedJobs: jobs.completedJobs,
-  };
+  }
 }
 
 export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
   const raw = await fetchJson<FlinkJobDetailAggregate>(
     `/api/flink/jobs/${jobId}/detail`,
-  );
-  return mapJobDetailAggregate(raw);
+  )
+  return mapJobDetailAggregate(raw)
 }
 
 // ---------------------------------------------------------------------------
@@ -120,15 +122,19 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
 // ---------------------------------------------------------------------------
 
 export async function fetchTaskManagers(): Promise<TaskManager[]> {
-  const raw = await fetchJson<FlinkTaskManagersResponse>("/api/flink/taskmanagers");
-  return mapTaskManagers(raw);
+  const raw = await fetchJson<FlinkTaskManagersResponse>(
+    "/api/flink/taskmanagers",
+  )
+  return mapTaskManagers(raw)
 }
 
-export async function fetchTaskManagerDetail(tmId: string): Promise<TaskManager> {
+export async function fetchTaskManagerDetail(
+  tmId: string,
+): Promise<TaskManager> {
   const raw = await fetchJson<FlinkTaskManagerDetailAggregate>(
     `/api/flink/taskmanagers/${tmId}/detail`,
-  );
-  return mapTaskManagerDetail(raw);
+  )
+  return mapTaskManagerDetail(raw)
 }
 
 const TM_METRIC_IDS = [
@@ -146,42 +152,50 @@ const TM_METRIC_IDS = [
   "Status.JVM.GarbageCollector.G1_Young_Generation.Time",
   "Status.JVM.GarbageCollector.G1_Old_Generation.Count",
   "Status.JVM.GarbageCollector.G1_Old_Generation.Time",
-].join(",");
+].join(",")
 
-export async function fetchTaskManagerMetrics(tmId: string): Promise<TaskManagerMetrics> {
+export async function fetchTaskManagerMetrics(
+  tmId: string,
+): Promise<TaskManagerMetrics> {
   const raw = await fetchJson<FlinkMetricItem[]>(
     `/api/flink/taskmanagers/${tmId}/metrics?get=${TM_METRIC_IDS}`,
-  );
-  return mapTaskManagerMetrics(raw);
+  )
+  return mapTaskManagerMetrics(raw)
 }
 
 export async function fetchTaskManagerLog(tmId: string): Promise<string> {
-  return fetchText(`/api/flink/taskmanagers/${tmId}/log`);
+  return fetchText(`/api/flink/taskmanagers/${tmId}/log`)
 }
 
 export async function fetchTaskManagerStdout(tmId: string): Promise<string> {
-  return fetchText(`/api/flink/taskmanagers/${tmId}/stdout`);
+  return fetchText(`/api/flink/taskmanagers/${tmId}/stdout`)
 }
 
-export async function fetchTaskManagerLogs(tmId: string): Promise<LogFileEntry[]> {
+export async function fetchTaskManagerLogs(
+  tmId: string,
+): Promise<LogFileEntry[]> {
   const raw = await fetchJson<FlinkLogListResponse>(
     `/api/flink/taskmanagers/${tmId}/logs`,
-  );
-  return mapLogFileList(raw);
+  )
+  return mapLogFileList(raw)
 }
 
 export async function fetchTaskManagerLogFile(
   tmId: string,
   logName: string,
 ): Promise<string> {
-  return fetchText(`/api/flink/taskmanagers/${tmId}/logs/${encodeURIComponent(logName)}`);
+  return fetchText(
+    `/api/flink/taskmanagers/${tmId}/logs/${encodeURIComponent(logName)}`,
+  )
 }
 
-export async function fetchTaskManagerThreadDump(tmId: string): Promise<ThreadDumpInfo> {
+export async function fetchTaskManagerThreadDump(
+  tmId: string,
+): Promise<ThreadDumpInfo> {
   const raw = await fetchJson<FlinkThreadDumpResponse>(
     `/api/flink/taskmanagers/${tmId}/thread-dump`,
-  );
-  return mapThreadDump(raw);
+  )
+  return mapThreadDump(raw)
 }
 
 // ---------------------------------------------------------------------------
@@ -191,8 +205,8 @@ export async function fetchTaskManagerThreadDump(tmId: string): Promise<ThreadDu
 export async function fetchJobManagerDetail(): Promise<JobManagerInfo> {
   const raw = await fetchJson<FlinkJobManagerDetailAggregate>(
     "/api/flink/jobmanager/detail",
-  );
-  return mapJobManagerDetail(raw);
+  )
+  return mapJobManagerDetail(raw)
 }
 
 const JM_METRIC_IDS = [
@@ -209,45 +223,47 @@ const JM_METRIC_IDS = [
   "Status.JVM.GarbageCollector.G1_Young_Generation.Time",
   "Status.JVM.GarbageCollector.G1_Old_Generation.Count",
   "Status.JVM.GarbageCollector.G1_Old_Generation.Time",
-].join(",");
+].join(",")
 
 export async function fetchJobManagerMetrics(): Promise<{
-  heapUsed: number;
-  heapMax: number;
-  nonHeapUsed: number;
-  nonHeapMax: number;
-  threadCount: number;
-  gcCount: number;
-  gcTime: number;
+  heapUsed: number
+  heapMax: number
+  nonHeapUsed: number
+  nonHeapMax: number
+  threadCount: number
+  gcCount: number
+  gcTime: number
 }> {
   const raw = await fetchJson<FlinkMetricItem[]>(
     `/api/flink/jobmanager/metrics?get=${JM_METRIC_IDS}`,
-  );
-  return mapJobManagerMetrics(raw);
+  )
+  return mapJobManagerMetrics(raw)
 }
 
 export async function fetchJobManagerLog(): Promise<string> {
-  return fetchText("/api/flink/jobmanager/log");
+  return fetchText("/api/flink/jobmanager/log")
 }
 
 export async function fetchJobManagerStdout(): Promise<string> {
-  return fetchText("/api/flink/jobmanager/stdout");
+  return fetchText("/api/flink/jobmanager/stdout")
 }
 
 export async function fetchJobManagerLogs(): Promise<LogFileEntry[]> {
-  const raw = await fetchJson<FlinkLogListResponse>("/api/flink/jobmanager/logs");
-  return mapLogFileList(raw);
+  const raw = await fetchJson<FlinkLogListResponse>(
+    "/api/flink/jobmanager/logs",
+  )
+  return mapLogFileList(raw)
 }
 
 export async function fetchJobManagerLogFile(logName: string): Promise<string> {
-  return fetchText(`/api/flink/jobmanager/logs/${encodeURIComponent(logName)}`);
+  return fetchText(`/api/flink/jobmanager/logs/${encodeURIComponent(logName)}`)
 }
 
 export async function fetchJobManagerThreadDump(): Promise<ThreadDumpInfo> {
   const raw = await fetchJson<FlinkThreadDumpResponse>(
     "/api/flink/jobmanager/thread-dump",
-  );
-  return mapThreadDump(raw);
+  )
+  return mapThreadDump(raw)
 }
 
 // ---------------------------------------------------------------------------
@@ -255,8 +271,8 @@ export async function fetchJobManagerThreadDump(): Promise<ThreadDumpInfo> {
 // ---------------------------------------------------------------------------
 
 export async function fetchClusterConfig(): Promise<FlinkFeatureFlags> {
-  const raw = await fetchJson<FlinkClusterConfigResponse>("/api/flink/config");
-  return mapClusterConfig(raw);
+  const raw = await fetchJson<FlinkClusterConfigResponse>("/api/flink/config")
+  return mapClusterConfig(raw)
 }
 
 // ---------------------------------------------------------------------------
@@ -266,14 +282,14 @@ export async function fetchClusterConfig(): Promise<FlinkFeatureFlags> {
 export async function cancelJob(jobId: string): Promise<void> {
   const res = await fetch(`/api/flink/jobs/${jobId}/cancel`, {
     method: "PATCH",
-  });
+  })
   if (!res.ok) {
-    const body = await res.json().catch(() => null);
+    const body = await res.json().catch(() => null)
     const message =
       body && typeof body === "object" && "error" in body
         ? String((body as { error: string }).error)
-        : `Failed to cancel job: ${res.status}`;
-    throw new Error(message);
+        : `Failed to cancel job: ${res.status}`
+    throw new Error(message)
   }
 }
 
@@ -290,7 +306,7 @@ const VERTEX_METRIC_IDS = [
   "backPressuredTimeMsPerSecond",
   "idleTimeMsPerSecond",
   "currentInputWatermark",
-].join(",");
+].join(",")
 
 export async function fetchVertexMetrics(
   jobId: string,
@@ -298,7 +314,7 @@ export async function fetchVertexMetrics(
 ): Promise<FlinkMetricItem[]> {
   return fetchJson<FlinkMetricItem[]>(
     `/api/flink/jobs/${jobId}/vertices/${vertexId}/metrics?get=${VERTEX_METRIC_IDS}`,
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -306,26 +322,26 @@ export async function fetchVertexMetrics(
 // ---------------------------------------------------------------------------
 
 export async function fetchMetricList(proxyUrl: string): Promise<string[]> {
-  const raw = await fetchJson<FlinkMetricItem[]>(proxyUrl);
-  return raw.map((item) => item.id);
+  const raw = await fetchJson<FlinkMetricItem[]>(proxyUrl)
+  return raw.map((item) => item.id)
 }
 
 export async function fetchMetricValues(
   proxyUrl: string,
   metricIds: string[],
 ): Promise<Record<string, number>> {
-  const separator = proxyUrl.includes("?") ? "&" : "?";
+  const separator = proxyUrl.includes("?") ? "&" : "?"
   const raw = await fetchJson<FlinkMetricItem[]>(
     `${proxyUrl}${separator}get=${metricIds.join(",")}`,
-  );
-  const result: Record<string, number> = {};
+  )
+  const result: Record<string, number> = {}
   for (const item of raw) {
-    const parsed = parseFloat(item.value);
-    if (!isNaN(parsed)) {
-      result[item.id] = parsed;
+    const parsed = parseFloat(item.value)
+    if (!Number.isNaN(parsed)) {
+      result[item.id] = parsed
     }
   }
-  return result;
+  return result
 }
 
 // ---------------------------------------------------------------------------
@@ -338,8 +354,8 @@ export async function fetchCheckpointDetail(
 ): Promise<CheckpointDetail> {
   const raw = await fetchJson<FlinkCheckpointDetailResponse>(
     `/api/flink/jobs/${jobId}/checkpoints/${checkpointId}/detail`,
-  );
-  return mapCheckpointDetail(raw);
+  )
+  return mapCheckpointDetail(raw)
 }
 
 // ---------------------------------------------------------------------------
@@ -352,8 +368,8 @@ export async function fetchSubtaskTimes(
 ): Promise<SubtaskTimeline> {
   const raw = await fetchJson<FlinkSubtaskTimesResponse>(
     `/api/flink/jobs/${jobId}/vertices/${vertexId}/subtasktimes`,
-  );
-  return mapSubtaskTimes(raw);
+  )
+  return mapSubtaskTimes(raw)
 }
 
 // ---------------------------------------------------------------------------
@@ -367,8 +383,8 @@ export async function fetchFlamegraph(
 ): Promise<FlamegraphData> {
   const raw = await fetchJson<FlinkFlamegraphResponse>(
     `/api/flink/jobs/${jobId}/vertices/${vertexId}/flamegraph?type=${type}`,
-  );
-  return mapFlamegraph(raw);
+  )
+  return mapFlamegraph(raw)
 }
 
 // ---------------------------------------------------------------------------
@@ -376,77 +392,74 @@ export async function fetchFlamegraph(
 // ---------------------------------------------------------------------------
 
 export async function fetchJars(): Promise<UploadedJar[]> {
-  const raw = await fetchJson<FlinkJarsResponse>("/api/flink/jars");
-  return mapJars(raw);
+  const raw = await fetchJson<FlinkJarsResponse>("/api/flink/jars")
+  return mapJars(raw)
 }
 
 export async function uploadJar(file: File): Promise<UploadedJar[]> {
-  const formData = new FormData();
-  formData.append("jarfile", file);
+  const formData = new FormData()
+  formData.append("jarfile", file)
   const res = await fetch("/api/flink/jars", {
     method: "POST",
     body: formData,
-  });
+  })
   if (!res.ok) {
-    const body = await res.json().catch(() => null);
+    const body = await res.json().catch(() => null)
     const message =
       body && typeof body === "object" && "error" in body
         ? String((body as { error: string }).error)
-        : `Failed to upload JAR: ${res.status}`;
-    throw new Error(message);
+        : `Failed to upload JAR: ${res.status}`
+    throw new Error(message)
   }
   // Re-fetch the JAR list to get the full entry with entry classes
-  return fetchJars();
+  return fetchJars()
 }
 
 export async function deleteJar(jarId: string): Promise<void> {
   const res = await fetch(`/api/flink/jars/${encodeURIComponent(jarId)}`, {
     method: "DELETE",
-  });
+  })
   if (!res.ok) {
-    const body = await res.json().catch(() => null);
+    const body = await res.json().catch(() => null)
     const message =
       body && typeof body === "object" && "error" in body
         ? String((body as { error: string }).error)
-        : `Failed to delete JAR: ${res.status}`;
-    throw new Error(message);
+        : `Failed to delete JAR: ${res.status}`
+    throw new Error(message)
   }
 }
 
 export async function runJar(
   jarId: string,
   options: {
-    entryClass?: string;
-    parallelism?: number;
-    programArgs?: string;
-    savepointPath?: string | null;
-    allowNonRestoredState?: boolean;
+    entryClass?: string
+    parallelism?: number
+    programArgs?: string
+    savepointPath?: string | null
+    allowNonRestoredState?: boolean
   },
 ): Promise<string> {
-  const body: Record<string, unknown> = {};
-  if (options.entryClass) body["entry-class"] = options.entryClass;
-  if (options.parallelism) body.parallelism = options.parallelism;
-  if (options.programArgs) body["program-args"] = options.programArgs;
-  if (options.savepointPath) body["savepointPath"] = options.savepointPath;
+  const body: Record<string, unknown> = {}
+  if (options.entryClass) body["entry-class"] = options.entryClass
+  if (options.parallelism) body.parallelism = options.parallelism
+  if (options.programArgs) body["program-args"] = options.programArgs
+  if (options.savepointPath) body.savepointPath = options.savepointPath
   if (options.allowNonRestoredState)
-    body["allowNonRestoredState"] = options.allowNonRestoredState;
+    body.allowNonRestoredState = options.allowNonRestoredState
 
-  const res = await fetch(
-    `/api/flink/jars/${encodeURIComponent(jarId)}/run`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
+  const res = await fetch(`/api/flink/jars/${encodeURIComponent(jarId)}/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
   if (!res.ok) {
-    const errBody = await res.json().catch(() => null);
+    const errBody = await res.json().catch(() => null)
     const message =
       errBody && typeof errBody === "object" && "error" in errBody
         ? String((errBody as { error: string }).error)
-        : `Failed to run JAR: ${res.status}`;
-    throw new Error(message);
+        : `Failed to run JAR: ${res.status}`
+    throw new Error(message)
   }
-  const raw = (await res.json()) as FlinkJarRunResponse;
-  return raw.jobid;
+  const raw = (await res.json()) as FlinkJarRunResponse
+  return raw.jobid
 }

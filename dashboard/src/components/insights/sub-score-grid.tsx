@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   Activity,
@@ -6,9 +6,9 @@ import {
   Layers,
   MemoryStick,
   Shield,
-} from "lucide-react";
-import { MetricCard } from "@/components/shared/metric-card";
-import type { HealthSubScore } from "@/stores/insights-store";
+} from "lucide-react"
+import { MetricCard } from "@/components/shared/metric-card"
+import type { HealthSubScore } from "@/stores/insights-store"
 
 const SUB_SCORE_ICONS: Record<
   string,
@@ -19,20 +19,20 @@ const SUB_SCORE_ICONS: Record<
   "Checkpoint Health": Shield,
   "Memory Pressure": MemoryStick,
   "Exception Rate": AlertTriangle,
-};
+}
 
 const STATUS_ACCENTS: Record<string, string> = {
   healthy: "text-job-running",
   warning: "text-fr-amber",
   critical: "text-job-failed",
-};
+}
 
 export function SubScoreGrid({ subScores }: { subScores: HealthSubScore[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       {subScores.map((sub) => {
-        const Icon = SUB_SCORE_ICONS[sub.name] ?? Activity;
-        const accent = STATUS_ACCENTS[sub.status] ?? "text-zinc-500";
+        const Icon = SUB_SCORE_ICONS[sub.name] ?? Activity
+        const accent = STATUS_ACCENTS[sub.status] ?? "text-zinc-500"
 
         return (
           <MetricCard
@@ -44,8 +44,8 @@ export function SubScoreGrid({ subScores }: { subScores: HealthSubScore[] }) {
           >
             <p className="mt-1 text-xs text-zinc-500">{sub.detail}</p>
           </MetricCard>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { X } from "lucide-react"
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"
 
-const Dialog = DialogPrimitive.Root;
-const DialogTrigger = DialogPrimitive.Trigger;
-const DialogPortal = DialogPrimitive.Portal;
-const DialogClose = DialogPrimitive.Close;
+const Dialog = DialogPrimitive.Root
+const DialogTrigger = DialogPrimitive.Trigger
+const DialogPortal = DialogPrimitive.Portal
+const DialogClose = DialogPrimitive.Close
 
 function DialogOverlay({
   className,
@@ -22,7 +22,7 @@ function DialogOverlay({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function DialogContent({
@@ -47,7 +47,7 @@ function DialogContent({
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPortal>
-  );
+  )
 }
 
 function DialogHeader({
@@ -62,7 +62,7 @@ function DialogHeader({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function DialogFooter({
@@ -77,7 +77,7 @@ function DialogFooter({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function DialogTitle({
@@ -92,7 +92,7 @@ function DialogTitle({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function DialogDescription({
@@ -104,7 +104,7 @@ function DialogDescription({
       className={cn("text-sm text-zinc-500", className)}
       {...props}
     />
-  );
+  )
 }
 
 export {
@@ -118,4 +118,4 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-};
+}

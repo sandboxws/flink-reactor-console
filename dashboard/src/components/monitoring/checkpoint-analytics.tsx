@@ -1,25 +1,25 @@
-"use client";
+"use client"
 
-import { CheckCircle2, Clock, Database, Hash } from "lucide-react";
-import { MetricCard } from "@/components/shared/metric-card";
-import { useCheckpointAnalyticsStore } from "@/stores/checkpoint-analytics-store";
-import { useClusterStore } from "@/stores/cluster-store";
-import { CheckpointJobTable } from "./checkpoint-job-table";
-import { CheckpointTimelineChart } from "./checkpoint-timeline-chart";
-import { StateSizeChart } from "./state-size-chart";
+import { CheckCircle2, Clock, Database, Hash } from "lucide-react"
+import { MetricCard } from "@/components/shared/metric-card"
+import { useCheckpointAnalyticsStore } from "@/stores/checkpoint-analytics-store"
+import { useClusterStore } from "@/stores/cluster-store"
+import { CheckpointJobTable } from "./checkpoint-job-table"
+import { CheckpointTimelineChart } from "./checkpoint-timeline-chart"
+import { StateSizeChart } from "./state-size-chart"
 
 // Helpers
 
 function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`;
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${bytes} B`;
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${bytes} B`
 }
 
 function formatDuration(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 1000) return `${Math.round(ms)}ms`
+  return `${(ms / 1000).toFixed(1)}s`
 }
 
 // Loading skeleton
@@ -42,7 +42,7 @@ function LoadingSkeleton() {
         <div className="h-[290px] animate-pulse rounded-lg bg-white/[0.03]" />
       </div>
     </div>
-  );
+  )
 }
 
 // Empty state
@@ -62,20 +62,20 @@ function EmptyState() {
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 // Main component
 
 export function CheckpointAnalytics() {
-  const loading = useCheckpointAnalyticsStore((s) => s.loading);
-  const summaries = useCheckpointAnalyticsStore((s) => s.summaries);
-  const timeline = useCheckpointAnalyticsStore((s) => s.timeline);
-  const aggregates = useCheckpointAnalyticsStore((s) => s.aggregates);
-  const runningJobs = useClusterStore((s) => s.runningJobs);
+  const loading = useCheckpointAnalyticsStore((s) => s.loading)
+  const summaries = useCheckpointAnalyticsStore((s) => s.summaries)
+  const timeline = useCheckpointAnalyticsStore((s) => s.timeline)
+  const aggregates = useCheckpointAnalyticsStore((s) => s.aggregates)
+  const runningJobs = useClusterStore((s) => s.runningJobs)
 
-  if (loading && !aggregates) return <LoadingSkeleton />;
-  if (runningJobs.length === 0) return <EmptyState />;
+  if (loading && !aggregates) return <LoadingSkeleton />
+  if (runningJobs.length === 0) return <EmptyState />
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -96,9 +96,7 @@ export function CheckpointAnalytics() {
           icon={CheckCircle2}
           label="Success Rate"
           value={
-            aggregates
-              ? `${aggregates.overallSuccessRate.toFixed(1)}%`
-              : "—"
+            aggregates ? `${aggregates.overallSuccessRate.toFixed(1)}%` : "—"
           }
           accent={
             !aggregates
@@ -113,17 +111,13 @@ export function CheckpointAnalytics() {
         <MetricCard
           icon={Clock}
           label="Avg Duration"
-          value={
-            aggregates ? formatDuration(aggregates.avgDuration) : "—"
-          }
+          value={aggregates ? formatDuration(aggregates.avgDuration) : "—"}
           accent="text-fr-amber"
         />
         <MetricCard
           icon={Database}
           label="Total State Size"
-          value={
-            aggregates ? formatBytes(aggregates.totalStateSize) : "—"
-          }
+          value={aggregates ? formatBytes(aggregates.totalStateSize) : "—"}
           accent="text-fr-coral"
         />
       </div>
@@ -137,5 +131,5 @@ export function CheckpointAnalytics() {
         <StateSizeChart summaries={summaries} />
       </div>
     </div>
-  );
+  )
 }

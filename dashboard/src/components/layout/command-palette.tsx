@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { Command } from "cmdk";
+import { Command } from "cmdk"
 import {
   AlertTriangle,
   CheckCircle2,
@@ -10,9 +10,9 @@ import {
   Server,
   Settings,
   Upload,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useUiStore } from "@/stores/ui-store";
+} from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useUiStore } from "@/stores/ui-store"
 
 const ROUTES = [
   { label: "Overview", href: "/overview", icon: LayoutDashboard },
@@ -23,18 +23,18 @@ const ROUTES = [
   { label: "Logs", href: "/logs", icon: ScrollText },
   { label: "Errors", href: "/errors", icon: AlertTriangle },
   { label: "Submit New Job", href: "/jobs/submit", icon: Upload },
-];
+]
 
 export function CommandPalette() {
-  const open = useUiStore((s) => s.commandPaletteOpen);
-  const setOpen = useUiStore((s) => s.toggleCommandPalette);
-  const router = useRouter();
+  const open = useUiStore((s) => s.commandPaletteOpen)
+  const setOpen = useUiStore((s) => s.toggleCommandPalette)
+  const router = useRouter()
 
-  if (!open) return null;
+  if (!open) return null
 
   function navigate(href: string) {
-    router.push(href);
-    setOpen();
+    router.push(href)
+    setOpen()
   }
 
   return (
@@ -73,5 +73,5 @@ export function CommandPalette() {
         </Command.List>
       </Command>
     </div>
-  );
+  )
 }

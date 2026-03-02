@@ -1,16 +1,17 @@
-"use client";
+"use client"
 
-import { useState } from "react";
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -19,20 +20,19 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/select"
 import {
-  METRIC_DEFINITIONS,
   type AlertCondition,
   type AlertRule,
   type AlertSeverity,
-} from "@/stores/alerts-store";
+  METRIC_DEFINITIONS,
+} from "@/stores/alerts-store"
 
 type CreateRuleDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onCreate: (rule: Omit<AlertRule, "id" | "isPreset">) => void;
-};
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onCreate: (rule: Omit<AlertRule, "id" | "isPreset">) => void
+}
 
 const CONDITION_OPTIONS: { value: AlertCondition; label: string }[] = [
   { value: ">", label: "> (greater than)" },
@@ -41,39 +41,39 @@ const CONDITION_OPTIONS: { value: AlertCondition; label: string }[] = [
   { value: "!=", label: "!= (not equal)" },
   { value: ">=", label: ">= (greater or equal)" },
   { value: "<=", label: "<= (less or equal)" },
-];
+]
 
 const SEVERITY_OPTIONS: { value: AlertSeverity; label: string }[] = [
   { value: "critical", label: "Critical" },
   { value: "warning", label: "Warning" },
   { value: "info", label: "Info" },
-];
+]
 
 // Group metrics by source
 const METRIC_GROUPS = METRIC_DEFINITIONS.reduce(
   (groups, m) => {
-    if (!groups[m.group]) groups[m.group] = [];
-    groups[m.group].push(m);
-    return groups;
+    if (!groups[m.group]) groups[m.group] = []
+    groups[m.group].push(m)
+    return groups
   },
   {} as Record<string, typeof METRIC_DEFINITIONS>,
-);
+)
 
 export function CreateRuleDialog({
   open,
   onOpenChange,
   onCreate,
 }: CreateRuleDialogProps) {
-  const [name, setName] = useState("");
-  const [metric, setMetric] = useState("");
-  const [condition, setCondition] = useState<AlertCondition>(">");
-  const [threshold, setThreshold] = useState("");
-  const [consecutive, setConsecutive] = useState("2");
-  const [severity, setSeverity] = useState<AlertSeverity>("warning");
+  const [name, setName] = useState("")
+  const [metric, setMetric] = useState("")
+  const [condition, setCondition] = useState<AlertCondition>(">")
+  const [threshold, setThreshold] = useState("")
+  const [consecutive, setConsecutive] = useState("2")
+  const [severity, setSeverity] = useState<AlertSeverity>("warning")
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim() || !metric || !threshold.trim()) return;
+    e.preventDefault()
+    if (!name.trim() || !metric || !threshold.trim()) return
 
     onCreate({
       name: name.trim(),
@@ -83,16 +83,16 @@ export function CreateRuleDialog({
       requiredConsecutive: Math.max(1, Number(consecutive) || 2),
       severity,
       enabled: true,
-    });
+    })
 
     // Reset form
-    setName("");
-    setMetric("");
-    setCondition(">");
-    setThreshold("");
-    setConsecutive("2");
-    setSeverity("warning");
-    onOpenChange(false);
+    setName("")
+    setMetric("")
+    setCondition(">")
+    setThreshold("")
+    setConsecutive("2")
+    setSeverity("warning")
+    onOpenChange(false)
   }
 
   return (
@@ -214,12 +214,15 @@ export function CreateRuleDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!name.trim() || !metric || !threshold.trim()}>
+            <Button
+              type="submit"
+              disabled={!name.trim() || !metric || !threshold.trim()}
+            >
               Create Rule
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

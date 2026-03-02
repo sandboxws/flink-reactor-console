@@ -1,27 +1,27 @@
-"use client";
+"use client"
 
-import { Trash2 } from "lucide-react";
-import type { AlertRule } from "@/stores/alerts-store";
-import { cn } from "@/lib/cn";
-import { Switch } from "@/components/ui/switch";
+import { Trash2 } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/cn"
+import type { AlertRule } from "@/stores/alerts-store"
 
 type RuleListProps = {
-  rules: AlertRule[];
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
-};
+  rules: AlertRule[]
+  onToggle: (id: string) => void
+  onDelete: (id: string) => void
+}
 
 const SEVERITY_BADGE = {
   critical: "text-job-failed bg-job-failed/10",
   warning: "text-fr-amber bg-fr-amber/10",
   info: "text-fr-purple bg-fr-purple/10",
-} as const;
+} as const
 
 const CONDITION_LABELS: Record<string, string> = {
   ">": ">",
@@ -30,7 +30,7 @@ const CONDITION_LABELS: Record<string, string> = {
   "!=": "!=",
   ">=": ">=",
   "<=": "<=",
-};
+}
 
 export function RuleList({ rules, onToggle, onDelete }: RuleListProps) {
   if (rules.length === 0) {
@@ -38,7 +38,7 @@ export function RuleList({ rules, onToggle, onDelete }: RuleListProps) {
       <div className="glass-card flex items-center justify-center py-8 text-xs text-zinc-600">
         No rules configured
       </div>
-    );
+    )
   }
 
   return (
@@ -147,5 +147,5 @@ export function RuleList({ rules, onToggle, onDelete }: RuleListProps) {
         </table>
       </div>
     </div>
-  );
+  )
 }

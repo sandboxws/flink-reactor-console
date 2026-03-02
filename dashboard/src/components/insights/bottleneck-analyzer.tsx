@@ -1,12 +1,12 @@
-"use client";
+"use client"
 
-import { AlertTriangle, BarChart3, Layers, Search } from "lucide-react";
-import { MetricCard } from "@/components/shared/metric-card";
-import { useClusterStore } from "@/stores/cluster-store";
-import { useInsightsStore } from "@/stores/insights-store";
-import { BottleneckDAG } from "./bottleneck-dag";
-import { BottleneckTable } from "./bottleneck-table";
-import { RecommendationsPanel } from "./recommendations-panel";
+import { AlertTriangle, BarChart3, Layers, Search } from "lucide-react"
+import { MetricCard } from "@/components/shared/metric-card"
+import { useClusterStore } from "@/stores/cluster-store"
+import { useInsightsStore } from "@/stores/insights-store"
+import { BottleneckDAG } from "./bottleneck-dag"
+import { BottleneckTable } from "./bottleneck-table"
+import { RecommendationsPanel } from "./recommendations-panel"
 
 function LoadingSkeleton() {
   return (
@@ -23,7 +23,7 @@ function LoadingSkeleton() {
         <div className="glass-card h-[300px] animate-pulse" />
       </div>
     </div>
-  );
+  )
 }
 
 function EmptyState() {
@@ -40,42 +40,43 @@ function EmptyState() {
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 export function BottleneckAnalyzerPage() {
-  const runningJobs = useClusterStore((s) => s.runningJobs);
-  const bottleneckScores = useInsightsStore((s) => s.bottleneckScores);
-  const recommendations = useInsightsStore((s) => s.recommendations);
-  const selectedJobId = useInsightsStore((s) => s.selectedBottleneckJobId);
-  const setSelectedJob = useInsightsStore((s) => s.setSelectedBottleneckJob);
-  const bottleneckLoading = useInsightsStore((s) => s.bottleneckLoading);
+  const runningJobs = useClusterStore((s) => s.runningJobs)
+  const bottleneckScores = useInsightsStore((s) => s.bottleneckScores)
+  const recommendations = useInsightsStore((s) => s.recommendations)
+  const selectedJobId = useInsightsStore((s) => s.selectedBottleneckJobId)
+  const setSelectedJob = useInsightsStore((s) => s.setSelectedBottleneckJob)
+  const bottleneckLoading = useInsightsStore((s) => s.bottleneckLoading)
 
   if (bottleneckLoading && bottleneckScores.length === 0) {
-    return <LoadingSkeleton />;
+    return <LoadingSkeleton />
   }
 
   if (runningJobs.length === 0) {
-    return <EmptyState />;
+    return <EmptyState />
   }
 
   // Summary metrics
-  const worstScore = bottleneckScores.length > 0
-    ? Math.max(...bottleneckScores.map((s) => s.score))
-    : 0;
+  const worstScore =
+    bottleneckScores.length > 0
+      ? Math.max(...bottleneckScores.map((s) => s.score))
+      : 0
   const jobsWithIssues = new Set(
     bottleneckScores.filter((s) => s.severity !== "low").map((s) => s.jobId),
-  ).size;
+  ).size
 
   // Collect edges from all analyzed jobs (for DAG)
   const selectedJob = selectedJobId
     ? runningJobs.find((j) => j.id === selectedJobId)
-    : null;
-  const edges = selectedJob?.plan?.edges ?? (
-    selectedJobId === null
+    : null
+  const edges =
+    selectedJob?.plan?.edges ??
+    (selectedJobId === null
       ? runningJobs.flatMap((j) => j.plan?.edges ?? [])
-      : []
-  );
+      : [])
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -137,5 +138,5 @@ export function BottleneckAnalyzerPage() {
         <RecommendationsPanel recommendations={recommendations} />
       </div>
     </div>
-  );
+  )
 }

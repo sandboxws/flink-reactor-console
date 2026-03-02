@@ -1,61 +1,61 @@
-"use client";
+"use client"
 
-import { Check, Moon, Paintbrush, RefreshCw, Sun } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/cn";
-import { TIMESTAMP_FORMATS } from "@/lib/constants";
+import { Check, Moon, Paintbrush, RefreshCw, Sun } from "lucide-react"
+import { usePathname } from "next/navigation"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { useClusterStore } from "@/stores/cluster-store";
-import { useLogStore } from "@/stores/log-store";
-import type { Palette } from "@/stores/ui-store";
-import { useUiStore } from "@/stores/ui-store";
+} from "@/components/ui/popover"
+import { cn } from "@/lib/cn"
+import { TIMESTAMP_FORMATS } from "@/lib/constants"
+import { useClusterStore } from "@/stores/cluster-store"
+import { useLogStore } from "@/stores/log-store"
+import type { Palette } from "@/stores/ui-store"
+import { useUiStore } from "@/stores/ui-store"
 
 const FORMAT_CYCLE: (keyof typeof TIMESTAMP_FORMATS)[] = [
   "time",
   "full",
   "short",
-];
+]
 
-type Crumb = { key: string; label: string };
+type Crumb = { key: string; label: string }
 
 function breadcrumbFromPath(pathname: string): Crumb[] {
-  const segments = pathname.split("/").filter(Boolean);
-  let path = "";
+  const segments = pathname.split("/").filter(Boolean)
+  let path = ""
   return segments.map((s) => {
-    path += `/${s}`;
+    path += `/${s}`
     const label = s
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
-    return { key: path, label };
-  });
+      .join(" ")
+    return { key: path, label }
+  })
 }
 
-const LOG_PATHS = ["/logs", "/errors"];
-const CLUSTER_PATHS = ["/overview", "/jobs", "/task-managers", "/job-manager"];
+const LOG_PATHS = ["/logs", "/errors"]
+const CLUSTER_PATHS = ["/overview", "/jobs", "/task-managers", "/job-manager"]
 
 function isLogPage(pathname: string): boolean {
-  return LOG_PATHS.some((p) => pathname.startsWith(p));
+  return LOG_PATHS.some((p) => pathname.startsWith(p))
 }
 
 function isClusterPage(pathname: string): boolean {
-  return CLUSTER_PATHS.some((p) => pathname.startsWith(p));
+  return CLUSTER_PATHS.some((p) => pathname.startsWith(p))
 }
 
 function LogHeaderRight() {
-  const isStreaming = useLogStore((s) => s.isStreaming);
-  const entryCount = useLogStore((s) => s.entries.length);
-  const timestampFormat = useUiStore((s) => s.timestampFormat);
-  const setTimestampFormat = useUiStore((s) => s.setTimestampFormat);
+  const isStreaming = useLogStore((s) => s.isStreaming)
+  const entryCount = useLogStore((s) => s.entries.length)
+  const timestampFormat = useUiStore((s) => s.timestampFormat)
+  const setTimestampFormat = useUiStore((s) => s.setTimestampFormat)
 
   function cycleFormat() {
-    const idx = FORMAT_CYCLE.indexOf(timestampFormat);
-    const next = FORMAT_CYCLE[(idx + 1) % FORMAT_CYCLE.length];
-    setTimestampFormat(next);
+    const idx = FORMAT_CYCLE.indexOf(timestampFormat)
+    const next = FORMAT_CYCLE[(idx + 1) % FORMAT_CYCLE.length]
+    setTimestampFormat(next)
   }
 
   return (
@@ -87,17 +87,17 @@ function LogHeaderRight() {
         </span>
       </div>
     </>
-  );
+  )
 }
 
 function ClusterHeaderRight() {
-  const lastUpdated = useClusterStore((s) => s.lastUpdated);
-  const refresh = useClusterStore((s) => s.refresh);
-  const isPolling = useClusterStore((s) => s.isPolling);
+  const lastUpdated = useClusterStore((s) => s.lastUpdated)
+  const refresh = useClusterStore((s) => s.refresh)
+  const isPolling = useClusterStore((s) => s.isPolling)
 
   const secondsAgo = lastUpdated
     ? Math.max(0, Math.round((Date.now() - lastUpdated.getTime()) / 1000))
-    : null;
+    : null
 
   return (
     <>
@@ -126,13 +126,13 @@ function ClusterHeaderRight() {
         </span>
       </div>
     </>
-  );
+  )
 }
 
 const PALETTES: {
-  id: Palette;
-  label: string;
-  swatches: string[];
+  id: Palette
+  label: string
+  swatches: string[]
 }[] = [
   {
     id: "tokyo-night",
@@ -144,13 +144,13 @@ const PALETTES: {
     label: "Gruvpuccin",
     swatches: ["#e78a4e", "#a9b665", "#7daea3", "#d8a657"],
   },
-];
+]
 
 function ThemeSwitcher() {
-  const theme = useUiStore((s) => s.theme);
-  const palette = useUiStore((s) => s.palette);
-  const toggleTheme = useUiStore((s) => s.toggleTheme);
-  const setPalette = useUiStore((s) => s.setPalette);
+  const theme = useUiStore((s) => s.theme)
+  const palette = useUiStore((s) => s.palette)
+  const toggleTheme = useUiStore((s) => s.toggleTheme)
+  const setPalette = useUiStore((s) => s.setPalette)
 
   return (
     <Popover>
@@ -191,9 +191,7 @@ function ThemeSwitcher() {
                 ))}
               </div>
               <span className="flex-1">{p.label}</span>
-              {palette === p.id && (
-                <Check className="size-3 text-zinc-400" />
-              )}
+              {palette === p.id && <Check className="size-3 text-zinc-400" />}
             </button>
           ))}
         </div>
@@ -236,12 +234,12 @@ function ThemeSwitcher() {
         </div>
       </PopoverContent>
     </Popover>
-  );
+  )
 }
 
 export function Header() {
-  const pathname = usePathname();
-  const crumbs = breadcrumbFromPath(pathname);
+  const pathname = usePathname()
+  const crumbs = breadcrumbFromPath(pathname)
 
   return (
     <header className="flex h-11 shrink-0 items-center justify-between border-b border-dash-border bg-dash-panel px-4">
@@ -263,5 +261,5 @@ export function Header() {
         <ThemeSwitcher />
       </div>
     </header>
-  );
+  )
 }

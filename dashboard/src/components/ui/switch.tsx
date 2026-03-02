@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import * as SwitchPrimitive from "@radix-ui/react-switch";
+import * as SwitchPrimitive from "@radix-ui/react-switch"
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"
 
 function Switch({
   className,
@@ -22,7 +22,7 @@ function Switch({
         )}
       />
     </SwitchPrimitive.Root>
-  );
+  )
 }
 
-export { Switch };
+export { Switch }

@@ -1,6 +1,6 @@
-import { readFileSync } from "node:fs";
-import { relative } from "node:path";
-import type { ContentChunk } from "../types.js";
+import { readFileSync } from "node:fs"
+import { relative } from "node:path"
+import type { ContentChunk } from "../types.js"
 
 /**
  * Extract semantic chunks from CSS files.
@@ -13,17 +13,17 @@ export function extractStyleChunks(
   absolutePath: string,
   repoRoot: string,
 ): ContentChunk[] {
-  const content = readFileSync(absolutePath, "utf-8");
-  const relPath = relative(repoRoot, absolutePath);
-  const chunks: ContentChunk[] = [];
+  const content = readFileSync(absolutePath, "utf-8")
+  const relPath = relative(repoRoot, absolutePath)
+  const chunks: ContentChunk[] = []
 
   // Split by section header comments: /* ── Section Name ── */
-  const sectionRe = /\/\*\s*──\s*(.+?)\s*──+\s*\*\//g;
-  const sections: Array<{ name: string; start: number }> = [];
-  let match: RegExpExecArray | null;
+  const sectionRe = /\/\*\s*──\s*(.+?)\s*──+\s*\*\//g
+  const sections: Array<{ name: string; start: number }> = []
+  let match: RegExpExecArray | null
 
   while ((match = sectionRe.exec(content)) !== null) {
-    sections.push({ name: match[1].trim(), start: match.index });
+    sections.push({ name: match[1].trim(), start: match.index })
   }
 
   if (sections.length === 0) {
@@ -35,21 +35,24 @@ export function extractStyleChunks(
         content: content.trim(),
         path: relPath,
         metadata: {},
-      });
+      })
     }
-    return chunks;
+    return chunks
   }
 
   for (let i = 0; i < sections.length; i++) {
-    const section = sections[i];
-    const end = i + 1 < sections.length ? sections[i + 1].start : content.length;
-    const sectionContent = content.slice(section.start, end).trim();
+    const section = sections[i]
+    const end = i + 1 < sections.length ? sections[i + 1].start : content.length
+    const sectionContent = content.slice(section.start, end).trim()
 
-    if (sectionContent.length < 20) continue;
+    if (sectionContent.length < 20) continue
 
     // Detect chunk type based on content
-    const hasCustomProperties = sectionContent.includes("--color-") || sectionContent.includes("--font-");
-    const chunkType = hasCustomProperties ? "css-tokens" as const : "css-class" as const;
+    const hasCustomProperties =
+      sectionContent.includes("--color-") || sectionContent.includes("--font-")
+    const chunkType = hasCustomProperties
+      ? ("css-tokens" as const)
+      : ("css-class" as const)
 
     chunks.push({
       id: `${slugify(relPath)}-${slugify(section.name)}`,
@@ -57,10 +60,10 @@ export function extractStyleChunks(
       content: sectionContent,
       path: relPath,
       metadata: { sectionName: section.name },
-    });
+    })
   }
 
-  return chunks;
+  return chunks
 }
 
 /** Convert "src/styles/tokens.css" → "styles-tokens" */
@@ -70,5 +73,5 @@ function slugify(input: string): string {
     .replace(/\.[^.]+$/, "")
     .replace(/[/\\]/g, "-")
     .replace(/[^a-z0-9-]/gi, "")
-    .toLowerCase();
+    .toLowerCase()
 }

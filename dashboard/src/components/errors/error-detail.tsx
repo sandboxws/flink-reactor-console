@@ -1,11 +1,11 @@
-"use client";
+"use client"
 
-import { format, formatDistanceToNow } from "date-fns";
-import { ExternalLink } from "lucide-react";
-import Link from "next/link";
-import type { ErrorGroup } from "@/data/types";
-import { SourceBadge } from "@/components/shared/source-badge";
-import { StackTrace } from "./stack-trace";
+import { format, formatDistanceToNow } from "date-fns"
+import { ExternalLink } from "lucide-react"
+import Link from "next/link"
+import { SourceBadge } from "@/components/shared/source-badge"
+import type { ErrorGroup } from "@/data/types"
+import { StackTrace } from "./stack-trace"
 
 // ---------------------------------------------------------------------------
 // Field helper (mirrors log-detail-panel pattern)
@@ -15,15 +15,15 @@ function Field({
   label,
   children,
 }: {
-  label: string;
-  children: React.ReactNode;
+  label: string
+  children: React.ReactNode
 }) {
   return (
     <div className="flex gap-2 text-xs">
       <span className="w-20 shrink-0 text-zinc-500">{label}</span>
       <span className="min-w-0 text-zinc-200">{children}</span>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -92,5 +92,5 @@ export function ErrorDetail({ group }: { group: ErrorGroup }) {
         </Link>
       </div>
     </div>
-  );
+  )
 }

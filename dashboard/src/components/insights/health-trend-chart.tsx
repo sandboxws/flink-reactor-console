@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   Area,
@@ -7,13 +7,13 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts";
-import type { HealthSnapshot } from "@/stores/insights-store";
+} from "recharts"
+import type { HealthSnapshot } from "@/stores/insights-store"
 
 function scoreColor(score: number): string {
-  if (score >= 80) return "var(--color-job-running)";
-  if (score >= 50) return "var(--color-fr-amber)";
-  return "var(--color-job-failed)";
+  if (score >= 80) return "var(--color-job-running)"
+  if (score >= 50) return "var(--color-fr-amber)"
+  return "var(--color-job-failed)"
 }
 
 function ChartTooltip({
@@ -21,11 +21,11 @@ function ChartTooltip({
   payload,
   label,
 }: {
-  active?: boolean;
-  payload?: Array<{ value: number }>;
-  label?: string;
+  active?: boolean
+  payload?: Array<{ value: number }>
+  label?: string
 }) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) return null
 
   return (
     <div
@@ -37,7 +37,7 @@ function ChartTooltip({
         Score: {payload[0].value}
       </p>
     </div>
-  );
+  )
 }
 
 export function HealthTrendChart({ history }: { history: HealthSnapshot[] }) {
@@ -48,11 +48,11 @@ export function HealthTrendChart({ history }: { history: HealthSnapshot[] }) {
       second: "2-digit",
     }),
     score: s.score,
-  }));
+  }))
 
   const latestScore =
-    history.length > 0 ? history[history.length - 1].score : 80;
-  const color = scoreColor(latestScore);
+    history.length > 0 ? history[history.length - 1].score : 80
+  const color = scoreColor(latestScore)
 
   return (
     <div className="glass-card p-4">
@@ -102,5 +102,5 @@ export function HealthTrendChart({ history }: { history: HealthSnapshot[] }) {
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }

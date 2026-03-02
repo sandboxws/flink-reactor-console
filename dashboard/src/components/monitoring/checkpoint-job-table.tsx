@@ -1,53 +1,57 @@
-"use client";
+"use client"
 
-import { useState } from "react";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
-import { cn } from "@/lib/cn";
+} from "lucide-react"
+import { useState } from "react"
+import { cn } from "@/lib/cn"
 import type {
   JobCheckpointSummary,
   TrendDirection,
-} from "@/stores/checkpoint-analytics-store";
+} from "@/stores/checkpoint-analytics-store"
 
 // Helpers
 
 function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`;
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${bytes} B`;
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${bytes} B`
 }
 
 function formatDuration(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 1000) return `${Math.round(ms)}ms`
+  return `${(ms / 1000).toFixed(1)}s`
 }
 
 function formatInterval(ms: number): string {
-  if (ms >= 60_000) return `${ms / 60_000}min`;
-  return `${ms / 1000}s`;
+  if (ms >= 60_000) return `${ms / 60_000}min`
+  return `${ms / 1000}s`
 }
 
 function formatTime(date: Date | null): string {
-  if (!date) return "—";
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  if (!date) return "—"
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
 }
 
 // Trend indicator
 
 function TrendIndicator({ trend }: { trend: TrendDirection }) {
   if (trend === "increasing") {
-    return <ArrowUp className="size-3.5 text-job-failed" />;
+    return <ArrowUp className="size-3.5 text-job-failed" />
   }
   if (trend === "decreasing") {
-    return <ArrowDown className="size-3.5 text-job-running" />;
+    return <ArrowDown className="size-3.5 text-job-running" />
   }
-  return <ArrowRight className="size-3.5 text-zinc-500" />;
+  return <ArrowRight className="size-3.5 text-zinc-500" />
 }
 
 // Sort
@@ -60,15 +64,15 @@ type SortKey =
   | "totalStateSize"
   | "successRate"
   | "durationTrend"
-  | "stateSizeTrend";
+  | "stateSizeTrend"
 
-type SortDir = "asc" | "desc";
+type SortDir = "asc" | "desc"
 
 const TREND_ORDER: Record<TrendDirection, number> = {
   increasing: 2,
   stable: 1,
   decreasing: 0,
-};
+}
 
 function sortSummaries(
   summaries: JobCheckpointSummary[],
@@ -76,37 +80,37 @@ function sortSummaries(
   dir: SortDir,
 ): JobCheckpointSummary[] {
   return [...summaries].sort((a, b) => {
-    let cmp = 0;
+    let cmp = 0
     switch (key) {
       case "jobName":
-        cmp = a.jobName.localeCompare(b.jobName);
-        break;
+        cmp = a.jobName.localeCompare(b.jobName)
+        break
       case "lastSuccessTime":
         cmp =
           (a.lastSuccessTime?.getTime() ?? 0) -
-          (b.lastSuccessTime?.getTime() ?? 0);
-        break;
+          (b.lastSuccessTime?.getTime() ?? 0)
+        break
       case "checkpointInterval":
-        cmp = a.checkpointInterval - b.checkpointInterval;
-        break;
+        cmp = a.checkpointInterval - b.checkpointInterval
+        break
       case "avgDuration":
-        cmp = a.avgDuration - b.avgDuration;
-        break;
+        cmp = a.avgDuration - b.avgDuration
+        break
       case "totalStateSize":
-        cmp = a.totalStateSize - b.totalStateSize;
-        break;
+        cmp = a.totalStateSize - b.totalStateSize
+        break
       case "successRate":
-        cmp = a.successRate - b.successRate;
-        break;
+        cmp = a.successRate - b.successRate
+        break
       case "durationTrend":
-        cmp = TREND_ORDER[a.durationTrend] - TREND_ORDER[b.durationTrend];
-        break;
+        cmp = TREND_ORDER[a.durationTrend] - TREND_ORDER[b.durationTrend]
+        break
       case "stateSizeTrend":
-        cmp = TREND_ORDER[a.stateSizeTrend] - TREND_ORDER[b.stateSizeTrend];
-        break;
+        cmp = TREND_ORDER[a.stateSizeTrend] - TREND_ORDER[b.stateSizeTrend]
+        break
     }
-    return dir === "asc" ? cmp : -cmp;
-  });
+    return dir === "asc" ? cmp : -cmp
+  })
 }
 
 // Column header
@@ -119,14 +123,14 @@ function SortHeader({
   onSort,
   className,
 }: {
-  label: string;
-  sortKey: SortKey;
-  currentKey: SortKey;
-  currentDir: SortDir;
-  onSort: (key: SortKey) => void;
-  className?: string;
+  label: string
+  sortKey: SortKey
+  currentKey: SortKey
+  currentDir: SortDir
+  onSort: (key: SortKey) => void
+  className?: string
 }) {
-  const isActive = sortKey === currentKey;
+  const isActive = sortKey === currentKey
   return (
     <button
       type="button"
@@ -144,7 +148,7 @@ function SortHeader({
           <ChevronDown className="size-3" />
         ))}
     </button>
-  );
+  )
 }
 
 // Table
@@ -152,31 +156,35 @@ function SortHeader({
 export function CheckpointJobTable({
   summaries,
 }: {
-  summaries: JobCheckpointSummary[];
+  summaries: JobCheckpointSummary[]
 }) {
-  const [sortKey, setSortKey] = useState<SortKey>("successRate");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey>("successRate")
+  const [sortDir, setSortDir] = useState<SortDir>("asc")
 
   function handleSort(key: SortKey) {
     if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
     } else {
-      setSortKey(key);
-      setSortDir("asc");
+      setSortKey(key)
+      setSortDir("asc")
     }
   }
 
-  const sorted = sortSummaries(summaries, sortKey, sortDir);
+  const sorted = sortSummaries(summaries, sortKey, sortDir)
 
   if (summaries.length === 0) {
     return (
       <div className="glass-card flex items-center justify-center p-8 text-sm text-zinc-500">
         No checkpoint data available
       </div>
-    );
+    )
   }
 
-  const headerProps = { currentKey: sortKey, currentDir: sortDir, onSort: handleSort };
+  const headerProps = {
+    currentKey: sortKey,
+    currentDir: sortDir,
+    onSort: handleSort,
+  }
 
   return (
     <div className="glass-card overflow-hidden">
@@ -185,28 +193,66 @@ export function CheckpointJobTable({
           <thead>
             <tr className="border-b border-dash-border">
               <th className="px-3 py-2.5 text-left">
-                <SortHeader label="Job Name" sortKey="jobName" {...headerProps} />
+                <SortHeader
+                  label="Job Name"
+                  sortKey="jobName"
+                  {...headerProps}
+                />
               </th>
               <th className="px-3 py-2.5 text-left">
-                <SortHeader label="Last Success" sortKey="lastSuccessTime" {...headerProps} />
+                <SortHeader
+                  label="Last Success"
+                  sortKey="lastSuccessTime"
+                  {...headerProps}
+                />
               </th>
               <th className="px-3 py-2.5 text-right">
-                <SortHeader label="Interval" sortKey="checkpointInterval" {...headerProps} className="justify-end" />
+                <SortHeader
+                  label="Interval"
+                  sortKey="checkpointInterval"
+                  {...headerProps}
+                  className="justify-end"
+                />
               </th>
               <th className="px-3 py-2.5 text-right">
-                <SortHeader label="Avg Duration" sortKey="avgDuration" {...headerProps} className="justify-end" />
+                <SortHeader
+                  label="Avg Duration"
+                  sortKey="avgDuration"
+                  {...headerProps}
+                  className="justify-end"
+                />
               </th>
               <th className="px-3 py-2.5 text-right">
-                <SortHeader label="State Size" sortKey="totalStateSize" {...headerProps} className="justify-end" />
+                <SortHeader
+                  label="State Size"
+                  sortKey="totalStateSize"
+                  {...headerProps}
+                  className="justify-end"
+                />
               </th>
               <th className="px-3 py-2.5 text-right">
-                <SortHeader label="Success Rate" sortKey="successRate" {...headerProps} className="justify-end" />
+                <SortHeader
+                  label="Success Rate"
+                  sortKey="successRate"
+                  {...headerProps}
+                  className="justify-end"
+                />
               </th>
               <th className="px-3 py-2.5 text-center">
-                <SortHeader label="Duration" sortKey="durationTrend" {...headerProps} className="justify-center" />
+                <SortHeader
+                  label="Duration"
+                  sortKey="durationTrend"
+                  {...headerProps}
+                  className="justify-center"
+                />
               </th>
               <th className="px-3 py-2.5 text-center">
-                <SortHeader label="Size" sortKey="stateSizeTrend" {...headerProps} className="justify-center" />
+                <SortHeader
+                  label="Size"
+                  sortKey="stateSizeTrend"
+                  {...headerProps}
+                  className="justify-center"
+                />
               </th>
             </tr>
           </thead>
@@ -263,5 +309,5 @@ export function CheckpointJobTable({
         </table>
       </div>
     </div>
-  );
+  )
 }

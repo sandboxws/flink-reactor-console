@@ -1,87 +1,87 @@
-"use client";
+"use client"
 
-import { useMemo, useState } from "react";
-import type {
-  FlinkJob,
-  JobVertex,
-  SubtaskMetrics,
-  VertexWatermark,
-  VertexBackPressure,
-  UserAccumulator,
-} from "@/data/cluster-types";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ChevronRight, Layers } from "lucide-react"
+import { useMemo, useState } from "react"
+import {
+  Bar,
+  BarChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
+import { EmptyState } from "@/components/shared/empty-state"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/select"
 import {
   Table,
-  TableHeader,
   TableBody,
-  TableRow,
-  TableHead,
   TableCell,
-} from "@/components/ui/table";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Layers, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/cn";
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type {
+  FlinkJob,
+  JobVertex,
+  SubtaskMetrics,
+  UserAccumulator,
+  VertexBackPressure,
+  VertexWatermark,
+} from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // Format helpers
 // ---------------------------------------------------------------------------
 
 function formatSI(n: number): string {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  return String(n)
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${bytes} B`;
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${bytes} B`
 }
 
 function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
-  if (totalSec < 60) return `${totalSec}s`;
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  if (min < 60) return `${min}m ${sec}s`;
-  const hr = Math.floor(min / 60);
-  return `${hr}h ${min % 60}m`;
+  const totalSec = Math.floor(ms / 1000)
+  if (totalSec < 60) return `${totalSec}s`
+  const min = Math.floor(totalSec / 60)
+  const sec = totalSec % 60
+  if (min < 60) return `${min}m ${sec}s`
+  const hr = Math.floor(min / 60)
+  return `${hr}h ${min % 60}m`
 }
 
 function formatTimestamp(epoch: number): string {
-  if (!isFinite(epoch) || epoch <= 0) return "No Watermark";
-  return new Date(epoch).toLocaleTimeString();
+  if (!Number.isFinite(epoch) || epoch <= 0) return "No Watermark"
+  return new Date(epoch).toLocaleTimeString()
 }
 
 // ---------------------------------------------------------------------------
 // Sort helpers
 // ---------------------------------------------------------------------------
 
-type SortDir = "asc" | "desc";
-type SortKey = keyof SubtaskMetrics;
+type SortDir = "asc" | "desc"
+type SortKey = keyof SubtaskMetrics
 
 function sortedSubtasks(
   subtasks: SubtaskMetrics[],
@@ -89,15 +89,15 @@ function sortedSubtasks(
   dir: SortDir,
 ): SubtaskMetrics[] {
   return [...subtasks].sort((a, b) => {
-    const aVal = a[key];
-    const bVal = b[key];
+    const aVal = a[key]
+    const bVal = b[key]
     if (typeof aVal === "number" && typeof bVal === "number") {
-      return dir === "asc" ? aVal - bVal : bVal - aVal;
+      return dir === "asc" ? aVal - bVal : bVal - aVal
     }
     return dir === "asc"
       ? String(aVal).localeCompare(String(bVal))
-      : String(bVal).localeCompare(String(aVal));
-  });
+      : String(bVal).localeCompare(String(aVal))
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -112,14 +112,14 @@ function SortHeader({
   onSort,
   className,
 }: {
-  label: string;
-  sortKey: SortKey;
-  currentKey: SortKey;
-  currentDir: SortDir;
-  onSort: (key: SortKey) => void;
-  className?: string;
+  label: string
+  sortKey: SortKey
+  currentKey: SortKey
+  currentDir: SortDir
+  onSort: (key: SortKey) => void
+  className?: string
 }) {
-  const isActive = currentKey === sortKey;
+  const isActive = currentKey === sortKey
   return (
     <TableHead className={cn("cursor-pointer select-none", className)}>
       <button
@@ -138,7 +138,7 @@ function SortHeader({
         )}
       </button>
     </TableHead>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -149,7 +149,7 @@ const BP_COLORS = {
   ok: "bg-job-running/20 text-job-running",
   low: "bg-fr-amber/20 text-fr-amber",
   high: "bg-job-failed/20 text-job-failed",
-} as const;
+} as const
 
 function BpBadge({ level }: { level: "ok" | "low" | "high" }) {
   return (
@@ -161,7 +161,7 @@ function BpBadge({ level }: { level: "ok" | "low" | "high" }) {
     >
       {level}
     </span>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -170,13 +170,14 @@ function BpBadge({ level }: { level: "ok" | "low" | "high" }) {
 
 function DetailSection({
   vertex,
+  // biome-ignore lint/correctness/noUnusedFunctionParameters: reserved for future per-subtask metrics display
   subtasks,
 }: {
-  vertex: JobVertex;
-  subtasks: SubtaskMetrics[];
+  vertex: JobVertex
+  subtasks: SubtaskMetrics[]
 }) {
-  const { metrics, tasks } = vertex;
-  const total = Object.values(tasks).reduce((a, b) => a + b, 0);
+  const { metrics, tasks } = vertex
+  const total = Object.values(tasks).reduce((a, b) => a + b, 0)
 
   const taskSegments = [
     { label: "Pending", count: tasks.pending, color: "bg-job-created" },
@@ -184,7 +185,7 @@ function DetailSection({
     { label: "Finished", count: tasks.finished, color: "bg-job-finished" },
     { label: "Canceling", count: tasks.canceling, color: "bg-job-cancelled" },
     { label: "Failed", count: tasks.failed, color: "bg-job-failed" },
-  ];
+  ]
 
   const stats = [
     { label: "Status", value: vertex.status },
@@ -196,8 +197,11 @@ function DetailSection({
     { label: "Bytes In", value: formatBytes(metrics.bytesIn) },
     { label: "Bytes Out", value: formatBytes(metrics.bytesOut) },
     { label: "Busy Time", value: `${metrics.busyTimeMsPerSecond} ms/s` },
-    { label: "Backpressure", value: `${metrics.backPressuredTimeMsPerSecond} ms/s` },
-  ];
+    {
+      label: "Backpressure",
+      value: `${metrics.backPressuredTimeMsPerSecond} ms/s`,
+    },
+  ]
 
   return (
     <div className="flex flex-col gap-4">
@@ -242,13 +246,15 @@ function DetailSection({
               <div key={s.label} className="flex items-center gap-1.5 text-xs">
                 <span className={cn("size-2 rounded-full", s.color)} />
                 <span className="text-zinc-400">{s.label}</span>
-                <span className="font-mono text-[11px] text-zinc-200">{s.count}</span>
+                <span className="font-mono text-[11px] text-zinc-200">
+                  {s.count}
+                </span>
               </div>
             ))}
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -256,35 +262,69 @@ function DetailSection({
 // ---------------------------------------------------------------------------
 
 function SubTasksSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
-  const [sortKey, setSortKey] = useState<SortKey>("subtaskIndex");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey>("subtaskIndex")
+  const [sortDir, setSortDir] = useState<SortDir>("asc")
 
   const handleSort = (key: SortKey) => {
     if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
     } else {
-      setSortKey(key);
-      setSortDir("asc");
+      setSortKey(key)
+      setSortDir("asc")
     }
-  };
+  }
 
   const sorted = useMemo(
     () => sortedSubtasks(subtasks, sortKey, sortDir),
     [subtasks, sortKey, sortDir],
-  );
+  )
 
-  const columns: { label: string; key: SortKey; align?: string; format: (s: SubtaskMetrics) => string }[] = [
+  const columns: {
+    label: string
+    key: SortKey
+    align?: string
+    format: (s: SubtaskMetrics) => string
+  }[] = [
     { label: "ID", key: "subtaskIndex", format: (s) => String(s.subtaskIndex) },
     { label: "Status", key: "status", format: (s) => s.status },
     { label: "Attempt", key: "attempt", format: (s) => String(s.attempt) },
     { label: "Host", key: "endpoint", format: (s) => s.endpoint },
-    { label: "Duration", key: "duration", format: (s) => formatDuration(s.duration) },
-    { label: "Records In", key: "recordsIn", align: "text-right", format: (s) => formatSI(s.recordsIn) },
-    { label: "Records Out", key: "recordsOut", align: "text-right", format: (s) => formatSI(s.recordsOut) },
-    { label: "Bytes In", key: "bytesIn", align: "text-right", format: (s) => formatBytes(s.bytesIn) },
-    { label: "Bytes Out", key: "bytesOut", align: "text-right", format: (s) => formatBytes(s.bytesOut) },
-    { label: "Busy ms/s", key: "busyTimeMsPerSecond", align: "text-right", format: (s) => String(s.busyTimeMsPerSecond) },
-  ];
+    {
+      label: "Duration",
+      key: "duration",
+      format: (s) => formatDuration(s.duration),
+    },
+    {
+      label: "Records In",
+      key: "recordsIn",
+      align: "text-right",
+      format: (s) => formatSI(s.recordsIn),
+    },
+    {
+      label: "Records Out",
+      key: "recordsOut",
+      align: "text-right",
+      format: (s) => formatSI(s.recordsOut),
+    },
+    {
+      label: "Bytes In",
+      key: "bytesIn",
+      align: "text-right",
+      format: (s) => formatBytes(s.bytesIn),
+    },
+    {
+      label: "Bytes Out",
+      key: "bytesOut",
+      align: "text-right",
+      format: (s) => formatBytes(s.bytesOut),
+    },
+    {
+      label: "Busy ms/s",
+      key: "busyTimeMsPerSecond",
+      align: "text-right",
+      format: (s) => String(s.busyTimeMsPerSecond),
+    },
+  ]
 
   return (
     <div className="glass-card overflow-hidden">
@@ -320,7 +360,7 @@ function SubTasksSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -329,17 +369,17 @@ function SubTasksSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
 
 function TaskManagersSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
   const grouped = useMemo(() => {
-    const map = new Map<string, SubtaskMetrics[]>();
+    const map = new Map<string, SubtaskMetrics[]>()
     for (const s of subtasks) {
-      const list = map.get(s.taskManagerId) ?? [];
-      list.push(s);
-      map.set(s.taskManagerId, list);
+      const list = map.get(s.taskManagerId) ?? []
+      list.push(s)
+      map.set(s.taskManagerId, list)
     }
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [subtasks]);
+    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b))
+  }, [subtasks])
 
   if (grouped.length === 0) {
-    return <EmptyState icon={Layers} message="No task manager data" />;
+    return <EmptyState icon={Layers} message="No task manager data" />
   }
 
   return (
@@ -369,12 +409,22 @@ function TaskManagersSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
                 <TableBody>
                   {tmSubtasks.map((s) => (
                     <TableRow key={s.subtaskIndex}>
-                      <TableCell className="text-xs tabular-nums">{s.subtaskIndex}</TableCell>
+                      <TableCell className="text-xs tabular-nums">
+                        {s.subtaskIndex}
+                      </TableCell>
                       <TableCell className="text-xs">{s.status}</TableCell>
-                      <TableCell className="text-xs tabular-nums">{formatDuration(s.duration)}</TableCell>
-                      <TableCell className="text-right text-xs tabular-nums">{formatSI(s.recordsIn)}</TableCell>
-                      <TableCell className="text-right text-xs tabular-nums">{formatSI(s.recordsOut)}</TableCell>
-                      <TableCell className="text-right text-xs tabular-nums">{s.busyTimeMsPerSecond}</TableCell>
+                      <TableCell className="text-xs tabular-nums">
+                        {formatDuration(s.duration)}
+                      </TableCell>
+                      <TableCell className="text-right text-xs tabular-nums">
+                        {formatSI(s.recordsIn)}
+                      </TableCell>
+                      <TableCell className="text-right text-xs tabular-nums">
+                        {formatSI(s.recordsOut)}
+                      </TableCell>
+                      <TableCell className="text-right text-xs tabular-nums">
+                        {s.busyTimeMsPerSecond}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -384,7 +434,7 @@ function TaskManagersSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
         </Collapsible>
       ))}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -393,24 +443,36 @@ function TaskManagersSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
 
 function WatermarksSection({ watermarks }: { watermarks: VertexWatermark[] }) {
   if (watermarks.length === 0) {
-    return <EmptyState icon={Layers} message="No watermark data available" />;
+    return <EmptyState icon={Layers} message="No watermark data available" />
   }
 
-  const validWms = watermarks.filter((w) => isFinite(w.watermark) && w.watermark > 0);
-  const minWm = validWms.length > 0 ? Math.min(...validWms.map((w) => w.watermark)) : null;
-  const maxWm = validWms.length > 0 ? Math.max(...validWms.map((w) => w.watermark)) : null;
+  const validWms = watermarks.filter(
+    (w) => Number.isFinite(w.watermark) && w.watermark > 0,
+  )
+  const minWm =
+    validWms.length > 0 ? Math.min(...validWms.map((w) => w.watermark)) : null
+  const maxWm =
+    validWms.length > 0 ? Math.max(...validWms.map((w) => w.watermark)) : null
 
   return (
     <div className="flex flex-col gap-4">
       {minWm !== null && maxWm !== null && (
         <div className="grid grid-cols-2 gap-2">
           <div className="glass-card flex flex-col items-center gap-0.5 p-3">
-            <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">Min Watermark</span>
-            <span className="text-sm font-medium tabular-nums text-zinc-200">{formatTimestamp(minWm)}</span>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+              Min Watermark
+            </span>
+            <span className="text-sm font-medium tabular-nums text-zinc-200">
+              {formatTimestamp(minWm)}
+            </span>
           </div>
           <div className="glass-card flex flex-col items-center gap-0.5 p-3">
-            <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">Max Watermark</span>
-            <span className="text-sm font-medium tabular-nums text-zinc-200">{formatTimestamp(maxWm)}</span>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+              Max Watermark
+            </span>
+            <span className="text-sm font-medium tabular-nums text-zinc-200">
+              {formatTimestamp(maxWm)}
+            </span>
           </div>
         </div>
       )}
@@ -425,15 +487,19 @@ function WatermarksSection({ watermarks }: { watermarks: VertexWatermark[] }) {
           <TableBody>
             {watermarks.map((w) => (
               <TableRow key={w.subtaskIndex}>
-                <TableCell className="text-xs tabular-nums">{w.subtaskIndex}</TableCell>
-                <TableCell className="text-xs tabular-nums">{formatTimestamp(w.watermark)}</TableCell>
+                <TableCell className="text-xs tabular-nums">
+                  {w.subtaskIndex}
+                </TableCell>
+                <TableCell className="text-xs tabular-nums">
+                  {formatTimestamp(w.watermark)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -442,7 +508,7 @@ function WatermarksSection({ watermarks }: { watermarks: VertexWatermark[] }) {
 
 function BackPressureSection({ bp }: { bp: VertexBackPressure | undefined }) {
   if (!bp || bp.subtasks.length === 0) {
-    return <EmptyState icon={Layers} message="No backpressure data available" />;
+    return <EmptyState icon={Layers} message="No backpressure data available" />
   }
 
   return (
@@ -468,27 +534,41 @@ function BackPressureSection({ bp }: { bp: VertexBackPressure | undefined }) {
           <TableBody>
             {bp.subtasks.map((s) => (
               <TableRow key={s.subtaskIndex}>
-                <TableCell className="text-xs tabular-nums">{s.subtaskIndex}</TableCell>
-                <TableCell><BpBadge level={s.level} /></TableCell>
-                <TableCell className="text-right text-xs tabular-nums">{(s.ratio * 100).toFixed(1)}%</TableCell>
-                <TableCell className="text-right text-xs tabular-nums">{(s.busyRatio * 100).toFixed(1)}%</TableCell>
-                <TableCell className="text-right text-xs tabular-nums">{(s.idleRatio * 100).toFixed(1)}%</TableCell>
+                <TableCell className="text-xs tabular-nums">
+                  {s.subtaskIndex}
+                </TableCell>
+                <TableCell>
+                  <BpBadge level={s.level} />
+                </TableCell>
+                <TableCell className="text-right text-xs tabular-nums">
+                  {(s.ratio * 100).toFixed(1)}%
+                </TableCell>
+                <TableCell className="text-right text-xs tabular-nums">
+                  {(s.busyRatio * 100).toFixed(1)}%
+                </TableCell>
+                <TableCell className="text-right text-xs tabular-nums">
+                  {(s.idleRatio * 100).toFixed(1)}%
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
 // Accumulators sub-tab
 // ---------------------------------------------------------------------------
 
-function AccumulatorsSection({ accumulators }: { accumulators: UserAccumulator[] }) {
+function AccumulatorsSection({
+  accumulators,
+}: {
+  accumulators: UserAccumulator[]
+}) {
   if (accumulators.length === 0) {
-    return <EmptyState icon={Layers} message="No user accumulators" />;
+    return <EmptyState icon={Layers} message="No user accumulators" />
   }
 
   return (
@@ -504,22 +584,32 @@ function AccumulatorsSection({ accumulators }: { accumulators: UserAccumulator[]
         <TableBody>
           {accumulators.map((a) => (
             <TableRow key={a.name}>
-              <TableCell className="text-xs font-medium text-zinc-200">{a.name}</TableCell>
+              <TableCell className="text-xs font-medium text-zinc-200">
+                {a.name}
+              </TableCell>
               <TableCell className="text-xs text-zinc-400">{a.type}</TableCell>
-              <TableCell className="text-right text-xs tabular-nums">{a.value}</TableCell>
+              <TableCell className="text-right text-xs tabular-nums">
+                {a.value}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
 // Metrics sub-tab — bar chart comparing subtask values
 // ---------------------------------------------------------------------------
 
-type MetricChoice = "recordsIn" | "recordsOut" | "bytesIn" | "bytesOut" | "busyTimeMsPerSecond" | "backPressuredTimeMsPerSecond";
+type MetricChoice =
+  | "recordsIn"
+  | "recordsOut"
+  | "bytesIn"
+  | "bytesOut"
+  | "busyTimeMsPerSecond"
+  | "backPressuredTimeMsPerSecond"
 const METRIC_OPTIONS: { key: MetricChoice; label: string }[] = [
   { key: "recordsIn", label: "Records In" },
   { key: "recordsOut", label: "Records Out" },
@@ -527,34 +617,40 @@ const METRIC_OPTIONS: { key: MetricChoice; label: string }[] = [
   { key: "bytesOut", label: "Bytes Out" },
   { key: "busyTimeMsPerSecond", label: "Busy Time" },
   { key: "backPressuredTimeMsPerSecond", label: "Backpressure" },
-];
+]
 
 function MetricsChartTooltip({
   active,
   payload,
 }: {
-  active?: boolean;
-  payload?: Array<{ value: number; payload: { subtask: string; value: number } }>;
+  active?: boolean
+  payload?: Array<{
+    value: number
+    payload: { subtask: string; value: number }
+  }>
 }) {
-  if (!active || !payload?.length) return null;
-  const data = payload[0].payload;
+  if (!active || !payload?.length) return null
+  const data = payload[0].payload
   return (
-    <div className="rounded-md border border-dash-border px-2 py-1.5" style={{ backgroundColor: "var(--color-dash-panel)" }}>
+    <div
+      className="rounded-md border border-dash-border px-2 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
+    >
       <p className="text-[10px] text-fg-muted">Subtask {data.subtask}</p>
       <p className="text-[10px] text-fg-secondary">{formatSI(data.value)}</p>
     </div>
-  );
+  )
 }
 
 function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
-  const [metric, setMetric] = useState<MetricChoice>("recordsIn");
+  const [metric, setMetric] = useState<MetricChoice>("recordsIn")
 
   const { chartData, stats } = useMemo(() => {
-    const values = subtasks.map((s) => s[metric]);
-    const total = values.reduce((a, b) => a + b, 0);
-    const avg = values.length > 0 ? total / values.length : 0;
-    const max = Math.max(...values, 0);
-    const min = Math.min(...values, 0);
+    const values = subtasks.map((s) => s[metric])
+    const total = values.reduce((a, b) => a + b, 0)
+    const avg = values.length > 0 ? total / values.length : 0
+    const max = Math.max(...values, 0)
+    const min = Math.min(...values, 0)
 
     return {
       chartData: subtasks.map((s) => ({
@@ -562,8 +658,8 @@ function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
         value: s[metric],
       })),
       stats: { total, avg, max, min },
-    };
-  }, [subtasks, metric]);
+    }
+  }, [subtasks, metric])
 
   return (
     <div className="flex flex-col gap-4">
@@ -589,7 +685,10 @@ function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
       {/* Bar chart */}
       <div className="glass-card p-4">
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+          <BarChart
+            data={chartData}
+            margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+          >
             <XAxis
               dataKey="subtask"
               tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
@@ -614,9 +713,17 @@ function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
               cursor={{ fill: "var(--color-chart-cursor-fill)" }}
               isAnimationActive={false}
             />
-            <Bar dataKey="value" radius={[3, 3, 0, 0]} isAnimationActive={false}>
+            <Bar
+              dataKey="value"
+              radius={[3, 3, 0, 0]}
+              isAnimationActive={false}
+            >
               {chartData.map((entry) => (
-                <Cell key={entry.subtask} fill="var(--color-fr-purple)" fillOpacity={0.6} />
+                <Cell
+                  key={entry.subtask}
+                  fill="var(--color-fr-purple)"
+                  fillOpacity={0.6}
+                />
               ))}
             </Bar>
           </BarChart>
@@ -631,14 +738,21 @@ function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
           { label: "Min", value: formatSI(stats.min) },
           { label: "Max", value: formatSI(stats.max) },
         ].map((s) => (
-          <div key={s.label} className="glass-card flex flex-col items-center gap-0.5 p-2">
-            <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">{s.label}</span>
-            <span className="text-sm font-medium tabular-nums text-zinc-200">{s.value}</span>
+          <div
+            key={s.label}
+            className="glass-card flex flex-col items-center gap-0.5 p-2"
+          >
+            <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+              {s.label}
+            </span>
+            <span className="text-sm font-medium tabular-nums text-zinc-200">
+              {s.value}
+            </span>
           </div>
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -649,31 +763,31 @@ export function VerticesTab({
   job,
   selectedVertexId,
 }: {
-  job: FlinkJob;
-  selectedVertexId?: string;
+  job: FlinkJob
+  selectedVertexId?: string
 }) {
-  const vertices = job.plan?.vertices ?? [];
+  const vertices = job.plan?.vertices ?? []
   const [vertexId, setVertexId] = useState<string>(
     () => selectedVertexId ?? vertices[0]?.id ?? "",
-  );
+  )
 
   // Sync external selection changes
-  const [prevSelectedId, setPrevSelectedId] = useState(selectedVertexId);
+  const [prevSelectedId, setPrevSelectedId] = useState(selectedVertexId)
   if (selectedVertexId !== prevSelectedId) {
-    setPrevSelectedId(selectedVertexId);
+    setPrevSelectedId(selectedVertexId)
     if (selectedVertexId) {
-      setVertexId(selectedVertexId);
+      setVertexId(selectedVertexId)
     }
   }
 
-  const vertex = vertices.find((v) => v.id === vertexId);
-  const subtasks = job.subtaskMetrics[vertexId] ?? [];
-  const watermarks = job.watermarks[vertexId] ?? [];
-  const bp = job.backpressure[vertexId];
-  const accumulators = job.accumulators[vertexId] ?? [];
+  const vertex = vertices.find((v) => v.id === vertexId)
+  const subtasks = job.subtaskMetrics[vertexId] ?? []
+  const watermarks = job.watermarks[vertexId] ?? []
+  const bp = job.backpressure[vertexId]
+  const accumulators = job.accumulators[vertexId] ?? []
 
   if (vertices.length === 0) {
-    return <EmptyState icon={Layers} message="No vertex data available" />;
+    return <EmptyState icon={Layers} message="No vertex data available" />
   }
 
   return (
@@ -695,13 +809,27 @@ export function VerticesTab({
       {/* Sub-tabs */}
       <Tabs defaultValue="detail">
         <TabsList className="detail-tabs-list">
-          <TabsTrigger value="detail" className="detail-tab">Detail</TabsTrigger>
-          <TabsTrigger value="subtasks" className="detail-tab">SubTasks</TabsTrigger>
-          <TabsTrigger value="taskmanagers" className="detail-tab">TaskManagers</TabsTrigger>
-          <TabsTrigger value="watermarks" className="detail-tab">Watermarks</TabsTrigger>
-          <TabsTrigger value="backpressure" className="detail-tab">BackPressure</TabsTrigger>
-          <TabsTrigger value="accumulators" className="detail-tab">Accumulators</TabsTrigger>
-          <TabsTrigger value="metrics" className="detail-tab">Metrics</TabsTrigger>
+          <TabsTrigger value="detail" className="detail-tab">
+            Detail
+          </TabsTrigger>
+          <TabsTrigger value="subtasks" className="detail-tab">
+            SubTasks
+          </TabsTrigger>
+          <TabsTrigger value="taskmanagers" className="detail-tab">
+            TaskManagers
+          </TabsTrigger>
+          <TabsTrigger value="watermarks" className="detail-tab">
+            Watermarks
+          </TabsTrigger>
+          <TabsTrigger value="backpressure" className="detail-tab">
+            BackPressure
+          </TabsTrigger>
+          <TabsTrigger value="accumulators" className="detail-tab">
+            Accumulators
+          </TabsTrigger>
+          <TabsTrigger value="metrics" className="detail-tab">
+            Metrics
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="detail" className="mt-4">
@@ -733,5 +861,5 @@ export function VerticesTab({
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

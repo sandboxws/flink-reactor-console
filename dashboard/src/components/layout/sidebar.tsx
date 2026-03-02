@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
   BarChart3,
@@ -17,22 +17,22 @@ import {
   Server,
   Settings,
   Upload,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/cn";
-import { useUiStore } from "@/stores/ui-store";
+} from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/cn"
+import { useUiStore } from "@/stores/ui-store"
 
 type NavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-};
+  href: string
+  label: string
+  icon: LucideIcon
+}
 
 type NavGroup = {
-  label: string;
-  items: NavItem[];
-};
+  label: string
+  items: NavItem[]
+}
 
 const NAV_GROUPS: NavGroup[] = [
   {
@@ -50,7 +50,11 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Insights",
     items: [
       { href: "/insights/health", label: "Cluster Health", icon: HeartPulse },
-      { href: "/insights/bottlenecks", label: "Bottleneck Analyzer", icon: GitFork },
+      {
+        href: "/insights/bottlenecks",
+        label: "Bottleneck Analyzer",
+        icon: GitFork,
+      },
       { href: "/insights/metrics", label: "Metrics Explorer", icon: LineChart },
     ],
   },
@@ -65,7 +69,11 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Monitoring",
     items: [
       { href: "/monitoring/alerts", label: "Alerts & Rules", icon: Bell },
-      { href: "/monitoring/checkpoints", label: "Checkpoint Analytics", icon: BarChart3 },
+      {
+        href: "/monitoring/checkpoints",
+        label: "Checkpoint Analytics",
+        icon: BarChart3,
+      },
     ],
   },
   {
@@ -79,12 +87,12 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Operations",
     items: [{ href: "/jobs/submit", label: "Submit New Job", icon: Upload }],
   },
-];
+]
 
 export function Sidebar() {
-  const collapsed = useUiStore((s) => s.sidebarCollapsed);
-  const toggle = useUiStore((s) => s.toggleSidebar);
-  const pathname = usePathname();
+  const collapsed = useUiStore((s) => s.sidebarCollapsed)
+  const toggle = useUiStore((s) => s.toggleSidebar)
+  const pathname = usePathname()
 
   return (
     <aside
@@ -114,7 +122,7 @@ export function Sidebar() {
             )}
             <div className="space-y-0.5">
               {group.items.map((item) => {
-                const active = pathname.startsWith(item.href);
+                const active = pathname.startsWith(item.href)
                 return (
                   <Link
                     key={item.href}
@@ -129,7 +137,7 @@ export function Sidebar() {
                     <item.icon className="size-3.5 shrink-0" />
                     {!collapsed && <span>{item.label}</span>}
                   </Link>
-                );
+                )
               })}
             </div>
           </div>
@@ -149,5 +157,5 @@ export function Sidebar() {
         )}
       </button>
     </aside>
-  );
+  )
 }

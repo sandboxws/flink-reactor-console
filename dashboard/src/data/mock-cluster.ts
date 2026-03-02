@@ -18,8 +18,8 @@ import type {
   JvmMetricSample,
   LogFileEntry,
   ShipStrategy,
-  SubtaskMetrics,
   SubtaskBackPressure,
+  SubtaskMetrics,
   TaskCounts,
   TaskManager,
   TaskManagerMemoryConfiguration,
@@ -28,41 +28,40 @@ import type {
   ThreadDumpEntry,
   ThreadDumpInfo,
   ThreadInfoRaw,
-  ThreadState,
   UploadedJar,
   UserAccumulator,
   VertexBackPressure,
   VertexWatermark,
-} from "./cluster-types";
-import { PLACEHOLDER_VALUES, pickRandom, TASK_MANAGERS } from "./flink-loggers";
+} from "./cluster-types"
+import { PLACEHOLDER_VALUES, pickRandom, TASK_MANAGERS } from "./flink-loggers"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function hex(length: number): string {
-  let out = "";
+  let out = ""
   for (let i = 0; i < length; i++) {
-    out += Math.floor(Math.random() * 16).toString(16);
+    out += Math.floor(Math.random() * 16).toString(16)
   }
-  return out;
+  return out
 }
 
 function minutesAgo(min: number): Date {
-  return new Date(Date.now() - min * 60_000);
+  return new Date(Date.now() - min * 60_000)
 }
 
 function hoursAgo(hours: number): Date {
-  return new Date(Date.now() - hours * 3_600_000);
+  return new Date(Date.now() - hours * 3_600_000)
 }
 
 function jitter(base: number, pct: number): number {
-  const delta = base * pct;
-  return base + (Math.random() * 2 - 1) * delta;
+  const delta = base * pct
+  return base + (Math.random() * 2 - 1) * delta
 }
 
-const GB = 1024 ** 3;
-const MB = 1024 ** 2;
+const GB = 1024 ** 3
+const MB = 1024 ** 2
 
 // ---------------------------------------------------------------------------
 // Module-level caches — mock data must return stable IDs across poll cycles
@@ -70,15 +69,15 @@ const MB = 1024 ** 2;
 // work correctly, just like a real Flink cluster.
 // ---------------------------------------------------------------------------
 
-let cachedRunningJobs: FlinkJob[] | null = null;
-let cachedCompletedJobs: FlinkJob[] | null = null;
-let cachedTaskManagers: TaskManager[] | null = null;
+let cachedRunningJobs: FlinkJob[] | null = null
+let cachedCompletedJobs: FlinkJob[] | null = null
+let cachedTaskManagers: TaskManager[] | null = null
 
 // ---------------------------------------------------------------------------
 // Job names (reuse PLACEHOLDER_VALUES for cross-page consistency)
 // ---------------------------------------------------------------------------
 
-const JOB_NAMES = PLACEHOLDER_VALUES.JOB_NAME;
+const JOB_NAMES = PLACEHOLDER_VALUES.JOB_NAME
 
 const EXTRA_JOB_NAMES = [
   "UserSessionAggregation",
@@ -89,9 +88,9 @@ const EXTRA_JOB_NAMES = [
   "ClickstreamEnrichment",
   "SensorDataIngestion",
   "NotificationDispatcher",
-];
+]
 
-const ALL_JOB_NAMES = [...JOB_NAMES, ...EXTRA_JOB_NAMES];
+const ALL_JOB_NAMES = [...JOB_NAMES, ...EXTRA_JOB_NAMES]
 
 // ---------------------------------------------------------------------------
 // Task count generation
@@ -107,35 +106,38 @@ function generateTaskCounts(
     finished: 0,
     canceling: 0,
     failed: 0,
-  };
-
-  if (status === "FINISHED") {
-    counts.finished = parallelism;
-  } else if (status === "FAILED") {
-    counts.failed = Math.ceil(parallelism * 0.25);
-    counts.finished = parallelism - counts.failed;
-  } else if (status === "CANCELED" || status === "CANCELLING") {
-    counts.canceling = Math.ceil(parallelism * 0.3);
-    counts.finished = parallelism - counts.canceling;
-  } else if (status === "RUNNING") {
-    // Mostly running with a few finished
-    const finished = Math.floor(Math.random() * Math.ceil(parallelism * 0.3));
-    const pending = Math.random() < 0.2 ? 1 : 0;
-    counts.finished = finished;
-    counts.pending = pending;
-    counts.running = parallelism - finished - pending;
-  } else {
-    counts.pending = parallelism;
   }
 
-  return counts;
+  if (status === "FINISHED") {
+    counts.finished = parallelism
+  } else if (status === "FAILED") {
+    counts.failed = Math.ceil(parallelism * 0.25)
+    counts.finished = parallelism - counts.failed
+  } else if (status === "CANCELED" || status === "CANCELLING") {
+    counts.canceling = Math.ceil(parallelism * 0.3)
+    counts.finished = parallelism - counts.canceling
+  } else if (status === "RUNNING") {
+    // Mostly running with a few finished
+    const finished = Math.floor(Math.random() * Math.ceil(parallelism * 0.3))
+    const pending = Math.random() < 0.2 ? 1 : 0
+    counts.finished = finished
+    counts.pending = pending
+    counts.running = parallelism - finished - pending
+  } else {
+    counts.pending = parallelism
+  }
+
+  return counts
 }
 
 // ---------------------------------------------------------------------------
 // Job detail generators
 // ---------------------------------------------------------------------------
 
-const OPERATOR_TEMPLATES: { name: string; type: "source" | "transform" | "sink" }[] = [
+const OPERATOR_TEMPLATES: {
+  name: string
+  type: "source" | "transform" | "sink"
+}[] = [
   { name: "Source: KafkaSource", type: "source" },
   { name: "Source: JdbcSource", type: "source" },
   { name: "Filter", type: "transform" },
@@ -147,7 +149,7 @@ const OPERATOR_TEMPLATES: { name: string; type: "source" | "transform" | "sink" 
   { name: "Sink: KafkaSink", type: "sink" },
   { name: "Sink: JdbcSink", type: "sink" },
   { name: "Sink: FileSystemSink", type: "sink" },
-];
+]
 
 const SHIP_STRATEGIES: ShipStrategy[] = [
   "FORWARD",
@@ -155,14 +157,14 @@ const SHIP_STRATEGIES: ShipStrategy[] = [
   "REBALANCE",
   "BROADCAST",
   "RESCALE",
-];
+]
 
 function vertexStatusFromJob(jobStatus: JobStatus): JobVertexStatus {
-  if (jobStatus === "RUNNING") return "RUNNING";
-  if (jobStatus === "FINISHED") return "FINISHED";
-  if (jobStatus === "FAILED") return "FAILED";
-  if (jobStatus === "CANCELED" || jobStatus === "CANCELLING") return "CANCELED";
-  return "CREATED";
+  if (jobStatus === "RUNNING") return "RUNNING"
+  if (jobStatus === "FINISHED") return "FINISHED"
+  if (jobStatus === "FAILED") return "FAILED"
+  if (jobStatus === "CANCELED" || jobStatus === "CANCELLING") return "CANCELED"
+  return "CREATED"
 }
 
 export function generateJobPlan(
@@ -171,45 +173,48 @@ export function generateJobPlan(
   jobStartTime: Date,
 ): JobPlan {
   // Create a realistic 4-6 vertex DAG
-  const vertexCount = 4 + Math.floor(Math.random() * 3);
-  const vertices: JobVertex[] = [];
-  const edges: JobEdge[] = [];
+  const vertexCount = 4 + Math.floor(Math.random() * 3)
+  const vertices: JobVertex[] = []
+  const edges: JobEdge[] = []
 
   // Pick operators: source(s) → transforms → sink(s)
-  const sources = OPERATOR_TEMPLATES.filter((o) => o.type === "source");
-  const transforms = OPERATOR_TEMPLATES.filter((o) => o.type === "transform");
-  const sinks = OPERATOR_TEMPLATES.filter((o) => o.type === "sink");
+  const sources = OPERATOR_TEMPLATES.filter((o) => o.type === "source")
+  const transforms = OPERATOR_TEMPLATES.filter((o) => o.type === "transform")
+  const sinks = OPERATOR_TEMPLATES.filter((o) => o.type === "sink")
 
-  const pipeline: string[] = [];
-  pipeline.push(pickRandom(sources).name);
-  const transformCount = Math.max(1, vertexCount - 2);
-  const usedTransforms = new Set<string>();
+  const pipeline: string[] = []
+  pipeline.push(pickRandom(sources).name)
+  const transformCount = Math.max(1, vertexCount - 2)
+  const usedTransforms = new Set<string>()
   for (let i = 0; i < transformCount; i++) {
-    let t: string;
+    let t: string
     do {
-      t = pickRandom(transforms).name;
-    } while (usedTransforms.has(t) && usedTransforms.size < transforms.length);
-    usedTransforms.add(t);
-    pipeline.push(t);
+      t = pickRandom(transforms).name
+    } while (usedTransforms.has(t) && usedTransforms.size < transforms.length)
+    usedTransforms.add(t)
+    pipeline.push(t)
   }
-  pipeline.push(pickRandom(sinks).name);
+  pipeline.push(pickRandom(sinks).name)
 
-  const jobStartMs = jobStartTime.getTime();
-  const baseStatus = vertexStatusFromJob(jobStatus);
+  const jobStartMs = jobStartTime.getTime()
+  const baseStatus = vertexStatusFromJob(jobStatus)
 
   for (let i = 0; i < pipeline.length; i++) {
-    const id = hex(32);
-    const vertexPar = i === 0 ? parallelism : pickRandom([parallelism, parallelism, Math.max(1, parallelism / 2)]);
-    const baseRecords = 50_000 + Math.floor(Math.random() * 2_000_000);
-    const busyTime = Math.floor(Math.random() * 900);
-    const vertexStartOffset = i * (2000 + Math.floor(Math.random() * 3000));
+    const id = hex(32)
+    const vertexPar =
+      i === 0
+        ? parallelism
+        : pickRandom([parallelism, parallelism, Math.max(1, parallelism / 2)])
+    const baseRecords = 50_000 + Math.floor(Math.random() * 2_000_000)
+    const busyTime = Math.floor(Math.random() * 900)
+    const vertexStartOffset = i * (2000 + Math.floor(Math.random() * 3000))
 
     // For failed jobs, make the last transform vertex failed
-    let vStatus = baseStatus;
+    let vStatus = baseStatus
     if (jobStatus === "FAILED" && i === pipeline.length - 2) {
-      vStatus = "FAILED";
+      vStatus = "FAILED"
     } else if (jobStatus === "FAILED" && i === pipeline.length - 1) {
-      vStatus = "CANCELED";
+      vStatus = "CANCELED"
     }
 
     vertices.push({
@@ -219,16 +224,28 @@ export function generateJobPlan(
       status: vStatus,
       metrics: {
         recordsIn: i === 0 ? 0 : baseRecords,
-        recordsOut: i === pipeline.length - 1 ? 0 : Math.floor(baseRecords * (0.7 + Math.random() * 0.3)),
+        recordsOut:
+          i === pipeline.length - 1
+            ? 0
+            : Math.floor(baseRecords * (0.7 + Math.random() * 0.3)),
         bytesIn: i === 0 ? 0 : baseRecords * 256,
         bytesOut: i === pipeline.length - 1 ? 0 : baseRecords * 200,
         busyTimeMsPerSecond: busyTime,
         backPressuredTimeMsPerSecond: Math.max(0, busyTime - 400),
       },
-      tasks: generateTaskCounts(vertexPar, vStatus === "RUNNING" ? "RUNNING" : vStatus === "FINISHED" ? "FINISHED" : vStatus === "FAILED" ? "FAILED" : "CANCELED"),
+      tasks: generateTaskCounts(
+        vertexPar,
+        vStatus === "RUNNING"
+          ? "RUNNING"
+          : vStatus === "FINISHED"
+            ? "FINISHED"
+            : vStatus === "FAILED"
+              ? "FAILED"
+              : "CANCELED",
+      ),
       duration: 10_000 + Math.floor(Math.random() * 300_000),
       startTime: jobStartMs + vertexStartOffset,
-    });
+    })
   }
 
   // Create edges (linear chain)
@@ -237,10 +254,10 @@ export function generateJobPlan(
       source: vertices[i].id,
       target: vertices[i + 1].id,
       shipStrategy: i === 0 ? "FORWARD" : pickRandom(SHIP_STRATEGIES),
-    });
+    })
   }
 
-  return { vertices, edges };
+  return { vertices, edges }
 }
 
 export function generateJobExceptions(
@@ -249,11 +266,11 @@ export function generateJobExceptions(
 ): JobException[] {
   // Healthy jobs get no exceptions
   if (jobStatus !== "FAILED" && jobStatus !== "FAILING") {
-    return [];
+    return []
   }
 
-  const count = 1 + Math.floor(Math.random() * 3);
-  const exceptions: JobException[] = [];
+  const count = 1 + Math.floor(Math.random() * 3)
+  const exceptions: JobException[] = []
   const exceptionTemplates = [
     {
       name: "java.lang.NullPointerException",
@@ -276,7 +293,8 @@ export function generateJobExceptions(
     },
     {
       name: "org.apache.flink.util.FlinkRuntimeException",
-      message: "Failed to deserialize record from Kafka: Corrupt message at offset 1542890",
+      message:
+        "Failed to deserialize record from Kafka: Corrupt message at offset 1542890",
       trace: `org.apache.flink.util.FlinkRuntimeException: Failed to deserialize record from Kafka: Corrupt message at offset 1542890
 \tat org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema.deserialize(KafkaRecordDeserializationSchema.java:78)
 \tat org.apache.flink.connector.kafka.source.reader.KafkaSourceReader.pollNext(KafkaSourceReader.java:89)
@@ -293,7 +311,8 @@ export function generateJobExceptions(
     },
     {
       name: "java.io.IOException",
-      message: "Connection reset by peer: JDBC sink lost connection to database",
+      message:
+        "Connection reset by peer: JDBC sink lost connection to database",
       trace: `java.io.IOException: Connection reset by peer: JDBC sink lost connection to database
 \tat java.net.SocketInputStream.read(SocketInputStream.java:186)
 \tat com.mysql.cj.protocol.ReadAheadInputStream.fill(ReadAheadInputStream.java:107)
@@ -305,29 +324,34 @@ export function generateJobExceptions(
 \tat org.apache.flink.runtime.taskmanager.Task.run(Task.java:562)
 \tat java.lang.Thread.run(Thread.java:750)`,
     },
-  ];
+  ]
 
   for (let i = 0; i < count; i++) {
-    const template = exceptionTemplates[i % exceptionTemplates.length];
-    const failedVertex = vertices.find((v) => v.status === "FAILED") ?? pickRandom(vertices);
-    const subtaskIdx = Math.floor(Math.random() * failedVertex.parallelism);
+    const template = exceptionTemplates[i % exceptionTemplates.length]
+    const failedVertex =
+      vertices.find((v) => v.status === "FAILED") ?? pickRandom(vertices)
+    const subtaskIdx = Math.floor(Math.random() * failedVertex.parallelism)
 
     exceptions.push({
-      timestamp: new Date(Date.now() - (count - i) * 30_000 - Math.floor(Math.random() * 60_000)),
+      timestamp: new Date(
+        Date.now() - (count - i) * 30_000 - Math.floor(Math.random() * 60_000),
+      ),
       name: template.name,
       message: template.message,
       stacktrace: template.trace,
       taskName: failedVertex.name,
       location: `${failedVertex.name} (${subtaskIdx + 1}/${failedVertex.parallelism})`,
-    });
+    })
   }
 
-  return exceptions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  return exceptions.sort(
+    (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+  )
 }
 
 export function generateCheckpoints(jobStatus: JobStatus): {
-  checkpoints: Checkpoint[];
-  config: CheckpointConfig;
+  checkpoints: Checkpoint[]
+  config: CheckpointConfig
 } {
   const config: CheckpointConfig = {
     mode: "EXACTLY_ONCE",
@@ -335,22 +359,24 @@ export function generateCheckpoints(jobStatus: JobStatus): {
     timeout: 600_000,
     minPause: pickRandom([10_000, 30_000]),
     maxConcurrent: 1,
-  };
+  }
 
-  const count = 20 + Math.floor(Math.random() * 11); // 20-30
-  const checkpoints: Checkpoint[] = [];
-  const now = Date.now();
+  const count = 20 + Math.floor(Math.random() * 11) // 20-30
+  const checkpoints: Checkpoint[] = []
+  const now = Date.now()
 
   // State size grows gradually over time (simulates state accumulation)
-  const baseSizeStart = 10 + Math.floor(Math.random() * 100); // 10-110 MB
-  const growthRate = 1 + Math.random() * 0.03; // 0-3% per checkpoint
+  const baseSizeStart = 10 + Math.floor(Math.random() * 100) // 10-110 MB
+  const growthRate = 1 + Math.random() * 0.03 // 0-3% per checkpoint
 
   for (let i = 0; i < count; i++) {
-    const triggerOffset = (count - i) * config.interval + Math.floor(Math.random() * 5000);
-    const duration = 100 + Math.floor(Math.random() * 400) + Math.floor(i * Math.random() * 5); // 100-500ms, slight drift
-    const baseSize = Math.floor(baseSizeStart * Math.pow(growthRate, i)); // growing state
+    const triggerOffset =
+      (count - i) * config.interval + Math.floor(Math.random() * 5000)
+    const duration =
+      100 + Math.floor(Math.random() * 400) + Math.floor(i * Math.random() * 5) // 100-500ms, slight drift
+    const baseSize = Math.floor(baseSizeStart * growthRate ** i) // growing state
     // ~5% failure rate
-    const isFailed = Math.random() < 0.05;
+    const isFailed = Math.random() < 0.05
 
     checkpoints.push({
       id: i + 1,
@@ -358,9 +384,11 @@ export function generateCheckpoints(jobStatus: JobStatus): {
       triggerTimestamp: new Date(now - triggerOffset),
       duration: isFailed ? 0 : duration,
       size: isFailed ? 0 : baseSize * MB,
-      processedData: isFailed ? 0 : Math.floor(baseSize * MB * (0.8 + Math.random() * 0.4)),
+      processedData: isFailed
+        ? 0
+        : Math.floor(baseSize * MB * (0.8 + Math.random() * 0.4)),
       isSavepoint: i === 0 && Math.random() < 0.2,
-    });
+    })
   }
 
   // Optionally add an in-progress checkpoint for running jobs
@@ -373,32 +401,33 @@ export function generateCheckpoints(jobStatus: JobStatus): {
       size: 0,
       processedData: 0,
       isSavepoint: false,
-    });
+    })
   }
 
-  return { checkpoints, config };
+  return { checkpoints, config }
 }
 
 export function generateSubtaskMetrics(
   vertices: JobVertex[],
 ): Record<string, SubtaskMetrics[]> {
-  const result: Record<string, SubtaskMetrics[]> = {};
+  const result: Record<string, SubtaskMetrics[]> = {}
 
   for (const vertex of vertices) {
-    const subtasks: SubtaskMetrics[] = [];
-    const baseRecords = 20_000 + Math.floor(Math.random() * 500_000);
+    const subtasks: SubtaskMetrics[] = []
+    const baseRecords = 20_000 + Math.floor(Math.random() * 500_000)
     // Pick one subtask to be skewed (3-5x more records)
-    const skewedIdx = Math.floor(Math.random() * vertex.parallelism);
-    const skewFactor = 3 + Math.random() * 2;
+    const skewedIdx = Math.floor(Math.random() * vertex.parallelism)
+    const skewFactor = 3 + Math.random() * 2
 
     for (let i = 0; i < vertex.parallelism; i++) {
-      const multiplier = i === skewedIdx ? skewFactor : 0.8 + Math.random() * 0.4;
-      const recordsIn = Math.floor(baseRecords * multiplier);
-      const recordsOut = Math.floor(recordsIn * (0.7 + Math.random() * 0.3));
-      const busyMs = Math.floor(200 + Math.random() * 700);
-      const bpMs = Math.floor(Math.random() * 300);
-      const idleMs = Math.max(0, 1000 - busyMs - bpMs);
-      const tmIdx = (i % 3) + 1;
+      const multiplier =
+        i === skewedIdx ? skewFactor : 0.8 + Math.random() * 0.4
+      const recordsIn = Math.floor(baseRecords * multiplier)
+      const recordsOut = Math.floor(recordsIn * (0.7 + Math.random() * 0.3))
+      const busyMs = Math.floor(200 + Math.random() * 700)
+      const bpMs = Math.floor(Math.random() * 300)
+      const idleMs = Math.max(0, 1000 - busyMs - bpMs)
+      const tmIdx = (i % 3) + 1
 
       subtasks.push({
         subtaskIndex: i,
@@ -407,7 +436,8 @@ export function generateSubtaskMetrics(
         endpoint: `tm-${tmIdx}:6122`,
         taskManagerId: `tm-${tmIdx}`,
         startTime: vertex.startTime,
-        endTime: vertex.status === "RUNNING" ? -1 : vertex.startTime + vertex.duration,
+        endTime:
+          vertex.status === "RUNNING" ? -1 : vertex.startTime + vertex.duration,
         duration: vertex.duration,
         recordsIn,
         recordsOut,
@@ -416,51 +446,56 @@ export function generateSubtaskMetrics(
         busyTimeMsPerSecond: busyMs,
         backPressuredTimeMsPerSecond: bpMs,
         idleTimeMsPerSecond: idleMs,
-      });
+      })
     }
 
-    result[vertex.id] = subtasks;
+    result[vertex.id] = subtasks
   }
 
-  return result;
+  return result
 }
 
 export function generateWatermarks(
   vertices: JobVertex[],
 ): Record<string, VertexWatermark[]> {
-  const result: Record<string, VertexWatermark[]> = {};
-  const now = Date.now();
+  const result: Record<string, VertexWatermark[]> = {}
+  const now = Date.now()
 
   for (const vertex of vertices) {
-    const wms: VertexWatermark[] = [];
+    const wms: VertexWatermark[] = []
     for (let i = 0; i < vertex.parallelism; i++) {
       // Watermarks are slightly behind current time (1-30 seconds lag)
-      const lag = 1000 + Math.floor(Math.random() * 29_000);
+      const lag = 1000 + Math.floor(Math.random() * 29_000)
       wms.push({
         subtaskIndex: i,
         watermark: vertex.status === "RUNNING" ? now - lag : -Infinity,
-      });
+      })
     }
-    result[vertex.id] = wms;
+    result[vertex.id] = wms
   }
 
-  return result;
+  return result
 }
 
 export function generateBackPressure(
   vertices: JobVertex[],
 ): Record<string, VertexBackPressure> {
-  const result: Record<string, VertexBackPressure> = {};
-  const levels: Array<"ok" | "low" | "high"> = ["ok", "ok", "ok", "low", "high"];
+  const result: Record<string, VertexBackPressure> = {}
+  const levels: Array<"ok" | "low" | "high"> = ["ok", "ok", "ok", "low", "high"]
 
   for (const vertex of vertices) {
-    const subtasks: SubtaskBackPressure[] = [];
+    const subtasks: SubtaskBackPressure[] = []
     for (let i = 0; i < vertex.parallelism; i++) {
-      const level = pickRandom(levels);
-      const ratio = level === "ok" ? Math.random() * 0.1 : level === "low" ? 0.1 + Math.random() * 0.4 : 0.5 + Math.random() * 0.5;
-      const busyRatio = 0.3 + Math.random() * 0.5;
-      const idleRatio = Math.max(0, 1 - ratio - busyRatio);
-      subtasks.push({ subtaskIndex: i, level, ratio, busyRatio, idleRatio });
+      const level = pickRandom(levels)
+      const ratio =
+        level === "ok"
+          ? Math.random() * 0.1
+          : level === "low"
+            ? 0.1 + Math.random() * 0.4
+            : 0.5 + Math.random() * 0.5
+      const busyRatio = 0.3 + Math.random() * 0.5
+      const idleRatio = Math.max(0, 1 - ratio - busyRatio)
+      subtasks.push({ subtaskIndex: i, level, ratio, busyRatio, idleRatio })
     }
 
     // Overall level is the worst across subtasks
@@ -468,39 +503,51 @@ export function generateBackPressure(
       ? "high"
       : subtasks.some((s) => s.level === "low")
         ? "low"
-        : "ok";
+        : "ok"
 
     result[vertex.id] = {
       level: overallLevel,
       endTimestamp: Date.now(),
       subtasks,
-    };
+    }
   }
 
-  return result;
+  return result
 }
 
 export function generateAccumulators(
   vertices: JobVertex[],
 ): Record<string, UserAccumulator[]> {
-  const result: Record<string, UserAccumulator[]> = {};
+  const result: Record<string, UserAccumulator[]> = {}
 
   const sampleAccumulators: UserAccumulator[][] = [
     [
-      { name: "numRecordsProcessed", type: "LongCounter", value: String(10_000 + Math.floor(Math.random() * 500_000)) },
-      { name: "numBytesProcessed", type: "LongCounter", value: String(2_000_000 + Math.floor(Math.random() * 100_000_000)) },
+      {
+        name: "numRecordsProcessed",
+        type: "LongCounter",
+        value: String(10_000 + Math.floor(Math.random() * 500_000)),
+      },
+      {
+        name: "numBytesProcessed",
+        type: "LongCounter",
+        value: String(2_000_000 + Math.floor(Math.random() * 100_000_000)),
+      },
     ],
     [
-      { name: "numLateRecordsDropped", type: "LongCounter", value: String(Math.floor(Math.random() * 100)) },
+      {
+        name: "numLateRecordsDropped",
+        type: "LongCounter",
+        value: String(Math.floor(Math.random() * 100)),
+      },
     ],
     [], // some vertices have no accumulators
-  ];
+  ]
 
   for (const vertex of vertices) {
-    result[vertex.id] = pickRandom(sampleAccumulators);
+    result[vertex.id] = pickRandom(sampleAccumulators)
   }
 
-  return result;
+  return result
 }
 
 export function generateJobConfiguration(): JobConfiguration[] {
@@ -533,22 +580,33 @@ export function generateJobConfiguration(): JobConfiguration[] {
     { key: "table.exec.mini-batch.size", value: "5000" },
     { key: "metrics.reporter.prom.port", value: "9249" },
     { key: "metrics.latency.interval", value: "2000" },
-  ];
+  ]
 }
 
 function generateJobDetailFields(
   parallelism: number,
   jobStatus: JobStatus,
   startTime: Date,
-): Pick<FlinkJob, "plan" | "exceptions" | "checkpoints" | "checkpointConfig" | "subtaskMetrics" | "configuration" | "watermarks" | "backpressure" | "accumulators"> {
-  const plan = generateJobPlan(parallelism, jobStatus, startTime);
-  const exceptions = generateJobExceptions(jobStatus, plan.vertices);
-  const { checkpoints, config } = generateCheckpoints(jobStatus);
-  const subtaskMetrics = generateSubtaskMetrics(plan.vertices);
-  const configuration = generateJobConfiguration();
-  const watermarks = generateWatermarks(plan.vertices);
-  const backpressure = generateBackPressure(plan.vertices);
-  const accumulators = generateAccumulators(plan.vertices);
+): Pick<
+  FlinkJob,
+  | "plan"
+  | "exceptions"
+  | "checkpoints"
+  | "checkpointConfig"
+  | "subtaskMetrics"
+  | "configuration"
+  | "watermarks"
+  | "backpressure"
+  | "accumulators"
+> {
+  const plan = generateJobPlan(parallelism, jobStatus, startTime)
+  const exceptions = generateJobExceptions(jobStatus, plan.vertices)
+  const { checkpoints, config } = generateCheckpoints(jobStatus)
+  const subtaskMetrics = generateSubtaskMetrics(plan.vertices)
+  const configuration = generateJobConfiguration()
+  const watermarks = generateWatermarks(plan.vertices)
+  const backpressure = generateBackPressure(plan.vertices)
+  const accumulators = generateAccumulators(plan.vertices)
 
   return {
     plan,
@@ -560,7 +618,7 @@ function generateJobDetailFields(
     watermarks,
     backpressure,
     accumulators,
-  };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -572,14 +630,12 @@ export function generateClusterOverview(
   completed: FlinkJob[],
   tms: TaskManager[],
 ): ClusterOverview {
-  const finishedCount = completed.filter((j) => j.status === "FINISHED").length;
-  const cancelledCount = completed.filter(
-    (j) => j.status === "CANCELED",
-  ).length;
-  const failedCount = completed.filter((j) => j.status === "FAILED").length;
+  const finishedCount = completed.filter((j) => j.status === "FINISHED").length
+  const cancelledCount = completed.filter((j) => j.status === "CANCELED").length
+  const failedCount = completed.filter((j) => j.status === "FAILED").length
 
-  const totalSlots = tms.reduce((sum, tm) => sum + tm.slotsTotal, 0);
-  const freeSlots = tms.reduce((sum, tm) => sum + tm.slotsFree, 0);
+  const totalSlots = tms.reduce((sum, tm) => sum + tm.slotsTotal, 0)
+  const freeSlots = tms.reduce((sum, tm) => sum + tm.slotsFree, 0)
 
   return {
     flinkVersion: "1.20.0",
@@ -591,7 +647,7 @@ export function generateClusterOverview(
     cancelledJobs: cancelledCount,
     failedJobs: failedCount,
     taskManagerCount: tms.length,
-  };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -599,22 +655,22 @@ export function generateClusterOverview(
 // ---------------------------------------------------------------------------
 
 export function generateRunningJobs(): FlinkJob[] {
-  if (cachedRunningJobs) return cachedRunningJobs;
+  if (cachedRunningJobs) return cachedRunningJobs
 
-  const count = 2 + Math.floor(Math.random() * 3); // 2–4
-  const used = new Set<string>();
-  const jobs: FlinkJob[] = [];
+  const count = 2 + Math.floor(Math.random() * 3) // 2–4
+  const used = new Set<string>()
+  const jobs: FlinkJob[] = []
 
   for (let i = 0; i < count; i++) {
-    let name: string;
+    let name: string
     do {
-      name = pickRandom(ALL_JOB_NAMES);
-    } while (used.has(name));
-    used.add(name);
+      name = pickRandom(ALL_JOB_NAMES)
+    } while (used.has(name))
+    used.add(name)
 
-    const parallelism = pickRandom([2, 4, 4, 8]);
-    const startMin = 5 + Math.floor(Math.random() * 55); // 5–60 min ago
-    const startTime = minutesAgo(startMin);
+    const parallelism = pickRandom([2, 4, 4, 8])
+    const startMin = 5 + Math.floor(Math.random() * 55) // 5–60 min ago
+    const startTime = minutesAgo(startMin)
 
     jobs.push({
       id: hex(32),
@@ -626,11 +682,11 @@ export function generateRunningJobs(): FlinkJob[] {
       tasks: generateTaskCounts(parallelism, "RUNNING"),
       parallelism,
       ...generateJobDetailFields(parallelism, "RUNNING", startTime),
-    });
+    })
   }
 
-  cachedRunningJobs = jobs;
-  return jobs;
+  cachedRunningJobs = jobs
+  return jobs
 }
 
 // ---------------------------------------------------------------------------
@@ -638,9 +694,9 @@ export function generateRunningJobs(): FlinkJob[] {
 // ---------------------------------------------------------------------------
 
 export function generateCompletedJobs(): FlinkJob[] {
-  if (cachedCompletedJobs) return cachedCompletedJobs;
+  if (cachedCompletedJobs) return cachedCompletedJobs
 
-  const count = 5 + Math.floor(Math.random() * 6); // 5–10
+  const count = 5 + Math.floor(Math.random() * 6) // 5–10
   const statuses: JobStatus[] = [
     "FINISHED",
     "FINISHED",
@@ -650,16 +706,16 @@ export function generateCompletedJobs(): FlinkJob[] {
     "FAILED",
     "FAILED",
     "CANCELED",
-  ];
-  const jobs: FlinkJob[] = [];
+  ]
+  const jobs: FlinkJob[] = []
 
   for (let i = 0; i < count; i++) {
-    const parallelism = pickRandom([2, 4, 4, 8]);
-    const status = pickRandom(statuses);
-    const startHours = 1 + Math.floor(Math.random() * 48); // 1–48h ago
-    const durationMs = (5 + Math.floor(Math.random() * 120)) * 60_000; // 5–125 min
-    const startTime = hoursAgo(startHours);
-    const endTime = new Date(startTime.getTime() + durationMs);
+    const parallelism = pickRandom([2, 4, 4, 8])
+    const status = pickRandom(statuses)
+    const startHours = 1 + Math.floor(Math.random() * 48) // 1–48h ago
+    const durationMs = (5 + Math.floor(Math.random() * 120)) * 60_000 // 5–125 min
+    const startTime = hoursAgo(startHours)
+    const endTime = new Date(startTime.getTime() + durationMs)
 
     jobs.push({
       id: hex(32),
@@ -671,35 +727,36 @@ export function generateCompletedJobs(): FlinkJob[] {
       tasks: generateTaskCounts(parallelism, status),
       parallelism,
       ...generateJobDetailFields(parallelism, status, startTime),
-    });
+    })
   }
 
   // Sort by end time descending
-  jobs.sort(
-    (a, b) => (b.endTime?.getTime() ?? 0) - (a.endTime?.getTime() ?? 0),
-  );
+  jobs.sort((a, b) => (b.endTime?.getTime() ?? 0) - (a.endTime?.getTime() ?? 0))
 
-  cachedCompletedJobs = jobs;
-  return jobs;
+  cachedCompletedJobs = jobs
+  return jobs
 }
 
 // ---------------------------------------------------------------------------
 // 2.4 — generateTaskManagers
 // ---------------------------------------------------------------------------
 
-function generateTmMetrics(memCfg: TaskManagerMemoryConfiguration): TaskManagerMetrics {
-  const heapMax = memCfg.frameworkHeap + memCfg.taskHeap;
-  const nonHeapMax = 738 * MB;
-  const directMax = memCfg.frameworkOffHeap + memCfg.taskOffHeap + memCfg.networkMemory;
-  const nettyTotal = memCfg.networkMemory;
+function generateTmMetrics(
+  memCfg: TaskManagerMemoryConfiguration,
+): TaskManagerMetrics {
+  const heapMax = memCfg.frameworkHeap + memCfg.taskHeap
+  const nonHeapMax = 738 * MB
+  const directMax =
+    memCfg.frameworkOffHeap + memCfg.taskOffHeap + memCfg.networkMemory
+  const nettyTotal = memCfg.networkMemory
 
-  const heapUsed = jitter(heapMax * 0.3, 0.15);
-  const nonHeapUsed = jitter(64 * MB, 0.2);
-  const directUsed = jitter(directMax * 0.5, 0.25);
-  const nettyUsed = jitter(nettyTotal * 0.1, 0.3);
-  const managedUsed = jitter(memCfg.managedMemory * 0.05, 0.5);
-  const metaspaceUsed = jitter(41 * MB, 0.2);
-  const segmentsTotal = Math.round(nettyTotal / (32 * 1024)); // 32KB per segment
+  const heapUsed = jitter(heapMax * 0.3, 0.15)
+  const nonHeapUsed = jitter(64 * MB, 0.2)
+  const directUsed = jitter(directMax * 0.5, 0.25)
+  const nettyUsed = jitter(nettyTotal * 0.1, 0.3)
+  const managedUsed = jitter(memCfg.managedMemory * 0.05, 0.5)
+  const metaspaceUsed = jitter(41 * MB, 0.2)
+  const segmentsTotal = Math.round(nettyTotal / (32 * 1024)) // 32KB per segment
 
   return {
     cpuUsage: 15 + Math.random() * 60,
@@ -722,7 +779,8 @@ function generateTmMetrics(memCfg: TaskManagerMemoryConfiguration): TaskManagerM
     nettyShuffleMemoryAvailable: nettyTotal - nettyUsed,
     nettyShuffleMemoryUsed: nettyUsed,
     nettyShuffleMemoryTotal: nettyTotal,
-    nettyShuffleSegmentsAvailable: segmentsTotal - Math.floor(nettyUsed / (32 * 1024)),
+    nettyShuffleSegmentsAvailable:
+      segmentsTotal - Math.floor(nettyUsed / (32 * 1024)),
     nettyShuffleSegmentsUsed: Math.floor(nettyUsed / (32 * 1024)),
     nettyShuffleSegmentsTotal: segmentsTotal,
     // Managed
@@ -733,26 +791,44 @@ function generateTmMetrics(memCfg: TaskManagerMemoryConfiguration): TaskManagerM
     metaspaceMax: memCfg.jvmMetaspace,
     // GC
     garbageCollectors: [
-      { name: "G1_Young_Generation", count: 80 + Math.floor(Math.random() * 150), time: 2000 + Math.floor(Math.random() * 3000) },
-      { name: "G1_Old_Generation", count: Math.floor(Math.random() * 5), time: Math.floor(Math.random() * 500) },
-      { name: "G1_Concurrent_GC", count: 3 + Math.floor(Math.random() * 10), time: 1 + Math.floor(Math.random() * 20) },
+      {
+        name: "G1_Young_Generation",
+        count: 80 + Math.floor(Math.random() * 150),
+        time: 2000 + Math.floor(Math.random() * 3000),
+      },
+      {
+        name: "G1_Old_Generation",
+        count: Math.floor(Math.random() * 5),
+        time: Math.floor(Math.random() * 500),
+      },
+      {
+        name: "G1_Concurrent_GC",
+        count: 3 + Math.floor(Math.random() * 10),
+        time: 1 + Math.floor(Math.random() * 20),
+      },
     ],
     // Threads
     threadCount: 40 + Math.floor(Math.random() * 30),
-  };
+  }
 }
 
 function generateTmMemoryConfig(): TaskManagerMemoryConfiguration {
-  const frameworkHeap = 128 * MB;
-  const taskHeap = 384 * MB;
-  const frameworkOffHeap = 128 * MB;
-  const taskOffHeap = 0;
-  const networkMemory = 128 * MB;
-  const managedMemory = 512 * MB;
-  const jvmMetaspace = 256 * MB;
-  const jvmOverhead = 192 * MB;
-  const totalFlinkMemory = frameworkHeap + taskHeap + frameworkOffHeap + taskOffHeap + networkMemory + managedMemory;
-  const totalProcessMemory = totalFlinkMemory + jvmMetaspace + jvmOverhead;
+  const frameworkHeap = 128 * MB
+  const taskHeap = 384 * MB
+  const frameworkOffHeap = 128 * MB
+  const taskOffHeap = 0
+  const networkMemory = 128 * MB
+  const managedMemory = 512 * MB
+  const jvmMetaspace = 256 * MB
+  const jvmOverhead = 192 * MB
+  const totalFlinkMemory =
+    frameworkHeap +
+    taskHeap +
+    frameworkOffHeap +
+    taskOffHeap +
+    networkMemory +
+    managedMemory
+  const totalProcessMemory = totalFlinkMemory + jvmMetaspace + jvmOverhead
 
   return {
     frameworkHeap,
@@ -765,7 +841,7 @@ function generateTmMemoryConfig(): TaskManagerMemoryConfiguration {
     jvmOverhead,
     totalFlinkMemory,
     totalProcessMemory,
-  };
+  }
 }
 
 function generateTmResource(slotsTotal: number): TaskManagerResource {
@@ -775,7 +851,7 @@ function generateTmResource(slotsTotal: number): TaskManagerResource {
     taskOffHeapMemory: 0,
     managedMemory: 512,
     networkMemory: 128,
-  };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -810,18 +886,18 @@ function generateTmLogs(tmId: string): string {
     `2025-01-15 10:00:45,234 WARN  org.apache.flink.runtime.taskexecutor.TaskExecutor             - Slow garbage collection detected: G1 Young Generation GC took 245ms.`,
     `2025-01-15 10:00:50,567 INFO  org.apache.flink.connector.kafka.sink.KafkaWriter              - Kafka writer flushed 512 records to topic 'orders'.`,
     `2025-01-15 10:00:55,890 INFO  org.apache.flink.connector.kafka.sink.KafkaWriter              - Committing transaction for checkpoint 3.`,
-  ];
-  return lines.join("\n");
+  ]
+  return lines.join("\n")
 }
 
 function generateTmStdoutText(tm: {
-  id: string;
-  slotsTotal: number;
-  cpuCores: number;
-  physicalMemory: number;
-  metrics: TaskManagerMetrics;
-  memoryConfiguration: TaskManagerMemoryConfiguration;
-  path: string;
+  id: string
+  slotsTotal: number
+  cpuCores: number
+  physicalMemory: number
+  metrics: TaskManagerMetrics
+  memoryConfiguration: TaskManagerMemoryConfiguration
+  path: string
 }): string {
   return [
     `Starting Flink TaskManager (TaskManagerRunner)`,
@@ -848,47 +924,51 @@ function generateTmStdoutText(tm: {
     ``,
     `Connecting to ResourceManager at ${tm.path.split("/user")[0]}`,
     `Successfully registered at ResourceManager.`,
-  ].join("\n");
+  ].join("\n")
 }
 
 function generateTmLogFiles(tmIndex: number): LogFileEntry[] {
-  const now = Date.now();
-  const entries: LogFileEntry[] = [];
-  const ordinal = String(tmIndex);
+  const now = Date.now()
+  const entries: LogFileEntry[] = []
+  const ordinal = String(tmIndex)
 
   // Primary taskexecutor log
   entries.push({
     name: `flink-${LOG_USER}-taskexecutor-${ordinal}-${LOG_HOST}.log`,
     lastModified: new Date(now - Math.floor(Math.random() * 3_600_000)),
     size: 33.42,
-  });
+  })
 
   // Rotated taskexecutor logs
   for (let r = 1; r <= 2; r++) {
-    const daysAgo = r + Math.floor(Math.random() * 3);
+    const daysAgo = r + Math.floor(Math.random() * 3)
     entries.push({
       name: `flink-${LOG_USER}-taskexecutor-${ordinal}-${LOG_HOST}.log.${r}`,
-      lastModified: new Date(now - daysAgo * 86_400_000 - Math.floor(Math.random() * 43_200_000)),
+      lastModified: new Date(
+        now - daysAgo * 86_400_000 - Math.floor(Math.random() * 43_200_000),
+      ),
       size: Number((5 + Math.random() * 45).toFixed(2)),
-    });
+    })
   }
 
   // Taskexecutor .out file
   entries.push({
     name: `flink-${LOG_USER}-taskexecutor-${ordinal}-${LOG_HOST}.out`,
-    lastModified: new Date(now - 2 * 86_400_000 - Math.floor(Math.random() * 43_200_000)),
+    lastModified: new Date(
+      now - 2 * 86_400_000 - Math.floor(Math.random() * 43_200_000),
+    ),
     size: 0,
-  });
+  })
 
   // GC log
   entries.push({
     name: `flink-${LOG_USER}-taskexecutor-${ordinal}-${LOG_HOST}-gc.log`,
     lastModified: new Date(now - Math.floor(Math.random() * 7_200_000)),
     size: Number((2 + Math.random() * 15).toFixed(2)),
-  });
+  })
 
-  entries.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
-  return entries;
+  entries.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())
+  return entries
 }
 
 function generateTmThreadDump(): ThreadDumpInfo {
@@ -966,7 +1046,8 @@ function generateTmThreadDump(): ThreadDumpInfo {
       name: "Window(TumblingEventTimeWindows) -> Sink: Print (1/4)#0",
       id: 32,
       state: "WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@5a5b1e04",
+      lockObject:
+        "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@5a5b1e04",
       isNative: false,
       stackFrames: [
         "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
@@ -991,7 +1072,8 @@ function generateTmThreadDump(): ThreadDumpInfo {
       name: "Checkpoint Timer",
       id: 33,
       state: "TIMED_WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@3e7b1d02",
+      lockObject:
+        "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@3e7b1d02",
       isNative: false,
       stackFrames: [
         "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
@@ -1008,52 +1090,57 @@ function generateTmThreadDump(): ThreadDumpInfo {
       lockedSynchronizers: [],
     },
     // --- Netty data server threads ---
-    ...([1, 2, 3, 4] as const).map((n): ThreadDumpEntry => ({
-      name: `flink-netty-server-${n}`,
-      id: 34 + n,
-      state: "RUNNABLE",
-      lockObject: null,
-      isNative: true,
-      stackFrames: [
-        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
-        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
-        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
-        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
-        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
-        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
-        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
-        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...([1, 2, 3, 4] as const).map(
+      (n): ThreadDumpEntry => ({
+        name: `flink-netty-server-${n}`,
+        id: 34 + n,
+        state: "RUNNABLE",
+        lockObject: null,
+        isNative: true,
+        stackFrames: [
+          "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+          "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+          "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+          `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+          `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+          "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+          "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+          "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Pekko actor dispatchers ---
-    ...([3, 5, 7] as const).map((n): ThreadDumpEntry => ({
-      name: `flink-pekko.actor.default-dispatcher-${n}`,
-      id: 40 + n,
-      state: "WAITING",
-      lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@1a2b3c4d",
-      isNative: false,
-      stackFrames: [
-        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
-        "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@1a2b3c4d",
-        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...([3, 5, 7] as const).map(
+      (n): ThreadDumpEntry => ({
+        name: `flink-pekko.actor.default-dispatcher-${n}`,
+        id: 40 + n,
+        state: "WAITING",
+        lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@1a2b3c4d",
+        isNative: false,
+        stackFrames: [
+          "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+          "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@1a2b3c4d",
+          "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Memory manager thread ---
     {
       name: "flink-memory-manager-io-0",
       id: 50,
       state: "WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7c8d9e0f",
+      lockObject:
+        "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7c8d9e0f",
       isNative: false,
       stackFrames: [
         "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
@@ -1144,37 +1231,44 @@ function generateTmThreadDump(): ThreadDumpInfo {
       ],
       lockedSynchronizers: [],
     },
-  ];
+  ]
 
   const threadInfos: ThreadInfoRaw[] = threads.map((t) => ({
     threadName: t.name,
     stringifiedThreadInfo: threadToStringifiedInfo(t),
-  }));
-  return { threadInfos };
+  }))
+  return { threadInfos }
 }
 
 export function generateTaskManagers(): TaskManager[] {
-  if (cachedTaskManagers) return cachedTaskManagers;
+  if (cachedTaskManagers) return cachedTaskManagers
 
-  const tmIds = PLACEHOLDER_VALUES.TM_ID;
-  const tmAddrs = PLACEHOLDER_VALUES.TM_ADDR;
+  const tmIds = PLACEHOLDER_VALUES.TM_ID
+  const tmAddrs = PLACEHOLDER_VALUES.TM_ADDR
 
-  const result = TASK_MANAGERS.map((src, i) => {
-    const slotsTotal = 4;
-    const slotsFree = 1 + Math.floor(Math.random() * 2);
-    const memCfg = generateTmMemoryConfig();
-    const totalResource = generateTmResource(slotsTotal);
+  const result = TASK_MANAGERS.map((_src, i) => {
+    const slotsTotal = 4
+    const slotsFree = 1 + Math.floor(Math.random() * 2)
+    const memCfg = generateTmMemoryConfig()
+    const totalResource = generateTmResource(slotsTotal)
     const freeResource: TaskManagerResource = {
       cpuCores: slotsFree,
-      taskHeapMemory: Math.round(totalResource.taskHeapMemory * (slotsFree / slotsTotal)),
+      taskHeapMemory: Math.round(
+        totalResource.taskHeapMemory * (slotsFree / slotsTotal),
+      ),
       taskOffHeapMemory: 0,
-      managedMemory: Math.round(totalResource.managedMemory * (slotsFree / slotsTotal)),
-      networkMemory: Math.round(totalResource.networkMemory * (slotsFree / slotsTotal)),
-    };
+      managedMemory: Math.round(
+        totalResource.managedMemory * (slotsFree / slotsTotal),
+      ),
+      networkMemory: Math.round(
+        totalResource.networkMemory * (slotsFree / slotsTotal),
+      ),
+    }
 
-    const tmId = tmIds[i] ?? `container_unknown_${i}`;
-    const tmPath = tmAddrs[i] ?? `pekko.tcp://flink@tm-${i + 1}:6122/user/rpc/taskmanager_0`;
-    const metrics = generateTmMetrics(memCfg);
+    const tmId = tmIds[i] ?? `container_unknown_${i}`
+    const tmPath =
+      tmAddrs[i] ?? `pekko.tcp://flink@tm-${i + 1}:6122/user/rpc/taskmanager_0`
+    const metrics = generateTmMetrics(memCfg)
 
     return {
       id: tmId,
@@ -1204,11 +1298,11 @@ export function generateTaskManagers(): TaskManager[] {
       }),
       logFiles: generateTmLogFiles(i),
       threadDump: generateTmThreadDump(),
-    };
-  }) as TaskManager[];
+    }
+  }) as TaskManager[]
 
-  cachedTaskManagers = result;
-  return result;
+  cachedTaskManagers = result
+  return result
 }
 
 // ---------------------------------------------------------------------------
@@ -1318,24 +1412,24 @@ const FLINK_CONFIG: JobManagerConfig[] = [
   // Security
   { key: "security.ssl.internal.enabled", value: "false" },
   { key: "security.ssl.rest.enabled", value: "false" },
-];
+]
 
 function generateJmMetricSeries(
   baseValue: number,
   variance: number,
   points: number,
 ): JvmMetricSample[] {
-  const now = Date.now();
-  const samples: JvmMetricSample[] = [];
+  const now = Date.now()
+  const samples: JvmMetricSample[] = []
 
   for (let i = 0; i < points; i++) {
     samples.push({
       timestamp: new Date(now - (points - 1 - i) * 5000),
       value: jitter(baseValue, variance),
-    });
+    })
   }
 
-  return samples;
+  return samples
 }
 
 // ---------------------------------------------------------------------------
@@ -1384,7 +1478,7 @@ function generateJvmInfo(): JvmInfo {
       directMax: 128 * MB,
       directUsed: Math.floor(jitter(42 * MB, 0.15)),
     },
-  };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1392,20 +1486,22 @@ function generateJvmInfo(): JvmInfo {
 // ---------------------------------------------------------------------------
 
 function classifyJar(filename: string): string {
-  if (/^flink-dist/.test(filename)) return "flink-core";
-  if (/^flink-runtime/.test(filename)) return "flink-core";
-  if (/^flink-core/.test(filename)) return "flink-core";
-  if (/^flink-optimizer/.test(filename)) return "flink-core";
-  if (/^flink-rpc/.test(filename)) return "flink-core";
-  if (/^flink-csv/.test(filename)) return "flink-core";
-  if (/^flink-json/.test(filename)) return "flink-core";
-  if (/^flink-connector-files/.test(filename)) return "flink-core";
-  if (/^flink-table|^flink-sql-parser|^flink-cep/.test(filename)) return "flink-sql";
-  if (/connector|kafka|jdbc|elasticsearch|hive|hbase|pulsar/.test(filename)) return "connector";
-  if (/^log4j|^slf4j|logback/.test(filename)) return "log4j";
-  if (/^hadoop|^hdfs/.test(filename)) return "hadoop";
-  if (/^scala-|^flink-scala/.test(filename)) return "scala";
-  return "other";
+  if (/^flink-dist/.test(filename)) return "flink-core"
+  if (/^flink-runtime/.test(filename)) return "flink-core"
+  if (/^flink-core/.test(filename)) return "flink-core"
+  if (/^flink-optimizer/.test(filename)) return "flink-core"
+  if (/^flink-rpc/.test(filename)) return "flink-core"
+  if (/^flink-csv/.test(filename)) return "flink-core"
+  if (/^flink-json/.test(filename)) return "flink-core"
+  if (/^flink-connector-files/.test(filename)) return "flink-core"
+  if (/^flink-table|^flink-sql-parser|^flink-cep/.test(filename))
+    return "flink-sql"
+  if (/connector|kafka|jdbc|elasticsearch|hive|hbase|pulsar/.test(filename))
+    return "connector"
+  if (/^log4j|^slf4j|logback/.test(filename)) return "log4j"
+  if (/^hadoop|^hdfs/.test(filename)) return "hadoop"
+  if (/^scala-|^flink-scala/.test(filename)) return "scala"
+  return "other"
 }
 
 const CLASSPATH_JARS: { filename: string; size: number }[] = [
@@ -1429,7 +1525,10 @@ const CLASSPATH_JARS: { filename: string; size: number }[] = [
   // User-added connectors (typical additions)
   { filename: "flink-sql-connector-kafka-3.3.0-2.0.jar", size: 15_678_901 },
   { filename: "flink-connector-jdbc-3.2.0-2.0.jar", size: 4_567_890 },
-  { filename: "flink-sql-connector-elasticsearch7-4.0.0-2.0.jar", size: 8_234_567 },
+  {
+    filename: "flink-sql-connector-elasticsearch7-4.0.0-2.0.jar",
+    size: 8_234_567,
+  },
   { filename: "flink-sql-connector-hive-3.1.3-2.0.jar", size: 18_901_234 },
   // Hadoop ecosystem
   { filename: "hadoop-common-3.3.4.jar", size: 4_123_456 },
@@ -1441,7 +1540,7 @@ const CLASSPATH_JARS: { filename: string; size: number }[] = [
   { filename: "commons-lang3-3.12.0.jar", size: 612_345 },
   { filename: "guava-31.1-jre.jar", size: 2_890_123 },
   { filename: "jackson-core-2.15.3.jar", size: 567_890 },
-];
+]
 
 function generateClasspath(): ClasspathEntry[] {
   return CLASSPATH_JARS.map((jar) => ({
@@ -1449,82 +1548,114 @@ function generateClasspath(): ClasspathEntry[] {
     filename: jar.filename,
     size: jar.size,
     tag: classifyJar(jar.filename),
-  }));
+  }))
 }
 
 // ---------------------------------------------------------------------------
 // Log file list generator
 // ---------------------------------------------------------------------------
 
-const LOG_HOST = "FA:54:01:54:A8:3D";
-const LOG_USER = "ahmed";
+const LOG_HOST = "FA:54:01:54:A8:3D"
+const LOG_USER = "ahmed"
 
-const LOG_FILES_TEMPLATE: { component: string; ordinal: string; ext: string; sizeKB: number; rotations: number }[] = [
-  { component: "standalonesession", ordinal: "0", ext: "log", sizeKB: 41.9, rotations: 3 },
-  { component: "standalonesession", ordinal: "0", ext: "out", sizeKB: 0, rotations: 0 },
-  { component: "taskexecutor", ordinal: "0", ext: "log", sizeKB: 33.42, rotations: 1 },
-  { component: "taskexecutor", ordinal: "0", ext: "out", sizeKB: 0, rotations: 0 },
+const LOG_FILES_TEMPLATE: {
+  component: string
+  ordinal: string
+  ext: string
+  sizeKB: number
+  rotations: number
+}[] = [
+  {
+    component: "standalonesession",
+    ordinal: "0",
+    ext: "log",
+    sizeKB: 41.9,
+    rotations: 3,
+  },
+  {
+    component: "standalonesession",
+    ordinal: "0",
+    ext: "out",
+    sizeKB: 0,
+    rotations: 0,
+  },
+  {
+    component: "taskexecutor",
+    ordinal: "0",
+    ext: "log",
+    sizeKB: 33.42,
+    rotations: 1,
+  },
+  {
+    component: "taskexecutor",
+    ordinal: "0",
+    ext: "out",
+    sizeKB: 0,
+    rotations: 0,
+  },
   { component: "client", ordinal: "", ext: "log", sizeKB: 13.18, rotations: 0 },
-];
+]
 
 function generateLogFiles(): LogFileEntry[] {
-  const now = Date.now();
-  const entries: LogFileEntry[] = [];
+  const now = Date.now()
+  const entries: LogFileEntry[] = []
 
   for (const tmpl of LOG_FILES_TEMPLATE) {
-    const ordinalSuffix = tmpl.ordinal ? `-${tmpl.ordinal}` : "";
-    const baseName = `flink-${LOG_USER}-${tmpl.component}${ordinalSuffix}-${LOG_HOST}`;
+    const ordinalSuffix = tmpl.ordinal ? `-${tmpl.ordinal}` : ""
+    const baseName = `flink-${LOG_USER}-${tmpl.component}${ordinalSuffix}-${LOG_HOST}`
 
     // Primary file (most recently modified)
     entries.push({
       name: `${baseName}.${tmpl.ext}`,
       lastModified: new Date(now - Math.floor(Math.random() * 3_600_000)),
       size: tmpl.sizeKB,
-    });
+    })
 
     // Rotated files (.log.1, .log.2, etc.) — older timestamps
     for (let r = 1; r <= tmpl.rotations; r++) {
-      const daysAgo = r * 1 + Math.floor(Math.random() * 3);
+      const daysAgo = r * 1 + Math.floor(Math.random() * 3)
       entries.push({
         name: `${baseName}.${tmpl.ext}.${r}`,
-        lastModified: new Date(now - daysAgo * 86_400_000 - Math.floor(Math.random() * 43_200_000)),
+        lastModified: new Date(
+          now - daysAgo * 86_400_000 - Math.floor(Math.random() * 43_200_000),
+        ),
         size: Number((5 + Math.random() * 45).toFixed(2)),
-      });
+      })
     }
   }
 
   // Sort by lastModified descending
-  entries.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
-  return entries;
+  entries.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())
+  return entries
 }
 
 /** Generate realistic log content for a given log file name. */
 export function generateLogFileContent(fileName: string): string {
-  const isOut = fileName.endsWith(".out");
+  const isOut = fileName.endsWith(".out")
   if (isOut) {
     // .out files are typically empty or contain JVM startup info
-    const isStdout = fileName.includes("standalonesession");
+    const isStdout = fileName.includes("standalonesession")
     if (isStdout) {
       return [
         "Starting Flink StandaloneSession (StandaloneSessionClusterEntrypoint)",
         "  JVM version: 11.0.21+9",
         "  Max heap size: 1024 MB",
         "  Working directory: /opt/flink",
-      ].join("\n");
+      ].join("\n")
     }
-    return "";
+    return ""
   }
 
-  const isClient = fileName.includes("client");
-  const isTm = fileName.includes("taskexecutor");
-  const isRotated = /\.\d+$/.test(fileName);
+  const isClient = fileName.includes("client")
+  const isTm = fileName.includes("taskexecutor")
+  const isRotated = /\.\d+$/.test(fileName)
 
   // Generate realistic log4j entries
-  const lines: string[] = [];
+  const lines: string[] = []
   const baseDate = isRotated
     ? new Date(Date.now() - 4 * 86_400_000)
-    : new Date(Date.now() - 3_600_000);
-  const lineCount = isClient ? 40 : isRotated ? 80 : 120;
+    : new Date(Date.now() - 3_600_000)
+  const lineCount = isClient ? 40 : isRotated ? 80 : 120
 
   const componentLoggers = isTm
     ? [
@@ -1553,40 +1684,42 @@ export function generateLogFileContent(fileName: string): string {
           "org.apache.flink.runtime.blob.BlobServer",
           "org.apache.flink.runtime.checkpoint.CheckpointCoordinator",
           "org.apache.flink.runtime.executiongraph.ExecutionGraph",
-        ];
+        ]
 
-  const levels = ["INFO", "INFO", "INFO", "INFO", "INFO", "DEBUG", "WARN"];
+  const levels = ["INFO", "INFO", "INFO", "INFO", "INFO", "DEBUG", "WARN"]
 
   for (let i = 0; i < lineCount; i++) {
-    const ts = new Date(baseDate.getTime() + i * 1500 + Math.floor(Math.random() * 500));
-    const yyyy = ts.getFullYear();
-    const MM = String(ts.getMonth() + 1).padStart(2, "0");
-    const dd = String(ts.getDate()).padStart(2, "0");
-    const HH = String(ts.getHours()).padStart(2, "0");
-    const mm = String(ts.getMinutes()).padStart(2, "0");
-    const ss = String(ts.getSeconds()).padStart(2, "0");
-    const ms = String(ts.getMilliseconds()).padStart(3, "0");
-    const timestamp = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss},${ms}`;
+    const ts = new Date(
+      baseDate.getTime() + i * 1500 + Math.floor(Math.random() * 500),
+    )
+    const yyyy = ts.getFullYear()
+    const MM = String(ts.getMonth() + 1).padStart(2, "0")
+    const dd = String(ts.getDate()).padStart(2, "0")
+    const HH = String(ts.getHours()).padStart(2, "0")
+    const mm = String(ts.getMinutes()).padStart(2, "0")
+    const ss = String(ts.getSeconds()).padStart(2, "0")
+    const ms = String(ts.getMilliseconds()).padStart(3, "0")
+    const timestamp = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss},${ms}`
 
-    const level = pickRandom(levels);
-    const logger = pickRandom(componentLoggers);
-    const loggerPadded = logger.padEnd(60);
+    const level = pickRandom(levels)
+    const logger = pickRandom(componentLoggers)
+    const loggerPadded = logger.padEnd(60)
 
-    let message: string;
+    let message: string
     if (level === "WARN") {
       message = pickRandom([
         "Slow garbage collection detected: G1 Young Generation GC took 245ms.",
         "Network buffer pool is running low on available buffers.",
         "Checkpoint completion time exceeded threshold: 8500ms > 5000ms.",
         "Task slot request timed out after 30000ms, retrying.",
-      ]);
+      ])
     } else if (level === "DEBUG") {
       message = pickRandom([
         "Received heartbeat from TaskManager container_1234567890_0001_01_000001.",
         "Processing watermark W(1706875234000).",
         "Buffer pool usage: 847/1024 buffers.",
         "RocksDB compaction completed in 124ms.",
-      ]);
+      ])
     } else {
       message = pickRandom([
         "Successfully completed checkpoint 42 in 2345ms.",
@@ -1599,13 +1732,13 @@ export function generateLogFileContent(fileName: string): string {
         "State backend initialized with RocksDB at /tmp/flink-rocksdb/job_001.",
         "Received JobGraph submission 'FraudDetectionPipeline'.",
         "Deployed task Aggregate (2/4) to slot container_1234567890_0001_01_000002.",
-      ]);
+      ])
     }
 
-    lines.push(`${timestamp} ${level.padEnd(5)} ${loggerPadded} - ${message}`);
+    lines.push(`${timestamp} ${level.padEnd(5)} ${loggerPadded} - ${message}`)
   }
 
-  return lines.join("\n");
+  return lines.join("\n")
 }
 
 export function generateJobManagerInfo(): JobManagerInfo {
@@ -1618,7 +1751,7 @@ export function generateJobManagerInfo(): JobManagerInfo {
     classpath: generateClasspath(),
     logFiles: generateLogFiles(),
     threadDump: generateThreadDump(),
-  };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1626,22 +1759,24 @@ export function generateJobManagerInfo(): JobManagerInfo {
 // ---------------------------------------------------------------------------
 
 function threadToStringifiedInfo(t: ThreadDumpEntry): string {
-  const nativeSuffix = t.isNative ? " (in native)" : "";
-  const onLock = t.lockObject ? ` on ${t.lockObject}` : "";
-  const header = `"${t.name}" Id=${t.id} ${t.state}${nativeSuffix}${onLock}`;
+  const nativeSuffix = t.isNative ? " (in native)" : ""
+  const onLock = t.lockObject ? ` on ${t.lockObject}` : ""
+  const header = `"${t.name}" Id=${t.id} ${t.state}${nativeSuffix}${onLock}`
 
-  const lines = [header];
+  const lines = [header]
   for (const frame of t.stackFrames) {
-    lines.push(`\t${frame}`);
+    lines.push(`\t${frame}`)
   }
   if (t.lockedSynchronizers.length > 0) {
-    lines.push("");
-    lines.push(`\tNumber of locked synchronizers = ${t.lockedSynchronizers.length}`);
+    lines.push("")
+    lines.push(
+      `\tNumber of locked synchronizers = ${t.lockedSynchronizers.length}`,
+    )
     for (const sync of t.lockedSynchronizers) {
-      lines.push(`\t- ${sync}`);
+      lines.push(`\t- ${sync}`)
     }
   }
-  return lines.join("\n");
+  return lines.join("\n")
 }
 
 function generateThreadDump(): ThreadDumpInfo {
@@ -1721,7 +1856,8 @@ function generateThreadDump(): ThreadDumpInfo {
       name: "Common-Cleaner",
       id: 19,
       state: "TIMED_WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@65236733",
+      lockObject:
+        "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@65236733",
       isNative: false,
       stackFrames: [
         "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
@@ -1743,7 +1879,8 @@ function generateThreadDump(): ThreadDumpInfo {
       name: "Log4j2-TF-3-Scheduled-1",
       id: 21,
       state: "TIMED_WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@4789e64",
+      lockObject:
+        "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@4789e64",
       isNative: false,
       stackFrames: [
         "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
@@ -1779,65 +1916,71 @@ function generateThreadDump(): ThreadDumpInfo {
       lockedSynchronizers: [],
     },
     // --- Pekko actor dispatchers ---
-    ...([5, 11, 12] as const).map((n): ThreadDumpEntry => ({
-      name: `flink-pekko.actor.default-dispatcher-${n}`,
-      id: 34 + n,
-      state: "WAITING",
-      lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@378e5c02",
-      isNative: false,
-      stackFrames: [
-        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
-        "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@378e5c02",
-        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...([5, 11, 12] as const).map(
+      (n): ThreadDumpEntry => ({
+        name: `flink-pekko.actor.default-dispatcher-${n}`,
+        id: 34 + n,
+        state: "WAITING",
+        lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@378e5c02",
+        isNative: false,
+        stackFrames: [
+          "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+          "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@378e5c02",
+          "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Pekko remote dispatchers ---
-    ...([6, 7, 14, 15, 16, 17] as const).map((n, i): ThreadDumpEntry => ({
-      name: `flink-pekko.remote.default-remote-dispatcher-${n}`,
-      id: 40 + i,
-      state: i === 3 ? "TIMED_WAITING" : "WAITING",
-      lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@496aaf3f",
-      isNative: false,
-      stackFrames: [
-        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
-        "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@496aaf3f",
-        i === 3
-          ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkUntil(LockSupport.java:449)"
-          : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...([6, 7, 14, 15, 16, 17] as const).map(
+      (n, i): ThreadDumpEntry => ({
+        name: `flink-pekko.remote.default-remote-dispatcher-${n}`,
+        id: 40 + i,
+        state: i === 3 ? "TIMED_WAITING" : "WAITING",
+        lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@496aaf3f",
+        isNative: false,
+        stackFrames: [
+          "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+          "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@496aaf3f",
+          i === 3
+            ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkUntil(LockSupport.java:449)"
+            : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Flink Netty event loops ---
-    ...([8, 13] as const).map((n): ThreadDumpEntry => ({
-      name: `flink-${n}`,
-      id: 43 + (n - 8),
-      state: "RUNNABLE",
-      lockObject: null,
-      isNative: true,
-      stackFrames: [
-        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
-        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
-        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
-        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
-        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
-        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
-        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
-        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...([8, 13] as const).map(
+      (n): ThreadDumpEntry => ({
+        name: `flink-${n}`,
+        id: 43 + (n - 8),
+        state: "RUNNABLE",
+        lockObject: null,
+        isNative: true,
+        stackFrames: [
+          "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+          "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+          "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+          `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+          `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+          "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+          "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+          "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Timer ---
     {
       name: "Timer-0",
@@ -1895,24 +2038,26 @@ function generateThreadDump(): ThreadDumpInfo {
       lockedSynchronizers: [],
     },
     // --- Metrics remote dispatchers ---
-    ...([6, 7, 8, 11, 12, 13, 15, 18] as const).map((n, i): ThreadDumpEntry => ({
-      name: `flink-metrics-pekko.remote.default-remote-dispatcher-${n}`,
-      id: 54 + i,
-      state: i === 1 ? "TIMED_WAITING" : "WAITING",
-      lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@32af3833",
-      isNative: false,
-      stackFrames: [
-        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
-        "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@32af3833",
-        i === 1
-          ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkUntil(LockSupport.java:449)"
-          : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...([6, 7, 8, 11, 12, 13, 15, 18] as const).map(
+      (n, i): ThreadDumpEntry => ({
+        name: `flink-metrics-pekko.remote.default-remote-dispatcher-${n}`,
+        id: 54 + i,
+        state: i === 1 ? "TIMED_WAITING" : "WAITING",
+        lockObject: "org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@32af3833",
+        isNative: false,
+        stackFrames: [
+          "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+          "-  waiting on org.apache.pekko.dispatch.PekkoJdk9ForkJoinPool@32af3833",
+          i === 1
+            ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkUntil(LockSupport.java:449)"
+            : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Metrics netty event loop ---
     {
       name: "flink-metrics-9",
@@ -1942,7 +2087,8 @@ function generateThreadDump(): ThreadDumpInfo {
       name: "Flink-Metric-View-Updater-thread-1",
       id: 60,
       state: "TIMED_WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@33fa98b6",
+      lockObject:
+        "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@33fa98b6",
       isNative: false,
       stackFrames: [
         "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
@@ -1984,68 +2130,75 @@ function generateThreadDump(): ThreadDumpInfo {
       lockedSynchronizers: [],
     },
     // --- Dispatcher REST endpoint thread pool ---
-    ...([1, 2, 3, 4] as const).map((n, i): ThreadDumpEntry => ({
-      name: `Flink-DispatcherRestEndpoint-thread-${n}`,
-      id: 62 + i,
-      state: i === 1 ? "TIMED_WAITING" : "WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7b88d8d5",
-      isNative: false,
-      stackFrames: [
-        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
-        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7b88d8d5",
-        i === 1
-          ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)"
-          : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
-        i === 1
-          ? "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1797)"
-          : "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
-        ...(i === 1
-          ? []
-          : [
-              "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
-              "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
-              "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1746)",
-            ]),
-        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)",
-        "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)",
-        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
-        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
-        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
-        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
-        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...([1, 2, 3, 4] as const).map(
+      (n, i): ThreadDumpEntry => ({
+        name: `Flink-DispatcherRestEndpoint-thread-${n}`,
+        id: 62 + i,
+        state: i === 1 ? "TIMED_WAITING" : "WAITING",
+        lockObject:
+          "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7b88d8d5",
+        isNative: false,
+        stackFrames: [
+          "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+          "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@7b88d8d5",
+          i === 1
+            ? "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)"
+            : "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+          i === 1
+            ? "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1797)"
+            : "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
+          ...(i === 1
+            ? []
+            : [
+                "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+                "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
+                "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1746)",
+              ]),
+          "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)",
+          "at java.base@21.0.9/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)",
+          "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+          "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+          "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+          "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+          "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Cluster IO threads ---
-    ...([1, 2, 3] as const).map((n): ThreadDumpEntry => ({
-      name: `cluster-io-thread-${n}`,
-      id: 63 + n * 2,
-      state: "WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1cd0c03a",
-      isNative: false,
-      stackFrames: [
-        "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
-        "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1cd0c03a",
-        "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
-        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
-        "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
-        "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1746)",
-        "at java.base@21.0.9/java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:435)",
-        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
-        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
-        "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
-        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
-        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...([1, 2, 3] as const).map(
+      (n): ThreadDumpEntry => ({
+        name: `cluster-io-thread-${n}`,
+        id: 63 + n * 2,
+        state: "WAITING",
+        lockObject:
+          "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1cd0c03a",
+        isNative: false,
+        stackFrames: [
+          "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
+          "-  waiting on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1cd0c03a",
+          "at java.base@21.0.9/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)",
+          "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)",
+          "at java.base@21.0.9/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)",
+          "at java.base@21.0.9/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1746)",
+          "at java.base@21.0.9/java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:435)",
+          "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)",
+          "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)",
+          "at java.base@21.0.9/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)",
+          "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+          "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Thread pool worker ---
     {
       name: "pool-2-thread-1",
       id: 64,
       state: "WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1e0f0e6a",
+      lockObject:
+        "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@1e0f0e6a",
       isNative: false,
       stackFrames: [
         "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
@@ -2069,7 +2222,8 @@ function generateThreadDump(): ThreadDumpInfo {
       name: "resourcemanager_1-main-scheduler-thread-1",
       id: 66,
       state: "TIMED_WAITING",
-      lockObject: "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@71996377",
+      lockObject:
+        "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@71996377",
       isNative: false,
       stackFrames: [
         "at java.base@21.0.9/jdk.internal.misc.Unsafe.park(Native Method)",
@@ -2087,29 +2241,32 @@ function generateThreadDump(): ThreadDumpInfo {
       lockedSynchronizers: [],
     },
     // --- REST server worker threads ---
-    ...Array.from({ length: 20 }, (_, i): ThreadDumpEntry => ({
-      name: `flink-rest-server-netty-worker-thread-${i + 1}`,
-      id: 73 + i,
-      state: "RUNNABLE",
-      lockObject: null,
-      isNative: true,
-      stackFrames: [
-        "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
-        "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
-        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
-        `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
-        `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
-        "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
-        "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
-        "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
-        "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
-      ],
-      lockedSynchronizers: [],
-    })),
+    ...Array.from(
+      { length: 20 },
+      (_, i): ThreadDumpEntry => ({
+        name: `flink-rest-server-netty-worker-thread-${i + 1}`,
+        id: 73 + i,
+        state: "RUNNABLE",
+        lockObject: null,
+        isNative: true,
+        stackFrames: [
+          "at java.base@21.0.9/sun.nio.ch.KQueue.poll(Native Method)",
+          "at java.base@21.0.9/sun.nio.ch.KQueueSelectorImpl.doSelect(KQueueSelectorImpl.java:125)",
+          "at java.base@21.0.9/sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)",
+          `-  locked org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySet@${hex(8)}`,
+          `-  locked sun.nio.ch.KQueueSelectorImpl@${hex(8)}`,
+          "at java.base@21.0.9/sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)",
+          "at app//org.apache.flink.shaded.netty4.io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)",
+          "at java.base@21.0.9/java.lang.Thread.runWith(Thread.java:1596)",
+          "at java.base@21.0.9/java.lang.Thread.run(Thread.java:1583)",
+        ],
+        lockedSynchronizers: [],
+      }),
+    ),
     // --- Metrics netty event loop 2 ---
     {
       name: "flink-metrics-14",
@@ -2184,13 +2341,13 @@ function generateThreadDump(): ThreadDumpInfo {
       ],
       lockedSynchronizers: [],
     },
-  ];
+  ]
 
   const threadInfos: ThreadInfoRaw[] = threads.map((t) => ({
     threadName: t.name,
     stringifiedThreadInfo: threadToStringifiedInfo(t),
-  }));
-  return { threadInfos };
+  }))
+  return { threadInfos }
 }
 
 function generateJmMetrics(): JobManagerMetrics {
@@ -2202,7 +2359,7 @@ function generateJmMetrics(): JobManagerMetrics {
     threadCount: generateJmMetricSeries(45, 0.1, 30),
     gcCount: generateJmMetricSeries(80, 0.05, 30),
     gcTime: generateJmMetricSeries(2200, 0.08, 30),
-  };
+  }
 }
 
 function generateJmLogs(): string {
@@ -2220,8 +2377,8 @@ function generateJmLogs(): string {
     "2025-01-15 10:00:10,456 INFO  org.apache.flink.runtime.jobmaster.JobMaster                  - Initializing job 'ClickCountJob' (a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6).",
     "2025-01-15 10:00:10,789 INFO  org.apache.flink.runtime.jobmaster.JobMaster                  - Using restart strategy FixedDelayRestartStrategy(maxNumberRestartAttempts=3, delayBetweenRestartAttempts=10000).",
     "2025-01-15 10:00:11,012 INFO  org.apache.flink.runtime.executiongraph.ExecutionGraph         - Job ClickCountJob (a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6) switched from state CREATED to RUNNING.",
-  ];
-  return lines.join("\n");
+  ]
+  return lines.join("\n")
 }
 
 function generateJmStdout(): string {
@@ -2237,7 +2394,7 @@ function generateJmStdout(): string {
     "Scala version: 2.12",
     "Build date: 2025-01-10T08:30:00Z",
     "Commit: a1b2c3d",
-  ].join("\n");
+  ].join("\n")
 }
 
 // ---------------------------------------------------------------------------
@@ -2271,7 +2428,7 @@ export function generateUploadedJars(): UploadedJar[] {
       uploadTime: hoursAgo(2),
       entryClasses: ["com.example.etl.DailyAggregationJob"],
     },
-  ];
+  ]
 }
 
 // ---------------------------------------------------------------------------
@@ -2283,57 +2440,72 @@ export function refreshMetrics(
   jm: JobManagerInfo,
   runningJobs: FlinkJob[],
 ): void {
-  const now = new Date();
+  const now = new Date()
 
   // Update TM metrics with small deltas
   for (const tm of tms) {
-    const m = tm.metrics;
-    m.cpuUsage = Math.max(0, Math.min(100, jitter(m.cpuUsage, 0.05)));
-    m.heapUsed = Math.max(0, Math.min(m.heapMax, jitter(m.heapUsed, 0.03)));
-    m.nonHeapUsed = Math.max(0, Math.min(m.nonHeapMax, jitter(m.nonHeapUsed, 0.02)));
-    m.managedMemoryUsed = Math.max(0, Math.min(m.managedMemoryTotal, jitter(m.managedMemoryUsed, 0.02)));
-    m.nettyShuffleMemoryUsed = Math.max(0, Math.min(m.nettyShuffleMemoryTotal, jitter(m.nettyShuffleMemoryUsed, 0.04)));
-    m.nettyShuffleMemoryAvailable = m.nettyShuffleMemoryTotal - m.nettyShuffleMemoryUsed;
-    m.directUsed = Math.max(0, Math.min(m.directMax, jitter(m.directUsed, 0.03)));
-    m.metaspaceUsed = Math.max(0, Math.min(m.metaspaceMax, jitter(m.metaspaceUsed, 0.02)));
-    m.threadCount = Math.max(10, Math.round(jitter(m.threadCount, 0.03)));
+    const m = tm.metrics
+    m.cpuUsage = Math.max(0, Math.min(100, jitter(m.cpuUsage, 0.05)))
+    m.heapUsed = Math.max(0, Math.min(m.heapMax, jitter(m.heapUsed, 0.03)))
+    m.nonHeapUsed = Math.max(
+      0,
+      Math.min(m.nonHeapMax, jitter(m.nonHeapUsed, 0.02)),
+    )
+    m.managedMemoryUsed = Math.max(
+      0,
+      Math.min(m.managedMemoryTotal, jitter(m.managedMemoryUsed, 0.02)),
+    )
+    m.nettyShuffleMemoryUsed = Math.max(
+      0,
+      Math.min(
+        m.nettyShuffleMemoryTotal,
+        jitter(m.nettyShuffleMemoryUsed, 0.04),
+      ),
+    )
+    m.nettyShuffleMemoryAvailable =
+      m.nettyShuffleMemoryTotal - m.nettyShuffleMemoryUsed
+    m.directUsed = Math.max(
+      0,
+      Math.min(m.directMax, jitter(m.directUsed, 0.03)),
+    )
+    m.metaspaceUsed = Math.max(
+      0,
+      Math.min(m.metaspaceMax, jitter(m.metaspaceUsed, 0.02)),
+    )
+    m.threadCount = Math.max(10, Math.round(jitter(m.threadCount, 0.03)))
     // Increment GC counters occasionally
     for (const gc of m.garbageCollectors) {
       if (Math.random() < 0.3) {
-        gc.count += 1;
-        gc.time += Math.floor(Math.random() * 50);
+        gc.count += 1
+        gc.time += Math.floor(Math.random() * 50)
       }
     }
-    tm.lastHeartbeat = now;
+    tm.lastHeartbeat = now
   }
 
   // Append a new data point to JM time-series, dropping the oldest
-  const jmm = jm.metrics;
+  const jmm = jm.metrics
   const pushSample = (
     series: JvmMetricSample[],
     base: number,
     variance: number,
   ) => {
-    series.push({ timestamp: now, value: jitter(base, variance) });
-    if (series.length > 30) series.shift();
-  };
+    series.push({ timestamp: now, value: jitter(base, variance) })
+    if (series.length > 30) series.shift()
+  }
 
-  pushSample(jmm.jvmHeapUsed, 600 * MB, 0.15);
-  pushSample(jmm.jvmNonHeapUsed, 120 * MB, 0.1);
-  pushSample(jmm.threadCount, 45, 0.1);
+  pushSample(jmm.jvmHeapUsed, 600 * MB, 0.15)
+  pushSample(jmm.jvmNonHeapUsed, 120 * MB, 0.1)
+  pushSample(jmm.threadCount, 45, 0.1)
   pushSample(
     jmm.gcCount,
     jmm.gcCount[jmm.gcCount.length - 1]?.value ?? 80,
     0.02,
-  );
-  pushSample(
-    jmm.gcTime,
-    jmm.gcTime[jmm.gcTime.length - 1]?.value ?? 2200,
-    0.02,
-  );
+  )
+  pushSample(jmm.gcTime, jmm.gcTime[jmm.gcTime.length - 1]?.value ?? 2200, 0.02)
 
   // Update running job durations
   for (const job of runningJobs) {
-    job.duration = Date.now() - job.startTime.getTime();
+    job.duration = Date.now() - job.startTime.getTime()
   }
 }

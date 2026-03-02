@@ -1,106 +1,106 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useMemo } from "react";
+import type { Edge, Node } from "@xyflow/react"
 import {
-  ReactFlow,
-  ReactFlowProvider,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-  Controls,
-  MiniMap,
   Background,
   BackgroundVariant,
-} from "@xyflow/react";
-import type { Node, Edge } from "@xyflow/react";
-import type { JobPlan } from "@/data/cluster-types";
-import { OperatorNode } from "./operator-node";
-import { StrategyEdge } from "./strategy-edge";
-import "@xyflow/react/dist/style.css";
+  Controls,
+  MiniMap,
+  ReactFlow,
+  ReactFlowProvider,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
+} from "@xyflow/react"
+import { useCallback, useEffect, useMemo } from "react"
+import type { JobPlan } from "@/data/cluster-types"
+import { OperatorNode } from "./operator-node"
+import { StrategyEdge } from "./strategy-edge"
+import "@xyflow/react/dist/style.css"
 
 // ---------------------------------------------------------------------------
 // Simple top-to-bottom layout (replaces dagre — our graphs are linear DAGs)
 // ---------------------------------------------------------------------------
 
-const NODE_WIDTH = 320;
-const NODE_HEIGHT = 170;
-const COL_GAP = 80;
-const ROW_GAP = 50;
+const NODE_WIDTH = 320
+const NODE_HEIGHT = 170
+const COL_GAP = 80
+const ROW_GAP = 50
 
 function layoutElements(
   nodes: Node[],
   edges: Edge[],
 ): { nodes: Node[]; edges: Edge[] } {
   // Build adjacency for topological layering
-  const incoming = new Map<string, Set<string>>();
-  const outgoing = new Map<string, Set<string>>();
+  const incoming = new Map<string, Set<string>>()
+  const outgoing = new Map<string, Set<string>>()
   for (const node of nodes) {
-    incoming.set(node.id, new Set());
-    outgoing.set(node.id, new Set());
+    incoming.set(node.id, new Set())
+    outgoing.set(node.id, new Set())
   }
   for (const edge of edges) {
-    incoming.get(edge.target)?.add(edge.source);
-    outgoing.get(edge.source)?.add(edge.target);
+    incoming.get(edge.target)?.add(edge.source)
+    outgoing.get(edge.source)?.add(edge.target)
   }
 
   // Topological layer assignment via BFS (Kahn's algorithm)
-  const columns: string[][] = [];
-  const colOf = new Map<string, number>();
-  const queue: string[] = [];
+  const columns: string[][] = []
+  const colOf = new Map<string, number>()
+  const queue: string[] = []
 
   for (const node of nodes) {
-    if (incoming.get(node.id)!.size === 0) {
-      queue.push(node.id);
-      colOf.set(node.id, 0);
+    if (incoming.get(node.id)?.size === 0) {
+      queue.push(node.id)
+      colOf.set(node.id, 0)
     }
   }
 
   while (queue.length > 0) {
-    const id = queue.shift()!;
-    const col = colOf.get(id)!;
-    if (!columns[col]) columns[col] = [];
-    columns[col].push(id);
+    const id = queue.shift()!
+    const col = colOf.get(id)!
+    if (!columns[col]) columns[col] = []
+    columns[col].push(id)
 
     for (const target of outgoing.get(id) ?? []) {
-      const targetIn = incoming.get(target)!;
-      targetIn.delete(id);
+      const targetIn = incoming.get(target)!
+      targetIn.delete(id)
       if (targetIn.size === 0) {
-        colOf.set(target, col + 1);
-        queue.push(target);
+        colOf.set(target, col + 1)
+        queue.push(target)
       }
     }
   }
 
   // Position nodes: left-to-right columns, center each column vertically
-  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
-  const layoutedNodes: Node[] = [];
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]))
+  const layoutedNodes: Node[] = []
 
   for (let col = 0; col < columns.length; col++) {
-    const ids = columns[col];
-    const totalHeight = ids.length * NODE_HEIGHT + (ids.length - 1) * ROW_GAP;
-    const startY = -totalHeight / 2;
+    const ids = columns[col]
+    const totalHeight = ids.length * NODE_HEIGHT + (ids.length - 1) * ROW_GAP
+    const startY = -totalHeight / 2
 
     for (let row = 0; row < ids.length; row++) {
-      const node = nodeMap.get(ids[row])!;
+      const node = nodeMap.get(ids[row])!
       layoutedNodes.push({
         ...node,
         position: {
           x: col * (NODE_WIDTH + COL_GAP),
           y: startY + row * (NODE_HEIGHT + ROW_GAP),
         },
-      });
+      })
     }
   }
 
-  return { nodes: layoutedNodes, edges };
+  return { nodes: layoutedNodes, edges }
 }
 
 // ---------------------------------------------------------------------------
 // Node & edge type registrations (stable references)
 // ---------------------------------------------------------------------------
 
-const nodeTypes = { operator: OperatorNode };
-const edgeTypes = { strategy: StrategyEdge };
+const nodeTypes = { operator: OperatorNode }
+const edgeTypes = { strategy: StrategyEdge }
 
 // ---------------------------------------------------------------------------
 // Inner component (needs ReactFlow context)
@@ -110,10 +110,10 @@ function JobGraphInner({
   plan,
   onSelectVertex,
 }: {
-  plan: JobPlan;
-  onSelectVertex?: (vertexId: string) => void;
+  plan: JobPlan
+  onSelectVertex?: (vertexId: string) => void
 }) {
-  const { fitView } = useReactFlow();
+  const { fitView } = useReactFlow()
 
   const layouted = useMemo(() => {
     const rawNodes: Node[] = plan.vertices.map((v) => ({
@@ -121,7 +121,7 @@ function JobGraphInner({
       type: "operator",
       position: { x: 0, y: 0 },
       data: { vertex: v, onSelectVertex },
-    }));
+    }))
 
     const rawEdges: Edge[] = plan.edges.map((e, i) => ({
       id: `e-${i}`,
@@ -129,24 +129,24 @@ function JobGraphInner({
       target: e.target,
       type: "strategy",
       data: { shipStrategy: e.shipStrategy },
-    }));
+    }))
 
-    return layoutElements(rawNodes, rawEdges);
-  }, [plan, onSelectVertex]);
+    return layoutElements(rawNodes, rawEdges)
+  }, [plan, onSelectVertex])
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(layouted.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(layouted.edges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(layouted.nodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(layouted.edges)
 
   // Re-layout when plan changes
   useEffect(() => {
-    setNodes(layouted.nodes);
-    setEdges(layouted.edges);
-    requestAnimationFrame(() => fitView({ padding: 0.2 }));
-  }, [layouted, setNodes, setEdges, fitView]);
+    setNodes(layouted.nodes)
+    setEdges(layouted.edges)
+    requestAnimationFrame(() => fitView({ padding: 0.2 }))
+  }, [layouted, setNodes, setEdges, fitView])
 
   const onInit = useCallback(() => {
-    fitView({ padding: 0.2 });
-  }, [fitView]);
+    fitView({ padding: 0.2 })
+  }, [fitView])
 
   return (
     <ReactFlow
@@ -182,7 +182,7 @@ function JobGraphInner({
         color="var(--color-dash-border)"
       />
     </ReactFlow>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -194,9 +194,9 @@ export function JobGraph({
   className,
   onSelectVertex,
 }: {
-  plan: JobPlan;
-  className?: string;
-  onSelectVertex?: (vertexId: string) => void;
+  plan: JobPlan
+  className?: string
+  onSelectVertex?: (vertexId: string) => void
 }) {
   return (
     <div className={`glass-card ${className ?? ""}`} style={{ height: 500 }}>
@@ -204,5 +204,5 @@ export function JobGraph({
         <JobGraphInner plan={plan} onSelectVertex={onSelectVertex} />
       </ReactFlowProvider>
     </div>
-  );
+  )
 }

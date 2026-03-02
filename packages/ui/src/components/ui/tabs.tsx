@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import * as TabsPrimitive from "@radix-ui/react-tabs";
+import * as TabsPrimitive from "@radix-ui/react-tabs"
 
-import { cn } from "../../lib/cn";
+import { cn } from "../../lib/cn"
 
-const Tabs = TabsPrimitive.Root;
+const Tabs = TabsPrimitive.Root
 
 function TabsList({
   className,
@@ -15,7 +15,7 @@ function TabsList({
       className={cn("inline-flex items-center justify-center", className)}
       {...props}
     />
-  );
+  )
 }
 
 function TabsTrigger({
@@ -30,7 +30,7 @@ function TabsTrigger({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function TabsContent({
@@ -42,7 +42,7 @@ function TabsContent({
       className={cn("focus-visible:outline-none", className)}
       {...props}
     />
-  );
+  )
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent };
+export { Tabs, TabsList, TabsTrigger, TabsContent }
