@@ -29,7 +29,7 @@
 
 <br />
 
-## What's Inside
+## <img src="../../assets/icons/package.svg" width="24" height="24" style="vertical-align: middle;"> What's Inside
 
 ```
 27 components  ·  4 theme palettes  ·  Router-agnostic  ·  Tree-shakeable ESM
@@ -46,7 +46,7 @@
 
 <br />
 
-## Quick Start
+## <img src="../../assets/icons/rocket.svg" width="24" height="24" style="vertical-align: middle;"> Quick Start
 
 ```bash
 npm install @flink-reactor/ui react react-dom
@@ -81,7 +81,7 @@ export function MyApp() {
 
 <br />
 
-## Component Catalog
+## <img src="../../assets/icons/blocks.svg" width="24" height="24" style="vertical-align: middle;"> Component Catalog
 
 ### UI Primitives (16)
 
@@ -128,7 +128,7 @@ export function MyApp() {
 
 <br />
 
-## Theming
+## <img src="../../assets/icons/palette.svg" width="24" height="24" style="vertical-align: middle;"> Theming
 
 Four palettes ship out of the box. Toggle with a `data-theme` attribute on your root element:
 
@@ -168,7 +168,7 @@ Four palettes ship out of the box. Toggle with a `data-theme` attribute on your 
 
 <br />
 
-## Setup Guide
+## <img src="../../assets/icons/wrench.svg" width="24" height="24" style="vertical-align: middle;"> Setup Guide
 
 ### 1. Install
 
@@ -235,7 +235,7 @@ import { Sidebar } from "@flink-reactor/ui";
 
 <br />
 
-## Development
+## <img src="../../assets/icons/code-xml.svg" width="24" height="24" style="vertical-align: middle;"> Development
 
 ```bash
 pnpm build       # Build the package
@@ -253,6 +253,6 @@ The reference implementation lives in [`apps/dashboard/`](../../apps/dashboard),
 
 <br />
 
-## License
+## <img src="../../assets/icons/scale.svg" width="24" height="24" style="vertical-align: middle;"> License
 
 [MIT](./LICENSE)
