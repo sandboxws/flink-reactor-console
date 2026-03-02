@@ -1,5 +1,5 @@
 import { fork } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Command } from "commander";
@@ -9,6 +9,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // In the published package, dist/cli.js sits next to .next/standalone/
 const PACKAGE_ROOT = resolve(__dirname, "..");
+
+const pkg = JSON.parse(
+  readFileSync(join(PACKAGE_ROOT, "package.json"), "utf-8"),
+) as { version: string };
 
 function findServerRecursive(dir: string, depth: number): string | null {
   if (depth <= 0) return null;
@@ -80,7 +84,7 @@ const program = new Command();
 program
   .name("flink-reactor-dashboard")
   .description("Real-time monitoring dashboard for Apache Flink clusters")
-  .version("0.1.0");
+  .version(pkg.version);
 
 program
   .command("start", { isDefault: true })

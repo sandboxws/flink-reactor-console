@@ -4,7 +4,22 @@
   "description": "Real-time monitoring dashboard for Apache Flink clusters",
   "type": "module",
   "private": false,
-  "license": "MIT",
+  "license": "BUSL-1.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandboxws/flink-reactor.git",
+    "directory": "apps/dashboard"
+  },
+  "bugs": {
+    "url": "https://github.com/sandboxws/flink-reactor/issues"
+  },
+  "homepage": "https://github.com/sandboxws/flink-reactor/tree/main/apps/dashboard#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "bin": {
     "flink-reactor-dashboard": "./dist/cli.js"
   },
