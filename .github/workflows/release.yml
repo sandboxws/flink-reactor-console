@@ -31,7 +31,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build packages
-        run: pnpm --filter @flink-reactor/ui build
+        run: |
+          pnpm build
+          pnpm --filter @flink-reactor/ui build
+          pnpm --filter @flink-reactor/create-app build
+          pnpm --filter @flink-reactor/ts-plugin build
+          pnpm --filter @flink-reactor/dashboard build:package
 
       - name: Create release PR or publish
         uses: changesets/action@v1
