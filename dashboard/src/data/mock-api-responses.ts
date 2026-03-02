@@ -33,6 +33,7 @@ import type {
   FlinkJobDetailAggregate,
   FlinkJobDetailResponse,
   FlinkJobExceptionsResponse,
+  FlinkJobManagerConfigResponse,
   FlinkJobManagerDetailAggregate,
   FlinkJobPlan,
   FlinkJobsOverviewResponse,
@@ -707,7 +708,7 @@ export function generateMockLogFileContentApiResponse(
 export function generateMockJobManagerDetailApiResponse(): FlinkJobManagerDetailAggregate {
   const jm = generateJobManagerInfo()
 
-  const config: FlinkClusterConfigResponse = jm.config.map((c) => ({
+  const config: FlinkJobManagerConfigResponse = jm.config.map((c) => ({
     key: c.key,
     value: c.value,
   }))
@@ -818,19 +819,19 @@ export function generateMockJobManagerMetricsApiResponse(): FlinkMetricItem[] {
 // ---------------------------------------------------------------------------
 
 export function generateMockClusterConfigApiResponse(): FlinkClusterConfigResponse {
-  return [
-    { key: "web.submit.enable", value: "true" },
-    { key: "web.cancel.enable", value: "true" },
-    { key: "web.rescale.enable", value: "false" },
-    { key: "web.history", value: "false" },
-    { key: "web.profiler.enable", value: "false" },
-    { key: "taskmanager.numberOfTaskSlots", value: "4" },
-    { key: "parallelism.default", value: "1" },
-    { key: "jobmanager.rpc.address", value: "localhost" },
-    { key: "jobmanager.rpc.port", value: "6123" },
-    { key: "jobmanager.memory.process.size", value: "1600m" },
-    { key: "taskmanager.memory.process.size", value: "1728m" },
-  ]
+  return {
+    "refresh-interval": 3000,
+    "timezone-name": "UTC",
+    "timezone-offset": "+00:00",
+    "flink-version": "1.20.0",
+    "flink-revision": "abc123 @ 2024-06-01T00:00:00+00:00",
+    features: {
+      "web-submit": true,
+      "web-cancel": true,
+      "web-rescale": false,
+      "web-history": false,
+    },
+  }
 }
 
 // ---------------------------------------------------------------------------

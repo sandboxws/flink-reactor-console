@@ -505,10 +505,22 @@ export interface FlinkJobManagerDetailAggregate {
 // ---------------------------------------------------------------------------
 
 /**
- * GET /config — Returns cluster-level configuration including feature flags.
+ * GET /config — Returns dashboard configuration with feature flags.
  * @see https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/rest_api/#config
  */
-export type FlinkClusterConfigResponse = FlinkJobManagerConfigEntry[]
+export interface FlinkClusterConfigResponse {
+  "refresh-interval": number
+  "timezone-name": string
+  "timezone-offset": string
+  "flink-version": string
+  "flink-revision": string
+  features: {
+    "web-submit": boolean
+    "web-cancel": boolean
+    "web-rescale": boolean
+    "web-history": boolean
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Vertex metrics — GET /jobs/:jid/vertices/:vid/metrics

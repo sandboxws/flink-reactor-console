@@ -174,7 +174,7 @@ export function mapJobsOverviewResponse(api: FlinkJobsOverviewResponse): {
   const runningJobs: FlinkJob[] = []
   const completedJobs: FlinkJob[] = []
 
-  for (const entry of api.jobs) {
+  for (const entry of api.jobs ?? []) {
     const job = mapJobEntry(entry)
     if (RUNNING_STATES.has(entry.state)) {
       runningJobs.push(job)
@@ -329,7 +329,7 @@ export function mapJobPlan(
 ): JobPlan {
   return {
     vertices: mapJobDetailVertices(apiVertices, jobDurationMs),
-    edges: mapJobPlanEdges(apiPlan.nodes),
+    edges: mapJobPlanEdges(apiPlan?.nodes ?? []),
   }
 }
 
@@ -351,7 +351,7 @@ function extractExceptionMessage(stacktrace: string): string {
  * Map API exceptions → domain JobException array.
  */
 export function mapExceptions(api: FlinkJobExceptionsResponse): JobException[] {
-  return api.exceptionHistory.entries.map((e) => ({
+  return (api.exceptionHistory?.entries ?? []).map((e) => ({
     timestamp: new Date(e.timestamp),
     name: e.exceptionName,
     message: extractExceptionMessage(e.stacktrace),
@@ -376,7 +376,7 @@ function mapCheckpointStatus(status: string): CheckpointStatus {
 export function mapCheckpoints(
   api: FlinkCheckpointingStatistics,
 ): Checkpoint[] {
-  return api.history.map((c) => ({
+  return (api.history ?? []).map((c) => ({
     id: c.id,
     status: mapCheckpointStatus(c.status),
     triggerTimestamp: new Date(c.trigger_timestamp),
@@ -409,7 +409,7 @@ export function mapCheckpointConfig(
 export function mapJobConfiguration(
   api: FlinkJobConfigResponse,
 ): JobConfiguration[] {
-  const userConfig = api["execution-config"]["user-config"]
+  const userConfig = api["execution-config"]?.["user-config"] ?? {}
   return Object.entries(userConfig).map(([key, value]) => ({ key, value }))
 }
 
@@ -422,7 +422,7 @@ export function mapSubtaskMetrics(
   const result: Record<string, SubtaskMetrics[]> = {}
 
   for (const [vertexId, detail] of Object.entries(vertexDetails)) {
-    result[vertexId] = detail.subtasks.map((s) => {
+    result[vertexId] = (detail.subtasks ?? []).map((s) => {
       const durationSec = Math.max(1, s.duration / 1000)
       return {
         subtaskIndex: s.subtask,
@@ -533,7 +533,7 @@ export function mapAccumulators(
  */
 export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
   const job = api.job
-  const plan = mapJobPlan(job.vertices, job.plan, job.duration)
+  const plan = mapJobPlan(job.vertices ?? [], job.plan, job.duration)
   const exceptions = mapExceptions(api.exceptions)
   const checkpoints = mapCheckpoints(api.checkpoints)
   const checkpointConfig = mapCheckpointConfig(api.checkpointConfig)
@@ -551,7 +551,7 @@ export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
     endTime: job["end-time"] === -1 ? null : new Date(job["end-time"]),
     duration: job.duration,
     tasks: mapUppercaseTaskCounts(job["status-counts"]),
-    parallelism: Math.max(...job.vertices.map((v) => v.parallelism), 1),
+    parallelism: Math.max(...(job.vertices ?? []).map((v) => v.parallelism), 1),
     plan,
     exceptions,
     checkpoints,
@@ -671,7 +671,7 @@ function extractGarbageCollectors(
  * They are populated by the detail/metrics endpoints.
  */
 export function mapTaskManagers(api: FlinkTaskManagersResponse): TaskManager[] {
-  return api.taskmanagers.map((tm) => ({
+  return (api.taskmanagers ?? []).map((tm) => ({
     id: tm.id,
     path: tm.path,
     dataPort: tm.dataPort,
@@ -708,7 +708,7 @@ export function mapTaskManagers(api: FlinkTaskManagersResponse): TaskManager[] {
       totalFlinkMemory: tm.memoryConfiguration.totalFlinkMemory,
       totalProcessMemory: tm.memoryConfiguration.totalProcessMemory,
     },
-    allocatedSlots: tm.allocatedSlots.map((s) => ({
+    allocatedSlots: (tm.allocatedSlots ?? []).map((s) => ({
       index: s.index,
       jobId: s.jobId,
       resource: {
@@ -797,7 +797,7 @@ export function mapTaskManagerDetail(
       totalFlinkMemory: tm.memoryConfiguration.totalFlinkMemory,
       totalProcessMemory: tm.memoryConfiguration.totalProcessMemory,
     },
-    allocatedSlots: tm.allocatedSlots.map((s) => ({
+    allocatedSlots: (tm.allocatedSlots ?? []).map((s) => ({
       index: s.index,
       jobId: s.jobId,
       resource: {
@@ -864,14 +864,14 @@ function extractGcTotal(metrics: FlinkMetricItem[], suffix: string): number {
 export function mapJobManagerDetail(
   api: FlinkJobManagerDetailAggregate,
 ): JobManagerInfo {
-  const config: JobManagerConfig[] = api.config.map((c) => ({
+  const config: JobManagerConfig[] = (api.config ?? []).map((c) => ({
     key: c.key,
     value: c.value,
   }))
 
-  const jvmArgs = api.environment.jvm.options
+  const jvmArgs = api.environment?.jvm?.options ?? []
   const systemProperties = Object.entries(
-    api.environment["system-properties"],
+    api.environment?.["system-properties"] ?? {},
   ).map(([key, value]) => ({ key, value }))
 
   const metricsSnapshot = mapJobManagerMetrics(api.metrics)
@@ -896,16 +896,18 @@ export function mapJobManagerDetail(
     memoryConfig: jvmMemory,
   }
 
-  const classpath: ClasspathEntry[] = api.environment.classpath.map((p) => {
-    const parts = p.split("/")
-    const filename = parts[parts.length - 1] ?? p
-    return {
-      path: p,
-      filename,
-      size: 0,
-      tag: classifyJarTag(filename),
-    }
-  })
+  const classpath: ClasspathEntry[] = (api.environment?.classpath ?? []).map(
+    (p) => {
+      const parts = p.split("/")
+      const filename = parts[parts.length - 1] ?? p
+      return {
+        path: p,
+        filename,
+        size: 0,
+        tag: classifyJarTag(filename),
+      }
+    },
+  )
 
   const now = new Date()
   const metrics: JobManagerMetrics = {
@@ -963,7 +965,7 @@ function classifyJarTag(filename: string): string {
  */
 export function mapThreadDump(api: FlinkThreadDumpResponse): ThreadDumpInfo {
   return {
-    threadInfos: api.threadInfos.map((t) => ({
+    threadInfos: (api.threadInfos ?? []).map((t) => ({
       threadName: t.threadName,
       stringifiedThreadInfo: t.stringifiedThreadInfo,
     })),
@@ -978,7 +980,7 @@ export function mapThreadDump(api: FlinkThreadDumpResponse): ThreadDumpInfo {
  * Map GET /logs response → domain LogFileEntry[].
  */
 export function mapLogFileList(api: FlinkLogListResponse): LogFileEntry[] {
-  return api.logs.map((f) => ({
+  return (api.logs ?? []).map((f) => ({
     name: f.name,
     lastModified: new Date(), // Flink doesn't provide last-modified; use current time
     size: Math.round(f.size / 1024), // API returns bytes, domain uses KB
@@ -991,22 +993,19 @@ export function mapLogFileList(api: FlinkLogListResponse): LogFileEntry[] {
 
 /**
  * Map GET /config response → FlinkFeatureFlags.
- * Feature keys use the Flink config format: web.submit.enable, web.cancel.enable, etc.
+ * Flink's /config endpoint returns a DashboardConfiguration object with a
+ * nested `features` map keyed by "web-submit", "web-cancel", etc.
  */
 export function mapClusterConfig(
   api: FlinkClusterConfigResponse,
 ): FlinkFeatureFlags {
-  const configMap = new Map<string, string>()
-  for (const entry of api) {
-    configMap.set(entry.key, entry.value)
-  }
-
+  const f = api.features ?? {}
   return {
-    webSubmit: configMap.get("web.submit.enable") !== "false",
-    webCancel: configMap.get("web.cancel.enable") !== "false",
-    webRescale: configMap.get("web.rescale.enable") === "true",
-    webHistory: configMap.get("web.history") === "true",
-    webProfiler: configMap.get("web.profiler.enable") === "true",
+    webSubmit: f["web-submit"] !== false,
+    webCancel: f["web-cancel"] !== false,
+    webRescale: f["web-rescale"] === true,
+    webHistory: f["web-history"] === true,
+    webProfiler: false, // Not exposed in /config features; always false
   }
 }
 
@@ -1067,7 +1066,7 @@ export function mapSubtaskTimes(
     vertexId: api.id,
     vertexName: api.name,
     now: api.now,
-    subtasks: api.subtasks.map((s) => ({
+    subtasks: (api.subtasks ?? []).map((s) => ({
       subtask: s.subtask,
       host: s.host,
       duration: s.duration,
@@ -1106,10 +1105,10 @@ export function mapFlamegraph(api: FlinkFlamegraphResponse): FlamegraphData {
  * Map GET /jars → domain UploadedJar[].
  */
 export function mapJars(api: FlinkJarsResponse): UploadedJar[] {
-  return api.files.map((f) => ({
+  return (api.files ?? []).map((f) => ({
     id: f.id,
     name: f.name,
     uploadTime: new Date(f.uploaded),
-    entryClasses: f.entry.map((e) => e.name),
+    entryClasses: (f.entry ?? []).map((e) => e.name),
   }))
 }
