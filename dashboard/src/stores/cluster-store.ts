@@ -22,7 +22,10 @@ import {
   runJar as runJarApi,
   uploadJar as uploadJarApi,
 } from "@/lib/flink-api-client"
+import { createClientLogger } from "@/lib/logger"
 import { useConfigStore } from "./config-store"
+
+const log = createClientLogger().getSubLogger({ name: "store:cluster" })
 
 // ---------------------------------------------------------------------------
 // Cluster store — cluster state with API-backed polling refresh
@@ -97,6 +100,15 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
   initialize: async () => {
     if (initialized) return
     initialized = true
+
+    const mockMode = useConfigStore.getState().config?.mockMode
+    if (mockMode) {
+      log.info("MOCK → API-backed mock mode", {
+        screen: "Cluster",
+        file: "mock-api-responses.ts",
+        generator: "API routes",
+      })
+    }
 
     set({
       isLoading: true,

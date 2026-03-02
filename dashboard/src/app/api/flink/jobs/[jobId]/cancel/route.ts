@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { getConfig } from "@/lib/config"
 import { createFlinkFetcher } from "@/lib/flink-fetcher"
+import { createServerLogger } from "@/lib/logger"
+
+const log = createServerLogger().getSubLogger({ name: "api:jobs:cancel" })
 
 export async function PATCH(
   _request: Request,
@@ -10,6 +13,11 @@ export async function PATCH(
   const config = getConfig()
 
   if (config.mockMode) {
+    log.info("MOCK → cancel (no-op)", {
+      screen: "Job Detail",
+      file: "route.ts",
+      generator: "mock-cancel",
+    })
     // In mock mode, just return success — the store handles state transitions
     return NextResponse.json({ status: "ok" })
   }

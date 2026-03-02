@@ -3,6 +3,11 @@ import type { FlinkCheckpointDetailResponse } from "@/data/flink-api-types"
 import { generateMockCheckpointDetailApiResponse } from "@/data/mock-api-responses"
 import { getConfig } from "@/lib/config"
 import { createFlinkFetcher } from "@/lib/flink-fetcher"
+import { createServerLogger } from "@/lib/logger"
+
+const log = createServerLogger().getSubLogger({
+  name: "api:jobs:checkpoints:detail",
+})
 
 export async function GET(
   _request: Request,
@@ -12,6 +17,11 @@ export async function GET(
   const config = getConfig()
 
   if (config.mockMode) {
+    log.info("MOCK → generateMockCheckpointDetailApiResponse", {
+      screen: "Checkpoint Detail",
+      file: "mock-api-responses.ts",
+      generator: "generateMockCheckpointDetailApiResponse",
+    })
     return NextResponse.json(
       generateMockCheckpointDetailApiResponse(Number(checkpointId)),
     )

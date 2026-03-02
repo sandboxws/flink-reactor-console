@@ -1,8 +1,17 @@
 import { create } from "zustand"
+import type { JobException } from "@/data/cluster-types"
 import type { ErrorGroup, LogEntry, LogSource } from "@/data/types"
+import { fetchJobDetail } from "@/lib/flink-api-client"
+import { createClientLogger } from "@/lib/logger"
+import { useClusterStore } from "./cluster-store"
+import { useConfigStore } from "./config-store"
+
+const log = createClientLogger().getSubLogger({ name: "store:error" })
 
 // ---------------------------------------------------------------------------
 // Error store — auto-groups exceptions by class + message prefix
+// Supports mock-derived entries (from log-store) and live exceptions (from
+// Flink job detail exception history).
 // ---------------------------------------------------------------------------
 
 type SortBy = "lastSeen" | "count" | "firstSeen"
@@ -15,6 +24,8 @@ interface ErrorState {
 
 interface ErrorActions {
   processEntry: (entry: LogEntry) => void
+  startLiveExceptionPolling: () => void
+  stopLiveExceptionPolling: () => void
   selectGroup: (groupId: string | null) => void
   setSortBy: (sortBy: SortBy) => void
   clear: () => void
@@ -60,7 +71,51 @@ function addSourceIfNew(existing: LogSource[], source: LogSource): LogSource[] {
 
 let groupIdCounter = 0
 
-export const useErrorStore = create<ErrorStore>((set) => ({
+// ---------------------------------------------------------------------------
+// Live exception polling state (module-scoped)
+// ---------------------------------------------------------------------------
+
+let exceptionPollTimer: ReturnType<typeof setInterval> | null = null
+
+/** Set of already-processed exception keys to prevent duplicates across polls. */
+const processedExceptionKeys = new Set<string>()
+
+/** Staggered fetch pointer — rotate through running jobs. */
+let fetchPtr = 0
+
+/** Convert a Flink JobException to a LogEntry for reuse in processEntry(). */
+function jobExceptionToLogEntry(exc: JobException, jobId: string): LogEntry {
+  const source: LogSource = {
+    type: "jobmanager",
+    id: `job:${jobId}`,
+    label: `Job ${jobId.substring(0, 8)}`,
+  }
+
+  return {
+    id: `exc-${++groupIdCounter}`,
+    timestamp: exc.timestamp,
+    level: "ERROR",
+    logger: exc.name,
+    loggerShort: exc.name.split(".").pop() ?? exc.name,
+    thread: exc.taskName ?? "main",
+    message: exc.message,
+    source,
+    raw: exc.stacktrace,
+    stackTrace: exc.stacktrace,
+    isException: true,
+  }
+}
+
+/** Build a dedup key for an exception. */
+function exceptionDedupeKey(jobId: string, exc: JobException): string {
+  return `${jobId}:${exc.timestamp.getTime()}:${exc.name}`
+}
+
+// ---------------------------------------------------------------------------
+// Zustand store
+// ---------------------------------------------------------------------------
+
+export const useErrorStore = create<ErrorStore>((set, get) => ({
   groups: new Map(),
   selectedGroupId: null,
   sortBy: "lastSeen",
@@ -104,6 +159,64 @@ export const useErrorStore = create<ErrorStore>((set) => ({
     })
   },
 
+  startLiveExceptionPolling: () => {
+    const mockMode = useConfigStore.getState().config?.mockMode ?? true
+    if (mockMode) {
+      log.info("MOCK → processEntry (mock-derived)", {
+        screen: "Error Explorer",
+        file: "error-store.ts",
+      })
+      return // In mock mode, entries come from log-store subscription
+    }
+
+    log.info("LIVE → polling job exceptions", { screen: "Error Explorer" })
+    processedExceptionKeys.clear()
+    fetchPtr = 0
+
+    // Poll every 10s — fetch 2 running jobs per tick
+    const pollExceptions = async () => {
+      const runningJobs = useClusterStore.getState().runningJobs
+      if (runningJobs.length === 0) return
+
+      // Wrap pointer
+      if (fetchPtr >= runningJobs.length) fetchPtr = 0
+
+      // Fetch up to 2 jobs per tick
+      const batch = runningJobs.slice(fetchPtr, fetchPtr + 2)
+      fetchPtr = (fetchPtr + batch.length) % Math.max(1, runningJobs.length)
+
+      const results = await Promise.allSettled(
+        batch.map((job) => fetchJobDetail(job.id)),
+      )
+
+      for (const result of results) {
+        if (result.status !== "fulfilled") continue
+        const job = result.value
+        if (!job.exceptions || job.exceptions.length === 0) continue
+
+        for (const exc of job.exceptions) {
+          const dedupeKey = exceptionDedupeKey(job.id, exc)
+          if (processedExceptionKeys.has(dedupeKey)) continue
+          processedExceptionKeys.add(dedupeKey)
+
+          const entry = jobExceptionToLogEntry(exc, job.id)
+          get().processEntry(entry)
+        }
+      }
+    }
+
+    // Initial poll
+    pollExceptions()
+    exceptionPollTimer = setInterval(pollExceptions, 10_000)
+  },
+
+  stopLiveExceptionPolling: () => {
+    if (exceptionPollTimer) {
+      clearInterval(exceptionPollTimer)
+      exceptionPollTimer = null
+    }
+  },
+
   selectGroup: (groupId: string | null) => {
     set({ selectedGroupId: groupId })
   },
@@ -114,5 +227,6 @@ export const useErrorStore = create<ErrorStore>((set) => ({
 
   clear: () => {
     set({ groups: new Map(), selectedGroupId: null })
+    processedExceptionKeys.clear()
   },
 }))

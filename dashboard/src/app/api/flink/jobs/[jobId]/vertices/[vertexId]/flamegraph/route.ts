@@ -3,6 +3,11 @@ import type { FlinkFlamegraphResponse } from "@/data/flink-api-types"
 import { generateMockFlamegraphApiResponse } from "@/data/mock-api-responses"
 import { getConfig } from "@/lib/config"
 import { createFlinkFetcher } from "@/lib/flink-fetcher"
+import { createServerLogger } from "@/lib/logger"
+
+const log = createServerLogger().getSubLogger({
+  name: "api:jobs:vertices:flamegraph",
+})
 
 export async function GET(
   request: Request,
@@ -12,6 +17,11 @@ export async function GET(
   const config = getConfig()
 
   if (config.mockMode) {
+    log.info("MOCK → generateMockFlamegraphApiResponse", {
+      screen: "Flamegraph",
+      file: "mock-api-responses.ts",
+      generator: "generateMockFlamegraphApiResponse",
+    })
     return NextResponse.json(generateMockFlamegraphApiResponse())
   }
 

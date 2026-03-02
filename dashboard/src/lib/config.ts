@@ -46,6 +46,9 @@ export interface DashboardConfig {
   alertWebhookUrl?: string
   alertWebhookEnabled: boolean
 
+  // Logging
+  logLevel: string | null
+
   // Runtime mode
   mockMode: boolean
 }
@@ -59,6 +62,7 @@ export interface PublicDashboardConfig {
   logBufferSize: number
   clusterDisplayName: string
   mockMode: boolean
+  logLevel: string | null
   clusters: string[]
   rbacEnabled: boolean
   prometheusEnabled: boolean
@@ -230,6 +234,8 @@ export function getConfig(): DashboardConfig {
     alertWebhookUrl: env.ALERT_WEBHOOK_URL || undefined,
     alertWebhookEnabled: parseBool(env.ALERT_WEBHOOK_ENABLED, false),
 
+    logLevel: env.DASHBOARD_LOG_LEVEL || null,
+
     mockMode: parseMockMode(env.DASHBOARD_MOCK_MODE, !!flinkRestUrl),
   }
 
@@ -248,6 +254,7 @@ export function getPublicConfig(): PublicDashboardConfig {
     logBufferSize: config.logBufferSize,
     clusterDisplayName: config.clusterDisplayName,
     mockMode: config.mockMode,
+    logLevel: config.logLevel,
     clusters: config.clusters.map((c) => c.name),
     rbacEnabled: config.rbacEnabled,
     prometheusEnabled: config.prometheusEnabled,

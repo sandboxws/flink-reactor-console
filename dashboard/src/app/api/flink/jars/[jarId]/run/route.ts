@@ -3,6 +3,9 @@ import type { FlinkJarRunResponse } from "@/data/flink-api-types"
 import { generateMockJarRunApiResponse } from "@/data/mock-api-responses"
 import { getConfig } from "@/lib/config"
 import { createFlinkFetcher } from "@/lib/flink-fetcher"
+import { createServerLogger } from "@/lib/logger"
+
+const log = createServerLogger().getSubLogger({ name: "api:jars:run" })
 
 export async function POST(
   request: Request,
@@ -12,6 +15,11 @@ export async function POST(
   const config = getConfig()
 
   if (config.mockMode) {
+    log.info("MOCK → generateMockJarRunApiResponse", {
+      screen: "JAR Run",
+      file: "mock-api-responses.ts",
+      generator: "generateMockJarRunApiResponse",
+    })
     return NextResponse.json(generateMockJarRunApiResponse())
   }
 

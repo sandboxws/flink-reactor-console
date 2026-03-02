@@ -3,6 +3,11 @@ import type { FlinkSubtaskTimesResponse } from "@/data/flink-api-types"
 import { generateMockSubtaskTimesApiResponse } from "@/data/mock-api-responses"
 import { getConfig } from "@/lib/config"
 import { createFlinkFetcher } from "@/lib/flink-fetcher"
+import { createServerLogger } from "@/lib/logger"
+
+const log = createServerLogger().getSubLogger({
+  name: "api:jobs:vertices:subtasktimes",
+})
 
 export async function GET(
   _request: Request,
@@ -12,6 +17,11 @@ export async function GET(
   const config = getConfig()
 
   if (config.mockMode) {
+    log.info("MOCK → generateMockSubtaskTimesApiResponse", {
+      screen: "Subtask Times",
+      file: "mock-api-responses.ts",
+      generator: "generateMockSubtaskTimesApiResponse",
+    })
     return NextResponse.json(generateMockSubtaskTimesApiResponse(vertexId))
   }
 

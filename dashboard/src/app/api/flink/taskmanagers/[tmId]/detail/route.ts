@@ -7,6 +7,11 @@ import type {
 import { generateMockTaskManagerDetailApiResponse } from "@/data/mock-api-responses"
 import { getConfig } from "@/lib/config"
 import { createFlinkFetcher } from "@/lib/flink-fetcher"
+import { createServerLogger } from "@/lib/logger"
+
+const log = createServerLogger().getSubLogger({
+  name: "api:taskmanagers:detail",
+})
 
 /** All TM metrics we request in a single call. */
 const TM_METRIC_IDS = [
@@ -48,6 +53,11 @@ export async function GET(
   const config = getConfig()
 
   if (config.mockMode) {
+    log.info("MOCK → generateMockTaskManagerDetailApiResponse", {
+      screen: "Task Manager Detail",
+      file: "mock-api-responses.ts",
+      generator: "generateMockTaskManagerDetailApiResponse",
+    })
     return NextResponse.json(generateMockTaskManagerDetailApiResponse(tmId))
   }
 

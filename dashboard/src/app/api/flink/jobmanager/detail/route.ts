@@ -8,6 +8,9 @@ import type {
 import { generateMockJobManagerDetailApiResponse } from "@/data/mock-api-responses"
 import { getConfig } from "@/lib/config"
 import { createFlinkFetcher } from "@/lib/flink-fetcher"
+import { createServerLogger } from "@/lib/logger"
+
+const log = createServerLogger().getSubLogger({ name: "api:jobmanager:detail" })
 
 /** Core JM metrics fetched alongside config/environment. */
 const JM_METRIC_IDS = [
@@ -30,6 +33,11 @@ export async function GET() {
   const config = getConfig()
 
   if (config.mockMode) {
+    log.info("MOCK → generateMockJobManagerDetailApiResponse", {
+      screen: "Job Manager",
+      file: "mock-api-responses.ts",
+      generator: "generateMockJobManagerDetailApiResponse",
+    })
     return NextResponse.json(generateMockJobManagerDetailApiResponse())
   }
 
