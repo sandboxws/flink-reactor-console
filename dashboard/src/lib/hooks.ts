@@ -192,11 +192,18 @@ export function useAutoScroll<T extends HTMLElement>() {
     el.scrollTop = el.scrollHeight
   }, [isAutoScrolling])
 
+  // Programmatically pause auto-scroll (e.g. when selecting a log entry)
+  const pauseAutoScroll = useCallback(() => {
+    userScrolledRef.current = true
+    setIsAutoScrolling(false)
+  }, [])
+
   return {
     containerRef,
     isAutoScrolling,
     handleScroll,
     scrollToBottom,
     scrollIfNeeded,
+    pauseAutoScroll,
   }
 }

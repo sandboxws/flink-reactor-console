@@ -15,7 +15,7 @@ import { useFilterStore } from "@/stores/filter-store"
 import { useLogStore } from "@/stores/log-store"
 import { SeverityFilter } from "./severity-filter"
 
-export function LogToolbar() {
+export function LogToolbar({ filteredCount }: { filteredCount: number }) {
   const toggleStreaming = useLogStore((s) => s.toggleStreaming)
   const isStreaming = useLogStore((s) => s.isStreaming)
 
@@ -33,7 +33,13 @@ export function LogToolbar() {
         )}
       >
         {isStreaming ? (
-          <Pause className="size-3" />
+          <>
+            <span className="relative mr-0.5 flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
+            </span>
+            <Pause className="size-3" />
+          </>
         ) : (
           <Play className="size-3" />
         )}
@@ -53,6 +59,12 @@ export function LogToolbar() {
       <SourceDropdown />
 
       <div className="flex-1" />
+
+      {filteredCount > 0 && (
+        <span className="tabular-nums text-[11px] text-zinc-500">
+          {filteredCount.toLocaleString()} entries
+        </span>
+      )}
 
       <TimeRange />
     </div>

@@ -36,7 +36,7 @@ export function LogExplorer() {
     <ResizablePanelGroup orientation="horizontal">
       <ResizablePanel minSize="30%">
         <div className="flex h-full flex-col overflow-hidden">
-          <LogToolbar />
+          <LogToolbar filteredCount={filteredLogs.length} />
           <LogHistogram entries={filteredLogs} />
           <LogList entries={filteredLogs} />
         </div>
