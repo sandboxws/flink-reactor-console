@@ -38,6 +38,10 @@ export type CheckpointAggregates = {
   totalStateSize: number
 }
 
+// Flink uses Long.MAX_VALUE (~9.2e18 ms) as interval when checkpointing is
+// disabled.  Anything above ~31 years is effectively "not configured".
+const CHECKPOINT_DISABLED_INTERVAL = 1_000_000_000_000
+
 // ---------------------------------------------------------------------------
 // Trend computation — simple linear regression
 // ---------------------------------------------------------------------------
@@ -209,6 +213,8 @@ interface CheckpointAnalyticsState {
   aggregates: CheckpointAggregates | null
   loading: boolean
   lastUpdated: Date | null
+  /** True when at least one running job has a real checkpoint interval configured. */
+  checkpointsConfigured: boolean
 
   initialize: () => void
   startPolling: () => void
@@ -226,6 +232,7 @@ let unsubClusterStore: (() => void) | null = null
 let fetchQueue: string[] = []
 let fetchQueuePtr = 0
 const checkpointJobCache = new Map<string, FlinkJob>()
+let initialFetchTriggered = false
 
 async function staggeredFetchCheckpointJobs() {
   const { runningJobs } = useClusterStore.getState()
@@ -271,12 +278,26 @@ function recompute(set: (partial: Partial<CheckpointAnalyticsState>) => void) {
   const aggregates = computeAggregates(summaries)
   const timeline = computeTimeline(summaries)
 
+  // Keep loading=true when running jobs exist but no detail data has been
+  // fetched yet — this shows the skeleton instead of empty charts.
+  const cacheIsWarm = runningJobs.some((j) => checkpointJobCache.has(j.id))
+  const loading = runningJobs.length > 0 && !cacheIsWarm
+
+  // Check if any cached job has a real checkpoint interval configured.
+  // Flink sets interval to Long.MAX_VALUE when checkpointing is disabled.
+  const checkpointsConfigured = enrichedJobs.some(
+    (j) =>
+      j.checkpointConfig != null &&
+      j.checkpointConfig.interval < CHECKPOINT_DISABLED_INTERVAL,
+  )
+
   set({
     summaries,
     aggregates,
     timeline,
-    loading: false,
-    lastUpdated: new Date(),
+    loading,
+    checkpointsConfigured,
+    lastUpdated: loading ? null : new Date(),
   })
 }
 
@@ -287,20 +308,33 @@ export const useCheckpointAnalyticsStore = create<CheckpointAnalyticsState>(
     aggregates: null,
     loading: true,
     lastUpdated: null,
+    checkpointsConfigured: true, // assume configured until proven otherwise
 
     initialize: () => {
       if (checkpointInitialized) return
       checkpointInitialized = true
 
-      // Subscribe to cluster-store for reactivity
+      // Subscribe to cluster-store for reactivity.
+      // When running jobs first appear but the cache is cold, trigger an
+      // immediate staggered fetch so data appears within seconds rather
+      // than waiting for the 30-second poll interval.
       unsubClusterStore = useClusterStore.subscribe(() => {
+        const { runningJobs } = useClusterStore.getState()
+        if (
+          !initialFetchTriggered &&
+          runningJobs.length > 0 &&
+          !runningJobs.some((j) => checkpointJobCache.has(j.id))
+        ) {
+          initialFetchTriggered = true
+          staggeredFetchCheckpointJobs().then(() => recompute(set))
+        }
         recompute(set)
       })
 
       // Compute initial snapshot
       recompute(set)
 
-      // Kick off initial staggered fetch
+      // Kick off initial staggered fetch (no-op if runningJobs is empty yet)
       staggeredFetchCheckpointJobs().then(() => recompute(set))
     },
 
@@ -324,6 +358,7 @@ export const useCheckpointAnalyticsStore = create<CheckpointAnalyticsState>(
       }
       checkpointJobCache.clear()
       checkpointInitialized = false
+      initialFetchTriggered = false
     },
   }),
 )
