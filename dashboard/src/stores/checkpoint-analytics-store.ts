@@ -83,13 +83,20 @@ function computeJobSummary(job: FlinkJob): JobCheckpointSummary | null {
 
   const checkpoints = job.checkpoints
   const completed = checkpoints.filter((c) => c.status === "COMPLETED")
-  const failed = checkpoints.filter((c) => c.status === "FAILED")
-  const totalCheckpoints = completed.length + failed.length
+
+  // Use Flink's lifetime counts when available (history[] is limited by
+  // state.checkpoints.num-retained, typically 10). Fall back to history length
+  // when counts aren't available (e.g. overview-only data).
+  const counts = job.checkpointCounts
+  const totalCheckpoints = counts
+    ? counts.completed + counts.failed
+    : completed.length + checkpoints.filter((c) => c.status === "FAILED").length
 
   if (totalCheckpoints === 0) return null
 
+  const completedCount = counts ? counts.completed : completed.length
   const successRate =
-    totalCheckpoints > 0 ? (completed.length / totalCheckpoints) * 100 : 0
+    totalCheckpoints > 0 ? (completedCount / totalCheckpoints) * 100 : 0
 
   // Duration: mean of last 10 completed checkpoints
   const recentCompleted = completed.slice(-10)

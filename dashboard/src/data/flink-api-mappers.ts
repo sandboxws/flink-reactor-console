@@ -6,6 +6,7 @@
 import type {
   Checkpoint,
   CheckpointConfig,
+  CheckpointCounts,
   CheckpointDetail,
   CheckpointStatus,
   CheckpointTaskDetail,
@@ -158,6 +159,7 @@ function mapJobEntry(entry: FlinkJobOverviewEntry): FlinkJob {
     plan: null,
     exceptions: [],
     checkpoints: [],
+    checkpointCounts: null,
     checkpointConfig: null,
     subtaskMetrics: {},
     configuration: [],
@@ -388,6 +390,22 @@ export function mapCheckpoints(
 }
 
 /**
+ * Map API checkpoint counts → domain CheckpointCounts.
+ * These are the lifetime totals reported by Flink, not limited by retention.
+ */
+export function mapCheckpointCounts(
+  api: FlinkCheckpointingStatistics,
+): CheckpointCounts {
+  const counts = api.counts ?? {}
+  return {
+    completed: (counts.completed as number) ?? 0,
+    failed: (counts.failed as number) ?? 0,
+    inProgress: (counts.in_progress as number) ?? 0,
+    total: (counts.total as number) ?? 0,
+  }
+}
+
+/**
  * Map API checkpoint config → domain CheckpointConfig.
  */
 export function mapCheckpointConfig(
@@ -536,6 +554,7 @@ export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
   const plan = mapJobPlan(job.vertices ?? [], job.plan, job.duration)
   const exceptions = mapExceptions(api.exceptions)
   const checkpoints = mapCheckpoints(api.checkpoints)
+  const checkpointCounts = mapCheckpointCounts(api.checkpoints)
   const checkpointConfig = mapCheckpointConfig(api.checkpointConfig)
   const configuration = mapJobConfiguration(api.jobConfig)
   const subtaskMetrics = mapSubtaskMetrics(api.vertexDetails)
@@ -555,6 +574,7 @@ export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
     plan,
     exceptions,
     checkpoints,
+    checkpointCounts,
     checkpointConfig,
     subtaskMetrics,
     configuration,

@@ -94,6 +94,13 @@ export type Checkpoint = {
   isSavepoint: boolean
 }
 
+export type CheckpointCounts = {
+  completed: number
+  failed: number
+  inProgress: number
+  total: number
+}
+
 export type CheckpointConfig = {
   mode: "EXACTLY_ONCE" | "AT_LEAST_ONCE"
   interval: number
@@ -162,6 +169,7 @@ export type FlinkJob = {
   plan: JobPlan | null
   exceptions: JobException[]
   checkpoints: Checkpoint[]
+  checkpointCounts: CheckpointCounts | null
   checkpointConfig: CheckpointConfig | null
   subtaskMetrics: Record<string, SubtaskMetrics[]>
   configuration: JobConfiguration[]

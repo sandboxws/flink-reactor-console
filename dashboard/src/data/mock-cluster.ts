@@ -1,6 +1,7 @@
 import type {
   Checkpoint,
   CheckpointConfig,
+  CheckpointCounts,
   ClasspathEntry,
   ClusterOverview,
   FlinkJob,
@@ -592,6 +593,7 @@ function generateJobDetailFields(
   | "plan"
   | "exceptions"
   | "checkpoints"
+  | "checkpointCounts"
   | "checkpointConfig"
   | "subtaskMetrics"
   | "configuration"
@@ -602,6 +604,12 @@ function generateJobDetailFields(
   const plan = generateJobPlan(parallelism, jobStatus, startTime)
   const exceptions = generateJobExceptions(jobStatus, plan.vertices)
   const { checkpoints, config } = generateCheckpoints(jobStatus)
+  const checkpointCounts: CheckpointCounts = {
+    completed: checkpoints.filter((c) => c.status === "COMPLETED").length,
+    failed: checkpoints.filter((c) => c.status === "FAILED").length,
+    inProgress: checkpoints.filter((c) => c.status === "IN_PROGRESS").length,
+    total: checkpoints.length,
+  }
   const subtaskMetrics = generateSubtaskMetrics(plan.vertices)
   const configuration = generateJobConfiguration()
   const watermarks = generateWatermarks(plan.vertices)
@@ -612,6 +620,7 @@ function generateJobDetailFields(
     plan,
     exceptions,
     checkpoints,
+    checkpointCounts,
     checkpointConfig: config,
     subtaskMetrics,
     configuration,

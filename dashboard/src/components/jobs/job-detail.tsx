@@ -132,6 +132,7 @@ export function JobDetail({
           <CheckpointsTab
             jobId={job.id}
             checkpoints={job.checkpoints}
+            counts={job.checkpointCounts}
             config={job.checkpointConfig}
           />
         </TabsContent>

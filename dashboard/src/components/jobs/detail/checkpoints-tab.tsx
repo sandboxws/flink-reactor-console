@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import type {
   Checkpoint,
   CheckpointConfig,
+  CheckpointCounts,
   CheckpointDetail,
   CheckpointStatus,
 } from "@/data/cluster-types"
@@ -317,10 +318,12 @@ function CheckpointDetailView({
 export function CheckpointsTab({
   jobId,
   checkpoints,
+  counts,
   config,
 }: {
   jobId: string
   checkpoints: Checkpoint[]
+  counts: CheckpointCounts | null
   config: CheckpointConfig | null
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("id")
@@ -482,6 +485,16 @@ export function CheckpointsTab({
       {/* Checkpoint history table */}
       {checkpoints.length > 0 && (
         <div className="glass-card overflow-hidden">
+          {counts && counts.total > checkpoints.length && (
+            <div className="flex items-center justify-between border-b border-dash-border px-3 py-2">
+              <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+                Checkpoint History
+              </span>
+              <span className="text-[10px] text-zinc-600">
+                Showing last {checkpoints.length} of {counts.total} total
+              </span>
+            </div>
+          )}
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-dash-border">
