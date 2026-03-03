@@ -186,6 +186,26 @@ export interface FlinkCheckpointHistoryEntry {
   persisted_data: number
   num_subtasks: number
   num_acknowledged_subtasks: number
+  checkpointed_size?: number
+}
+
+/**
+ * Min/avg/max statistics for a checkpoint metric.
+ */
+export interface FlinkCheckpointMinMaxAvg {
+  min: number
+  max: number
+  avg: number
+}
+
+/**
+ * Restored checkpoint info within FlinkCheckpointingStatistics.latest.
+ */
+export interface FlinkCheckpointRestoredInfo {
+  id: number
+  restore_timestamp: number
+  is_savepoint: boolean
+  external_path?: string
 }
 
 /**
@@ -195,6 +215,19 @@ export interface FlinkCheckpointHistoryEntry {
 export interface FlinkCheckpointingStatistics {
   counts: Record<string, number>
   history: FlinkCheckpointHistoryEntry[]
+  summary?: {
+    state_size?: FlinkCheckpointMinMaxAvg
+    end_to_end_duration?: FlinkCheckpointMinMaxAvg
+    checkpointed_size?: FlinkCheckpointMinMaxAvg
+    processed_data?: FlinkCheckpointMinMaxAvg
+    persisted_data?: FlinkCheckpointMinMaxAvg
+  }
+  latest?: {
+    completed?: FlinkCheckpointHistoryEntry | null
+    failed?: FlinkCheckpointHistoryEntry | null
+    savepoint?: FlinkCheckpointHistoryEntry | null
+    restored?: FlinkCheckpointRestoredInfo | null
+  }
 }
 
 /**
@@ -546,6 +579,7 @@ export interface FlinkCheckpointSubtaskStats {
   ack_timestamp: number
   end_to_end_duration: number
   state_size: number
+  checkpointed_size?: number
   checkpoint_duration: {
     sync: number
     async: number
@@ -555,6 +589,7 @@ export interface FlinkCheckpointSubtaskStats {
     duration: number
   }
   start_delay: number
+  unaligned_checkpoint?: boolean
 }
 
 /**
@@ -568,6 +603,22 @@ export interface FlinkCheckpointTaskStats {
   end_to_end_duration: number
   num_subtasks: number
   num_acknowledged_subtasks: number
+  checkpointed_size?: number
+  processed_data?: number
+  persisted_data?: number
+  summary?: {
+    end_to_end_duration?: FlinkCheckpointMinMaxAvg
+    state_size?: FlinkCheckpointMinMaxAvg
+    checkpointed_size?: FlinkCheckpointMinMaxAvg
+    checkpoint_duration?: {
+      sync?: FlinkCheckpointMinMaxAvg
+      async?: FlinkCheckpointMinMaxAvg
+    }
+    alignment?: {
+      duration?: FlinkCheckpointMinMaxAvg
+    }
+    start_delay?: FlinkCheckpointMinMaxAvg
+  }
 }
 
 /**
@@ -585,6 +636,23 @@ export interface FlinkCheckpointDetailResponse {
   num_subtasks: number
   num_acknowledged_subtasks: number
   tasks: Record<string, FlinkCheckpointTaskStats>
+  checkpoint_type?: string
+  external_path?: string
+  discarded?: boolean
+  checkpointed_size?: number
+  processed_data?: number
+  persisted_data?: number
+}
+
+/**
+ * GET /jobs/:jid/checkpoints/details/:cpid/subtasks/:vid
+ * Per-vertex subtask checkpoint data.
+ */
+export interface FlinkCheckpointSubtaskDetailResponse {
+  id: string
+  num_subtasks: number
+  num_acknowledged_subtasks: number
+  subtasks: FlinkCheckpointSubtaskStats[]
 }
 
 // ---------------------------------------------------------------------------

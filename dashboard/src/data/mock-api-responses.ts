@@ -255,14 +255,14 @@ function domainExceptionsToApi(
 function domainCheckpointsToApi(
   checkpoints: Checkpoint[],
 ): FlinkCheckpointingStatistics {
-  return {
-    counts: {
-      completed: checkpoints.filter((c) => c.status === "COMPLETED").length,
-      in_progress: checkpoints.filter((c) => c.status === "IN_PROGRESS").length,
-      failed: checkpoints.filter((c) => c.status === "FAILED").length,
-      total: checkpoints.length,
-    },
-    history: checkpoints.map((c) => ({
+  const completed = checkpoints.filter((c) => c.status === "COMPLETED")
+  const failed = checkpoints.filter((c) => c.status === "FAILED")
+  const latestCompleted = completed[completed.length - 1]
+  const latestFailed = failed[failed.length - 1]
+
+  function toHistoryEntry(c: Checkpoint) {
+    const checkpointedSize = Math.floor(c.size * 0.6)
+    return {
       id: c.id,
       status: c.status,
       is_savepoint: c.isSavepoint,
@@ -274,7 +274,49 @@ function domainCheckpointsToApi(
       persisted_data: c.size,
       num_subtasks: 4,
       num_acknowledged_subtasks: c.status === "IN_PROGRESS" ? 2 : 4,
-    })),
+      checkpointed_size: checkpointedSize,
+    }
+  }
+
+  // Compute summary min/avg/max from completed checkpoints
+  const sizes = completed.map((c) => c.size)
+  const durations = completed.map((c) => c.duration)
+  function minMaxAvg(vals: number[]) {
+    if (vals.length === 0) return { min: 0, max: 0, avg: 0 }
+    const min = Math.min(...vals)
+    const max = Math.max(...vals)
+    const avg = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
+    return { min, max, avg }
+  }
+
+  return {
+    counts: {
+      completed: completed.length,
+      in_progress: checkpoints.filter((c) => c.status === "IN_PROGRESS").length,
+      failed: failed.length,
+      total: checkpoints.length,
+      restored: completed.length > 0 ? 1 : 0,
+    },
+    history: checkpoints.map(toHistoryEntry),
+    summary: {
+      state_size: minMaxAvg(sizes),
+      end_to_end_duration: minMaxAvg(durations),
+      checkpointed_size: minMaxAvg(sizes.map((s) => Math.floor(s * 0.6))),
+    },
+    latest: {
+      completed: latestCompleted ? toHistoryEntry(latestCompleted) : null,
+      failed: latestFailed ? toHistoryEntry(latestFailed) : null,
+      savepoint: null,
+      restored:
+        completed.length > 0
+          ? {
+              id: completed[0].id,
+              restore_timestamp: completed[0].triggerTimestamp.getTime(),
+              is_savepoint: false,
+              external_path: "hdfs:///flink/checkpoints/job-abc/chk-1",
+            }
+          : null,
+    },
   }
 }
 
@@ -853,16 +895,65 @@ export function generateMockCheckpointDetailApiResponse(
   const tasks: Record<string, FlinkCheckpointDetailResponse["tasks"][string]> =
     {}
   for (const vid of vertexIds) {
+    const stateSize = Math.floor(Math.random() * 5_000_000) + 100_000
+    const checkpointedSize = Math.floor(stateSize * 0.6)
+    const duration = Math.floor(Math.random() * 3000) + 200
+    const processedData = Math.floor(Math.random() * 500_000)
     tasks[vid] = {
       id: vid,
       status: "COMPLETED",
       latest_ack_timestamp: now - 500,
-      state_size: Math.floor(Math.random() * 5_000_000) + 100_000,
-      end_to_end_duration: Math.floor(Math.random() * 3000) + 200,
+      state_size: stateSize,
+      end_to_end_duration: duration,
       num_subtasks: 4,
       num_acknowledged_subtasks: 4,
+      checkpointed_size: checkpointedSize,
+      processed_data: processedData,
+      persisted_data: checkpointedSize,
+      summary: {
+        end_to_end_duration: {
+          min: Math.floor(duration * 0.7),
+          max: Math.floor(duration * 1.3),
+          avg: duration,
+        },
+        state_size: {
+          min: Math.floor(stateSize * 0.6),
+          max: Math.floor(stateSize * 1.2),
+          avg: stateSize,
+        },
+        checkpointed_size: {
+          min: Math.floor(checkpointedSize * 0.8),
+          max: Math.floor(checkpointedSize * 1.2),
+          avg: checkpointedSize,
+        },
+        checkpoint_duration: {
+          sync: { min: 5, max: 25, avg: 12 },
+          async: {
+            min: Math.floor(duration * 0.3),
+            max: Math.floor(duration * 0.9),
+            avg: Math.floor(duration * 0.6),
+          },
+        },
+        alignment: {
+          duration: { min: 0, max: 50, avg: 15 },
+        },
+        start_delay: { min: 1, max: 10, avg: 4 },
+      },
     }
   }
+
+  const totalStateSize = Object.values(tasks).reduce(
+    (sum, t) => sum + t.state_size,
+    0,
+  )
+  const totalCheckpointedSize = Object.values(tasks).reduce(
+    (sum, t) => sum + (t.checkpointed_size ?? 0),
+    0,
+  )
+  const totalProcessedData = Object.values(tasks).reduce(
+    (sum, t) => sum + (t.processed_data ?? 0),
+    0,
+  )
 
   return {
     id: checkpointId,
@@ -870,11 +961,59 @@ export function generateMockCheckpointDetailApiResponse(
     is_savepoint: false,
     trigger_timestamp: now - 5000,
     latest_ack_timestamp: now - 500,
-    state_size: Object.values(tasks).reduce((sum, t) => sum + t.state_size, 0),
+    state_size: totalStateSize,
     end_to_end_duration: 4500,
     num_subtasks: 16,
     num_acknowledged_subtasks: 16,
     tasks,
+    checkpoint_type: "CHECKPOINT",
+    external_path: `hdfs:///flink/checkpoints/job-abc/chk-${checkpointId}`,
+    discarded: false,
+    checkpointed_size: totalCheckpointedSize,
+    processed_data: totalProcessedData,
+    persisted_data: totalCheckpointedSize,
+  }
+}
+
+/**
+ * Generate mock subtask checkpoint detail for a vertex.
+ */
+export function generateMockCheckpointSubtaskDetailResponse(
+  vertexId: string,
+): import("./flink-api-types").FlinkCheckpointSubtaskDetailResponse {
+  const now = Date.now()
+  const numSubtasks = 4
+
+  const subtasks = Array.from({ length: numSubtasks }, (_, i) => {
+    const duration = Math.floor(Math.random() * 2000) + 300
+    const stateSize = Math.floor(Math.random() * 2_000_000) + 50_000
+    const syncDuration = Math.floor(Math.random() * 20) + 3
+    const asyncDuration = Math.floor(duration * 0.6)
+    return {
+      index: i,
+      status: "COMPLETED" as const,
+      ack_timestamp: now - Math.floor(Math.random() * 500),
+      end_to_end_duration: duration,
+      state_size: stateSize,
+      checkpointed_size: Math.floor(stateSize * 0.6),
+      checkpoint_duration: {
+        sync: syncDuration,
+        async: asyncDuration,
+      },
+      alignment: {
+        buffered: Math.floor(Math.random() * 100_000),
+        duration: Math.floor(Math.random() * 40),
+      },
+      start_delay: Math.floor(Math.random() * 8) + 1,
+      unaligned_checkpoint: i % 3 === 0,
+    }
+  })
+
+  return {
+    id: vertexId,
+    num_subtasks: numSubtasks,
+    num_acknowledged_subtasks: numSubtasks,
+    subtasks,
   }
 }
 

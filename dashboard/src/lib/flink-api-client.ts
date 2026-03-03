@@ -4,6 +4,7 @@
 
 import type {
   CheckpointDetail,
+  CheckpointSubtaskStats,
   ClusterOverview,
   FlamegraphData,
   FlinkFeatureFlags,
@@ -18,6 +19,7 @@ import type {
 } from "@/data/cluster-types"
 import {
   mapCheckpointDetail,
+  mapCheckpointSubtaskDetail,
   mapClusterConfig,
   mapFlamegraph,
   mapJars,
@@ -35,6 +37,7 @@ import {
 } from "@/data/flink-api-mappers"
 import type {
   FlinkCheckpointDetailResponse,
+  FlinkCheckpointSubtaskDetailResponse,
   FlinkClusterConfigResponse,
   FlinkFlamegraphResponse,
   FlinkJarRunResponse,
@@ -356,6 +359,17 @@ export async function fetchCheckpointDetail(
     `/api/flink/jobs/${jobId}/checkpoints/${checkpointId}/detail`,
   )
   return mapCheckpointDetail(raw)
+}
+
+export async function fetchCheckpointSubtaskDetail(
+  jobId: string,
+  checkpointId: number,
+  vertexId: string,
+): Promise<CheckpointSubtaskStats[]> {
+  const raw = await fetchJson<FlinkCheckpointSubtaskDetailResponse>(
+    `/api/flink/jobs/${jobId}/checkpoints/${checkpointId}/subtasks/${vertexId}`,
+  )
+  return mapCheckpointSubtaskDetail(raw)
 }
 
 // ---------------------------------------------------------------------------

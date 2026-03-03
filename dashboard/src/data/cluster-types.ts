@@ -90,6 +90,7 @@ export type Checkpoint = {
   triggerTimestamp: Date
   duration: number
   size: number
+  checkpointedSize?: number
   processedData: number
   isSavepoint: boolean
 }
@@ -99,6 +100,8 @@ export type CheckpointCounts = {
   failed: number
   inProgress: number
   total: number
+  triggered?: number
+  restored?: number
 }
 
 export type CheckpointConfig = {
@@ -107,6 +110,11 @@ export type CheckpointConfig = {
   timeout: number
   minPause: number
   maxConcurrent: number
+  externalization?: {
+    enabled: boolean
+    deleteOnCancellation: boolean
+  }
+  unalignedCheckpoints?: boolean
 }
 
 export type SubtaskMetrics = {
@@ -171,6 +179,7 @@ export type FlinkJob = {
   checkpoints: Checkpoint[]
   checkpointCounts: CheckpointCounts | null
   checkpointConfig: CheckpointConfig | null
+  checkpointLatest: CheckpointLatest | null
   subtaskMetrics: Record<string, SubtaskMetrics[]>
   configuration: JobConfiguration[]
   watermarks: Record<string, VertexWatermark[]>
@@ -422,6 +431,22 @@ export type SubmitJobRequest = {
 
 // --- Checkpoint detail types ---
 
+export type CheckpointMinMaxAvg = {
+  min: number
+  max: number
+  avg: number
+}
+
+export type CheckpointTaskSummary = {
+  endToEndDuration?: CheckpointMinMaxAvg
+  stateSize?: CheckpointMinMaxAvg
+  checkpointedSize?: CheckpointMinMaxAvg
+  syncDuration?: CheckpointMinMaxAvg
+  asyncDuration?: CheckpointMinMaxAvg
+  alignmentDuration?: CheckpointMinMaxAvg
+  startDelay?: CheckpointMinMaxAvg
+}
+
 export type CheckpointTaskDetail = {
   vertexId: string
   status: string
@@ -430,6 +455,10 @@ export type CheckpointTaskDetail = {
   endToEndDuration: number
   numSubtasks: number
   numAcknowledgedSubtasks: number
+  checkpointedSize?: number
+  processedData?: number
+  persistedData?: number
+  summary?: CheckpointTaskSummary
 }
 
 export type CheckpointDetail = {
@@ -443,6 +472,38 @@ export type CheckpointDetail = {
   numSubtasks: number
   numAcknowledgedSubtasks: number
   tasks: Record<string, CheckpointTaskDetail>
+  checkpointType?: string
+  externalPath?: string
+  discarded?: boolean
+  checkpointedSize?: number
+  processedData?: number
+  persistedData?: number
+}
+
+export type CheckpointSubtaskStats = {
+  subtaskIndex: number
+  ackTimestamp: number
+  endToEndDuration: number
+  stateSize: number
+  checkpointedSize: number
+  syncDuration: number
+  asyncDuration: number
+  processedData: number
+  alignmentDuration: number
+  startDelay: number
+  unalignedCheckpoint: boolean
+}
+
+export type CheckpointLatest = {
+  latestCompleted?: Checkpoint | null
+  latestFailed?: Checkpoint | null
+  latestSavepoint?: Checkpoint | null
+  latestRestore?: {
+    id: number
+    restoreTimestamp: Date
+    isSavepoint: boolean
+    externalPath?: string
+  } | null
 }
 
 // --- Subtask timeline types ---

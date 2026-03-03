@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlinkJob } from "@/data/cluster-types"
 import { CheckpointsTab } from "./detail/checkpoints-tab"
@@ -51,6 +51,15 @@ export function JobDetail({
     setTimeout(() => setSavepointFeedback(false), 2000)
     onCreateSavepoint?.()
   }
+
+  // Build vertex ID → operator name map for checkpoint detail
+  const vertexNames = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const v of job.plan?.vertices ?? []) {
+      map[v.id] = v.name
+    }
+    return map
+  }, [job.plan])
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -134,6 +143,8 @@ export function JobDetail({
             checkpoints={job.checkpoints}
             counts={job.checkpointCounts}
             config={job.checkpointConfig}
+            checkpointLatest={job.checkpointLatest}
+            vertexNames={vertexNames}
           />
         </TabsContent>
 

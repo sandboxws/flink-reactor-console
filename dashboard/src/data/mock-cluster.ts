@@ -595,6 +595,7 @@ function generateJobDetailFields(
   | "checkpoints"
   | "checkpointCounts"
   | "checkpointConfig"
+  | "checkpointLatest"
   | "subtaskMetrics"
   | "configuration"
   | "watermarks"
@@ -622,6 +623,7 @@ function generateJobDetailFields(
     checkpoints,
     checkpointCounts,
     checkpointConfig: config,
+    checkpointLatest: null,
     subtaskMetrics,
     configuration,
     watermarks,

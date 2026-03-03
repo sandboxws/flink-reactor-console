@@ -8,8 +8,11 @@ import type {
   CheckpointConfig,
   CheckpointCounts,
   CheckpointDetail,
+  CheckpointLatest,
   CheckpointStatus,
+  CheckpointSubtaskStats,
   CheckpointTaskDetail,
+  CheckpointTaskSummary,
   ClasspathEntry,
   ClusterOverview,
   FlamegraphData,
@@ -47,6 +50,7 @@ import type {
   FlinkCheckpointConfigResponse,
   FlinkCheckpointDetailResponse,
   FlinkCheckpointingStatistics,
+  FlinkCheckpointSubtaskDetailResponse,
   FlinkClusterConfigResponse,
   FlinkFlamegraphNode,
   FlinkFlamegraphResponse,
@@ -161,6 +165,7 @@ function mapJobEntry(entry: FlinkJobOverviewEntry): FlinkJob {
     checkpoints: [],
     checkpointCounts: null,
     checkpointConfig: null,
+    checkpointLatest: null,
     subtaskMetrics: {},
     configuration: [],
     watermarks: {},
@@ -384,6 +389,7 @@ export function mapCheckpoints(
     triggerTimestamp: new Date(c.trigger_timestamp),
     duration: c.end_to_end_duration,
     size: c.state_size,
+    checkpointedSize: c.checkpointed_size,
     processedData: c.processed_data,
     isSavepoint: c.is_savepoint,
   }))
@@ -402,6 +408,8 @@ export function mapCheckpointCounts(
     failed: (counts.failed as number) ?? 0,
     inProgress: (counts.in_progress as number) ?? 0,
     total: (counts.total as number) ?? 0,
+    triggered: (counts.total as number) ?? 0,
+    restored: (counts.restored as number) ?? 0,
   }
 }
 
@@ -417,6 +425,56 @@ export function mapCheckpointConfig(
     timeout: api.timeout,
     minPause: api.min_pause,
     maxConcurrent: api.max_concurrent,
+    externalization: api.externalization
+      ? {
+          enabled: api.externalization.enabled,
+          deleteOnCancellation: api.externalization.delete_on_cancellation,
+        }
+      : undefined,
+    unalignedCheckpoints: api.unaligned_checkpoints,
+  }
+}
+
+/**
+ * Map API checkpoint latest entries → domain CheckpointLatest.
+ */
+export function mapCheckpointLatest(
+  api: FlinkCheckpointingStatistics,
+): CheckpointLatest | null {
+  const latest = api.latest
+  if (!latest) return null
+
+  function mapEntry(
+    entry:
+      | import("./flink-api-types").FlinkCheckpointHistoryEntry
+      | null
+      | undefined,
+  ): Checkpoint | null {
+    if (!entry) return null
+    return {
+      id: entry.id,
+      status: mapCheckpointStatus(entry.status),
+      triggerTimestamp: new Date(entry.trigger_timestamp),
+      duration: entry.end_to_end_duration,
+      size: entry.state_size,
+      checkpointedSize: entry.checkpointed_size,
+      processedData: entry.processed_data,
+      isSavepoint: entry.is_savepoint,
+    }
+  }
+
+  return {
+    latestCompleted: mapEntry(latest.completed),
+    latestFailed: mapEntry(latest.failed),
+    latestSavepoint: mapEntry(latest.savepoint),
+    latestRestore: latest.restored
+      ? {
+          id: latest.restored.id,
+          restoreTimestamp: new Date(latest.restored.restore_timestamp),
+          isSavepoint: latest.restored.is_savepoint,
+          externalPath: latest.restored.external_path,
+        }
+      : null,
   }
 }
 
@@ -556,6 +614,7 @@ export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
   const checkpoints = mapCheckpoints(api.checkpoints)
   const checkpointCounts = mapCheckpointCounts(api.checkpoints)
   const checkpointConfig = mapCheckpointConfig(api.checkpointConfig)
+  const checkpointLatest = mapCheckpointLatest(api.checkpoints)
   const configuration = mapJobConfiguration(api.jobConfig)
   const subtaskMetrics = mapSubtaskMetrics(api.vertexDetails)
   const watermarks = mapWatermarks(api.watermarks ?? {})
@@ -576,6 +635,7 @@ export function mapJobDetailAggregate(api: FlinkJobDetailAggregate): FlinkJob {
     checkpoints,
     checkpointCounts,
     checkpointConfig,
+    checkpointLatest,
     subtaskMetrics,
     configuration,
     watermarks,
@@ -1036,6 +1096,25 @@ export function mapClusterConfig(
 // ---------------------------------------------------------------------------
 
 /**
+ * Map per-task summary from Flink API → domain CheckpointTaskSummary.
+ */
+function mapTaskSummary(
+  summary: NonNullable<
+    import("./flink-api-types").FlinkCheckpointTaskStats["summary"]
+  >,
+): CheckpointTaskSummary {
+  return {
+    endToEndDuration: summary.end_to_end_duration,
+    stateSize: summary.state_size,
+    checkpointedSize: summary.checkpointed_size,
+    syncDuration: summary.checkpoint_duration?.sync,
+    asyncDuration: summary.checkpoint_duration?.async,
+    alignmentDuration: summary.alignment?.duration,
+    startDelay: summary.start_delay,
+  }
+}
+
+/**
  * Map GET /jobs/:jid/checkpoints/:cpid/details → domain CheckpointDetail.
  */
 export function mapCheckpointDetail(
@@ -1051,6 +1130,10 @@ export function mapCheckpointDetail(
       endToEndDuration: t.end_to_end_duration,
       numSubtasks: t.num_subtasks,
       numAcknowledgedSubtasks: t.num_acknowledged_subtasks,
+      checkpointedSize: t.checkpointed_size,
+      processedData: t.processed_data,
+      persistedData: t.persisted_data,
+      summary: t.summary ? mapTaskSummary(t.summary) : undefined,
     }
   }
 
@@ -1071,7 +1154,34 @@ export function mapCheckpointDetail(
     numSubtasks: api.num_subtasks,
     numAcknowledgedSubtasks: api.num_acknowledged_subtasks,
     tasks,
+    checkpointType: api.checkpoint_type,
+    externalPath: api.external_path,
+    discarded: api.discarded,
+    checkpointedSize: api.checkpointed_size,
+    processedData: api.processed_data,
+    persistedData: api.persisted_data,
   }
+}
+
+/**
+ * Map GET /jobs/:jid/checkpoints/details/:cpid/subtasks/:vid → domain CheckpointSubtaskStats[].
+ */
+export function mapCheckpointSubtaskDetail(
+  api: FlinkCheckpointSubtaskDetailResponse,
+): CheckpointSubtaskStats[] {
+  return (api.subtasks ?? []).map((s) => ({
+    subtaskIndex: s.index,
+    ackTimestamp: s.ack_timestamp,
+    endToEndDuration: s.end_to_end_duration,
+    stateSize: s.state_size,
+    checkpointedSize: s.checkpointed_size ?? s.state_size,
+    syncDuration: s.checkpoint_duration?.sync ?? 0,
+    asyncDuration: s.checkpoint_duration?.async ?? 0,
+    processedData: s.alignment?.buffered ?? 0,
+    alignmentDuration: s.alignment?.duration ?? 0,
+    startDelay: s.start_delay,
+    unalignedCheckpoint: s.unaligned_checkpoint ?? false,
+  }))
 }
 
 // ---------------------------------------------------------------------------
