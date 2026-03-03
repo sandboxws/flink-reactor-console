@@ -1,22 +1,25 @@
-"use client";
+"use client"
 
-import { Radio, ArrowRight, Database, Shuffle, GitMerge } from "lucide-react";
-import type { TapMetadata } from "@/data/tap-types";
-import { cn } from "@/lib/cn";
+import { ArrowRight, Database, GitMerge, Radio, Shuffle } from "lucide-react"
+import type { TapMetadata } from "@/data/tap-types"
+import { cn } from "@/lib/cn"
 
 interface TapOperatorSelectProps {
-  operators: TapMetadata[];
-  onSelect: (nodeId: string) => void;
-  disabledNodeIds?: string[];
+  operators: TapMetadata[]
+  onSelect: (nodeId: string) => void
+  disabledNodeIds?: string[]
 }
 
-const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const TYPE_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   source: Database,
   transform: Shuffle,
   join: GitMerge,
   window: ArrowRight,
   sink: Radio,
-};
+}
 
 const TYPE_LABELS: Record<string, string> = {
   source: "Sources",
@@ -24,7 +27,7 @@ const TYPE_LABELS: Record<string, string> = {
   join: "Joins",
   window: "Windows",
   sink: "Sinks",
-};
+}
 
 /**
  * Dropdown selector showing available tapped operators grouped by component type.
@@ -36,18 +39,18 @@ export function TapOperatorSelect({
   disabledNodeIds = [],
 }: TapOperatorSelectProps) {
   // Group operators by component type
-  const groups = new Map<string, TapMetadata[]>();
+  const groups = new Map<string, TapMetadata[]>()
   for (const op of operators) {
-    const list = groups.get(op.componentType) ?? [];
-    list.push(op);
-    groups.set(op.componentType, list);
+    const list = groups.get(op.componentType) ?? []
+    list.push(op)
+    groups.set(op.componentType, list)
   }
 
-  const groupOrder = ["source", "transform", "join", "window", "sink"];
+  const groupOrder = ["source", "transform", "join", "window", "sink"]
   const sortedGroups = [...groups.entries()].sort(
     (a, b) =>
       (groupOrder.indexOf(a[0]) ?? 99) - (groupOrder.indexOf(b[0]) ?? 99),
-  );
+  )
 
   return (
     <div className="glass-card divide-y divide-dash-border/50 overflow-hidden">
@@ -56,8 +59,8 @@ export function TapOperatorSelect({
         Select an operator to observe
       </div>
       {sortedGroups.map(([type, ops]) => {
-        const Icon = TYPE_ICONS[type] ?? Radio;
-        const label = TYPE_LABELS[type] ?? type;
+        const Icon = TYPE_ICONS[type] ?? Radio
+        const label = TYPE_LABELS[type] ?? type
 
         return (
           <div key={type}>
@@ -67,7 +70,7 @@ export function TapOperatorSelect({
             </div>
             <div className="pb-1">
               {ops.map((op) => {
-                const isDisabled = disabledNodeIds.includes(op.nodeId);
+                const isDisabled = disabledNodeIds.includes(op.nodeId)
 
                 return (
                   <button
@@ -94,12 +97,12 @@ export function TapOperatorSelect({
                       </span>
                     )}
                   </button>
-                );
+                )
               })}
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

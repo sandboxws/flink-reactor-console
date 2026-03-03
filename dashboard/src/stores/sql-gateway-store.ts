@@ -68,8 +68,14 @@ async function apiRequest<T>(
   })
 
   if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { error?: string }
-    throw new Error(err.error ?? `SQL Gateway error: ${res.status}`)
+    const err = (await res.json().catch(() => ({}))) as {
+      error?: string
+      errors?: string[]
+    }
+    // SQL Gateway returns { errors: ["..."] } (plural array)
+    const message =
+      err.errors?.[0] ?? err.error ?? `SQL Gateway error: ${res.status}`
+    throw new Error(message)
   }
 
   // DELETE may return empty body
@@ -78,6 +84,54 @@ async function apiRequest<T>(
   }
 
   return (await res.json()) as T
+}
+
+/**
+ * Split observation SQL into individual statements.
+ * Observation SQL has a predictable format: CREATE TEMPORARY TABLE ...; SELECT * FROM ...;
+ */
+function splitStatements(sql: string): string[] {
+  const statements: string[] = []
+  let current = ""
+  for (const line of sql.split("\n")) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith("--")) continue
+    current += `${line}\n`
+    if (trimmed.endsWith(";")) {
+      const stmt = current.trim().replace(/;$/, "").trim()
+      if (stmt) statements.push(stmt)
+      current = ""
+    }
+  }
+  const remaining = current.trim().replace(/;$/, "").trim()
+  if (remaining) statements.push(remaining)
+  return statements
+}
+
+/**
+ * Fetch the actual error message from a failed SQL Gateway operation.
+ * The SQL Gateway returns errors in the result endpoint's `errors` field
+ * when an operation has failed.
+ */
+async function fetchOperationError(
+  sessionHandle: string,
+  operationHandle: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `${SQL_GATEWAY_API}/v1/sessions/${sessionHandle}/operations/${operationHandle}/result/0`,
+    )
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as {
+        errors?: string[]
+        error?: string
+      }
+      return err.errors?.[0] ?? err.error ?? null
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
 export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
@@ -107,14 +161,52 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
         { properties: { "pipeline.name": `flink-reactor-tap-${tapName}` } },
       )
 
-      // Submit observation SQL
-      const { operationHandle } = await apiRequest<{
-        operationHandle: string
-      }>(`v1/sessions/${sessionHandle}/statements`, "POST", {
-        statement: observationSql,
-      })
+      // Split observation SQL into individual statements (CREATE TABLE + SELECT).
+      // The SQL Gateway processes one statement per POST — submitting both as a
+      // single request only executes the DDL, and fetching results from a DDL
+      // operation handle returns 500.
+      const statements = splitStatements(observationSql)
 
-      // Fetch first result page for column metadata + initial rows
+      const terminalErrors = new Set(["ERROR", "CANCELED", "CLOSED", "TIMEOUT"])
+
+      let operationHandle = ""
+
+      for (const stmt of statements) {
+        const result = await apiRequest<{ operationHandle: string }>(
+          `v1/sessions/${sessionHandle}/statements`,
+          "POST",
+          { statement: stmt },
+        )
+        operationHandle = result.operationHandle
+
+        // DDL statements (CREATE TABLE): poll until FINISHED before proceeding.
+        // SELECT queries (streaming): poll until RUNNING, then fetch results.
+        const isQuery = /^\s*SELECT\b/i.test(stmt)
+        const readyStatuses = isQuery
+          ? new Set(["RUNNING", "FINISHED"])
+          : new Set(["FINISHED"])
+
+        for (let attempt = 0; attempt < 60; attempt++) {
+          const { status: opStatus } = await apiRequest<{ status: string }>(
+            `v1/sessions/${sessionHandle}/operations/${operationHandle}/status`,
+          )
+          if (readyStatuses.has(opStatus)) break
+          if (terminalErrors.has(opStatus)) {
+            // Fetch the actual exception from the result endpoint
+            const errorDetail = await fetchOperationError(
+              sessionHandle,
+              operationHandle,
+            )
+            throw new Error(
+              errorDetail ?? `Operation failed with status: ${opStatus}`,
+            )
+          }
+          await new Promise((r) => setTimeout(r, 500))
+        }
+      }
+
+      // Fetch first result page for column metadata + initial rows.
+      // operationHandle is now the SELECT's handle (the last statement).
       const resultData = await apiRequest<{
         results: {
           columns: Array<{

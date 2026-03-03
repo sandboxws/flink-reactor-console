@@ -51,6 +51,8 @@ interface ClusterState {
   taskManagerDetailLoading: boolean
   taskManagerDetailError: string | null
   featureFlags: FlinkFeatureFlags | null
+  /** Pipeline names that have tap manifests (support tapping) */
+  tappablePipelines: Set<string>
 }
 
 interface ClusterActions {
@@ -96,6 +98,7 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
   taskManagerDetailLoading: false,
   taskManagerDetailError: null,
   featureFlags: null,
+  tappablePipelines: new Set(),
 
   initialize: async () => {
     if (initialized) return
@@ -116,13 +119,21 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
     })
 
     try {
-      // Fetch overview + TM list + JM detail + feature flags + JARs in parallel
-      const [data, tms, jm, flags, jars] = await Promise.all([
+      // Fetch overview + TM list + JM detail + feature flags + JARs + tappable pipelines in parallel
+      const [data, tms, jm, flags, jars, tappable] = await Promise.all([
         fetchOverviewPageData(),
         fetchTaskManagers(),
         fetchJobManagerDetail(),
         fetchClusterConfig(),
         fetchJars(),
+        // Discover which pipelines have tap manifests (non-critical — falls back to empty)
+        fetch("/api/flink/tap-manifest")
+          .then((r) => (r.ok ? r.json() : { manifests: [] }))
+          .then(
+            (data: { manifests?: Array<{ pipelineName: string }> }) =>
+              new Set((data.manifests ?? []).map((m) => m.pipelineName)),
+          )
+          .catch(() => new Set<string>()),
       ])
       set({
         overview: data.overview,
@@ -132,6 +143,7 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
         jobManager: jm,
         featureFlags: flags,
         uploadedJars: jars,
+        tappablePipelines: tappable,
         isLoading: false,
         fetchError: null,
         lastUpdated: new Date(),

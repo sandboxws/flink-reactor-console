@@ -14,14 +14,28 @@ const pkg = JSON.parse(
   readFileSync(join(PACKAGE_ROOT, "package.json"), "utf-8"),
 ) as { version: string }
 
-function findServerRecursive(dir: string, depth: number): string | null {
+function findServerRecursive(
+  dir: string,
+  depth: number,
+  standaloneRoot: string,
+): string | null {
   if (depth <= 0) return null
   const candidate = join(dir, "server.js")
-  if (existsSync(candidate) && !dir.includes("node_modules")) return candidate
+  if (existsSync(candidate)) {
+    // Skip node_modules dirs inside the standalone output (Next.js bundles its own),
+    // but only check the *relative* path from the standalone root — not the full
+    // absolute path, which may itself be inside a consumer's node_modules.
+    const relPath = dir.slice(standaloneRoot.length)
+    if (!relPath.includes("node_modules")) return candidate
+  }
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       if (!entry.isDirectory() || entry.name === "node_modules") continue
-      const found = findServerRecursive(join(dir, entry.name), depth - 1)
+      const found = findServerRecursive(
+        join(dir, entry.name),
+        depth - 1,
+        standaloneRoot,
+      )
       if (found) return found
     }
   } catch {
@@ -49,7 +63,7 @@ function findServerJs(): string {
   if (existsSync(common)) return common
 
   // Last resort: recursive search
-  const found = findServerRecursive(standaloneDir, 10)
+  const found = findServerRecursive(standaloneDir, 10, standaloneDir)
   if (found) return found
 
   console.error(
@@ -157,6 +171,9 @@ program
           ...process.env,
           PORT: port,
           HOSTNAME: "0.0.0.0",
+          // Resolve tap manifest dir to an absolute path from the user's cwd.
+          // The forked server's cwd may differ, so we resolve it here.
+          TAP_MANIFEST_DIR: process.env.TAP_MANIFEST_DIR ?? resolve("dist"),
         },
         stdio: "inherit",
       })

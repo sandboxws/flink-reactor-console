@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import type { TapMetadata } from "@/data/tap-types";
-import type { ColumnInfo } from "./sql-gateway-store";
-import { loadTapManifest, getAvailableOperators } from "@/lib/tap-manifest";
+import { create } from "zustand"
+import type { TapMetadata } from "@/data/tap-types"
+import { getAvailableOperators, loadTapManifest } from "@/lib/tap-manifest"
+import type { ColumnInfo } from "./sql-gateway-store"
 
 // ---------------------------------------------------------------------------
 // Tap Store — manages tap UI state (selected operators, open tabs, buffered rows)
@@ -9,105 +9,107 @@ import { loadTapManifest, getAvailableOperators } from "@/lib/tap-manifest";
 
 export interface TapTab {
   /** Tap node ID (unique per operator) */
-  nodeId: string;
+  nodeId: string
   /** Human-readable name from tap metadata */
-  name: string;
+  name: string
   /** Tap metadata from the manifest */
-  metadata: TapMetadata;
+  metadata: TapMetadata
   /** Current observation configuration */
   config: {
-    offsetMode: "latest" | "earliest" | "timestamp";
-    startTimestamp?: string;
-    endTimestamp?: string;
-    bufferSize: number;
-  };
+    offsetMode: "latest" | "earliest" | "timestamp"
+    startTimestamp?: string
+    endTimestamp?: string
+    bufferSize: number
+  }
   /** Buffered row data (ring buffer) */
-  rows: Record<string, unknown>[];
+  rows: Record<string, unknown>[]
   /** Column metadata from first result page */
-  columns: ColumnInfo[];
+  columns: ColumnInfo[]
   /** Row count since observation started */
-  totalRowCount: number;
+  totalRowCount: number
   /** Rows received in the last second (throughput) */
-  rowsPerSecond: number;
+  rowsPerSecond: number
 }
 
 interface TapState {
   /** Pipeline name the current manifest was loaded for */
-  currentPipelineName: string | null;
+  currentPipelineName: string | null
   /** Available operators from tap manifest */
-  availableOperators: TapMetadata[];
+  availableOperators: TapMetadata[]
   /** Whether the manifest is loading */
-  manifestLoading: boolean;
+  manifestLoading: boolean
   /** Manifest load error */
-  manifestError: string | null;
+  manifestError: string | null
   /** Open tap tabs keyed by nodeId */
-  tabs: Record<string, TapTab>;
+  tabs: Record<string, TapTab>
   /** Currently active tab nodeId */
-  activeTabId: string | null;
+  activeTabId: string | null
 
   /** Load tap manifest by pipeline name (matches Flink job name) */
-  loadManifest: (pipelineName: string) => Promise<void>;
+  loadManifest: (pipelineName: string) => Promise<void>
   /** Open a new tap tab for an operator */
-  openTab: (nodeId: string) => void;
+  openTab: (nodeId: string) => void
   /** Close a tap tab */
-  closeTab: (nodeId: string) => void;
+  closeTab: (nodeId: string) => void
   /** Set the active tab */
-  setActiveTab: (nodeId: string) => void;
+  setActiveTab: (nodeId: string) => void
   /** Update observation config for a tab */
-  updateConfig: (
-    nodeId: string,
-    config: Partial<TapTab["config"]>,
-  ) => void;
+  updateConfig: (nodeId: string, config: Partial<TapTab["config"]>) => void
   /** Append rows to a tab's buffer */
   appendRows: (
     nodeId: string,
     rows: Record<string, unknown>[],
     columns?: ColumnInfo[],
-  ) => void;
+  ) => void
   /** Clear all rows in a tab */
-  clearRows: (nodeId: string) => void;
+  clearRows: (nodeId: string) => void
 }
 
 // Throughput tracking: per-tab row count per second
-const throughputCounters = new Map<string, number>();
-let throughputInterval: ReturnType<typeof setInterval> | null = null;
+const throughputCounters = new Map<string, number>()
+let throughputInterval: ReturnType<typeof setInterval> | null = null
 
 /** Clean up the throughput interval timer (call on HMR or unmount) */
 export function cleanupThroughputTracking(): void {
   if (throughputInterval) {
-    clearInterval(throughputInterval);
-    throughputInterval = null;
+    clearInterval(throughputInterval)
+    throughputInterval = null
   }
-  throughputCounters.clear();
+  throughputCounters.clear()
 }
 
-function ensureThroughputTracking(getState: () => TapState, setState: (partial: Partial<TapState> | ((state: TapState) => Partial<TapState>)) => void): void {
-  if (throughputInterval) return;
+function ensureThroughputTracking(
+  getState: () => TapState,
+  setState: (
+    partial: Partial<TapState> | ((state: TapState) => Partial<TapState>),
+  ) => void,
+): void {
+  if (throughputInterval) return
   throughputInterval = setInterval(() => {
-    const state = getState();
-    const tabs = state.tabs;
-    let anyActive = false;
+    const state = getState()
+    const tabs = state.tabs
+    let anyActive = false
 
-    const updatedTabs = { ...tabs };
+    const updatedTabs = { ...tabs }
     for (const [nodeId, tab] of Object.entries(tabs)) {
-      const count = throughputCounters.get(nodeId) ?? 0;
+      const count = throughputCounters.get(nodeId) ?? 0
       if (count > 0 || tab.rowsPerSecond > 0) {
-        updatedTabs[nodeId] = { ...tab, rowsPerSecond: count };
-        anyActive = true;
+        updatedTabs[nodeId] = { ...tab, rowsPerSecond: count }
+        anyActive = true
       }
-      throughputCounters.set(nodeId, 0);
+      throughputCounters.set(nodeId, 0)
     }
 
     if (anyActive) {
-      setState({ tabs: updatedTabs });
+      setState({ tabs: updatedTabs })
     }
 
     // Stop interval if no tabs remain
     if (Object.keys(tabs).length === 0 && throughputInterval) {
-      clearInterval(throughputInterval);
-      throughputInterval = null;
+      clearInterval(throughputInterval)
+      throughputInterval = null
     }
-  }, 1000);
+  }, 1000)
 }
 
 export const useTapStore = create<TapState>((set, get) => ({
@@ -119,50 +121,55 @@ export const useTapStore = create<TapState>((set, get) => ({
   activeTabId: null,
 
   loadManifest: async (pipelineName: string) => {
-    const state = get();
+    const state = get()
 
     // If switching pipelines, clean up existing tabs
-    if (state.currentPipelineName && state.currentPipelineName !== pipelineName) {
+    if (
+      state.currentPipelineName &&
+      state.currentPipelineName !== pipelineName
+    ) {
       set({
         tabs: {},
         activeTabId: null,
         availableOperators: [],
-      });
+      })
     }
 
-    set({ manifestLoading: true, manifestError: null, currentPipelineName: pipelineName });
+    set({
+      manifestLoading: true,
+      manifestError: null,
+      currentPipelineName: pipelineName,
+    })
 
     try {
-      const manifest = await loadTapManifest(pipelineName);
-      const operators = getAvailableOperators(manifest);
+      const manifest = await loadTapManifest(pipelineName)
+      const operators = getAvailableOperators(manifest)
       set({
         availableOperators: operators,
         manifestLoading: false,
-      });
+      })
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to load tap manifest";
+        err instanceof Error ? err.message : "Failed to load tap manifest"
       set({
         manifestLoading: false,
         manifestError: message,
         availableOperators: [],
-      });
+      })
     }
   },
 
   openTab: (nodeId: string) => {
-    const state = get();
+    const state = get()
     // Don't re-open an existing tab — just switch to it
     if (state.tabs[nodeId]) {
-      set({ activeTabId: nodeId });
-      return;
+      set({ activeTabId: nodeId })
+      return
     }
 
     // Find the operator metadata
-    const metadata = state.availableOperators.find(
-      (op) => op.nodeId === nodeId,
-    );
-    if (!metadata) return;
+    const metadata = state.availableOperators.find((op) => op.nodeId === nodeId)
+    if (!metadata) return
 
     const newTab: TapTab = {
       nodeId,
@@ -176,41 +183,41 @@ export const useTapStore = create<TapState>((set, get) => ({
       columns: [],
       totalRowCount: 0,
       rowsPerSecond: 0,
-    };
+    }
 
     set((s) => ({
       tabs: { ...s.tabs, [nodeId]: newTab },
       activeTabId: nodeId,
-    }));
+    }))
 
-    throughputCounters.set(nodeId, 0);
-    ensureThroughputTracking(get, set);
+    throughputCounters.set(nodeId, 0)
+    ensureThroughputTracking(get, set)
   },
 
   closeTab: (nodeId: string) => {
     set((state) => {
-      const { [nodeId]: _, ...remaining } = state.tabs;
-      throughputCounters.delete(nodeId);
+      const { [nodeId]: _, ...remaining } = state.tabs
+      throughputCounters.delete(nodeId)
 
       // If closing the active tab, switch to another or null
-      let nextActiveId = state.activeTabId;
+      let nextActiveId = state.activeTabId
       if (state.activeTabId === nodeId) {
-        const remainingIds = Object.keys(remaining);
-        nextActiveId = remainingIds.length > 0 ? remainingIds[0] : null;
+        const remainingIds = Object.keys(remaining)
+        nextActiveId = remainingIds.length > 0 ? remainingIds[0] : null
       }
 
-      return { tabs: remaining, activeTabId: nextActiveId };
-    });
+      return { tabs: remaining, activeTabId: nextActiveId }
+    })
   },
 
   setActiveTab: (nodeId: string) => {
-    set({ activeTabId: nodeId });
+    set({ activeTabId: nodeId })
   },
 
   updateConfig: (nodeId: string, config: Partial<TapTab["config"]>) => {
     set((state) => {
-      const tab = state.tabs[nodeId];
-      if (!tab) return state;
+      const tab = state.tabs[nodeId]
+      if (!tab) return state
       return {
         tabs: {
           ...state.tabs,
@@ -219,8 +226,8 @@ export const useTapStore = create<TapState>((set, get) => ({
             config: { ...tab.config, ...config },
           },
         },
-      };
-    });
+      }
+    })
   },
 
   appendRows: (
@@ -229,18 +236,18 @@ export const useTapStore = create<TapState>((set, get) => ({
     columns?: ColumnInfo[],
   ) => {
     set((state) => {
-      const tab = state.tabs[nodeId];
-      if (!tab) return state;
+      const tab = state.tabs[nodeId]
+      if (!tab) return state
 
       // Merge rows, evict oldest if buffer exceeded
-      let merged = [...tab.rows, ...newRows];
+      let merged = [...tab.rows, ...newRows]
       if (merged.length > tab.config.bufferSize) {
-        merged = merged.slice(-tab.config.bufferSize);
+        merged = merged.slice(-tab.config.bufferSize)
       }
 
       // Track throughput
-      const current = throughputCounters.get(nodeId) ?? 0;
-      throughputCounters.set(nodeId, current + newRows.length);
+      const current = throughputCounters.get(nodeId) ?? 0
+      throughputCounters.set(nodeId, current + newRows.length)
 
       return {
         tabs: {
@@ -252,14 +259,14 @@ export const useTapStore = create<TapState>((set, get) => ({
             totalRowCount: tab.totalRowCount + newRows.length,
           },
         },
-      };
-    });
+      }
+    })
   },
 
   clearRows: (nodeId: string) => {
     set((state) => {
-      const tab = state.tabs[nodeId];
-      if (!tab) return state;
+      const tab = state.tabs[nodeId]
+      if (!tab) return state
       return {
         tabs: {
           ...state.tabs,
@@ -270,9 +277,9 @@ export const useTapStore = create<TapState>((set, get) => ({
             rowsPerSecond: 0,
           },
         },
-      };
-    });
+      }
+    })
 
-    throughputCounters.set(nodeId, 0);
+    throughputCounters.set(nodeId, 0)
   },
-}));
+}))

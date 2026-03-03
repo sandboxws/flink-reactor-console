@@ -8,6 +8,7 @@ import {
   Copy,
   Cpu,
   Layers,
+  Radio,
   RefreshCw,
   Save,
   XCircle,
@@ -34,6 +35,20 @@ const statusColor: Record<string, string> = {
   RESTARTING: "bg-job-running/15 text-job-running",
   SUSPENDED: "bg-job-created/15 text-job-created",
   RECONCILING: "bg-job-created/15 text-job-created",
+}
+
+// ---------------------------------------------------------------------------
+// Tap job detection
+// ---------------------------------------------------------------------------
+
+const TAP_JOB_PREFIX = "flink-reactor-tap-"
+
+function isTapJob(name: string): boolean {
+  return name.startsWith(TAP_JOB_PREFIX)
+}
+
+function tapDisplayName(name: string): string {
+  return name.slice(TAP_JOB_PREFIX.length)
 }
 
 // ---------------------------------------------------------------------------
@@ -121,7 +136,7 @@ function ProgressRing({
       className="relative flex items-center justify-center"
       style={{ width: size, height: size }}
     >
-      <svg width={size} height={size} className="-rotate-90">
+      <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -192,6 +207,7 @@ export function JobHeader({
   isRefreshing?: boolean
 }) {
   const featureFlags = useClusterStore((s) => s.featureFlags)
+  const tappablePipelines = useClusterStore((s) => s.tappablePipelines)
   const isRunning = job.status === "RUNNING"
   const isCanceled = job.status === "CANCELED"
   const canCancel = featureFlags?.webCancel !== false
@@ -215,8 +231,18 @@ export function JobHeader({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
+            {isTapJob(job.name) ? (
+              <span className="shrink-0 rounded-full bg-fr-purple/20 px-2 py-0.5 text-xs font-medium text-fr-purple">
+                TAP
+              </span>
+            ) : tappablePipelines.has(job.name) ? (
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-fr-purple/10 px-2 py-0.5 text-xs font-medium text-fr-purple/70">
+                <Radio className="size-3" />
+                Tappable
+              </span>
+            ) : null}
             <h1 className="truncate text-lg font-semibold text-zinc-100">
-              {job.name}
+              {isTapJob(job.name) ? tapDisplayName(job.name) : job.name}
             </h1>
             <Badge
               variant="outline"

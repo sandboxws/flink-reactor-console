@@ -665,6 +665,65 @@ export function generateClusterOverview(
 // 2.2 — generateRunningJobs
 // ---------------------------------------------------------------------------
 
+/**
+ * Generate a deterministic job plan for the "ecommerce-pipeline" job whose
+ * vertex names exactly match the mock tap manifest operators. This ensures
+ * the tap manifest loads successfully and DAG tap indicators appear.
+ */
+function generateEcommercePipelinePlan(
+  parallelism: number,
+  startTime: Date,
+): JobPlan {
+  const jobStartMs = startTime.getTime()
+  // Fixed vertex names matching mock-tap-manifest.ts operators
+  const pipeline = [
+    "Source: KafkaSource",
+    "Source: JdbcSource",
+    "Filter",
+    "Sink: KafkaSink",
+  ]
+
+  const vertices: JobVertex[] = pipeline.map((name, i) => {
+    const id = hex(32)
+    const baseRecords = 150_000 + Math.floor(Math.random() * 500_000)
+    const busyTime = Math.floor(Math.random() * 600)
+    const vertexStartOffset = i * 2500
+
+    return {
+      id,
+      name,
+      parallelism: i === 0 ? parallelism : Math.max(1, parallelism / 2),
+      status: "RUNNING" as JobVertexStatus,
+      metrics: {
+        recordsIn: i < 2 ? 0 : baseRecords,
+        recordsOut:
+          i === pipeline.length - 1 ? 0 : Math.floor(baseRecords * 0.85),
+        bytesIn: i < 2 ? 0 : baseRecords * 256,
+        bytesOut: i === pipeline.length - 1 ? 0 : baseRecords * 200,
+        busyTimeMsPerSecond: busyTime,
+        backPressuredTimeMsPerSecond: Math.max(0, busyTime - 400),
+      },
+      tasks: generateTaskCounts(
+        i === 0 ? parallelism : Math.max(1, parallelism / 2),
+        "RUNNING",
+      ),
+      duration: 60_000 + Math.floor(Math.random() * 120_000),
+      startTime: jobStartMs + vertexStartOffset,
+    }
+  })
+
+  // DAG: two sources feed into Filter, Filter feeds into Sink
+  //   KafkaSource ──FORWARD──→ Filter ──HASH──→ KafkaSink
+  //   JdbcSource  ──HASH────→ Filter
+  const edges: JobEdge[] = [
+    { source: vertices[0].id, target: vertices[2].id, shipStrategy: "FORWARD" },
+    { source: vertices[1].id, target: vertices[2].id, shipStrategy: "HASH" },
+    { source: vertices[2].id, target: vertices[3].id, shipStrategy: "HASH" },
+  ]
+
+  return { vertices, edges }
+}
+
 export function generateRunningJobs(): FlinkJob[] {
   if (cachedRunningJobs) return cachedRunningJobs
 
@@ -696,7 +755,46 @@ export function generateRunningJobs(): FlinkJob[] {
     })
   }
 
-  // Add a mock tap job so the TAP badge appears in the jobs table
+  // Add the "ecommerce-pipeline" job — matches mock tap manifest's pipelineName.
+  // Uses a deterministic plan with vertex names matching the manifest operators,
+  // so the Tap tab loads correctly and DAG nodes show tap indicators.
+  const ecomStartTime = minutesAgo(15)
+  const ecomParallelism = 4
+  const ecomPlan = generateEcommercePipelinePlan(ecomParallelism, ecomStartTime)
+  const ecomCheckpoints = generateCheckpoints("RUNNING")
+  jobs.push({
+    id: hex(32),
+    name: "ecommerce-pipeline",
+    status: "RUNNING",
+    startTime: ecomStartTime,
+    endTime: null,
+    duration: Date.now() - ecomStartTime.getTime(),
+    tasks: generateTaskCounts(ecomParallelism, "RUNNING"),
+    parallelism: ecomParallelism,
+    plan: ecomPlan,
+    exceptions: [],
+    checkpoints: ecomCheckpoints.checkpoints,
+    checkpointCounts: {
+      completed: ecomCheckpoints.checkpoints.filter(
+        (c) => c.status === "COMPLETED",
+      ).length,
+      failed: ecomCheckpoints.checkpoints.filter((c) => c.status === "FAILED")
+        .length,
+      inProgress: ecomCheckpoints.checkpoints.filter(
+        (c) => c.status === "IN_PROGRESS",
+      ).length,
+      total: ecomCheckpoints.checkpoints.length,
+    },
+    checkpointConfig: ecomCheckpoints.config,
+    checkpointLatest: null,
+    subtaskMetrics: generateSubtaskMetrics(ecomPlan.vertices),
+    configuration: generateJobConfiguration(),
+    watermarks: generateWatermarks(ecomPlan.vertices),
+    backpressure: generateBackPressure(ecomPlan.vertices),
+    accumulators: generateAccumulators(ecomPlan.vertices),
+  })
+
+  // Add a mock tap observation job so the TAP badge appears in the jobs table
   const tapStartTime = minutesAgo(2)
   jobs.push({
     id: hex(32),

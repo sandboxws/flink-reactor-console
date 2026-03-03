@@ -7,6 +7,7 @@ import {
   ArrowUpDown,
   Check,
   Copy,
+  Radio,
   XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/tooltip"
 import type { FlinkJob } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
+import { useClusterStore } from "@/stores/cluster-store"
 import { DurationCell } from "./duration-cell"
 import { JobStatusBadge } from "./job-status-badge"
 import { TaskCountsBar } from "./task-counts-bar"
@@ -235,6 +237,7 @@ export function JobsTable({
   onCancelJob?: (jobId: string) => void
 }) {
   const router = useRouter()
+  const tappablePipelines = useClusterStore((s) => s.tappablePipelines)
   const isRunning = mode === "running"
   const columns = isRunning ? runningColumns : completedColumns
 
@@ -295,11 +298,13 @@ export function JobsTable({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="flex items-center gap-1.5 truncate font-medium">
-                      {isTapJob(job.name) && (
+                      {isTapJob(job.name) ? (
                         <span className="shrink-0 rounded-full bg-fr-purple/20 px-1.5 py-0.5 text-[10px] font-medium text-fr-purple">
                           TAP
                         </span>
-                      )}
+                      ) : tappablePipelines.has(job.name) ? (
+                        <Radio className="size-3.5 shrink-0 text-fr-purple/60" />
+                      ) : null}
                       <span className="truncate">
                         {isTapJob(job.name)
                           ? tapDisplayName(job.name)
@@ -307,7 +312,13 @@ export function JobsTable({
                       </span>
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent>{job.name}</TooltipContent>
+                  <TooltipContent>
+                    {isTapJob(job.name)
+                      ? "Tap observation job"
+                      : tappablePipelines.has(job.name)
+                        ? "Tappable pipeline"
+                        : job.name}
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </TableCell>

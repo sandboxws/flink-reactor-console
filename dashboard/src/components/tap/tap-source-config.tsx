@@ -1,33 +1,33 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { ChevronDown, ChevronRight, Settings } from "lucide-react";
-import type { TapTab } from "@/stores/tap-store";
+import { ChevronDown, ChevronRight, Settings } from "lucide-react"
+import { useState } from "react"
 import {
   Collapsible,
-  CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/collapsible";
-import { cn } from "@/lib/cn";
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { cn } from "@/lib/cn"
+import type { TapTab } from "@/stores/tap-store"
 
 interface TapSourceConfigProps {
-  config: TapTab["config"];
-  consumerGroupId: string;
-  onConfigChange: (config: Partial<TapTab["config"]>) => void;
+  config: TapTab["config"]
+  consumerGroupId: string
+  onConfigChange: (config: Partial<TapTab["config"]>) => void
 }
 
 const OFFSET_MODES = [
   { value: "latest" as const, label: "Latest" },
   { value: "earliest" as const, label: "Earliest" },
   { value: "timestamp" as const, label: "Timestamp" },
-];
+]
 
 export function TapSourceConfig({
   config,
   consumerGroupId,
   onConfigChange,
 }: TapSourceConfigProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -118,5 +118,5 @@ export function TapSourceConfig({
         </div>
       </CollapsibleContent>
     </Collapsible>
-  );
+  )
 }

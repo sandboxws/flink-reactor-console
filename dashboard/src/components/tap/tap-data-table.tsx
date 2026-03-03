@@ -1,25 +1,25 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowDown, ArrowUp, Loader2 } from "lucide-react";
-import type { ColumnInfo } from "@/stores/sql-gateway-store";
-import { cn } from "@/lib/cn";
+import { useVirtualizer } from "@tanstack/react-virtual"
+import { ArrowDown, ArrowUp, Loader2 } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { cn } from "@/lib/cn"
+import type { ColumnInfo } from "@/stores/sql-gateway-store"
 
 interface TapDataTableProps {
-  columns: ColumnInfo[];
-  rows: Record<string, unknown>[];
-  isStreaming: boolean;
-  autoScroll?: boolean;
+  columns: ColumnInfo[]
+  rows: Record<string, unknown>[]
+  isStreaming: boolean
+  autoScroll?: boolean
 }
 
-type SortDirection = "asc" | "desc" | null;
+type SortDirection = "asc" | "desc" | null
 interface SortState {
-  column: string | null;
-  direction: SortDirection;
+  column: string | null
+  direction: SortDirection
 }
 
-const ROW_HEIGHT = 28;
+const ROW_HEIGHT = 28
 
 /**
  * Virtualized streaming data table for tap observation.
@@ -36,21 +36,21 @@ export function TapDataTable({
   isStreaming,
   autoScroll: autoScrollProp = true,
 }: TapDataTableProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState(autoScrollProp);
-  const [sort, setSort] = useState<SortState>({ column: null, direction: null });
-  const prevRowCount = useRef(rows.length);
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(autoScrollProp)
+  const [sort, setSort] = useState<SortState>({ column: null, direction: null })
+  const prevRowCount = useRef(rows.length)
 
   // Sort rows if sort is active
   const sortedRows = useMemo(() => {
-    if (!sort.column) return rows;
+    if (!sort.column) return rows
     return [...rows].sort((a, b) => {
-      const aVal = a[sort.column!];
-      const bVal = b[sort.column!];
-      const cmp = compareValues(aVal, bVal);
-      return sort.direction === "desc" ? -cmp : cmp;
-    });
-  }, [rows, sort.column, sort.direction]);
+      const aVal = a[sort.column!]
+      const bVal = b[sort.column!]
+      const cmp = compareValues(aVal, bVal)
+      return sort.direction === "desc" ? -cmp : cmp
+    })
+  }, [rows, sort.column, sort.direction])
 
   // Virtual row renderer
   const virtualizer = useVirtualizer({
@@ -58,35 +58,36 @@ export function TapDataTable({
     getScrollElement: () => containerRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 20,
-  });
+  })
 
   // Auto-scroll to bottom when new rows arrive
   useEffect(() => {
     if (autoScrollEnabled && sortedRows.length > 0) {
-      virtualizer.scrollToIndex(sortedRows.length - 1, { align: "end" });
+      virtualizer.scrollToIndex(sortedRows.length - 1, { align: "end" })
     }
-    prevRowCount.current = rows.length;
-  }, [rows.length, autoScrollEnabled, sortedRows.length, virtualizer]);
+    prevRowCount.current = rows.length
+  }, [rows.length, autoScrollEnabled, sortedRows.length, virtualizer])
 
   // Detect user scroll position
   const handleScroll = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-    setAutoScrollEnabled(atBottom);
-  }, []);
+    const el = containerRef.current
+    if (!el) return
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40
+    setAutoScrollEnabled(atBottom)
+  }, [])
 
   // Toggle sort on column header click
   const handleSort = (colName: string) => {
     setSort((prev) => {
       if (prev.column === colName) {
-        if (prev.direction === "asc") return { column: colName, direction: "desc" };
-        if (prev.direction === "desc") return { column: null, direction: null };
+        if (prev.direction === "asc")
+          return { column: colName, direction: "desc" }
+        if (prev.direction === "desc") return { column: null, direction: null }
       }
-      return { column: colName, direction: "asc" };
-    });
-    setAutoScrollEnabled(false);
-  };
+      return { column: colName, direction: "asc" }
+    })
+    setAutoScrollEnabled(false)
+  }
 
   // Empty state
   if (columns.length === 0 && rows.length === 0) {
@@ -101,19 +102,19 @@ export function TapDataTable({
           <p className="text-xs">No data yet. Click Play to start observing.</p>
         )}
       </div>
-    );
+    )
   }
 
   // Column names for grid
-  const colNames = columns.map((c) => c.columnName);
+  const colNames = columns.map((c) => c.columnName)
 
   // Dynamic grid template
   const gridTemplate = columns
     .map((c) => {
-      const headerWidth = Math.max(c.columnName.length * 7 + 32, 80);
-      return `minmax(${headerWidth}px, 1fr)`;
+      const headerWidth = Math.max(c.columnName.length * 7 + 32, 80)
+      return `minmax(${headerWidth}px, 1fr)`
     })
-    .join(" ");
+    .join(" ")
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-md border border-dash-border">
@@ -162,9 +163,9 @@ export function TapDataTable({
             }}
           >
             {virtualizer.getVirtualItems().map((virtualRow) => {
-              const row = sortedRows[virtualRow.index];
+              const row = sortedRows[virtualRow.index]
               const isNew =
-                !sort.column && virtualRow.index >= prevRowCount.current;
+                !sort.column && virtualRow.index >= prevRowCount.current
 
               return (
                 <div
@@ -189,7 +190,7 @@ export function TapDataTable({
                     </div>
                   ))}
                 </div>
-              );
+              )
             })}
           </div>
         )}
@@ -200,10 +201,10 @@ export function TapDataTable({
         <button
           type="button"
           onClick={() => {
-            setAutoScrollEnabled(true);
+            setAutoScrollEnabled(true)
             virtualizer.scrollToIndex(sortedRows.length - 1, {
               align: "end",
-            });
+            })
           }}
           className="flex items-center justify-center gap-1.5 border-t border-dash-border bg-dash-surface/80 py-1 text-[10px] font-medium text-fr-purple transition-colors hover:bg-dash-hover"
         >
@@ -212,12 +213,12 @@ export function TapDataTable({
         </button>
       )}
     </div>
-  );
+  )
 }
 
 function CellValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) {
-    return <span className="text-zinc-600 italic">null</span>;
+    return <span className="text-zinc-600 italic">null</span>
   }
 
   if (typeof value === "number") {
@@ -225,7 +226,7 @@ function CellValue({ value }: { value: unknown }) {
       <span className="tabular-nums text-zinc-200">
         {value.toLocaleString()}
       </span>
-    );
+    )
   }
 
   if (typeof value === "boolean") {
@@ -233,20 +234,20 @@ function CellValue({ value }: { value: unknown }) {
       <span className={value ? "text-job-running" : "text-zinc-500"}>
         {String(value)}
       </span>
-    );
+    )
   }
 
-  const str = String(value);
+  const str = String(value)
   if (/^\d{4}-\d{2}-\d{2}T/.test(str)) {
-    return <span className="tabular-nums text-zinc-300">{str}</span>;
+    return <span className="tabular-nums text-zinc-300">{str}</span>
   }
 
-  return <span className="text-zinc-300">{str}</span>;
+  return <span className="text-zinc-300">{str}</span>
 }
 
 function compareValues(a: unknown, b: unknown): number {
-  if (a === null || a === undefined) return -1;
-  if (b === null || b === undefined) return 1;
-  if (typeof a === "number" && typeof b === "number") return a - b;
-  return String(a).localeCompare(String(b));
+  if (a === null || a === undefined) return -1
+  if (b === null || b === undefined) return 1
+  if (typeof a === "number" && typeof b === "number") return a - b
+  return String(a).localeCompare(String(b))
 }

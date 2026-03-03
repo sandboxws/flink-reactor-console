@@ -1,16 +1,15 @@
-"use client";
+"use client"
 
-import { Activity, Database, Radio, Users } from "lucide-react";
-import type { ActiveTapSession } from "@/stores/sql-gateway-store";
+import { Activity, Database, Radio, Users } from "lucide-react"
+import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 
 interface TapStatusBarProps {
-  totalRowCount: number;
-  rowsPerSecond: number;
-  bufferSize: number;
-  currentBufferCount: number;
-  status: ActiveTapSession["status"] | "idle";
-  consumerGroupId: string;
-  error?: string;
+  totalRowCount: number
+  rowsPerSecond: number
+  bufferSize: number
+  currentBufferCount: number
+  status: ActiveTapSession["status"] | "idle"
+  consumerGroupId: string
 }
 
 export function TapStatusBar({
@@ -20,9 +19,9 @@ export function TapStatusBar({
   currentBufferCount,
   status,
   consumerGroupId,
-  error,
 }: TapStatusBarProps) {
-  const bufferPercent = bufferSize > 0 ? Math.round((currentBufferCount / bufferSize) * 100) : 0;
+  const bufferPercent =
+    bufferSize > 0 ? Math.round((currentBufferCount / bufferSize) * 100) : 0
 
   return (
     <div className="flex items-center gap-4 border-t border-dash-border bg-dash-surface/50 px-3 py-1.5 text-[10px] font-medium text-zinc-500">
@@ -65,11 +64,12 @@ export function TapStatusBar({
       </div>
 
       {/* Connection status / error */}
-      {status === "error" && error && (
-        <div className="ml-2 truncate text-job-failed" title={error}>
-          {error}
+      {status === "error" && (
+        <div className="ml-2 flex items-center gap-1 text-job-failed">
+          <span className="inline-flex size-1.5 rounded-full bg-job-failed" />
+          Error
         </div>
       )}
     </div>
-  );
+  )
 }

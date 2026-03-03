@@ -1,7 +1,13 @@
 "use client"
 
 import { formatDistanceToNow } from "date-fns"
-import { ArrowDown, ArrowRight, ArrowUp, ArrowUpDown } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  ArrowUpDown,
+  Radio,
+} from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
@@ -16,6 +22,21 @@ import {
 } from "@/components/ui/table"
 import type { FlinkJob, JobStatus } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
+import { useClusterStore } from "@/stores/cluster-store"
+
+// ---------------------------------------------------------------------------
+// Tap job detection (shared with jobs-table.tsx)
+// ---------------------------------------------------------------------------
+
+const TAP_JOB_PREFIX = "flink-reactor-tap-"
+
+function isTapJob(name: string): boolean {
+  return name.startsWith(TAP_JOB_PREFIX)
+}
+
+function tapDisplayName(name: string): string {
+  return name.slice(TAP_JOB_PREFIX.length)
+}
 
 const statusColor: Record<string, string> = {
   RUNNING: "bg-job-running/15 text-job-running",
@@ -112,6 +133,7 @@ export function JobList({
   limit?: number
 }) {
   const router = useRouter()
+  const tappablePipelines = useClusterStore((s) => s.tappablePipelines)
   const [sortKey, setSortKey] = useState<SortKey>("started")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
 
@@ -181,8 +203,19 @@ export function JobList({
                 className="cursor-pointer"
                 onClick={() => router.push(`/jobs/${job.id}`)}
               >
-                <TableCell className="max-w-48 truncate font-medium">
-                  {job.name}
+                <TableCell className="max-w-48">
+                  <span className="flex items-center gap-1.5 truncate font-medium">
+                    {isTapJob(job.name) ? (
+                      <span className="shrink-0 rounded-full bg-fr-purple/20 px-1.5 py-0.5 text-[10px] font-medium text-fr-purple">
+                        TAP
+                      </span>
+                    ) : tappablePipelines.has(job.name) ? (
+                      <Radio className="size-3.5 shrink-0 text-fr-purple/60" />
+                    ) : null}
+                    <span className="truncate">
+                      {isTapJob(job.name) ? tapDisplayName(job.name) : job.name}
+                    </span>
+                  </span>
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={job.status} />
