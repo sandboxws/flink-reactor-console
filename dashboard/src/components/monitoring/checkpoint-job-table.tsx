@@ -136,7 +136,7 @@ function SortHeader({
       type="button"
       onClick={() => onSort(sortKey)}
       className={cn(
-        "flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition-colors",
+        "inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition-colors",
         className,
       )}
     >
@@ -211,7 +211,6 @@ export function CheckpointJobTable({
                   label="Interval"
                   sortKey="checkpointInterval"
                   {...headerProps}
-                  className="justify-end"
                 />
               </th>
               <th className="px-3 py-2.5 text-right">
@@ -219,7 +218,6 @@ export function CheckpointJobTable({
                   label="Avg Duration"
                   sortKey="avgDuration"
                   {...headerProps}
-                  className="justify-end"
                 />
               </th>
               <th className="px-3 py-2.5 text-right">
@@ -227,7 +225,6 @@ export function CheckpointJobTable({
                   label="State Size"
                   sortKey="totalStateSize"
                   {...headerProps}
-                  className="justify-end"
                 />
               </th>
               <th className="px-3 py-2.5 text-right">
@@ -235,7 +232,6 @@ export function CheckpointJobTable({
                   label="Success Rate"
                   sortKey="successRate"
                   {...headerProps}
-                  className="justify-end"
                 />
               </th>
               <th className="px-3 py-2.5 text-center">
@@ -243,7 +239,6 @@ export function CheckpointJobTable({
                   label="Duration"
                   sortKey="durationTrend"
                   {...headerProps}
-                  className="justify-center"
                 />
               </th>
               <th className="px-3 py-2.5 text-center">
@@ -251,7 +246,6 @@ export function CheckpointJobTable({
                   label="Size"
                   sortKey="stateSizeTrend"
                   {...headerProps}
-                  className="justify-center"
                 />
               </th>
             </tr>

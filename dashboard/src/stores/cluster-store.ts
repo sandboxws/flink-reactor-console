@@ -215,8 +215,16 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
   cancelJob: async (jobId) => {
     try {
       await cancelJobApi(jobId)
-      // Re-fetch to get updated job states
-      await get().refresh()
+      // Optimistically mark the job as CANCELLING so the UI updates
+      // immediately — Flink's state transition takes time and the
+      // refetch below may still return RUNNING.
+      const current = get().jobDetail
+      if (current && current.id === jobId) {
+        set({ jobDetail: { ...current, status: "CANCELLING" } })
+      }
+      // Re-fetch overview + job detail in parallel so both the list and
+      // the detail page reflect the actual state from Flink.
+      await Promise.all([get().refresh(), get().fetchJobDetail(jobId)])
     } catch (err) {
       set({
         fetchError: err instanceof Error ? err.message : "Failed to cancel job",
