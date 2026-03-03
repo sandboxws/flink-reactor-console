@@ -1,15 +1,15 @@
-"use client";
+"use client"
 
-import { format } from "date-fns";
-import { Copy, X } from "lucide-react";
-import { useMemo } from "react";
-import { StackTrace } from "@/components/errors/stack-trace";
-import { SeverityBadge } from "@/components/shared/severity-badge";
-import { SourceBadge } from "@/components/shared/source-badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/cn";
-import { useLogStore } from "@/stores/log-store";
-import { useUiStore } from "@/stores/ui-store";
+import { format } from "date-fns"
+import { Copy, X } from "lucide-react"
+import { useMemo } from "react"
+import { StackTrace } from "@/components/errors/stack-trace"
+import { SeverityBadge } from "@/components/shared/severity-badge"
+import { SourceBadge } from "@/components/shared/source-badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { cn } from "@/lib/cn"
+import { useLogStore } from "@/stores/log-store"
+import { useUiStore } from "@/stores/ui-store"
 
 // ---------------------------------------------------------------------------
 // Detail field — flex row with label/value (mirrors error-detail pattern)
@@ -20,9 +20,9 @@ function DetailField({
   children,
   mono,
 }: {
-  label: string;
-  children: React.ReactNode;
-  mono?: boolean;
+  label: string
+  children: React.ReactNode
+  mono?: boolean
 }) {
   return (
     <div className="flex gap-2 text-xs">
@@ -31,7 +31,7 @@ function DetailField({
         {children}
       </span>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -39,32 +39,32 @@ function DetailField({
 // ---------------------------------------------------------------------------
 
 export function LogDetailPanel() {
-  const selectedEntryId = useUiStore((s) => s.selectedEntryId);
-  const setSelectedEntryId = useUiStore((s) => s.setSelectedEntryId);
-  const entries = useLogStore((s) => s.entries);
+  const selectedEntryId = useUiStore((s) => s.selectedEntryId)
+  const setSelectedEntryId = useUiStore((s) => s.setSelectedEntryId)
+  const entries = useLogStore((s) => s.entries)
 
   const entry = useMemo(
     () => entries.find((e) => e.id === selectedEntryId) ?? null,
     [entries, selectedEntryId],
-  );
+  )
 
   // Context: ±5 entries
   const contextLines = useMemo(() => {
-    if (!entry) return [];
-    const idx = entries.indexOf(entry);
-    if (idx === -1) return [];
-    const start = Math.max(0, idx - 5);
-    const end = Math.min(entries.length, idx + 6);
-    return entries.slice(start, end);
-  }, [entries, entry]);
+    if (!entry) return []
+    const idx = entries.indexOf(entry)
+    if (idx === -1) return []
+    const start = Math.max(0, idx - 5)
+    const end = Math.min(entries.length, idx + 6)
+    return entries.slice(start, end)
+  }, [entries, entry])
 
   function copyRaw() {
     if (entry) {
-      navigator.clipboard.writeText(entry.raw);
+      navigator.clipboard.writeText(entry.raw)
     }
   }
 
-  if (!entry) return null;
+  if (!entry) return null
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-dash-panel">
@@ -207,5 +207,5 @@ export function LogDetailPanel() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

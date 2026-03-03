@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import type { LogLevel } from "@/data/types";
-import { cn } from "@/lib/cn";
-import { useFilterStore } from "@/stores/filter-store";
+import type { LogLevel } from "@/data/types"
+import { cn } from "@/lib/cn"
+import { useFilterStore } from "@/stores/filter-store"
 
-const LEVELS: LogLevel[] = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR"];
+const LEVELS: LogLevel[] = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]
 
 const LEVEL_STYLES: Record<LogLevel, { active: string; inactive: string }> = {
   TRACE: {
@@ -27,17 +27,17 @@ const LEVEL_STYLES: Record<LogLevel, { active: string; inactive: string }> = {
     active: "bg-log-error/20 text-log-error border-log-error/40",
     inactive: "text-zinc-600 border-zinc-700/50 hover:text-log-error/60",
   },
-};
+}
 
 export function SeverityFilter() {
-  const enabledLevels = useFilterStore((s) => s.enabledLevels);
-  const toggleLevel = useFilterStore((s) => s.toggleLevel);
+  const enabledLevels = useFilterStore((s) => s.enabledLevels)
+  const toggleLevel = useFilterStore((s) => s.toggleLevel)
 
   return (
     <div className="flex items-center gap-1">
       {LEVELS.map((level) => {
-        const enabled = enabledLevels[level];
-        const style = LEVEL_STYLES[level];
+        const enabled = enabledLevels[level]
+        const style = LEVEL_STYLES[level]
         return (
           <button
             key={level}
@@ -50,8 +50,8 @@ export function SeverityFilter() {
           >
             {level}
           </button>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

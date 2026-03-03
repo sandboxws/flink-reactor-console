@@ -1,38 +1,38 @@
-"use client";
+"use client"
 
-import { format } from "date-fns";
-import { ChevronRight } from "lucide-react";
-import { memo, useMemo } from "react";
-import { SeverityBadge } from "@/components/shared/severity-badge";
-import { SourceBadge } from "@/components/shared/source-badge";
-import { CollapsibleTrigger } from "@/components/ui/collapsible";
-import type { LogEntry } from "@/data/types";
-import { cn } from "@/lib/cn";
-import { TIMESTAMP_FORMATS } from "@/lib/constants";
-import { useFilterStore } from "@/stores/filter-store";
-import { useUiStore } from "@/stores/ui-store";
+import { format } from "date-fns"
+import { ChevronRight } from "lucide-react"
+import { memo, useMemo } from "react"
+import { SeverityBadge } from "@/components/shared/severity-badge"
+import { SourceBadge } from "@/components/shared/source-badge"
+import { CollapsibleTrigger } from "@/components/ui/collapsible"
+import type { LogEntry } from "@/data/types"
+import { cn } from "@/lib/cn"
+import { TIMESTAMP_FORMATS } from "@/lib/constants"
+import { useFilterStore } from "@/stores/filter-store"
+import { useUiStore } from "@/stores/ui-store"
 
 function highlightText(
   text: string,
   query: string,
   isRegex: boolean,
 ): React.ReactNode {
-  if (!query) return text;
+  if (!query) return text
 
-  let regex: RegExp;
+  let regex: RegExp
   try {
     regex = isRegex
       ? new RegExp(`(${query})`, "gi")
-      : new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+      : new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi")
   } catch {
-    return text;
+    return text
   }
 
-  const parts = text.split(regex);
-  if (parts.length === 1) return text;
+  const parts = text.split(regex)
+  if (parts.length === 1) return text
 
-  const result: React.ReactNode[] = [];
-  let matchCounter = 0;
+  const result: React.ReactNode[] = []
+  let matchCounter = 0
   for (const part of parts) {
     if (regex.test(part)) {
       result.push(
@@ -42,12 +42,12 @@ function highlightText(
         >
           {part}
         </mark>,
-      );
+      )
     } else {
-      result.push(part);
+      result.push(part)
     }
   }
-  return result;
+  return result
 }
 
 export const LogLine = memo(function LogLine({
@@ -56,24 +56,24 @@ export const LogLine = memo(function LogLine({
   isExpanded,
   onClick,
 }: {
-  entry: LogEntry;
-  isSelected: boolean;
-  isExpanded: boolean;
-  onClick: () => void;
+  entry: LogEntry
+  isSelected: boolean
+  isExpanded: boolean
+  onClick: () => void
 }) {
-  const timestampFormat = useUiStore((s) => s.timestampFormat);
-  const searchQuery = useFilterStore((s) => s.searchQuery);
-  const isRegex = useFilterStore((s) => s.isRegex);
+  const timestampFormat = useUiStore((s) => s.timestampFormat)
+  const searchQuery = useFilterStore((s) => s.searchQuery)
+  const isRegex = useFilterStore((s) => s.isRegex)
 
   const formattedTimestamp = useMemo(
     () => format(entry.timestamp, TIMESTAMP_FORMATS[timestampFormat]),
     [entry.timestamp, timestampFormat],
-  );
+  )
 
   const highlighted = useMemo(
     () => highlightText(entry.message, searchQuery, isRegex),
     [entry.message, searchQuery, isRegex],
-  );
+  )
 
   return (
     <button
@@ -122,5 +122,5 @@ export const LogLine = memo(function LogLine({
         {highlighted}
       </span>
     </button>
-  );
-});
+  )
+})

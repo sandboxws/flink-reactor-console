@@ -1,12 +1,12 @@
-"use client";
+"use client"
 
-import { use, useEffect } from "react";
-import { useClusterStore } from "@/stores/cluster-store";
-import { JobDetail } from "@/components/jobs/job-detail";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react"
+import { use, useEffect } from "react"
+import { JobDetail } from "@/components/jobs/job-detail"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useClusterStore } from "@/stores/cluster-store"
 
 function JobDetailSkeleton() {
   return (
@@ -28,29 +28,29 @@ function JobDetailSkeleton() {
       {/* Content skeleton */}
       <Skeleton className="h-[500px] w-full" />
     </div>
-  );
+  )
 }
 
 export default function JobPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>
 }) {
-  const { id } = use(params);
-  const fetchJobDetailAction = useClusterStore((s) => s.fetchJobDetail);
-  const clearJobDetail = useClusterStore((s) => s.clearJobDetail);
-  const cancelJob = useClusterStore((s) => s.cancelJob);
-  const jobDetail = useClusterStore((s) => s.jobDetail);
-  const jobDetailLoading = useClusterStore((s) => s.jobDetailLoading);
-  const jobDetailError = useClusterStore((s) => s.jobDetailError);
+  const { id } = use(params)
+  const fetchJobDetailAction = useClusterStore((s) => s.fetchJobDetail)
+  const clearJobDetail = useClusterStore((s) => s.clearJobDetail)
+  const cancelJob = useClusterStore((s) => s.cancelJob)
+  const jobDetail = useClusterStore((s) => s.jobDetail)
+  const jobDetailLoading = useClusterStore((s) => s.jobDetailLoading)
+  const jobDetailError = useClusterStore((s) => s.jobDetailError)
 
   useEffect(() => {
-    fetchJobDetailAction(id);
-    return () => clearJobDetail();
-  }, [id, fetchJobDetailAction, clearJobDetail]);
+    fetchJobDetailAction(id)
+    return () => clearJobDetail()
+  }, [id, fetchJobDetailAction, clearJobDetail])
 
   if (jobDetailLoading && !jobDetail) {
-    return <JobDetailSkeleton />;
+    return <JobDetailSkeleton />
   }
 
   if (jobDetailError && !jobDetail) {
@@ -70,17 +70,14 @@ export default function JobPage({
           Retry
         </Button>
       </div>
-    );
+    )
   }
 
   if (!jobDetail) {
-    return <JobDetailSkeleton />;
+    return <JobDetailSkeleton />
   }
 
   return (
-    <JobDetail
-      job={jobDetail}
-      onCancelJob={() => cancelJob(jobDetail.id)}
-    />
-  );
+    <JobDetail job={jobDetail} onCancelJob={() => cancelJob(jobDetail.id)} />
+  )
 }

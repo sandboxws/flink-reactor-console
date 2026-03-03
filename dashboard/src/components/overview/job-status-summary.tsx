@@ -1,11 +1,35 @@
-import { Play, CheckCircle2, Ban, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, Play } from "lucide-react"
 
 const statuses = [
-  { key: "running", label: "Running", color: "text-job-running", bg: "bg-job-running/10", icon: Play },
-  { key: "finished", label: "Finished", color: "text-job-finished", bg: "bg-job-finished/10", icon: CheckCircle2 },
-  { key: "cancelled", label: "Cancelled", color: "text-job-cancelled", bg: "bg-job-cancelled/10", icon: Ban },
-  { key: "failed", label: "Failed", color: "text-job-failed", bg: "bg-job-failed/10", icon: AlertTriangle },
-] as const;
+  {
+    key: "running",
+    label: "Running",
+    color: "text-job-running",
+    bg: "bg-job-running/10",
+    icon: Play,
+  },
+  {
+    key: "finished",
+    label: "Finished",
+    color: "text-job-finished",
+    bg: "bg-job-finished/10",
+    icon: CheckCircle2,
+  },
+  {
+    key: "cancelled",
+    label: "Cancelled",
+    color: "text-job-cancelled",
+    bg: "bg-job-cancelled/10",
+    icon: Ban,
+  },
+  {
+    key: "failed",
+    label: "Failed",
+    color: "text-job-failed",
+    bg: "bg-job-failed/10",
+    icon: AlertTriangle,
+  },
+] as const
 
 export function JobStatusSummary({
   running,
@@ -13,12 +37,17 @@ export function JobStatusSummary({
   cancelled,
   failed,
 }: {
-  running: number;
-  finished: number;
-  cancelled: number;
-  failed: number;
+  running: number
+  finished: number
+  cancelled: number
+  failed: number
 }) {
-  const counts: Record<string, number> = { running, finished, cancelled, failed };
+  const counts: Record<string, number> = {
+    running,
+    finished,
+    cancelled,
+    failed,
+  }
 
   return (
     <div className="glass-card p-4">
@@ -40,5 +69,5 @@ export function JobStatusSummary({
         ))}
       </div>
     </div>
-  );
+  )
 }

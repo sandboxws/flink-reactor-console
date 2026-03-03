@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useClusterStore } from "@/stores/cluster-store";
-import { TaskManagerList } from "@/components/task-managers/task-manager-list";
+import { useEffect } from "react"
+import { TaskManagerList } from "@/components/task-managers/task-manager-list"
+import { useClusterStore } from "@/stores/cluster-store"
 
 export default function TaskManagersPage() {
-  const initialize = useClusterStore((s) => s.initialize);
-  const startPolling = useClusterStore((s) => s.startPolling);
-  const stopPolling = useClusterStore((s) => s.stopPolling);
-  const taskManagers = useClusterStore((s) => s.taskManagers);
+  const initialize = useClusterStore((s) => s.initialize)
+  const startPolling = useClusterStore((s) => s.startPolling)
+  const stopPolling = useClusterStore((s) => s.stopPolling)
+  const taskManagers = useClusterStore((s) => s.taskManagers)
 
   useEffect(() => {
-    initialize();
-    startPolling();
-    return () => stopPolling();
-  }, [initialize, startPolling, stopPolling]);
+    initialize()
+    startPolling()
+    return () => stopPolling()
+  }, [initialize, startPolling, stopPolling])
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -29,5 +29,5 @@ export default function TaskManagersPage() {
         <TaskManagerList taskManagers={taskManagers} />
       </div>
     </div>
-  );
+  )
 }

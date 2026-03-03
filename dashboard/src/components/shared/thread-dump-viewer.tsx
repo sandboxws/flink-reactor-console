@@ -1,19 +1,19 @@
-"use client";
+"use client"
 
-import { useCallback, useMemo, useState } from "react";
 import {
   Check,
   ChevronRight,
   ChevronsDownUp,
   ChevronsUpDown,
   Copy,
-  Lock,
-  Search,
   Cpu,
+  Lock,
   RefreshCw,
-} from "lucide-react";
-import { cn } from "@/lib/cn";
-import type { ThreadDumpEntry, ThreadState } from "@/data/cluster-types";
+  Search,
+} from "lucide-react"
+import { useCallback, useMemo, useState } from "react"
+import type { ThreadDumpEntry, ThreadState } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // Thread state → color mapping (Tokyo Night palette via CSS vars)
@@ -59,7 +59,7 @@ const STATE_COLORS: Record<
     border: "border-zinc-500/30",
     bar: "bg-zinc-600",
   },
-};
+}
 
 const STATE_ORDER: ThreadState[] = [
   "RUNNABLE",
@@ -68,7 +68,7 @@ const STATE_ORDER: ThreadState[] = [
   "BLOCKED",
   "NEW",
   "TERMINATED",
-];
+]
 
 // ---------------------------------------------------------------------------
 // Frame classification
@@ -83,20 +83,20 @@ const FRAMEWORK_PREFIXES = [
   "org.apache.pekko.",
   "akka.",
   "io.netty.",
-];
+]
 
 function isFrameworkFrame(frame: string): boolean {
-  const match = frame.match(/^at\s+(?:[\w.]+\/\/)?([\w.$]+)/);
-  if (!match) return false;
-  return FRAMEWORK_PREFIXES.some((prefix) => match[1].startsWith(prefix));
+  const match = frame.match(/^at\s+(?:[\w.]+\/\/)?([\w.$]+)/)
+  if (!match) return false
+  return FRAMEWORK_PREFIXES.some((prefix) => match[1].startsWith(prefix))
 }
 
 function isLockAnnotation(frame: string): "waiting" | "locked" | null {
   if (frame.startsWith("-  waiting on") || frame.startsWith("- waiting on"))
-    return "waiting";
+    return "waiting"
   if (frame.startsWith("-  locked") || frame.startsWith("- locked"))
-    return "locked";
-  return null;
+    return "locked"
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -107,10 +107,10 @@ function StateDistributionBar({
   counts,
   total,
 }: {
-  counts: Record<string, number>;
-  total: number;
+  counts: Record<string, number>
+  total: number
 }) {
-  if (total === 0) return null;
+  if (total === 0) return null
 
   const segments = STATE_ORDER.filter((s) => (counts[s] || 0) > 0).map(
     (state) => ({
@@ -118,7 +118,7 @@ function StateDistributionBar({
       count: counts[state] || 0,
       pct: ((counts[state] || 0) / total) * 100,
     }),
-  );
+  )
 
   return (
     <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-white/5">
@@ -130,7 +130,7 @@ function StateDistributionBar({
         />
       ))}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -143,13 +143,13 @@ function StateBadge({
   active,
   onClick,
 }: {
-  state: ThreadState;
-  count: number;
-  active: boolean;
-  onClick: () => void;
+  state: ThreadState
+  count: number
+  active: boolean
+  onClick: () => void
 }) {
-  if (count === 0) return null;
-  const colors = STATE_COLORS[state];
+  if (count === 0) return null
+  const colors = STATE_COLORS[state]
   return (
     <button
       type="button"
@@ -171,7 +171,7 @@ function StateBadge({
         {count}
       </span>
     </button>
-  );
+  )
 }
 
 function SummaryBar({
@@ -186,33 +186,33 @@ function SummaryBar({
   onCopyAll,
   onRefresh,
 }: {
-  threads: ThreadDumpEntry[];
-  filteredCount: number;
-  activeFilter: ThreadState | null;
-  onFilterChange: (state: ThreadState | null) => void;
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-  allExpanded: boolean;
-  onToggleExpandAll: () => void;
-  onCopyAll?: () => void;
-  onRefresh?: () => void;
+  threads: ThreadDumpEntry[]
+  filteredCount: number
+  activeFilter: ThreadState | null
+  onFilterChange: (state: ThreadState | null) => void
+  searchQuery: string
+  onSearchChange: (q: string) => void
+  allExpanded: boolean
+  onToggleExpandAll: () => void
+  onCopyAll?: () => void
+  onRefresh?: () => void
 }) {
-  const [copiedAll, setCopiedAll] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false)
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = {};
+    const c: Record<string, number> = {}
     for (const t of threads) {
-      c[t.state] = (c[t.state] || 0) + 1;
+      c[t.state] = (c[t.state] || 0) + 1
     }
-    return c;
-  }, [threads]);
+    return c
+  }, [threads])
 
-  const isFiltered = activeFilter !== null || searchQuery.trim() !== "";
+  const isFiltered = activeFilter !== null || searchQuery.trim() !== ""
 
   function handleCopyAll() {
-    onCopyAll?.();
-    setCopiedAll(true);
-    setTimeout(() => setCopiedAll(false), 2000);
+    onCopyAll?.()
+    setCopiedAll(true)
+    setTimeout(() => setCopiedAll(false), 2000)
   }
 
   return (
@@ -224,10 +224,7 @@ function SummaryBar({
             {isFiltered ? (
               <>
                 <span className="tabular-nums">{filteredCount}</span>
-                <span className="text-zinc-600">
-                  {" "}
-                  / {threads.length}
-                </span>
+                <span className="text-zinc-600"> / {threads.length}</span>
               </>
             ) : (
               threads.length
@@ -304,7 +301,7 @@ function SummaryBar({
         />
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -315,22 +312,22 @@ function ThreadFrameList({ frames }: { frames: string[] }) {
   return (
     <div className="space-y-0 font-mono text-[11px] leading-relaxed">
       {frames.map((frame, i) => {
-        const lockType = isLockAnnotation(frame);
+        const lockType = isLockAnnotation(frame)
         if (lockType === "waiting") {
           return (
             <div key={i} className="text-log-warn/80">
               {frame}
             </div>
-          );
+          )
         }
         if (lockType === "locked") {
           return (
             <div key={i} className="text-log-info/80">
               {frame}
             </div>
-          );
+          )
         }
-        const fw = isFrameworkFrame(frame);
+        const fw = isFrameworkFrame(frame)
         return (
           <div
             key={i}
@@ -338,10 +335,10 @@ function ThreadFrameList({ frames }: { frames: string[] }) {
           >
             {frame}
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 function ThreadCard({
@@ -349,32 +346,32 @@ function ThreadCard({
   expanded,
   onToggle,
 }: {
-  thread: ThreadDumpEntry;
-  expanded: boolean;
-  onToggle: () => void;
+  thread: ThreadDumpEntry
+  expanded: boolean
+  onToggle: () => void
 }) {
-  const [copied, setCopied] = useState(false);
-  const colors = STATE_COLORS[thread.state];
+  const [copied, setCopied] = useState(false)
+  const colors = STATE_COLORS[thread.state]
   const hasFrames =
-    thread.stackFrames.length > 0 || thread.lockedSynchronizers.length > 0;
+    thread.stackFrames.length > 0 || thread.lockedSynchronizers.length > 0
 
   function handleCopy() {
     const lines = [
       `"${thread.name}" Id=${thread.id} ${thread.state}${thread.isNative ? " (in native)" : ""}${thread.lockObject ? ` on ${thread.lockObject}` : ""}`,
       ...thread.stackFrames.map((f) => `\t${f}`),
-    ];
+    ]
     if (thread.lockedSynchronizers.length > 0) {
-      lines.push("");
+      lines.push("")
       lines.push(
         `\tNumber of locked synchronizers = ${thread.lockedSynchronizers.length}`,
-      );
+      )
       for (const sync of thread.lockedSynchronizers) {
-        lines.push(`\t- ${sync}`);
+        lines.push(`\t- ${sync}`)
       }
     }
-    navigator.clipboard.writeText(lines.join("\n"));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(lines.join("\n"))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -432,7 +429,7 @@ function ThreadCard({
 
             {/* Native badge */}
             {thread.isNative && (
-              <span className="inline-flex items-center gap-0.5 rounded-full border border-zinc-700/50 bg-zinc-800/50 px-1.5 py-0.5 text-[10px] text-zinc-500">
+              <span className="inline-flex items-center gap-0.5 rounded-full border border-white/10 bg-white/8 px-1.5 py-0.5 text-[10px] text-fg-dim">
                 <Cpu className="size-2.5" />
                 native
               </span>
@@ -469,11 +466,7 @@ function ThreadCard({
           className="shrink-0 rounded p-1 text-zinc-600 opacity-0 transition-all hover:text-zinc-300 group-hover/card:opacity-100"
           title="Copy thread dump"
         >
-          {copied ? (
-            <Check className="size-3" />
-          ) : (
-            <Copy className="size-3" />
-          )}
+          {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
         </button>
       </div>
 
@@ -489,10 +482,7 @@ function ThreadCard({
                 Locked synchronizers ({thread.lockedSynchronizers.length})
               </div>
               {thread.lockedSynchronizers.map((sync, i) => (
-                <div
-                  key={i}
-                  className="font-mono text-[11px] text-log-info/70"
-                >
+                <div key={i} className="font-mono text-[11px] text-log-info/70">
                   {sync}
                 </div>
               ))}
@@ -501,7 +491,7 @@ function ThreadCard({
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -514,31 +504,28 @@ export function ThreadDumpViewer({
   onCopyAll,
   onRefresh,
 }: {
-  threads: ThreadDumpEntry[];
-  className?: string;
-  onCopyAll?: () => void;
-  onRefresh?: () => void;
+  threads: ThreadDumpEntry[]
+  className?: string
+  onCopyAll?: () => void
+  onRefresh?: () => void
 }) {
-  const [activeFilter, setActiveFilter] = useState<ThreadState | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [activeFilter, setActiveFilter] = useState<ThreadState | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
 
   const filtered = useMemo(() => {
-    let result = threads;
+    let result = threads
     if (activeFilter) {
-      result = result.filter((t) => t.state === activeFilter);
+      result = result.filter((t) => t.state === activeFilter)
     }
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter((t) => t.name.toLowerCase().includes(q));
+      const q = searchQuery.toLowerCase()
+      result = result.filter((t) => t.name.toLowerCase().includes(q))
     }
-    return result;
-  }, [threads, activeFilter, searchQuery]);
+    return result
+  }, [threads, activeFilter, searchQuery])
 
-  const threadKey = useCallback(
-    (t: ThreadDumpEntry) => `${t.name}-${t.id}`,
-    [],
-  );
+  const threadKey = useCallback((t: ThreadDumpEntry) => `${t.name}-${t.id}`, [])
 
   // Check if all filtered threads with frames are expanded
   const expandableFiltered = useMemo(
@@ -547,31 +534,31 @@ export function ThreadDumpViewer({
         (t) => t.stackFrames.length > 0 || t.lockedSynchronizers.length > 0,
       ),
     [filtered],
-  );
+  )
 
   const allExpanded =
     expandableFiltered.length > 0 &&
-    expandableFiltered.every((t) => expandedIds.has(threadKey(t)));
+    expandableFiltered.every((t) => expandedIds.has(threadKey(t)))
 
   function handleToggleExpandAll() {
     if (allExpanded) {
-      setExpandedIds(new Set());
+      setExpandedIds(new Set())
     } else {
-      setExpandedIds(new Set(expandableFiltered.map(threadKey)));
+      setExpandedIds(new Set(expandableFiltered.map(threadKey)))
     }
   }
 
   function handleToggle(thread: ThreadDumpEntry) {
-    const key = threadKey(thread);
+    const key = threadKey(thread)
     setExpandedIds((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(key)) {
-        next.delete(key);
+        next.delete(key)
       } else {
-        next.add(key);
+        next.add(key)
       }
-      return next;
-    });
+      return next
+    })
   }
 
   return (
@@ -607,5 +594,5 @@ export function ThreadDumpViewer({
         )}
       </div>
     </div>
-  );
+  )
 }

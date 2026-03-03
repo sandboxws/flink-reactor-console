@@ -1,71 +1,80 @@
-import { create } from "zustand";
+import { create } from "zustand"
 import type {
   ClusterOverview,
+  FlinkFeatureFlags,
   FlinkJob,
   JobManagerInfo,
   SubmitJobRequest,
   TaskManager,
   UploadedJar,
-} from "@/data/cluster-types";
+} from "@/data/cluster-types"
+// mock-cluster import removed — all data now comes from API
 import {
-  generateClusterOverview,
-  generateJobManagerInfo,
-  generateTaskManagers,
-  generateUploadedJars,
-  refreshMetrics,
-} from "@/data/mock-cluster";
-import { fetchOverviewPageData, fetchJobDetail } from "@/lib/flink-api-client";
-import { useConfigStore } from "./config-store";
+  cancelJob as cancelJobApi,
+  deleteJar as deleteJarApi,
+  fetchClusterConfig,
+  fetchJars,
+  fetchJobDetail,
+  fetchJobManagerDetail,
+  fetchOverviewPageData,
+  fetchTaskManagerDetail,
+  fetchTaskManagers,
+  runJar as runJarApi,
+  uploadJar as uploadJarApi,
+} from "@/lib/flink-api-client"
+import { createClientLogger } from "@/lib/logger"
+import { useConfigStore } from "./config-store"
+
+const log = createClientLogger().getSubLogger({ name: "store:cluster" })
 
 // ---------------------------------------------------------------------------
 // Cluster store — cluster state with API-backed polling refresh
 // ---------------------------------------------------------------------------
 
 interface ClusterState {
-  overview: ClusterOverview | null;
-  runningJobs: FlinkJob[];
-  completedJobs: FlinkJob[];
-  taskManagers: TaskManager[];
-  jobManager: JobManagerInfo | null;
-  uploadedJars: UploadedJar[];
-  selectedTaskManagerId: string | null;
-  selectedJobId: string | null;
-  isPolling: boolean;
-  lastUpdated: Date | null;
-  fetchError: string | null;
-  isLoading: boolean;
-  jobDetail: FlinkJob | null;
-  jobDetailLoading: boolean;
-  jobDetailError: string | null;
+  overview: ClusterOverview | null
+  runningJobs: FlinkJob[]
+  completedJobs: FlinkJob[]
+  taskManagers: TaskManager[]
+  jobManager: JobManagerInfo | null
+  uploadedJars: UploadedJar[]
+  selectedTaskManagerId: string | null
+  selectedJobId: string | null
+  isPolling: boolean
+  lastUpdated: Date | null
+  fetchError: string | null
+  isLoading: boolean
+  jobDetail: FlinkJob | null
+  jobDetailLoading: boolean
+  jobDetailError: string | null
+  taskManagerDetail: TaskManager | null
+  taskManagerDetailLoading: boolean
+  taskManagerDetailError: string | null
+  featureFlags: FlinkFeatureFlags | null
 }
 
 interface ClusterActions {
-  initialize: () => Promise<void>;
-  startPolling: () => void;
-  stopPolling: () => void;
-  refresh: () => Promise<void>;
-  selectTaskManager: (id: string | null) => void;
-  selectJob: (id: string | null) => void;
-  submitJob: (request: SubmitJobRequest) => void;
-  cancelJob: (jobId: string) => void;
-  uploadJar: (jar: UploadedJar) => void;
-  deleteJar: (jarId: string) => void;
-  fetchJobDetail: (jobId: string) => Promise<void>;
-  clearJobDetail: () => void;
+  initialize: () => Promise<void>
+  startPolling: () => void
+  stopPolling: () => void
+  refresh: () => Promise<void>
+  selectTaskManager: (id: string | null) => void
+  selectJob: (id: string | null) => void
+  submitJob: (request: SubmitJobRequest) => Promise<void>
+  cancelJob: (jobId: string) => Promise<void>
+  uploadJar: (file: File) => Promise<void>
+  deleteJar: (jarId: string) => Promise<void>
+  fetchJars: () => Promise<void>
+  fetchJobDetail: (jobId: string) => Promise<void>
+  clearJobDetail: () => void
+  fetchTaskManagerDetail: (tmId: string) => Promise<void>
+  clearTaskManagerDetail: () => void
 }
 
-export type ClusterStore = ClusterState & ClusterActions;
+export type ClusterStore = ClusterState & ClusterActions
 
-let pollInterval: ReturnType<typeof setInterval> | null = null;
-let initialized = false;
-
-function hex(length: number): string {
-  let out = "";
-  for (let i = 0; i < length; i++) {
-    out += Math.floor(Math.random() * 16).toString(16);
-  }
-  return out;
-}
+let pollInterval: ReturnType<typeof setInterval> | null = null
+let initialized = false
 
 export const useClusterStore = create<ClusterStore>((set, get) => ({
   overview: null,
@@ -83,195 +92,224 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
   jobDetail: null,
   jobDetailLoading: false,
   jobDetailError: null,
+  taskManagerDetail: null,
+  taskManagerDetailLoading: false,
+  taskManagerDetailError: null,
+  featureFlags: null,
 
   initialize: async () => {
-    if (initialized) return;
-    initialized = true;
+    if (initialized) return
+    initialized = true
 
-    // Generate mock data for pages not yet wired to the API
-    const tms = generateTaskManagers();
-    const jm = generateJobManagerInfo();
-    const jars = generateUploadedJars();
+    const mockMode = useConfigStore.getState().config?.mockMode
+    if (mockMode) {
+      log.info("MOCK → API-backed mock mode", {
+        screen: "Cluster",
+        file: "mock-api-responses.ts",
+        generator: "API routes",
+      })
+    }
 
     set({
-      taskManagers: tms,
-      jobManager: jm,
-      uploadedJars: jars,
       isLoading: true,
       fetchError: null,
-    });
+    })
 
     try {
-      const data = await fetchOverviewPageData();
+      // Fetch overview + TM list + JM detail + feature flags + JARs in parallel
+      const [data, tms, jm, flags, jars] = await Promise.all([
+        fetchOverviewPageData(),
+        fetchTaskManagers(),
+        fetchJobManagerDetail(),
+        fetchClusterConfig(),
+        fetchJars(),
+      ])
       set({
         overview: data.overview,
         runningJobs: data.runningJobs,
         completedJobs: data.completedJobs,
+        taskManagers: tms,
+        jobManager: jm,
+        featureFlags: flags,
+        uploadedJars: jars,
         isLoading: false,
         fetchError: null,
         lastUpdated: new Date(),
-      });
+      })
     } catch (err) {
       set({
         isLoading: false,
         fetchError:
           err instanceof Error ? err.message : "Failed to fetch cluster data",
-      });
+      })
     }
   },
 
   startPolling: () => {
-    if (pollInterval) return;
-    const intervalMs =
-      useConfigStore.getState().config?.pollIntervalMs ?? 5000;
+    if (pollInterval) return
+    const intervalMs = useConfigStore.getState().config?.pollIntervalMs ?? 5000
     pollInterval = setInterval(() => {
-      get().refresh();
-    }, intervalMs);
-    set({ isPolling: true });
+      get().refresh()
+    }, intervalMs)
+    set({ isPolling: true })
   },
 
   stopPolling: () => {
     if (pollInterval) {
-      clearInterval(pollInterval);
-      pollInterval = null;
+      clearInterval(pollInterval)
+      pollInterval = null
     }
-    set({ isPolling: false });
+    set({ isPolling: false })
   },
 
   refresh: async () => {
-    // Refresh mock TM/JM metrics (pages not yet on the API)
-    const { taskManagers, jobManager, runningJobs } = get();
-    if (jobManager) {
-      refreshMetrics(taskManagers, jobManager, runningJobs);
-    }
-
     try {
-      const data = await fetchOverviewPageData();
+      // Refresh overview + jobs + TM list in parallel
+      const [data, tms] = await Promise.all([
+        fetchOverviewPageData(),
+        fetchTaskManagers(),
+      ])
       set({
         overview: data.overview,
         runningJobs: data.runningJobs,
         completedJobs: data.completedJobs,
+        taskManagers: tms,
         fetchError: null,
         lastUpdated: new Date(),
-        // Spread refreshed mock data so Zustand detects the change
-        taskManagers: [...taskManagers],
-        jobManager: jobManager ? { ...jobManager } : null,
-      });
+      })
     } catch (err) {
       // Keep stale data visible — only set the error
       set({
         fetchError:
           err instanceof Error ? err.message : "Failed to fetch cluster data",
-        // Still update mock TM/JM refs so those pages refresh
-        taskManagers: [...taskManagers],
-        jobManager: jobManager ? { ...jobManager } : null,
-      });
+      })
     }
   },
 
   selectTaskManager: (id) => {
-    set({ selectedTaskManagerId: id });
+    set({ selectedTaskManagerId: id })
   },
 
   selectJob: (id) => {
-    set({ selectedJobId: id });
+    set({ selectedJobId: id })
   },
 
-  submitJob: (request) => {
-    const { runningJobs, taskManagers, completedJobs } = get();
-    const name = request.entryClass.split(".").pop() ?? "UnknownJob";
-
-    const newJob: FlinkJob = {
-      id: hex(32),
-      name,
-      status: "RUNNING",
-      startTime: new Date(),
-      endTime: null,
-      duration: 0,
-      tasks: {
-        pending: 0,
-        running: request.parallelism,
-        finished: 0,
-        canceling: 0,
-        failed: 0,
-      },
-      parallelism: request.parallelism,
-      plan: null,
-      exceptions: [],
-      checkpoints: [],
-      checkpointConfig: null,
-      subtaskMetrics: {},
-      configuration: [],
-      watermarks: {},
-      backpressure: {},
-      accumulators: {},
-    };
-
-    const updatedRunning = [newJob, ...runningJobs];
-    const overview = generateClusterOverview(
-      updatedRunning,
-      completedJobs,
-      taskManagers,
-    );
-
-    set({
-      runningJobs: updatedRunning,
-      overview,
-      lastUpdated: new Date(),
-    });
+  submitJob: async (request) => {
+    try {
+      await runJarApi(request.jarId, {
+        entryClass: request.entryClass,
+        parallelism: request.parallelism,
+        programArgs: request.programArgs || undefined,
+        savepointPath: request.savepointPath,
+        allowNonRestoredState: request.allowNonRestoredState,
+      })
+      // Re-fetch to get updated job list
+      await get().refresh()
+    } catch (err) {
+      set({
+        fetchError: err instanceof Error ? err.message : "Failed to submit job",
+      })
+    }
   },
 
-  cancelJob: (jobId) => {
-    const { runningJobs, completedJobs, taskManagers } = get();
-    const idx = runningJobs.findIndex((j) => j.id === jobId);
-    if (idx === -1) return;
-
-    const job = { ...runningJobs[idx] };
-    job.status = "CANCELED";
-    job.endTime = new Date();
-    job.duration = Date.now() - job.startTime.getTime();
-
-    const updatedRunning = runningJobs.filter((_, i) => i !== idx);
-    const updatedCompleted = [job, ...completedJobs];
-    const overview = generateClusterOverview(
-      updatedRunning,
-      updatedCompleted,
-      taskManagers,
-    );
-
-    set({
-      runningJobs: updatedRunning,
-      completedJobs: updatedCompleted,
-      overview,
-      lastUpdated: new Date(),
-    });
+  cancelJob: async (jobId) => {
+    try {
+      await cancelJobApi(jobId)
+      // Optimistically mark the job as CANCELLING so the UI updates
+      // immediately — Flink's state transition takes time and the
+      // refetch below may still return RUNNING.
+      const current = get().jobDetail
+      if (current && current.id === jobId) {
+        set({ jobDetail: { ...current, status: "CANCELLING" } })
+      }
+      // Re-fetch overview + job detail in parallel so both the list and
+      // the detail page reflect the actual state from Flink.
+      await Promise.all([get().refresh(), get().fetchJobDetail(jobId)])
+    } catch (err) {
+      set({
+        fetchError: err instanceof Error ? err.message : "Failed to cancel job",
+      })
+    }
   },
 
-  uploadJar: (jar) => {
-    set((state) => ({ uploadedJars: [...state.uploadedJars, jar] }));
+  uploadJar: async (file) => {
+    try {
+      const jars = await uploadJarApi(file)
+      set({ uploadedJars: jars })
+    } catch (err) {
+      set({
+        fetchError: err instanceof Error ? err.message : "Failed to upload JAR",
+      })
+    }
   },
 
-  deleteJar: (jarId) => {
-    set((state) => ({
-      uploadedJars: state.uploadedJars.filter((j) => j.id !== jarId),
-    }));
+  deleteJar: async (jarId) => {
+    try {
+      await deleteJarApi(jarId)
+      // Re-fetch JAR list
+      const jars = await fetchJars()
+      set({ uploadedJars: jars })
+    } catch (err) {
+      set({
+        fetchError: err instanceof Error ? err.message : "Failed to delete JAR",
+      })
+    }
+  },
+
+  fetchJars: async () => {
+    try {
+      const jars = await fetchJars()
+      set({ uploadedJars: jars })
+    } catch (err) {
+      set({
+        fetchError: err instanceof Error ? err.message : "Failed to fetch JARs",
+      })
+    }
   },
 
   fetchJobDetail: async (jobId) => {
-    set({ jobDetailLoading: true, jobDetailError: null });
+    set({ jobDetailLoading: true, jobDetailError: null })
     try {
-      const job = await fetchJobDetail(jobId);
-      set({ jobDetail: job, jobDetailLoading: false, jobDetailError: null });
+      const job = await fetchJobDetail(jobId)
+      set({ jobDetail: job, jobDetailLoading: false, jobDetailError: null })
     } catch (err) {
       set({
         jobDetailLoading: false,
         jobDetailError:
           err instanceof Error ? err.message : "Failed to fetch job detail",
-      });
+      })
     }
   },
 
   clearJobDetail: () => {
-    set({ jobDetail: null, jobDetailLoading: false, jobDetailError: null });
+    set({ jobDetail: null, jobDetailLoading: false, jobDetailError: null })
   },
-}));
+
+  fetchTaskManagerDetail: async (tmId) => {
+    set({ taskManagerDetailLoading: true, taskManagerDetailError: null })
+    try {
+      const tm = await fetchTaskManagerDetail(tmId)
+      set({
+        taskManagerDetail: tm,
+        taskManagerDetailLoading: false,
+        taskManagerDetailError: null,
+      })
+    } catch (err) {
+      set({
+        taskManagerDetailLoading: false,
+        taskManagerDetailError:
+          err instanceof Error
+            ? err.message
+            : "Failed to fetch task manager detail",
+      })
+    }
+  },
+
+  clearTaskManagerDetail: () => {
+    set({
+      taskManagerDetail: null,
+      taskManagerDetailLoading: false,
+      taskManagerDetailError: null,
+    })
+  },
+}))

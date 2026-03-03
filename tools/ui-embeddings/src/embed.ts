@@ -1,7 +1,7 @@
-import { Ollama } from "ollama";
-import type { ContentChunk, EmbeddingRecord } from "./types.js";
+import { Ollama } from "ollama"
+import type { ContentChunk, EmbeddingRecord } from "./types.js"
 
-const ollama = new Ollama();
+const ollama = new Ollama()
 
 /**
  * Generate a single embedding vector via Ollama.
@@ -10,8 +10,8 @@ export async function generateEmbedding(
   text: string,
   model: string,
 ): Promise<number[]> {
-  const response = await ollama.embed({ model, input: text });
-  return response.embeddings[0];
+  const response = await ollama.embed({ model, input: text })
+  return response.embeddings[0]
 }
 
 /**
@@ -25,16 +25,16 @@ export async function generateEmbeddings(
   model: string,
   onProgress?: (completed: number, total: number) => void,
 ): Promise<EmbeddingRecord[]> {
-  const records: EmbeddingRecord[] = [];
+  const records: EmbeddingRecord[] = []
 
   for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i];
-    const vector = await generateEmbedding(chunk.content, model);
-    records.push({ ...chunk, vector });
-    onProgress?.(i + 1, chunks.length);
+    const chunk = chunks[i]
+    const vector = await generateEmbedding(chunk.content, model)
+    records.push({ ...chunk, vector })
+    onProgress?.(i + 1, chunks.length)
   }
 
-  return records;
+  return records
 }
 
 /**
@@ -42,9 +42,9 @@ export async function generateEmbeddings(
  */
 export async function checkModel(model: string): Promise<boolean> {
   try {
-    const list = await ollama.list();
-    return list.models.some((m) => m.name.startsWith(model));
+    const list = await ollama.list()
+    return list.models.some((m) => m.name.startsWith(model))
   } catch {
-    return false;
+    return false
   }
 }

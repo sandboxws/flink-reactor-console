@@ -1,25 +1,25 @@
-"use client";
+"use client"
 
-import { Command } from "cmdk";
-import type { LucideIcon } from "lucide-react";
+import { Command } from "cmdk"
+import type { LucideIcon } from "lucide-react"
 
 export interface CommandRoute {
-  label: string;
-  href: string;
-  icon: LucideIcon;
+  label: string
+  href: string
+  icon: LucideIcon
 }
 
 export interface CommandPaletteProps {
   /** Whether the palette is open */
-  open: boolean;
+  open: boolean
   /** Close callback */
-  onClose: () => void;
+  onClose: () => void
   /** Navigation callback when a route is selected */
-  onNavigate: (href: string) => void;
+  onNavigate: (href: string) => void
   /** Routes to display */
-  routes: CommandRoute[];
+  routes: CommandRoute[]
   /** Placeholder text for the search input */
-  placeholder?: string;
+  placeholder?: string
 }
 
 /**
@@ -42,11 +42,11 @@ export function CommandPalette({
   routes,
   placeholder = "Navigate to...",
 }: CommandPaletteProps) {
-  if (!open) return null;
+  if (!open) return null
 
   function handleSelect(href: string) {
-    onNavigate(href);
-    onClose();
+    onNavigate(href)
+    onClose()
   }
 
   return (
@@ -85,5 +85,5 @@ export function CommandPalette({
         </Command.List>
       </Command>
     </div>
-  );
+  )
 }

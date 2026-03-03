@@ -1,13 +1,13 @@
-"use client";
+"use client"
 
-import { Check, ChevronRight, Copy } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, ChevronRight, Copy } from "lucide-react"
+import { useMemo, useState } from "react"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { cn } from "@/lib/cn";
+} from "@/components/ui/collapsible"
+import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // Stack frame categorization
@@ -23,12 +23,12 @@ const FRAMEWORK_PREFIXES = [
   "akka.",
   "io.netty.",
   "org.apache.kafka.common.",
-];
+]
 
 function isFrameworkFrame(frame: string): boolean {
-  const match = frame.match(/^\s+at\s+([\w.$]+)/);
-  if (!match) return false;
-  return FRAMEWORK_PREFIXES.some((prefix) => match[1].startsWith(prefix));
+  const match = frame.match(/^\s+at\s+([\w.$]+)/)
+  if (!match) return false
+  return FRAMEWORK_PREFIXES.some((prefix) => match[1].startsWith(prefix))
 }
 
 // ---------------------------------------------------------------------------
@@ -36,81 +36,81 @@ function isFrameworkFrame(frame: string): boolean {
 // ---------------------------------------------------------------------------
 
 interface StackFrame {
-  text: string;
-  isFramework: boolean;
+  text: string
+  isFramework: boolean
 }
 
 interface ElidedFrames {
-  count: number;
-  text: string;
+  count: number
+  text: string
 }
 
 type FrameItem =
   | { type: "frame"; frame: StackFrame }
-  | { type: "elided"; elided: ElidedFrames };
+  | { type: "elided"; elided: ElidedFrames }
 
 interface CausedBySection {
-  header: string;
-  frames: FrameItem[];
+  header: string
+  frames: FrameItem[]
 }
 
 interface ParsedTrace {
-  header: string;
-  frames: FrameItem[];
-  causedBy: CausedBySection[];
+  header: string
+  frames: FrameItem[]
+  causedBy: CausedBySection[]
 }
 
 function parseStackTrace(raw: string): ParsedTrace {
-  const lines = raw.split("\n");
-  const header = lines[0] || "";
-  const frames: FrameItem[] = [];
-  const causedBy: CausedBySection[] = [];
+  const lines = raw.split("\n")
+  const header = lines[0] || ""
+  const frames: FrameItem[] = []
+  const causedBy: CausedBySection[] = []
 
-  let current: { header: string; frames: FrameItem[] } | null = null;
+  let current: { header: string; frames: FrameItem[] } | null = null
 
   for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
+    const line = lines[i]
 
     if (line.match(/^\s*Caused by:/)) {
       if (current) {
-        causedBy.push(current);
+        causedBy.push(current)
       }
-      current = { header: line.trim(), frames: [] };
-      continue;
+      current = { header: line.trim(), frames: [] }
+      continue
     }
 
-    const elidedMatch = line.match(/^\s*\.\.\.\s*(\d+)\s+more/);
+    const elidedMatch = line.match(/^\s*\.\.\.\s*(\d+)\s+more/)
     if (elidedMatch) {
       const item: FrameItem = {
         type: "elided",
         elided: { count: Number(elidedMatch[1]), text: line.trimStart() },
-      };
-      if (current) {
-        current.frames.push(item);
-      } else {
-        frames.push(item);
       }
-      continue;
+      if (current) {
+        current.frames.push(item)
+      } else {
+        frames.push(item)
+      }
+      continue
     }
 
     if (line.match(/^\s+at\s+/)) {
       const item: FrameItem = {
         type: "frame",
         frame: { text: line.trimStart(), isFramework: isFrameworkFrame(line) },
-      };
+      }
       if (current) {
-        current.frames.push(item);
+        current.frames.push(item)
       } else {
-        frames.push(item);
+        frames.push(item)
       }
     }
   }
 
   if (current) {
-    causedBy.push(current);
+    causedBy.push(current)
   }
 
-  return { header, frames, causedBy };
+  return { header, frames, causedBy }
 }
 
 // ---------------------------------------------------------------------------
@@ -126,7 +126,7 @@ function FrameList({ items }: { items: FrameItem[] }) {
             <div key={i} className="text-zinc-600 italic">
               {item.elided.text}
             </div>
-          );
+          )
         }
         return (
           <div
@@ -139,14 +139,14 @@ function FrameList({ items }: { items: FrameItem[] }) {
           >
             {item.frame.text}
           </div>
-        );
+        )
       })}
     </>
-  );
+  )
 }
 
 function CausedByChain({ section }: { section: CausedBySection }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -160,7 +160,7 @@ function CausedByChain({ section }: { section: CausedBySection }) {
         <FrameList items={section.frames} />
       </CollapsibleContent>
     </Collapsible>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -168,13 +168,13 @@ function CausedByChain({ section }: { section: CausedBySection }) {
 // ---------------------------------------------------------------------------
 
 export function StackTrace({ raw }: { raw: string }) {
-  const parsed = useMemo(() => parseStackTrace(raw), [raw]);
-  const [copied, setCopied] = useState(false);
+  const parsed = useMemo(() => parseStackTrace(raw), [raw])
+  const [copied, setCopied] = useState(false)
 
   function handleCopy() {
-    navigator.clipboard.writeText(raw);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(raw)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -206,5 +206,5 @@ export function StackTrace({ raw }: { raw: string }) {
         ))}
       </div>
     </div>
-  );
+  )
 }

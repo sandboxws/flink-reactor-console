@@ -1,16 +1,9 @@
-"use client";
+"use client"
 
-import { useMemo, useState, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
-import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Copy,
-  Check,
-} from "lucide-react";
-import type { TaskManager } from "@/data/cluster-types";
+import { formatDistanceToNow } from "date-fns"
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, Copy } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   Table,
   TableBody,
@@ -18,15 +11,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/cn";
-import { MemoryBar } from "./memory-bar";
+} from "@/components/ui/tooltip"
+import type { TaskManager } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
+import { MemoryBar } from "./memory-bar"
 
 // ---------------------------------------------------------------------------
 // Sort logic
@@ -41,37 +35,49 @@ type SortKey =
   | "physicalMemory"
   | "jvmHeap"
   | "managedMemory"
-  | "networkMemory";
+  | "networkMemory"
 
-type SortDir = "asc" | "desc";
+type SortDir = "asc" | "desc"
 
-function sortTms(tms: TaskManager[], key: SortKey, dir: SortDir): TaskManager[] {
+function sortTms(
+  tms: TaskManager[],
+  key: SortKey,
+  dir: SortDir,
+): TaskManager[] {
   const sorted = [...tms].sort((a, b) => {
     switch (key) {
       case "id":
-        return a.id.localeCompare(b.id);
+        return a.id.localeCompare(b.id)
       case "dataPort":
-        return a.dataPort - b.dataPort;
+        return a.dataPort - b.dataPort
       case "lastHeartbeat":
-        return a.lastHeartbeat.getTime() - b.lastHeartbeat.getTime();
+        return a.lastHeartbeat.getTime() - b.lastHeartbeat.getTime()
       case "slots":
-        return a.slotsFree - b.slotsFree;
+        return a.slotsFree - b.slotsFree
       case "cpuCores":
-        return a.cpuCores - b.cpuCores;
+        return a.cpuCores - b.cpuCores
       case "physicalMemory":
-        return a.physicalMemory - b.physicalMemory;
+        return a.physicalMemory - b.physicalMemory
       case "jvmHeap":
-        return a.metrics.jvmHeapUsed / a.metrics.jvmHeapMax -
-          b.metrics.jvmHeapUsed / b.metrics.jvmHeapMax;
+        return (
+          a.metrics.heapUsed / a.metrics.heapMax -
+          b.metrics.heapUsed / b.metrics.heapMax
+        )
       case "managedMemory":
-        return a.metrics.managedMemoryUsed / a.metrics.managedMemoryTotal -
-          b.metrics.managedMemoryUsed / b.metrics.managedMemoryTotal;
+        return (
+          a.metrics.managedMemoryUsed / a.metrics.managedMemoryTotal -
+          b.metrics.managedMemoryUsed / b.metrics.managedMemoryTotal
+        )
       case "networkMemory":
-        return a.metrics.networkMemoryUsed / a.metrics.networkMemoryTotal -
-          b.metrics.networkMemoryUsed / b.metrics.networkMemoryTotal;
+        return (
+          a.metrics.nettyShuffleMemoryUsed / a.metrics.nettyShuffleMemoryTotal -
+          b.metrics.nettyShuffleMemoryUsed / b.metrics.nettyShuffleMemoryTotal
+        )
+      default:
+        return 0
     }
-  });
-  return dir === "desc" ? sorted.reverse() : sorted;
+  })
+  return dir === "desc" ? sorted.reverse() : sorted
 }
 
 // ---------------------------------------------------------------------------
@@ -83,17 +89,17 @@ function SortIcon({
   active,
   dir,
 }: {
-  column: string;
-  active: string;
-  dir: SortDir;
+  column: string
+  active: string
+  dir: SortDir
 }) {
   if (column !== active)
-    return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />;
+    return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />
   return dir === "asc" ? (
     <ArrowUp className="size-3" />
   ) : (
     <ArrowDown className="size-3" />
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -101,18 +107,18 @@ function SortIcon({
 // ---------------------------------------------------------------------------
 
 function TmIdCell({ id }: { id: string }) {
-  const [copied, setCopied] = useState(false);
-  const truncated = id.length > 12 ? id.slice(0, 12) + "\u2026" : id;
+  const [copied, setCopied] = useState(false)
+  const truncated = id.length > 12 ? `${id.slice(0, 12)}\u2026` : id
 
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
-      e.stopPropagation();
-      navigator.clipboard.writeText(id);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      e.stopPropagation()
+      navigator.clipboard.writeText(id)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
     },
     [id],
-  );
+  )
 
   return (
     <TooltipProvider>
@@ -134,7 +140,7 @@ function TmIdCell({ id }: { id: string }) {
         <TooltipContent side="top">{copied ? "Copied!" : id}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -142,18 +148,18 @@ function TmIdCell({ id }: { id: string }) {
 // ---------------------------------------------------------------------------
 
 function HeartbeatCell({ date }: { date: Date }) {
-  const [, setTick] = useState(0);
+  const [, setTick] = useState(0)
 
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
+    const id = setInterval(() => setTick((t) => t + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
 
   return (
     <span className="text-xs text-zinc-400">
       {formatDistanceToNow(date, { addSuffix: true })}
     </span>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -161,10 +167,10 @@ function HeartbeatCell({ date }: { date: Date }) {
 // ---------------------------------------------------------------------------
 
 type ColumnDef = {
-  key: SortKey;
-  label: string;
-  align?: string;
-};
+  key: SortKey
+  label: string
+  align?: string
+}
 
 const columns: ColumnDef[] = [
   { key: "id", label: "ID" },
@@ -176,7 +182,7 @@ const columns: ColumnDef[] = [
   { key: "jvmHeap", label: "JVM Heap" },
   { key: "managedMemory", label: "Managed Mem" },
   { key: "networkMemory", label: "Network Mem" },
-];
+]
 
 // ---------------------------------------------------------------------------
 // TaskManagerList
@@ -186,24 +192,24 @@ export function TaskManagerList({
   taskManagers,
   selectedId,
 }: {
-  taskManagers: TaskManager[];
-  selectedId?: string | null;
+  taskManagers: TaskManager[]
+  selectedId?: string | null
 }) {
-  const router = useRouter();
-  const [sortKey, setSortKey] = useState<SortKey>("id");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const router = useRouter()
+  const [sortKey, setSortKey] = useState<SortKey>("id")
+  const [sortDir, setSortDir] = useState<SortDir>("asc")
 
   const sorted = useMemo(
     () => sortTms(taskManagers, sortKey, sortDir),
     [taskManagers, sortKey, sortDir],
-  );
+  )
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
     } else {
-      setSortKey(key);
-      setSortDir("desc");
+      setSortKey(key)
+      setSortDir("desc")
     }
   }
 
@@ -212,7 +218,7 @@ export function TaskManagerList({
       <p className="py-12 text-center text-sm text-zinc-600">
         No task managers registered
       </p>
-    );
+    )
   }
 
   return (
@@ -271,8 +277,8 @@ export function TaskManagerList({
             </TableCell>
             <TableCell>
               <MemoryBar
-                used={tm.metrics.jvmHeapUsed}
-                total={tm.metrics.jvmHeapMax}
+                used={tm.metrics.heapUsed}
+                total={tm.metrics.heapMax}
               />
             </TableCell>
             <TableCell>
@@ -283,13 +289,13 @@ export function TaskManagerList({
             </TableCell>
             <TableCell>
               <MemoryBar
-                used={tm.metrics.networkMemoryUsed}
-                total={tm.metrics.networkMemoryTotal}
+                used={tm.metrics.nettyShuffleMemoryUsed}
+                total={tm.metrics.nettyShuffleMemoryTotal}
               />
             </TableCell>
           </TableRow>
         ))}
       </TableBody>
     </Table>
-  );
+  )
 }

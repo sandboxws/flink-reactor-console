@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import { useCallback, useRef, useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Check, Copy } from "lucide-react"
+import { useCallback, useRef, useState } from "react"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/cn";
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // TextViewer — readonly monospace text pane with line numbers and copy button
@@ -18,19 +18,19 @@ export function TextViewer({
   text,
   className,
 }: {
-  text: string;
-  className?: string;
+  text: string
+  className?: string
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [copied, setCopied] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [copied, setCopied] = useState(false)
 
-  const lines = text.split("\n");
+  const lines = text.split("\n")
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }, [text]);
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }, [text])
 
   return (
     <div
@@ -76,5 +76,5 @@ export function TextViewer({
         ))}
       </div>
     </div>
-  );
+  )
 }

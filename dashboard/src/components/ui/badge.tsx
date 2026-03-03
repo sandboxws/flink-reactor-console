@@ -1,11 +1,11 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"
 
-type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
+type BadgeVariant = "default" | "secondary" | "destructive" | "outline"
 
 interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: BadgeVariant;
+  variant?: BadgeVariant
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
@@ -13,7 +13,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   secondary: "border-transparent bg-white/5 text-zinc-400",
   destructive: "border-transparent bg-red-500/15 text-red-400",
   outline: "border-dash-border text-zinc-300",
-};
+}
 
 function Badge({ className, variant = "default", ...props }: BadgeProps) {
   return (
@@ -25,8 +25,8 @@ function Badge({ className, variant = "default", ...props }: BadgeProps) {
       )}
       {...props}
     />
-  );
+  )
 }
 
-export { Badge };
-export type { BadgeVariant };
+export { Badge }
+export type { BadgeVariant }

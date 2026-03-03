@@ -1,23 +1,23 @@
-"use client";
+"use client"
 
 import {
+  AlertCircle,
+  CheckCircle2,
   Cpu,
-  Server,
   Layers,
   Play,
-  CheckCircle2,
-  AlertCircle,
   RefreshCw,
-} from "lucide-react";
-import { useClusterStore } from "@/stores/cluster-store";
-import { StatCard } from "./stat-card";
-import { SlotUtilization } from "./slot-utilization";
-import { JobStatusSummary } from "./job-status-summary";
-import { ClusterInfo } from "./cluster-info";
-import { JobList } from "./job-list";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+  Server,
+} from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useClusterStore } from "@/stores/cluster-store"
+import { ClusterInfo } from "./cluster-info"
+import { JobList } from "./job-list"
+import { JobStatusSummary } from "./job-status-summary"
+import { SlotUtilization } from "./slot-utilization"
+import { StatCard } from "./stat-card"
 
 function OverviewSkeleton() {
   return (
@@ -42,15 +42,15 @@ function OverviewSkeleton() {
       <Skeleton className="h-48 rounded-lg" />
       <Skeleton className="h-48 rounded-lg" />
     </div>
-  );
+  )
 }
 
 function OverviewError({
   message,
   onRetry,
 }: {
-  message: string;
-  onRetry: () => void;
+  message: string
+  onRetry: () => void
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-16 text-zinc-500">
@@ -61,29 +61,29 @@ function OverviewError({
         Retry
       </Button>
     </div>
-  );
+  )
 }
 
 export function OverviewPage() {
-  const overview = useClusterStore((s) => s.overview);
-  const runningJobs = useClusterStore((s) => s.runningJobs);
-  const completedJobs = useClusterStore((s) => s.completedJobs);
-  const fetchError = useClusterStore((s) => s.fetchError);
-  const isLoading = useClusterStore((s) => s.isLoading);
-  const refresh = useClusterStore((s) => s.refresh);
+  const overview = useClusterStore((s) => s.overview)
+  const runningJobs = useClusterStore((s) => s.runningJobs)
+  const completedJobs = useClusterStore((s) => s.completedJobs)
+  const fetchError = useClusterStore((s) => s.fetchError)
+  const isLoading = useClusterStore((s) => s.isLoading)
+  const refresh = useClusterStore((s) => s.refresh)
 
   // Loading: first fetch in progress, no data yet
   if (isLoading && !overview) {
-    return <OverviewSkeleton />;
+    return <OverviewSkeleton />
   }
 
   // Error with no data: initial fetch failed
   if (fetchError && !overview) {
-    return <OverviewError message={fetchError} onRetry={refresh} />;
+    return <OverviewError message={fetchError} onRetry={refresh} />
   }
 
   // No data and no error (shouldn't happen, but safe guard)
-  if (!overview) return null;
+  if (!overview) return null
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -167,5 +167,5 @@ export function OverviewPage() {
         accent="text-job-finished"
       />
     </div>
-  );
+  )
 }

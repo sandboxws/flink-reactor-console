@@ -1,51 +1,69 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import dynamic from "next/dynamic";
-import type { FlinkJob } from "@/data/cluster-types";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { JobHeader } from "./detail/job-header";
-import { ExceptionsTab } from "./detail/exceptions-tab";
-import { DataSkewTab } from "./detail/data-skew-tab";
-import { TimelineTab } from "./detail/timeline-tab";
-import { CheckpointsTab } from "./detail/checkpoints-tab";
-import { ConfigurationTab } from "./detail/configuration-tab";
-import { VerticesTab } from "./detail/vertices-tab";
-import { TapPanel } from "../tap/tap-panel";
+import dynamic from "next/dynamic"
+import { useMemo, useState } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { FlinkJob } from "@/data/cluster-types"
+import { useClusterStore } from "@/stores/cluster-store"
+import { TapPanel } from "../tap/tap-panel"
+import { CheckpointsTab } from "./detail/checkpoints-tab"
+import { ConfigurationTab } from "./detail/configuration-tab"
+import { DataSkewTab } from "./detail/data-skew-tab"
+import { ExceptionsTab } from "./detail/exceptions-tab"
+import { JobHeader } from "./detail/job-header"
+import { TimelineTab } from "./detail/timeline-tab"
+import { VerticesTab } from "./detail/vertices-tab"
 
 // Dynamic import for ReactFlow component (dagre uses CJS require which breaks SSR)
-const JobGraph = dynamic(() => import("./detail/job-graph").then((m) => m.JobGraph), {
-  ssr: false,
-  loading: () => (
-    <div className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500" style={{ height: 500 }}>
-      Loading graph...
-    </div>
-  ),
-});
+const JobGraph = dynamic(
+  () => import("./detail/job-graph").then((m) => m.JobGraph),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500"
+        style={{ height: 500 }}
+      >
+        Loading graph...
+      </div>
+    ),
+  },
+)
 
 export function JobDetail({
   job,
   onCancelJob,
   onCreateSavepoint,
 }: {
-  job: FlinkJob;
-  onCancelJob?: () => void;
-  onCreateSavepoint?: () => void;
+  job: FlinkJob
+  onCancelJob?: () => void
+  onCreateSavepoint?: () => void
 }) {
-  const [savepointFeedback, setSavepointFeedback] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [selectedVertexId, setSelectedVertexId] = useState<string | undefined>();
+  const fetchJobDetail = useClusterStore((s) => s.fetchJobDetail)
+  const jobDetailLoading = useClusterStore((s) => s.jobDetailLoading)
+  const [savepointFeedback, setSavepointFeedback] = useState(false)
+  const [activeTab, setActiveTab] = useState("overview")
+  const [selectedVertexId, setSelectedVertexId] = useState<string | undefined>()
 
   const handleSelectVertex = (vertexId: string) => {
-    setSelectedVertexId(vertexId);
-    setActiveTab("vertices");
-  };
+    setSelectedVertexId(vertexId)
+    setActiveTab("vertices")
+  }
 
   const handleSavepoint = () => {
-    setSavepointFeedback(true);
-    setTimeout(() => setSavepointFeedback(false), 2000);
-    onCreateSavepoint?.();
-  };
+    setSavepointFeedback(true)
+    setTimeout(() => setSavepointFeedback(false), 2000)
+    onCreateSavepoint?.()
+  }
+
+  // Build vertex ID → operator name map for checkpoint detail
+  const vertexNames = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const v of job.plan?.vertices ?? []) {
+      map[v.id] = v.name
+    }
+    return map
+  }, [job.plan])
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -53,6 +71,8 @@ export function JobDetail({
         job={job}
         onCancelJob={onCancelJob}
         onCreateSavepoint={handleSavepoint}
+        onRefresh={() => fetchJobDetail(job.id)}
+        isRefreshing={jobDetailLoading}
       />
 
       {savepointFeedback && (
@@ -128,8 +148,12 @@ export function JobDetail({
 
         <TabsContent value="checkpoints" className="mt-4">
           <CheckpointsTab
+            jobId={job.id}
             checkpoints={job.checkpoints}
+            counts={job.checkpointCounts}
             config={job.checkpointConfig}
+            checkpointLatest={job.checkpointLatest}
+            vertexNames={vertexNames}
           />
         </TabsContent>
 
@@ -142,5 +166,5 @@ export function JobDetail({
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

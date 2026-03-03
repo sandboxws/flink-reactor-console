@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"
 
 function Table({
   className,
@@ -13,7 +13,7 @@ function Table({
         {...props}
       />
     </div>
-  );
+  )
 }
 
 function TableHeader({
@@ -25,7 +25,7 @@ function TableHeader({
       className={cn("[&_tr]:border-b [&_tr]:border-dash-border", className)}
       {...props}
     />
-  );
+  )
 }
 
 function TableBody({
@@ -34,7 +34,7 @@ function TableBody({
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <tbody className={cn("[&_tr:last-child]:border-0", className)} {...props} />
-  );
+  )
 }
 
 function TableFooter({
@@ -49,7 +49,7 @@ function TableFooter({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function TableRow({
@@ -64,7 +64,7 @@ function TableRow({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function TableHead({
@@ -79,7 +79,7 @@ function TableHead({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function TableCell({
@@ -94,7 +94,7 @@ function TableCell({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function TableCaption({
@@ -106,7 +106,7 @@ function TableCaption({
       className={cn("mt-4 text-sm text-zinc-500", className)}
       {...props}
     />
-  );
+  )
 }
 
 export {
@@ -118,4 +118,4 @@ export {
   TableHead,
   TableCell,
   TableCaption,
-};
+}

@@ -1,79 +1,79 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, Settings } from "lucide-react";
-import type { JobManagerConfig } from "@/data/cluster-types";
-import { EmptyState } from "@/components/shared/empty-state";
-import { TagBadge, TagChip, classifyConfigKey } from "./tag-filter";
+import { Search, Settings } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { EmptyState } from "@/components/shared/empty-state"
+import type { JobManagerConfig } from "@/data/cluster-types"
+import { classifyConfigKey, TagBadge, TagChip } from "./tag-filter"
 
 // ---------------------------------------------------------------------------
 // JmConfigSection — searchable key-value table with tag filtering
 // ---------------------------------------------------------------------------
 
 export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
-  const [search, setSearch] = useState("");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [rowsBelow, setRowsBelow] = useState(0);
+  const [search, setSearch] = useState("")
+  const [activeTag, setActiveTag] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [rowsBelow, setRowsBelow] = useState(0)
 
   // Tag each config entry
   const taggedConfig = useMemo(
     () => config.map((c) => ({ ...c, tag: classifyConfigKey(c.key) })),
     [config],
-  );
+  )
 
   // Compute tag counts
   const tagCounts = useMemo(() => {
-    const counts = new Map<string, number>();
+    const counts = new Map<string, number>()
     for (const entry of taggedConfig) {
-      counts.set(entry.tag, (counts.get(entry.tag) ?? 0) + 1);
+      counts.set(entry.tag, (counts.get(entry.tag) ?? 0) + 1)
     }
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
-      .map(([tag, count]) => ({ tag, count }));
-  }, [taggedConfig]);
+      .map(([tag, count]) => ({ tag, count }))
+  }, [taggedConfig])
 
   // Apply both filters (AND logic)
   const filtered = useMemo(() => {
-    let results = taggedConfig;
+    let results = taggedConfig
     if (activeTag) {
-      results = results.filter((c) => c.tag === activeTag);
+      results = results.filter((c) => c.tag === activeTag)
     }
     if (search) {
-      const lower = search.toLowerCase();
+      const lower = search.toLowerCase()
       results = results.filter(
         (c) =>
           c.key.toLowerCase().includes(lower) ||
           c.value.toLowerCase().includes(lower),
-      );
+      )
     }
-    return results;
-  }, [taggedConfig, activeTag, search]);
+    return results
+  }, [taggedConfig, activeTag, search])
 
   // Compute how many rows remain below the visible scroll fold
   const computeRowsBelow = useCallback(() => {
-    const el = scrollRef.current;
+    const el = scrollRef.current
     if (!el || filtered.length === 0) {
-      setRowsBelow(0);
-      return;
+      setRowsBelow(0)
+      return
     }
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    const remaining = scrollHeight - scrollTop - clientHeight;
+    const { scrollTop, scrollHeight, clientHeight } = el
+    const remaining = scrollHeight - scrollTop - clientHeight
     if (remaining < 1) {
-      setRowsBelow(0);
+      setRowsBelow(0)
     } else {
-      const rowHeight = scrollHeight / (filtered.length + 1);
-      setRowsBelow(Math.ceil(remaining / rowHeight));
+      const rowHeight = scrollHeight / (filtered.length + 1)
+      setRowsBelow(Math.ceil(remaining / rowHeight))
     }
-  }, [filtered.length]);
+  }, [filtered.length])
 
   // Recompute when filtered data changes
   useEffect(() => {
-    computeRowsBelow();
-  }, [computeRowsBelow]);
+    computeRowsBelow()
+  }, [computeRowsBelow])
 
   if (config.length === 0) {
-    return <EmptyState icon={Settings} message="No configuration available" />;
+    return <EmptyState icon={Settings} message="No configuration available" />
   }
 
   return (
@@ -173,7 +173,7 @@ export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
 
         {/* Scroll indicator overlay */}
         <div
-          className={`pointer-events-none absolute bottom-0 left-0 right-0 flex h-8 items-end justify-center bg-gradient-to-t from-[#12121a] to-transparent pb-1.5 transition-opacity duration-200 ${
+          className={`pointer-events-none absolute bottom-0 left-0 right-0 flex h-8 items-end justify-center bg-gradient-to-t from-dash-surface to-transparent pb-1.5 transition-opacity duration-200 ${
             rowsBelow > 0 ? "opacity-100" : "opacity-0"
           }`}
         >
@@ -183,5 +183,5 @@ export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,15 +1,15 @@
-import { Layers } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/cn";
+import { Layers } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { cn } from "@/lib/cn"
 
 export function SlotUtilization({
   available,
   total,
 }: {
-  available: number;
-  total: number;
+  available: number
+  total: number
 }) {
-  const pct = total > 0 ? Math.round((available / total) * 100) : 0;
+  const pct = total > 0 ? Math.round((available / total) * 100) : 0
 
   // Color gradient based on availability percentage
   const color =
@@ -17,7 +17,7 @@ export function SlotUtilization({
       ? "text-job-running" // green — healthy
       : pct >= 10
         ? "text-fr-amber" // amber — getting low
-        : "text-job-failed"; // red — critical
+        : "text-job-failed" // red — critical
 
   return (
     <div className="glass-card p-4">
@@ -38,5 +38,5 @@ export function SlotUtilization({
 
       <Progress value={pct} className="mt-3" />
     </div>
-  );
+  )
 }

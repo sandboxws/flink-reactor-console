@@ -1,22 +1,23 @@
-"use client";
+"use client"
 
-import { Check, ChevronDown, Pause, Play } from "lucide-react";
-import { SearchInput } from "@/components/shared/search-input";
-import { TimeRange } from "@/components/shared/time-range";
+import { Check, ChevronDown, Pause, Play } from "lucide-react"
+import { useMemo } from "react"
+import { SearchInput } from "@/components/shared/search-input"
+import { TimeRange } from "@/components/shared/time-range"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { ALL_SOURCES } from "@/data/flink-loggers";
-import { cn } from "@/lib/cn";
-import { useFilterStore } from "@/stores/filter-store";
-import { useLogStore } from "@/stores/log-store";
-import { SeverityFilter } from "./severity-filter";
+} from "@/components/ui/popover"
+import type { LogSource } from "@/data/types"
+import { cn } from "@/lib/cn"
+import { useFilterStore } from "@/stores/filter-store"
+import { useLogStore } from "@/stores/log-store"
+import { SeverityFilter } from "./severity-filter"
 
-export function LogToolbar() {
-  const toggleStreaming = useLogStore((s) => s.toggleStreaming);
-  const isStreaming = useLogStore((s) => s.isStreaming);
+export function LogToolbar({ filteredCount }: { filteredCount: number }) {
+  const toggleStreaming = useLogStore((s) => s.toggleStreaming)
+  const isStreaming = useLogStore((s) => s.isStreaming)
 
   return (
     <div className="flex items-center gap-2 border-b border-dash-border bg-dash-panel px-3 py-1.5">
@@ -32,7 +33,13 @@ export function LogToolbar() {
         )}
       >
         {isStreaming ? (
-          <Pause className="size-3" />
+          <>
+            <span className="relative mr-0.5 flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
+            </span>
+            <Pause className="size-3" />
+          </>
         ) : (
           <Play className="size-3" />
         )}
@@ -53,9 +60,15 @@ export function LogToolbar() {
 
       <div className="flex-1" />
 
+      {filteredCount > 0 && (
+        <span className="tabular-nums text-[11px] text-zinc-500">
+          {filteredCount.toLocaleString()} entries
+        </span>
+      )}
+
       <TimeRange />
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -63,14 +76,30 @@ export function LogToolbar() {
 // ---------------------------------------------------------------------------
 
 function SourceDropdown() {
-  const selectedSources = useFilterStore((s) => s.selectedSources);
-  const toggleSource = useFilterStore((s) => s.toggleSource);
-  const clearSources = useFilterStore((s) => s.clearSources);
+  const entries = useLogStore((s) => s.entries)
+  const selectedSources = useFilterStore((s) => s.selectedSources)
+  const toggleSource = useFilterStore((s) => s.toggleSource)
+  const clearSources = useFilterStore((s) => s.clearSources)
+
+  // Derive unique sources from actual log entries (works for both mock & live)
+  const availableSources = useMemo(() => {
+    const seen = new Map<string, LogSource>()
+    for (const entry of entries) {
+      if (!seen.has(entry.source.id)) {
+        seen.set(entry.source.id, entry.source)
+      }
+    }
+    // Sort: jobmanager first, then taskmanagers alphabetically by label
+    return [...seen.values()].sort((a, b) => {
+      if (a.type !== b.type) return a.type === "jobmanager" ? -1 : 1
+      return a.label.localeCompare(b.label)
+    })
+  }, [entries])
 
   const label =
     selectedSources.size === 0
       ? "All sources"
-      : `${selectedSources.size} source${selectedSources.size > 1 ? "s" : ""}`;
+      : `${selectedSources.size} source${selectedSources.size > 1 ? "s" : ""}`
 
   return (
     <Popover>
@@ -95,7 +124,7 @@ function SourceDropdown() {
           All sources
         </button>
         <div className="mx-1 my-1 h-px bg-dash-border" />
-        {ALL_SOURCES.map((source) => (
+        {availableSources.map((source) => (
           <button
             key={source.id}
             type="button"
@@ -124,5 +153,5 @@ function SourceDropdown() {
         ))}
       </PopoverContent>
     </Popover>
-  );
+  )
 }

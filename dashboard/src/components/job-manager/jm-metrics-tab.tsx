@@ -1,43 +1,45 @@
-"use client";
+"use client"
 
-import { useMemo } from "react";
+import { format } from "date-fns"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  AreaChart,
   Area,
-  LineChart,
+  AreaChart,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
-import { format } from "date-fns";
-import type { JobManagerMetrics, JvmMetricSample } from "@/data/cluster-types";
+} from "recharts"
+import type { JobManagerMetrics, JvmMetricSample } from "@/data/cluster-types"
+import { fetchJobManagerMetrics } from "@/lib/flink-api-client"
+import { useConfigStore } from "@/stores/config-store"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const GB = 1024 ** 3;
-const MB = 1024 ** 2;
+const GB = 1024 ** 3
+const MB = 1024 ** 2
 
 function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`;
-  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`;
-  return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
+  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`
+  return `${(bytes / 1024).toFixed(0)} KB`
 }
 
-type DataPoint = { time: string; value: number };
+type DataPoint = { time: string; value: number }
 
 function toDataPoints(samples: JvmMetricSample[]): DataPoint[] {
   return samples.map((s) => ({
     time: format(s.timestamp, "HH:mm:ss"),
     value: s.value,
-  }));
+  }))
 }
 
-type DualDataPoint = { time: string; count: number; timeMs: number };
+type DualDataPoint = { time: string; count: number; timeMs: number }
 
 function toDualDataPoints(
   countSamples: JvmMetricSample[],
@@ -47,7 +49,7 @@ function toDualDataPoints(
     time: format(s.timestamp, "HH:mm:ss"),
     count: s.value,
     timeMs: timeSamples[i]?.value ?? 0,
-  }));
+  }))
 }
 
 // ---------------------------------------------------------------------------
@@ -60,26 +62,26 @@ function ChartTooltip({
   label,
   unit,
 }: {
-  active?: boolean;
-  payload?: Array<{ value: number; color: string; name: string }>;
-  label?: string;
-  unit?: string;
+  active?: boolean
+  payload?: Array<{ value: number; color: string; name: string }>
+  label?: string
+  unit?: string
 }) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) return null
 
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2 py-1.5"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <p className="mb-0.5 text-[10px] text-zinc-400">{label}</p>
+      <p className="mb-0.5 text-[10px] text-fg-muted">{label}</p>
       {payload.map((item) => (
         <div key={item.name} className="flex items-center gap-1.5 text-[10px]">
           <span
             className="inline-block size-1.5 rounded-full"
             style={{ backgroundColor: item.color }}
           />
-          <span className="text-zinc-300">
+          <span className="text-fg-secondary">
             {unit === "bytes"
               ? formatBytes(item.value)
               : unit === "ms"
@@ -89,7 +91,7 @@ function ChartTooltip({
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 function DualChartTooltip({
@@ -97,25 +99,30 @@ function DualChartTooltip({
   payload,
   label,
 }: {
-  active?: boolean;
-  payload?: Array<{ value: number; color: string; name: string; dataKey: string }>;
-  label?: string;
+  active?: boolean
+  payload?: Array<{
+    value: number
+    color: string
+    name: string
+    dataKey: string
+  }>
+  label?: string
 }) {
-  if (!active || !payload?.length) return null;
+  if (!active || !payload?.length) return null
 
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2 py-1.5"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <p className="mb-0.5 text-[10px] text-zinc-400">{label}</p>
+      <p className="mb-0.5 text-[10px] text-fg-muted">{label}</p>
       {payload.map((item) => (
         <div key={item.name} className="flex items-center gap-1.5 text-[10px]">
           <span
             className="inline-block size-1.5 rounded-full"
             style={{ backgroundColor: item.color }}
           />
-          <span className="text-zinc-300">
+          <span className="text-fg-secondary">
             {item.dataKey === "timeMs"
               ? `${item.value.toFixed(0)} ms`
               : item.value.toFixed(0)}
@@ -123,7 +130,7 @@ function DualChartTooltip({
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -136,12 +143,12 @@ function MemoryChart({
   color,
   maxValue,
 }: {
-  title: string;
-  data: DataPoint[];
-  color: string;
-  maxValue: number;
+  title: string
+  data: DataPoint[]
+  color: string
+  maxValue: number
 }) {
-  const gradientId = `grad-${title.replace(/\s/g, "")}`;
+  const gradientId = `grad-${title.replace(/\s/g, "")}`
 
   return (
     <div className="glass-card p-4">
@@ -162,13 +169,13 @@ function MemoryChart({
             </defs>
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               width={55}
@@ -176,18 +183,18 @@ function MemoryChart({
             />
             <Tooltip
               content={<ChartTooltip unit="bytes" />}
-              cursor={{ stroke: "rgba(255,255,255,0.08)" }}
+              cursor={{ stroke: "var(--color-chart-cursor)" }}
               isAnimationActive={false}
             />
             <ReferenceLine
               y={maxValue}
-              stroke="#f7768e"
+              stroke="var(--color-log-error)"
               strokeDasharray="4 4"
               strokeOpacity={0.6}
               label={{
                 value: "Max",
                 position: "right",
-                style: { fontSize: 10, fill: "#f7768e" },
+                style: { fontSize: 10, fill: "var(--color-log-error)" },
               }}
             />
             <Area
@@ -202,7 +209,7 @@ function MemoryChart({
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 function SimpleLineChart({
@@ -210,9 +217,9 @@ function SimpleLineChart({
   data,
   color,
 }: {
-  title: string;
-  data: DataPoint[];
-  color: string;
+  title: string
+  data: DataPoint[]
+  color: string
 }) {
   return (
     <div className="glass-card p-4">
@@ -227,13 +234,13 @@ function SimpleLineChart({
           >
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               width={55}
@@ -241,7 +248,7 @@ function SimpleLineChart({
             />
             <Tooltip
               content={<ChartTooltip />}
-              cursor={{ stroke: "rgba(255,255,255,0.08)" }}
+              cursor={{ stroke: "var(--color-chart-cursor)" }}
               isAnimationActive={false}
             />
             <Line
@@ -256,7 +263,7 @@ function SimpleLineChart({
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
@@ -273,14 +280,14 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
           >
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
               yAxisId="left"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               width={45}
@@ -289,7 +296,7 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
             <YAxis
               yAxisId="right"
               orientation="right"
-              tick={{ fontSize: 10, fill: "#52525b" }}
+              tick={{ fontSize: 10, fill: "var(--color-fg-faint)" }}
               tickLine={false}
               axisLine={false}
               width={50}
@@ -297,7 +304,7 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
             />
             <Tooltip
               content={<DualChartTooltip />}
-              cursor={{ stroke: "rgba(255,255,255,0.08)" }}
+              cursor={{ stroke: "var(--color-chart-cursor)" }}
               isAnimationActive={false}
             />
             <Line
@@ -305,7 +312,7 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
               type="monotone"
               dataKey="count"
               name="GC Count"
-              stroke="#e0af68"
+              stroke="var(--color-fr-amber)"
               strokeWidth={1.5}
               dot={false}
               isAnimationActive={false}
@@ -315,7 +322,7 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
               type="monotone"
               dataKey="timeMs"
               name="GC Time"
-              stroke="#d97085"
+              stroke="var(--color-fr-coral)"
               strokeWidth={1.5}
               dot={false}
               isAnimationActive={false}
@@ -324,51 +331,113 @@ function DualAxisGcChart({ data }: { data: DualDataPoint[] }) {
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
 // JmMetricsTab
 // ---------------------------------------------------------------------------
 
+const MAX_SAMPLES = 30
+
+function appendSample(
+  arr: JvmMetricSample[],
+  sample: JvmMetricSample,
+): JvmMetricSample[] {
+  const next = [...arr, sample]
+  if (next.length > MAX_SAMPLES) return next.slice(next.length - MAX_SAMPLES)
+  return next
+}
+
+function useForceUpdate() {
+  const [, setTick] = useState(0)
+  return useCallback(() => setTick((n) => n + 1), [])
+}
+
 export function JmMetricsTab({ metrics }: { metrics: JobManagerMetrics }) {
-  const heapData = useMemo(
-    () => toDataPoints(metrics.jvmHeapUsed),
-    [metrics.jvmHeapUsed],
-  );
+  const seriesRef = useRef<JobManagerMetrics>({ ...metrics })
+  const pollIntervalMs = useConfigStore((s) => s.config?.pollIntervalMs ?? 5000)
+  const forceUpdate = useForceUpdate()
+
+  // Poll for live metrics and accumulate samples
+  useEffect(() => {
+    let cancelled = false
+
+    const poll = async () => {
+      try {
+        const m = await fetchJobManagerMetrics()
+        if (cancelled) return
+
+        const now = new Date()
+        const s = seriesRef.current
+
+        seriesRef.current = {
+          jvmHeapUsed: appendSample(s.jvmHeapUsed, {
+            timestamp: now,
+            value: m.heapUsed,
+          }),
+          jvmHeapMax: m.heapMax,
+          jvmNonHeapUsed: appendSample(s.jvmNonHeapUsed, {
+            timestamp: now,
+            value: m.nonHeapUsed,
+          }),
+          jvmNonHeapMax: m.nonHeapMax,
+          threadCount: appendSample(s.threadCount, {
+            timestamp: now,
+            value: m.threadCount,
+          }),
+          gcCount: appendSample(s.gcCount, {
+            timestamp: now,
+            value: m.gcCount,
+          }),
+          gcTime: appendSample(s.gcTime, { timestamp: now, value: m.gcTime }),
+        }
+        forceUpdate()
+      } catch {
+        // Silently ignore poll failures
+      }
+    }
+
+    const interval = setInterval(poll, pollIntervalMs)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [pollIntervalMs, forceUpdate])
+
+  const s = seriesRef.current
+
+  const heapData = useMemo(() => toDataPoints(s.jvmHeapUsed), [s.jvmHeapUsed])
   const nonHeapData = useMemo(
-    () => toDataPoints(metrics.jvmNonHeapUsed),
-    [metrics.jvmNonHeapUsed],
-  );
-  const threadData = useMemo(
-    () => toDataPoints(metrics.threadCount),
-    [metrics.threadCount],
-  );
+    () => toDataPoints(s.jvmNonHeapUsed),
+    [s.jvmNonHeapUsed],
+  )
+  const threadData = useMemo(() => toDataPoints(s.threadCount), [s.threadCount])
   const gcData = useMemo(
-    () => toDualDataPoints(metrics.gcCount, metrics.gcTime),
-    [metrics.gcCount, metrics.gcTime],
-  );
+    () => toDualDataPoints(s.gcCount, s.gcTime),
+    [s.gcCount, s.gcTime],
+  )
 
   return (
     <div className="grid gap-4 pt-4 sm:grid-cols-2">
       <MemoryChart
         title="JVM Heap Used"
         data={heapData}
-        color="#d97085"
-        maxValue={metrics.jvmHeapMax}
+        color="var(--color-fr-coral)"
+        maxValue={s.jvmHeapMax}
       />
       <MemoryChart
         title="JVM Non-Heap Used"
         data={nonHeapData}
-        color="#9b6bbf"
-        maxValue={metrics.jvmNonHeapMax}
+        color="var(--color-fr-purple)"
+        maxValue={s.jvmNonHeapMax}
       />
       <SimpleLineChart
         title="Thread Count"
         data={threadData}
-        color="#d4d4d8"
+        color="var(--color-fg-secondary)"
       />
       <DualAxisGcChart data={gcData} />
     </div>
-  );
+  )
 }

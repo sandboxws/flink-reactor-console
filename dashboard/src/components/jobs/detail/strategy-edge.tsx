@@ -1,13 +1,9 @@
-"use client";
+"use client"
 
-import {
-  BaseEdge,
-  EdgeLabelRenderer,
-  getSmoothStepPath,
-} from "@xyflow/react";
-import type { EdgeProps } from "@xyflow/react";
+import type { EdgeProps } from "@xyflow/react"
+import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from "@xyflow/react"
 
-type StrategyEdgeData = { shipStrategy: string };
+type StrategyEdgeData = { shipStrategy: string }
 
 export function StrategyEdge({
   id,
@@ -28,7 +24,7 @@ export function StrategyEdge({
     sourcePosition,
     targetPosition,
     borderRadius: 8,
-  });
+  })
 
   return (
     <>
@@ -54,5 +50,5 @@ export function StrategyEdge({
         </EdgeLabelRenderer>
       )}
     </>
-  );
+  )
 }

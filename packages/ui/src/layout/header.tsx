@@ -1,31 +1,31 @@
-"use client";
+"use client"
 
-import { ChevronLeft } from "lucide-react";
-import { cn } from "../lib/cn";
+import { ChevronLeft } from "lucide-react"
+import { cn } from "../lib/cn"
 
 export interface Breadcrumb {
-  key: string;
-  label: string;
+  key: string
+  label: string
 }
 
 export interface HeaderProps {
   /** Content rendered at the far left (e.g. sidebar toggle) */
-  leftContent?: React.ReactNode;
+  leftContent?: React.ReactNode
   /** Root label shown before breadcrumbs */
-  rootLabel?: string;
+  rootLabel?: string
   /** Breadcrumb items */
-  breadcrumbs?: Breadcrumb[];
+  breadcrumbs?: Breadcrumb[]
   /** Right-side content (status indicators, buttons, etc.) */
-  rightContent?: React.ReactNode;
+  rightContent?: React.ReactNode
   /** Custom link component for clickable breadcrumbs (React Router Link, Next.js Link, etc.) */
   LinkComponent?: React.ComponentType<{
-    href: string;
-    className?: string;
-    children: React.ReactNode;
-  }>;
+    href: string
+    className?: string
+    children: React.ReactNode
+  }>
   /** Back navigation callback. When provided, shows a back button. */
-  onBack?: () => void;
-  className?: string;
+  onBack?: () => void
+  className?: string
 }
 
 /**
@@ -53,11 +53,13 @@ export function Header({
   onBack,
   className,
 }: HeaderProps) {
-  const Link = LinkComponent as React.ComponentType<{
-    href: string;
-    className?: string;
-    children: React.ReactNode;
-  }> | undefined;
+  const Link = LinkComponent as
+    | React.ComponentType<{
+        href: string
+        className?: string
+        children: React.ReactNode
+      }>
+    | undefined
 
   return (
     <header
@@ -89,12 +91,14 @@ export function Header({
           <span className="text-zinc-500">{rootLabel}</span>
         )}
         {breadcrumbs.map((crumb, i) => {
-          const isLast = i === breadcrumbs.length - 1;
+          const isLast = i === breadcrumbs.length - 1
           return (
             <span key={crumb.key} className="flex items-center gap-1.5">
               <span className="text-zinc-600">/</span>
               {isLast || !Link ? (
-                <span className={cn(isLast ? "text-zinc-200" : "text-zinc-300")}>
+                <span
+                  className={cn(isLast ? "text-zinc-200" : "text-zinc-300")}
+                >
                   {crumb.label}
                 </span>
               ) : (
@@ -106,7 +110,7 @@ export function Header({
                 </Link>
               )}
             </span>
-          );
+          )
         })}
       </div>
 
@@ -115,21 +119,21 @@ export function Header({
         <div className="flex items-center gap-3 text-xs">{rightContent}</div>
       )}
     </header>
-  );
+  )
 }
 
 /**
  * Utility to generate breadcrumbs from a pathname
  */
 export function breadcrumbFromPath(pathname: string): Breadcrumb[] {
-  const segments = pathname.split("/").filter(Boolean);
-  let path = "";
+  const segments = pathname.split("/").filter(Boolean)
+  let path = ""
   return segments.map((s) => {
-    path += `/${s}`;
+    path += `/${s}`
     const label = s
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
-    return { key: path, label };
-  });
+      .join(" ")
+    return { key: path, label }
+  })
 }

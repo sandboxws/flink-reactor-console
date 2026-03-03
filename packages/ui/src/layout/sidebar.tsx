@@ -1,42 +1,42 @@
-"use client";
+"use client"
 
-import type { LucideIcon } from "lucide-react";
-import { ChevronLeft, ChevronRight, PanelLeft } from "lucide-react";
-import { cn } from "../lib/cn";
+import type { LucideIcon } from "lucide-react"
+import { ChevronLeft, ChevronRight, PanelLeft } from "lucide-react"
+import { cn } from "../lib/cn"
 
 export interface NavItem {
-  href: string;
-  label: string;
-  icon: LucideIcon;
+  href: string
+  label: string
+  icon: LucideIcon
 }
 
 export interface NavGroup {
-  label: string;
-  items: NavItem[];
+  label: string
+  items: NavItem[]
 }
 
 export interface SidebarProps {
   /** Navigation groups to display */
-  navGroups: NavGroup[];
+  navGroups: NavGroup[]
   /** Whether the sidebar is collapsed */
-  collapsed?: boolean;
+  collapsed?: boolean
   /** Toggle collapse callback */
-  onToggle?: () => void;
+  onToggle?: () => void
   /** Where to render the collapse toggle: "bottom" (default) or "top" (next to window controls) */
-  togglePosition?: "top" | "bottom";
+  togglePosition?: "top" | "bottom"
   /** Current active path for highlighting */
-  activePath?: string;
+  activePath?: string
   /** Logo component or content */
-  logo?: React.ReactNode;
+  logo?: React.ReactNode
   /** Brand name shown when not collapsed */
-  brandName?: string;
+  brandName?: string
   /** Custom link component (for Next.js Link, React Router, etc.) */
   LinkComponent?: React.ComponentType<{
-    href: string;
-    className?: string;
-    children: React.ReactNode;
-  }>;
-  className?: string;
+    href: string
+    className?: string
+    children: React.ReactNode
+  }>
+  className?: string
 }
 
 /**
@@ -56,14 +56,14 @@ export function Sidebar({
   className,
 }: SidebarProps) {
   const Link = LinkComponent as React.ComponentType<{
-    href: string;
-    className?: string;
-    children: React.ReactNode;
-  }>;
+    href: string
+    className?: string
+    children: React.ReactNode
+  }>
 
-  const showTopToggle = onToggle && togglePosition === "top";
-  const showBottomToggle = onToggle && togglePosition === "bottom";
-  const showBrand = logo !== false || brandName;
+  const showTopToggle = onToggle && togglePosition === "top"
+  const showBottomToggle = onToggle && togglePosition === "bottom"
+  const showBrand = logo !== false || brandName
 
   return (
     <aside
@@ -117,7 +117,9 @@ export function Sidebar({
             <div className="space-y-0.5">
               {group.items.map((item) => {
                 const active =
-                  item.href === "/" ? activePath === "/" : activePath.startsWith(item.href);
+                  item.href === "/"
+                    ? activePath === "/"
+                    : activePath.startsWith(item.href)
                 return (
                   <Link
                     key={item.href}
@@ -132,7 +134,7 @@ export function Sidebar({
                     <item.icon className="size-3.5 shrink-0" />
                     {!collapsed && <span>{item.label}</span>}
                   </Link>
-                );
+                )
               })}
             </div>
           </div>
@@ -154,5 +156,5 @@ export function Sidebar({
         </button>
       )}
     </aside>
-  );
+  )
 }

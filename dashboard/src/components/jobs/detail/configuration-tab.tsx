@@ -1,29 +1,35 @@
-"use client";
+"use client"
 
-import { useMemo, useState } from "react";
-import { Search, Check, Copy, ChevronDown, ChevronRight, Settings } from "lucide-react";
-import type { JobConfiguration } from "@/data/cluster-types";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Search,
+  Settings,
+} from "lucide-react"
+import { useMemo, useState } from "react"
+import { EmptyState } from "@/components/shared/empty-state"
 import {
   Collapsible,
-  CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/collapsible";
-import { EmptyState } from "@/components/shared/empty-state";
-import { cn } from "@/lib/cn";
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import type { JobConfiguration } from "@/data/cluster-types"
 
 // ---------------------------------------------------------------------------
 // Copy-on-click value
 // ---------------------------------------------------------------------------
 
 function CopyableValue({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false)
 
   const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
+    e.stopPropagation()
+    navigator.clipboard.writeText(value)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
 
   return (
     <button
@@ -39,7 +45,7 @@ function CopyableValue({ value }: { value: string }) {
         <Copy className="size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-zinc-500" />
       )}
     </button>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -51,11 +57,11 @@ function ConfigGroup({
   entries,
   defaultOpen,
 }: {
-  prefix: string;
-  entries: JobConfiguration[];
-  defaultOpen: boolean;
+  prefix: string
+  entries: JobConfiguration[]
+  defaultOpen: boolean
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(defaultOpen)
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -90,7 +96,7 @@ function ConfigGroup({
         </table>
       </CollapsibleContent>
     </Collapsible>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -100,48 +106,44 @@ function ConfigGroup({
 export function ConfigurationTab({
   configuration,
 }: {
-  configuration: JobConfiguration[];
+  configuration: JobConfiguration[]
 }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("")
 
   const { groups, filteredCount } = useMemo(() => {
-    const searchLower = search.toLowerCase();
+    const searchLower = search.toLowerCase()
     const filtered = search
       ? configuration.filter(
           (c) =>
             c.key.toLowerCase().includes(searchLower) ||
             c.value.toLowerCase().includes(searchLower),
         )
-      : configuration;
+      : configuration
 
     // Group by first dotted prefix
-    const map = new Map<string, JobConfiguration[]>();
+    const map = new Map<string, JobConfiguration[]>()
     for (const entry of filtered) {
-      const dotIdx = entry.key.indexOf(".");
-      const prefix = dotIdx > 0 ? entry.key.slice(0, dotIdx) : entry.key;
-      const existing = map.get(prefix);
+      const dotIdx = entry.key.indexOf(".")
+      const prefix = dotIdx > 0 ? entry.key.slice(0, dotIdx) : entry.key
+      const existing = map.get(prefix)
       if (existing) {
-        existing.push(entry);
+        existing.push(entry)
       } else {
-        map.set(prefix, [entry]);
+        map.set(prefix, [entry])
       }
     }
 
     // Sort groups alphabetically
-    const sorted = [...map.entries()].sort((a, b) =>
-      a[0].localeCompare(b[0]),
-    );
+    const sorted = [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
 
     return {
       groups: sorted,
       filteredCount: filtered.length,
-    };
-  }, [configuration, search]);
+    }
+  }, [configuration, search])
 
   if (configuration.length === 0) {
-    return (
-      <EmptyState icon={Settings} message="No configuration available" />
-    );
+    return <EmptyState icon={Settings} message="No configuration available" />
   }
 
   return (
@@ -181,5 +183,5 @@ export function ConfigurationTab({
         )}
       </div>
     </div>
-  );
+  )
 }

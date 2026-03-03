@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import { Inbox } from "lucide-react";
+import { Inbox } from "lucide-react"
 
 export interface EmptyStateProps {
-  icon?: React.ComponentType<{ className?: string }>;
-  message?: string;
+  icon?: React.ComponentType<{ className?: string }>
+  message?: string
 }
 
 /**
@@ -19,5 +19,5 @@ export function EmptyState({
       <Icon className="size-8 opacity-40" />
       <p className="text-xs">{message}</p>
     </div>
-  );
+  )
 }

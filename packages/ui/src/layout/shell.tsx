@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { cn } from "../lib/cn";
+import { useEffect } from "react"
+import { cn } from "../lib/cn"
 
 export interface ShellProps {
-  children: React.ReactNode;
-  sidebar?: React.ReactNode;
-  header?: React.ReactNode;
-  commandPalette?: React.ReactNode;
+  children: React.ReactNode
+  sidebar?: React.ReactNode
+  header?: React.ReactNode
+  commandPalette?: React.ReactNode
   /** Callback for Cmd+K / Ctrl+K keyboard shortcut */
-  onCommandPalette?: () => void;
-  className?: string;
+  onCommandPalette?: () => void
+  className?: string
 }
 
 /**
@@ -29,20 +29,25 @@ export function Shell({
 }: ShellProps) {
   // cmd+k / ctrl+k keyboard listener
   useEffect(() => {
-    if (!onCommandPalette) return;
+    if (!onCommandPalette) return
 
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        onCommandPalette?.();
+        e.preventDefault()
+        onCommandPalette?.()
       }
     }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onCommandPalette]);
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [onCommandPalette])
 
   return (
-    <div className={cn("flex h-screen w-screen flex-col overflow-hidden", className)}>
+    <div
+      className={cn(
+        "flex h-screen w-screen flex-col overflow-hidden",
+        className,
+      )}
+    >
       {header}
       <div className="flex flex-1 overflow-hidden">
         {sidebar}
@@ -50,5 +55,5 @@ export function Shell({
       </div>
       {commandPalette}
     </div>
-  );
+  )
 }

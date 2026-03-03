@@ -1,21 +1,23 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns"
 import {
   ArrowLeft,
+  Check,
   Clock,
+  Copy,
   Cpu,
   Layers,
-  Copy,
-  Check,
-  XCircle,
+  RefreshCw,
   Save,
-} from "lucide-react";
-import Link from "next/link";
-import type { FlinkJob } from "@/data/cluster-types";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/cn";
+  XCircle,
+} from "lucide-react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import type { FlinkJob } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
+import { useClusterStore } from "@/stores/cluster-store"
 
 // ---------------------------------------------------------------------------
 // Status colors
@@ -32,20 +34,20 @@ const statusColor: Record<string, string> = {
   RESTARTING: "bg-job-running/15 text-job-running",
   SUSPENDED: "bg-job-created/15 text-job-created",
   RECONCILING: "bg-job-created/15 text-job-created",
-};
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
-  if (totalSec < 60) return `${totalSec}s`;
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  if (min < 60) return `${min}m ${sec}s`;
-  const hr = Math.floor(min / 60);
-  return `${hr}h ${min % 60}m`;
+  const totalSec = Math.floor(ms / 1000)
+  if (totalSec < 60) return `${totalSec}s`
+  const min = Math.floor(totalSec / 60)
+  const sec = totalSec % 60
+  if (min < 60) return `${min}m ${sec}s`
+  const hr = Math.floor(min / 60)
+  return `${hr}h ${min % 60}m`
 }
 
 // ---------------------------------------------------------------------------
@@ -53,18 +55,18 @@ function formatDuration(ms: number): string {
 // ---------------------------------------------------------------------------
 
 function LiveDuration({ startTime }: { startTime: Date }) {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
 
   return (
     <span className="font-mono text-sm text-zinc-200">
       {formatDuration(now - startTime.getTime())}
     </span>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -72,13 +74,13 @@ function LiveDuration({ startTime }: { startTime: Date }) {
 // ---------------------------------------------------------------------------
 
 function CopyableJobId({ id }: { id: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false)
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(id);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
+    navigator.clipboard.writeText(id)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
 
   return (
     <button
@@ -94,7 +96,7 @@ function CopyableJobId({ id }: { id: string }) {
         <Copy className="size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
       )}
     </button>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -106,16 +108,19 @@ function ProgressRing({
   size = 48,
   strokeWidth = 4,
 }: {
-  percentage: number;
-  size?: number;
-  strokeWidth?: number;
+  percentage: number
+  size?: number
+  strokeWidth?: number
 }) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (percentage / 100) * circumference;
+  const radius = (size - strokeWidth) / 2
+  const circumference = radius * 2 * Math.PI
+  const offset = circumference - (percentage / 100) * circumference
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} className="-rotate-90">
         <circle
           cx={size / 2}
@@ -142,7 +147,7 @@ function ProgressRing({
         {percentage}%
       </span>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -154,9 +159,9 @@ function StatCard({
   icon: Icon,
   children,
 }: {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  children: React.ReactNode;
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
 }) {
   return (
     <div className="glass-card flex flex-col gap-1 p-3">
@@ -166,7 +171,7 @@ function StatCard({
       </div>
       <div className="text-sm text-zinc-200">{children}</div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -177,16 +182,23 @@ export function JobHeader({
   job,
   onCancelJob,
   onCreateSavepoint,
+  onRefresh,
+  isRefreshing,
 }: {
-  job: FlinkJob;
-  onCancelJob?: () => void;
-  onCreateSavepoint?: () => void;
+  job: FlinkJob
+  onCancelJob?: () => void
+  onCreateSavepoint?: () => void
+  onRefresh?: () => void
+  isRefreshing?: boolean
 }) {
-  const isRunning = job.status === "RUNNING";
-  const taskTotal = Object.values(job.tasks).reduce((a, b) => a + b, 0);
-  const taskFinished = job.tasks.finished;
+  const featureFlags = useClusterStore((s) => s.featureFlags)
+  const isRunning = job.status === "RUNNING"
+  const isCanceled = job.status === "CANCELED"
+  const canCancel = featureFlags?.webCancel !== false
+  const taskTotal = Object.values(job.tasks).reduce((a, b) => a + b, 0)
+  const taskFinished = job.tasks.finished
   const taskPct =
-    taskTotal > 0 ? Math.round((taskFinished / taskTotal) * 100) : 0;
+    taskTotal > 0 ? Math.round((taskFinished / taskTotal) * 100) : 0
 
   return (
     <div className="flex flex-col gap-4">
@@ -231,17 +243,32 @@ export function JobHeader({
 
         {/* Progress ring + quick actions */}
         <div className="flex items-center gap-3">
+          {!isCanceled && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center justify-center rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-dash-panel hover:text-zinc-200 disabled:pointer-events-none"
+              title="Refresh job data"
+            >
+              <RefreshCw
+                className={cn("size-4", isRefreshing && "animate-spin")}
+              />
+            </button>
+          )}
           {isRunning && <ProgressRing percentage={taskPct} />}
           {isRunning && (
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onCancelJob}
-                className="flex items-center gap-1.5 rounded-md bg-job-failed/10 px-3 py-1.5 text-xs font-medium text-job-failed transition-colors hover:bg-job-failed/20"
-              >
-                <XCircle className="size-3.5" />
-                Cancel
-              </button>
+              {canCancel && (
+                <button
+                  type="button"
+                  onClick={onCancelJob}
+                  className="flex items-center gap-1.5 rounded-md bg-job-failed/10 px-3 py-1.5 text-xs font-medium text-job-failed transition-colors hover:bg-job-failed/20"
+                >
+                  <XCircle className="size-3.5" />
+                  Cancel
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onCreateSavepoint}
@@ -282,5 +309,5 @@ export function JobHeader({
         </StatCard>
       </div>
     </div>
-  );
+  )
 }

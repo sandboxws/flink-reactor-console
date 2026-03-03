@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import { useMemo, useState } from "react";
-import type { JobVertex } from "@/data/cluster-types";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Clock, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
-import { cn } from "@/lib/cn";
+import { Clock, Maximize2, ZoomIn, ZoomOut } from "lucide-react"
+import { useMemo, useState } from "react"
+import { EmptyState } from "@/components/shared/empty-state"
+import type { JobVertex } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -16,24 +16,24 @@ const STATUS_COLORS: Record<string, string> = {
   FAILED: "bg-job-failed",
   CANCELED: "bg-job-cancelled",
   CREATED: "bg-job-created",
-};
+}
 
 function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
-  if (totalSec < 60) return `${totalSec}s`;
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  if (min < 60) return `${min}m ${sec}s`;
-  const hr = Math.floor(min / 60);
-  return `${hr}h ${min % 60}m`;
+  const totalSec = Math.floor(ms / 1000)
+  if (totalSec < 60) return `${totalSec}s`
+  const min = Math.floor(totalSec / 60)
+  const sec = totalSec % 60
+  if (min < 60) return `${min}m ${sec}s`
+  const hr = Math.floor(min / 60)
+  return `${hr}h ${min % 60}m`
 }
 
 function formatTimeOffset(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  if (min === 0) return `${sec}s`;
-  return `${min}m${sec > 0 ? ` ${sec}s` : ""}`;
+  const totalSec = Math.floor(ms / 1000)
+  const min = Math.floor(totalSec / 60)
+  const sec = totalSec % 60
+  if (min === 0) return `${sec}s`
+  return `${min}m${sec > 0 ? ` ${sec}s` : ""}`
 }
 
 // ---------------------------------------------------------------------------
@@ -44,24 +44,24 @@ function GanttTooltip({
   vertex,
   jobStartMs,
 }: {
-  vertex: JobVertex;
-  jobStartMs: number;
+  vertex: JobVertex
+  jobStartMs: number
 }) {
   return (
     <div
-      className="rounded-md border border-zinc-800 px-2.5 py-1.5"
-      style={{ backgroundColor: "#171717" }}
+      className="rounded-md border border-dash-border px-2.5 py-1.5"
+      style={{ backgroundColor: "var(--color-dash-panel)" }}
     >
-      <p className="text-[10px] font-medium text-zinc-200">{vertex.name}</p>
-      <p className="text-[10px] text-zinc-400">
+      <p className="text-[10px] font-medium text-fg-secondary">{vertex.name}</p>
+      <p className="text-[10px] text-fg-muted">
         Start: +{formatTimeOffset(vertex.startTime - jobStartMs)}
       </p>
-      <p className="text-[10px] text-zinc-400">
+      <p className="text-[10px] text-fg-muted">
         Duration: {formatDuration(vertex.duration)}
       </p>
-      <p className="text-[10px] text-zinc-400">Status: {vertex.status}</p>
+      <p className="text-[10px] text-fg-muted">Status: {vertex.status}</p>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -72,21 +72,26 @@ export function TimelineTab({
   vertices,
   jobStartTime,
 }: {
-  vertices: JobVertex[];
-  jobStartTime: Date;
+  vertices: JobVertex[]
+  jobStartTime: Date
 }) {
-  const [zoom, setZoom] = useState(1);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [zoom, setZoom] = useState(1)
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
-  const { bars, totalDuration, maxEndMs } = useMemo(() => {
-    if (vertices.length === 0) return { bars: [], totalDuration: 0, maxEndMs: 0 };
+  const {
+    bars,
+    totalDuration,
+    maxEndMs: _maxEndMs,
+  } = useMemo(() => {
+    if (vertices.length === 0)
+      return { bars: [], totalDuration: 0, maxEndMs: 0 }
 
-    const jobStartMs = jobStartTime.getTime();
-    const endTimes = vertices.map((v) => v.startTime + v.duration);
-    const maxEnd = Math.max(...endTimes);
-    const total = maxEnd - jobStartMs;
+    const jobStartMs = jobStartTime.getTime()
+    const endTimes = vertices.map((v) => v.startTime + v.duration)
+    const maxEnd = Math.max(...endTimes)
+    const total = maxEnd - jobStartMs
 
-    const sorted = [...vertices].sort((a, b) => a.startTime - b.startTime);
+    const sorted = [...vertices].sort((a, b) => a.startTime - b.startTime)
 
     return {
       bars: sorted.map((v) => ({
@@ -96,21 +101,21 @@ export function TimelineTab({
       })),
       totalDuration: total,
       maxEndMs: maxEnd,
-    };
-  }, [vertices, jobStartTime]);
+    }
+  }, [vertices, jobStartTime])
 
   if (vertices.length === 0) {
-    return <EmptyState icon={Clock} message="No timeline data available" />;
+    return <EmptyState icon={Clock} message="No timeline data available" />
   }
 
-  const jobStartMs = jobStartTime.getTime();
+  const jobStartMs = jobStartTime.getTime()
 
   // Generate time axis ticks
-  const tickCount = Math.min(8, Math.max(4, Math.floor(6 * zoom)));
+  const tickCount = Math.min(8, Math.max(4, Math.floor(6 * zoom)))
   const ticks = Array.from({ length: tickCount + 1 }, (_, i) => ({
     label: formatTimeOffset((totalDuration / tickCount) * i),
     pct: (i / tickCount) * 100,
-  }));
+  }))
 
   return (
     <div className="flex flex-col gap-3">
@@ -217,5 +222,5 @@ export function TimelineTab({
         ))}
       </div>
     </div>
-  );
+  )
 }

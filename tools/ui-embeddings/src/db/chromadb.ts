@@ -1,5 +1,9 @@
-import { ChromaClient } from "chromadb";
-import type { VectorDbAdapter, EmbeddingRecord, SearchResult } from "../types.js";
+import { ChromaClient } from "chromadb"
+import type {
+  EmbeddingRecord,
+  SearchResult,
+  VectorDbAdapter,
+} from "../types.js"
 
 /**
  * ChromaDB adapter — uses the JS client in ephemeral (in-memory) mode.
@@ -13,21 +17,23 @@ import type { VectorDbAdapter, EmbeddingRecord, SearchResult } from "../types.js
  * vs LanceDB which is fully embedded.
  */
 export class ChromaDbAdapter implements VectorDbAdapter {
-  name = "chromadb";
-  private client: ChromaClient | null = null;
-  private collection: Awaited<ReturnType<ChromaClient["getOrCreateCollection"]>> | null = null;
+  name = "chromadb"
+  private client: ChromaClient | null = null
+  private collection: Awaited<
+    ReturnType<ChromaClient["getOrCreateCollection"]>
+  > | null = null
 
   async connect(_path: string): Promise<void> {
     // Ephemeral mode — no server needed, in-memory only
-    this.client = new ChromaClient();
+    this.client = new ChromaClient()
   }
 
   async addRecords(records: EmbeddingRecord[]): Promise<void> {
-    if (!this.client) throw new Error("Not connected");
+    if (!this.client) throw new Error("Not connected")
 
     // Delete existing collection if it exists
     try {
-      await this.client.deleteCollection({ name: "ui_components" });
+      await this.client.deleteCollection({ name: "ui_components" })
     } catch {
       // Collection doesn't exist, that's fine
     }
@@ -35,7 +41,7 @@ export class ChromaDbAdapter implements VectorDbAdapter {
     this.collection = await this.client.createCollection({
       name: "ui_components",
       metadata: { "hnsw:space": "cosine" },
-    });
+    })
 
     // ChromaDB accepts batches
     await this.collection.add({
@@ -48,21 +54,21 @@ export class ChromaDbAdapter implements VectorDbAdapter {
         component: r.component ?? "",
         metadata_json: JSON.stringify(r.metadata),
       })),
-    });
+    })
   }
 
   async search(queryVector: number[], topK: number): Promise<SearchResult[]> {
-    if (!this.collection) throw new Error("No collection loaded");
+    if (!this.collection) throw new Error("No collection loaded")
 
     const results = await this.collection.query({
       queryEmbeddings: [queryVector],
       nResults: topK,
-    });
+    })
 
-    const ids = results.ids[0] ?? [];
-    const docs = results.documents[0] ?? [];
-    const distances = results.distances?.[0] ?? [];
-    const metas = results.metadatas?.[0] ?? [];
+    const ids = results.ids[0] ?? []
+    const docs = results.documents[0] ?? []
+    const distances = results.distances?.[0] ?? []
+    const metas = results.metadatas?.[0] ?? []
 
     return ids.map((id, i) => ({
       id: id ?? "",
@@ -72,20 +78,20 @@ export class ChromaDbAdapter implements VectorDbAdapter {
       component: (metas[i] as Record<string, string>)?.component || undefined,
       // ChromaDB with cosine space returns distance (0 = identical, 2 = opposite)
       // Convert to similarity: 1 - (distance / 2)
-      score: 1 - ((distances[i] ?? 0) / 2),
+      score: 1 - (distances[i] ?? 0) / 2,
       metadata: JSON.parse(
         (metas[i] as Record<string, string>)?.metadata_json ?? "{}",
       ),
-    }));
+    }))
   }
 
   async count(): Promise<number> {
-    if (!this.collection) throw new Error("No collection loaded");
-    return this.collection.count();
+    if (!this.collection) throw new Error("No collection loaded")
+    return this.collection.count()
   }
 
   async close(): Promise<void> {
-    this.client = null;
-    this.collection = null;
+    this.client = null
+    this.collection = null
   }
 }

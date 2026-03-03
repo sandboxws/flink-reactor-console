@@ -1,12 +1,12 @@
-import { pickRandom } from "@/data/flink-loggers";
+import { pickRandom } from "@/data/flink-loggers"
 
 // ---------------------------------------------------------------------------
 // Realistic Java/Flink exception class names and messages
 // ---------------------------------------------------------------------------
 
 interface ExceptionTemplate {
-  className: string;
-  messages: string[];
+  className: string
+  messages: string[]
 }
 
 const FLINK_EXCEPTIONS: ExceptionTemplate[] = [
@@ -74,7 +74,7 @@ const FLINK_EXCEPTIONS: ExceptionTemplate[] = [
       "Slot request timed out after 300000ms.",
     ],
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Realistic stack trace frame patterns
@@ -112,11 +112,11 @@ const FLINK_FRAMES = {
     "org.apache.flink.runtime.taskmanager.Task.run(Task.java:562)",
     "java.lang.Thread.run(Thread.java:829)",
   ],
-};
+}
 
 const FRAME_CATEGORIES = Object.keys(
   FLINK_FRAMES,
-) as (keyof typeof FLINK_FRAMES)[];
+) as (keyof typeof FLINK_FRAMES)[]
 
 // ---------------------------------------------------------------------------
 // "Caused by" inner exception templates
@@ -147,58 +147,56 @@ const CAUSED_BY_EXCEPTIONS: ExceptionTemplate[] = [
     className: "java.net.SocketException",
     messages: ["Connection reset by peer", "Socket closed", "No route to host"],
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Stack trace generation
 // ---------------------------------------------------------------------------
 
 function generateFrames(count: number): string[] {
-  const frames: string[] = [];
+  const frames: string[] = []
   // Start with a context-appropriate category, end with task frames
-  const startCategory = pickRandom(
-    FRAME_CATEGORIES.filter((c) => c !== "task"),
-  );
-  const startFrames = FLINK_FRAMES[startCategory];
-  const taskFrames = FLINK_FRAMES.task;
+  const startCategory = pickRandom(FRAME_CATEGORIES.filter((c) => c !== "task"))
+  const startFrames = FLINK_FRAMES[startCategory]
+  const taskFrames = FLINK_FRAMES.task
 
   // Pick 1-3 frames from the start category
   const startCount = Math.min(
     Math.floor(Math.random() * 3) + 1,
     startFrames.length,
-  );
+  )
   for (let i = 0; i < startCount && frames.length < count; i++) {
-    frames.push(`\tat ${startFrames[i]}`);
+    frames.push(`\tat ${startFrames[i]}`)
   }
 
   // Fill remaining with task frames (the common bottom of Flink stacks)
   for (let i = 0; frames.length < count && i < taskFrames.length; i++) {
-    frames.push(`\tat ${taskFrames[i]}`);
+    frames.push(`\tat ${taskFrames[i]}`)
   }
 
-  return frames;
+  return frames
 }
 
 function generateCausedByChain(depth: number): string[] {
-  const lines: string[] = [];
+  const lines: string[] = []
 
   for (let i = 0; i < depth; i++) {
-    const exc = pickRandom(CAUSED_BY_EXCEPTIONS);
-    const msg = pickRandom(exc.messages);
-    lines.push(`Caused by: ${exc.className}: ${msg}`);
+    const exc = pickRandom(CAUSED_BY_EXCEPTIONS)
+    const msg = pickRandom(exc.messages)
+    lines.push(`Caused by: ${exc.className}: ${msg}`)
 
-    const frameCount = Math.floor(Math.random() * 3) + 2;
-    const frames = generateFrames(frameCount);
-    lines.push(...frames);
+    const frameCount = Math.floor(Math.random() * 3) + 2
+    const frames = generateFrames(frameCount)
+    lines.push(...frames)
 
     // Add "... N more" truncation on all but the deepest cause
     if (i < depth - 1) {
-      const moreCount = Math.floor(Math.random() * 15) + 5;
-      lines.push(`\t... ${moreCount} more`);
+      const moreCount = Math.floor(Math.random() * 15) + 5
+      lines.push(`\t... ${moreCount} more`)
     }
   }
 
-  return lines;
+  return lines
 }
 
 /**
@@ -208,29 +206,29 @@ function generateCausedByChain(depth: number): string[] {
  * "Caused by" chains (1-3 levels), and "... N more" truncation.
  */
 export function generateStackTrace(): {
-  exceptionClass: string;
-  message: string;
-  stackTrace: string;
+  exceptionClass: string
+  message: string
+  stackTrace: string
 } {
-  const exc = pickRandom(FLINK_EXCEPTIONS);
-  const message = pickRandom(exc.messages);
+  const exc = pickRandom(FLINK_EXCEPTIONS)
+  const message = pickRandom(exc.messages)
 
-  const lines: string[] = [];
+  const lines: string[] = []
 
   // Top-level exception header
-  lines.push(`${exc.className}: ${message}`);
+  lines.push(`${exc.className}: ${message}`)
 
   // Main frames (5-9)
-  const mainFrameCount = Math.floor(Math.random() * 5) + 5;
-  lines.push(...generateFrames(mainFrameCount));
+  const mainFrameCount = Math.floor(Math.random() * 5) + 5
+  lines.push(...generateFrames(mainFrameCount))
 
   // Caused by chain (1-3 levels deep)
-  const chainDepth = Math.floor(Math.random() * 3) + 1;
-  lines.push(...generateCausedByChain(chainDepth));
+  const chainDepth = Math.floor(Math.random() * 3) + 1
+  lines.push(...generateCausedByChain(chainDepth))
 
   return {
     exceptionClass: exc.className,
     message,
     stackTrace: lines.join("\n"),
-  };
+  }
 }

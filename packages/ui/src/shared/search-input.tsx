@@ -1,28 +1,28 @@
-"use client";
+"use client"
 
-import { ChevronDown, ChevronUp, Regex, Search, X } from "lucide-react";
-import { cn } from "../lib/cn";
+import { ChevronDown, ChevronUp, Regex, Search, X } from "lucide-react"
+import { cn } from "../lib/cn"
 
 export interface SearchInputProps {
   /** Current search query */
-  value: string;
+  value: string
   /** Called when the search query changes */
-  onChange: (value: string) => void;
+  onChange: (value: string) => void
   /** Whether regex mode is enabled */
-  isRegex?: boolean;
+  isRegex?: boolean
   /** Called when regex mode is toggled */
-  onRegexChange?: (isRegex: boolean) => void;
+  onRegexChange?: (isRegex: boolean) => void
   /** Current match count */
-  matchCount?: number;
+  matchCount?: number
   /** Current match index (0-based) */
-  currentIndex?: number;
+  currentIndex?: number
   /** Called when navigating to next match */
-  onNext?: () => void;
+  onNext?: () => void
   /** Called when navigating to previous match */
-  onPrev?: () => void;
+  onPrev?: () => void
   /** Placeholder text */
-  placeholder?: string;
-  className?: string;
+  placeholder?: string
+  className?: string
 }
 
 /**
@@ -57,7 +57,7 @@ export function SearchInput({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            e.shiftKey ? onPrev?.() : onNext?.();
+            e.shiftKey ? onPrev?.() : onNext?.()
           }
         }}
         placeholder={placeholder}
@@ -117,5 +117,5 @@ export function SearchInput({
         </>
       )}
     </div>
-  );
+  )
 }

@@ -2,125 +2,136 @@
 // @flink-reactor/ui — Design System Package
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Utilities ────────────────────────────────────────────────────────────────
-export { cn } from "./lib/cn";
 export {
-  SEVERITY_COLORS,
-  LOG_BUFFER_LIMIT,
-  LOG_RENDER_LIMIT,
-  DEFAULT_LEVEL_FILTER,
-  TIMESTAMP_FORMATS,
-} from "./lib/constants";
-
+  Badge,
+  type BadgeProps,
+  type BadgeVariant,
+} from "./components/ui/badge"
 // ── UI Components ────────────────────────────────────────────────────────────
-export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from "./components/ui/button";
-export { Badge, type BadgeProps, type BadgeVariant } from "./components/ui/badge";
+export {
+  Button,
+  type ButtonProps,
+  type ButtonSize,
+  type ButtonVariant,
+} from "./components/ui/button"
 export {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "./components/ui/card";
-export { Input } from "./components/ui/input";
-export { Label } from "./components/ui/label";
-export { Textarea } from "./components/ui/textarea";
-export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableCaption,
-} from "./components/ui/table";
-export { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
-export {
-  Dialog,
-  DialogPortal,
-  DialogOverlay,
-  DialogClose,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-} from "./components/ui/dialog";
-export {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "./components/ui/tooltip";
+} from "./components/ui/card"
 export {
   Collapsible,
-  CollapsibleTrigger,
   CollapsibleContent,
-} from "./components/ui/collapsible";
-export { Popover, PopoverTrigger, PopoverContent } from "./components/ui/popover";
+  CollapsibleTrigger,
+} from "./components/ui/collapsible"
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "./components/ui/dialog"
 export {
   HoverCard,
-  HoverCardTrigger,
   HoverCardContent,
-} from "./components/ui/hover-card";
+  HoverCardTrigger,
+} from "./components/ui/hover-card"
+export { Input } from "./components/ui/input"
+export { Label } from "./components/ui/label"
+export {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./components/ui/popover"
+export { Progress } from "./components/ui/progress"
+export {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "./components/ui/resizable"
 export {
   Select,
-  SelectGroup,
-  SelectValue,
-  SelectTrigger,
   SelectContent,
-  SelectLabel,
+  SelectGroup,
   SelectItem,
-  SelectSeparator,
-  SelectScrollUpButton,
+  SelectLabel,
   SelectScrollDownButton,
-} from "./components/ui/select";
-export { Progress } from "./components/ui/progress";
-export { Separator } from "./components/ui/separator";
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select"
+export { Separator } from "./components/ui/separator"
 export {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "./components/ui/resizable";
-
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./components/ui/table"
+export { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs"
+export { Textarea } from "./components/ui/textarea"
+export {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./components/ui/tooltip"
 // ── Layout Components ────────────────────────────────────────────────────────
 export {
+  type Breadcrumb,
+  breadcrumbFromPath,
+  CommandPalette,
+  type CommandPaletteProps,
+  type CommandRoute,
+  Header,
+  type HeaderProps,
+  type NavGroup,
+  type NavItem,
   Shell,
   type ShellProps,
   Sidebar,
   type SidebarProps,
-  type NavItem,
-  type NavGroup,
-  Header,
-  breadcrumbFromPath,
-  type HeaderProps,
-  type Breadcrumb,
-  CommandPalette,
-  type CommandPaletteProps,
-  type CommandRoute,
-} from "./layout";
+} from "./layout"
+// ── Utilities ────────────────────────────────────────────────────────────────
+export { cn } from "./lib/cn"
+export {
+  DEFAULT_LEVEL_FILTER,
+  LOG_BUFFER_LIMIT,
+  LOG_RENDER_LIMIT,
+  SEVERITY_COLORS,
+  TIMESTAMP_FORMATS,
+} from "./lib/constants"
 
 // ── Shared Components ────────────────────────────────────────────────────────
 export {
-  MetricCard,
-  type MetricCardProps,
   EmptyState,
   type EmptyStateProps,
-  TextViewer,
-  type TextViewerProps,
+  type LogLevel,
+  type LogSource,
+  MetricCard,
+  type MetricCardProps,
   SearchInput,
   type SearchInputProps,
   SeverityBadge,
   type SeverityBadgeProps,
-  type LogLevel,
   SourceBadge,
   type SourceBadgeProps,
-  type LogSource,
+  TextViewer,
+  type TextViewerProps,
   TimeRange,
+  type TimeRangePreset,
   type TimeRangeProps,
   type TimeRangeValue,
-  type TimeRangePreset,
-} from "./shared";
+} from "./shared"

@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import { ChevronDown, ChevronUp, Regex, Search, X } from "lucide-react";
-import { cn } from "@/lib/cn";
-import { useSearchMatches } from "@/lib/hooks";
-import { useFilterStore } from "@/stores/filter-store";
+import { ChevronDown, ChevronUp, Regex, Search, X } from "lucide-react"
+import { cn } from "@/lib/cn"
+import { useSearchMatches } from "@/lib/hooks"
+import { useFilterStore } from "@/stores/filter-store"
 
 export function SearchInput() {
-  const searchQuery = useFilterStore((s) => s.searchQuery);
-  const setSearchQuery = useFilterStore((s) => s.setSearchQuery);
-  const isRegex = useFilterStore((s) => s.isRegex);
-  const setIsRegex = useFilterStore((s) => s.setIsRegex);
+  const searchQuery = useFilterStore((s) => s.searchQuery)
+  const setSearchQuery = useFilterStore((s) => s.setSearchQuery)
+  const isRegex = useFilterStore((s) => s.isRegex)
+  const setIsRegex = useFilterStore((s) => s.setIsRegex)
 
-  const { matchCount, currentIndex, next, prev } = useSearchMatches();
+  const { matchCount, currentIndex, next, prev } = useSearchMatches()
 
   return (
     <div className="flex items-center gap-1 rounded-md border border-dash-border bg-dash-surface px-2 py-1">
@@ -22,7 +22,7 @@ export function SearchInput() {
         onChange={(e) => setSearchQuery(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            e.shiftKey ? prev() : next();
+            e.shiftKey ? prev() : next()
           }
         }}
         placeholder="Search logs..."
@@ -76,5 +76,5 @@ export function SearchInput() {
         </>
       )}
     </div>
-  );
+  )
 }

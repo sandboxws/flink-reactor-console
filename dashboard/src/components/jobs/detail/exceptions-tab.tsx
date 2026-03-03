@@ -1,17 +1,22 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { format } from "date-fns";
-import { CheckCircle, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
-import type { JobException } from "@/data/cluster-types";
+import { format } from "date-fns"
+import {
+  AlertTriangle,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react"
+import { useState } from "react"
+import { StackTrace } from "@/components/errors/stack-trace"
+import { EmptyState } from "@/components/shared/empty-state"
 import {
   Collapsible,
-  CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/collapsible";
-import { StackTrace } from "@/components/errors/stack-trace";
-import { EmptyState } from "@/components/shared/empty-state";
-import { cn } from "@/lib/cn";
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import type { JobException } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // Collapsible stacktrace wrapper (reuses shared StackTrace component)
@@ -21,10 +26,10 @@ function StacktraceViewer({
   exception,
   defaultOpen,
 }: {
-  exception: JobException;
-  defaultOpen?: boolean;
+  exception: JobException
+  defaultOpen?: boolean
 }) {
-  const [open, setOpen] = useState(defaultOpen ?? false);
+  const [open, setOpen] = useState(defaultOpen ?? false)
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -40,7 +45,7 @@ function StacktraceViewer({
         <StackTrace raw={exception.stacktrace} />
       </CollapsibleContent>
     </Collapsible>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -51,8 +56,8 @@ function ExceptionCard({
   exception,
   isRootCause,
 }: {
-  exception: JobException;
-  isRootCause?: boolean;
+  exception: JobException
+  isRootCause?: boolean
 }) {
   return (
     <div
@@ -89,25 +94,19 @@ function ExceptionCard({
         <StacktraceViewer exception={exception} defaultOpen={isRootCause} />
       </div>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
 // ExceptionsTab
 // ---------------------------------------------------------------------------
 
-export function ExceptionsTab({
-  exceptions,
-}: {
-  exceptions: JobException[];
-}) {
+export function ExceptionsTab({ exceptions }: { exceptions: JobException[] }) {
   if (exceptions.length === 0) {
-    return (
-      <EmptyState icon={CheckCircle} message="No exceptions recorded" />
-    );
+    return <EmptyState icon={CheckCircle} message="No exceptions recorded" />
   }
 
-  const [rootCause, ...history] = exceptions;
+  const [rootCause, ...history] = exceptions
 
   return (
     <div className="flex flex-col gap-4">
@@ -127,11 +126,14 @@ export function ExceptionsTab({
           </h3>
           <div className="flex flex-col gap-2">
             {history.map((ex, i) => (
-              <ExceptionCard key={`${ex.timestamp.getTime()}-${i}`} exception={ex} />
+              <ExceptionCard
+                key={`${ex.timestamp.getTime()}-${i}`}
+                exception={ex}
+              />
             ))}
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

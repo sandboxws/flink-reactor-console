@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/cn";
-import { useFilterStore } from "@/stores/filter-store";
+import { cn } from "@/lib/cn"
+import { useFilterStore } from "@/stores/filter-store"
 
 const PRESETS = [
   { label: "5m", minutes: 5 },
@@ -10,31 +10,31 @@ const PRESETS = [
   { label: "6h", minutes: 360 },
   { label: "24h", minutes: 1440 },
   { label: "All", minutes: 0 },
-] as const;
+] as const
 
 export function TimeRange() {
-  const timeRange = useFilterStore((s) => s.timeRange);
-  const setTimeRange = useFilterStore((s) => s.setTimeRange);
-  const clearTimeRange = useFilterStore((s) => s.clearTimeRange);
+  const timeRange = useFilterStore((s) => s.timeRange)
+  const setTimeRange = useFilterStore((s) => s.setTimeRange)
+  const clearTimeRange = useFilterStore((s) => s.clearTimeRange)
 
-  const isAll = !timeRange.start && !timeRange.end;
+  const isAll = !timeRange.start && !timeRange.end
 
   function selectPreset(minutes: number) {
     if (minutes === 0) {
-      clearTimeRange();
+      clearTimeRange()
     } else {
-      const end = new Date();
-      const start = new Date(end.getTime() - minutes * 60_000);
-      setTimeRange(start, end);
+      const end = new Date()
+      const start = new Date(end.getTime() - minutes * 60_000)
+      setTimeRange(start, end)
     }
   }
 
   // Determine which preset is active (approximate)
   function isPresetActive(minutes: number): boolean {
-    if (minutes === 0) return isAll;
-    if (!timeRange.start) return false;
-    const diff = (Date.now() - timeRange.start.getTime()) / 60_000;
-    return Math.abs(diff - minutes) < minutes * 0.1;
+    if (minutes === 0) return isAll
+    if (!timeRange.start) return false
+    const diff = (Date.now() - timeRange.start.getTime()) / 60_000
+    return Math.abs(diff - minutes) < minutes * 0.1
   }
 
   return (
@@ -55,5 +55,5 @@ export function TimeRange() {
         </button>
       ))}
     </div>
-  );
+  )
 }

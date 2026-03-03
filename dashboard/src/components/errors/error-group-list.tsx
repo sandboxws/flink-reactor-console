@@ -1,45 +1,45 @@
-"use client";
+"use client"
 
-import { useMemo } from "react";
-import { Bar, BarChart } from "recharts";
-import { formatDistanceToNow } from "date-fns";
-import { ArrowDownWideNarrow, Clock } from "lucide-react";
-import type { ErrorGroup } from "@/data/types";
-import { SourceBadge } from "@/components/shared/source-badge";
-import { cn } from "@/lib/cn";
-import { useErrorStore } from "@/stores/error-store";
+import { formatDistanceToNow } from "date-fns"
+import { ArrowDownWideNarrow, Clock } from "lucide-react"
+import { useMemo } from "react"
+import { Bar, BarChart } from "recharts"
+import { SourceBadge } from "@/components/shared/source-badge"
+import type { ErrorGroup } from "@/data/types"
+import { cn } from "@/lib/cn"
+import { useErrorStore } from "@/stores/error-store"
 
 // ---------------------------------------------------------------------------
 // Mini sparkline — 12 buckets showing occurrence frequency
 // ---------------------------------------------------------------------------
 
-const SPARK_BUCKETS = 12;
+const SPARK_BUCKETS = 12
 
 function buildSparkData(occurrences: Date[]): { v: number }[] {
   if (occurrences.length < 2) {
     return Array.from({ length: SPARK_BUCKETS }, () => ({
       v: occurrences.length,
-    }));
+    }))
   }
 
-  const min = occurrences[0].getTime();
-  const max = occurrences[occurrences.length - 1].getTime();
-  const range = Math.max(max - min, 1);
-  const bucketSize = range / SPARK_BUCKETS;
+  const min = occurrences[0].getTime()
+  const max = occurrences[occurrences.length - 1].getTime()
+  const range = Math.max(max - min, 1)
+  const bucketSize = range / SPARK_BUCKETS
 
-  const buckets = Array.from({ length: SPARK_BUCKETS }, () => ({ v: 0 }));
+  const buckets = Array.from({ length: SPARK_BUCKETS }, () => ({ v: 0 }))
   for (const d of occurrences) {
     const idx = Math.min(
       Math.floor((d.getTime() - min) / bucketSize),
       SPARK_BUCKETS - 1,
-    );
-    buckets[idx].v++;
+    )
+    buckets[idx].v++
   }
-  return buckets;
+  return buckets
 }
 
 function MiniSparkline({ occurrences }: { occurrences: Date[] }) {
-  const data = useMemo(() => buildSparkData(occurrences), [occurrences]);
+  const data = useMemo(() => buildSparkData(occurrences), [occurrences])
 
   return (
     <BarChart
@@ -48,9 +48,9 @@ function MiniSparkline({ occurrences }: { occurrences: Date[] }) {
       data={data}
       margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
     >
-      <Bar dataKey="v" fill="#f7768e" radius={[1, 1, 0, 0]} />
+      <Bar dataKey="v" fill="var(--color-log-error)" radius={[1, 1, 0, 0]} />
     </BarChart>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -62,9 +62,9 @@ function ErrorGroupCard({
   isSelected,
   onSelect,
 }: {
-  group: ErrorGroup;
-  isSelected: boolean;
-  onSelect: () => void;
+  group: ErrorGroup
+  isSelected: boolean
+  onSelect: () => void
 }) {
   return (
     <button
@@ -109,7 +109,7 @@ function ErrorGroupCard({
         </div>
       )}
     </button>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -117,22 +117,22 @@ function ErrorGroupCard({
 // ---------------------------------------------------------------------------
 
 export function ErrorGroupList({ groups }: { groups: ErrorGroup[] }) {
-  const selectedGroupId = useErrorStore((s) => s.selectedGroupId);
-  const selectGroup = useErrorStore((s) => s.selectGroup);
-  const sortBy = useErrorStore((s) => s.sortBy);
-  const setSortBy = useErrorStore((s) => s.setSortBy);
+  const selectedGroupId = useErrorStore((s) => s.selectedGroupId)
+  const selectGroup = useErrorStore((s) => s.selectGroup)
+  const sortBy = useErrorStore((s) => s.sortBy)
+  const setSortBy = useErrorStore((s) => s.setSortBy)
 
   const sorted = useMemo(() => {
-    const copy = [...groups];
+    const copy = [...groups]
     if (sortBy === "count") {
-      copy.sort((a, b) => b.count - a.count);
+      copy.sort((a, b) => b.count - a.count)
     } else if (sortBy === "lastSeen") {
-      copy.sort((a, b) => b.lastSeen.getTime() - a.lastSeen.getTime());
+      copy.sort((a, b) => b.lastSeen.getTime() - a.lastSeen.getTime())
     } else {
-      copy.sort((a, b) => a.firstSeen.getTime() - b.firstSeen.getTime());
+      copy.sort((a, b) => a.firstSeen.getTime() - b.firstSeen.getTime())
     }
-    return copy;
-  }, [groups, sortBy]);
+    return copy
+  }, [groups, sortBy])
 
   return (
     <div className="flex h-full flex-col">
@@ -181,5 +181,5 @@ export function ErrorGroupList({ groups }: { groups: ErrorGroup[] }) {
         ))}
       </div>
     </div>
-  );
+  )
 }

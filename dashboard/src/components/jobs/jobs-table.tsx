@@ -1,17 +1,16 @@
-"use client";
+"use client"
 
-import { useMemo, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format } from "date-fns"
 import {
-  ArrowUpDown,
-  ArrowUp,
   ArrowDown,
-  XCircle,
-  Copy,
+  ArrowUp,
+  ArrowUpDown,
   Check,
-} from "lucide-react";
-import type { FlinkJob } from "@/data/cluster-types";
+  Copy,
+  XCircle,
+} from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useCallback, useMemo, useState } from "react"
 import {
   Table,
   TableBody,
@@ -19,55 +18,65 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/cn";
-import { JobStatusBadge } from "./job-status-badge";
-import { TaskCountsBar } from "./task-counts-bar";
-import { DurationCell } from "./duration-cell";
+} from "@/components/ui/tooltip"
+import type { FlinkJob } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
+import { DurationCell } from "./duration-cell"
+import { JobStatusBadge } from "./job-status-badge"
+import { TaskCountsBar } from "./task-counts-bar"
 
 // ---------------------------------------------------------------------------
 // Sort logic
 // ---------------------------------------------------------------------------
 
-type SortKey = "name" | "id" | "status" | "startTime" | "endTime" | "duration" | "tasks";
-type SortDir = "asc" | "desc";
+type SortKey =
+  | "name"
+  | "id"
+  | "status"
+  | "startTime"
+  | "endTime"
+  | "duration"
+  | "tasks"
+type SortDir = "asc" | "desc"
 
 function getDuration(job: FlinkJob): number {
   return job.status === "RUNNING"
     ? Date.now() - job.startTime.getTime()
-    : job.duration;
+    : job.duration
 }
 
 function getTaskTotal(job: FlinkJob): number {
-  return Object.values(job.tasks).reduce((a, b) => a + b, 0);
+  return Object.values(job.tasks).reduce((a, b) => a + b, 0)
 }
 
 function sortJobs(jobs: FlinkJob[], key: SortKey, dir: SortDir): FlinkJob[] {
   const sorted = [...jobs].sort((a, b) => {
     switch (key) {
       case "name":
-        return a.name.localeCompare(b.name);
+        return a.name.localeCompare(b.name)
       case "id":
-        return a.id.localeCompare(b.id);
+        return a.id.localeCompare(b.id)
       case "status":
-        return a.status.localeCompare(b.status);
+        return a.status.localeCompare(b.status)
       case "startTime":
-        return a.startTime.getTime() - b.startTime.getTime();
+        return a.startTime.getTime() - b.startTime.getTime()
       case "endTime":
-        return (a.endTime?.getTime() ?? 0) - (b.endTime?.getTime() ?? 0);
+        return (a.endTime?.getTime() ?? 0) - (b.endTime?.getTime() ?? 0)
       case "duration":
-        return getDuration(a) - getDuration(b);
+        return getDuration(a) - getDuration(b)
       case "tasks":
-        return getTaskTotal(a) - getTaskTotal(b);
+        return getTaskTotal(a) - getTaskTotal(b)
+      default:
+        return 0
     }
-  });
-  return dir === "desc" ? sorted.reverse() : sorted;
+  })
+  return dir === "desc" ? sorted.reverse() : sorted
 }
 
 // ---------------------------------------------------------------------------
@@ -79,19 +88,17 @@ function SortIcon({
   active,
   dir,
 }: {
-  column: string;
-  active: string;
-  dir: SortDir;
+  column: string
+  active: string
+  dir: SortDir
 }) {
   if (column !== active)
-    return (
-      <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />
-    );
+    return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />
   return dir === "asc" ? (
     <ArrowUp className="size-3" />
   ) : (
     <ArrowDown className="size-3" />
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -99,17 +106,17 @@ function SortIcon({
 // ---------------------------------------------------------------------------
 
 function JobIdCell({ id }: { id: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false)
 
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
-      e.stopPropagation();
-      navigator.clipboard.writeText(id);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      e.stopPropagation()
+      navigator.clipboard.writeText(id)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
     },
     [id],
-  );
+  )
 
   return (
     <TooltipProvider>
@@ -131,7 +138,7 @@ function JobIdCell({ id }: { id: string }) {
         <TooltipContent>{copied ? "Copied!" : id}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -142,16 +149,16 @@ function CancelButton({
   jobId,
   onCancel,
 }: {
-  jobId: string;
-  onCancel: (id: string) => void;
+  jobId: string
+  onCancel: (id: string) => void
 }) {
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onCancel(jobId);
+      e.stopPropagation()
+      onCancel(jobId)
     },
     [jobId, onCancel],
-  );
+  )
 
   return (
     <TooltipProvider>
@@ -168,7 +175,7 @@ function CancelButton({
         <TooltipContent>Cancel job</TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -176,10 +183,10 @@ function CancelButton({
 // ---------------------------------------------------------------------------
 
 type ColumnDef = {
-  key: SortKey;
-  label: string;
-  align?: string;
-};
+  key: SortKey
+  label: string
+  align?: string
+}
 
 const runningColumns: ColumnDef[] = [
   { key: "name", label: "Job Name" },
@@ -188,7 +195,7 @@ const runningColumns: ColumnDef[] = [
   { key: "startTime", label: "Start Time" },
   { key: "duration", label: "Duration", align: "text-right" },
   { key: "tasks", label: "Tasks", align: "text-right" },
-];
+]
 
 const completedColumns: ColumnDef[] = [
   { key: "name", label: "Job Name" },
@@ -198,7 +205,7 @@ const completedColumns: ColumnDef[] = [
   { key: "endTime", label: "End Time" },
   { key: "duration", label: "Duration", align: "text-right" },
   { key: "tasks", label: "Tasks", align: "text-right" },
-];
+]
 
 // ---------------------------------------------------------------------------
 // JobsTable
@@ -209,29 +216,29 @@ export function JobsTable({
   jobs,
   onCancelJob,
 }: {
-  mode: "running" | "completed";
-  jobs: FlinkJob[];
-  onCancelJob?: (jobId: string) => void;
+  mode: "running" | "completed"
+  jobs: FlinkJob[]
+  onCancelJob?: (jobId: string) => void
 }) {
-  const router = useRouter();
-  const isRunning = mode === "running";
-  const columns = isRunning ? runningColumns : completedColumns;
+  const router = useRouter()
+  const isRunning = mode === "running"
+  const columns = isRunning ? runningColumns : completedColumns
 
-  const defaultSortKey: SortKey = isRunning ? "startTime" : "endTime";
-  const [sortKey, setSortKey] = useState<SortKey>(defaultSortKey);
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const defaultSortKey: SortKey = isRunning ? "startTime" : "endTime"
+  const [sortKey, setSortKey] = useState<SortKey>(defaultSortKey)
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
 
   const sorted = useMemo(
     () => sortJobs(jobs, sortKey, sortDir),
     [jobs, sortKey, sortDir],
-  );
+  )
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
     } else {
-      setSortKey(key);
-      setSortDir("desc");
+      setSortKey(key)
+      setSortDir("desc")
     }
   }
 
@@ -240,7 +247,7 @@ export function JobsTable({
       <p className="py-12 text-center text-sm text-zinc-600">
         {isRunning ? "No running jobs" : "No completed jobs"}
       </p>
-    );
+    )
   }
 
   return (
@@ -292,9 +299,7 @@ export function JobsTable({
             </TableCell>
             {!isRunning && (
               <TableCell className="text-xs text-zinc-400">
-                {job.endTime
-                  ? format(job.endTime, "yyyy-MM-dd HH:mm:ss")
-                  : "—"}
+                {job.endTime ? format(job.endTime, "yyyy-MM-dd HH:mm:ss") : "—"}
               </TableCell>
             )}
             <TableCell className="text-right">
@@ -318,5 +323,5 @@ export function JobsTable({
         ))}
       </TableBody>
     </Table>
-  );
+  )
 }
