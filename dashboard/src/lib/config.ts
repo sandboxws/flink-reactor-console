@@ -93,7 +93,7 @@ function parseMockMode(
   value: string | undefined,
   hasFlinkUrl: boolean,
 ): boolean {
-  if (value === "on") return true
+  if (value === "on" && !hasFlinkUrl) return true
   if (value === "off") return false
   // "auto" (default) — mock when no Flink URL is configured
   return !hasFlinkUrl
