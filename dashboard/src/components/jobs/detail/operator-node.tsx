@@ -2,6 +2,7 @@
 
 import type { NodeProps } from "@xyflow/react"
 import { Handle, Position } from "@xyflow/react"
+import { Radio } from "lucide-react"
 import type { IconType } from "react-icons"
 import {
   PiArrowFatLinesDownBold,
@@ -24,7 +25,9 @@ import type {
   JobVertexStatus,
   TaskStatus,
 } from "@/data/cluster-types"
+import type { TapMetadata } from "@/data/tap-types"
 import { cn } from "@/lib/cn"
+import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 
 // ---------------------------------------------------------------------------
 // Format helpers
@@ -180,6 +183,10 @@ function StatusDot({ status }: { status: JobVertexStatus }) {
 type OperatorNodeData = {
   vertex: JobVertex
   onSelectVertex?: (vertexId: string) => void
+  tapMetadata?: TapMetadata
+  tapSessionStatus?: ActiveTapSession["status"]
+  onTapInto?: (vertexId: string) => void
+  onStopTap?: (vertexId: string) => void
 }
 
 export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
@@ -208,6 +215,18 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
         <span className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-200">
           {displayName}
         </span>
+        {data.tapMetadata && (
+          <Radio
+            className={cn(
+              "size-3 shrink-0",
+              data.tapSessionStatus === "streaming"
+                ? "text-job-running animate-pulse"
+                : data.tapSessionStatus === "paused"
+                  ? "text-fr-amber"
+                  : "text-zinc-400 opacity-40",
+            )}
+          />
+        )}
         <span className="shrink-0 text-[10px] tabular-nums text-zinc-500">
           {formatDuration(vertex.duration)}
         </span>
@@ -376,6 +395,63 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
               ))}
           </div>
         </div>
+
+        {/* ── Tap section ──────────────────────────────────────── */}
+        {data.tapMetadata && !data.tapSessionStatus && data.onTapInto && (
+          <div className="border-t border-white/5 px-3 py-1.5">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                data.onTapInto?.(vertex.name)
+              }}
+              className="text-[10px] text-zinc-500 hover:text-fr-purple transition-colors"
+            >
+              Tap into &rarr;
+            </button>
+          </div>
+        )}
+
+        {data.tapMetadata &&
+          (data.tapSessionStatus === "streaming" ||
+            data.tapSessionStatus === "paused") && (
+            <div className="border-t border-white/5 px-3 py-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex size-2">
+                    {data.tapSessionStatus === "streaming" && (
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-job-running opacity-75" />
+                    )}
+                    <span
+                      className={cn(
+                        "relative inline-flex size-2 rounded-full",
+                        data.tapSessionStatus === "streaming"
+                          ? "bg-job-running"
+                          : "bg-fr-amber",
+                      )}
+                    />
+                  </span>
+                  <span className="text-[10px] text-zinc-400">
+                    {data.tapSessionStatus === "streaming"
+                      ? "Streaming"
+                      : "Paused"}
+                  </span>
+                </div>
+                {data.onStopTap && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      data.onStopTap?.(vertex.name)
+                    }}
+                    className="text-[10px] text-zinc-500 hover:text-job-failed transition-colors"
+                  >
+                    Stop tap
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
       </HoverCardContent>
     </HoverCard>
   )

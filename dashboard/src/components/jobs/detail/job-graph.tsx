@@ -14,6 +14,8 @@ import {
 } from "@xyflow/react"
 import { useCallback, useEffect, useMemo } from "react"
 import type { JobPlan } from "@/data/cluster-types"
+import type { TapMetadata } from "@/data/tap-types"
+import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 import { OperatorNode } from "./operator-node"
 import { StrategyEdge } from "./strategy-edge"
 import "@xyflow/react/dist/style.css"
@@ -109,19 +111,40 @@ const edgeTypes = { strategy: StrategyEdge }
 function JobGraphInner({
   plan,
   onSelectVertex,
+  tapMetadataByVertex,
+  tapSessionStatuses,
+  onTapInto,
+  onStopTap,
 }: {
   plan: JobPlan
   onSelectVertex?: (vertexId: string) => void
+  tapMetadataByVertex?: Map<string, TapMetadata>
+  tapSessionStatuses?: Record<string, ActiveTapSession["status"]>
+  onTapInto?: (vertexName: string) => void
+  onStopTap?: (vertexName: string) => void
 }) {
   const { fitView } = useReactFlow()
 
   const layouted = useMemo(() => {
-    const rawNodes: Node[] = plan.vertices.map((v) => ({
-      id: v.id,
-      type: "operator",
-      position: { x: 0, y: 0 },
-      data: { vertex: v, onSelectVertex },
-    }))
+    const rawNodes: Node[] = plan.vertices.map((v) => {
+      const tapMeta = tapMetadataByVertex?.get(v.name)
+      const tapStatus = tapMeta
+        ? tapSessionStatuses?.[tapMeta.nodeId]
+        : undefined
+      return {
+        id: v.id,
+        type: "operator",
+        position: { x: 0, y: 0 },
+        data: {
+          vertex: v,
+          onSelectVertex,
+          tapMetadata: tapMeta,
+          tapSessionStatus: tapStatus,
+          onTapInto,
+          onStopTap,
+        },
+      }
+    })
 
     const rawEdges: Edge[] = plan.edges.map((e, i) => ({
       id: `e-${i}`,
@@ -132,7 +155,14 @@ function JobGraphInner({
     }))
 
     return layoutElements(rawNodes, rawEdges)
-  }, [plan, onSelectVertex])
+  }, [
+    plan,
+    onSelectVertex,
+    tapMetadataByVertex,
+    tapSessionStatuses,
+    onTapInto,
+    onStopTap,
+  ])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layouted.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(layouted.edges)
@@ -193,15 +223,30 @@ export function JobGraph({
   plan,
   className,
   onSelectVertex,
+  tapMetadataByVertex,
+  tapSessionStatuses,
+  onTapInto,
+  onStopTap,
 }: {
   plan: JobPlan
   className?: string
   onSelectVertex?: (vertexId: string) => void
+  tapMetadataByVertex?: Map<string, TapMetadata>
+  tapSessionStatuses?: Record<string, ActiveTapSession["status"]>
+  onTapInto?: (vertexName: string) => void
+  onStopTap?: (vertexName: string) => void
 }) {
   return (
     <div className={`glass-card ${className ?? ""}`} style={{ height: 500 }}>
       <ReactFlowProvider>
-        <JobGraphInner plan={plan} onSelectVertex={onSelectVertex} />
+        <JobGraphInner
+          plan={plan}
+          onSelectVertex={onSelectVertex}
+          tapMetadataByVertex={tapMetadataByVertex}
+          tapSessionStatuses={tapSessionStatuses}
+          onTapInto={onTapInto}
+          onStopTap={onStopTap}
+        />
       </ReactFlowProvider>
     </div>
   )

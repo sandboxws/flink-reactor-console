@@ -3,10 +3,13 @@
 // Covers Kafka source, Filter transform, and Kafka sink to exercise all UI paths.
 // ---------------------------------------------------------------------------
 
-import type { TapManifest } from "./tap-types";
+import type { TapManifest } from "./tap-types"
 
 /**
  * Generate a mock tap manifest with realistic observation SQL.
+ *
+ * Operator names match the vertex names from OPERATOR_TEMPLATES in mock-cluster.ts
+ * so that DAG tap indicators appear correctly in mock mode.
  *
  * Includes:
  * - KafkaSource reading raw order events
@@ -22,7 +25,7 @@ export function generateMockTapManifest(): TapManifest {
     taps: [
       {
         nodeId: "orders-source",
-        name: "KafkaSource (orders)",
+        name: "Source: KafkaSource",
         componentType: "source",
         componentName: "KafkaSource",
         schema: {
@@ -58,7 +61,7 @@ export function generateMockTapManifest(): TapManifest {
         consumerGroupId:
           "flink-reactor-tap-ecommerce-pipeline-orders-source-a1b2c3d4",
         config: {
-          name: "KafkaSource (orders)",
+          name: "Source: KafkaSource",
           groupIdPrefix: "",
           offsetMode: "latest",
           startTimestamp: "",
@@ -76,7 +79,7 @@ export function generateMockTapManifest(): TapManifest {
       },
       {
         nodeId: "high-value-filter",
-        name: "Filter (high-value orders)",
+        name: "Filter",
         componentType: "transform",
         componentName: "Filter",
         schema: {
@@ -112,7 +115,7 @@ export function generateMockTapManifest(): TapManifest {
         consumerGroupId:
           "flink-reactor-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8",
         config: {
-          name: "Filter (high-value orders)",
+          name: "Filter",
           groupIdPrefix: "",
           offsetMode: "latest",
           startTimestamp: "",
@@ -130,7 +133,7 @@ export function generateMockTapManifest(): TapManifest {
       },
       {
         nodeId: "enriched-orders-sink",
-        name: "KafkaSink (enriched-orders)",
+        name: "Sink: KafkaSink",
         componentType: "sink",
         componentName: "KafkaSink",
         schema: {
@@ -172,7 +175,7 @@ export function generateMockTapManifest(): TapManifest {
         consumerGroupId:
           "flink-reactor-tap-ecommerce-pipeline-enriched-orders-sink-c9d0e1f2",
         config: {
-          name: "KafkaSink (enriched-orders)",
+          name: "Sink: KafkaSink",
           groupIdPrefix: "",
           offsetMode: "latest",
           startTimestamp: "",
@@ -190,7 +193,7 @@ export function generateMockTapManifest(): TapManifest {
       },
       {
         nodeId: "products-source",
-        name: "JdbcSource (products)",
+        name: "Source: JdbcSource",
         componentType: "source",
         componentName: "JdbcSource",
         schema: {
@@ -219,7 +222,7 @@ export function generateMockTapManifest(): TapManifest {
         consumerGroupId:
           "flink-reactor-tap-ecommerce-pipeline-products-source-d3e4f5a6",
         config: {
-          name: "JdbcSource (products)",
+          name: "Source: JdbcSource",
           groupIdPrefix: "",
           offsetMode: "latest",
           startTimestamp: "",
@@ -232,93 +235,103 @@ export function generateMockTapManifest(): TapManifest {
         },
       },
     ],
-  };
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Mock streaming data generator — produces realistic rows for observation
 // ---------------------------------------------------------------------------
 
-const PRODUCT_IDS = ["PROD-001", "PROD-002", "PROD-003", "PROD-004", "PROD-005"];
-const PRODUCT_NAMES = ["Wireless Mouse", "USB-C Hub", "Mechanical Keyboard", "Monitor Stand", "Webcam HD"];
-const CATEGORIES = ["Electronics", "Peripherals", "Accessories"];
-const STATUSES = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"];
-const REGIONS = ["us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1"];
+const PRODUCT_IDS = ["PROD-001", "PROD-002", "PROD-003", "PROD-004", "PROD-005"]
+const PRODUCT_NAMES = [
+  "Wireless Mouse",
+  "USB-C Hub",
+  "Mechanical Keyboard",
+  "Monitor Stand",
+  "Webcam HD",
+]
+const CATEGORIES = ["Electronics", "Peripherals", "Accessories"]
+const STATUSES = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"]
+const REGIONS = ["us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1"]
 
-let mockRowCounter = 0;
+let mockRowCounter = 0
 
 /** Generate a batch of mock streaming rows for the given schema */
 export function generateMockStreamingRows(
   schema: Record<string, string>,
   batchSize: number = 3,
 ): Record<string, unknown>[] {
-  const rows: Record<string, unknown>[] = [];
+  const rows: Record<string, unknown>[] = []
 
   for (let i = 0; i < batchSize; i++) {
-    mockRowCounter++;
-    const row: Record<string, unknown> = {};
+    mockRowCounter++
+    const row: Record<string, unknown> = {}
 
     for (const [name, type] of Object.entries(schema)) {
-      row[name] = generateMockValue(name, type, mockRowCounter);
+      row[name] = generateMockValue(name, type, mockRowCounter)
     }
 
-    rows.push(row);
+    rows.push(row)
   }
 
-  return rows;
+  return rows
 }
 
-function generateMockValue(fieldName: string, fieldType: string, counter: number): unknown {
+function generateMockValue(
+  fieldName: string,
+  fieldType: string,
+  counter: number,
+): unknown {
   // Use field name heuristics for realistic values
-  const nameLower = fieldName.toLowerCase();
+  const nameLower = fieldName.toLowerCase()
 
   if (nameLower.includes("order_id") || nameLower === "id") {
-    return 10000 + counter;
+    return 10000 + counter
   }
   if (nameLower.includes("customer_id")) {
-    return 1000 + (counter % 50);
+    return 1000 + (counter % 50)
   }
   if (nameLower.includes("product_id")) {
-    return PRODUCT_IDS[counter % PRODUCT_IDS.length];
+    return PRODUCT_IDS[counter % PRODUCT_IDS.length]
   }
   if (nameLower.includes("product_name")) {
-    return PRODUCT_NAMES[counter % PRODUCT_NAMES.length];
+    return PRODUCT_NAMES[counter % PRODUCT_NAMES.length]
   }
   if (nameLower.includes("category")) {
-    return CATEGORIES[counter % CATEGORIES.length];
+    return CATEGORIES[counter % CATEGORIES.length]
   }
   if (nameLower.includes("status")) {
-    return STATUSES[counter % STATUSES.length];
+    return STATUSES[counter % STATUSES.length]
   }
   if (nameLower.includes("region")) {
-    return REGIONS[counter % REGIONS.length];
+    return REGIONS[counter % REGIONS.length]
   }
   if (nameLower.includes("quantity")) {
-    return 1 + (counter % 10);
+    return 1 + (counter % 10)
   }
 
   // Fall back to type-based generation
   if (fieldType === "BIGINT") {
-    return counter * 100;
+    return counter * 100
   }
   if (fieldType === "INT") {
-    return counter % 100;
+    return counter % 100
   }
   if (fieldType.startsWith("DECIMAL")) {
-    return Number((Math.random() * 500 + 10).toFixed(2));
+    return Number((Math.random() * 500 + 10).toFixed(2))
   }
   if (fieldType.startsWith("TIMESTAMP")) {
-    return new Date(Date.now() - Math.random() * 3600_000).toISOString();
+    return new Date(Date.now() - Math.random() * 3600_000).toISOString()
   }
   if (fieldType.startsWith("VARCHAR") || fieldType === "STRING") {
-    return `value-${counter}`;
+    return `value-${counter}`
   }
   if (fieldType === "BOOLEAN") {
-    return counter % 2 === 0;
+    return counter % 2 === 0
   }
   if (fieldType === "DOUBLE" || fieldType === "FLOAT") {
-    return Number((Math.random() * 1000).toFixed(3));
+    return Number((Math.random() * 1000).toFixed(3))
   }
 
-  return null;
+  return null
 }

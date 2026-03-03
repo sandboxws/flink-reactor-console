@@ -696,6 +696,20 @@ export function generateRunningJobs(): FlinkJob[] {
     })
   }
 
+  // Add a mock tap job so the TAP badge appears in the jobs table
+  const tapStartTime = minutesAgo(2)
+  jobs.push({
+    id: hex(32),
+    name: "flink-reactor-tap-Source: KafkaSource",
+    status: "RUNNING",
+    startTime: tapStartTime,
+    endTime: null,
+    duration: Date.now() - tapStartTime.getTime(),
+    tasks: generateTaskCounts(1, "RUNNING"),
+    parallelism: 1,
+    ...generateJobDetailFields(1, "RUNNING", tapStartTime),
+  })
+
   cachedRunningJobs = jobs
   return jobs
 }

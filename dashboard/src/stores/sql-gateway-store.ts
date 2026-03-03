@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from "zustand"
 
 // ---------------------------------------------------------------------------
 // SQL Gateway Store — manages active SQL Gateway tap observation sessions
@@ -6,30 +6,30 @@ import { create } from "zustand";
 
 /** Column metadata from SQL Gateway result set */
 export interface ColumnInfo {
-  columnName: string;
-  dataType: string;
-  nullable: boolean;
+  columnName: string
+  dataType: string
+  nullable: boolean
 }
 
 export interface ActiveTapSession {
-  sessionHandle: string;
-  operationHandle: string;
-  tapNodeId: string;
-  tapName: string;
-  status: "connecting" | "streaming" | "paused" | "error" | "closed";
-  columns: ColumnInfo[];
-  error?: string;
+  sessionHandle: string
+  operationHandle: string
+  tapNodeId: string
+  tapName: string
+  status: "connecting" | "streaming" | "paused" | "error" | "closed"
+  columns: ColumnInfo[]
+  error?: string
 }
 
 /** First result page data returned by startTap */
 export interface FirstPageResult {
-  columns: ColumnInfo[];
-  rows: Array<{ kind: string; fields: unknown[] }>;
+  columns: ColumnInfo[]
+  rows: Array<{ kind: string; fields: unknown[] }>
 }
 
 interface SqlGatewayState {
   /** Active tap sessions keyed by tapNodeId */
-  sessions: Record<string, ActiveTapSession>;
+  sessions: Record<string, ActiveTapSession>
 
   /** Start a tap observation session — opens session, submits SQL, transitions to streaming.
    *  Returns the first result page (columns + any initial rows) so the caller
@@ -38,23 +38,23 @@ interface SqlGatewayState {
     tapNodeId: string,
     tapName: string,
     observationSql: string,
-  ) => Promise<FirstPageResult | null>;
+  ) => Promise<FirstPageResult | null>
 
   /** Pause result fetching for a session (consumer stops polling) */
-  pauseTap: (tapNodeId: string) => void;
+  pauseTap: (tapNodeId: string) => void
 
   /** Resume result fetching for a paused session */
-  resumeTap: (tapNodeId: string) => void;
+  resumeTap: (tapNodeId: string) => void
 
   /** Stop and close a tap session */
-  stopTap: (tapNodeId: string) => Promise<void>;
+  stopTap: (tapNodeId: string) => Promise<void>
 
   /** Stop all active sessions (used on page unmount) */
-  stopAll: () => Promise<void>;
+  stopAll: () => Promise<void>
 }
 
 /** API route base path for SQL Gateway proxy */
-const SQL_GATEWAY_API = "/api/flink/sql-gateway";
+const SQL_GATEWAY_API = "/api/flink/sql-gateway"
 
 async function apiRequest<T>(
   path: string,
@@ -65,19 +65,19 @@ async function apiRequest<T>(
     method,
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
-  });
+  })
 
   if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(err.error ?? `SQL Gateway error: ${res.status}`);
+    const err = (await res.json().catch(() => ({}))) as { error?: string }
+    throw new Error(err.error ?? `SQL Gateway error: ${res.status}`)
   }
 
   // DELETE may return empty body
   if (res.status === 204 || method === "DELETE") {
-    return undefined as T;
+    return undefined as T
   }
 
-  return (await res.json()) as T;
+  return (await res.json()) as T
 }
 
 export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
@@ -97,36 +97,34 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
           columns: [],
         },
       },
-    }));
+    }))
 
     try {
-      // Open session
+      // Open session with pipeline.name so the Flink job is identifiable
       const { sessionHandle } = await apiRequest<{ sessionHandle: string }>(
         "v1/sessions",
         "POST",
-        { properties: {} },
-      );
+        { properties: { "pipeline.name": `flink-reactor-tap-${tapName}` } },
+      )
 
       // Submit observation SQL
       const { operationHandle } = await apiRequest<{
-        operationHandle: string;
+        operationHandle: string
       }>(`v1/sessions/${sessionHandle}/statements`, "POST", {
         statement: observationSql,
-      });
+      })
 
       // Fetch first result page for column metadata + initial rows
       const resultData = await apiRequest<{
         results: {
           columns: Array<{
-            name: string;
-            logicalType: { type: string; nullable: boolean };
-          }>;
-          data: Array<{ kind: string; fields: unknown[] }>;
-        };
-        resultType: string;
-      }>(
-        `v1/sessions/${sessionHandle}/operations/${operationHandle}/result/0`,
-      );
+            name: string
+            logicalType: { type: string; nullable: boolean }
+          }>
+          data: Array<{ kind: string; fields: unknown[] }>
+        }
+        resultType: string
+      }>(`v1/sessions/${sessionHandle}/operations/${operationHandle}/result/0`)
 
       const columns: ColumnInfo[] = (resultData.results?.columns ?? []).map(
         (col) => ({
@@ -134,7 +132,7 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
           dataType: col.logicalType.type,
           nullable: col.logicalType.nullable,
         }),
-      );
+      )
 
       // Transition to streaming
       set((state) => ({
@@ -149,15 +147,15 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
             columns,
           },
         },
-      }));
+      }))
 
       // Return first page data so the caller can process initial rows
       return {
         columns,
         rows: resultData.results?.data ?? [],
-      };
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Connection failed";
+      const message = err instanceof Error ? err.message : "Connection failed"
       set((state) => ({
         sessions: {
           ...state.sessions,
@@ -167,40 +165,40 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
             error: message,
           },
         },
-      }));
-      return null;
+      }))
+      return null
     }
   },
 
   pauseTap: (tapNodeId) => {
     set((state) => {
-      const session = state.sessions[tapNodeId];
-      if (!session || session.status !== "streaming") return state;
+      const session = state.sessions[tapNodeId]
+      if (!session || session.status !== "streaming") return state
       return {
         sessions: {
           ...state.sessions,
           [tapNodeId]: { ...session, status: "paused" },
         },
-      };
-    });
+      }
+    })
   },
 
   resumeTap: (tapNodeId) => {
     set((state) => {
-      const session = state.sessions[tapNodeId];
-      if (!session || session.status !== "paused") return state;
+      const session = state.sessions[tapNodeId]
+      if (!session || session.status !== "paused") return state
       return {
         sessions: {
           ...state.sessions,
           [tapNodeId]: { ...session, status: "streaming" },
         },
-      };
-    });
+      }
+    })
   },
 
   stopTap: async (tapNodeId) => {
-    const session = get().sessions[tapNodeId];
-    if (!session) return;
+    const session = get().sessions[tapNodeId]
+    if (!session) return
 
     try {
       // Cancel operation if it's active
@@ -211,7 +209,7 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
         await apiRequest(
           `v1/sessions/${session.sessionHandle}/operations/${session.operationHandle}/cancel`,
           "POST",
-        ).catch(() => {});
+        ).catch(() => {})
       }
 
       // Close session
@@ -219,23 +217,21 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
         await apiRequest(
           `v1/sessions/${session.sessionHandle}`,
           "DELETE",
-        ).catch(() => {});
+        ).catch(() => {})
       }
     } finally {
       // Remove from store regardless of cleanup success
       set((state) => {
-        const { [tapNodeId]: _, ...remaining } = state.sessions;
-        return { sessions: remaining };
-      });
+        const { [tapNodeId]: _, ...remaining } = state.sessions
+        return { sessions: remaining }
+      })
     }
   },
 
   stopAll: async () => {
-    const sessions = get().sessions;
-    const nodeIds = Object.keys(sessions);
+    const sessions = get().sessions
+    const nodeIds = Object.keys(sessions)
 
-    await Promise.allSettled(
-      nodeIds.map((nodeId) => get().stopTap(nodeId)),
-    );
+    await Promise.allSettled(nodeIds.map((nodeId) => get().stopTap(nodeId)))
   },
-}));
+}))

@@ -32,6 +32,20 @@ import { JobStatusBadge } from "./job-status-badge"
 import { TaskCountsBar } from "./task-counts-bar"
 
 // ---------------------------------------------------------------------------
+// Tap job detection
+// ---------------------------------------------------------------------------
+
+const TAP_JOB_PREFIX = "flink-reactor-tap-"
+
+function isTapJob(name: string): boolean {
+  return name.startsWith(TAP_JOB_PREFIX)
+}
+
+function tapDisplayName(name: string): string {
+  return name.slice(TAP_JOB_PREFIX.length)
+}
+
+// ---------------------------------------------------------------------------
 // Sort logic
 // ---------------------------------------------------------------------------
 
@@ -280,8 +294,17 @@ export function JobsTable({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="block truncate font-medium">
-                      {job.name}
+                    <span className="flex items-center gap-1.5 truncate font-medium">
+                      {isTapJob(job.name) && (
+                        <span className="shrink-0 rounded-full bg-fr-purple/20 px-1.5 py-0.5 text-[10px] font-medium text-fr-purple">
+                          TAP
+                        </span>
+                      )}
+                      <span className="truncate">
+                        {isTapJob(job.name)
+                          ? tapDisplayName(job.name)
+                          : job.name}
+                      </span>
                     </span>
                   </TooltipTrigger>
                   <TooltipContent>{job.name}</TooltipContent>

@@ -1,10 +1,13 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlinkJob } from "@/data/cluster-types"
+import type { TapMetadata } from "@/data/tap-types"
 import { useClusterStore } from "@/stores/cluster-store"
+import { useSqlGatewayStore } from "@/stores/sql-gateway-store"
+import { useTapStore } from "@/stores/tap-store"
 import { TapPanel } from "../tap/tap-panel"
 import { CheckpointsTab } from "./detail/checkpoints-tab"
 import { ConfigurationTab } from "./detail/configuration-tab"
@@ -65,6 +68,46 @@ export function JobDetail({
     return map
   }, [job.plan])
 
+  // Tap integration — build maps for DAG node tap indicators
+  const availableOperators = useTapStore((s) => s.availableOperators)
+  const tapSessions = useSqlGatewayStore((s) => s.sessions)
+
+  const tapMetadataByVertex = useMemo(() => {
+    const map = new Map<string, TapMetadata>()
+    for (const op of availableOperators) {
+      map.set(op.name, op)
+    }
+    return map
+  }, [availableOperators])
+
+  const tapSessionStatuses = useMemo(() => {
+    const statuses: Record<string, (typeof tapSessions)[string]["status"]> = {}
+    for (const session of Object.values(tapSessions)) {
+      statuses[session.tapNodeId] = session.status
+    }
+    return statuses
+  }, [tapSessions])
+
+  const handleTapInto = useCallback(
+    (vertexName: string) => {
+      const metadata = tapMetadataByVertex.get(vertexName)
+      if (!metadata) return
+      useTapStore.getState().openTab(metadata.nodeId)
+      setActiveTab("tap")
+    },
+    [tapMetadataByVertex],
+  )
+
+  const handleStopTap = useCallback(
+    (vertexName: string) => {
+      const metadata = tapMetadataByVertex.get(vertexName)
+      if (!metadata) return
+      useSqlGatewayStore.getState().stopTap(metadata.nodeId)
+      useTapStore.getState().closeTab(metadata.nodeId)
+    },
+    [tapMetadataByVertex],
+  )
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <JobHeader
@@ -116,7 +159,14 @@ export function JobDetail({
 
         <TabsContent value="overview" className="mt-4">
           {job.plan ? (
-            <JobGraph plan={job.plan} onSelectVertex={handleSelectVertex} />
+            <JobGraph
+              plan={job.plan}
+              onSelectVertex={handleSelectVertex}
+              tapMetadataByVertex={tapMetadataByVertex}
+              tapSessionStatuses={tapSessionStatuses}
+              onTapInto={handleTapInto}
+              onStopTap={handleStopTap}
+            />
           ) : (
             <div className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500">
               No execution plan available
