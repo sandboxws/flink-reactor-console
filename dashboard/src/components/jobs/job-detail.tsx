@@ -152,9 +152,11 @@ export function JobDetail({
           <TabsTrigger value="configuration" className="detail-tab">
             Configuration
           </TabsTrigger>
-          <TabsTrigger value="tap" className="detail-tab">
-            Tap
-          </TabsTrigger>
+          {!job.name.startsWith("flink-reactor-tap-") && (
+            <TabsTrigger value="tap" className="detail-tab">
+              Tap
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -211,9 +213,11 @@ export function JobDetail({
           <ConfigurationTab configuration={job.configuration} />
         </TabsContent>
 
-        <TabsContent value="tap" className="mt-4">
-          <TapPanel jobId={job.id} />
-        </TabsContent>
+        {!job.name.startsWith("flink-reactor-tap-") && (
+          <TabsContent value="tap" className="mt-4">
+            <TapPanel jobId={job.id} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )
