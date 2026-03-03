@@ -19,6 +19,8 @@ export interface ActiveTapSession {
   status: "connecting" | "streaming" | "paused" | "error" | "closed"
   columns: ColumnInfo[]
   error?: string
+  /** Last successfully consumed result token (0 = first page from startTap, 1+ = polling) */
+  currentResultToken: number
 }
 
 /** First result page data returned by startTap */
@@ -48,6 +50,9 @@ interface SqlGatewayState {
 
   /** Stop and close a tap session */
   stopTap: (tapNodeId: string) => Promise<void>
+
+  /** Update the current result token for a session (used by polling loop) */
+  updateResultToken: (tapNodeId: string, token: number) => void
 
   /** Stop all active sessions (used on page unmount) */
   stopAll: () => Promise<void>
@@ -138,6 +143,27 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
   sessions: {},
 
   startTap: async (tapNodeId, tapName, observationSql) => {
+    // Cleanup guard: if an existing session has a valid handle, tear it down first
+    const existing = get().sessions[tapNodeId]
+    if (existing?.sessionHandle) {
+      if (
+        existing.operationHandle &&
+        (existing.status === "streaming" || existing.status === "paused")
+      ) {
+        await apiRequest(
+          `v1/sessions/${existing.sessionHandle}/operations/${existing.operationHandle}/cancel`,
+          "POST",
+        ).catch(() => {})
+      }
+      await apiRequest(`v1/sessions/${existing.sessionHandle}`, "DELETE").catch(
+        () => {},
+      )
+      set((state) => {
+        const { [tapNodeId]: _, ...remaining } = state.sessions
+        return { sessions: remaining }
+      })
+    }
+
     // Set connecting status
     set((state) => ({
       sessions: {
@@ -149,6 +175,7 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
           tapName,
           status: "connecting",
           columns: [],
+          currentResultToken: 0,
         },
       },
     }))
@@ -226,7 +253,7 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
         }),
       )
 
-      // Transition to streaming
+      // Transition to streaming — token 0 was consumed, next poll starts at 1
       set((state) => ({
         sessions: {
           ...state.sessions,
@@ -237,6 +264,7 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
             tapName,
             status: "streaming",
             columns,
+            currentResultToken: 1,
           },
         },
       }))
@@ -283,6 +311,19 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
         sessions: {
           ...state.sessions,
           [tapNodeId]: { ...session, status: "streaming" },
+        },
+      }
+    })
+  },
+
+  updateResultToken: (tapNodeId, token) => {
+    set((state) => {
+      const session = state.sessions[tapNodeId]
+      if (!session) return state
+      return {
+        sessions: {
+          ...state.sessions,
+          [tapNodeId]: { ...session, currentResultToken: token },
         },
       }
     })

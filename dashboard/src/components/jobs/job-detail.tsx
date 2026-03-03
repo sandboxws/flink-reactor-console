@@ -59,6 +59,9 @@ export function JobDetail({
     onCreateSavepoint?.()
   }
 
+  // Job name — used as the pipeline name for tap manifest
+  const jobName = job.name
+
   // Build vertex ID → operator name map for checkpoint detail
   const vertexNames = useMemo(() => {
     const map: Record<string, string> = {}
@@ -214,8 +217,12 @@ export function JobDetail({
         </TabsContent>
 
         {!job.name.startsWith("flink-reactor-tap-") && (
-          <TabsContent value="tap" className="mt-4">
-            <TapPanel jobId={job.id} />
+          <TabsContent
+            value="tap"
+            className="mt-4 data-[state=inactive]:hidden"
+            forceMount
+          >
+            <TapPanel jobName={jobName} />
           </TabsContent>
         )}
       </Tabs>

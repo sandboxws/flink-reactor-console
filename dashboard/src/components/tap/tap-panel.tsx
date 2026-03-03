@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { EmptyState } from "@/components/shared/empty-state"
 import { cn } from "@/lib/cn"
 import { buildRuntimeObservationSql } from "@/lib/tap-manifest"
-import { useClusterStore } from "@/stores/cluster-store"
 import { useSqlGatewayStore } from "@/stores/sql-gateway-store"
 import { cleanupThroughputTracking, useTapStore } from "@/stores/tap-store"
 import { TapControls } from "./tap-controls"
@@ -16,7 +15,7 @@ import { TapSourceConfig } from "./tap-source-config"
 import { TapStatusBar } from "./tap-status-bar"
 
 interface TapPanelProps {
-  jobId: string
+  jobName: string
 }
 
 /** API route base path for SQL Gateway proxy */
@@ -26,7 +25,7 @@ const SQL_GATEWAY_API = "/api/flink/sql-gateway"
  * Main tap panel with operator tabs, streaming data table, and controls.
  * Orchestrates the tap manifest, tap store, and SQL Gateway store.
  */
-export function TapPanel({ jobId }: TapPanelProps) {
+export function TapPanel({ jobName }: TapPanelProps) {
   const {
     availableOperators,
     manifestLoading,
@@ -42,49 +41,64 @@ export function TapPanel({ jobId }: TapPanelProps) {
     clearRows,
   } = useTapStore()
 
-  // Look up the Flink job name — with SET 'pipeline.name', this matches the pipeline name
-  const jobName = useClusterStore((s) => {
-    const all = [...s.runningJobs, ...s.completedJobs]
-    return all.find((j) => j.id === jobId)?.name ?? jobId
-  })
-
   const sessions = useSqlGatewayStore((s) => s.sessions)
   const startTap = useSqlGatewayStore((s) => s.startTap)
   const pauseTap = useSqlGatewayStore((s) => s.pauseTap)
   const resumeTap = useSqlGatewayStore((s) => s.resumeTap)
   const stopTap = useSqlGatewayStore((s) => s.stopTap)
   const stopAll = useSqlGatewayStore((s) => s.stopAll)
+  const updateResultToken = useSqlGatewayStore((s) => s.updateResultToken)
 
   // Active polling refs — keyed by nodeId
   const pollingRefs = useRef<Map<string, boolean>>(new Map())
 
-  // Load manifest on mount — uses the job name as the pipeline name
-  useEffect(() => {
-    loadManifest(jobName)
-  }, [jobName, loadManifest])
+  // Track the previous jobName to detect pipeline changes
+  const prevJobNameRef = useRef(jobName)
 
-  // Cleanup on unmount — stop all sessions and throughput timer
+  // Load manifest on mount — uses the job name as the pipeline name.
+  // When the pipeline changes (navigating from job A to job B), clean up old sessions.
   useEffect(() => {
-    return () => {
+    if (prevJobNameRef.current !== jobName) {
+      // Pipeline changed — stop all sessions from previous pipeline
       pollingRefs.current.forEach((_, key) => {
         pollingRefs.current.set(key, false)
       })
       stopAll()
       cleanupThroughputTracking()
+      prevJobNameRef.current = jobName
     }
-  }, [stopAll])
+    loadManifest(jobName)
+  }, [jobName, loadManifest, stopAll])
+
+  // Cleanup on unmount — only stop polling and throughput timer.
+  // We do NOT call stopAll() here so sessions survive tab switches (forceMount)
+  // and brief navigation away. Sessions are cleaned up on pipeline change or explicit stop.
+  useEffect(() => {
+    return () => {
+      pollingRefs.current.forEach((_, key) => {
+        pollingRefs.current.set(key, false)
+      })
+      cleanupThroughputTracking()
+    }
+  }, [])
 
   // Result consumption loop — polls SQL Gateway for streaming results.
-  // Starts from token 1 because startTap already consumed token 0.
+  // Reads starting token from session store to support resume after remount.
   const startResultConsumption = useCallback(
     async (nodeId: string) => {
+      // Guard: don't start a second loop for the same node
+      if (pollingRefs.current.get(nodeId)) return
       pollingRefs.current.set(nodeId, true)
 
       const session = useSqlGatewayStore.getState().sessions[nodeId]
-      if (!session || session.status !== "streaming") return
+      if (
+        !session ||
+        (session.status !== "streaming" && session.status !== "paused")
+      )
+        return
 
-      // Start from token 1 — token 0 was consumed by startTap
-      let resultToken = 1
+      // Read starting token from store — supports resume
+      let resultToken = session.currentResultToken
       const { sessionHandle, operationHandle } = session
 
       while (pollingRefs.current.get(nodeId)) {
@@ -153,6 +167,8 @@ export function TapPanel({ jobId }: TapPanelProps) {
           }
 
           resultToken++
+          // Persist token to store so resume picks up from here
+          updateResultToken(nodeId, resultToken)
 
           // Throttle polling to avoid hammering the server
           await new Promise((r) => setTimeout(r, 500))
@@ -178,20 +194,33 @@ export function TapPanel({ jobId }: TapPanelProps) {
 
       pollingRefs.current.delete(nodeId)
     },
-    [appendRows],
+    [appendRows, updateResultToken],
   )
 
-  // Play handler
+  // Resume-on-mount effect — restart polling for any sessions that survived unmount.
+  // This handles navigating away and back: Zustand state persists, we just
+  // need to restart the polling loop from the stored token.
+  useEffect(() => {
+    const currentSessions = useSqlGatewayStore.getState().sessions
+    for (const [nodeId, session] of Object.entries(currentSessions)) {
+      if (
+        (session.status === "streaming" || session.status === "paused") &&
+        !pollingRefs.current.get(nodeId)
+      ) {
+        startResultConsumption(nodeId)
+      }
+    }
+  }, [startResultConsumption])
+
+  // Play handler — always starts a new session (cleanup guard in startTap handles old one)
   const handlePlay = useCallback(
     async (nodeId: string) => {
       const tab = useTapStore.getState().tabs[nodeId]
       if (!tab) return
 
-      const session = sessions[nodeId]
-
-      // Resume if paused
-      if (session?.status === "paused") {
-        resumeTap(nodeId)
+      // Guard: don't start if already active
+      const session = useSqlGatewayStore.getState().sessions[nodeId]
+      if (session?.status === "streaming" || session?.status === "connecting") {
         return
       }
 
@@ -228,13 +257,19 @@ export function TapPanel({ jobId }: TapPanelProps) {
       // Begin result consumption from token 1
       startResultConsumption(nodeId)
     },
-    [
-      sessions,
-      startTap,
-      resumeTap,
-      startResultConsumption, // No rows yet but set columns
-      appendRows,
-    ],
+    [startTap, startResultConsumption, appendRows],
+  )
+
+  // Resume handler — unpauses session and restarts polling loop if needed
+  const handleResume = useCallback(
+    (nodeId: string) => {
+      resumeTap(nodeId)
+      // Restart polling loop if it stopped (e.g., after remount)
+      if (!pollingRefs.current.get(nodeId)) {
+        startResultConsumption(nodeId)
+      }
+    },
+    [resumeTap, startResultConsumption],
   )
 
   // Pause handler
@@ -258,7 +293,7 @@ export function TapPanel({ jobId }: TapPanelProps) {
   const handleCloseTab = useCallback(
     async (nodeId: string) => {
       pollingRefs.current.set(nodeId, false)
-      const session = sessions[nodeId]
+      const session = useSqlGatewayStore.getState().sessions[nodeId]
       if (
         session &&
         (session.status === "streaming" || session.status === "paused")
@@ -267,7 +302,7 @@ export function TapPanel({ jobId }: TapPanelProps) {
       }
       closeTab(nodeId)
     },
-    [sessions, stopTap, closeTab],
+    [stopTap, closeTab],
   )
 
   // Clear handler
@@ -389,6 +424,7 @@ export function TapPanel({ jobId }: TapPanelProps) {
           sessions={sessions}
           onConfigChange={(cfg) => updateConfig(activeTabId, cfg)}
           onPlay={() => handlePlay(activeTabId)}
+          onResume={() => handleResume(activeTabId)}
           onPause={() => handlePause(activeTabId)}
           onStop={() => handleStop(activeTabId)}
           onClear={() => handleClear(activeTabId)}
@@ -406,6 +442,7 @@ function ActiveTabContent({
   sessions,
   onConfigChange,
   onPlay,
+  onResume,
   onPause,
   onStop,
   onClear,
@@ -420,6 +457,7 @@ function ActiveTabContent({
     cfg: Partial<import("@/stores/tap-store").TapTab["config"]>,
   ) => void
   onPlay: () => void
+  onResume: () => void
   onPause: () => void
   onStop: () => void
   onClear: () => void
@@ -442,6 +480,7 @@ function ActiveTabContent({
         <TapControls
           status={session?.status ?? "idle"}
           onPlay={onPlay}
+          onResume={onResume}
           onPause={onPause}
           onStop={onStop}
           onClear={onClear}

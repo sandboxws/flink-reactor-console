@@ -1,12 +1,13 @@
 "use client"
 
-import { Loader2, Pause, Play, Square, Trash2 } from "lucide-react"
+import { Loader2, Pause, Play, RotateCcw, Square, Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 
 interface TapControlsProps {
   status: ActiveTapSession["status"] | "idle"
   onPlay: () => void
+  onResume: () => void
   onPause: () => void
   onStop: () => void
   onClear: () => void
@@ -14,50 +15,84 @@ interface TapControlsProps {
 
 const iconClass = "size-3.5"
 
+/**
+ * Button state matrix:
+ * | State        | Play | Resume | Pause | Stop |
+ * |--------------|------|--------|-------|------|
+ * | idle/closed  |  on  |  off   |  off  |  off |
+ * | connecting   |  off |  off   |  off  |  on  |
+ * | streaming    |  off |  off   |  on   |  on  |
+ * | paused       |  off |  on    |  off  |  on  |
+ * | error        |  on  |  off   |  off  |  on  |
+ */
 export function TapControls({
   status,
   onPlay,
+  onResume,
   onPause,
   onStop,
   onClear,
 }: TapControlsProps) {
+  const isIdle = status === "idle" || status === "closed"
   const isConnecting = status === "connecting"
   const isStreaming = status === "streaming"
   const isPaused = status === "paused"
-  const hasSession =
-    status === "streaming" || status === "paused" || status === "connecting"
+  const isError = status === "error"
+  const hasSession = isStreaming || isPaused || isConnecting
+
+  const playEnabled = isIdle || isError
+  const resumeEnabled = isPaused
+  const pauseEnabled = isStreaming
+  const stopEnabled = hasSession || isError
 
   return (
     <div className="flex items-center gap-1.5">
-      {/* Play / Resume */}
+      {/* Play (new session) */}
       <button
         type="button"
         onClick={onPlay}
-        disabled={isStreaming || isConnecting}
+        disabled={!playEnabled}
         className={cn(
           "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-          isStreaming || isConnecting
-            ? "cursor-not-allowed bg-dash-elevated/50 text-zinc-600"
-            : "bg-job-running/15 text-job-running hover:bg-job-running/25",
+          playEnabled
+            ? "bg-job-running/15 text-job-running hover:bg-job-running/25"
+            : "cursor-not-allowed bg-dash-elevated/50 text-zinc-600",
         )}
-        title={isPaused ? "Resume observation" : "Start observation"}
+        title="Start new observation"
       >
         {isConnecting ? (
           <Loader2 className={cn(iconClass, "animate-spin")} />
         ) : (
           <Play className={iconClass} />
         )}
-        {isPaused ? "Resume" : isConnecting ? "Connecting" : "Play"}
+        {isConnecting ? "Connecting" : "Play"}
+      </button>
+
+      {/* Resume (unpause existing session) */}
+      <button
+        type="button"
+        onClick={onResume}
+        disabled={!resumeEnabled}
+        className={cn(
+          "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+          resumeEnabled
+            ? "bg-fr-purple/15 text-fr-purple hover:bg-fr-purple/25"
+            : "cursor-not-allowed bg-dash-elevated/50 text-zinc-600",
+        )}
+        title="Resume paused observation"
+      >
+        <RotateCcw className={iconClass} />
+        Resume
       </button>
 
       {/* Pause */}
       <button
         type="button"
         onClick={onPause}
-        disabled={!isStreaming}
+        disabled={!pauseEnabled}
         className={cn(
           "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-          isStreaming
+          pauseEnabled
             ? "bg-fr-amber/15 text-fr-amber hover:bg-fr-amber/25"
             : "cursor-not-allowed bg-dash-elevated/50 text-zinc-600",
         )}
@@ -71,10 +106,10 @@ export function TapControls({
       <button
         type="button"
         onClick={onStop}
-        disabled={!hasSession}
+        disabled={!stopEnabled}
         className={cn(
           "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-          hasSession
+          stopEnabled
             ? "bg-job-failed/15 text-job-failed hover:bg-job-failed/25"
             : "cursor-not-allowed bg-dash-elevated/50 text-zinc-600",
         )}
