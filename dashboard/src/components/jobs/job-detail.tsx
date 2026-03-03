@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 import { useMemo, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlinkJob } from "@/data/cluster-types"
+import { useClusterStore } from "@/stores/cluster-store"
 import { CheckpointsTab } from "./detail/checkpoints-tab"
 import { ConfigurationTab } from "./detail/configuration-tab"
 import { DataSkewTab } from "./detail/data-skew-tab"
@@ -37,6 +38,8 @@ export function JobDetail({
   onCancelJob?: () => void
   onCreateSavepoint?: () => void
 }) {
+  const fetchJobDetail = useClusterStore((s) => s.fetchJobDetail)
+  const jobDetailLoading = useClusterStore((s) => s.jobDetailLoading)
   const [savepointFeedback, setSavepointFeedback] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedVertexId, setSelectedVertexId] = useState<string | undefined>()
@@ -67,6 +70,8 @@ export function JobDetail({
         job={job}
         onCancelJob={onCancelJob}
         onCreateSavepoint={handleSavepoint}
+        onRefresh={() => fetchJobDetail(job.id)}
+        isRefreshing={jobDetailLoading}
       />
 
       {savepointFeedback && (

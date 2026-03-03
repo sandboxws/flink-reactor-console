@@ -8,6 +8,7 @@ import {
   Copy,
   Cpu,
   Layers,
+  RefreshCw,
   Save,
   XCircle,
 } from "lucide-react"
@@ -181,13 +182,18 @@ export function JobHeader({
   job,
   onCancelJob,
   onCreateSavepoint,
+  onRefresh,
+  isRefreshing,
 }: {
   job: FlinkJob
   onCancelJob?: () => void
   onCreateSavepoint?: () => void
+  onRefresh?: () => void
+  isRefreshing?: boolean
 }) {
   const featureFlags = useClusterStore((s) => s.featureFlags)
   const isRunning = job.status === "RUNNING"
+  const isCanceled = job.status === "CANCELED"
   const canCancel = featureFlags?.webCancel !== false
   const taskTotal = Object.values(job.tasks).reduce((a, b) => a + b, 0)
   const taskFinished = job.tasks.finished
@@ -237,6 +243,19 @@ export function JobHeader({
 
         {/* Progress ring + quick actions */}
         <div className="flex items-center gap-3">
+          {!isCanceled && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center justify-center rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-dash-panel hover:text-zinc-200 disabled:pointer-events-none"
+              title="Refresh job data"
+            >
+              <RefreshCw
+                className={cn("size-4", isRefreshing && "animate-spin")}
+              />
+            </button>
+          )}
           {isRunning && <ProgressRing percentage={taskPct} />}
           {isRunning && (
             <div className="flex gap-2">
