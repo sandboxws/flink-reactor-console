@@ -1,80 +1,114 @@
+// Package server provides the HTTP server, middleware, and health endpoints.
 package server
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 )
 
-// Server wraps an HTTP server with middleware and health endpoints.
+// Server wraps an Echo server with middleware and health endpoints.
 type Server struct {
-	httpServer *http.Server
-	mux        *http.ServeMux
-	logger     *slog.Logger
+	echo   *echo.Echo
+	addr   string
+	logger *slog.Logger
 }
 
 // New creates a Server listening on addr with the standard middleware chain
 // and health endpoints registered.
 func New(addr string, logger *slog.Logger) *Server {
-	mux := http.NewServeMux()
+	e := echo.New()
+	e.HideBanner = true
+	e.HidePort = true
 
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	// Slowloris protection.
+	e.Server.ReadHeaderTimeout = 10 * time.Second
+
+	// Middleware chain: RequestID → Logging → Recovery → CORS.
+	e.Use(middleware.RequestID())
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogURI:       true,
+		LogStatus:    true,
+		LogLatency:   true,
+		LogMethod:    true,
+		LogRequestID: true,
+		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
+			logger.Info("request",
+				"method", v.Method,
+				"path", v.URI,
+				"status", v.Status,
+				"duration_ms", v.Latency.Milliseconds(),
+				"request_id", v.RequestID,
+			)
+			return nil
+		},
+	}))
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		LogErrorFunc: func(_ echo.Context, err error, stack []byte) error {
+			logger.Error("panic recovered",
+				"error", fmt.Sprintf("%v", err),
+				"stack", string(stack),
+			)
+			return err
+		},
+	}))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
+		AllowHeaders: []string{
+			echo.HeaderContentType,
+			echo.HeaderAuthorization,
+			"X-Request-ID",
+		},
+		MaxAge: 86400,
+	}))
+
+	// Health endpoints.
+	e.GET("/healthz", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
-
-	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ready"})
+	e.GET("/readyz", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"status": "ready"})
 	})
 
 	// GraphQL endpoint.
 	gqlSrv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
 		Resolvers: &graphql.Resolver{},
 	}))
-	mux.Handle("POST /graphql", gqlSrv)
-
-	// Middleware chain: RequestID → Logging → Recovery → CORS
-	// Applied in reverse order because each wraps the next.
-	var handler http.Handler = mux
-	handler = CORS([]string{"*"})(handler)
-	handler = Recovery(logger)(handler)
-	handler = Logging(logger)(handler)
-	handler = RequestID(handler)
+	e.POST("/graphql", echo.WrapHandler(gqlSrv))
 
 	return &Server{
-		httpServer: &http.Server{
-			Addr:              addr,
-			Handler:           handler,
-			ReadHeaderTimeout: 10 * time.Second,
-		},
-		mux:    mux,
+		echo:   e,
+		addr:   addr,
 		logger: logger,
 	}
 }
 
-// Handle registers a handler on the server's mux. This must be called
-// before Start(). The pattern follows Go 1.22+ ServeMux syntax (e.g., "POST /graphql").
-func (s *Server) Handle(pattern string, handler http.Handler) {
-	s.mux.Handle(pattern, handler)
-}
-
-// Handler returns the server's top-level HTTP handler (with middleware applied).
-// Useful for testing with httptest.NewServer.
-func (s *Server) Handler() http.Handler {
-	return s.httpServer.Handler
+// Echo returns the underlying echo.Echo instance.
+// Useful for testing with e.ServeHTTP(rec, req) and for registering
+// additional routes before Start().
+func (s *Server) Echo() *echo.Echo {
+	return s.echo
 }
 
 // Start begins listening and serving. It blocks until the server is shut down.
 func (s *Server) Start(_ context.Context) error {
-	s.logger.Info("server starting", "addr", s.httpServer.Addr)
-	err := s.httpServer.ListenAndServe()
+	s.logger.Info("server starting", "addr", s.addr)
+	err := s.echo.Start(s.addr)
 	if err != nil && err != http.ErrServerClosed {
 		return err
 	}
@@ -84,5 +118,5 @@ func (s *Server) Start(_ context.Context) error {
 // Shutdown gracefully stops the server, allowing in-flight requests to complete.
 func (s *Server) Shutdown(ctx context.Context) error {
 	s.logger.Info("server shutting down")
-	return s.httpServer.Shutdown(ctx)
+	return s.echo.Shutdown(ctx)
 }
