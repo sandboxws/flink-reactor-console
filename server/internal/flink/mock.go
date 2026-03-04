@@ -35,6 +35,34 @@ func NewMockServer() *httptest.Server {
 		writeJSON(w, MockCheckpointStats(jobID))
 	})
 
+	mux.HandleFunc("GET /jobs/{id}/checkpoints/config", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, MockCheckpointConfig())
+	})
+
+	mux.HandleFunc("GET /jobs/{id}/config", func(w http.ResponseWriter, r *http.Request) {
+		jobID := r.PathValue("id")
+		writeJSON(w, MockJobConfig(jobID))
+	})
+
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/watermarks", func(w http.ResponseWriter, r *http.Request) {
+		vid := r.PathValue("vid")
+		writeJSON(w, MockWatermarks(vid))
+	})
+
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/backpressure", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, MockBackPressure())
+	})
+
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/accumulators", func(w http.ResponseWriter, r *http.Request) {
+		vid := r.PathValue("vid")
+		writeJSON(w, MockAccumulators(vid))
+	})
+
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}", func(w http.ResponseWriter, r *http.Request) {
+		vid := r.PathValue("vid")
+		writeJSON(w, MockVertexDetail(vid))
+	})
+
 	mux.HandleFunc("GET /taskmanagers", func(w http.ResponseWriter, r *http.Request) {
 		// Only match the exact path, not subpaths.
 		if r.URL.Path != "/taskmanagers" {
@@ -42,6 +70,10 @@ func NewMockServer() *httptest.Server {
 			return
 		}
 		writeJSON(w, MockTaskManagers())
+	})
+
+	mux.HandleFunc("GET /taskmanagers/{id}/metrics", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, MockTMMetrics())
 	})
 
 	mux.HandleFunc("GET /taskmanagers/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -55,6 +87,14 @@ func NewMockServer() *httptest.Server {
 
 	mux.HandleFunc("GET /jobmanager/environment", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, MockJMEnvironment())
+	})
+
+	mux.HandleFunc("GET /jobmanager/metrics", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, MockJMMetrics())
+	})
+
+	mux.HandleFunc("GET /config", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, MockClusterConfig())
 	})
 
 	mux.HandleFunc("GET /jars", func(w http.ResponseWriter, _ *http.Request) {

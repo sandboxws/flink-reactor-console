@@ -404,6 +404,192 @@ func MockJarList() JarList {
 	}
 }
 
+// MockCheckpointConfig returns a realistic checkpoint config response.
+func MockCheckpointConfig() CheckpointConfig {
+	return CheckpointConfig{
+		Mode:          "EXACTLY_ONCE",
+		Interval:      60000,
+		Timeout:       600000,
+		MinPause:      1000,
+		MaxConcurrent: 1,
+		Externalization: struct {
+			Enabled              bool `json:"enabled"`
+			DeleteOnCancellation bool `json:"delete_on_cancellation"`
+		}{
+			Enabled:              true,
+			DeleteOnCancellation: false,
+		},
+		UnalignedCheckpoints: false,
+	}
+}
+
+// MockJobConfig returns a realistic job config response.
+func MockJobConfig(jobID string) JobConfig {
+	return JobConfig{
+		JID:  jobID,
+		Name: "ETL-Orders-Pipeline",
+		ExecutionConfig: struct {
+			ExecutionMode   string            `json:"execution-mode"`
+			RestartStrategy string            `json:"restart-strategy"`
+			JobParallelism  int               `json:"job-parallelism"`
+			ObjectReuseMode bool              `json:"object-reuse-mode"`
+			UserConfig      map[string]string `json:"user-config"`
+		}{
+			ExecutionMode:   "PIPELINED",
+			RestartStrategy: "Cluster level: Fixed Delay with 3 restart(s) and 10000 ms delay",
+			JobParallelism:  4,
+			ObjectReuseMode: false,
+			UserConfig: map[string]string{
+				"pipeline.name": "ETL-Orders-Pipeline",
+			},
+		},
+	}
+}
+
+// MockVertexDetail returns a realistic vertex detail response.
+func MockVertexDetail(vertexID string) VertexDetail {
+	now := time.Now().UnixMilli()
+	subtasks := make([]SubtaskInfo, 4)
+	for i := range subtasks {
+		subtasks[i] = SubtaskInfo{
+			Subtask:   i,
+			Status:    "RUNNING",
+			Attempt:   0,
+			Endpoint:  fmt.Sprintf("taskmanager-%d:6121", i),
+			StartTime: now - 3_600_000,
+			EndTime:   -1,
+			Duration:  3_600_000,
+			Metrics: VertexMetrics{
+				ReadBytes: 262_144, ReadBytesComplete: true,
+				WriteBytes: 131_072, WriteBytesComplete: true,
+				ReadRecords: 25_000, ReadRecordsComplete: true,
+				WriteRecords: 25_000, WriteRecordsComplete: true,
+				AccumulatedBusy: 600_000,
+			},
+			TaskManagerID: fmt.Sprintf("tm-%032x", i+1),
+		}
+	}
+	return VertexDetail{
+		ID:          vertexID,
+		Name:        "Source: KafkaSource",
+		Parallelism: 4,
+		Now:         now,
+		Subtasks:    subtasks,
+	}
+}
+
+// MockWatermarks returns a realistic watermark response for a vertex.
+func MockWatermarks(vertexID string) Watermarks {
+	_ = vertexID
+	return Watermarks{
+		{ID: "0.currentInputWatermark", Value: "1709251200000"},
+		{ID: "1.currentInputWatermark", Value: "1709251200000"},
+		{ID: "2.currentInputWatermark", Value: "1709251199000"},
+		{ID: "3.currentInputWatermark", Value: "1709251200000"},
+	}
+}
+
+// MockBackPressure returns a realistic backpressure response.
+func MockBackPressure() BackPressure {
+	return BackPressure{
+		Status:            "ok",
+		BackpressureLevel: "ok",
+		EndTimestamp:      time.Now().UnixMilli(),
+		Subtasks: []SubtaskBackPressure{
+			{Subtask: 0, AttemptNumber: 0, BackpressureLevel: "ok", Ratio: 0.0, BusyRatio: 0.15, IdleRatio: 0.85},
+			{Subtask: 1, AttemptNumber: 0, BackpressureLevel: "ok", Ratio: 0.0, BusyRatio: 0.12, IdleRatio: 0.88},
+			{Subtask: 2, AttemptNumber: 0, BackpressureLevel: "ok", Ratio: 0.0, BusyRatio: 0.18, IdleRatio: 0.82},
+			{Subtask: 3, AttemptNumber: 0, BackpressureLevel: "ok", Ratio: 0.0, BusyRatio: 0.10, IdleRatio: 0.90},
+		},
+	}
+}
+
+// MockAccumulators returns a realistic accumulators response.
+func MockAccumulators(vertexID string) Accumulators {
+	return Accumulators{
+		ID: vertexID,
+		UserAccumulators: []UserAccumulator{
+			{Name: "numRecordsIn", Type: "LongCounter", Value: "25000"},
+			{Name: "numRecordsOut", Type: "LongCounter", Value: "25000"},
+		},
+	}
+}
+
+// MockTMMetrics returns realistic task manager JVM metrics.
+func MockTMMetrics() []MetricItem {
+	return []MetricItem{
+		{ID: "Status.JVM.CPU.Load", Value: "0.35"},
+		{ID: "Status.JVM.Memory.Heap.Used", Value: "536870912"},
+		{ID: "Status.JVM.Memory.Heap.Committed", Value: "1073741824"},
+		{ID: "Status.JVM.Memory.Heap.Max", Value: "1073741824"},
+		{ID: "Status.JVM.Memory.NonHeap.Used", Value: "134217728"},
+		{ID: "Status.JVM.Memory.NonHeap.Committed", Value: "201326592"},
+		{ID: "Status.JVM.Memory.NonHeap.Max", Value: "-1"},
+		{ID: "Status.JVM.Memory.Direct.Count", Value: "42"},
+		{ID: "Status.JVM.Memory.Direct.MemoryUsed", Value: "67108864"},
+		{ID: "Status.JVM.Memory.Direct.TotalCapacity", Value: "67108864"},
+		{ID: "Status.JVM.Memory.Mapped.Count", Value: "0"},
+		{ID: "Status.JVM.Memory.Mapped.MemoryUsed", Value: "0"},
+		{ID: "Status.JVM.Memory.Mapped.TotalCapacity", Value: "0"},
+		{ID: "Status.Shuffle.Netty.AvailableMemory", Value: "100663296"},
+		{ID: "Status.Shuffle.Netty.UsedMemory", Value: "33554432"},
+		{ID: "Status.Shuffle.Netty.TotalMemory", Value: "134217728"},
+		{ID: "Status.Shuffle.Netty.AvailableMemorySegments", Value: "3072"},
+		{ID: "Status.Shuffle.Netty.UsedMemorySegments", Value: "1024"},
+		{ID: "Status.Shuffle.Netty.TotalMemorySegments", Value: "4096"},
+		{ID: "Status.Flink.Memory.Managed.Used", Value: "268435456"},
+		{ID: "Status.Flink.Memory.Managed.Total", Value: "536870912"},
+		{ID: "Status.JVM.Memory.Metaspace.Used", Value: "67108864"},
+		{ID: "Status.JVM.Memory.Metaspace.Max", Value: "268435456"},
+		{ID: "Status.JVM.Threads.Count", Value: "128"},
+		{ID: "Status.JVM.GarbageCollector.G1_Young_Generation.Count", Value: "245"},
+		{ID: "Status.JVM.GarbageCollector.G1_Young_Generation.Time", Value: "4500"},
+		{ID: "Status.JVM.GarbageCollector.G1_Old_Generation.Count", Value: "3"},
+		{ID: "Status.JVM.GarbageCollector.G1_Old_Generation.Time", Value: "1200"},
+	}
+}
+
+// MockJMMetrics returns realistic job manager JVM metrics.
+func MockJMMetrics() []MetricItem {
+	return []MetricItem{
+		{ID: "Status.JVM.Memory.Heap.Used", Value: "268435456"},
+		{ID: "Status.JVM.Memory.Heap.Max", Value: "1073741824"},
+		{ID: "Status.JVM.Memory.NonHeap.Used", Value: "100663296"},
+		{ID: "Status.JVM.Memory.NonHeap.Max", Value: "-1"},
+		{ID: "Status.JVM.Memory.Metaspace.Used", Value: "50331648"},
+		{ID: "Status.JVM.Memory.Metaspace.Max", Value: "268435456"},
+		{ID: "Status.JVM.Memory.Direct.MemoryUsed", Value: "33554432"},
+		{ID: "Status.JVM.Memory.Direct.TotalCapacity", Value: "33554432"},
+		{ID: "Status.JVM.Threads.Count", Value: "64"},
+		{ID: "Status.JVM.GarbageCollector.G1_Young_Generation.Count", Value: "120"},
+		{ID: "Status.JVM.GarbageCollector.G1_Young_Generation.Time", Value: "2100"},
+		{ID: "Status.JVM.GarbageCollector.G1_Old_Generation.Count", Value: "1"},
+		{ID: "Status.JVM.GarbageCollector.G1_Old_Generation.Time", Value: "500"},
+	}
+}
+
+// MockClusterConfig returns a realistic Flink cluster config response.
+func MockClusterConfig() ClusterConfig {
+	return ClusterConfig{
+		RefreshInterval: 3000,
+		TimezoneName:    "UTC",
+		TimezoneOffset:  "+00:00",
+		FlinkVersion:    "1.20.0",
+		FlinkRevision:   "abc1234",
+		Features: struct {
+			WebSubmit  bool `json:"web-submit"`
+			WebCancel  bool `json:"web-cancel"`
+			WebRescale bool `json:"web-rescale"`
+			WebHistory bool `json:"web-history"`
+		}{
+			WebSubmit:  true,
+			WebCancel:  true,
+			WebRescale: false,
+			WebHistory: true,
+		},
+	}
+}
+
 func stringPtr(s string) *string {
 	return &s
 }
