@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/flink-reactor/server/internal/observability"
-	"github.com/flink-reactor/server/internal/server"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 )
 
 const (

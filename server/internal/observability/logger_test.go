@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/flink-reactor/server/internal/observability"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 )
 
 func TestNewLogger_StdoutOnly(t *testing.T) {

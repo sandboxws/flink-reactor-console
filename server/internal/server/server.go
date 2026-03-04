@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/flink-reactor/server/internal/graphql"
-	"github.com/flink-reactor/server/internal/graphql/generated"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 )
 
 // Server wraps an HTTP server with middleware and health endpoints.

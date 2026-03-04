@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/flink-reactor/server/internal/graphql"
-	"github.com/flink-reactor/server/internal/graphql/generated"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 )
 
 func TestHealthQuery(t *testing.T) {

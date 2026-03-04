@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/flink-reactor/server/internal/observability"
-	"github.com/flink-reactor/server/internal/server"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 )
 
 func TestHealthz(t *testing.T) {

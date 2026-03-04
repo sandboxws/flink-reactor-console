@@ -8,7 +8,7 @@ package graphql
 import (
 	"context"
 
-	"github.com/flink-reactor/server/internal/graphql/generated"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 )
 
 // Health is the resolver for the health field.
