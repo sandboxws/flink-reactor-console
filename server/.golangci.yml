@@ -1,0 +1,20 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - gosec
+    - revive
+    - unused
+    - ineffassign
+
+formatters:
+  enable:
+    - gofumpt
+
+issues:
+  exclude-dirs:
+    - internal/graphql/generated
+    - internal/graphql/model

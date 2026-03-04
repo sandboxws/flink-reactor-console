@@ -1,0 +1,37 @@
+# reactor-server task runner
+
+# Build the server binary
+build:
+    go build -o bin/reactor-server ./cmd/reactor-server/
+
+# Run all tests
+test:
+    go test ./...
+
+# Run linter
+lint:
+    golangci-lint run
+
+# Run gqlgen code generation
+generate:
+    go generate ./...
+
+# Run the server in development mode
+dev:
+    go run ./cmd/reactor-server/
+
+# Build Docker image
+docker:
+    docker build -t reactor-server .
+
+# Run tests with coverage
+coverage:
+    go test -coverprofile=coverage.out ./...
+    go tool cover -html=coverage.out -o coverage.html
+
+# Format code
+fmt:
+    gofumpt -w .
+
+# Run full CI pipeline (build + lint + test)
+ci: build lint test
