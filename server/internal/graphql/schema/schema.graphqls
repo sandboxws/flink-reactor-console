@@ -16,6 +16,7 @@ type ClusterInfo {
   status: ClusterStatus!
   lastCheckTime: String
   version: String
+  capabilities: [String!]!
 }
 
 type Query {

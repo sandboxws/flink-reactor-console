@@ -140,6 +140,7 @@ type ComplexityRoot struct {
 	}
 
 	ClusterInfo struct {
+		Capabilities  func(childComplexity int) int
 		LastCheckTime func(childComplexity int) int
 		Name          func(childComplexity int) int
 		Status        func(childComplexity int) int
@@ -1134,6 +1135,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CheckpointSummary.StateSize(childComplexity), true
 
+	case "ClusterInfo.capabilities":
+		if e.ComplexityRoot.ClusterInfo.Capabilities == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterInfo.Capabilities(childComplexity), true
 	case "ClusterInfo.lastCheckTime":
 		if e.ComplexityRoot.ClusterInfo.LastCheckTime == nil {
 			break
@@ -4040,6 +4047,7 @@ type ClusterInfo {
   status: ClusterStatus!
   lastCheckTime: String
   version: String
+  capabilities: [String!]!
 }
 
 type Query {
@@ -7219,6 +7227,35 @@ func (ec *executionContext) _ClusterInfo_version(ctx context.Context, field grap
 }
 
 func (ec *executionContext) fieldContext_ClusterInfo_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterInfo_capabilities(ctx context.Context, field graphql.CollectedField, obj *model.ClusterInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterInfo_capabilities,
+		func(ctx context.Context) (any, error) {
+			return obj.Capabilities, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterInfo_capabilities(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClusterInfo",
 		Field:      field,
@@ -12461,6 +12498,8 @@ func (ec *executionContext) fieldContext_Query_clusters(_ context.Context, field
 				return ec.fieldContext_ClusterInfo_lastCheckTime(ctx, field)
 			case "version":
 				return ec.fieldContext_ClusterInfo_version(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_ClusterInfo_capabilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClusterInfo", field.Name)
 		},
@@ -20122,6 +20161,11 @@ func (ec *executionContext) _ClusterInfo(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ClusterInfo_lastCheckTime(ctx, field, obj)
 		case "version":
 			out.Values[i] = ec._ClusterInfo_version(ctx, field, obj)
+		case "capabilities":
+			out.Values[i] = ec._ClusterInfo_capabilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

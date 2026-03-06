@@ -399,6 +399,7 @@ export type ClusterOverview = {
   cancelledJobs: number
   failedJobs: number
   taskManagerCount: number
+  capabilities: string[]
 }
 
 // --- Feature flags ---

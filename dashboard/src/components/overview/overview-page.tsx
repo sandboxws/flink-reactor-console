@@ -113,6 +113,7 @@ export function OverviewPage() {
       <ClusterInfo
         version={overview.flinkVersion}
         commitId={overview.flinkCommitId}
+        capabilities={overview.capabilities}
       />
 
       {/* Top row: key metrics */}

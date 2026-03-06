@@ -8,6 +8,7 @@ package graphql
 import (
 	"context"
 
+	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
@@ -37,6 +38,10 @@ func (r *queryResolver) Clusters(_ context.Context) ([]*model.ClusterInfo, error
 		}
 		if info.Version != nil {
 			ci.Version = info.Version
+			ci.Capabilities = cluster.CapabilitiesForVersion(*info.Version)
+		}
+		if ci.Capabilities == nil {
+			ci.Capabilities = []string{}
 		}
 		result[i] = ci
 	}

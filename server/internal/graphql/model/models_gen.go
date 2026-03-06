@@ -119,6 +119,7 @@ type ClusterInfo struct {
 	Status        ClusterStatus `json:"status"`
 	LastCheckTime *string       `json:"lastCheckTime,omitempty"`
 	Version       *string       `json:"version,omitempty"`
+	Capabilities  []string      `json:"capabilities"`
 }
 
 type DashboardConfig struct {
