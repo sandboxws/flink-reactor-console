@@ -1,6 +1,5 @@
 import { create } from "zustand"
 import { parseLogBlock } from "@/data/log-parser"
-import { createMockGenerator, type MockGenerator } from "@/data/mock-generator"
 import type { LogEntry, LogSource } from "@/data/types"
 import { LOG_BUFFER_LIMIT } from "@/lib/constants"
 import {
@@ -9,13 +8,12 @@ import {
 } from "@/lib/graphql-api-client"
 import { createClientLogger } from "@/lib/logger"
 import { useClusterStore } from "./cluster-store"
-import { useConfigStore } from "./config-store"
 
 const log = createClientLogger().getSubLogger({ name: "store:log" })
 
 // ---------------------------------------------------------------------------
 // Log store — buffered log entries with FIFO eviction and streaming controls
-// Supports mock streaming (mock-generator) and live polling (Flink REST).
+// Polls JM + TM log endpoints from the Go backend.
 // ---------------------------------------------------------------------------
 
 /** Speed multiplier → polling interval in ms. Lower speed = longer interval. */
@@ -43,21 +41,6 @@ interface LogActions {
 }
 
 export type LogStore = LogState & LogActions
-
-// ---------------------------------------------------------------------------
-// Mock generator (unchanged behavior)
-// ---------------------------------------------------------------------------
-
-let generator: MockGenerator | null = null
-
-function getGenerator(
-  appendEntries: (entries: LogEntry[]) => void,
-): MockGenerator {
-  if (!generator) {
-    generator = createMockGenerator(appendEntries)
-  }
-  return generator
-}
 
 // ---------------------------------------------------------------------------
 // Live polling state (module-scoped, outside Zustand)
@@ -219,11 +202,6 @@ export const useLogStore = create<LogStore>((set, get) => ({
   setStreamSpeed: (speed: number) => {
     set({ streamSpeed: speed })
 
-    // Update mock generator speed
-    if (generator) {
-      generator.setSpeed(speed)
-    }
-
     // Update live polling interval
     if (pollTimer) {
       clearInterval(pollTimer)
@@ -233,42 +211,21 @@ export const useLogStore = create<LogStore>((set, get) => ({
   },
 
   startStreaming: () => {
-    const mockMode = useConfigStore.getState().config?.mockMode ?? true
-
-    if (mockMode) {
-      // Mock mode: use existing mock generator
-      log.info("MOCK → createMockGenerator streaming", {
-        screen: "Log Explorer",
-        file: "mock-generator.ts",
-        generator: "createMockGenerator",
-      })
-      const gen = getGenerator(get().appendEntries)
-      gen.setSpeed(get().streamSpeed)
-      gen.start()
-    } else {
-      // Live mode: poll Flink REST log endpoints
-      log.info("LIVE → polling JM/TM log endpoints", { screen: "Log Explorer" })
-      // Reset offsets on fresh start
-      for (const key of Object.keys(lastOffset)) {
-        delete lastOffset[key]
-      }
-
-      // Run initial poll immediately, then set up interval
-      pollLogs(get().appendEntries)
-      const intervalMs = speedToIntervalMs(get().streamSpeed)
-      pollTimer = setInterval(() => pollLogs(get().appendEntries), intervalMs)
+    log.info("LIVE → polling JM/TM log endpoints", { screen: "Log Explorer" })
+    // Reset offsets on fresh start
+    for (const key of Object.keys(lastOffset)) {
+      delete lastOffset[key]
     }
+
+    // Run initial poll immediately, then set up interval
+    pollLogs(get().appendEntries)
+    const intervalMs = speedToIntervalMs(get().streamSpeed)
+    pollTimer = setInterval(() => pollLogs(get().appendEntries), intervalMs)
 
     set({ isStreaming: true })
   },
 
   stopStreaming: () => {
-    // Stop mock generator
-    if (generator) {
-      generator.stop()
-    }
-
-    // Stop live polling
     if (pollTimer) {
       clearInterval(pollTimer)
       pollTimer = null

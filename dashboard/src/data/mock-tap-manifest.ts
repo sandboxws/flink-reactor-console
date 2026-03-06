@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Mock tap manifest — static manifest with sample tapped operators for mock mode.
+// Mock tap manifest — test fixture with sample tapped operators.
 // Covers Kafka source, Filter transform, and Kafka sink to exercise all UI paths.
 // ---------------------------------------------------------------------------
 
@@ -8,8 +8,7 @@ import type { TapManifest } from "./tap-types"
 /**
  * Generate a mock tap manifest with realistic observation SQL.
  *
- * Operator names match the vertex names from OPERATOR_TEMPLATES in mock-cluster.ts
- * so that DAG tap indicators appear correctly in mock mode.
+ * Operator names match typical Flink vertex names for testing.
  *
  * Includes:
  * - KafkaSource reading raw order events

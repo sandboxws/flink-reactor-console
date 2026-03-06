@@ -4,7 +4,6 @@ import type { ErrorGroup, LogEntry, LogSource } from "@/data/types"
 import { fetchJobDetail } from "@/lib/graphql-api-client"
 import { createClientLogger } from "@/lib/logger"
 import { useClusterStore } from "./cluster-store"
-import { useConfigStore } from "./config-store"
 
 const log = createClientLogger().getSubLogger({ name: "store:error" })
 
@@ -160,15 +159,6 @@ export const useErrorStore = create<ErrorStore>((set, get) => ({
   },
 
   startLiveExceptionPolling: () => {
-    const mockMode = useConfigStore.getState().config?.mockMode ?? true
-    if (mockMode) {
-      log.info("MOCK → processEntry (mock-derived)", {
-        screen: "Error Explorer",
-        file: "error-store.ts",
-      })
-      return // In mock mode, entries come from log-store subscription
-    }
-
     log.info("LIVE → polling job exceptions", { screen: "Error Explorer" })
     processedExceptionKeys.clear()
     fetchPtr = 0

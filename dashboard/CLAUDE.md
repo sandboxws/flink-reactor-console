@@ -63,14 +63,14 @@ The `getConfig()` function in `src/lib/config.ts` checks `FLINK_REACTOR_CONFIG` 
 ```
 Flink JobManager REST API
   ↓ (server-side, auth headers)
-/api/flink/* proxy routes (src/app/api/flink/)
-  ↓ (JSON)
-Browser fetch → flink-api-client.ts → mappers (flink-api-mappers.ts)
-  ↓ (domain types)
+Go backend (apps/server) — GraphQL API
+  ↓ (GraphQL)
+urql client → graphql-api-client.ts → domain types
+  ↓
 Zustand stores → React components
 ```
 
-**Why proxy routes**: Flink REST has no CORS headers. Proxy routes also aggregate multiple endpoints (e.g., job detail hits 8+ Flink endpoints in one browser request) and inject auth headers server-side.
+**Why Go backend**: Flink REST has no CORS headers. The Go backend aggregates multiple Flink endpoints into single GraphQL queries, injects auth headers server-side, and serves the dashboard as a static export in production.
 
 ## File Map
 
@@ -107,7 +107,7 @@ src/
 │   └── ui/                           # Shadcn primitives only — never create custom UI components here
 ├── stores/
 │   ├── cluster-store.ts              # Overview, jobs, TMs, JM, polling, job detail fetch
-│   ├── config-store.ts               # Runtime config from /api/config (cached singleton)
+│   ├── config-store.ts               # Runtime config from GraphQL dashboardConfig (cached singleton)
 │   ├── log-store.ts                  # Log buffer (FIFO at 100k), streaming toggle, speed
 │   ├── filter-store.ts               # Severity, search (literal/regex), source, time range
 │   ├── error-store.ts                # Exception groups (class + message prefix key), sort
@@ -117,10 +117,6 @@ src/
 │   ├── cluster-types.ts              # Domain types (camelCase)
 │   ├── flink-api-mappers.ts          # Pure functions: raw → domain (state collapse, metrics conversion)
 │   ├── types.ts                      # Log/error domain types
-│   ├── mock-cluster.ts               # Mock factories for TM, JM, overview
-│   ├── mock-api-responses.ts         # Mock Flink API response generators
-│   ├── mock-generator.ts             # Real-time log entry generator
-│   ├── mock-errors.ts                # Mock exception entries
 │   ├── log-parser.ts                 # Raw log line → structured LogEntry
 │   ├── thread-dump-parser.ts         # Java thread dump → ThreadDumpEntry[]
 │   └── flink-loggers.ts              # Logger name → Flink component mapping
@@ -155,11 +151,7 @@ All stores use `create<T>()` from Zustand. Key patterns:
 
 ## Mock Mode
 
-- Auto-enabled when `FLINK_REST_URL` is not set (configurable via `DASHBOARD_MOCK_MODE=on|off|auto`)
-- API routes return data from `mock-api-responses.ts` / `mock-cluster.ts`
-- Log streaming uses `mock-generator.ts` (50-500 entries/sec)
-- TM/JM metrics refresh locally (not API-backed yet)
-- Mock data is indistinguishable from real Flink responses
+Mock mode has been removed from the dashboard. The Go backend (`apps/server`) handles all Flink communication and has its own mock data (`mock_data.go`) when no Flink cluster is connected. The dashboard always operates in live mode, fetching data from the Go backend's GraphQL API.
 
 ## Component Conventions
 

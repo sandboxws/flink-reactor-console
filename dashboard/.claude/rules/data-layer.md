@@ -35,8 +35,7 @@ const rate = Math.round(accumulatedMs / durationSec);
 
 The `Math.max(1, ...)` prevents division by zero for freshly-started jobs.
 
-## Mock Data
+## Test Fixtures
 
-- `mock-cluster.ts` — Factory functions for TMs, JM, overview. Used by cluster-store for pages not yet on the API.
-- `mock-api-responses.ts` — Generates data matching real Flink REST response shapes. Used by API routes when `mockMode` is true.
-- Mock and real data should be indistinguishable to downstream code.
+- `mock-tap-manifest.ts` — Factory function for tap manifests used in tests.
+- All mock/test data for Flink responses lives in the Go backend (`apps/server/internal/flink/mock_data.go`).

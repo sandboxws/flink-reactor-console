@@ -118,78 +118,64 @@ program
     "-c, --config <path>",
     "Custom .env or .json config file (overrides --env)",
   )
-  .option("--mock", "Force mock mode (ignore FLINK_REST_URL)")
-  .action(
-    (options: {
-      port?: string
-      env: string
-      config?: string
-      mock?: boolean
-    }) => {
-      // 1. Load environment file
-      const envFile = resolveEnvFile(options.env, options.config)
-      if (envFile) {
-        if (envFile.isJson) {
-          // JSON config: set FLINK_REACTOR_CONFIG for the dashboard to read
-          process.env.FLINK_REACTOR_CONFIG = envFile.path
-        } else {
-          loadDotenv({ path: envFile.path })
-        }
+  .action((options: { port?: string; env: string; config?: string }) => {
+    // 1. Load environment file
+    const envFile = resolveEnvFile(options.env, options.config)
+    if (envFile) {
+      if (envFile.isJson) {
+        // JSON config: set FLINK_REACTOR_CONFIG for the dashboard to read
+        process.env.FLINK_REACTOR_CONFIG = envFile.path
+      } else {
+        loadDotenv({ path: envFile.path })
       }
+    }
 
-      // 2. Apply CLI overrides
-      if (options.port) {
-        process.env.DASHBOARD_PORT = options.port
-      }
-      if (options.mock) {
-        process.env.DASHBOARD_MOCK_MODE = "on"
-      }
+    // 2. Apply CLI overrides
+    if (options.port) {
+      process.env.DASHBOARD_PORT = options.port
+    }
 
-      const port = process.env.DASHBOARD_PORT || "3001"
-      const mockMode =
-        process.env.DASHBOARD_MOCK_MODE === "on" || !process.env.FLINK_REST_URL
-      const clusterName = process.env.CLUSTER_DISPLAY_NAME || "Default Cluster"
+    const port = process.env.DASHBOARD_PORT || "3001"
+    const clusterName = process.env.CLUSTER_DISPLAY_NAME || "Default Cluster"
 
-      // 3. Find and launch the standalone server
-      const serverJs = findServerJs()
+    // 3. Find and launch the standalone server
+    const serverJs = findServerJs()
 
-      console.log()
-      console.log("\x1b[36m◆ Flink Reactor Dashboard\x1b[0m")
-      console.log()
-      console.log(`  Environment:  ${options.env}`)
-      console.log(`  Cluster:      ${clusterName}`)
-      console.log(`  Mock mode:    ${mockMode ? "on" : "off"}`)
-      if (envFile) {
-        console.log(`  Config:       ${envFile.path}`)
-      }
-      console.log()
-      console.log(`  \x1b[32m▸ http://localhost:${port}\x1b[0m`)
-      console.log()
+    console.log()
+    console.log("\x1b[36m◆ Flink Reactor Dashboard\x1b[0m")
+    console.log()
+    console.log(`  Environment:  ${options.env}`)
+    console.log(`  Cluster:      ${clusterName}`)
+    if (envFile) {
+      console.log(`  Config:       ${envFile.path}`)
+    }
+    console.log()
+    console.log(`  \x1b[32m▸ http://localhost:${port}\x1b[0m`)
+    console.log()
 
-      const child = fork(serverJs, {
-        env: {
-          ...process.env,
-          PORT: port,
-          HOSTNAME: "0.0.0.0",
-          // Resolve tap manifest dir to an absolute path from the user's cwd.
-          // The forked server's cwd may differ, so we resolve it here.
-          TAP_MANIFEST_DIR: process.env.TAP_MANIFEST_DIR ?? resolve("dist"),
-        },
-        stdio: "inherit",
-      })
+    const child = fork(serverJs, {
+      env: {
+        ...process.env,
+        PORT: port,
+        HOSTNAME: "0.0.0.0",
+        // Resolve tap manifest dir to an absolute path from the user's cwd.
+        // The forked server's cwd may differ, so we resolve it here.
+        TAP_MANIFEST_DIR: process.env.TAP_MANIFEST_DIR ?? resolve("dist"),
+      },
+      stdio: "inherit",
+    })
 
-      // 4. Graceful shutdown
-      function shutdown() {
-        child.kill("SIGTERM")
-      }
+    // 4. Graceful shutdown
+    function shutdown() {
+      child.kill("SIGTERM")
+    }
 
-      process.on("SIGINT", shutdown)
-      process.on("SIGTERM", shutdown)
+    process.on("SIGINT", shutdown)
+    process.on("SIGTERM", shutdown)
 
-      child.on("exit", (code) => {
-        process.exit(code ?? 0)
-      })
-    },
-  )
+    child.on("exit", (code) => {
+      process.exit(code ?? 0)
+    })
+  })
 
 program.parse()

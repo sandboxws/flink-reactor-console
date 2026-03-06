@@ -6,8 +6,7 @@ import { fetchDashboardConfig } from "@/lib/graphql-api-client"
 // ---------------------------------------------------------------------------
 
 /**
- * Browser-safe config subset. Previously loaded from a Next.js API route
- * backed by server-side env vars. Now sourced from the Go server's GraphQL
+ * Browser-safe config subset sourced from the Go server's GraphQL
  * dashboardConfig query (which returns clusters + instruments) with sensible
  * defaults for the remaining fields.
  */
@@ -15,7 +14,6 @@ export interface PublicDashboardConfig {
   pollIntervalMs: number
   logBufferSize: number
   clusterDisplayName: string
-  mockMode: boolean
   logLevel: string | null
   clusters: string[]
   rbacEnabled: boolean
@@ -49,8 +47,6 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
         pollIntervalMs: 5000,
         logBufferSize: 100_000,
         clusterDisplayName: "Default Cluster",
-        // Go server always talks to real Flink — no mock mode
-        mockMode: false,
         logLevel: null,
         clusters: data.clusters ?? [],
         rbacEnabled: false,
