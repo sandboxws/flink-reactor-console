@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Database,
   GitFork,
   HeartPulse,
   LayoutDashboard,
@@ -54,6 +55,16 @@ const NAV_GROUPS: NavGroup[] = [
         href: "/deployments",
         label: "Blue-Green",
         icon: ArrowLeftRight,
+      },
+    ],
+  },
+  {
+    label: "Data Management",
+    items: [
+      {
+        href: "/materialized-tables",
+        label: "Materialized Tables",
+        icon: Database,
       },
     ],
   },

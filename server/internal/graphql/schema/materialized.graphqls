@@ -1,0 +1,36 @@
+# Materialized table management via SQL Gateway
+
+enum MaterializedTableRefreshStatus {
+  ACTIVATED
+  SUSPENDED
+  INITIALIZING
+}
+
+type MaterializedTable {
+  name: String!
+  catalog: String!
+  database: String!
+  refreshStatus: MaterializedTableRefreshStatus!
+  refreshMode: String
+  freshness: String
+  definingQuery: String
+}
+
+extend type Query {
+  """List materialized tables, optionally filtered by catalog"""
+  materializedTables(cluster: String, catalog: String): [MaterializedTable!]!
+
+  """Get a single materialized table by name and catalog"""
+  materializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable
+}
+
+extend type Mutation {
+  """Suspend a materialized table's refresh"""
+  suspendMaterializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable!
+
+  """Resume a materialized table's refresh"""
+  resumeMaterializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable!
+
+  """Trigger a manual refresh of a materialized table"""
+  refreshMaterializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable!
+}

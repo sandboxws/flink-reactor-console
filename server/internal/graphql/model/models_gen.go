@@ -359,6 +359,16 @@ type KafkaTopicPartition struct {
 	Partition int    `json:"partition"`
 }
 
+type MaterializedTable struct {
+	Name          string                         `json:"name"`
+	Catalog       string                         `json:"catalog"`
+	Database      string                         `json:"database"`
+	RefreshStatus MaterializedTableRefreshStatus `json:"refreshStatus"`
+	RefreshMode   *string                        `json:"refreshMode,omitempty"`
+	Freshness     *string                        `json:"freshness,omitempty"`
+	DefiningQuery *string                        `json:"definingQuery,omitempty"`
+}
+
 type MetricEntry struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
@@ -715,6 +725,63 @@ func (e *ClusterStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e ClusterStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type MaterializedTableRefreshStatus string
+
+const (
+	MaterializedTableRefreshStatusActivated    MaterializedTableRefreshStatus = "ACTIVATED"
+	MaterializedTableRefreshStatusSuspended    MaterializedTableRefreshStatus = "SUSPENDED"
+	MaterializedTableRefreshStatusInitializing MaterializedTableRefreshStatus = "INITIALIZING"
+)
+
+var AllMaterializedTableRefreshStatus = []MaterializedTableRefreshStatus{
+	MaterializedTableRefreshStatusActivated,
+	MaterializedTableRefreshStatusSuspended,
+	MaterializedTableRefreshStatusInitializing,
+}
+
+func (e MaterializedTableRefreshStatus) IsValid() bool {
+	switch e {
+	case MaterializedTableRefreshStatusActivated, MaterializedTableRefreshStatusSuspended, MaterializedTableRefreshStatusInitializing:
+		return true
+	}
+	return false
+}
+
+func (e MaterializedTableRefreshStatus) String() string {
+	return string(e)
+}
+
+func (e *MaterializedTableRefreshStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MaterializedTableRefreshStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MaterializedTableRefreshStatus", str)
+	}
+	return nil
+}
+
+func (e MaterializedTableRefreshStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *MaterializedTableRefreshStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e MaterializedTableRefreshStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

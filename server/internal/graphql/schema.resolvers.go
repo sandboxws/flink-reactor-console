@@ -53,8 +53,5 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
-
-type (
-	queryResolver        struct{ *Resolver }
-	subscriptionResolver struct{ *Resolver }
-)
+type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

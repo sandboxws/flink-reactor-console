@@ -372,19 +372,32 @@ type ComplexityRoot struct {
 		Topic     func(childComplexity int) int
 	}
 
+	MaterializedTable struct {
+		Catalog       func(childComplexity int) int
+		Database      func(childComplexity int) int
+		DefiningQuery func(childComplexity int) int
+		Freshness     func(childComplexity int) int
+		Name          func(childComplexity int) int
+		RefreshMode   func(childComplexity int) int
+		RefreshStatus func(childComplexity int) int
+	}
+
 	MetricEntry struct {
 		ID    func(childComplexity int) int
 		Value func(childComplexity int) int
 	}
 
 	Mutation struct {
-		CancelJob        func(childComplexity int, id string, cluster *string) int
-		CloseSQLSession  func(childComplexity int, sessionHandle string, cluster *string) int
-		CreateSQLSession func(childComplexity int, cluster *string) int
-		DeleteJar        func(childComplexity int, id string, cluster *string) int
-		FetchSQLResults  func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
-		RunJar           func(childComplexity int, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
-		SubmitStatement  func(childComplexity int, sessionHandle string, statement string, cluster *string) int
+		CancelJob                func(childComplexity int, id string, cluster *string) int
+		CloseSQLSession          func(childComplexity int, sessionHandle string, cluster *string) int
+		CreateSQLSession         func(childComplexity int, cluster *string) int
+		DeleteJar                func(childComplexity int, id string, cluster *string) int
+		FetchSQLResults          func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
+		RefreshMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
+		ResumeMaterializedTable  func(childComplexity int, name string, catalog string, cluster *string) int
+		RunJar                   func(childComplexity int, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
+		SubmitStatement          func(childComplexity int, sessionHandle string, statement string, cluster *string) int
+		SuspendMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
 	}
 
 	PlanNode struct {
@@ -422,6 +435,8 @@ type ComplexityRoot struct {
 		KafkaConsumerGroups   func(childComplexity int, instrument string) int
 		KafkaTopic            func(childComplexity int, instrument string, name string) int
 		KafkaTopics           func(childComplexity int, instrument string) int
+		MaterializedTable     func(childComplexity int, name string, catalog string, cluster *string) int
+		MaterializedTables    func(childComplexity int, cluster *string, catalog *string) int
 		SubtaskTimes          func(childComplexity int, jobID string, vertexID string, cluster *string) int
 		TapManifests          func(childComplexity int) int
 		TaskManager           func(childComplexity int, id string, cluster *string) int
@@ -648,6 +663,9 @@ type MutationResolver interface {
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
 	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
 	CancelJob(ctx context.Context, id string, cluster *string) (*model.CancelJobResult, error)
+	SuspendMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
+	ResumeMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
+	RefreshMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
 	CreateSQLSession(ctx context.Context, cluster *string) (*model.SQLSessionResult, error)
 	SubmitStatement(ctx context.Context, sessionHandle string, statement string, cluster *string) (*model.SQLStatementResult, error)
 	FetchSQLResults(ctx context.Context, sessionHandle string, operationHandle string, token *string, cluster *string) (*model.SQLFetchResult, error)
@@ -674,6 +692,8 @@ type QueryResolver interface {
 	KafkaTopic(ctx context.Context, instrument string, name string) (*model.KafkaTopicDetail, error)
 	KafkaConsumerGroups(ctx context.Context, instrument string) ([]*model.KafkaConsumerGroup, error)
 	KafkaConsumerGroup(ctx context.Context, instrument string, groupID string) (*model.KafkaConsumerGroupDetail, error)
+	MaterializedTables(ctx context.Context, cluster *string, catalog *string) ([]*model.MaterializedTable, error)
+	MaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
 	TapManifests(ctx context.Context) ([]*model.TapManifest, error)
 	TaskManagers(ctx context.Context, cluster *string) ([]*model.TaskManagerOverview, error)
 	TaskManager(ctx context.Context, id string, cluster *string) (*model.TaskManagerDetail, error)
@@ -1968,6 +1988,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.KafkaTopicPartition.Topic(childComplexity), true
 
+	case "MaterializedTable.catalog":
+		if e.ComplexityRoot.MaterializedTable.Catalog == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedTable.Catalog(childComplexity), true
+	case "MaterializedTable.database":
+		if e.ComplexityRoot.MaterializedTable.Database == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedTable.Database(childComplexity), true
+	case "MaterializedTable.definingQuery":
+		if e.ComplexityRoot.MaterializedTable.DefiningQuery == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedTable.DefiningQuery(childComplexity), true
+	case "MaterializedTable.freshness":
+		if e.ComplexityRoot.MaterializedTable.Freshness == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedTable.Freshness(childComplexity), true
+	case "MaterializedTable.name":
+		if e.ComplexityRoot.MaterializedTable.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedTable.Name(childComplexity), true
+	case "MaterializedTable.refreshMode":
+		if e.ComplexityRoot.MaterializedTable.RefreshMode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedTable.RefreshMode(childComplexity), true
+	case "MaterializedTable.refreshStatus":
+		if e.ComplexityRoot.MaterializedTable.RefreshStatus == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedTable.RefreshStatus(childComplexity), true
+
 	case "MetricEntry.id":
 		if e.ComplexityRoot.MetricEntry.ID == nil {
 			break
@@ -2036,6 +2099,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.FetchSQLResults(childComplexity, args["sessionHandle"].(string), args["operationHandle"].(string), args["token"].(*string), args["cluster"].(*string)), true
+	case "Mutation.refreshMaterializedTable":
+		if e.ComplexityRoot.Mutation.RefreshMaterializedTable == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_refreshMaterializedTable_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.RefreshMaterializedTable(childComplexity, args["name"].(string), args["catalog"].(string), args["cluster"].(*string)), true
+	case "Mutation.resumeMaterializedTable":
+		if e.ComplexityRoot.Mutation.ResumeMaterializedTable == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resumeMaterializedTable_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ResumeMaterializedTable(childComplexity, args["name"].(string), args["catalog"].(string), args["cluster"].(*string)), true
 	case "Mutation.runJar":
 		if e.ComplexityRoot.Mutation.RunJar == nil {
 			break
@@ -2058,6 +2143,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.SubmitStatement(childComplexity, args["sessionHandle"].(string), args["statement"].(string), args["cluster"].(*string)), true
+	case "Mutation.suspendMaterializedTable":
+		if e.ComplexityRoot.Mutation.SuspendMaterializedTable == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_suspendMaterializedTable_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SuspendMaterializedTable(childComplexity, args["name"].(string), args["catalog"].(string), args["cluster"].(*string)), true
 
 	case "PlanNode.description":
 		if e.ComplexityRoot.PlanNode.Description == nil {
@@ -2300,6 +2396,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.KafkaTopics(childComplexity, args["instrument"].(string)), true
+	case "Query.materializedTable":
+		if e.ComplexityRoot.Query.MaterializedTable == nil {
+			break
+		}
+
+		args, err := ec.field_Query_materializedTable_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.MaterializedTable(childComplexity, args["name"].(string), args["catalog"].(string), args["cluster"].(*string)), true
+	case "Query.materializedTables":
+		if e.ComplexityRoot.Query.MaterializedTables == nil {
+			break
+		}
+
+		args, err := ec.field_Query_materializedTables_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.MaterializedTables(childComplexity, args["cluster"].(*string), args["catalog"].(*string)), true
 	case "Query.subtaskTimes":
 		if e.ComplexityRoot.Query.SubtaskTimes == nil {
 			break
@@ -3867,6 +3985,43 @@ extend type Query {
   kafkaConsumerGroup(instrument: String!, groupId: String!): KafkaConsumerGroupDetail!
 }
 `, BuiltIn: false},
+	{Name: "../schema/materialized.graphqls", Input: `# Materialized table management via SQL Gateway
+
+enum MaterializedTableRefreshStatus {
+  ACTIVATED
+  SUSPENDED
+  INITIALIZING
+}
+
+type MaterializedTable {
+  name: String!
+  catalog: String!
+  database: String!
+  refreshStatus: MaterializedTableRefreshStatus!
+  refreshMode: String
+  freshness: String
+  definingQuery: String
+}
+
+extend type Query {
+  """List materialized tables, optionally filtered by catalog"""
+  materializedTables(cluster: String, catalog: String): [MaterializedTable!]!
+
+  """Get a single materialized table by name and catalog"""
+  materializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable
+}
+
+extend type Mutation {
+  """Suspend a materialized table's refresh"""
+  suspendMaterializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable!
+
+  """Resume a materialized table's refresh"""
+  resumeMaterializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable!
+
+  """Trigger a manual refresh of a materialized table"""
+  refreshMaterializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable!
+}
+`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `"""
 Health status of a registered Flink cluster.
 """
@@ -4191,6 +4346,48 @@ func (ec *executionContext) field_Mutation_fetchSQLResults_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_refreshMaterializedTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "catalog", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["catalog"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_resumeMaterializedTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "catalog", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["catalog"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_runJar_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -4245,6 +4442,27 @@ func (ec *executionContext) field_Mutation_submitStatement_args(ctx context.Cont
 		return nil, err
 	}
 	args["statement"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_suspendMaterializedTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "catalog", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["catalog"] = arg1
 	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
 	if err != nil {
 		return nil, err
@@ -4470,6 +4688,43 @@ func (ec *executionContext) field_Query_kafkaTopics_args(ctx context.Context, ra
 		return nil, err
 	}
 	args["instrument"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_materializedTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "catalog", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["catalog"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_materializedTables_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "catalog", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["catalog"] = arg1
 	return args, nil
 }
 
@@ -11090,6 +11345,209 @@ func (ec *executionContext) fieldContext_KafkaTopicPartition_partition(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _MaterializedTable_name(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedTable_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedTable_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedTable_catalog(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedTable_catalog,
+		func(ctx context.Context) (any, error) {
+			return obj.Catalog, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedTable_catalog(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedTable_database(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedTable_database,
+		func(ctx context.Context) (any, error) {
+			return obj.Database, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedTable_database(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedTable_refreshStatus(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedTable_refreshStatus,
+		func(ctx context.Context) (any, error) {
+			return obj.RefreshStatus, nil
+		},
+		nil,
+		ec.marshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedTable_refreshStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MaterializedTableRefreshStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedTable_refreshMode(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedTable_refreshMode,
+		func(ctx context.Context) (any, error) {
+			return obj.RefreshMode, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedTable_refreshMode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedTable_freshness(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedTable_freshness,
+		func(ctx context.Context) (any, error) {
+			return obj.Freshness, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedTable_freshness(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedTable_definingQuery(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedTable_definingQuery,
+		func(ctx context.Context) (any, error) {
+			return obj.DefiningQuery, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedTable_definingQuery(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricEntry_id(ctx context.Context, field graphql.CollectedField, obj *model.MetricEntry) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -11277,6 +11735,177 @@ func (ec *executionContext) fieldContext_Mutation_cancelJob(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_cancelJob_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_suspendMaterializedTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_suspendMaterializedTable,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SuspendMaterializedTable(ctx, fc.Args["name"].(string), fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_suspendMaterializedTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_MaterializedTable_name(ctx, field)
+			case "catalog":
+				return ec.fieldContext_MaterializedTable_catalog(ctx, field)
+			case "database":
+				return ec.fieldContext_MaterializedTable_database(ctx, field)
+			case "refreshStatus":
+				return ec.fieldContext_MaterializedTable_refreshStatus(ctx, field)
+			case "refreshMode":
+				return ec.fieldContext_MaterializedTable_refreshMode(ctx, field)
+			case "freshness":
+				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
+			case "definingQuery":
+				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_suspendMaterializedTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_resumeMaterializedTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_resumeMaterializedTable,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ResumeMaterializedTable(ctx, fc.Args["name"].(string), fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_resumeMaterializedTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_MaterializedTable_name(ctx, field)
+			case "catalog":
+				return ec.fieldContext_MaterializedTable_catalog(ctx, field)
+			case "database":
+				return ec.fieldContext_MaterializedTable_database(ctx, field)
+			case "refreshStatus":
+				return ec.fieldContext_MaterializedTable_refreshStatus(ctx, field)
+			case "refreshMode":
+				return ec.fieldContext_MaterializedTable_refreshMode(ctx, field)
+			case "freshness":
+				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
+			case "definingQuery":
+				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_resumeMaterializedTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_refreshMaterializedTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_refreshMaterializedTable,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().RefreshMaterializedTable(ctx, fc.Args["name"].(string), fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_refreshMaterializedTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_MaterializedTable_name(ctx, field)
+			case "catalog":
+				return ec.fieldContext_MaterializedTable_catalog(ctx, field)
+			case "database":
+				return ec.fieldContext_MaterializedTable_database(ctx, field)
+			case "refreshStatus":
+				return ec.fieldContext_MaterializedTable_refreshStatus(ctx, field)
+			case "refreshMode":
+				return ec.fieldContext_MaterializedTable_refreshMode(ctx, field)
+			case "freshness":
+				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
+			case "definingQuery":
+				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_refreshMaterializedTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -12823,6 +13452,120 @@ func (ec *executionContext) fieldContext_Query_kafkaConsumerGroup(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_kafkaConsumerGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_materializedTables(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_materializedTables,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().MaterializedTables(ctx, fc.Args["cluster"].(*string), fc.Args["catalog"].(*string))
+		},
+		nil,
+		ec.marshalNMaterializedTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_materializedTables(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_MaterializedTable_name(ctx, field)
+			case "catalog":
+				return ec.fieldContext_MaterializedTable_catalog(ctx, field)
+			case "database":
+				return ec.fieldContext_MaterializedTable_database(ctx, field)
+			case "refreshStatus":
+				return ec.fieldContext_MaterializedTable_refreshStatus(ctx, field)
+			case "refreshMode":
+				return ec.fieldContext_MaterializedTable_refreshMode(ctx, field)
+			case "freshness":
+				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
+			case "definingQuery":
+				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_materializedTables_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_materializedTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_materializedTable,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().MaterializedTable(ctx, fc.Args["name"].(string), fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_materializedTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_MaterializedTable_name(ctx, field)
+			case "catalog":
+				return ec.fieldContext_MaterializedTable_catalog(ctx, field)
+			case "database":
+				return ec.fieldContext_MaterializedTable_database(ctx, field)
+			case "refreshStatus":
+				return ec.fieldContext_MaterializedTable_refreshStatus(ctx, field)
+			case "refreshMode":
+				return ec.fieldContext_MaterializedTable_refreshMode(ctx, field)
+			case "freshness":
+				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
+			case "definingQuery":
+				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_materializedTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -21074,6 +21817,66 @@ func (ec *executionContext) _KafkaTopicPartition(ctx context.Context, sel ast.Se
 	return out
 }
 
+var materializedTableImplementors = []string{"MaterializedTable"}
+
+func (ec *executionContext) _MaterializedTable(ctx context.Context, sel ast.SelectionSet, obj *model.MaterializedTable) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, materializedTableImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MaterializedTable")
+		case "name":
+			out.Values[i] = ec._MaterializedTable_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "catalog":
+			out.Values[i] = ec._MaterializedTable_catalog(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "database":
+			out.Values[i] = ec._MaterializedTable_database(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "refreshStatus":
+			out.Values[i] = ec._MaterializedTable_refreshStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "refreshMode":
+			out.Values[i] = ec._MaterializedTable_refreshMode(ctx, field, obj)
+		case "freshness":
+			out.Values[i] = ec._MaterializedTable_freshness(ctx, field, obj)
+		case "definingQuery":
+			out.Values[i] = ec._MaterializedTable_definingQuery(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var metricEntryImplementors = []string{"MetricEntry"}
 
 func (ec *executionContext) _MetricEntry(ctx context.Context, sel ast.SelectionSet, obj *model.MetricEntry) graphql.Marshaler {
@@ -21154,6 +21957,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "cancelJob":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_cancelJob(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "suspendMaterializedTable":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_suspendMaterializedTable(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "resumeMaterializedTable":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_resumeMaterializedTable(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "refreshMaterializedTable":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_refreshMaterializedTable(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -21771,6 +22595,47 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "materializedTables":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_materializedTables(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "materializedTable":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_materializedTable(ctx, field)
 				return res
 			}
 
@@ -24647,6 +25512,46 @@ func (ec *executionContext) marshalNKafkaTopicPartition2ᚖgithubᚗcomᚋsandbo
 	return ec._KafkaTopicPartition(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNMaterializedTable2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v model.MaterializedTable) graphql.Marshaler {
+	return ec._MaterializedTable(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMaterializedTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MaterializedTable) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MaterializedTable(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus(ctx context.Context, v any) (model.MaterializedTableRefreshStatus, error) {
+	var res model.MaterializedTableRefreshStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus(ctx context.Context, sel ast.SelectionSet, v model.MaterializedTableRefreshStatus) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -25544,6 +26449,13 @@ func (ec *executionContext) marshalOJSON2map(ctx context.Context, sel ast.Select
 	_ = ctx
 	res := graphql.MarshalMap(v)
 	return res
+}
+
+func (ec *executionContext) marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MaterializedTable(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPlanNodeInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInputᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNodeInput) graphql.Marshaler {
