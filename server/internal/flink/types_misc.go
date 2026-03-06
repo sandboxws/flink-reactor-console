@@ -35,7 +35,7 @@ type JarRunResponse struct {
 type ClusterConfig struct {
 	RefreshInterval int    `json:"refresh-interval"`
 	TimezoneName    string `json:"timezone-name"`
-	TimezoneOffset  string `json:"timezone-offset"`
+	TimezoneOffset  int    `json:"timezone-offset"`
 	FlinkVersion    string `json:"flink-version"`
 	FlinkRevision   string `json:"flink-revision"`
 	Features        struct {

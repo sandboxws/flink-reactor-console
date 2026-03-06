@@ -79,18 +79,20 @@ type JobPlan struct {
 }
 
 // VertexMetrics represents I/O metrics within a vertex entry.
+// Flink REST returns all numeric metric values as JSON floats (e.g. 68.0),
+// so we use float64 to avoid unmarshal errors.
 type VertexMetrics struct {
-	ReadBytes                int64 `json:"read-bytes"`
-	ReadBytesComplete        bool  `json:"read-bytes-complete"`
-	WriteBytes               int64 `json:"write-bytes"`
-	WriteBytesComplete       bool  `json:"write-bytes-complete"`
-	ReadRecords              int64 `json:"read-records"`
-	ReadRecordsComplete      bool  `json:"read-records-complete"`
-	WriteRecords             int64 `json:"write-records"`
-	WriteRecordsComplete     bool  `json:"write-records-complete"`
-	AccumulatedBackpressured int64 `json:"accumulated-backpressured-time"`
-	AccumulatedIdle          int64 `json:"accumulated-idle-time"`
-	AccumulatedBusy          int64 `json:"accumulated-busy-time"`
+	ReadBytes                float64 `json:"read-bytes"`
+	ReadBytesComplete        bool    `json:"read-bytes-complete"`
+	WriteBytes               float64 `json:"write-bytes"`
+	WriteBytesComplete       bool    `json:"write-bytes-complete"`
+	ReadRecords              float64 `json:"read-records"`
+	ReadRecordsComplete      bool    `json:"read-records-complete"`
+	WriteRecords             float64 `json:"write-records"`
+	WriteRecordsComplete     bool    `json:"write-records-complete"`
+	AccumulatedBackpressured float64 `json:"accumulated-backpressured-time"`
+	AccumulatedIdle          float64 `json:"accumulated-idle-time"`
+	AccumulatedBusy          float64 `json:"accumulated-busy-time"`
 }
 
 // Vertex represents a single vertex entry within GET /jobs/:jobid → vertices[].

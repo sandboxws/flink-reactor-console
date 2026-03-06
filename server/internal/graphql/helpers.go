@@ -36,6 +36,12 @@ func i64(v int64) string {
 	return strconv.FormatInt(v, 10)
 }
 
+// f64 converts a float64 to its integer string representation for GraphQL String! fields.
+// Flink REST returns metric values as JSON floats (e.g. 68.0); we truncate to int.
+func f64(v float64) string {
+	return strconv.FormatInt(int64(v), 10)
+}
+
 // derefI64 converts an *int64 to string, returning "0" for nil.
 func derefI64(v *int64) string {
 	if v == nil {

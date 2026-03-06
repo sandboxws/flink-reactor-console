@@ -7,6 +7,7 @@ package graphql
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
@@ -26,7 +27,7 @@ func (r *queryResolver) FlinkConfig(ctx context.Context, cluster *string) (*mode
 	return &model.FlinkConfig{
 		RefreshInterval: cfg.RefreshInterval,
 		TimezoneName:    cfg.TimezoneName,
-		TimezoneOffset:  cfg.TimezoneOffset,
+		TimezoneOffset:  strconv.Itoa(cfg.TimezoneOffset),
 		FlinkVersion:    cfg.FlinkVersion,
 		FlinkRevision:   cfg.FlinkRevision,
 		Features: &model.FlinkFeatures{

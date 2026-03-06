@@ -123,6 +123,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	}))
 	gqlSrv.Use(observability.GraphQLMetrics{})
 	gqlSrv.AddTransport(transport.Options{})
+	gqlSrv.AddTransport(transport.GET{})
 	gqlSrv.AddTransport(transport.POST{})
 	gqlSrv.AddTransport(&transport.Websocket{
 		KeepAlivePingInterval: 10 * time.Second,

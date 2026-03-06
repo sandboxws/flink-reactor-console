@@ -4,7 +4,6 @@ import { AlertCircle, RefreshCw } from "lucide-react"
 import { useParams } from "next/navigation"
 import { useEffect } from "react"
 import { JobDetail } from "@/components/jobs/job-detail"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -23,6 +22,7 @@ function JobDetailSkeleton() {
       {/* Tabs skeleton */}
       <div className="flex gap-2">
         {Array.from({ length: 6 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder skeletons never reorder
           <Skeleton key={i} className="h-8 w-24" />
         ))}
       </div>
@@ -52,20 +52,28 @@ export function JobPageContent() {
 
   if (jobDetailError && !jobDetail) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 p-8">
-        <Alert variant="destructive" className="max-w-lg">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Failed to load job detail</AlertTitle>
-          <AlertDescription>{jobDetailError}</AlertDescription>
-        </Alert>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fetchJobDetailAction(id)}
-        >
-          <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Retry
-        </Button>
+      <div className="flex min-h-[60vh] items-center justify-center p-8">
+        <div className="flex max-w-lg flex-col items-center gap-5 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-job-failed/10">
+            <AlertCircle className="h-6 w-6 text-job-failed" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-sm font-medium text-zinc-300">
+              Failed to load job detail
+            </h3>
+            <p className="text-xs leading-relaxed text-zinc-500">
+              {jobDetailError}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchJobDetailAction(id)}
+          >
+            <RefreshCw className="mr-2 h-3.5 w-3.5" />
+            Retry
+          </Button>
+        </div>
       </div>
     )
   }

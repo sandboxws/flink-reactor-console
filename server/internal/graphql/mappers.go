@@ -40,17 +40,17 @@ func mapVertex(v *flink.Vertex) *model.JobVertex {
 // mapVertexMetrics converts Flink VertexMetrics to GraphQL VertexMetrics.
 func mapVertexMetrics(m *flink.VertexMetrics) *model.VertexMetrics {
 	return &model.VertexMetrics{
-		ReadBytes:                i64(m.ReadBytes),
+		ReadBytes:                f64(m.ReadBytes),
 		ReadBytesComplete:        m.ReadBytesComplete,
-		WriteBytes:               i64(m.WriteBytes),
+		WriteBytes:               f64(m.WriteBytes),
 		WriteBytesComplete:       m.WriteBytesComplete,
-		ReadRecords:              i64(m.ReadRecords),
+		ReadRecords:              f64(m.ReadRecords),
 		ReadRecordsComplete:      m.ReadRecordsComplete,
-		WriteRecords:             i64(m.WriteRecords),
+		WriteRecords:             f64(m.WriteRecords),
 		WriteRecordsComplete:     m.WriteRecordsComplete,
-		AccumulatedBackpressured: i64(m.AccumulatedBackpressured),
-		AccumulatedIdle:          i64(m.AccumulatedIdle),
-		AccumulatedBusy:          i64(m.AccumulatedBusy),
+		AccumulatedBackpressured: f64(m.AccumulatedBackpressured),
+		AccumulatedIdle:          f64(m.AccumulatedIdle),
+		AccumulatedBusy:          f64(m.AccumulatedBusy),
 	}
 }
 

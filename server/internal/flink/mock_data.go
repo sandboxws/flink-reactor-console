@@ -573,7 +573,7 @@ func MockClusterConfig() ClusterConfig {
 	return ClusterConfig{
 		RefreshInterval: 3000,
 		TimezoneName:    "UTC",
-		TimezoneOffset:  "+00:00",
+		TimezoneOffset:  0,
 		FlinkVersion:    "1.20.0",
 		FlinkRevision:   "abc1234",
 		Features: struct {
