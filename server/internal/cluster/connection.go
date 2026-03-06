@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/k8s"
 )
 
 // Connection holds all per-cluster resources: Flink client stack, optional SQL
@@ -18,6 +19,9 @@ type Connection struct {
 
 	// SQLClient is the Flink Client configured for SQL Gateway (nil if not configured).
 	SQLClient *flink.Client
+
+	// K8sService provides blue-green deployment operations (nil if K8s not configured).
+	K8sService *k8s.Service
 
 	mu            sync.Mutex
 	status        Status

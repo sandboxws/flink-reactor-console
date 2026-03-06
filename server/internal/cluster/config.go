@@ -12,6 +12,11 @@ type Config struct {
 	Token         string `json:"token,omitempty"` //nolint:gosec // G117: bearer token for Flink API auth, not a hardcoded secret
 	SQLGatewayURL string `json:"sql_gateway_url,omitempty"`
 	Default       bool   `json:"default,omitempty"`
+
+	// Kubernetes configuration (optional, enables BG deployment monitoring)
+	KubeConfig    string `json:"kube_config,omitempty"`
+	KubeContext   string `json:"kube_context,omitempty"`
+	KubeNamespace string `json:"kube_namespace,omitempty"`
 }
 
 // ParseClustersEnv parses cluster configuration from environment variables.

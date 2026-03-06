@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/k8s"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"golang.org/x/sync/errgroup"
 )
@@ -111,6 +112,24 @@ func (m *Manager) buildConnection(cfg Config, logger *slog.Logger) *Connection {
 			sqlOpts = append(sqlOpts, flink.WithBearerAuth(cfg.Token))
 		}
 		conn.SQLClient = flink.NewClient(sqlOpts...)
+	}
+
+	// Initialize K8s service if configured
+	if cfg.KubeConfig != "" || cfg.KubeNamespace != "" {
+		k8sClient, err := k8s.NewClient(k8s.ClientOptions{
+			Kubeconfig: cfg.KubeConfig,
+			Context:    cfg.KubeContext,
+			Namespace:  cfg.KubeNamespace,
+			Logger:     logger,
+		})
+		if err != nil {
+			logger.Warn("failed to initialize K8s client, BG deployments unavailable",
+				"cluster", cfg.Name,
+				"error", err,
+			)
+		} else {
+			conn.K8sService = k8s.NewService(k8sClient, logger)
+		}
 	}
 
 	return conn
@@ -230,6 +249,15 @@ func (m *Manager) Start(ctx context.Context, interval time.Duration) {
 		}
 	}()
 
+	// Start K8s watchers for clusters with K8s configured
+	m.mu.RLock()
+	for _, conn := range m.connections {
+		if conn.K8sService != nil {
+			conn.K8sService.Start(bgCtx)
+		}
+	}
+	m.mu.RUnlock()
+
 	m.logger.Info("cluster health checks started", "interval", interval)
 }
 
@@ -244,5 +272,8 @@ func (m *Manager) Stop() {
 
 	for _, conn := range m.connections {
 		conn.Poller.Stop()
+		if conn.K8sService != nil {
+			conn.K8sService.Stop()
+		}
 	}
 }

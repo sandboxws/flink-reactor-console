@@ -3,6 +3,7 @@
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
+  ArrowLeftRight,
   BarChart3,
   Bell,
   CheckCircle2,
@@ -44,6 +45,16 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/jobs/running", label: "Running Jobs", icon: Play },
       { href: "/jobs/completed", label: "Completed Jobs", icon: CheckCircle2 },
+    ],
+  },
+  {
+    label: "Deployments",
+    items: [
+      {
+        href: "/deployments",
+        label: "Blue-Green",
+        icon: ArrowLeftRight,
+      },
     ],
   },
   {

@@ -49,6 +49,23 @@ type ComplexityRoot struct {
 		Subtasks          func(childComplexity int) int
 	}
 
+	BlueGreenDeployment struct {
+		AbortGracePeriod         func(childComplexity int) int
+		AbortTimestamp           func(childComplexity int) int
+		ActiveJobID              func(childComplexity int) int
+		BlueDeploymentName       func(childComplexity int) int
+		DeploymentDeletionDelay  func(childComplexity int) int
+		DeploymentReadyTimestamp func(childComplexity int) int
+		Error                    func(childComplexity int) int
+		GreenDeploymentName      func(childComplexity int) int
+		JobStatus                func(childComplexity int) int
+		LastReconciledTimestamp  func(childComplexity int) int
+		Name                     func(childComplexity int) int
+		Namespace                func(childComplexity int) int
+		PendingJobID             func(childComplexity int) int
+		State                    func(childComplexity int) int
+	}
+
 	CancelJobResult struct {
 		Success func(childComplexity int) int
 	}
@@ -387,6 +404,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		BlueGreenDeployment   func(childComplexity int, name string, namespace *string, cluster *string) int
+		BlueGreenDeployments  func(childComplexity int, cluster *string, namespace *string) int
 		CheckpointDetail      func(childComplexity int, jobID string, checkpointID string, cluster *string) int
 		Clusters              func(childComplexity int) int
 		DashboardConfig       func(childComplexity int) int
@@ -443,8 +462,9 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		JobStatusChanged func(childComplexity int, cluster *string) int
-		SQLResults       func(childComplexity int, cluster *string, sessionHandle string, operationHandle string) int
+		BlueGreenStateChanged func(childComplexity int, cluster *string, namespace *string) int
+		JobStatusChanged      func(childComplexity int, cluster *string) int
+		SQLResults            func(childComplexity int, cluster *string, sessionHandle string, operationHandle string) int
 	}
 
 	SubtaskBackPressure struct {
@@ -636,6 +656,8 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Health(ctx context.Context) (bool, error)
 	Clusters(ctx context.Context) ([]*model.ClusterInfo, error)
+	BlueGreenDeployments(ctx context.Context, cluster *string, namespace *string) ([]*model.BlueGreenDeployment, error)
+	BlueGreenDeployment(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenDeployment, error)
 	FlinkConfig(ctx context.Context, cluster *string) (*model.FlinkConfig, error)
 	DashboardConfig(ctx context.Context) (*model.DashboardConfig, error)
 	DatabaseTables(ctx context.Context, instrument string) ([]*model.DatabaseTable, error)
@@ -659,6 +681,7 @@ type QueryResolver interface {
 	TaskManagerThreadDump(ctx context.Context, id string, cluster *string) ([]*model.ThreadDumpEntry, error)
 }
 type SubscriptionResolver interface {
+	BlueGreenStateChanged(ctx context.Context, cluster *string, namespace *string) (<-chan *model.BlueGreenDeployment, error)
 	JobStatusChanged(ctx context.Context, cluster *string) (<-chan *model.JobStatusEvent, error)
 	SQLResults(ctx context.Context, cluster *string, sessionHandle string, operationHandle string) (<-chan *model.SQLResultBatch, error)
 }
@@ -720,6 +743,91 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.BackPressureInfo.Subtasks(childComplexity), true
+
+	case "BlueGreenDeployment.abortGracePeriod":
+		if e.ComplexityRoot.BlueGreenDeployment.AbortGracePeriod == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.AbortGracePeriod(childComplexity), true
+	case "BlueGreenDeployment.abortTimestamp":
+		if e.ComplexityRoot.BlueGreenDeployment.AbortTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.AbortTimestamp(childComplexity), true
+	case "BlueGreenDeployment.activeJobId":
+		if e.ComplexityRoot.BlueGreenDeployment.ActiveJobID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.ActiveJobID(childComplexity), true
+	case "BlueGreenDeployment.blueDeploymentName":
+		if e.ComplexityRoot.BlueGreenDeployment.BlueDeploymentName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.BlueDeploymentName(childComplexity), true
+	case "BlueGreenDeployment.deploymentDeletionDelay":
+		if e.ComplexityRoot.BlueGreenDeployment.DeploymentDeletionDelay == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.DeploymentDeletionDelay(childComplexity), true
+	case "BlueGreenDeployment.deploymentReadyTimestamp":
+		if e.ComplexityRoot.BlueGreenDeployment.DeploymentReadyTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.DeploymentReadyTimestamp(childComplexity), true
+	case "BlueGreenDeployment.error":
+		if e.ComplexityRoot.BlueGreenDeployment.Error == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.Error(childComplexity), true
+	case "BlueGreenDeployment.greenDeploymentName":
+		if e.ComplexityRoot.BlueGreenDeployment.GreenDeploymentName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.GreenDeploymentName(childComplexity), true
+	case "BlueGreenDeployment.jobStatus":
+		if e.ComplexityRoot.BlueGreenDeployment.JobStatus == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.JobStatus(childComplexity), true
+	case "BlueGreenDeployment.lastReconciledTimestamp":
+		if e.ComplexityRoot.BlueGreenDeployment.LastReconciledTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.LastReconciledTimestamp(childComplexity), true
+	case "BlueGreenDeployment.name":
+		if e.ComplexityRoot.BlueGreenDeployment.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.Name(childComplexity), true
+	case "BlueGreenDeployment.namespace":
+		if e.ComplexityRoot.BlueGreenDeployment.Namespace == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.Namespace(childComplexity), true
+	case "BlueGreenDeployment.pendingJobId":
+		if e.ComplexityRoot.BlueGreenDeployment.PendingJobID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.PendingJobID(childComplexity), true
+	case "BlueGreenDeployment.state":
+		if e.ComplexityRoot.BlueGreenDeployment.State == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenDeployment.State(childComplexity), true
 
 	case "CancelJobResult.success":
 		if e.ComplexityRoot.CancelJobResult.Success == nil {
@@ -2013,6 +2121,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PlanNodeInput.ShipStrategy(childComplexity), true
 
+	case "Query.blueGreenDeployment":
+		if e.ComplexityRoot.Query.BlueGreenDeployment == nil {
+			break
+		}
+
+		args, err := ec.field_Query_blueGreenDeployment_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.BlueGreenDeployment(childComplexity, args["name"].(string), args["namespace"].(*string), args["cluster"].(*string)), true
+	case "Query.blueGreenDeployments":
+		if e.ComplexityRoot.Query.BlueGreenDeployments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_blueGreenDeployments_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.BlueGreenDeployments(childComplexity, args["cluster"].(*string), args["namespace"].(*string)), true
 	case "Query.checkpointDetail":
 		if e.ComplexityRoot.Query.CheckpointDetail == nil {
 			break
@@ -2321,6 +2451,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.SQLStatementResult.OperationHandle(childComplexity), true
 
+	case "Subscription.blueGreenStateChanged":
+		if e.ComplexityRoot.Subscription.BlueGreenStateChanged == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_blueGreenStateChanged_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Subscription.BlueGreenStateChanged(childComplexity, args["cluster"].(*string), args["namespace"].(*string)), true
 	case "Subscription.jobStatusChanged":
 		if e.ComplexityRoot.Subscription.JobStatusChanged == nil {
 			break
@@ -3142,6 +3283,42 @@ func newExecutionContext(
 }
 
 var sources = []*ast.Source{
+	{Name: "../schema/bluegreen.graphqls", Input: `enum BlueGreenState {
+  INITIALIZING_BLUE
+  ACTIVE_BLUE
+  ACTIVE_GREEN
+  SAVEPOINTING_BLUE
+  SAVEPOINTING_GREEN
+  TRANSITIONING_TO_BLUE
+  TRANSITIONING_TO_GREEN
+}
+
+type BlueGreenDeployment {
+  name: String!
+  namespace: String!
+  state: BlueGreenState!
+  jobStatus: String
+  error: String
+  lastReconciledTimestamp: String
+  abortTimestamp: String
+  deploymentReadyTimestamp: String
+  blueDeploymentName: String
+  greenDeploymentName: String
+  activeJobId: String
+  pendingJobId: String
+  abortGracePeriod: String
+  deploymentDeletionDelay: String
+}
+
+extend type Query {
+  blueGreenDeployments(cluster: String, namespace: String): [BlueGreenDeployment!]!
+  blueGreenDeployment(name: String!, namespace: String, cluster: String): BlueGreenDeployment
+}
+
+extend type Subscription {
+  blueGreenStateChanged(cluster: String, namespace: String): BlueGreenDeployment!
+}
+`, BuiltIn: false},
 	{Name: "../schema/config.graphqls", Input: `# Dashboard and Flink configuration types and queries
 
 type FlinkFeatures {
@@ -4087,6 +4264,43 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_blueGreenDeployment_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "namespace", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["namespace"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_blueGreenDeployments_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "namespace", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["namespace"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_checkpointDetail_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -4357,6 +4571,22 @@ func (ec *executionContext) field_Query_vertexDetail_args(ctx context.Context, r
 		return nil, err
 	}
 	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_blueGreenStateChanged_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "namespace", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["namespace"] = arg1
 	return args, nil
 }
 
@@ -4668,6 +4898,412 @@ func (ec *executionContext) fieldContext_BackPressureInfo_subtasks(_ context.Con
 				return ec.fieldContext_SubtaskBackPressure_idleRatio(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SubtaskBackPressure", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_name(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_namespace(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_namespace,
+		func(ctx context.Context) (any, error) {
+			return obj.Namespace, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_namespace(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_state(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_state,
+		func(ctx context.Context) (any, error) {
+			return obj.State, nil
+		},
+		nil,
+		ec.marshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_state(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BlueGreenState does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_jobStatus(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_jobStatus,
+		func(ctx context.Context) (any, error) {
+			return obj.JobStatus, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_jobStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_error(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_error,
+		func(ctx context.Context) (any, error) {
+			return obj.Error, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_error(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_lastReconciledTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_lastReconciledTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.LastReconciledTimestamp, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_lastReconciledTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_abortTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_abortTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.AbortTimestamp, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_abortTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_deploymentReadyTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_deploymentReadyTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.DeploymentReadyTimestamp, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_deploymentReadyTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_blueDeploymentName(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_blueDeploymentName,
+		func(ctx context.Context) (any, error) {
+			return obj.BlueDeploymentName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_blueDeploymentName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_greenDeploymentName(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_greenDeploymentName,
+		func(ctx context.Context) (any, error) {
+			return obj.GreenDeploymentName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_greenDeploymentName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_activeJobId(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_activeJobId,
+		func(ctx context.Context) (any, error) {
+			return obj.ActiveJobID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_activeJobId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_pendingJobId(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_pendingJobId,
+		func(ctx context.Context) (any, error) {
+			return obj.PendingJobID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_pendingJobId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_abortGracePeriod(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_abortGracePeriod,
+		func(ctx context.Context) (any, error) {
+			return obj.AbortGracePeriod, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_abortGracePeriod(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenDeployment_deploymentDeletionDelay(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenDeployment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenDeployment_deploymentDeletionDelay,
+		func(ctx context.Context) (any, error) {
+			return obj.DeploymentDeletionDelay, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenDeployment_deploymentDeletionDelay(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenDeployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -11203,6 +11839,148 @@ func (ec *executionContext) fieldContext_Query_clusters(_ context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_blueGreenDeployments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_blueGreenDeployments,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().BlueGreenDeployments(ctx, fc.Args["cluster"].(*string), fc.Args["namespace"].(*string))
+		},
+		nil,
+		ec.marshalNBlueGreenDeployment2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeploymentᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_blueGreenDeployments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_BlueGreenDeployment_name(ctx, field)
+			case "namespace":
+				return ec.fieldContext_BlueGreenDeployment_namespace(ctx, field)
+			case "state":
+				return ec.fieldContext_BlueGreenDeployment_state(ctx, field)
+			case "jobStatus":
+				return ec.fieldContext_BlueGreenDeployment_jobStatus(ctx, field)
+			case "error":
+				return ec.fieldContext_BlueGreenDeployment_error(ctx, field)
+			case "lastReconciledTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_lastReconciledTimestamp(ctx, field)
+			case "abortTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_abortTimestamp(ctx, field)
+			case "deploymentReadyTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_deploymentReadyTimestamp(ctx, field)
+			case "blueDeploymentName":
+				return ec.fieldContext_BlueGreenDeployment_blueDeploymentName(ctx, field)
+			case "greenDeploymentName":
+				return ec.fieldContext_BlueGreenDeployment_greenDeploymentName(ctx, field)
+			case "activeJobId":
+				return ec.fieldContext_BlueGreenDeployment_activeJobId(ctx, field)
+			case "pendingJobId":
+				return ec.fieldContext_BlueGreenDeployment_pendingJobId(ctx, field)
+			case "abortGracePeriod":
+				return ec.fieldContext_BlueGreenDeployment_abortGracePeriod(ctx, field)
+			case "deploymentDeletionDelay":
+				return ec.fieldContext_BlueGreenDeployment_deploymentDeletionDelay(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BlueGreenDeployment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_blueGreenDeployments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_blueGreenDeployment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_blueGreenDeployment,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().BlueGreenDeployment(ctx, fc.Args["name"].(string), fc.Args["namespace"].(*string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalOBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_blueGreenDeployment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_BlueGreenDeployment_name(ctx, field)
+			case "namespace":
+				return ec.fieldContext_BlueGreenDeployment_namespace(ctx, field)
+			case "state":
+				return ec.fieldContext_BlueGreenDeployment_state(ctx, field)
+			case "jobStatus":
+				return ec.fieldContext_BlueGreenDeployment_jobStatus(ctx, field)
+			case "error":
+				return ec.fieldContext_BlueGreenDeployment_error(ctx, field)
+			case "lastReconciledTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_lastReconciledTimestamp(ctx, field)
+			case "abortTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_abortTimestamp(ctx, field)
+			case "deploymentReadyTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_deploymentReadyTimestamp(ctx, field)
+			case "blueDeploymentName":
+				return ec.fieldContext_BlueGreenDeployment_blueDeploymentName(ctx, field)
+			case "greenDeploymentName":
+				return ec.fieldContext_BlueGreenDeployment_greenDeploymentName(ctx, field)
+			case "activeJobId":
+				return ec.fieldContext_BlueGreenDeployment_activeJobId(ctx, field)
+			case "pendingJobId":
+				return ec.fieldContext_BlueGreenDeployment_pendingJobId(ctx, field)
+			case "abortGracePeriod":
+				return ec.fieldContext_BlueGreenDeployment_abortGracePeriod(ctx, field)
+			case "deploymentDeletionDelay":
+				return ec.fieldContext_BlueGreenDeployment_deploymentDeletionDelay(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BlueGreenDeployment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_blueGreenDeployment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_flinkConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -12782,6 +13560,77 @@ func (ec *executionContext) fieldContext_SQLStatementResult_operationHandle(_ co
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_blueGreenStateChanged(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	return graphql.ResolveFieldStream(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Subscription_blueGreenStateChanged,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Subscription().BlueGreenStateChanged(ctx, fc.Args["cluster"].(*string), fc.Args["namespace"].(*string))
+		},
+		nil,
+		ec.marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Subscription_blueGreenStateChanged(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_BlueGreenDeployment_name(ctx, field)
+			case "namespace":
+				return ec.fieldContext_BlueGreenDeployment_namespace(ctx, field)
+			case "state":
+				return ec.fieldContext_BlueGreenDeployment_state(ctx, field)
+			case "jobStatus":
+				return ec.fieldContext_BlueGreenDeployment_jobStatus(ctx, field)
+			case "error":
+				return ec.fieldContext_BlueGreenDeployment_error(ctx, field)
+			case "lastReconciledTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_lastReconciledTimestamp(ctx, field)
+			case "abortTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_abortTimestamp(ctx, field)
+			case "deploymentReadyTimestamp":
+				return ec.fieldContext_BlueGreenDeployment_deploymentReadyTimestamp(ctx, field)
+			case "blueDeploymentName":
+				return ec.fieldContext_BlueGreenDeployment_blueDeploymentName(ctx, field)
+			case "greenDeploymentName":
+				return ec.fieldContext_BlueGreenDeployment_greenDeploymentName(ctx, field)
+			case "activeJobId":
+				return ec.fieldContext_BlueGreenDeployment_activeJobId(ctx, field)
+			case "pendingJobId":
+				return ec.fieldContext_BlueGreenDeployment_pendingJobId(ctx, field)
+			case "abortGracePeriod":
+				return ec.fieldContext_BlueGreenDeployment_abortGracePeriod(ctx, field)
+			case "deploymentDeletionDelay":
+				return ec.fieldContext_BlueGreenDeployment_deploymentDeletionDelay(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BlueGreenDeployment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_blueGreenStateChanged_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -17932,6 +18781,77 @@ func (ec *executionContext) _BackPressureInfo(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var blueGreenDeploymentImplementors = []string{"BlueGreenDeployment"}
+
+func (ec *executionContext) _BlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, obj *model.BlueGreenDeployment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, blueGreenDeploymentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BlueGreenDeployment")
+		case "name":
+			out.Values[i] = ec._BlueGreenDeployment_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "namespace":
+			out.Values[i] = ec._BlueGreenDeployment_namespace(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "state":
+			out.Values[i] = ec._BlueGreenDeployment_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jobStatus":
+			out.Values[i] = ec._BlueGreenDeployment_jobStatus(ctx, field, obj)
+		case "error":
+			out.Values[i] = ec._BlueGreenDeployment_error(ctx, field, obj)
+		case "lastReconciledTimestamp":
+			out.Values[i] = ec._BlueGreenDeployment_lastReconciledTimestamp(ctx, field, obj)
+		case "abortTimestamp":
+			out.Values[i] = ec._BlueGreenDeployment_abortTimestamp(ctx, field, obj)
+		case "deploymentReadyTimestamp":
+			out.Values[i] = ec._BlueGreenDeployment_deploymentReadyTimestamp(ctx, field, obj)
+		case "blueDeploymentName":
+			out.Values[i] = ec._BlueGreenDeployment_blueDeploymentName(ctx, field, obj)
+		case "greenDeploymentName":
+			out.Values[i] = ec._BlueGreenDeployment_greenDeploymentName(ctx, field, obj)
+		case "activeJobId":
+			out.Values[i] = ec._BlueGreenDeployment_activeJobId(ctx, field, obj)
+		case "pendingJobId":
+			out.Values[i] = ec._BlueGreenDeployment_pendingJobId(ctx, field, obj)
+		case "abortGracePeriod":
+			out.Values[i] = ec._BlueGreenDeployment_abortGracePeriod(ctx, field, obj)
+		case "deploymentDeletionDelay":
+			out.Values[i] = ec._BlueGreenDeployment_deploymentDeletionDelay(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var cancelJobResultImplementors = []string{"CancelJobResult"}
 
 func (ec *executionContext) _CancelJobResult(ctx context.Context, sel ast.SelectionSet, obj *model.CancelJobResult) graphql.Marshaler {
@@ -20467,6 +21387,47 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "blueGreenDeployments":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_blueGreenDeployments(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "blueGreenDeployment":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_blueGreenDeployment(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "flinkConfig":
 			field := field
 
@@ -21234,6 +22195,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
+	case "blueGreenStateChanged":
+		return ec._Subscription_blueGreenStateChanged(ctx, fields[0])
 	case "jobStatusChanged":
 		return ec._Subscription_jobStatusChanged(ctx, fields[0])
 	case "sqlResults":
@@ -22890,6 +23853,46 @@ func (ec *executionContext) marshalNBackPressureInfo2ᚖgithubᚗcomᚋsandboxws
 	return ec._BackPressureInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNBlueGreenDeployment2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenDeployment) graphql.Marshaler {
+	return ec._BlueGreenDeployment(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBlueGreenDeployment2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeploymentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BlueGreenDeployment) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenDeployment) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BlueGreenDeployment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState(ctx context.Context, v any) (model.BlueGreenState, error) {
+	var res model.BlueGreenState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenState) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -24393,6 +25396,13 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenDeployment) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BlueGreenDeployment(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {

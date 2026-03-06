@@ -1,0 +1,35 @@
+enum BlueGreenState {
+  INITIALIZING_BLUE
+  ACTIVE_BLUE
+  ACTIVE_GREEN
+  SAVEPOINTING_BLUE
+  SAVEPOINTING_GREEN
+  TRANSITIONING_TO_BLUE
+  TRANSITIONING_TO_GREEN
+}
+
+type BlueGreenDeployment {
+  name: String!
+  namespace: String!
+  state: BlueGreenState!
+  jobStatus: String
+  error: String
+  lastReconciledTimestamp: String
+  abortTimestamp: String
+  deploymentReadyTimestamp: String
+  blueDeploymentName: String
+  greenDeploymentName: String
+  activeJobId: String
+  pendingJobId: String
+  abortGracePeriod: String
+  deploymentDeletionDelay: String
+}
+
+extend type Query {
+  blueGreenDeployments(cluster: String, namespace: String): [BlueGreenDeployment!]!
+  blueGreenDeployment(name: String!, namespace: String, cluster: String): BlueGreenDeployment
+}
+
+extend type Subscription {
+  blueGreenStateChanged(cluster: String, namespace: String): BlueGreenDeployment!
+}

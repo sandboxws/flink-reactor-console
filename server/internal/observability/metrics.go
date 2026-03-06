@@ -82,6 +82,37 @@ var ActiveSubscriptions = prometheus.NewGaugeVec(
 	[]string{"type"},
 )
 
+// Blue-green deployment metrics.
+var (
+	BlueGreenDeploymentsTotal = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: metricsNamespace,
+			Name:      "bluegreen_deployments_total",
+			Help:      "Total number of blue-green deployments per namespace.",
+		},
+		[]string{"namespace"},
+	)
+
+	BlueGreenActiveState = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: metricsNamespace,
+			Name:      "bluegreen_active_state",
+			Help:      "Count of blue-green deployments per state.",
+		},
+		[]string{"state"},
+	)
+
+	BlueGreenTransitionDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: metricsNamespace,
+			Name:      "bluegreen_transition_duration_seconds",
+			Help:      "Observed blue-green transition durations in seconds.",
+			Buckets:   []float64{5, 10, 30, 60, 120, 300, 600},
+		},
+		[]string{"namespace"},
+	)
+)
+
 // RegisterMetrics registers all metrics with the default prometheus registry.
 func RegisterMetrics() {
 	prometheus.MustRegister(
@@ -92,5 +123,8 @@ func RegisterMetrics() {
 		GraphQLResolverDuration,
 		InstrumentHealthStatus,
 		ActiveSubscriptions,
+		BlueGreenDeploymentsTotal,
+		BlueGreenActiveState,
+		BlueGreenTransitionDuration,
 	)
 }

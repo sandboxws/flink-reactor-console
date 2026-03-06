@@ -22,6 +22,23 @@ type BackPressureInfo struct {
 	Subtasks          []*SubtaskBackPressure `json:"subtasks"`
 }
 
+type BlueGreenDeployment struct {
+	Name                     string         `json:"name"`
+	Namespace                string         `json:"namespace"`
+	State                    BlueGreenState `json:"state"`
+	JobStatus                *string        `json:"jobStatus,omitempty"`
+	Error                    *string        `json:"error,omitempty"`
+	LastReconciledTimestamp  *string        `json:"lastReconciledTimestamp,omitempty"`
+	AbortTimestamp           *string        `json:"abortTimestamp,omitempty"`
+	DeploymentReadyTimestamp *string        `json:"deploymentReadyTimestamp,omitempty"`
+	BlueDeploymentName       *string        `json:"blueDeploymentName,omitempty"`
+	GreenDeploymentName      *string        `json:"greenDeploymentName,omitempty"`
+	ActiveJobID              *string        `json:"activeJobId,omitempty"`
+	PendingJobID             *string        `json:"pendingJobId,omitempty"`
+	AbortGracePeriod         *string        `json:"abortGracePeriod,omitempty"`
+	DeploymentDeletionDelay  *string        `json:"deploymentDeletionDelay,omitempty"`
+}
+
 type CancelJobResult struct {
 	Success bool `json:"success"`
 }
@@ -578,6 +595,71 @@ type VertexWatermarks struct {
 type WatermarkEntry struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
+}
+
+type BlueGreenState string
+
+const (
+	BlueGreenStateInitializingBlue     BlueGreenState = "INITIALIZING_BLUE"
+	BlueGreenStateActiveBlue           BlueGreenState = "ACTIVE_BLUE"
+	BlueGreenStateActiveGreen          BlueGreenState = "ACTIVE_GREEN"
+	BlueGreenStateSavepointingBlue     BlueGreenState = "SAVEPOINTING_BLUE"
+	BlueGreenStateSavepointingGreen    BlueGreenState = "SAVEPOINTING_GREEN"
+	BlueGreenStateTransitioningToBlue  BlueGreenState = "TRANSITIONING_TO_BLUE"
+	BlueGreenStateTransitioningToGreen BlueGreenState = "TRANSITIONING_TO_GREEN"
+)
+
+var AllBlueGreenState = []BlueGreenState{
+	BlueGreenStateInitializingBlue,
+	BlueGreenStateActiveBlue,
+	BlueGreenStateActiveGreen,
+	BlueGreenStateSavepointingBlue,
+	BlueGreenStateSavepointingGreen,
+	BlueGreenStateTransitioningToBlue,
+	BlueGreenStateTransitioningToGreen,
+}
+
+func (e BlueGreenState) IsValid() bool {
+	switch e {
+	case BlueGreenStateInitializingBlue, BlueGreenStateActiveBlue, BlueGreenStateActiveGreen, BlueGreenStateSavepointingBlue, BlueGreenStateSavepointingGreen, BlueGreenStateTransitioningToBlue, BlueGreenStateTransitioningToGreen:
+		return true
+	}
+	return false
+}
+
+func (e BlueGreenState) String() string {
+	return string(e)
+}
+
+func (e *BlueGreenState) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BlueGreenState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid BlueGreenState", str)
+	}
+	return nil
+}
+
+func (e BlueGreenState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BlueGreenState) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BlueGreenState) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // Health status of a registered Flink cluster.

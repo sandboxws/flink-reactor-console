@@ -1,0 +1,47 @@
+query BlueGreenDeployments($cluster: String, $namespace: String) {
+  blueGreenDeployments(cluster: $cluster, namespace: $namespace) {
+    name
+    namespace
+    state
+    jobStatus
+    error
+    lastReconciledTimestamp
+    abortTimestamp
+    deploymentReadyTimestamp
+    blueDeploymentName
+    greenDeploymentName
+    activeJobId
+    pendingJobId
+    abortGracePeriod
+    deploymentDeletionDelay
+  }
+}
+
+query BlueGreenDeploymentDetail($name: String!, $namespace: String, $cluster: String) {
+  blueGreenDeployment(name: $name, namespace: $namespace, cluster: $cluster) {
+    name
+    namespace
+    state
+    jobStatus
+    error
+    lastReconciledTimestamp
+    abortTimestamp
+    deploymentReadyTimestamp
+    blueDeploymentName
+    greenDeploymentName
+    activeJobId
+    pendingJobId
+    abortGracePeriod
+    deploymentDeletionDelay
+  }
+}
+
+subscription BlueGreenStateChanged($cluster: String, $namespace: String) {
+  blueGreenStateChanged(cluster: $cluster, namespace: $namespace) {
+    name
+    namespace
+    state
+    jobStatus
+    error
+  }
+}
