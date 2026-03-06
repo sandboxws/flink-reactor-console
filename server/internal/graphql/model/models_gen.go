@@ -2,5 +2,29 @@
 
 package model
 
+// A job status transition event emitted when a Flink job changes state.
+type JobStatusEvent struct {
+	JobID          string  `json:"jobId"`
+	JobName        string  `json:"jobName"`
+	PreviousStatus *string `json:"previousStatus,omitempty"`
+	CurrentStatus  string  `json:"currentStatus"`
+}
+
 type Query struct {
+}
+
+// A column descriptor from SQL Gateway results.
+type SQLColumn struct {
+	Name     string `json:"name"`
+	DataType string `json:"dataType"`
+}
+
+// A batch of SQL Gateway query results.
+type SQLResultBatch struct {
+	Columns []*SQLColumn `json:"columns"`
+	Rows    [][]*string  `json:"rows"`
+	HasMore bool         `json:"hasMore"`
+}
+
+type Subscription struct {
 }

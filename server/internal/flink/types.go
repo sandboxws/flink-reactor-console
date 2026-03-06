@@ -1,5 +1,13 @@
 package flink
 
+// JobStatusEvent represents a detected job status transition.
+type JobStatusEvent struct {
+	JobID          string  `json:"jobId"`
+	JobName        string  `json:"jobName"`
+	PreviousStatus *string `json:"previousStatus,omitempty"`
+	CurrentStatus  string  `json:"currentStatus"`
+}
+
 // ClusterOverview represents the GET /overview response.
 type ClusterOverview struct {
 	FlinkVersion   string `json:"flink-version"`

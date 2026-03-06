@@ -12,6 +12,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -27,19 +28,47 @@ type Config = graphql.Config[ResolverRoot, DirectiveRoot, ComplexityRoot]
 
 type ResolverRoot interface {
 	Query() QueryResolver
+	Subscription() SubscriptionResolver
 }
 
 type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	JobStatusEvent struct {
+		CurrentStatus  func(childComplexity int) int
+		JobID          func(childComplexity int) int
+		JobName        func(childComplexity int) int
+		PreviousStatus func(childComplexity int) int
+	}
+
 	Query struct {
 		Health func(childComplexity int) int
+	}
+
+	SQLColumn struct {
+		DataType func(childComplexity int) int
+		Name     func(childComplexity int) int
+	}
+
+	SQLResultBatch struct {
+		Columns func(childComplexity int) int
+		HasMore func(childComplexity int) int
+		Rows    func(childComplexity int) int
+	}
+
+	Subscription struct {
+		JobStatusChanged func(childComplexity int, cluster *string) int
+		SQLResults       func(childComplexity int, cluster *string, sessionHandle string, operationHandle string) int
 	}
 }
 
 type QueryResolver interface {
 	Health(ctx context.Context) (bool, error)
+}
+type SubscriptionResolver interface {
+	JobStatusChanged(ctx context.Context, cluster *string) (<-chan *model.JobStatusEvent, error)
+	SQLResults(ctx context.Context, cluster *string, sessionHandle string, operationHandle string) (<-chan *model.SQLResultBatch, error)
 }
 
 type executableSchema graphql.ExecutableSchemaState[ResolverRoot, DirectiveRoot, ComplexityRoot]
@@ -56,12 +85,92 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
+	case "JobStatusEvent.currentStatus":
+		if e.ComplexityRoot.JobStatusEvent.CurrentStatus == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobStatusEvent.CurrentStatus(childComplexity), true
+	case "JobStatusEvent.jobId":
+		if e.ComplexityRoot.JobStatusEvent.JobID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobStatusEvent.JobID(childComplexity), true
+	case "JobStatusEvent.jobName":
+		if e.ComplexityRoot.JobStatusEvent.JobName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobStatusEvent.JobName(childComplexity), true
+	case "JobStatusEvent.previousStatus":
+		if e.ComplexityRoot.JobStatusEvent.PreviousStatus == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobStatusEvent.PreviousStatus(childComplexity), true
+
 	case "Query.health":
 		if e.ComplexityRoot.Query.Health == nil {
 			break
 		}
 
 		return e.ComplexityRoot.Query.Health(childComplexity), true
+
+	case "SQLColumn.dataType":
+		if e.ComplexityRoot.SQLColumn.DataType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SQLColumn.DataType(childComplexity), true
+	case "SQLColumn.name":
+		if e.ComplexityRoot.SQLColumn.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SQLColumn.Name(childComplexity), true
+
+	case "SQLResultBatch.columns":
+		if e.ComplexityRoot.SQLResultBatch.Columns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SQLResultBatch.Columns(childComplexity), true
+	case "SQLResultBatch.hasMore":
+		if e.ComplexityRoot.SQLResultBatch.HasMore == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SQLResultBatch.HasMore(childComplexity), true
+	case "SQLResultBatch.rows":
+		if e.ComplexityRoot.SQLResultBatch.Rows == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SQLResultBatch.Rows(childComplexity), true
+
+	case "Subscription.jobStatusChanged":
+		if e.ComplexityRoot.Subscription.JobStatusChanged == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_jobStatusChanged_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Subscription.JobStatusChanged(childComplexity, args["cluster"].(*string)), true
+	case "Subscription.sqlResults":
+		if e.ComplexityRoot.Subscription.SQLResults == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_sqlResults_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Subscription.SQLResults(childComplexity, args["cluster"].(*string), args["sessionHandle"].(string), args["operationHandle"].(string)), true
 
 	}
 	return 0, false
@@ -104,6 +213,23 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 
 			return &response
 		}
+	case ast.Subscription:
+		next := ec._Subscription(ctx, opCtx.Operation.SelectionSet)
+
+		var buf bytes.Buffer
+		return func(ctx context.Context) *graphql.Response {
+			buf.Reset()
+			data := next(ctx)
+
+			if data == nil {
+				return nil
+			}
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
 
 	default:
 		return graphql.OneShot(graphql.ErrorResponse(ctx, "unsupported GraphQL operation"))
@@ -133,6 +259,52 @@ var sources = []*ast.Source{
 	{Name: "../schema/schema.graphqls", Input: `type Query {
   health: Boolean!
 }
+
+type Subscription
+`, BuiltIn: false},
+	{Name: "../schema/subscription.graphqls", Input: `"""
+A job status transition event emitted when a Flink job changes state.
+"""
+type JobStatusEvent {
+  jobId: String!
+  jobName: String!
+  previousStatus: String
+  currentStatus: String!
+}
+
+"""
+A column descriptor from SQL Gateway results.
+"""
+type SQLColumn {
+  name: String!
+  dataType: String!
+}
+
+"""
+A batch of SQL Gateway query results.
+"""
+type SQLResultBatch {
+  columns: [SQLColumn!]!
+  rows: [[String]]!
+  hasMore: Boolean!
+}
+
+extend type Subscription {
+  """
+  Emits a JobStatusEvent whenever any Flink job's status changes.
+  Optionally scoped to a specific cluster.
+  """
+  jobStatusChanged(cluster: String): JobStatusEvent!
+
+  """
+  Streams result batches from a SQL Gateway operation.
+  """
+  sqlResults(
+    cluster: String
+    sessionHandle: String!
+    operationHandle: String!
+  ): SQLResultBatch!
+}
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -149,6 +321,38 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_jobStatusChanged_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_sqlResults_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "sessionHandle", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["sessionHandle"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "operationHandle", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["operationHandle"] = arg2
 	return args, nil
 }
 
@@ -203,6 +407,122 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _JobStatusEvent_jobId(ctx context.Context, field graphql.CollectedField, obj *model.JobStatusEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobStatusEvent_jobId,
+		func(ctx context.Context) (any, error) {
+			return obj.JobID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobStatusEvent_jobId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobStatusEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobStatusEvent_jobName(ctx context.Context, field graphql.CollectedField, obj *model.JobStatusEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobStatusEvent_jobName,
+		func(ctx context.Context) (any, error) {
+			return obj.JobName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobStatusEvent_jobName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobStatusEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobStatusEvent_previousStatus(ctx context.Context, field graphql.CollectedField, obj *model.JobStatusEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobStatusEvent_previousStatus,
+		func(ctx context.Context) (any, error) {
+			return obj.PreviousStatus, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobStatusEvent_previousStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobStatusEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobStatusEvent_currentStatus(ctx context.Context, field graphql.CollectedField, obj *model.JobStatusEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobStatusEvent_currentStatus,
+		func(ctx context.Context) (any, error) {
+			return obj.CurrentStatus, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobStatusEvent_currentStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobStatusEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Query_health(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
@@ -337,6 +657,257 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SQLColumn_name(ctx context.Context, field graphql.CollectedField, obj *model.SQLColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SQLColumn_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SQLColumn_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SQLColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SQLColumn_dataType(ctx context.Context, field graphql.CollectedField, obj *model.SQLColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SQLColumn_dataType,
+		func(ctx context.Context) (any, error) {
+			return obj.DataType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SQLColumn_dataType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SQLColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SQLResultBatch_columns(ctx context.Context, field graphql.CollectedField, obj *model.SQLResultBatch) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SQLResultBatch_columns,
+		func(ctx context.Context) (any, error) {
+			return obj.Columns, nil
+		},
+		nil,
+		ec.marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumnᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SQLResultBatch_columns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SQLResultBatch",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_SQLColumn_name(ctx, field)
+			case "dataType":
+				return ec.fieldContext_SQLColumn_dataType(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SQLColumn", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SQLResultBatch_rows(ctx context.Context, field graphql.CollectedField, obj *model.SQLResultBatch) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SQLResultBatch_rows,
+		func(ctx context.Context) (any, error) {
+			return obj.Rows, nil
+		},
+		nil,
+		ec.marshalNString2ᚕᚕᚖstring,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SQLResultBatch_rows(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SQLResultBatch",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SQLResultBatch_hasMore(ctx context.Context, field graphql.CollectedField, obj *model.SQLResultBatch) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SQLResultBatch_hasMore,
+		func(ctx context.Context) (any, error) {
+			return obj.HasMore, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SQLResultBatch_hasMore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SQLResultBatch",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_jobStatusChanged(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	return graphql.ResolveFieldStream(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Subscription_jobStatusChanged,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Subscription().JobStatusChanged(ctx, fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNJobStatusEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Subscription_jobStatusChanged(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "jobId":
+				return ec.fieldContext_JobStatusEvent_jobId(ctx, field)
+			case "jobName":
+				return ec.fieldContext_JobStatusEvent_jobName(ctx, field)
+			case "previousStatus":
+				return ec.fieldContext_JobStatusEvent_previousStatus(ctx, field)
+			case "currentStatus":
+				return ec.fieldContext_JobStatusEvent_currentStatus(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobStatusEvent", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_jobStatusChanged_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_sqlResults(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	return graphql.ResolveFieldStream(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Subscription_sqlResults,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Subscription().SQLResults(ctx, fc.Args["cluster"].(*string), fc.Args["sessionHandle"].(string), fc.Args["operationHandle"].(string))
+		},
+		nil,
+		ec.marshalNSQLResultBatch2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Subscription_sqlResults(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "columns":
+				return ec.fieldContext_SQLResultBatch_columns(ctx, field)
+			case "rows":
+				return ec.fieldContext_SQLResultBatch_rows(ctx, field)
+			case "hasMore":
+				return ec.fieldContext_SQLResultBatch_hasMore(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SQLResultBatch", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_sqlResults_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1795,6 +2366,57 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** object.gotpl ****************************
 
+var jobStatusEventImplementors = []string{"JobStatusEvent"}
+
+func (ec *executionContext) _JobStatusEvent(ctx context.Context, sel ast.SelectionSet, obj *model.JobStatusEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobStatusEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobStatusEvent")
+		case "jobId":
+			out.Values[i] = ec._JobStatusEvent_jobId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jobName":
+			out.Values[i] = ec._JobStatusEvent_jobName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "previousStatus":
+			out.Values[i] = ec._JobStatusEvent_previousStatus(ctx, field, obj)
+		case "currentStatus":
+			out.Values[i] = ec._JobStatusEvent_currentStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -1865,6 +2487,121 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	}
 
 	return out
+}
+
+var sQLColumnImplementors = []string{"SQLColumn"}
+
+func (ec *executionContext) _SQLColumn(ctx context.Context, sel ast.SelectionSet, obj *model.SQLColumn) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sQLColumnImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SQLColumn")
+		case "name":
+			out.Values[i] = ec._SQLColumn_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dataType":
+			out.Values[i] = ec._SQLColumn_dataType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var sQLResultBatchImplementors = []string{"SQLResultBatch"}
+
+func (ec *executionContext) _SQLResultBatch(ctx context.Context, sel ast.SelectionSet, obj *model.SQLResultBatch) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sQLResultBatchImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SQLResultBatch")
+		case "columns":
+			out.Values[i] = ec._SQLResultBatch_columns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rows":
+			out.Values[i] = ec._SQLResultBatch_rows(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "hasMore":
+			out.Values[i] = ec._SQLResultBatch_hasMore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var subscriptionImplementors = []string{"Subscription"}
+
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func(ctx context.Context) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionImplementors)
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		graphql.AddErrorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "jobStatusChanged":
+		return ec._Subscription_jobStatusChanged(ctx, fields[0])
+	case "sqlResults":
+		return ec._Subscription_sqlResults(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
 }
 
 var __DirectiveImplementors = []string{"__Directive"}
@@ -2218,6 +2955,60 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNJobStatusEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent(ctx context.Context, sel ast.SelectionSet, v model.JobStatusEvent) graphql.Marshaler {
+	return ec._JobStatusEvent(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNJobStatusEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent(ctx context.Context, sel ast.SelectionSet, v *model.JobStatusEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobStatusEvent(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SQLColumn) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNSQLColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumn(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNSQLColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumn(ctx context.Context, sel ast.SelectionSet, v *model.SQLColumn) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SQLColumn(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSQLResultBatch2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch(ctx context.Context, sel ast.SelectionSet, v model.SQLResultBatch) graphql.Marshaler {
+	return ec._SQLResultBatch(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSQLResultBatch2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch(ctx context.Context, sel ast.SelectionSet, v *model.SQLResultBatch) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SQLResultBatch(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2232,6 +3023,30 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚕᚕᚖstring(ctx context.Context, v any) ([][]*string, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([][]*string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOString2ᚕᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v [][]*string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2ᚕᚖstring(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -2403,6 +3218,36 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOString2ᚕᚖstring(ctx context.Context, v any) ([]*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {

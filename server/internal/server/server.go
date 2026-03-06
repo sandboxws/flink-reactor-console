@@ -9,8 +9,11 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 )
@@ -24,7 +27,7 @@ type Server struct {
 
 // New creates a Server listening on addr with the standard middleware chain
 // and health endpoints registered.
-func New(addr string, logger *slog.Logger) *Server {
+func New(addr string, logger *slog.Logger, service *flink.Service, poller *flink.Poller, sqlClient *flink.Client) *Server {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -85,11 +88,23 @@ func New(addr string, logger *slog.Logger) *Server {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ready"})
 	})
 
-	// GraphQL endpoint.
-	gqlSrv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
-		Resolvers: &graphql.Resolver{},
+	// GraphQL endpoint with WebSocket support for subscriptions.
+	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
+		Resolvers: &graphql.Resolver{
+			Service:   service,
+			Poller:    poller,
+			SQLClient: sqlClient,
+		},
 	}))
-	e.POST("/graphql", echo.WrapHandler(gqlSrv))
+	gqlSrv.AddTransport(transport.Options{})
+	gqlSrv.AddTransport(transport.POST{})
+	gqlSrv.AddTransport(&transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+		Upgrader: websocket.Upgrader{
+			CheckOrigin: func(_ *http.Request) bool { return true },
+		},
+	})
+	e.Any("/graphql", echo.WrapHandler(gqlSrv))
 
 	return &Server{
 		echo:   e,

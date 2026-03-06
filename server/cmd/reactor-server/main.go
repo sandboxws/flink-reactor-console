@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 )
@@ -28,7 +29,35 @@ func run() int {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	srv := server.New(defaultAddr, logger)
+	// Flink REST client and service.
+	flinkURL := envOr("FLINK_REST_URL", "http://localhost:8081")
+	clientOpts := []flink.ClientOption{
+		flink.WithBaseURL(flinkURL),
+		flink.WithLogger(logger),
+	}
+	if token := os.Getenv("FLINK_AUTH_TOKEN"); token != "" {
+		clientOpts = append(clientOpts, flink.WithBearerAuth(token))
+	}
+	flinkClient := flink.NewClient(clientOpts...)
+	service := flink.NewService(flinkClient)
+
+	// Job status poller.
+	poller := flink.NewPoller(service, flink.WithPollerLogger(logger))
+
+	// SQL Gateway client (optional, separate base URL).
+	var sqlClient *flink.Client
+	if sqlURL := os.Getenv("SQL_GATEWAY_URL"); sqlURL != "" {
+		sqlOpts := []flink.ClientOption{
+			flink.WithBaseURL(sqlURL),
+			flink.WithLogger(logger),
+		}
+		if token := os.Getenv("FLINK_AUTH_TOKEN"); token != "" {
+			sqlOpts = append(sqlOpts, flink.WithBearerAuth(token))
+		}
+		sqlClient = flink.NewClient(sqlOpts...)
+	}
+
+	srv := server.New(defaultAddr, logger, service, poller, sqlClient)
 
 	// Start server in a goroutine.
 	errCh := make(chan error, 1)
@@ -48,6 +77,9 @@ func run() int {
 		return 0
 	}
 
+	// Stop poller before draining HTTP connections.
+	poller.Stop()
+
 	// Graceful shutdown with drain timeout.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), drainTimeout)
 	defer cancel()
@@ -59,4 +91,11 @@ func run() int {
 
 	logger.Info("server stopped")
 	return 0
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }

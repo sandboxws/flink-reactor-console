@@ -1,0 +1,43 @@
+"""
+A job status transition event emitted when a Flink job changes state.
+"""
+type JobStatusEvent {
+  jobId: String!
+  jobName: String!
+  previousStatus: String
+  currentStatus: String!
+}
+
+"""
+A column descriptor from SQL Gateway results.
+"""
+type SQLColumn {
+  name: String!
+  dataType: String!
+}
+
+"""
+A batch of SQL Gateway query results.
+"""
+type SQLResultBatch {
+  columns: [SQLColumn!]!
+  rows: [[String]]!
+  hasMore: Boolean!
+}
+
+extend type Subscription {
+  """
+  Emits a JobStatusEvent whenever any Flink job's status changes.
+  Optionally scoped to a specific cluster.
+  """
+  jobStatusChanged(cluster: String): JobStatusEvent!
+
+  """
+  Streams result batches from a SQL Gateway operation.
+  """
+  sqlResults(
+    cluster: String
+    sessionHandle: String!
+    operationHandle: String!
+  ): SQLResultBatch!
+}
