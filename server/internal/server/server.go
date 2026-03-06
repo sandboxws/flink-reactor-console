@@ -16,6 +16,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
 )
 
 // Server wraps an Echo server with middleware and health endpoints.
@@ -27,8 +28,8 @@ type Server struct {
 
 // New creates a Server listening on addr with the standard middleware chain
 // and health endpoints registered. The manager may be nil for testing without
-// Flink connectivity.
-func New(addr string, logger *slog.Logger, manager *cluster.Manager) *Server {
+// Flink connectivity. The registry may be nil if no instruments are configured.
+func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *instruments.Registry) *Server {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -90,7 +91,8 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager) *Server {
 	// GraphQL endpoint with WebSocket support for subscriptions.
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: &graphql.Resolver{
-			Manager: manager,
+			Manager:            manager,
+			InstrumentRegistry: registry,
 		},
 	}))
 	gqlSrv.AddTransport(transport.Options{})

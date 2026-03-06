@@ -1,0 +1,109 @@
+"""
+Summary of a Kafka topic.
+"""
+type KafkaTopic {
+  name: String!
+  partitionCount: Int!
+  replicationFactor: Int!
+  internal: Boolean!
+}
+
+"""
+Detailed information about a Kafka topic including partitions and config.
+"""
+type KafkaTopicDetail {
+  name: String!
+  partitionCount: Int!
+  replicationFactor: Int!
+  internal: Boolean!
+  partitions: [KafkaPartition!]!
+  configEntries: [KafkaConfigEntry!]!
+  messageCount: Int!
+}
+
+"""
+A single partition within a Kafka topic.
+"""
+type KafkaPartition {
+  id: Int!
+  leader: Int!
+  replicas: [Int!]!
+  inSyncReplicas: [Int!]!
+}
+
+"""
+A Kafka topic or broker configuration entry.
+"""
+type KafkaConfigEntry {
+  key: String!
+  value: String!
+}
+
+"""
+Summary of a Kafka consumer group.
+"""
+type KafkaConsumerGroup {
+  groupId: String!
+  state: String!
+  memberCount: Int!
+  totalLag: Int!
+}
+
+"""
+Detailed information about a Kafka consumer group.
+"""
+type KafkaConsumerGroupDetail {
+  groupId: String!
+  state: String!
+  protocol: String!
+  protocolType: String!
+  members: [KafkaGroupMember!]!
+  offsets: [KafkaPartitionOffset!]!
+}
+
+"""
+A member of a Kafka consumer group.
+"""
+type KafkaGroupMember {
+  clientId: String!
+  clientHost: String!
+  assignments: [KafkaTopicPartition!]!
+}
+
+"""
+A topic-partition assignment.
+"""
+type KafkaTopicPartition {
+  topic: String!
+  partition: Int!
+}
+
+"""
+Per-partition offset and lag for a consumer group.
+"""
+type KafkaPartitionOffset {
+  topic: String!
+  partition: Int!
+  committedOffset: Int!
+  endOffset: Int!
+  lag: Int!
+}
+
+extend type Query {
+  """
+  List topics for a Kafka instrument.
+  """
+  kafkaTopics(instrument: String!): [KafkaTopic!]!
+  """
+  Get detailed information about a specific Kafka topic.
+  """
+  kafkaTopic(instrument: String!, name: String!): KafkaTopicDetail!
+  """
+  List consumer groups for a Kafka instrument.
+  """
+  kafkaConsumerGroups(instrument: String!): [KafkaConsumerGroup!]!
+  """
+  Get detailed information about a specific consumer group.
+  """
+  kafkaConsumerGroup(instrument: String!, groupId: String!): KafkaConsumerGroupDetail!
+}

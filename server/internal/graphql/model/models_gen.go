@@ -18,6 +18,24 @@ type ClusterInfo struct {
 	Version       *string       `json:"version,omitempty"`
 }
 
+// Placeholder types for the database instrument.
+// Future changes will add table browsing, schema inspection, and query preview.
+type DatabaseTable struct {
+	Name   string `json:"name"`
+	Schema string `json:"schema"`
+}
+
+// Information about a registered infrastructure instrument.
+type InstrumentInfo struct {
+	Name            string   `json:"name"`
+	DisplayName     string   `json:"displayName"`
+	Type            string   `json:"type"`
+	Version         string   `json:"version"`
+	Healthy         bool     `json:"healthy"`
+	LastHealthCheck *string  `json:"lastHealthCheck,omitempty"`
+	Capabilities    []string `json:"capabilities"`
+}
+
 // A job status transition event emitted when a Flink job changes state.
 type JobStatusEvent struct {
 	JobID          string  `json:"jobId"`
@@ -25,6 +43,79 @@ type JobStatusEvent struct {
 	PreviousStatus *string `json:"previousStatus,omitempty"`
 	CurrentStatus  string  `json:"currentStatus"`
 	Cluster        string  `json:"cluster"`
+}
+
+// A Kafka topic or broker configuration entry.
+type KafkaConfigEntry struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// Summary of a Kafka consumer group.
+type KafkaConsumerGroup struct {
+	GroupID     string `json:"groupId"`
+	State       string `json:"state"`
+	MemberCount int    `json:"memberCount"`
+	TotalLag    int    `json:"totalLag"`
+}
+
+// Detailed information about a Kafka consumer group.
+type KafkaConsumerGroupDetail struct {
+	GroupID      string                  `json:"groupId"`
+	State        string                  `json:"state"`
+	Protocol     string                  `json:"protocol"`
+	ProtocolType string                  `json:"protocolType"`
+	Members      []*KafkaGroupMember     `json:"members"`
+	Offsets      []*KafkaPartitionOffset `json:"offsets"`
+}
+
+// A member of a Kafka consumer group.
+type KafkaGroupMember struct {
+	ClientID    string                 `json:"clientId"`
+	ClientHost  string                 `json:"clientHost"`
+	Assignments []*KafkaTopicPartition `json:"assignments"`
+}
+
+// A single partition within a Kafka topic.
+type KafkaPartition struct {
+	ID             int   `json:"id"`
+	Leader         int   `json:"leader"`
+	Replicas       []int `json:"replicas"`
+	InSyncReplicas []int `json:"inSyncReplicas"`
+}
+
+// Per-partition offset and lag for a consumer group.
+type KafkaPartitionOffset struct {
+	Topic           string `json:"topic"`
+	Partition       int    `json:"partition"`
+	CommittedOffset int    `json:"committedOffset"`
+	EndOffset       int    `json:"endOffset"`
+	Lag             int    `json:"lag"`
+}
+
+// Summary of a Kafka topic.
+type KafkaTopic struct {
+	Name              string `json:"name"`
+	PartitionCount    int    `json:"partitionCount"`
+	ReplicationFactor int    `json:"replicationFactor"`
+	Internal          bool   `json:"internal"`
+}
+
+// Detailed information about a Kafka topic including partitions and config.
+type KafkaTopicDetail struct {
+	Name              string              `json:"name"`
+	PartitionCount    int                 `json:"partitionCount"`
+	ReplicationFactor int                 `json:"replicationFactor"`
+	Internal          bool                `json:"internal"`
+	Partitions        []*KafkaPartition   `json:"partitions"`
+	ConfigEntries     []*KafkaConfigEntry `json:"configEntries"`
+	MessageCount      int                 `json:"messageCount"`
+}
+
+// A topic-partition assignment.
+type KafkaTopicPartition struct {
+	Topic     string `json:"topic"`
+	Partition int    `json:"partition"`
 }
 
 type Query struct {

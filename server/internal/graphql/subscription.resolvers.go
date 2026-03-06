@@ -15,12 +15,12 @@ import (
 )
 
 // JobStatusChanged is the resolver for the jobStatusChanged field.
-func (r *subscriptionResolver) JobStatusChanged(ctx context.Context, clusterName *string) (<-chan *model.JobStatusEvent, error) {
+func (r *subscriptionResolver) JobStatusChanged(ctx context.Context, cluster *string) (<-chan *model.JobStatusEvent, error) {
 	if r.Manager == nil {
 		return nil, fmt.Errorf("cluster manager not configured")
 	}
 
-	conn, err := r.Manager.Resolve(clusterName)
+	conn, err := r.Manager.Resolve(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +60,12 @@ func (r *subscriptionResolver) JobStatusChanged(ctx context.Context, clusterName
 }
 
 // SQLResults is the resolver for the sqlResults field.
-func (r *subscriptionResolver) SQLResults(ctx context.Context, clusterName *string, sessionHandle string, operationHandle string) (<-chan *model.SQLResultBatch, error) {
+func (r *subscriptionResolver) SQLResults(ctx context.Context, cluster *string, sessionHandle string, operationHandle string) (<-chan *model.SQLResultBatch, error) {
 	if r.Manager == nil {
 		return nil, fmt.Errorf("cluster manager not configured")
 	}
 
-	conn, err := r.Manager.Resolve(clusterName)
+	conn, err := r.Manager.Resolve(cluster)
 	if err != nil {
 		return nil, err
 	}

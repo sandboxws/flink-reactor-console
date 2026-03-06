@@ -1,0 +1,15 @@
+"""
+Placeholder types for the database instrument.
+Future changes will add table browsing, schema inspection, and query preview.
+"""
+type DatabaseTable {
+  name: String!
+  schema: String!
+}
+
+extend type Query {
+  """
+  List tables for a database instrument (stub — not yet implemented).
+  """
+  databaseTables(instrument: String!): [DatabaseTable!]!
+}

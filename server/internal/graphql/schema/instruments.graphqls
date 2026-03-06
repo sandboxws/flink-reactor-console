@@ -1,0 +1,19 @@
+"""
+Information about a registered infrastructure instrument.
+"""
+type InstrumentInfo {
+  name: String!
+  displayName: String!
+  type: String!
+  version: String!
+  healthy: Boolean!
+  lastHealthCheck: String
+  capabilities: [String!]!
+}
+
+extend type Query {
+  """
+  List all registered instruments with their health status and capabilities.
+  """
+  instruments: [InstrumentInfo!]!
+}

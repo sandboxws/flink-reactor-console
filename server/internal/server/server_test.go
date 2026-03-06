@@ -16,7 +16,7 @@ import (
 func TestHealthz(t *testing.T) {
 	var logBuf bytes.Buffer
 	logger := observability.NewTestLogger(&logBuf, 0)
-	s := server.New(":0", logger, nil)
+	s := server.New(":0", logger, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
@@ -43,7 +43,7 @@ func TestHealthz(t *testing.T) {
 func TestReadyz_NoManager(t *testing.T) {
 	var logBuf bytes.Buffer
 	logger := observability.NewTestLogger(&logBuf, 0)
-	s := server.New(":0", logger, nil)
+	s := server.New(":0", logger, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	rec := httptest.NewRecorder()
@@ -79,7 +79,7 @@ func TestReadyz_HealthyCluster(t *testing.T) {
 
 	var logBuf bytes.Buffer
 	logger := observability.NewTestLogger(&logBuf, 0)
-	s := server.New(":0", logger, manager)
+	s := server.New(":0", logger, manager, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	rec := httptest.NewRecorder()
@@ -102,7 +102,7 @@ func TestReadyz_UnhealthyCluster(t *testing.T) {
 
 	var logBuf bytes.Buffer
 	logger := observability.NewTestLogger(&logBuf, 0)
-	s := server.New(":0", logger, manager)
+	s := server.New(":0", logger, manager, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	rec := httptest.NewRecorder()
@@ -124,7 +124,7 @@ func TestReadyz_UnhealthyCluster(t *testing.T) {
 func TestRequestID_Generated(t *testing.T) {
 	var logBuf bytes.Buffer
 	logger := observability.NewTestLogger(&logBuf, 0)
-	s := server.New(":0", logger, nil)
+	s := server.New(":0", logger, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
@@ -139,7 +139,7 @@ func TestRequestID_Generated(t *testing.T) {
 func TestRequestID_Passthrough(t *testing.T) {
 	var logBuf bytes.Buffer
 	logger := observability.NewTestLogger(&logBuf, 0)
-	s := server.New(":0", logger, nil)
+	s := server.New(":0", logger, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	req.Header.Set("X-Request-Id", "abc-123")
@@ -155,7 +155,7 @@ func TestRequestID_Passthrough(t *testing.T) {
 func TestCORS_Preflight(t *testing.T) {
 	var logBuf bytes.Buffer
 	logger := observability.NewTestLogger(&logBuf, 0)
-	s := server.New(":0", logger, nil)
+	s := server.New(":0", logger, nil, nil)
 
 	req := httptest.NewRequest(http.MethodOptions, "/graphql", nil)
 	req.Header.Set("Origin", "http://localhost:3000")

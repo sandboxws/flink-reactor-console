@@ -10,6 +10,9 @@ import (
 	"time"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments/database"
+	kafkainst "github.com/sandboxws/flink-reactor/apps/server/internal/instruments/kafka"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 )
@@ -62,7 +65,36 @@ func run() int {
 	// Start background health checks.
 	manager.Start(ctx, healthInterval)
 
-	srv := server.New(defaultAddr, logger, manager)
+	// Initialize instrument registry.
+	registry := instruments.NewRegistry(logger)
+
+	instConfigs, err := instruments.ParseInstrumentsEnv(os.Getenv("INSTRUMENTS"))
+	if err != nil {
+		logger.Error("invalid INSTRUMENTS config", "error", err)
+		// Continue with empty registry — instruments are optional.
+		instConfigs = nil
+	}
+
+	// Register instrument types and create instances from config.
+	for _, cfg := range instConfigs {
+		switch cfg.Type {
+		case "kafka":
+			registry.Register(kafkainst.NewInstrument(cfg.Name))
+		case "database":
+			registry.Register(database.NewInstrument(cfg.Name, logger))
+		default:
+			logger.Warn("unknown instrument type", "type", cfg.Type, "name", cfg.Name)
+		}
+	}
+
+	if len(instConfigs) > 0 {
+		if err := registry.InitAll(ctx, instConfigs); err != nil {
+			logger.Error("instrument init failed", "error", err)
+		}
+		registry.StartHealthChecks(ctx, healthInterval)
+	}
+
+	srv := server.New(defaultAddr, logger, manager, registry)
 
 	// Start server in a goroutine.
 	errCh := make(chan error, 1)
@@ -81,6 +113,9 @@ func run() int {
 		}
 		return 0
 	}
+
+	// Shutdown instruments.
+	registry.ShutdownAll(context.Background())
 
 	// Stop cluster manager (cancels health checks, stops pollers).
 	manager.Stop()
