@@ -1,0 +1,30 @@
+# Dashboard and Flink configuration types and queries
+
+type FlinkFeatures {
+  webSubmit: Boolean!
+  webCancel: Boolean!
+  webRescale: Boolean!
+  webHistory: Boolean!
+}
+
+type FlinkConfig {
+  refreshInterval: Int!
+  timezoneName: String!
+  timezoneOffset: String!
+  flinkVersion: String!
+  flinkRevision: String!
+  features: FlinkFeatures!
+}
+
+type DashboardConfig {
+  clusters: [String!]!
+  instruments: [String!]!
+}
+
+extend type Query {
+  """Get Flink cluster configuration"""
+  flinkConfig(cluster: String): FlinkConfig!
+
+  """Get dashboard configuration (available clusters and instruments)"""
+  dashboardConfig: DashboardConfig!
+}

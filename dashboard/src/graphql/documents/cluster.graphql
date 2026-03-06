@@ -1,0 +1,30 @@
+query ClusterOverview($cluster: String) {
+  clusters {
+    name
+    url
+    status
+    lastCheckTime
+    version
+  }
+  jobs(cluster: $cluster) {
+    id
+    name
+    state
+    startTime
+    endTime
+    duration
+    lastModification
+    tasks {
+      created
+      scheduled
+      deploying
+      running
+      finished
+      canceling
+      canceled
+      failed
+      reconciling
+      initializing
+    }
+  }
+}

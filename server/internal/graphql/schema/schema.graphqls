@@ -23,4 +23,6 @@ type Query {
   clusters: [ClusterInfo!]!
 }
 
+type Mutation
+
 type Subscription

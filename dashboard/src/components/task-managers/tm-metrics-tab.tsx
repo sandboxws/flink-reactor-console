@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts"
 import type { TaskManager, TaskManagerMetrics } from "@/data/cluster-types"
-import { fetchTaskManagerMetrics } from "@/lib/flink-api-client"
+import { fetchTaskManagerMetrics } from "@/lib/graphql-api-client"
 import { useConfigStore } from "@/stores/config-store"
 
 // ---------------------------------------------------------------------------

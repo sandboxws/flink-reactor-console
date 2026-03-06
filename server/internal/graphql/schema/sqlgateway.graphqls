@@ -1,0 +1,46 @@
+# SQL Gateway session and statement management
+
+type SQLSessionResult {
+  sessionHandle: String!
+}
+
+type SQLStatementResult {
+  operationHandle: String!
+}
+
+type SQLFetchResult {
+  columns: [SQLColumn!]!
+  rows: [[String]]!
+  hasMore: Boolean!
+  nextToken: String
+}
+
+type SQLCloseResult {
+  success: Boolean!
+}
+
+extend type Mutation {
+  """Create a new SQL Gateway session"""
+  createSQLSession(cluster: String): SQLSessionResult!
+
+  """Submit a SQL statement to an existing session"""
+  submitStatement(
+    sessionHandle: String!
+    statement: String!
+    cluster: String
+  ): SQLStatementResult!
+
+  """Fetch results from a SQL statement execution"""
+  fetchSQLResults(
+    sessionHandle: String!
+    operationHandle: String!
+    token: String
+    cluster: String
+  ): SQLFetchResult!
+
+  """Close a SQL Gateway session"""
+  closeSQLSession(
+    sessionHandle: String!
+    cluster: String
+  ): SQLCloseResult!
+}

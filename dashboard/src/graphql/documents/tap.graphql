@@ -1,0 +1,8 @@
+query TapManifests {
+  tapManifests {
+    name
+    description
+    version
+    config
+  }
+}

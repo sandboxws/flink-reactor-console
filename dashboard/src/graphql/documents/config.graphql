@@ -1,0 +1,22 @@
+query FlinkConfig($cluster: String) {
+  flinkConfig(cluster: $cluster) {
+    refreshInterval
+    timezoneName
+    timezoneOffset
+    flinkVersion
+    flinkRevision
+    features {
+      webSubmit
+      webCancel
+      webRescale
+      webHistory
+    }
+  }
+}
+
+query DashboardConfig {
+  dashboardConfig {
+    clusters
+    instruments
+  }
+}

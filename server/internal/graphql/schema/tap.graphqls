@@ -1,0 +1,15 @@
+# Tap pipeline manifest types and queries
+
+scalar JSON
+
+type TapManifest {
+  name: String!
+  description: String!
+  version: String!
+  config: JSON
+}
+
+extend type Query {
+  """List all loaded tap pipeline manifests"""
+  tapManifests: [TapManifest!]!
+}

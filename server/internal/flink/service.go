@@ -31,6 +31,12 @@ func NewService(client *Client) *Service {
 	}
 }
 
+// Client returns the underlying Flink HTTP client for direct access
+// to endpoints not wrapped by the service layer (e.g., logs, thread dumps).
+func (s *Service) Client() *Client {
+	return s.client
+}
+
 // --- Simple pass-through methods ---
 
 // GetClusterOverview returns the Flink cluster overview.

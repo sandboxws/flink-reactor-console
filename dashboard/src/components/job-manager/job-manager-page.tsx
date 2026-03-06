@@ -23,7 +23,7 @@ import {
   fetchJobManagerLogs,
   fetchJobManagerStdout,
   fetchJobManagerThreadDump,
-} from "@/lib/flink-api-client"
+} from "@/lib/graphql-api-client"
 import { JmConfigTab } from "./jm-config-tab"
 import { JmLogListTab } from "./jm-log-list-tab"
 import { JmLogsTab } from "./jm-logs-tab"

@@ -1,0 +1,293 @@
+# Job types and queries for the Flink dashboard
+
+type TaskCounts {
+  created: Int!
+  scheduled: Int!
+  deploying: Int!
+  running: Int!
+  finished: Int!
+  canceling: Int!
+  canceled: Int!
+  failed: Int!
+  reconciling: Int!
+  initializing: Int!
+}
+
+type JobOverview {
+  id: ID!
+  name: String!
+  state: String!
+  startTime: String!
+  endTime: String!
+  duration: String!
+  lastModification: String!
+  tasks: TaskCounts!
+}
+
+type VertexMetrics {
+  readBytes: String!
+  readBytesComplete: Boolean!
+  writeBytes: String!
+  writeBytesComplete: Boolean!
+  readRecords: String!
+  readRecordsComplete: Boolean!
+  writeRecords: String!
+  writeRecordsComplete: Boolean!
+  accumulatedBackpressured: String!
+  accumulatedIdle: String!
+  accumulatedBusy: String!
+}
+
+type JobVertex {
+  id: ID!
+  name: String!
+  maxParallelism: Int!
+  parallelism: Int!
+  status: String!
+  startTime: String!
+  endTime: String!
+  duration: String!
+  tasks: TaskCounts!
+  metrics: VertexMetrics!
+}
+
+type PlanNodeInput {
+  num: Int!
+  id: String!
+  shipStrategy: String!
+  exchange: String!
+}
+
+type PlanNode {
+  id: String!
+  parallelism: Int!
+  operator: String!
+  operatorStrategy: String!
+  description: String!
+  inputs: [PlanNodeInput!]
+}
+
+type JobPlan {
+  jid: String!
+  name: String!
+  type: String!
+  nodes: [PlanNode!]!
+}
+
+type ExceptionEntry {
+  exceptionName: String!
+  stacktrace: String!
+  timestamp: String!
+  taskName: String
+  endpoint: String
+  taskManagerId: String
+}
+
+type CheckpointMinMaxAvg {
+  min: String!
+  max: String!
+  avg: String!
+}
+
+type CheckpointCounts {
+  completed: Int!
+  inProgress: Int!
+  failed: Int!
+  total: Int!
+  restored: Int!
+}
+
+type CheckpointHistoryEntry {
+  id: String!
+  status: String!
+  isSavepoint: Boolean!
+  triggerTimestamp: String!
+  latestAckTimestamp: String!
+  stateSize: String!
+  endToEndDuration: String!
+  processedData: String!
+  persistedData: String!
+  numSubtasks: Int!
+  numAcknowledgedSubtasks: Int!
+  checkpointedSize: String
+}
+
+type CheckpointSummary {
+  stateSize: CheckpointMinMaxAvg
+  endToEndDuration: CheckpointMinMaxAvg
+  checkpointedSize: CheckpointMinMaxAvg
+  processedData: CheckpointMinMaxAvg
+  persistedData: CheckpointMinMaxAvg
+}
+
+type CheckpointRestoredInfo {
+  id: String!
+  restoreTimestamp: String!
+  isSavepoint: Boolean!
+  externalPath: String
+}
+
+type CheckpointLatest {
+  completed: CheckpointHistoryEntry
+  failed: CheckpointHistoryEntry
+  savepoint: CheckpointHistoryEntry
+  restored: CheckpointRestoredInfo
+}
+
+type CheckpointStats {
+  counts: CheckpointCounts!
+  history: [CheckpointHistoryEntry!]!
+  summary: CheckpointSummary
+  latest: CheckpointLatest
+}
+
+type CheckpointConfig {
+  mode: String!
+  interval: String!
+  timeout: String!
+  minPause: String!
+  maxConcurrent: Int!
+  externalizedEnabled: Boolean!
+  externalizedDeleteOnCancellation: Boolean!
+  unalignedCheckpoints: Boolean!
+}
+
+type SubtaskBackPressure {
+  subtask: Int!
+  attemptNumber: Int!
+  backpressureLevel: String!
+  ratio: Float!
+  busyRatio: Float!
+  idleRatio: Float!
+}
+
+type BackPressureInfo {
+  status: String!
+  backpressureLevel: String!
+  endTimestamp: String!
+  subtasks: [SubtaskBackPressure!]!
+}
+
+type UserAccumulator {
+  name: String!
+  type: String!
+  value: String!
+}
+
+type SubtaskInfo {
+  subtask: Int!
+  status: String!
+  attempt: Int!
+  endpoint: String!
+  startTime: String!
+  endTime: String!
+  duration: String!
+  metrics: VertexMetrics!
+  taskManagerId: String!
+}
+
+type VertexDetail {
+  id: ID!
+  name: String!
+  parallelism: Int!
+  now: String!
+  subtasks: [SubtaskInfo!]!
+}
+
+type WatermarkEntry {
+  id: String!
+  value: String!
+}
+
+type SubtaskTimesEntry {
+  subtask: Int!
+  host: String!
+  duration: String!
+  timestamps: [TimestampEntry!]!
+}
+
+type TimestampEntry {
+  key: String!
+  value: String!
+}
+
+type SubtaskTimes {
+  id: ID!
+  name: String!
+  now: String!
+  subtasks: [SubtaskTimesEntry!]!
+}
+
+type FlamegraphNode {
+  name: String!
+  value: String!
+  children: [FlamegraphNode!]
+}
+
+type Flamegraph {
+  endTimestamp: String!
+  data: FlamegraphNode!
+}
+
+type JobDetail {
+  id: ID!
+  name: String!
+  state: String!
+  startTime: String!
+  endTime: String!
+  duration: String!
+  now: String!
+  vertices: [JobVertex!]!
+  plan: JobPlan!
+  exceptions: [ExceptionEntry!]!
+  checkpoints: CheckpointStats
+  checkpointConfig: CheckpointConfig
+  vertexDetails: [VertexDetail!]
+  watermarks: [VertexWatermarks!]
+  backPressure: [VertexBackPressure!]
+  accumulators: [VertexAccumulators!]
+}
+
+type VertexWatermarks {
+  vertexId: ID!
+  watermarks: [WatermarkEntry!]!
+}
+
+type VertexBackPressure {
+  vertexId: ID!
+  backPressure: BackPressureInfo!
+}
+
+type VertexAccumulators {
+  vertexId: ID!
+  accumulators: [UserAccumulator!]!
+}
+
+type CancelJobResult {
+  success: Boolean!
+}
+
+extend type Query {
+  """List all jobs in a cluster"""
+  jobs(cluster: String): [JobOverview!]!
+
+  """Get detailed job information including vertices, checkpoints, exceptions"""
+  job(id: ID!, cluster: String): JobDetail!
+
+  """Get vertex detail with subtask info"""
+  vertexDetail(jobId: ID!, vertexId: ID!, cluster: String): VertexDetail!
+
+  """Get subtask times for a vertex"""
+  subtaskTimes(jobId: ID!, vertexId: ID!, cluster: String): SubtaskTimes!
+
+  """Get flamegraph for a vertex"""
+  flamegraph(jobId: ID!, vertexId: ID!, type: String!, cluster: String): Flamegraph!
+
+  """Get checkpoint detail"""
+  checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointHistoryEntry!
+}
+
+extend type Mutation {
+  """Cancel a running job"""
+  cancelJob(id: ID!, cluster: String): CancelJobResult!
+}

@@ -7,26 +7,9 @@ package graphql
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	kafkainst "github.com/sandboxws/flink-reactor/apps/server/internal/instruments/kafka"
 )
-
-func (r *queryResolver) resolveKafkaInstrument(instrument string) (*kafkainst.Instrument, error) {
-	if r.InstrumentRegistry == nil {
-		return nil, fmt.Errorf("instruments not configured")
-	}
-	inst, err := r.InstrumentRegistry.Get(instrument)
-	if err != nil {
-		return nil, err
-	}
-	ki, ok := inst.(*kafkainst.Instrument)
-	if !ok {
-		return nil, fmt.Errorf("instrument %q is not a Kafka instrument", instrument)
-	}
-	return ki, nil
-}
 
 // KafkaTopics is the resolver for the kafkaTopics field.
 func (r *queryResolver) KafkaTopics(ctx context.Context, instrument string) ([]*model.KafkaTopic, error) {

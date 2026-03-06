@@ -1,0 +1,36 @@
+mutation CreateSQLSession($cluster: String) {
+  createSQLSession(cluster: $cluster) {
+    sessionHandle
+  }
+}
+
+mutation SubmitStatement($sessionHandle: String!, $statement: String!, $cluster: String) {
+  submitStatement(sessionHandle: $sessionHandle, statement: $statement, cluster: $cluster) {
+    operationHandle
+  }
+}
+
+mutation FetchSQLResults(
+  $sessionHandle: String!
+  $operationHandle: String!
+  $token: String
+  $cluster: String
+) {
+  fetchSQLResults(
+    sessionHandle: $sessionHandle
+    operationHandle: $operationHandle
+    token: $token
+    cluster: $cluster
+  ) {
+    columns { name dataType }
+    rows
+    hasMore
+    nextToken
+  }
+}
+
+mutation CloseSQLSession($sessionHandle: String!, $cluster: String) {
+  closeSQLSession(sessionHandle: $sessionHandle, cluster: $cluster) {
+    success
+  }
+}

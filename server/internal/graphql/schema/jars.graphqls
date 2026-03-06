@@ -1,0 +1,47 @@
+# JAR management types, queries, and mutations
+
+type JarEntryPoint {
+  name: String!
+  description: String
+}
+
+type JarFile {
+  id: ID!
+  name: String!
+  uploaded: String!
+  entry: [JarEntryPoint!]!
+}
+
+type JarUploadResult {
+  filename: String!
+  status: String!
+}
+
+type JarRunResult {
+  jobId: String!
+}
+
+type DeleteResult {
+  success: Boolean!
+}
+
+extend type Query {
+  """List all uploaded JARs"""
+  jars(cluster: String): [JarFile!]!
+}
+
+extend type Mutation {
+  """Delete an uploaded JAR"""
+  deleteJar(id: ID!, cluster: String): DeleteResult!
+
+  """Run an uploaded JAR to submit a job"""
+  runJar(
+    id: ID!
+    entryClass: String
+    programArgs: String
+    parallelism: Int
+    savepointPath: String
+    allowNonRestoredState: Boolean
+    cluster: String
+  ): JarRunResult!
+}

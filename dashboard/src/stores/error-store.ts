@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import type { JobException } from "@/data/cluster-types"
 import type { ErrorGroup, LogEntry, LogSource } from "@/data/types"
-import { fetchJobDetail } from "@/lib/flink-api-client"
+import { fetchJobDetail } from "@/lib/graphql-api-client"
 import { createClientLogger } from "@/lib/logger"
 import { useClusterStore } from "./cluster-store"
 import { useConfigStore } from "./config-store"

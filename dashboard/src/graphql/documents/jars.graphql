@@ -1,0 +1,36 @@
+query JarsList($cluster: String) {
+  jars(cluster: $cluster) {
+    id
+    name
+    uploaded
+    entry { name description }
+  }
+}
+
+mutation DeleteJar($id: ID!, $cluster: String) {
+  deleteJar(id: $id, cluster: $cluster) {
+    success
+  }
+}
+
+mutation RunJar(
+  $id: ID!
+  $entryClass: String
+  $programArgs: String
+  $parallelism: Int
+  $savepointPath: String
+  $allowNonRestoredState: Boolean
+  $cluster: String
+) {
+  runJar(
+    id: $id
+    entryClass: $entryClass
+    programArgs: $programArgs
+    parallelism: $parallelism
+    savepointPath: $savepointPath
+    allowNonRestoredState: $allowNonRestoredState
+    cluster: $cluster
+  ) {
+    jobId
+  }
+}

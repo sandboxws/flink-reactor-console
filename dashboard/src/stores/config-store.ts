@@ -1,9 +1,27 @@
 import { create } from "zustand"
-import type { PublicDashboardConfig } from "@/lib/config"
+import { fetchDashboardConfig } from "@/lib/graphql-api-client"
 
 // ---------------------------------------------------------------------------
-// Config store — runtime configuration fetched from /api/config
+// Config store — runtime configuration fetched from GraphQL dashboardConfig
 // ---------------------------------------------------------------------------
+
+/**
+ * Browser-safe config subset. Previously loaded from a Next.js API route
+ * backed by server-side env vars. Now sourced from the Go server's GraphQL
+ * dashboardConfig query (which returns clusters + instruments) with sensible
+ * defaults for the remaining fields.
+ */
+export interface PublicDashboardConfig {
+  pollIntervalMs: number
+  logBufferSize: number
+  clusterDisplayName: string
+  mockMode: boolean
+  logLevel: string | null
+  clusters: string[]
+  rbacEnabled: boolean
+  prometheusEnabled: boolean
+  alertWebhookEnabled: boolean
+}
 
 interface ConfigState {
   config: PublicDashboardConfig | null
@@ -26,11 +44,19 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
     if (get().config) return // Already loaded
     set({ loading: true, error: null })
     try {
-      const res = await fetch("/api/config")
-      if (!res.ok) {
-        throw new Error(`Config fetch failed: ${res.status}`)
+      const data = await fetchDashboardConfig()
+      const config: PublicDashboardConfig = {
+        pollIntervalMs: 5000,
+        logBufferSize: 100_000,
+        clusterDisplayName: "Default Cluster",
+        // Go server always talks to real Flink — no mock mode
+        mockMode: false,
+        logLevel: null,
+        clusters: data.clusters ?? [],
+        rbacEnabled: false,
+        prometheusEnabled: false,
+        alertWebhookEnabled: false,
       }
-      const config: PublicDashboardConfig = await res.json()
       set({ config, loading: false })
     } catch (err) {
       set({

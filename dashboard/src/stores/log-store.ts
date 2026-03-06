@@ -3,7 +3,10 @@ import { parseLogBlock } from "@/data/log-parser"
 import { createMockGenerator, type MockGenerator } from "@/data/mock-generator"
 import type { LogEntry, LogSource } from "@/data/types"
 import { LOG_BUFFER_LIMIT } from "@/lib/constants"
-import { fetchJobManagerLog, fetchTaskManagerLog } from "@/lib/flink-api-client"
+import {
+  fetchJobManagerLog,
+  fetchTaskManagerLog,
+} from "@/lib/graphql-api-client"
 import { createClientLogger } from "@/lib/logger"
 import { useClusterStore } from "./cluster-store"
 import { useConfigStore } from "./config-store"

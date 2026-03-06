@@ -17,11 +17,12 @@ import {
   fetchJobDetail,
   fetchJobManagerDetail,
   fetchOverviewPageData,
+  fetchTapManifests,
   fetchTaskManagerDetail,
   fetchTaskManagers,
   runJar as runJarApi,
   uploadJar as uploadJarApi,
-} from "@/lib/flink-api-client"
+} from "@/lib/graphql-api-client"
 import { createClientLogger } from "@/lib/logger"
 import { useConfigStore } from "./config-store"
 
@@ -127,12 +128,8 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
         fetchClusterConfig(),
         fetchJars(),
         // Discover which pipelines have tap manifests (non-critical — falls back to empty)
-        fetch("/api/flink/tap-manifest")
-          .then((r) => (r.ok ? r.json() : { manifests: [] }))
-          .then(
-            (data: { manifests?: Array<{ pipelineName: string }> }) =>
-              new Set((data.manifests ?? []).map((m) => m.pipelineName)),
-          )
+        fetchTapManifests()
+          .then((manifests) => new Set(manifests.map((m) => m.name)))
           .catch(() => new Set<string>()),
       ])
       set({

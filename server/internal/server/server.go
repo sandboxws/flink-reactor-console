@@ -17,7 +17,20 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
 )
+
+// Config holds server configuration options.
+type Config struct {
+	// StaticDir is the path to dashboard static files for the SPA handler.
+	// Empty string disables SPA serving.
+	StaticDir string
+
+	// TapLoader provides tap pipeline manifests. May be nil.
+	TapLoader *tap.Loader
+}
 
 // Server wraps an Echo server with middleware and health endpoints.
 type Server struct {
@@ -29,7 +42,12 @@ type Server struct {
 // New creates a Server listening on addr with the standard middleware chain
 // and health endpoints registered. The manager may be nil for testing without
 // Flink connectivity. The registry may be nil if no instruments are configured.
-func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *instruments.Registry) *Server {
+func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *instruments.Registry, opts ...Option) *Server {
+	cfg := Config{}
+	for _, o := range opts {
+		o(&cfg)
+	}
+
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -89,11 +107,13 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	e.GET("/readyz", readyzHandler(manager))
 
 	// GraphQL endpoint with WebSocket support for subscriptions.
+	resolver := &graphql.Resolver{
+		Manager:            manager,
+		InstrumentRegistry: registry,
+		TapLoader:          cfg.TapLoader,
+	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
-		Resolvers: &graphql.Resolver{
-			Manager:            manager,
-			InstrumentRegistry: registry,
-		},
+		Resolvers: resolver,
 	}))
 	gqlSrv.AddTransport(transport.Options{})
 	gqlSrv.AddTransport(transport.POST{})
@@ -105,10 +125,35 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	})
 	e.Any("/graphql", echo.WrapHandler(gqlSrv))
 
+	// Log proxy endpoints (plain text, not GraphQL).
+	logs.Register(e, manager)
+
+	// SPA static file handler (registered last as catch-all).
+	if cfg.StaticDir != "" {
+		spa.Register(e, spa.Config{StaticDir: cfg.StaticDir}, logger)
+	}
+
 	return &Server{
 		echo:   e,
 		addr:   addr,
 		logger: logger,
+	}
+}
+
+// Option configures the Server.
+type Option func(*Config)
+
+// WithStaticDir sets the SPA static file directory.
+func WithStaticDir(dir string) Option {
+	return func(c *Config) {
+		c.StaticDir = dir
+	}
+}
+
+// WithTapLoader sets the tap manifest loader on the GraphQL resolver.
+func WithTapLoader(loader *tap.Loader) Option {
+	return func(c *Config) {
+		c.TapLoader = loader
 	}
 }
 

@@ -16,7 +16,7 @@ import { StaticLogExplorer } from "@/components/shared/static-log-explorer"
 import type { LogFileEntry } from "@/data/cluster-types"
 import { parseLogBlock } from "@/data/log-parser"
 import type { LogSource } from "@/data/types"
-import { fetchJobManagerLogFile } from "@/lib/flink-api-client"
+import { fetchJobManagerLogFile } from "@/lib/graphql-api-client"
 
 // ---------------------------------------------------------------------------
 // Types

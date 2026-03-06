@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { fetchMetricList, fetchMetricValues } from "@/lib/flink-api-client"
+import { fetchMetricList, fetchMetricValues } from "@/lib/graphql-api-client"
 
 // ---------------------------------------------------------------------------
 // Types

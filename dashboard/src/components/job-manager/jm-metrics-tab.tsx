@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts"
 import type { JobManagerMetrics, JvmMetricSample } from "@/data/cluster-types"
-import { fetchJobManagerMetrics } from "@/lib/flink-api-client"
+import { fetchJobManagerMetrics } from "@/lib/graphql-api-client"
 import { useConfigStore } from "@/stores/config-store"
 
 // ---------------------------------------------------------------------------

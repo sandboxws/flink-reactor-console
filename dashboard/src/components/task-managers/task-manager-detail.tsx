@@ -15,7 +15,7 @@ import {
   fetchTaskManagerLogs,
   fetchTaskManagerStdout,
   fetchTaskManagerThreadDump,
-} from "@/lib/flink-api-client"
+} from "@/lib/graphql-api-client"
 import { TmLogListTab } from "./tm-log-list-tab"
 import { TmLogsTab } from "./tm-logs-tab"
 import { TmMetricsTab } from "./tm-metrics-tab"

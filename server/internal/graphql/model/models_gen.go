@@ -9,6 +9,92 @@ import (
 	"strconv"
 )
 
+type AllocatedSlot struct {
+	Index    int                         `json:"index"`
+	JobID    string                      `json:"jobId"`
+	Resource *TaskManagerResourceProfile `json:"resource"`
+}
+
+type BackPressureInfo struct {
+	Status            string                 `json:"status"`
+	BackpressureLevel string                 `json:"backpressureLevel"`
+	EndTimestamp      string                 `json:"endTimestamp"`
+	Subtasks          []*SubtaskBackPressure `json:"subtasks"`
+}
+
+type CancelJobResult struct {
+	Success bool `json:"success"`
+}
+
+type CheckpointConfig struct {
+	Mode                             string `json:"mode"`
+	Interval                         string `json:"interval"`
+	Timeout                          string `json:"timeout"`
+	MinPause                         string `json:"minPause"`
+	MaxConcurrent                    int    `json:"maxConcurrent"`
+	ExternalizedEnabled              bool   `json:"externalizedEnabled"`
+	ExternalizedDeleteOnCancellation bool   `json:"externalizedDeleteOnCancellation"`
+	UnalignedCheckpoints             bool   `json:"unalignedCheckpoints"`
+}
+
+type CheckpointCounts struct {
+	Completed  int `json:"completed"`
+	InProgress int `json:"inProgress"`
+	Failed     int `json:"failed"`
+	Total      int `json:"total"`
+	Restored   int `json:"restored"`
+}
+
+type CheckpointHistoryEntry struct {
+	ID                      string  `json:"id"`
+	Status                  string  `json:"status"`
+	IsSavepoint             bool    `json:"isSavepoint"`
+	TriggerTimestamp        string  `json:"triggerTimestamp"`
+	LatestAckTimestamp      string  `json:"latestAckTimestamp"`
+	StateSize               string  `json:"stateSize"`
+	EndToEndDuration        string  `json:"endToEndDuration"`
+	ProcessedData           string  `json:"processedData"`
+	PersistedData           string  `json:"persistedData"`
+	NumSubtasks             int     `json:"numSubtasks"`
+	NumAcknowledgedSubtasks int     `json:"numAcknowledgedSubtasks"`
+	CheckpointedSize        *string `json:"checkpointedSize,omitempty"`
+}
+
+type CheckpointLatest struct {
+	Completed *CheckpointHistoryEntry `json:"completed,omitempty"`
+	Failed    *CheckpointHistoryEntry `json:"failed,omitempty"`
+	Savepoint *CheckpointHistoryEntry `json:"savepoint,omitempty"`
+	Restored  *CheckpointRestoredInfo `json:"restored,omitempty"`
+}
+
+type CheckpointMinMaxAvg struct {
+	Min string `json:"min"`
+	Max string `json:"max"`
+	Avg string `json:"avg"`
+}
+
+type CheckpointRestoredInfo struct {
+	ID               string  `json:"id"`
+	RestoreTimestamp string  `json:"restoreTimestamp"`
+	IsSavepoint      bool    `json:"isSavepoint"`
+	ExternalPath     *string `json:"externalPath,omitempty"`
+}
+
+type CheckpointStats struct {
+	Counts  *CheckpointCounts         `json:"counts"`
+	History []*CheckpointHistoryEntry `json:"history"`
+	Summary *CheckpointSummary        `json:"summary,omitempty"`
+	Latest  *CheckpointLatest         `json:"latest,omitempty"`
+}
+
+type CheckpointSummary struct {
+	StateSize        *CheckpointMinMaxAvg `json:"stateSize,omitempty"`
+	EndToEndDuration *CheckpointMinMaxAvg `json:"endToEndDuration,omitempty"`
+	CheckpointedSize *CheckpointMinMaxAvg `json:"checkpointedSize,omitempty"`
+	ProcessedData    *CheckpointMinMaxAvg `json:"processedData,omitempty"`
+	PersistedData    *CheckpointMinMaxAvg `json:"persistedData,omitempty"`
+}
+
 // Information about a registered Flink cluster connection.
 type ClusterInfo struct {
 	Name          string        `json:"name"`
@@ -18,11 +104,56 @@ type ClusterInfo struct {
 	Version       *string       `json:"version,omitempty"`
 }
 
+type DashboardConfig struct {
+	Clusters    []string `json:"clusters"`
+	Instruments []string `json:"instruments"`
+}
+
 // Placeholder types for the database instrument.
 // Future changes will add table browsing, schema inspection, and query preview.
 type DatabaseTable struct {
 	Name   string `json:"name"`
 	Schema string `json:"schema"`
+}
+
+type DeleteResult struct {
+	Success bool `json:"success"`
+}
+
+type ExceptionEntry struct {
+	ExceptionName string  `json:"exceptionName"`
+	Stacktrace    string  `json:"stacktrace"`
+	Timestamp     string  `json:"timestamp"`
+	TaskName      *string `json:"taskName,omitempty"`
+	Endpoint      *string `json:"endpoint,omitempty"`
+	TaskManagerID *string `json:"taskManagerId,omitempty"`
+}
+
+type Flamegraph struct {
+	EndTimestamp string          `json:"endTimestamp"`
+	Data         *FlamegraphNode `json:"data"`
+}
+
+type FlamegraphNode struct {
+	Name     string            `json:"name"`
+	Value    string            `json:"value"`
+	Children []*FlamegraphNode `json:"children,omitempty"`
+}
+
+type FlinkConfig struct {
+	RefreshInterval int            `json:"refreshInterval"`
+	TimezoneName    string         `json:"timezoneName"`
+	TimezoneOffset  string         `json:"timezoneOffset"`
+	FlinkVersion    string         `json:"flinkVersion"`
+	FlinkRevision   string         `json:"flinkRevision"`
+	Features        *FlinkFeatures `json:"features"`
+}
+
+type FlinkFeatures struct {
+	WebSubmit  bool `json:"webSubmit"`
+	WebCancel  bool `json:"webCancel"`
+	WebRescale bool `json:"webRescale"`
+	WebHistory bool `json:"webHistory"`
 }
 
 // Information about a registered infrastructure instrument.
@@ -36,6 +167,86 @@ type InstrumentInfo struct {
 	Capabilities    []string `json:"capabilities"`
 }
 
+type JMConfigEntry struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type JMEnvironment struct {
+	Jvm       *JMEnvironmentJvm `json:"jvm"`
+	Classpath []string          `json:"classpath"`
+}
+
+type JMEnvironmentJvm struct {
+	Version string   `json:"version"`
+	Arch    string   `json:"arch"`
+	Options []string `json:"options"`
+}
+
+type JarEntryPoint struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+}
+
+type JarFile struct {
+	ID       string           `json:"id"`
+	Name     string           `json:"name"`
+	Uploaded string           `json:"uploaded"`
+	Entry    []*JarEntryPoint `json:"entry"`
+}
+
+type JarRunResult struct {
+	JobID string `json:"jobId"`
+}
+
+type JarUploadResult struct {
+	Filename string `json:"filename"`
+	Status   string `json:"status"`
+}
+
+type JobDetail struct {
+	ID               string                `json:"id"`
+	Name             string                `json:"name"`
+	State            string                `json:"state"`
+	StartTime        string                `json:"startTime"`
+	EndTime          string                `json:"endTime"`
+	Duration         string                `json:"duration"`
+	Now              string                `json:"now"`
+	Vertices         []*JobVertex          `json:"vertices"`
+	Plan             *JobPlan              `json:"plan"`
+	Exceptions       []*ExceptionEntry     `json:"exceptions"`
+	Checkpoints      *CheckpointStats      `json:"checkpoints,omitempty"`
+	CheckpointConfig *CheckpointConfig     `json:"checkpointConfig,omitempty"`
+	VertexDetails    []*VertexDetail       `json:"vertexDetails,omitempty"`
+	Watermarks       []*VertexWatermarks   `json:"watermarks,omitempty"`
+	BackPressure     []*VertexBackPressure `json:"backPressure,omitempty"`
+	Accumulators     []*VertexAccumulators `json:"accumulators,omitempty"`
+}
+
+type JobManagerDetail struct {
+	Config      []*JMConfigEntry `json:"config"`
+	Environment *JMEnvironment   `json:"environment,omitempty"`
+	Metrics     []*MetricEntry   `json:"metrics"`
+}
+
+type JobOverview struct {
+	ID               string      `json:"id"`
+	Name             string      `json:"name"`
+	State            string      `json:"state"`
+	StartTime        string      `json:"startTime"`
+	EndTime          string      `json:"endTime"`
+	Duration         string      `json:"duration"`
+	LastModification string      `json:"lastModification"`
+	Tasks            *TaskCounts `json:"tasks"`
+}
+
+type JobPlan struct {
+	Jid   string      `json:"jid"`
+	Name  string      `json:"name"`
+	Type  string      `json:"type"`
+	Nodes []*PlanNode `json:"nodes"`
+}
+
 // A job status transition event emitted when a Flink job changes state.
 type JobStatusEvent struct {
 	JobID          string  `json:"jobId"`
@@ -43,6 +254,19 @@ type JobStatusEvent struct {
 	PreviousStatus *string `json:"previousStatus,omitempty"`
 	CurrentStatus  string  `json:"currentStatus"`
 	Cluster        string  `json:"cluster"`
+}
+
+type JobVertex struct {
+	ID             string         `json:"id"`
+	Name           string         `json:"name"`
+	MaxParallelism int            `json:"maxParallelism"`
+	Parallelism    int            `json:"parallelism"`
+	Status         string         `json:"status"`
+	StartTime      string         `json:"startTime"`
+	EndTime        string         `json:"endTime"`
+	Duration       string         `json:"duration"`
+	Tasks          *TaskCounts    `json:"tasks"`
+	Metrics        *VertexMetrics `json:"metrics"`
 }
 
 // A Kafka topic or broker configuration entry.
@@ -118,13 +342,48 @@ type KafkaTopicPartition struct {
 	Partition int    `json:"partition"`
 }
 
+type MetricEntry struct {
+	ID    string `json:"id"`
+	Value string `json:"value"`
+}
+
+type Mutation struct {
+}
+
+type PlanNode struct {
+	ID               string           `json:"id"`
+	Parallelism      int              `json:"parallelism"`
+	Operator         string           `json:"operator"`
+	OperatorStrategy string           `json:"operatorStrategy"`
+	Description      string           `json:"description"`
+	Inputs           []*PlanNodeInput `json:"inputs,omitempty"`
+}
+
+type PlanNodeInput struct {
+	Num          int    `json:"num"`
+	ID           string `json:"id"`
+	ShipStrategy string `json:"shipStrategy"`
+	Exchange     string `json:"exchange"`
+}
+
 type Query struct {
+}
+
+type SQLCloseResult struct {
+	Success bool `json:"success"`
 }
 
 // A column descriptor from SQL Gateway results.
 type SQLColumn struct {
 	Name     string `json:"name"`
 	DataType string `json:"dataType"`
+}
+
+type SQLFetchResult struct {
+	Columns   []*SQLColumn `json:"columns"`
+	Rows      [][]*string  `json:"rows"`
+	HasMore   bool         `json:"hasMore"`
+	NextToken *string      `json:"nextToken,omitempty"`
 }
 
 // A batch of SQL Gateway query results.
@@ -134,7 +393,191 @@ type SQLResultBatch struct {
 	HasMore bool         `json:"hasMore"`
 }
 
+type SQLSessionResult struct {
+	SessionHandle string `json:"sessionHandle"`
+}
+
+type SQLStatementResult struct {
+	OperationHandle string `json:"operationHandle"`
+}
+
 type Subscription struct {
+}
+
+type SubtaskBackPressure struct {
+	Subtask           int     `json:"subtask"`
+	AttemptNumber     int     `json:"attemptNumber"`
+	BackpressureLevel string  `json:"backpressureLevel"`
+	Ratio             float64 `json:"ratio"`
+	BusyRatio         float64 `json:"busyRatio"`
+	IdleRatio         float64 `json:"idleRatio"`
+}
+
+type SubtaskInfo struct {
+	Subtask       int            `json:"subtask"`
+	Status        string         `json:"status"`
+	Attempt       int            `json:"attempt"`
+	Endpoint      string         `json:"endpoint"`
+	StartTime     string         `json:"startTime"`
+	EndTime       string         `json:"endTime"`
+	Duration      string         `json:"duration"`
+	Metrics       *VertexMetrics `json:"metrics"`
+	TaskManagerID string         `json:"taskManagerId"`
+}
+
+type SubtaskTimes struct {
+	ID       string               `json:"id"`
+	Name     string               `json:"name"`
+	Now      string               `json:"now"`
+	Subtasks []*SubtaskTimesEntry `json:"subtasks"`
+}
+
+type SubtaskTimesEntry struct {
+	Subtask    int               `json:"subtask"`
+	Host       string            `json:"host"`
+	Duration   string            `json:"duration"`
+	Timestamps []*TimestampEntry `json:"timestamps"`
+}
+
+type TMLogEntry struct {
+	Name string `json:"name"`
+	Size string `json:"size"`
+}
+
+type TapManifest struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Version     string         `json:"version"`
+	Config      map[string]any `json:"config,omitempty"`
+}
+
+type TaskCounts struct {
+	Created      int `json:"created"`
+	Scheduled    int `json:"scheduled"`
+	Deploying    int `json:"deploying"`
+	Running      int `json:"running"`
+	Finished     int `json:"finished"`
+	Canceling    int `json:"canceling"`
+	Canceled     int `json:"canceled"`
+	Failed       int `json:"failed"`
+	Reconciling  int `json:"reconciling"`
+	Initializing int `json:"initializing"`
+}
+
+type TaskManagerDetail struct {
+	ID                     string                      `json:"id"`
+	Path                   string                      `json:"path"`
+	DataPort               int                         `json:"dataPort"`
+	JmxPort                int                         `json:"jmxPort"`
+	TimeSinceLastHeartbeat string                      `json:"timeSinceLastHeartbeat"`
+	SlotsNumber            int                         `json:"slotsNumber"`
+	FreeSlots              int                         `json:"freeSlots"`
+	TotalResource          *TaskManagerResourceProfile `json:"totalResource"`
+	FreeResource           *TaskManagerResourceProfile `json:"freeResource"`
+	Hardware               *TaskManagerHardware        `json:"hardware"`
+	MemoryConfiguration    *TaskManagerMemory          `json:"memoryConfiguration"`
+	AllocatedSlots         []*AllocatedSlot            `json:"allocatedSlots"`
+	Metrics                []*MetricEntry              `json:"metrics"`
+}
+
+type TaskManagerHardware struct {
+	CPUCores       int    `json:"cpuCores"`
+	PhysicalMemory string `json:"physicalMemory"`
+	FreeMemory     string `json:"freeMemory"`
+	ManagedMemory  string `json:"managedMemory"`
+}
+
+type TaskManagerMemory struct {
+	FrameworkHeap      string `json:"frameworkHeap"`
+	TaskHeap           string `json:"taskHeap"`
+	FrameworkOffHeap   string `json:"frameworkOffHeap"`
+	TaskOffHeap        string `json:"taskOffHeap"`
+	NetworkMemory      string `json:"networkMemory"`
+	ManagedMemory      string `json:"managedMemory"`
+	JvmMetaspace       string `json:"jvmMetaspace"`
+	JvmOverhead        string `json:"jvmOverhead"`
+	TotalFlinkMemory   string `json:"totalFlinkMemory"`
+	TotalProcessMemory string `json:"totalProcessMemory"`
+}
+
+type TaskManagerOverview struct {
+	ID                     string                      `json:"id"`
+	Path                   string                      `json:"path"`
+	DataPort               int                         `json:"dataPort"`
+	JmxPort                int                         `json:"jmxPort"`
+	TimeSinceLastHeartbeat string                      `json:"timeSinceLastHeartbeat"`
+	SlotsNumber            int                         `json:"slotsNumber"`
+	FreeSlots              int                         `json:"freeSlots"`
+	TotalResource          *TaskManagerResourceProfile `json:"totalResource"`
+	FreeResource           *TaskManagerResourceProfile `json:"freeResource"`
+	Hardware               *TaskManagerHardware        `json:"hardware"`
+	MemoryConfiguration    *TaskManagerMemory          `json:"memoryConfiguration"`
+}
+
+type TaskManagerResourceProfile struct {
+	CPUCores          float64 `json:"cpuCores"`
+	TaskHeapMemory    string  `json:"taskHeapMemory"`
+	TaskOffHeapMemory string  `json:"taskOffHeapMemory"`
+	ManagedMemory     string  `json:"managedMemory"`
+	NetworkMemory     string  `json:"networkMemory"`
+}
+
+type ThreadDumpEntry struct {
+	ThreadName            string `json:"threadName"`
+	StringifiedThreadInfo string `json:"stringifiedThreadInfo"`
+}
+
+type TimestampEntry struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type UserAccumulator struct {
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+type VertexAccumulators struct {
+	VertexID     string             `json:"vertexId"`
+	Accumulators []*UserAccumulator `json:"accumulators"`
+}
+
+type VertexBackPressure struct {
+	VertexID     string            `json:"vertexId"`
+	BackPressure *BackPressureInfo `json:"backPressure"`
+}
+
+type VertexDetail struct {
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Parallelism int            `json:"parallelism"`
+	Now         string         `json:"now"`
+	Subtasks    []*SubtaskInfo `json:"subtasks"`
+}
+
+type VertexMetrics struct {
+	ReadBytes                string `json:"readBytes"`
+	ReadBytesComplete        bool   `json:"readBytesComplete"`
+	WriteBytes               string `json:"writeBytes"`
+	WriteBytesComplete       bool   `json:"writeBytesComplete"`
+	ReadRecords              string `json:"readRecords"`
+	ReadRecordsComplete      bool   `json:"readRecordsComplete"`
+	WriteRecords             string `json:"writeRecords"`
+	WriteRecordsComplete     bool   `json:"writeRecordsComplete"`
+	AccumulatedBackpressured string `json:"accumulatedBackpressured"`
+	AccumulatedIdle          string `json:"accumulatedIdle"`
+	AccumulatedBusy          string `json:"accumulatedBusy"`
+}
+
+type VertexWatermarks struct {
+	VertexID   string            `json:"vertexId"`
+	Watermarks []*WatermarkEntry `json:"watermarks"`
+}
+
+type WatermarkEntry struct {
+	ID    string `json:"id"`
+	Value string `json:"value"`
 }
 
 // Health status of a registered Flink cluster.

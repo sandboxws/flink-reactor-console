@@ -94,7 +94,12 @@ func run() int {
 		registry.StartHealthChecks(ctx, healthInterval)
 	}
 
-	srv := server.New(defaultAddr, logger, manager, registry)
+	var serverOpts []server.Option
+	if staticDir := os.Getenv("STATIC_DIR"); staticDir != "" {
+		serverOpts = append(serverOpts, server.WithStaticDir(staticDir))
+	}
+
+	srv := server.New(defaultAddr, logger, manager, registry, serverOpts...)
 
 	// Start server in a goroutine.
 	errCh := make(chan error, 1)

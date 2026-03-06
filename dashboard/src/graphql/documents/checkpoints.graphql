@@ -1,0 +1,16 @@
+query CheckpointDetail($jobId: ID!, $checkpointId: String!, $cluster: String) {
+  checkpointDetail(jobId: $jobId, checkpointId: $checkpointId, cluster: $cluster) {
+    id
+    status
+    isSavepoint
+    triggerTimestamp
+    latestAckTimestamp
+    stateSize
+    endToEndDuration
+    processedData
+    persistedData
+    numSubtasks
+    numAcknowledgedSubtasks
+    checkpointedSize
+  }
+}

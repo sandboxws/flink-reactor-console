@@ -9,7 +9,7 @@ import type {
   FlinkJob,
   TaskManager,
 } from "@/data/cluster-types"
-import { fetchJobDetail as fetchJobDetailApi } from "@/lib/flink-api-client"
+import { fetchJobDetail as fetchJobDetailApi } from "@/lib/graphql-api-client"
 import { useClusterStore } from "./cluster-store"
 import { useConfigStore } from "./config-store"
 

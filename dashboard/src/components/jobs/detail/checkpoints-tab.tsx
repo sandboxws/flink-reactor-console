@@ -29,7 +29,7 @@ import { cn } from "@/lib/cn"
 import {
   fetchCheckpointDetail,
   fetchCheckpointSubtaskDetail,
-} from "@/lib/flink-api-client"
+} from "@/lib/graphql-api-client"
 
 // ---------------------------------------------------------------------------
 // Helpers

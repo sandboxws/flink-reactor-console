@@ -1,0 +1,28 @@
+# Job Manager types and queries
+
+type JMConfigEntry {
+  key: String!
+  value: String!
+}
+
+type JMEnvironmentJVM {
+  version: String!
+  arch: String!
+  options: [String!]!
+}
+
+type JMEnvironment {
+  jvm: JMEnvironmentJVM!
+  classpath: [String!]!
+}
+
+type JobManagerDetail {
+  config: [JMConfigEntry!]!
+  environment: JMEnvironment
+  metrics: [MetricEntry!]!
+}
+
+extend type Query {
+  """Get job manager config, environment, and metrics"""
+  jobManager(cluster: String): JobManagerDetail!
+}

@@ -16,3 +16,8 @@ resolver:
   filename_template: "{name}.resolvers.go"
 
 autobind: []
+
+models:
+  JSON:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map

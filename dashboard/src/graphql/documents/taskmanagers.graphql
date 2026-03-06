@@ -1,0 +1,99 @@
+query TaskManagersList($cluster: String) {
+  taskManagers(cluster: $cluster) {
+    id
+    path
+    dataPort
+    jmxPort
+    timeSinceLastHeartbeat
+    slotsNumber
+    freeSlots
+    totalResource {
+      cpuCores
+      taskHeapMemory
+      taskOffHeapMemory
+      managedMemory
+      networkMemory
+    }
+    freeResource {
+      cpuCores
+      taskHeapMemory
+      taskOffHeapMemory
+      managedMemory
+      networkMemory
+    }
+    hardware {
+      cpuCores
+      physicalMemory
+      freeMemory
+      managedMemory
+    }
+    memoryConfiguration {
+      frameworkHeap
+      taskHeap
+      frameworkOffHeap
+      taskOffHeap
+      networkMemory
+      managedMemory
+      jvmMetaspace
+      jvmOverhead
+      totalFlinkMemory
+      totalProcessMemory
+    }
+  }
+}
+
+query TaskManagerDetail($id: ID!, $cluster: String) {
+  taskManager(id: $id, cluster: $cluster) {
+    id
+    path
+    dataPort
+    jmxPort
+    timeSinceLastHeartbeat
+    slotsNumber
+    freeSlots
+    totalResource {
+      cpuCores
+      taskHeapMemory
+      taskOffHeapMemory
+      managedMemory
+      networkMemory
+    }
+    freeResource {
+      cpuCores
+      taskHeapMemory
+      taskOffHeapMemory
+      managedMemory
+      networkMemory
+    }
+    hardware {
+      cpuCores
+      physicalMemory
+      freeMemory
+      managedMemory
+    }
+    memoryConfiguration {
+      frameworkHeap
+      taskHeap
+      frameworkOffHeap
+      taskOffHeap
+      networkMemory
+      managedMemory
+      jvmMetaspace
+      jvmOverhead
+      totalFlinkMemory
+      totalProcessMemory
+    }
+    allocatedSlots {
+      index
+      jobId
+      resource {
+        cpuCores
+        taskHeapMemory
+        taskOffHeapMemory
+        managedMemory
+        networkMemory
+      }
+    }
+    metrics { id value }
+  }
+}

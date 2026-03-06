@@ -1,0 +1,94 @@
+# Task Manager types and queries
+
+type TaskManagerHardware {
+  cpuCores: Int!
+  physicalMemory: String!
+  freeMemory: String!
+  managedMemory: String!
+}
+
+type TaskManagerResourceProfile {
+  cpuCores: Float!
+  taskHeapMemory: String!
+  taskOffHeapMemory: String!
+  managedMemory: String!
+  networkMemory: String!
+}
+
+type TaskManagerMemory {
+  frameworkHeap: String!
+  taskHeap: String!
+  frameworkOffHeap: String!
+  taskOffHeap: String!
+  networkMemory: String!
+  managedMemory: String!
+  jvmMetaspace: String!
+  jvmOverhead: String!
+  totalFlinkMemory: String!
+  totalProcessMemory: String!
+}
+
+type AllocatedSlot {
+  index: Int!
+  jobId: String!
+  resource: TaskManagerResourceProfile!
+}
+
+type TaskManagerOverview {
+  id: ID!
+  path: String!
+  dataPort: Int!
+  jmxPort: Int!
+  timeSinceLastHeartbeat: String!
+  slotsNumber: Int!
+  freeSlots: Int!
+  totalResource: TaskManagerResourceProfile!
+  freeResource: TaskManagerResourceProfile!
+  hardware: TaskManagerHardware!
+  memoryConfiguration: TaskManagerMemory!
+}
+
+type MetricEntry {
+  id: String!
+  value: String!
+}
+
+type TMLogEntry {
+  name: String!
+  size: String!
+}
+
+type ThreadDumpEntry {
+  threadName: String!
+  stringifiedThreadInfo: String!
+}
+
+type TaskManagerDetail {
+  id: ID!
+  path: String!
+  dataPort: Int!
+  jmxPort: Int!
+  timeSinceLastHeartbeat: String!
+  slotsNumber: Int!
+  freeSlots: Int!
+  totalResource: TaskManagerResourceProfile!
+  freeResource: TaskManagerResourceProfile!
+  hardware: TaskManagerHardware!
+  memoryConfiguration: TaskManagerMemory!
+  allocatedSlots: [AllocatedSlot!]!
+  metrics: [MetricEntry!]!
+}
+
+extend type Query {
+  """List all task managers in a cluster"""
+  taskManagers(cluster: String): [TaskManagerOverview!]!
+
+  """Get detailed task manager info with metrics"""
+  taskManager(id: ID!, cluster: String): TaskManagerDetail!
+
+  """Get task manager logs list"""
+  taskManagerLogs(id: ID!, cluster: String): [TMLogEntry!]!
+
+  """Get task manager thread dump"""
+  taskManagerThreadDump(id: ID!, cluster: String): [ThreadDumpEntry!]!
+}
