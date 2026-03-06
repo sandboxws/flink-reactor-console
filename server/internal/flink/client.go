@@ -20,10 +20,11 @@ const (
 
 // Client is an HTTP client for the Flink REST API.
 type Client struct {
-	baseURL    string
-	httpClient *http.Client
-	authHeader string // pre-computed "Basic ..." or "Bearer ..." or ""
-	logger     *slog.Logger
+	baseURL     string
+	httpClient  *http.Client
+	authHeader  string // pre-computed "Basic ..." or "Bearer ..." or ""
+	logger      *slog.Logger
+	metricsHook MetricsHook
 }
 
 // NewClient creates a new Flink REST API client with the given options.
@@ -79,6 +80,9 @@ func (c *Client) GetText(ctx context.Context, path string) (string, error) {
 		slog.Int("status", resp.StatusCode),
 		slog.Duration("duration", duration),
 	)
+	if c.metricsHook != nil {
+		c.metricsHook(http.MethodGet, path, resp.StatusCode, duration.Seconds())
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -150,6 +154,9 @@ func (c *Client) Delete(ctx context.Context, path string) error {
 		slog.Int("status", resp.StatusCode),
 		slog.Duration("duration", duration),
 	)
+	if c.metricsHook != nil {
+		c.metricsHook(http.MethodDelete, path, resp.StatusCode, duration.Seconds())
+	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
@@ -195,6 +202,9 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 		slog.Int("status", resp.StatusCode),
 		slog.Duration("duration", duration),
 	)
+	if c.metricsHook != nil {
+		c.metricsHook(method, path, resp.StatusCode, duration.Seconds())
+	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {

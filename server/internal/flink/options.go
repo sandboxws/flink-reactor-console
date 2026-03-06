@@ -46,3 +46,13 @@ func WithLogger(logger *slog.Logger) ClientOption {
 		c.logger = logger
 	}
 }
+
+// MetricsHook is called after each HTTP request with the method, path, status code, and duration.
+type MetricsHook func(method, path string, statusCode int, durationSeconds float64)
+
+// WithMetricsHook sets a callback that fires after every HTTP request for metrics collection.
+func WithMetricsHook(hook MetricsHook) ClientOption {
+	return func(c *Client) {
+		c.metricsHook = hook
+	}
+}

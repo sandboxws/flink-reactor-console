@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -75,9 +76,15 @@ func (m *Manager) Init(configs []Config, logger *slog.Logger) error {
 
 // buildConnection creates a Connection with its full Flink client stack.
 func (m *Manager) buildConnection(cfg Config, logger *slog.Logger) *Connection {
+	metricsHook := flink.MetricsHook(func(_, path string, statusCode int, durationSeconds float64) {
+		status := fmt.Sprintf("%d", statusCode)
+		observability.FlinkUpstreamRequestsTotal.WithLabelValues(cfg.Name, path, status).Inc()
+		observability.FlinkUpstreamRequestDuration.WithLabelValues(cfg.Name, path).Observe(durationSeconds)
+	})
 	clientOpts := []flink.ClientOption{
 		flink.WithBaseURL(cfg.URL),
 		flink.WithLogger(logger),
+		flink.WithMetricsHook(metricsHook),
 	}
 	if cfg.Token != "" {
 		clientOpts = append(clientOpts, flink.WithBearerAuth(cfg.Token))
@@ -98,6 +105,7 @@ func (m *Manager) buildConnection(cfg Config, logger *slog.Logger) *Connection {
 		sqlOpts := []flink.ClientOption{
 			flink.WithBaseURL(cfg.SQLGatewayURL),
 			flink.WithLogger(logger),
+			flink.WithMetricsHook(metricsHook),
 		}
 		if cfg.Token != "" {
 			sqlOpts = append(sqlOpts, flink.WithBearerAuth(cfg.Token))

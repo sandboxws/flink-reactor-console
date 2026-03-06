@@ -29,6 +29,9 @@ func main() {
 func run() int {
 	logger := observability.NewLogger(slog.LevelInfo, "")
 
+	// Register Prometheus metrics.
+	observability.RegisterMetrics()
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 

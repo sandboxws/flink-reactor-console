@@ -12,6 +12,7 @@ import (
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 )
 
 // JobStatusChanged is the resolver for the jobStatusChanged field.
@@ -28,7 +29,9 @@ func (r *subscriptionResolver) JobStatusChanged(ctx context.Context, cluster *st
 	listener := conn.Poller.Subscribe()
 	ch := make(chan *model.JobStatusEvent, 1)
 
+	observability.ActiveSubscriptions.WithLabelValues("jobStatusChanged").Inc()
 	go func() {
+		defer observability.ActiveSubscriptions.WithLabelValues("jobStatusChanged").Dec()
 		defer close(ch)
 		defer listener.Close()
 
@@ -77,7 +80,9 @@ func (r *subscriptionResolver) SQLResults(ctx context.Context, cluster *string, 
 	sqlClient := conn.SQLClient
 	ch := make(chan *model.SQLResultBatch, 1)
 
+	observability.ActiveSubscriptions.WithLabelValues("sqlResults").Inc()
 	go func() {
+		defer observability.ActiveSubscriptions.WithLabelValues("sqlResults").Dec()
 		defer close(ch)
 
 		token := "0"

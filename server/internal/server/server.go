@@ -13,11 +13,13 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
 )
@@ -99,6 +101,10 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		},
 		MaxAge: 86400,
 	}))
+	e.Use(observability.MetricsMiddleware())
+
+	// Prometheus metrics endpoint.
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	// Health endpoints.
 	e.GET("/healthz", func(c echo.Context) error {
@@ -115,6 +121,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
 	}))
+	gqlSrv.Use(observability.GraphQLMetrics{})
 	gqlSrv.AddTransport(transport.Options{})
 	gqlSrv.AddTransport(transport.POST{})
 	gqlSrv.AddTransport(&transport.Websocket{

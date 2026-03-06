@@ -11,9 +11,15 @@ RUN CGO_ENABLED=0 go build -o /usr/local/bin/reactor-server ./cmd/reactor-server
 FROM alpine:3.21
 
 RUN adduser -D -u 1000 reactor
-USER reactor
 
 COPY --from=build /usr/local/bin/reactor-server /usr/local/bin/reactor-server
+
+# Copy dashboard static export if available (built externally).
+# The STATIC_DIR env var tells reactor-server where to find SPA files.
+COPY --chown=reactor:reactor dashboard/ /app/dashboard/
+ENV STATIC_DIR=/app/dashboard
+
+USER reactor
 
 EXPOSE 8080
 
