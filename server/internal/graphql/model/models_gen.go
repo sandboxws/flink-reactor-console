@@ -2,12 +2,29 @@
 
 package model
 
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"strconv"
+)
+
+// Information about a registered Flink cluster connection.
+type ClusterInfo struct {
+	Name          string        `json:"name"`
+	URL           string        `json:"url"`
+	Status        ClusterStatus `json:"status"`
+	LastCheckTime *string       `json:"lastCheckTime,omitempty"`
+	Version       *string       `json:"version,omitempty"`
+}
+
 // A job status transition event emitted when a Flink job changes state.
 type JobStatusEvent struct {
 	JobID          string  `json:"jobId"`
 	JobName        string  `json:"jobName"`
 	PreviousStatus *string `json:"previousStatus,omitempty"`
 	CurrentStatus  string  `json:"currentStatus"`
+	Cluster        string  `json:"cluster"`
 }
 
 type Query struct {
@@ -27,4 +44,62 @@ type SQLResultBatch struct {
 }
 
 type Subscription struct {
+}
+
+// Health status of a registered Flink cluster.
+type ClusterStatus string
+
+const (
+	ClusterStatusHealthy   ClusterStatus = "HEALTHY"
+	ClusterStatusUnhealthy ClusterStatus = "UNHEALTHY"
+	ClusterStatusUnknown   ClusterStatus = "UNKNOWN"
+)
+
+var AllClusterStatus = []ClusterStatus{
+	ClusterStatusHealthy,
+	ClusterStatusUnhealthy,
+	ClusterStatusUnknown,
+}
+
+func (e ClusterStatus) IsValid() bool {
+	switch e {
+	case ClusterStatusHealthy, ClusterStatusUnhealthy, ClusterStatusUnknown:
+		return true
+	}
+	return false
+}
+
+func (e ClusterStatus) String() string {
+	return string(e)
+}
+
+func (e *ClusterStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ClusterStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ClusterStatus", str)
+	}
+	return nil
+}
+
+func (e ClusterStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ClusterStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ClusterStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

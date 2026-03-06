@@ -14,7 +14,7 @@ import (
 func TestGracefulShutdown(t *testing.T) {
 	var logBuf bytes.Buffer
 	logger := observability.NewTestLogger(&logBuf, 0)
-	srv := server.New(":0", logger, nil, nil, nil)
+	srv := server.New(":0", logger, nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
 

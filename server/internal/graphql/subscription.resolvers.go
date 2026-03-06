@@ -14,15 +14,18 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
-const sqlPollInterval = 200 * time.Millisecond
-
 // JobStatusChanged is the resolver for the jobStatusChanged field.
-func (r *subscriptionResolver) JobStatusChanged(ctx context.Context, _ *string) (<-chan *model.JobStatusEvent, error) {
-	if r.Poller == nil {
-		return nil, fmt.Errorf("job status poller not configured")
+func (r *subscriptionResolver) JobStatusChanged(ctx context.Context, clusterName *string) (<-chan *model.JobStatusEvent, error) {
+	if r.Manager == nil {
+		return nil, fmt.Errorf("cluster manager not configured")
 	}
 
-	listener := r.Poller.Subscribe()
+	conn, err := r.Manager.Resolve(clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	listener := conn.Poller.Subscribe()
 	ch := make(chan *model.JobStatusEvent, 1)
 
 	go func() {
@@ -42,6 +45,7 @@ func (r *subscriptionResolver) JobStatusChanged(ctx context.Context, _ *string) 
 					JobName:        evt.JobName,
 					PreviousStatus: evt.PreviousStatus,
 					CurrentStatus:  evt.CurrentStatus,
+					Cluster:        conn.Name,
 				}
 				select {
 				case ch <- out:
@@ -56,11 +60,21 @@ func (r *subscriptionResolver) JobStatusChanged(ctx context.Context, _ *string) 
 }
 
 // SQLResults is the resolver for the sqlResults field.
-func (r *subscriptionResolver) SQLResults(ctx context.Context, _ *string, sessionHandle string, operationHandle string) (<-chan *model.SQLResultBatch, error) {
-	if r.SQLClient == nil {
-		return nil, fmt.Errorf("SQL Gateway client not configured")
+func (r *subscriptionResolver) SQLResults(ctx context.Context, clusterName *string, sessionHandle string, operationHandle string) (<-chan *model.SQLResultBatch, error) {
+	if r.Manager == nil {
+		return nil, fmt.Errorf("cluster manager not configured")
 	}
 
+	conn, err := r.Manager.Resolve(clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	if conn.SQLClient == nil {
+		return nil, fmt.Errorf("SQL Gateway client not configured for cluster %q", conn.Name)
+	}
+
+	sqlClient := conn.SQLClient
 	ch := make(chan *model.SQLResultBatch, 1)
 
 	go func() {
@@ -74,7 +88,7 @@ func (r *subscriptionResolver) SQLResults(ctx context.Context, _ *string, sessio
 
 			path := fmt.Sprintf("/v3/sessions/%s/operations/%s/result/%s", sessionHandle, operationHandle, token)
 			var result flink.SQLGatewayResultSet
-			if err := r.SQLClient.GetJSON(ctx, path, &result); err != nil {
+			if err := sqlClient.GetJSON(ctx, path, &result); err != nil {
 				if ctx.Err() != nil {
 					return
 				}
@@ -114,39 +128,4 @@ func (r *subscriptionResolver) SQLResults(ctx context.Context, _ *string, sessio
 	}()
 
 	return ch, nil
-}
-
-func convertResultSet(rs *flink.SQLGatewayResultSet) *model.SQLResultBatch {
-	columns := make([]*model.SQLColumn, len(rs.Columns))
-	for i, c := range rs.Columns {
-		columns[i] = &model.SQLColumn{
-			Name:     c.Name,
-			DataType: c.DataType,
-		}
-	}
-
-	rows := make([][]*string, len(rs.Data))
-	for i, row := range rs.Data {
-		cells := make([]*string, len(row.Fields))
-		for j, f := range row.Fields {
-			s := fmt.Sprintf("%v", f)
-			cells[j] = &s
-		}
-		rows[i] = cells
-	}
-
-	return &model.SQLResultBatch{
-		Columns: columns,
-		Rows:    rows,
-	}
-}
-
-// extractToken gets the last path segment from a SQL Gateway nextUri.
-func extractToken(uri string) string {
-	for i := len(uri) - 1; i >= 0; i-- {
-		if uri[i] == '/' {
-			return uri[i+1:]
-		}
-	}
-	return uri
 }

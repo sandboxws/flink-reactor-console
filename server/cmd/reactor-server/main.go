@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 )
@@ -29,35 +29,40 @@ func run() int {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	// Flink REST client and service.
-	flinkURL := envOr("FLINK_REST_URL", "http://localhost:8081")
-	clientOpts := []flink.ClientOption{
-		flink.WithBaseURL(flinkURL),
-		flink.WithLogger(logger),
+	// Parse cluster configuration from environment.
+	configs, err := cluster.ParseClustersEnv(
+		os.Getenv("CLUSTERS"),
+		envOr("FLINK_REST_URL", "http://localhost:8081"),
+		os.Getenv("FLINK_AUTH_TOKEN"),
+		os.Getenv("SQL_GATEWAY_URL"),
+	)
+	if err != nil {
+		logger.Error("failed to parse cluster config", "error", err)
+		return 1
 	}
-	if token := os.Getenv("FLINK_AUTH_TOKEN"); token != "" {
-		clientOpts = append(clientOpts, flink.WithBearerAuth(token))
+
+	// Initialize the cluster manager.
+	manager := &cluster.Manager{}
+	if err := manager.Init(configs, logger); err != nil {
+		logger.Error("failed to initialize cluster manager", "error", err)
+		return 1
 	}
-	flinkClient := flink.NewClient(clientOpts...)
-	service := flink.NewService(flinkClient)
 
-	// Job status poller.
-	poller := flink.NewPoller(service, flink.WithPollerLogger(logger))
-
-	// SQL Gateway client (optional, separate base URL).
-	var sqlClient *flink.Client
-	if sqlURL := os.Getenv("SQL_GATEWAY_URL"); sqlURL != "" {
-		sqlOpts := []flink.ClientOption{
-			flink.WithBaseURL(sqlURL),
-			flink.WithLogger(logger),
+	// Parse health check interval.
+	healthInterval := 30 * time.Second
+	if v := os.Getenv("HEALTH_CHECK_INTERVAL"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			logger.Error("invalid HEALTH_CHECK_INTERVAL", "value", v, "error", err)
+			return 1
 		}
-		if token := os.Getenv("FLINK_AUTH_TOKEN"); token != "" {
-			sqlOpts = append(sqlOpts, flink.WithBearerAuth(token))
-		}
-		sqlClient = flink.NewClient(sqlOpts...)
+		healthInterval = d
 	}
 
-	srv := server.New(defaultAddr, logger, service, poller, sqlClient)
+	// Start background health checks.
+	manager.Start(ctx, healthInterval)
+
+	srv := server.New(defaultAddr, logger, manager)
 
 	// Start server in a goroutine.
 	errCh := make(chan error, 1)
@@ -77,8 +82,8 @@ func run() int {
 		return 0
 	}
 
-	// Stop poller before draining HTTP connections.
-	poller.Stop()
+	// Stop cluster manager (cancels health checks, stops pollers).
+	manager.Stop()
 
 	// Graceful shutdown with drain timeout.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), drainTimeout)

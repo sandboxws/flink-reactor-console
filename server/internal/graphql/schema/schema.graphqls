@@ -1,5 +1,26 @@
+"""
+Health status of a registered Flink cluster.
+"""
+enum ClusterStatus {
+  HEALTHY
+  UNHEALTHY
+  UNKNOWN
+}
+
+"""
+Information about a registered Flink cluster connection.
+"""
+type ClusterInfo {
+  name: String!
+  url: String!
+  status: ClusterStatus!
+  lastCheckTime: String
+  version: String
+}
+
 type Query {
   health: Boolean!
+  clusters: [ClusterInfo!]!
 }
 
 type Subscription

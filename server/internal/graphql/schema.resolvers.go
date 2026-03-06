@@ -9,11 +9,38 @@ import (
 	"context"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
 // Health is the resolver for the health field.
 func (r *queryResolver) Health(_ context.Context) (bool, error) {
 	return true, nil
+}
+
+// Clusters is the resolver for the clusters field.
+func (r *queryResolver) Clusters(_ context.Context) ([]*model.ClusterInfo, error) {
+	if r.Manager == nil {
+		return []*model.ClusterInfo{}, nil
+	}
+
+	infos := r.Manager.List()
+	result := make([]*model.ClusterInfo, len(infos))
+	for i, info := range infos {
+		ci := &model.ClusterInfo{
+			Name:   info.Name,
+			URL:    info.URL,
+			Status: model.ClusterStatus(info.Status),
+		}
+		if info.LastCheckTime != nil {
+			s := info.LastCheckTime.Format("2006-01-02T15:04:05Z07:00")
+			ci.LastCheckTime = &s
+		}
+		if info.Version != nil {
+			ci.Version = info.Version
+		}
+		result[i] = ci
+	}
+	return result, nil
 }
 
 // Query returns generated.QueryResolver implementation.

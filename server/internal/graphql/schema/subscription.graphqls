@@ -6,6 +6,7 @@ type JobStatusEvent {
   jobName: String!
   previousStatus: String
   currentStatus: String!
+  cluster: String!
 }
 
 """

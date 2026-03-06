@@ -13,6 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	ws "github.com/gorilla/websocket"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
@@ -91,7 +92,9 @@ func TestSubscription_JobStatusChanged(t *testing.T) {
 	poller := flink.NewPoller(mock, flink.WithPollInterval(50*time.Millisecond))
 	defer poller.Stop()
 
-	srv := newTestServer(&graphql.Resolver{Poller: poller})
+	manager := cluster.NewTestManagerWithPoller(poller)
+
+	srv := newTestServer(&graphql.Resolver{Manager: manager})
 	defer srv.Close()
 
 	conn := wsConnect(t, srv.URL)
@@ -99,7 +102,7 @@ func TestSubscription_JobStatusChanged(t *testing.T) {
 
 	// Subscribe.
 	payload, _ := json.Marshal(map[string]any{
-		"query": `subscription { jobStatusChanged { jobId jobName previousStatus currentStatus } }`,
+		"query": `subscription { jobStatusChanged { jobId jobName previousStatus currentStatus cluster } }`,
 	})
 	writeMsg(t, conn, wsMessage{ID: "1", Type: "subscribe", Payload: payload})
 
@@ -121,6 +124,7 @@ func TestSubscription_JobStatusChanged(t *testing.T) {
 				JobName        string  `json:"jobName"`
 				PreviousStatus *string `json:"previousStatus"`
 				CurrentStatus  string  `json:"currentStatus"`
+				Cluster        string  `json:"cluster"`
 			} `json:"jobStatusChanged"`
 		} `json:"data"`
 	}
@@ -141,9 +145,61 @@ func TestSubscription_JobStatusChanged(t *testing.T) {
 	if evt.PreviousStatus != nil {
 		t.Errorf("expected previousStatus nil, got %q", *evt.PreviousStatus)
 	}
+	if evt.Cluster != "default" {
+		t.Errorf("expected cluster 'default', got %q", evt.Cluster)
+	}
+}
+
+func TestSubscription_JobStatusChanged_ExplicitCluster(t *testing.T) {
+	mock := &mockJobGetter{}
+	mock.set([]flink.JobOverview{})
+
+	poller := flink.NewPoller(mock, flink.WithPollInterval(50*time.Millisecond))
+	defer poller.Stop()
+
+	manager := cluster.NewTestManagerWithPoller(poller)
+
+	srv := newTestServer(&graphql.Resolver{Manager: manager})
+	defer srv.Close()
+
+	conn := wsConnect(t, srv.URL)
+	defer func() { _ = conn.Close() }()
+
+	// Subscribe with explicit cluster name.
+	payload, _ := json.Marshal(map[string]any{
+		"query": `subscription { jobStatusChanged(cluster: "default") { jobId currentStatus cluster } }`,
+	})
+	writeMsg(t, conn, wsMessage{ID: "1", Type: "subscribe", Payload: payload})
+
+	mock.set([]flink.JobOverview{
+		{JID: "job-2", Name: "Job2", State: "CANCELED"},
+	})
+
+	msg := readMsg(t, conn, 3*time.Second)
+	if msg.Type != "next" {
+		t.Fatalf("expected next, got %s", msg.Type)
+	}
+
+	var result struct {
+		Data struct {
+			JobStatusChanged struct {
+				Cluster string `json:"cluster"`
+			} `json:"jobStatusChanged"`
+		} `json:"data"`
+	}
+	_ = json.Unmarshal(msg.Payload, &result)
+	if result.Data.JobStatusChanged.Cluster != "default" {
+		t.Errorf("expected cluster 'default', got %q", result.Data.JobStatusChanged.Cluster)
+	}
 }
 
 func TestSubscription_SQLResults(t *testing.T) {
+	// Mock Flink server (for the cluster connection).
+	mockFlink := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.NotFound(w, nil)
+	}))
+	defer mockFlink.Close()
+
 	// Mock SQL Gateway server.
 	callCount := 0
 	var mu sync.Mutex
@@ -186,8 +242,8 @@ func TestSubscription_SQLResults(t *testing.T) {
 	}))
 	defer sqlGW.Close()
 
-	sqlClient := flink.NewClient(flink.WithBaseURL(sqlGW.URL))
-	srv := newTestServer(&graphql.Resolver{SQLClient: sqlClient})
+	manager := cluster.NewTestManagerWithSQL(mockFlink, sqlGW)
+	srv := newTestServer(&graphql.Resolver{Manager: manager})
 	defer srv.Close()
 
 	conn := wsConnect(t, srv.URL)
@@ -258,13 +314,15 @@ func TestSubscription_ClientDisconnectCleanup(t *testing.T) {
 	poller := flink.NewPoller(mock, flink.WithPollInterval(50*time.Millisecond))
 	defer poller.Stop()
 
-	srv := newTestServer(&graphql.Resolver{Poller: poller})
+	manager := cluster.NewTestManagerWithPoller(poller)
+
+	srv := newTestServer(&graphql.Resolver{Manager: manager})
 	defer srv.Close()
 
 	conn := wsConnect(t, srv.URL)
 
 	payload, _ := json.Marshal(map[string]any{
-		"query": `subscription { jobStatusChanged { jobId currentStatus } }`,
+		"query": `subscription { jobStatusChanged { jobId currentStatus cluster } }`,
 	})
 	writeMsg(t, conn, wsMessage{ID: "1", Type: "subscribe", Payload: payload})
 

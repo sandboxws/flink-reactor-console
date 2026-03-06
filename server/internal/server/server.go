@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 )
@@ -26,8 +26,9 @@ type Server struct {
 }
 
 // New creates a Server listening on addr with the standard middleware chain
-// and health endpoints registered.
-func New(addr string, logger *slog.Logger, service *flink.Service, poller *flink.Poller, sqlClient *flink.Client) *Server {
+// and health endpoints registered. The manager may be nil for testing without
+// Flink connectivity.
+func New(addr string, logger *slog.Logger, manager *cluster.Manager) *Server {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -84,16 +85,12 @@ func New(addr string, logger *slog.Logger, service *flink.Service, poller *flink
 	e.GET("/healthz", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
-	e.GET("/readyz", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{"status": "ready"})
-	})
+	e.GET("/readyz", readyzHandler(manager))
 
 	// GraphQL endpoint with WebSocket support for subscriptions.
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: &graphql.Resolver{
-			Service:   service,
-			Poller:    poller,
-			SQLClient: sqlClient,
+			Manager: manager,
 		},
 	}))
 	gqlSrv.AddTransport(transport.Options{})
@@ -110,6 +107,30 @@ func New(addr string, logger *slog.Logger, service *flink.Service, poller *flink
 		echo:   e,
 		addr:   addr,
 		logger: logger,
+	}
+}
+
+// readyzHandler returns an Echo handler that checks the default cluster's
+// health status. Returns 503 if the default cluster is unhealthy.
+func readyzHandler(manager *cluster.Manager) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if manager == nil {
+			return c.JSON(http.StatusOK, map[string]string{"status": "ready"})
+		}
+
+		conn := manager.Default()
+		if conn == nil {
+			return c.JSON(http.StatusOK, map[string]string{"status": "ready"})
+		}
+
+		if conn.Status() == cluster.StatusUnhealthy {
+			return c.JSON(http.StatusServiceUnavailable, map[string]string{
+				"status": "not ready",
+				"reason": "default cluster unhealthy",
+			})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"status": "ready"})
 	}
 }
 

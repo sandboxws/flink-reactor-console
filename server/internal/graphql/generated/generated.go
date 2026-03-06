@@ -35,7 +35,16 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	ClusterInfo struct {
+		LastCheckTime func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Status        func(childComplexity int) int
+		URL           func(childComplexity int) int
+		Version       func(childComplexity int) int
+	}
+
 	JobStatusEvent struct {
+		Cluster        func(childComplexity int) int
 		CurrentStatus  func(childComplexity int) int
 		JobID          func(childComplexity int) int
 		JobName        func(childComplexity int) int
@@ -43,7 +52,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Health func(childComplexity int) int
+		Clusters func(childComplexity int) int
+		Health   func(childComplexity int) int
 	}
 
 	SQLColumn struct {
@@ -65,6 +75,7 @@ type ComplexityRoot struct {
 
 type QueryResolver interface {
 	Health(ctx context.Context) (bool, error)
+	Clusters(ctx context.Context) ([]*model.ClusterInfo, error)
 }
 type SubscriptionResolver interface {
 	JobStatusChanged(ctx context.Context, cluster *string) (<-chan *model.JobStatusEvent, error)
@@ -85,6 +96,43 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
+	case "ClusterInfo.lastCheckTime":
+		if e.ComplexityRoot.ClusterInfo.LastCheckTime == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterInfo.LastCheckTime(childComplexity), true
+	case "ClusterInfo.name":
+		if e.ComplexityRoot.ClusterInfo.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterInfo.Name(childComplexity), true
+	case "ClusterInfo.status":
+		if e.ComplexityRoot.ClusterInfo.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterInfo.Status(childComplexity), true
+	case "ClusterInfo.url":
+		if e.ComplexityRoot.ClusterInfo.URL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterInfo.URL(childComplexity), true
+	case "ClusterInfo.version":
+		if e.ComplexityRoot.ClusterInfo.Version == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterInfo.Version(childComplexity), true
+
+	case "JobStatusEvent.cluster":
+		if e.ComplexityRoot.JobStatusEvent.Cluster == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobStatusEvent.Cluster(childComplexity), true
 	case "JobStatusEvent.currentStatus":
 		if e.ComplexityRoot.JobStatusEvent.CurrentStatus == nil {
 			break
@@ -110,6 +158,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.JobStatusEvent.PreviousStatus(childComplexity), true
 
+	case "Query.clusters":
+		if e.ComplexityRoot.Query.Clusters == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.Clusters(childComplexity), true
 	case "Query.health":
 		if e.ComplexityRoot.Query.Health == nil {
 			break
@@ -256,8 +310,29 @@ func newExecutionContext(
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema/schema.graphqls", Input: `type Query {
+	{Name: "../schema/schema.graphqls", Input: `"""
+Health status of a registered Flink cluster.
+"""
+enum ClusterStatus {
+  HEALTHY
+  UNHEALTHY
+  UNKNOWN
+}
+
+"""
+Information about a registered Flink cluster connection.
+"""
+type ClusterInfo {
+  name: String!
+  url: String!
+  status: ClusterStatus!
+  lastCheckTime: String
+  version: String
+}
+
+type Query {
   health: Boolean!
+  clusters: [ClusterInfo!]!
 }
 
 type Subscription
@@ -270,6 +345,7 @@ type JobStatusEvent {
   jobName: String!
   previousStatus: String
   currentStatus: String!
+  cluster: String!
 }
 
 """
@@ -408,6 +484,151 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _ClusterInfo_name(ctx context.Context, field graphql.CollectedField, obj *model.ClusterInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterInfo_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterInfo_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterInfo_url(ctx context.Context, field graphql.CollectedField, obj *model.ClusterInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterInfo_url,
+		func(ctx context.Context) (any, error) {
+			return obj.URL, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterInfo_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterInfo_status(ctx context.Context, field graphql.CollectedField, obj *model.ClusterInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterInfo_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterInfo_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ClusterStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterInfo_lastCheckTime(ctx context.Context, field graphql.CollectedField, obj *model.ClusterInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterInfo_lastCheckTime,
+		func(ctx context.Context) (any, error) {
+			return obj.LastCheckTime, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterInfo_lastCheckTime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterInfo_version(ctx context.Context, field graphql.CollectedField, obj *model.ClusterInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterInfo_version,
+		func(ctx context.Context) (any, error) {
+			return obj.Version, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterInfo_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobStatusEvent_jobId(ctx context.Context, field graphql.CollectedField, obj *model.JobStatusEvent) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -524,6 +745,35 @@ func (ec *executionContext) fieldContext_JobStatusEvent_currentStatus(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _JobStatusEvent_cluster(ctx context.Context, field graphql.CollectedField, obj *model.JobStatusEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobStatusEvent_cluster,
+		func(ctx context.Context) (any, error) {
+			return obj.Cluster, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobStatusEvent_cluster(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobStatusEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_health(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -548,6 +798,47 @@ func (ec *executionContext) fieldContext_Query_health(_ context.Context, field g
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_clusters(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_clusters,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().Clusters(ctx)
+		},
+		nil,
+		ec.marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfoᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_clusters(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_ClusterInfo_name(ctx, field)
+			case "url":
+				return ec.fieldContext_ClusterInfo_url(ctx, field)
+			case "status":
+				return ec.fieldContext_ClusterInfo_status(ctx, field)
+			case "lastCheckTime":
+				return ec.fieldContext_ClusterInfo_lastCheckTime(ctx, field)
+			case "version":
+				return ec.fieldContext_ClusterInfo_version(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ClusterInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -845,6 +1136,8 @@ func (ec *executionContext) fieldContext_Subscription_jobStatusChanged(ctx conte
 				return ec.fieldContext_JobStatusEvent_previousStatus(ctx, field)
 			case "currentStatus":
 				return ec.fieldContext_JobStatusEvent_currentStatus(ctx, field)
+			case "cluster":
+				return ec.fieldContext_JobStatusEvent_cluster(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobStatusEvent", field.Name)
 		},
@@ -2366,6 +2659,59 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** object.gotpl ****************************
 
+var clusterInfoImplementors = []string{"ClusterInfo"}
+
+func (ec *executionContext) _ClusterInfo(ctx context.Context, sel ast.SelectionSet, obj *model.ClusterInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, clusterInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ClusterInfo")
+		case "name":
+			out.Values[i] = ec._ClusterInfo_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "url":
+			out.Values[i] = ec._ClusterInfo_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._ClusterInfo_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastCheckTime":
+			out.Values[i] = ec._ClusterInfo_lastCheckTime(ctx, field, obj)
+		case "version":
+			out.Values[i] = ec._ClusterInfo_version(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var jobStatusEventImplementors = []string{"JobStatusEvent"}
 
 func (ec *executionContext) _JobStatusEvent(ctx context.Context, sel ast.SelectionSet, obj *model.JobStatusEvent) graphql.Marshaler {
@@ -2391,6 +2737,11 @@ func (ec *executionContext) _JobStatusEvent(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._JobStatusEvent_previousStatus(ctx, field, obj)
 		case "currentStatus":
 			out.Values[i] = ec._JobStatusEvent_currentStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cluster":
+			out.Values[i] = ec._JobStatusEvent_cluster(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -2446,6 +2797,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_health(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "clusters":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_clusters(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -2953,6 +3326,42 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClusterInfo) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNClusterInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfo(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNClusterInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfo(ctx context.Context, sel ast.SelectionSet, v *model.ClusterInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ClusterInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus(ctx context.Context, v any) (model.ClusterStatus, error) {
+	var res model.ClusterStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus(ctx context.Context, sel ast.SelectionSet, v model.ClusterStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNJobStatusEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent(ctx context.Context, sel ast.SelectionSet, v model.JobStatusEvent) graphql.Marshaler {
