@@ -1,5 +1,50 @@
 package flink
 
+import (
+	"encoding/json"
+	"math"
+	"strconv"
+)
+
+// FlexFloat64 unmarshals JSON numbers, numeric strings, and "NaN"/"Infinity".
+// Flink REST returns some metric values as strings (especially for SQL jobs).
+type FlexFloat64 float64
+
+// UnmarshalJSON handles JSON numbers, numeric strings, and special float strings.
+func (f *FlexFloat64) UnmarshalJSON(data []byte) error {
+	var num float64
+	if err := json.Unmarshal(data, &num); err == nil {
+		*f = FlexFloat64(num)
+		return nil
+	}
+
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	switch s {
+	case "NaN", "":
+		*f = FlexFloat64(math.NaN())
+	case "Infinity":
+		*f = FlexFloat64(math.Inf(1))
+	case "-Infinity":
+		*f = FlexFloat64(math.Inf(-1))
+	default:
+		v, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return err
+		}
+		*f = FlexFloat64(v)
+	}
+	return nil
+}
+
+// Float64 returns the underlying float64 value.
+func (f FlexFloat64) Float64() float64 {
+	return float64(f)
+}
+
 // JobStatusEvent represents a detected job status transition.
 type JobStatusEvent struct {
 	JobID          string  `json:"jobId"`
@@ -79,20 +124,20 @@ type JobPlan struct {
 }
 
 // VertexMetrics represents I/O metrics within a vertex entry.
-// Flink REST returns all numeric metric values as JSON floats (e.g. 68.0),
-// so we use float64 to avoid unmarshal errors.
+// Most numeric fields are JSON floats, but Flink SQL jobs may return
+// accumulated-*-time values as strings — FlexFloat64 handles both.
 type VertexMetrics struct {
-	ReadBytes                float64 `json:"read-bytes"`
-	ReadBytesComplete        bool    `json:"read-bytes-complete"`
-	WriteBytes               float64 `json:"write-bytes"`
-	WriteBytesComplete       bool    `json:"write-bytes-complete"`
-	ReadRecords              float64 `json:"read-records"`
-	ReadRecordsComplete      bool    `json:"read-records-complete"`
-	WriteRecords             float64 `json:"write-records"`
-	WriteRecordsComplete     bool    `json:"write-records-complete"`
-	AccumulatedBackpressured float64 `json:"accumulated-backpressured-time"`
-	AccumulatedIdle          float64 `json:"accumulated-idle-time"`
-	AccumulatedBusy          float64 `json:"accumulated-busy-time"`
+	ReadBytes                float64     `json:"read-bytes"`
+	ReadBytesComplete        bool        `json:"read-bytes-complete"`
+	WriteBytes               float64     `json:"write-bytes"`
+	WriteBytesComplete       bool        `json:"write-bytes-complete"`
+	ReadRecords              float64     `json:"read-records"`
+	ReadRecordsComplete      bool        `json:"read-records-complete"`
+	WriteRecords             float64     `json:"write-records"`
+	WriteRecordsComplete     bool        `json:"write-records-complete"`
+	AccumulatedBackpressured FlexFloat64 `json:"accumulated-backpressured-time"`
+	AccumulatedIdle          FlexFloat64 `json:"accumulated-idle-time"`
+	AccumulatedBusy          FlexFloat64 `json:"accumulated-busy-time"`
 }
 
 // Vertex represents a single vertex entry within GET /jobs/:jobid → vertices[].

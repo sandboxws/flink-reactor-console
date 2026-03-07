@@ -48,9 +48,9 @@ func mapVertexMetrics(m *flink.VertexMetrics) *model.VertexMetrics {
 		ReadRecordsComplete:      m.ReadRecordsComplete,
 		WriteRecords:             f64(m.WriteRecords),
 		WriteRecordsComplete:     m.WriteRecordsComplete,
-		AccumulatedBackpressured: f64(m.AccumulatedBackpressured),
-		AccumulatedIdle:          f64(m.AccumulatedIdle),
-		AccumulatedBusy:          f64(m.AccumulatedBusy),
+		AccumulatedBackpressured: f64(m.AccumulatedBackpressured.Float64()),
+		AccumulatedIdle:          f64(m.AccumulatedIdle.Float64()),
+		AccumulatedBusy:          f64(m.AccumulatedBusy.Float64()),
 	}
 }
 
