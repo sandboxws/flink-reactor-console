@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -66,9 +67,15 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		LogMethod:    true,
 		LogRequestID: true,
 		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
+			path := v.URI
+			// Strip query string from GraphQL paths — operation details
+			// are logged separately by the gqlgen operation interceptor.
+			if strings.HasPrefix(path, "/graphql") {
+				path = "/graphql"
+			}
 			logger.Info("request",
 				"method", v.Method,
-				"path", v.URI,
+				"path", path,
 				"status", v.Status,
 				"duration_ms", v.Latency.Milliseconds(),
 				"request_id", v.RequestID,
@@ -122,7 +129,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		Resolvers: resolver,
 	}))
 	gqlSrv.SetErrorPresenter(graphql.NewErrorPresenter(logger))
-	gqlSrv.Use(observability.GraphQLMetrics{})
+	gqlSrv.Use(observability.GraphQLMetrics{Logger: logger})
 	gqlSrv.AddTransport(transport.Options{})
 	gqlSrv.AddTransport(transport.GET{})
 	gqlSrv.AddTransport(transport.POST{})
