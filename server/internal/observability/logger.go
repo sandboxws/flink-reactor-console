@@ -6,29 +6,46 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"time"
+
+	"github.com/lmittmann/tint"
+	"github.com/mattn/go-isatty"
 )
 
-// NewLogger creates a structured JSON logger.
-// If logFile is non-empty, logs are written to both stdout and the file.
+// newConsoleHandler returns a colorized tint handler when stdout is a TTY,
+// otherwise a standard JSON handler for machine consumption.
+func newConsoleHandler(level slog.Level) slog.Handler {
+	if isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+		return tint.NewHandler(os.Stdout, &tint.Options{
+			Level:      level,
+			TimeFormat: time.Kitchen,
+		})
+	}
+	return slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})
+}
+
+// NewLogger creates a structured logger.
+// Console output is colorized when stdout is a TTY, JSON otherwise.
+// If logFile is non-empty, logs are also written to the file in JSON format.
 func NewLogger(level slog.Level, logFile string) *slog.Logger {
-	opts := &slog.HandlerOptions{Level: level}
+	consoleHandler := newConsoleHandler(level)
 
 	if logFile == "" {
-		return slog.New(slog.NewJSONHandler(os.Stdout, opts))
+		return slog.New(consoleHandler)
 	}
 
 	f, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600) //nolint:gosec // log file path from config
 	if err != nil {
 		// Fall back to stdout-only if file cannot be opened.
-		logger := slog.New(slog.NewJSONHandler(os.Stdout, opts))
+		logger := slog.New(consoleHandler)
 		logger.Error("failed to open log file, falling back to stdout", "path", logFile, "error", err)
 		return logger
 	}
 
 	return slog.New(&MultiHandler{
 		handlers: []slog.Handler{
-			slog.NewJSONHandler(os.Stdout, opts),
-			slog.NewJSONHandler(f, opts),
+			consoleHandler,
+			slog.NewJSONHandler(f, &slog.HandlerOptions{Level: level}),
 		},
 	})
 }
