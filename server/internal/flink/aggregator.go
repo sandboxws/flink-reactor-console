@@ -104,8 +104,9 @@ func NewAggregator(client *Client) *Aggregator {
 
 // JobDetail fetches a full job detail aggregate using two-phase concurrency.
 //
-// Phase 1 (critical): job overview, exceptions, checkpoints, checkpoint config,
-// and job config are fetched in parallel. Any failure cancels all Phase 1 requests.
+// Phase 1: job overview, exceptions, and job config are fetched as critical
+// (any failure cancels the request). Checkpoints and checkpoint config are
+// supplementary (fallback to nil on failure, e.g. SQL jobs without checkpointing).
 //
 // Phase 2 (per-vertex): vertex detail (critical), watermarks, backpressure, and
 // accumulators are fetched in parallel with SetLimit(10). Supplementary fetches
@@ -117,8 +118,8 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 	var (
 		job        JobDetail
 		exceptions JobExceptions
-		checkpts   CheckpointStats
-		cpConfig   CheckpointConfig
+		checkpts   *CheckpointStats
+		cpConfig   *CheckpointConfig
 		jobCfg     JobConfig
 	)
 
@@ -132,13 +133,23 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 		return a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/exceptions", jobID), &exceptions)
 	})
 	g1.Go(func() error {
-		return a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/checkpoints", jobID), &checkpts)
-	})
-	g1.Go(func() error {
-		return a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/checkpoints/config", jobID), &cpConfig)
-	})
-	g1.Go(func() error {
 		return a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/config", jobID), &jobCfg)
+	})
+
+	// Supplementary: checkpoints may 404 for SQL jobs without checkpointing.
+	g1.Go(func() error {
+		var cp CheckpointStats
+		if err := a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/checkpoints", jobID), &cp); err == nil {
+			checkpts = &cp
+		}
+		return nil
+	})
+	g1.Go(func() error {
+		var cc CheckpointConfig
+		if err := a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/checkpoints/config", jobID), &cc); err == nil {
+			cpConfig = &cc
+		}
+		return nil
 	})
 
 	if err := g1.Wait(); err != nil {
@@ -225,8 +236,8 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 	return &JobDetailAggregate{
 		Job:              &job,
 		Exceptions:       &exceptions,
-		Checkpoints:      &checkpts,
-		CheckpointConfig: &cpConfig,
+		Checkpoints:      checkpts,
+		CheckpointConfig: cpConfig,
 		JobConfig:        &jobCfg,
 		VertexDetails:    vertexDetail,
 		Watermarks:       watermarks,

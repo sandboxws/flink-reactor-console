@@ -1,5 +1,3 @@
-"use client"
-
 import { useInsightsStore } from "@/stores/insights-store"
 import { HealthScoreGauge } from "./health-score-gauge"
 import { HealthTrendChart } from "./health-trend-chart"

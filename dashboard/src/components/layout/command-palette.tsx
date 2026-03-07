@@ -1,5 +1,4 @@
-"use client"
-
+import { useNavigate } from "@tanstack/react-router"
 import { Command } from "cmdk"
 import {
   AlertTriangle,
@@ -11,7 +10,6 @@ import {
   Settings,
   Upload,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useUiStore } from "@/stores/ui-store"
 
 const ROUTES = [
@@ -28,12 +26,12 @@ const ROUTES = [
 export function CommandPalette() {
   const open = useUiStore((s) => s.commandPaletteOpen)
   const setOpen = useUiStore((s) => s.toggleCommandPalette)
-  const router = useRouter()
+  const navigate = useNavigate()
 
   if (!open) return null
 
-  function navigate(href: string) {
-    router.push(href)
+  function go(href: string) {
+    navigate({ to: href })
     setOpen()
   }
 
@@ -63,7 +61,7 @@ export function CommandPalette() {
             <Command.Item
               key={route.href}
               value={route.label}
-              onSelect={() => navigate(route.href)}
+              onSelect={() => go(route.href)}
               className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-zinc-300 transition-colors data-[selected=true]:bg-white/[0.08] data-[selected=true]:text-white"
             >
               <route.icon className="size-4 text-zinc-500" />

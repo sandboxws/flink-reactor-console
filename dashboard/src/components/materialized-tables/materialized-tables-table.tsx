@@ -1,6 +1,4 @@
-"use client"
-
-import Link from "next/link"
+import { Link } from "@tanstack/react-router"
 import type { MaterializedTable } from "@/data/materialized-table-types"
 import { RefreshStatusBadge } from "./refresh-status-badge"
 
@@ -43,7 +41,7 @@ export function MaterializedTablesTable({
           >
             <td className="px-4 py-2.5">
               <Link
-                href={`/materialized-tables/${encodeURIComponent(t.name)}?catalog=${encodeURIComponent(t.catalog)}`}
+                to={`/materialized-tables/${encodeURIComponent(t.name)}?catalog=${encodeURIComponent(t.catalog)}`}
                 className="font-medium text-zinc-200 hover:text-fr-coral transition-colors"
               >
                 {t.name}

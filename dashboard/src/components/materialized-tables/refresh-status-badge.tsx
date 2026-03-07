@@ -1,5 +1,3 @@
-"use client"
-
 import {
   getRefreshStatusColor,
   getRefreshStatusLabel,
@@ -33,11 +31,12 @@ export function RefreshStatusBadge({
       )}
     >
       <span
-        className={cn("size-1.5 rounded-full", {
-          "bg-emerald-400 animate-pulse": color === "green",
-          "bg-amber-400 animate-pulse": color === "amber",
-          "bg-sky-400 animate-pulse": color === "blue",
-        })}
+        className={cn(
+          "size-1.5 rounded-full",
+          color === "green" && "bg-emerald-400 animate-pulse",
+          color === "amber" && "bg-amber-400 animate-pulse",
+          color === "blue" && "bg-sky-400 animate-pulse",
+        )}
       />
       {getRefreshStatusLabel(status)}
     </span>

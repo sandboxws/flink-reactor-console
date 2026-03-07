@@ -1,7 +1,5 @@
-"use client"
-
+import { useLocation } from "@tanstack/react-router"
 import { Check, Moon, Paintbrush, RefreshCw, Sun } from "lucide-react"
-import { usePathname } from "next/navigation"
 import {
   Popover,
   PopoverContent,
@@ -238,7 +236,7 @@ function ThemeSwitcher() {
 }
 
 export function Header() {
-  const pathname = usePathname()
+  const pathname = useLocation({ select: (l) => l.pathname })
   const crumbs = breadcrumbFromPath(pathname)
 
   return (

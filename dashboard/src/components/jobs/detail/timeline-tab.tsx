@@ -1,5 +1,3 @@
-"use client"
-
 import { Clock, Maximize2, ZoomIn, ZoomOut } from "lucide-react"
 import { useMemo, useState } from "react"
 import { EmptyState } from "@/components/shared/empty-state"

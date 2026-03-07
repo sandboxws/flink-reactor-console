@@ -1,5 +1,3 @@
-"use client"
-
 import { formatDistanceToNow } from "date-fns"
 import { ArrowDownWideNarrow, Clock } from "lucide-react"
 import { useMemo } from "react"

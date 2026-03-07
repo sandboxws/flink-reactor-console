@@ -1,5 +1,3 @@
-"use client"
-
 import { Cpu } from "lucide-react"
 import { useCallback, useMemo } from "react"
 import { EmptyState } from "@/components/shared/empty-state"

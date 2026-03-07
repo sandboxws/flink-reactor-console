@@ -1,5 +1,3 @@
-"use client"
-
 import { ChevronDown, ChevronUp, Regex, Search, X } from "lucide-react"
 import { cn } from "@/lib/cn"
 import { useSearchMatches } from "@/lib/hooks"

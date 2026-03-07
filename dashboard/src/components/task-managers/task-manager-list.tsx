@@ -1,8 +1,6 @@
-"use client"
-
+import { useNavigate } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import { ArrowDown, ArrowUp, ArrowUpDown, Check, Copy } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   Table,
@@ -195,7 +193,7 @@ export function TaskManagerList({
   taskManagers: TaskManager[]
   selectedId?: string | null
 }) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [sortKey, setSortKey] = useState<SortKey>("id")
   const [sortDir, setSortDir] = useState<SortDir>("asc")
 
@@ -247,7 +245,7 @@ export function TaskManagerList({
               "data-row cursor-pointer",
               selectedId === tm.id && "data-row-selected",
             )}
-            onClick={() => router.push(`/task-managers/${tm.id}`)}
+            onClick={() => navigate({ to: `/task-managers/${tm.id}` })}
           >
             <TableCell>
               <TmIdCell id={tm.id} />

@@ -1,8 +1,6 @@
-"use client"
-
+import { Link } from "@tanstack/react-router"
 import { format } from "date-fns"
 import { ArrowLeft, Clock, Cpu, HardDrive, Loader2, Server } from "lucide-react"
-import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type {
@@ -109,7 +107,7 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
     <div className="flex flex-col gap-4 p-4">
       {/* Back link */}
       <Link
-        href="/task-managers"
+        to="/task-managers"
         className="flex w-fit items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
       >
         <ArrowLeft className="size-3" />

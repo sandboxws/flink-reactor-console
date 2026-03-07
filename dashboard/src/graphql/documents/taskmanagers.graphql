@@ -94,6 +94,9 @@ query TaskManagerDetail($id: ID!, $cluster: String) {
         networkMemory
       }
     }
-    metrics { id value }
+    metrics {
+      id
+      value
+    }
   }
 }

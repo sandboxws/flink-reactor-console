@@ -1,5 +1,3 @@
-"use client"
-
 import { formatDistanceToNow } from "date-fns"
 import { AlertCircle, AlertTriangle, Check, Info, X } from "lucide-react"
 import { cn } from "@/lib/cn"

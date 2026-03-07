@@ -1,5 +1,3 @@
-"use client"
-
 import { Cpu, Database, Terminal } from "lucide-react"
 import type { JvmInfo } from "@/data/cluster-types"
 

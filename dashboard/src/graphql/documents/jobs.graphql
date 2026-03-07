@@ -115,9 +115,21 @@ query JobDetail($id: ID!, $cluster: String) {
         checkpointedSize
       }
       summary {
-        stateSize { min max avg }
-        endToEndDuration { min max avg }
-        checkpointedSize { min max avg }
+        stateSize {
+          min
+          max
+          avg
+        }
+        endToEndDuration {
+          min
+          max
+          avg
+        }
+        checkpointedSize {
+          min
+          max
+          avg
+        }
       }
       latest {
         completed {
@@ -176,7 +188,10 @@ query JobDetail($id: ID!, $cluster: String) {
     }
     watermarks {
       vertexId
-      watermarks { id value }
+      watermarks {
+        id
+        value
+      }
     }
     backPressure {
       vertexId
@@ -196,7 +211,11 @@ query JobDetail($id: ID!, $cluster: String) {
     }
     accumulators {
       vertexId
-      accumulators { name type value }
+      accumulators {
+        name
+        type
+        value
+      }
     }
   }
 }

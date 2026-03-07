@@ -20,51 +20,41 @@
   "engines": {
     "node": ">=20"
   },
-  "bin": {
-    "flink-reactor-dashboard": "./dist/cli.js"
-  },
   "files": [
-    ".next/standalone",
-    ".next/static",
-    "public",
     "dist",
+    "public",
     ".env.example"
   ],
   "scripts": {
-    "build": "next build",
-    "build:static": "next build && cp -r out/ ../../apps/server/static/",
-    "build:cli": "tsup",
-    "build:package": "pnpm build && pnpm build:cli && node scripts/prepare-standalone.js",
-    "dev": "next dev --port 3001",
-    "start": "next start",
-    "prepublishOnly": "pnpm build:package",
+    "build": "vite build",
+    "build:static": "vite build && cp -r dist/ ../../apps/server/static/",
+    "dev": "vite --port 3001",
+    "preview": "vite preview --port 3001",
     "lint": "biome check",
     "format": "biome format --write",
     "graphql:codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
     "@radix-ui/react-switch": "^1.2.6",
+    "@tanstack/react-router": "^1.120.3",
     "@tanstack/react-virtual": "^3.13.9",
     "@xyflow/react": "^12.10.0",
-    "commander": "^13.1.0",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.0",
-    "geist": "^1.5.1",
     "lucide-react": "^0.563.0",
     "motion": "^12.31.0",
-    "next": "16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-icons": "^5.5.0",
     "recharts": "^2.15.4",
-    "tslog": "^4.10.2",
     "graphql": "^16.10.0",
     "urql": "^5.0.1",
     "@urql/core": "^6.0.0",
+    "tslog": "^4.9.3",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/router-plugin": "^1.120.3",
     "@types/d3-drag": "^3.0.7",
     "@types/d3-selection": "^3.0.11",
     "@types/d3-zoom": "^3.0.8",
@@ -74,9 +64,10 @@
     "@graphql-codegen/cli": "^5.0.6",
     "@graphql-codegen/typescript": "^4.1.6",
     "@graphql-codegen/typescript-operations": "^4.4.0",
-    "postcss": "^8.5.6",
+    "@vitejs/plugin-react": "^4.5.2",
     "tailwindcss": "^4.1.18",
-    "tsup": "^8.4.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

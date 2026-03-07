@@ -8,7 +8,7 @@ globs: src/lib/graphql-*
 
 All Flink data flows through the Go backend's GraphQL API (`apps/server`). The dashboard never calls Flink REST directly.
 
-- **urql client** (`src/lib/graphql-client.ts`): Configured with `NEXT_PUBLIC_GRAPHQL_URL` (dev: `http://localhost:8080/graphql`, prod: relative `/graphql`)
+- **urql client** (`src/lib/graphql-client.ts`): Configured with `VITE_GRAPHQL_URL` (dev: `http://localhost:8080/graphql`, prod: relative `/graphql`)
 - **API client** (`src/lib/graphql-api-client.ts`): Typed wrapper functions over GraphQL queries, consumed by Zustand stores
 - **No mock mode**: The Go backend handles mock data when no Flink cluster is connected
 

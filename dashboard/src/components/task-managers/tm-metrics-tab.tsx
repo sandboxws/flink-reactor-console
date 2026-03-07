@@ -1,5 +1,3 @@
-"use client"
-
 import { format } from "date-fns"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {

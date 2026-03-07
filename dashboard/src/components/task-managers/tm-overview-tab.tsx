@@ -1,5 +1,3 @@
-"use client"
-
 import type { TaskManager } from "@/data/cluster-types"
 
 // ---------------------------------------------------------------------------

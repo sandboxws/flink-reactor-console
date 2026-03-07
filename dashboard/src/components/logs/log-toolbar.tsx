@@ -1,5 +1,3 @@
-"use client"
-
 import { Check, ChevronDown, Pause, Play } from "lucide-react"
 import { useMemo } from "react"
 import { SearchInput } from "@/components/shared/search-input"

@@ -4,8 +4,16 @@ mutation CreateSQLSession($cluster: String) {
   }
 }
 
-mutation SubmitStatement($sessionHandle: String!, $statement: String!, $cluster: String) {
-  submitStatement(sessionHandle: $sessionHandle, statement: $statement, cluster: $cluster) {
+mutation SubmitStatement(
+  $sessionHandle: String!
+  $statement: String!
+  $cluster: String
+) {
+  submitStatement(
+    sessionHandle: $sessionHandle
+    statement: $statement
+    cluster: $cluster
+  ) {
     operationHandle
   }
 }
@@ -22,7 +30,10 @@ mutation FetchSQLResults(
     token: $token
     cluster: $cluster
   ) {
-    columns { name dataType }
+    columns {
+      name
+      dataType
+    }
     rows
     hasMore
     nextToken

@@ -21,7 +21,16 @@ func setupTestDir(t *testing.T) string {
 		t.Fatal(err)
 	}
 
-	// Create _next/static/chunks/main.js (hashed asset).
+	// Create assets/index-abc123.js (Vite hashed asset).
+	assetsDir := filepath.Join(dir, "assets")
+	if err := os.MkdirAll(assetsDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(assetsDir, "index-abc123.js"), []byte("console.log('hi')"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create _next/static/chunks/main.js (legacy Next.js hashed asset).
 	nextDir := filepath.Join(dir, "_next", "static", "chunks")
 	if err := os.MkdirAll(nextDir, 0o750); err != nil {
 		t.Fatal(err)
@@ -74,7 +83,25 @@ func TestSPA_ServesStaticFile(t *testing.T) {
 	}
 }
 
-func TestSPA_HashedAssetCacheHeaders(t *testing.T) {
+func TestSPA_ViteAssetCacheHeaders(t *testing.T) {
+	t.Parallel()
+	dir := setupTestDir(t)
+	e := setupEcho(dir)
+
+	req := httptest.NewRequest(http.MethodGet, "/assets/index-abc123.js", nil)
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	cc := rec.Header().Get("Cache-Control")
+	if cc != "public, max-age=31536000, immutable" {
+		t.Fatalf("expected immutable cache header for Vite assets, got %q", cc)
+	}
+}
+
+func TestSPA_LegacyNextAssetCacheHeaders(t *testing.T) {
 	t.Parallel()
 	dir := setupTestDir(t)
 	e := setupEcho(dir)

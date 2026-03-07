@@ -1,5 +1,3 @@
-"use client"
-
 import { Loader2, Pause, Play, RotateCcw, Square, Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { ActiveTapSession } from "@/stores/sql-gateway-store"

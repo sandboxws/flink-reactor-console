@@ -1,5 +1,3 @@
-"use client"
-
 import { cn } from "@/lib/cn"
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline"

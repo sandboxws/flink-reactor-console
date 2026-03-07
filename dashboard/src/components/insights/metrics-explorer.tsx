@@ -1,5 +1,3 @@
-"use client"
-
 import { LineChart, Pause, Play, Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { RefreshInterval } from "@/stores/metrics-explorer-store"

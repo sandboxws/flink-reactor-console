@@ -4,14 +4,15 @@ globs: src/components/**
 
 # Component Conventions
 
-## Page Delegation
+## Route / Component Relationship
 
-Each `page.tsx` is a thin wrapper that delegates to a single top-level component:
-- `overview/page.tsx` → `overview-page.tsx`
-- `jobs/[id]/page.tsx` → `job-detail.tsx`
+Routes live in `src/routes/` and own data fetching (store init, polling). Components in `src/components/` contain the UI logic.
+
+- `routes/overview.tsx` → `components/overview/overview-page.tsx`
+- `routes/jobs/$id.tsx` → `components/jobs/job-detail.tsx`
 - etc.
 
-All page components are client components (`"use client"`).
+No `"use client"` directives — this is a Vite SPA, everything is client-side.
 
 ## Directory Organization
 

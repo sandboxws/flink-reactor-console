@@ -1,5 +1,3 @@
-"use client"
-
 import { ChevronDown, ChevronRight, Settings } from "lucide-react"
 import { useState } from "react"
 import {

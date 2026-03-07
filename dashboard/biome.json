@@ -1,25 +1,21 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
   "extends": "//",
+  "files": {
+    "includes": ["**", "!src/routeTree.gen.ts"]
+  },
   "linter": {
-    "domains": { "next": "recommended", "react": "recommended" }
+    "domains": { "react": "recommended" },
+    "rules": {
+      "suspicious": {
+        "noExplicitAny": "warn"
+      }
+    }
   },
   "overrides": [
     {
-      "includes": [
-        "src/app/**/page.tsx",
-        "src/app/**/layout.tsx",
-        "src/app/**/loading.tsx",
-        "src/app/**/error.tsx",
-        "src/app/**/not-found.tsx",
-        "next.config.mjs",
-        "postcss.config.mjs"
-      ],
+      "includes": ["src/routes/**/*.tsx", "vite.config.ts"],
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
-    },
-    {
-      "includes": ["src/cli.ts", "scripts/**"],
-      "linter": { "rules": { "suspicious": { "noConsole": "off" } } }
     }
   ]
 }

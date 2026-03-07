@@ -1,5 +1,3 @@
-"use client"
-
 import { Loader2, Plus, Search, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { cn } from "@/lib/cn"

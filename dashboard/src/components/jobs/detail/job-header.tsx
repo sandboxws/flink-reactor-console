@@ -1,5 +1,4 @@
-"use client"
-
+import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
 import {
   ArrowLeft,
@@ -13,7 +12,6 @@ import {
   Save,
   XCircle,
 } from "lucide-react"
-import Link from "next/link"
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import type { FlinkJob } from "@/data/cluster-types"
@@ -220,7 +218,7 @@ export function JobHeader({
     <div className="flex flex-col gap-4">
       {/* Back link */}
       <Link
-        href={isRunning ? "/jobs/running" : "/jobs/completed"}
+        to={isRunning ? "/jobs/running" : "/jobs/completed"}
         className="flex w-fit items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
       >
         <ArrowLeft className="size-3" />

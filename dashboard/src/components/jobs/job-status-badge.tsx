@@ -1,5 +1,3 @@
-"use client"
-
 import { Badge } from "@/components/ui/badge"
 import type { JobStatus } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"

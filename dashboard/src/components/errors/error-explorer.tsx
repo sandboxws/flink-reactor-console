@@ -1,5 +1,3 @@
-"use client"
-
 import { AlertTriangle } from "lucide-react"
 import { useMemo } from "react"
 import { EmptyState } from "@/components/shared/empty-state"

@@ -1,5 +1,3 @@
-"use client"
-
 import { AlertTriangle, Loader2, Plus, Radio, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { EmptyState } from "@/components/shared/empty-state"

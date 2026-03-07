@@ -1,5 +1,4 @@
-"use client"
-
+import { useNavigate } from "@tanstack/react-router"
 import { format } from "date-fns"
 import {
   ArrowDown,
@@ -10,7 +9,6 @@ import {
   Radio,
   XCircle,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 import {
   Table,
@@ -236,7 +234,7 @@ export function JobsTable({
   jobs: FlinkJob[]
   onCancelJob?: (jobId: string) => void
 }) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const tappablePipelines = useClusterStore((s) => s.tappablePipelines)
   const isRunning = mode === "running"
   const columns = isRunning ? runningColumns : completedColumns
@@ -291,7 +289,7 @@ export function JobsTable({
           <TableRow
             key={job.id}
             className="cursor-pointer"
-            onClick={() => router.push(`/jobs/${job.id}`)}
+            onClick={() => navigate({ to: `/jobs/${job.id}` })}
           >
             <TableCell className="max-w-48">
               <TooltipProvider>

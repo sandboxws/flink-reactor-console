@@ -1,5 +1,3 @@
-"use client"
-
 import { AlertTriangle, BarChart3, Layers, Search } from "lucide-react"
 import { MetricCard } from "@/components/shared/metric-card"
 import { useClusterStore } from "@/stores/cluster-store"

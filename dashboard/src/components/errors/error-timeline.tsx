@@ -1,5 +1,3 @@
-"use client"
-
 import { useMemo } from "react"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 

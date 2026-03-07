@@ -1,5 +1,3 @@
-"use client"
-
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react"
 import type { HealthIssue } from "@/stores/insights-store"
 

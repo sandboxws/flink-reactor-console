@@ -59,7 +59,7 @@ interface SqlGatewayState {
 }
 
 /** API route base path for SQL Gateway proxy (via Go server) */
-const SQL_GATEWAY_API = `${process.env.NEXT_PUBLIC_GRAPHQL_URL?.replace("/graphql", "") ?? ""}/api/flink/sql-gateway`
+const SQL_GATEWAY_API = `${(import.meta.env.VITE_GRAPHQL_URL ?? "").replace("/graphql", "")}/api/flink/sql-gateway`
 
 async function apiRequest<T>(
   path: string,

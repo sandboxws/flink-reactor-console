@@ -1,5 +1,3 @@
-"use client"
-
 import { Search, Settings } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { EmptyState } from "@/components/shared/empty-state"

@@ -1,5 +1,3 @@
-"use client"
-
 import { useMemo } from "react"
 import { StaticLogExplorer } from "@/components/shared/static-log-explorer"
 import { parseLogBlock } from "@/data/log-parser"

@@ -1,5 +1,3 @@
-"use client"
-
 import { Check, ChevronRight, Copy } from "lucide-react"
 import { useMemo, useState } from "react"
 import {

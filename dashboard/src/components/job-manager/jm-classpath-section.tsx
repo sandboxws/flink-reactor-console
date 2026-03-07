@@ -1,5 +1,3 @@
-"use client"
-
 import { FolderOpen, Search } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { ClasspathEntry } from "@/data/cluster-types"

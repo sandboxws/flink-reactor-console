@@ -1,6 +1,4 @@
-"use client"
-
-import Link from "next/link"
+import { Link } from "@tanstack/react-router"
 import { cn } from "@/lib/cn"
 
 interface DeploymentCardProps {
@@ -48,7 +46,7 @@ export function DeploymentCard({
           <span className="text-zinc-500">Job ID</span>
           {jobId ? (
             <Link
-              href={`/jobs/${jobId}`}
+              to={`/jobs/${jobId}`}
               className="font-mono text-sky-400 hover:text-sky-300 transition-colors"
             >
               {jobId.slice(0, 16)}...

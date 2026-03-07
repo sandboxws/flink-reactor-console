@@ -1,5 +1,9 @@
 query CheckpointDetail($jobId: ID!, $checkpointId: String!, $cluster: String) {
-  checkpointDetail(jobId: $jobId, checkpointId: $checkpointId, cluster: $cluster) {
+  checkpointDetail(
+    jobId: $jobId
+    checkpointId: $checkpointId
+    cluster: $cluster
+  ) {
     id
     status
     isSavepoint

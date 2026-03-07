@@ -1,5 +1,4 @@
-"use client"
-
+import { Link, useLocation } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
@@ -20,8 +19,6 @@ import {
   Settings,
   Upload,
 } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { cn } from "@/lib/cn"
 import { useUiStore } from "@/stores/ui-store"
 
@@ -114,7 +111,7 @@ const NAV_GROUPS: NavGroup[] = [
 export function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggle = useUiStore((s) => s.toggleSidebar)
-  const pathname = usePathname()
+  const pathname = useLocation({ select: (l) => l.pathname })
 
   return (
     <aside
@@ -148,7 +145,7 @@ export function Sidebar() {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    to={item.href}
                     className={cn(
                       "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors",
                       active

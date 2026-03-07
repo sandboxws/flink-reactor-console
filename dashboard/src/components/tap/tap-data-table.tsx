@@ -1,5 +1,3 @@
-"use client"
-
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { ArrowDown, ArrowUp, Loader2 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -44,9 +42,10 @@ export function TapDataTable({
   // Sort rows if sort is active
   const sortedRows = useMemo(() => {
     if (!sort.column) return rows
+    const col = sort.column
     return [...rows].sort((a, b) => {
-      const aVal = a[sort.column!]
-      const bVal = b[sort.column!]
+      const aVal = a[col]
+      const bVal = b[col]
       const cmp = compareValues(aVal, bVal)
       return sort.direction === "desc" ? -cmp : cmp
     })

@@ -1,5 +1,3 @@
-"use client"
-
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { ArrowDown, ScrollText } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"

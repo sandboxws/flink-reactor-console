@@ -99,10 +99,10 @@ func spaMiddleware(staticDir string) echo.MiddlewareFunc {
 }
 
 // setCacheHeaders sets appropriate Cache-Control headers based on the file path.
-// Hashed assets (under _next/static/) get long-term caching.
+// Hashed assets (under assets/ or _next/static/) get long-term caching.
 // index.html gets no-cache for instant updates on deployment.
 func setCacheHeaders(c echo.Context, path string) {
-	if strings.Contains(path, "_next/static/") || strings.Contains(path, "/_next/static/") {
+	if strings.Contains(path, "assets/") || strings.Contains(path, "_next/static/") || strings.Contains(path, "/_next/static/") {
 		c.Response().Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	} else if strings.HasSuffix(path, "index.html") || path == "" {
 		c.Response().Header().Set("Cache-Control", "no-cache")

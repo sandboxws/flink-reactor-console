@@ -17,7 +17,11 @@ query BlueGreenDeployments($cluster: String, $namespace: String) {
   }
 }
 
-query BlueGreenDeploymentDetail($name: String!, $namespace: String, $cluster: String) {
+query BlueGreenDeploymentDetail(
+  $name: String!
+  $namespace: String
+  $cluster: String
+) {
   blueGreenDeployment(name: $name, namespace: $namespace, cluster: $cluster) {
     name
     namespace

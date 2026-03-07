@@ -1,5 +1,3 @@
-"use client"
-
 import { TextViewer } from "@/components/shared/text-viewer"
 
 // ---------------------------------------------------------------------------

@@ -121,6 +121,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
 	}))
+	gqlSrv.SetErrorPresenter(graphql.NewErrorPresenter(logger))
 	gqlSrv.Use(observability.GraphQLMetrics{})
 	gqlSrv.AddTransport(transport.Options{})
 	gqlSrv.AddTransport(transport.GET{})

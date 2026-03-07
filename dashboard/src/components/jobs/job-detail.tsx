@@ -1,7 +1,4 @@
-"use client"
-
-import dynamic from "next/dynamic"
-import { useCallback, useMemo, useState } from "react"
+import { lazy, Suspense, useCallback, useMemo, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlinkJob } from "@/data/cluster-types"
 import type { TapMetadata } from "@/data/tap-types"
@@ -17,21 +14,21 @@ import { JobHeader } from "./detail/job-header"
 import { TimelineTab } from "./detail/timeline-tab"
 import { VerticesTab } from "./detail/vertices-tab"
 
-// Dynamic import for ReactFlow component (dagre uses CJS require which breaks SSR)
-const JobGraph = dynamic(
-  () => import("./detail/job-graph").then((m) => m.JobGraph),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500"
-        style={{ height: 500 }}
-      >
-        Loading graph...
-      </div>
-    ),
-  },
+// Lazy import for ReactFlow component (dagre uses CJS)
+const JobGraph = lazy(() =>
+  import("./detail/job-graph").then((m) => ({ default: m.JobGraph })),
 )
+
+function JobGraphFallback() {
+  return (
+    <div
+      className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500"
+      style={{ height: 500 }}
+    >
+      Loading graph...
+    </div>
+  )
+}
 
 export function JobDetail({
   job,
@@ -164,14 +161,16 @@ export function JobDetail({
 
         <TabsContent value="overview" className="mt-4">
           {job.plan ? (
-            <JobGraph
-              plan={job.plan}
-              onSelectVertex={handleSelectVertex}
-              tapMetadataByVertex={tapMetadataByVertex}
-              tapSessionStatuses={tapSessionStatuses}
-              onTapInto={handleTapInto}
-              onStopTap={handleStopTap}
-            />
+            <Suspense fallback={<JobGraphFallback />}>
+              <JobGraph
+                plan={job.plan}
+                onSelectVertex={handleSelectVertex}
+                tapMetadataByVertex={tapMetadataByVertex}
+                tapSessionStatuses={tapSessionStatuses}
+                onTapInto={handleTapInto}
+                onStopTap={handleStopTap}
+              />
+            </Suspense>
           ) : (
             <div className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500">
               No execution plan available

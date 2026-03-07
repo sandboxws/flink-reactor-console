@@ -1,5 +1,4 @@
-"use client"
-
+import { Link, useNavigate } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import {
   ArrowDown,
@@ -8,8 +7,6 @@ import {
   ArrowUpDown,
   Radio,
 } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -132,7 +129,7 @@ export function JobList({
   accent?: string
   limit?: number
 }) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const tappablePipelines = useClusterStore((s) => s.tappablePipelines)
   const [sortKey, setSortKey] = useState<SortKey>("started")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
@@ -168,7 +165,7 @@ export function JobList({
         </span>
         <span className="text-xs tabular-nums">{jobs.length}</span>
         <Link
-          href={href}
+          to={href}
           className="ml-auto flex items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
         >
           View all
@@ -201,7 +198,7 @@ export function JobList({
               <TableRow
                 key={job.id}
                 className="cursor-pointer"
-                onClick={() => router.push(`/jobs/${job.id}`)}
+                onClick={() => navigate({ to: `/jobs/${job.id}` })}
               >
                 <TableCell className="max-w-48">
                   <span className="flex items-center gap-1.5 truncate font-medium">
@@ -234,7 +231,7 @@ export function JobList({
 
       {jobs.length > limit && (
         <Link
-          href={href}
+          to={href}
           className="flex items-center justify-center gap-1 border-t border-dash-border px-4 py-2 text-xs text-zinc-600 transition-colors hover:text-zinc-400"
         >
           +{jobs.length - limit} more

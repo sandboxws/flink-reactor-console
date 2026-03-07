@@ -1,10 +1,20 @@
 query JobManagerDetail($cluster: String) {
   jobManager(cluster: $cluster) {
-    config { key value }
+    config {
+      key
+      value
+    }
     environment {
-      jvm { version arch options }
+      jvm {
+        version
+        arch
+        options
+      }
       classpath
     }
-    metrics { id value }
+    metrics {
+      id
+      value
+    }
   }
 }

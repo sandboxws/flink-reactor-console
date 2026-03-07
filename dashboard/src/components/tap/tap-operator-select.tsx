@@ -1,5 +1,3 @@
-"use client"
-
 import { ArrowRight, Database, GitMerge, Radio, Shuffle } from "lucide-react"
 import type { TapMetadata } from "@/data/tap-types"
 import { cn } from "@/lib/cn"

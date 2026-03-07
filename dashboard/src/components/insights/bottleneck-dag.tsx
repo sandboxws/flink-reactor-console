@@ -1,5 +1,3 @@
-"use client"
-
 import type { Edge, Node, NodeProps } from "@xyflow/react"
 import {
   Background,

@@ -1,8 +1,6 @@
-"use client"
-
+import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
 import { ExternalLink } from "lucide-react"
-import Link from "next/link"
 import { SourceBadge } from "@/components/shared/source-badge"
 import type { ErrorGroup } from "@/data/types"
 import { StackTrace } from "./stack-trace"
@@ -84,7 +82,7 @@ export function ErrorDetail({ group }: { group: ErrorGroup }) {
       {/* Link to related log entries */}
       <div>
         <Link
-          href={`/logs?level=ERROR&from=${group.firstSeen.toISOString()}&to=${group.lastSeen.toISOString()}`}
+          to={`/logs?level=ERROR&from=${group.firstSeen.toISOString()}&to=${group.lastSeen.toISOString()}`}
           className="inline-flex items-center gap-1 text-[11px] text-fr-purple hover:text-fr-purple/80 transition-colors"
         >
           <ExternalLink className="size-3" />

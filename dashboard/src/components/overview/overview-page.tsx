@@ -1,5 +1,3 @@
-"use client"
-
 import {
   AlertCircle,
   CheckCircle2,
@@ -53,13 +51,22 @@ function OverviewError({
   onRetry: () => void
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-16 text-zinc-500">
-      <AlertCircle className="size-10 text-red-400 opacity-60" />
-      <p className="text-sm text-zinc-400">{message}</p>
-      <Button variant="outline" size="sm" onClick={onRetry}>
-        <RefreshCw className="mr-1.5 size-3.5" />
-        Retry
-      </Button>
+    <div className="flex min-h-[60vh] items-center justify-center p-8">
+      <div className="glass-card flex max-w-md flex-col items-center gap-5 px-10 py-12 text-center">
+        <div className="flex size-14 items-center justify-center rounded-full bg-red-500/10">
+          <AlertCircle className="size-7 text-red-400" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <h3 className="text-base font-medium text-zinc-200">
+            Connection Error
+          </h3>
+          <p className="text-sm leading-relaxed text-zinc-400">{message}</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          <RefreshCw className="mr-1.5 size-3.5" />
+          Retry
+        </Button>
+      </div>
     </div>
   )
 }

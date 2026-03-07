@@ -1,5 +1,3 @@
-"use client"
-
 import { format } from "date-fns"
 import { ChevronRight } from "lucide-react"
 import { memo, useMemo } from "react"

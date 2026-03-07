@@ -1,5 +1,3 @@
-"use client"
-
 import { Activity, Database, Radio, Users } from "lucide-react"
 import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 

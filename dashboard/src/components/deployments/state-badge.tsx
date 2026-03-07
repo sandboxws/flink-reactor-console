@@ -1,5 +1,3 @@
-"use client"
-
 import {
   type BlueGreenState,
   getStateBadgeColor,
@@ -31,12 +29,13 @@ export function StateBadge({ state, className }: StateBadgeProps) {
       )}
     >
       <span
-        className={cn("size-1.5 rounded-full", {
-          "bg-emerald-400 animate-pulse": color === "green",
-          "bg-amber-400 animate-pulse": color === "amber",
-          "bg-sky-400 animate-pulse": color === "blue",
-          "bg-zinc-400": color === "gray",
-        })}
+        className={cn(
+          "size-1.5 rounded-full",
+          color === "green" && "bg-emerald-400 animate-pulse",
+          color === "amber" && "bg-amber-400 animate-pulse",
+          color === "blue" && "bg-sky-400 animate-pulse",
+          color === "gray" && "bg-zinc-400",
+        )}
       />
       {getStateLabel(state)}
     </span>

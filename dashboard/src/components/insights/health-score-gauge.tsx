@@ -1,5 +1,3 @@
-"use client"
-
 function scoreColor(score: number): string {
   if (score >= 80) return "var(--color-job-running)"
   if (score >= 50) return "var(--color-fr-amber)"

@@ -1,5 +1,3 @@
-"use client"
-
 import type { NodeProps } from "@xyflow/react"
 import { Handle, Position } from "@xyflow/react"
 import { Radio } from "lucide-react"

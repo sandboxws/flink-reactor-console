@@ -1,5 +1,3 @@
-"use client"
-
 import type { EdgeProps } from "@xyflow/react"
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from "@xyflow/react"
 

@@ -1,6 +1,4 @@
-"use client"
-
-import Link from "next/link"
+import { Link } from "@tanstack/react-router"
 import type { BlueGreenDeployment } from "@/data/bg-deployment-types"
 import { StateBadge } from "./state-badge"
 
@@ -40,7 +38,7 @@ export function DeploymentsTable({ deployments }: DeploymentsTableProps) {
           >
             <td className="px-4 py-2.5">
               <Link
-                href={`/deployments/${d.name}`}
+                to={`/deployments/${d.name}`}
                 className="font-medium text-zinc-200 hover:text-fr-coral transition-colors"
               >
                 {d.name}
@@ -53,7 +51,7 @@ export function DeploymentsTable({ deployments }: DeploymentsTableProps) {
             <td className="px-4 py-2.5">
               {d.activeJobId ? (
                 <Link
-                  href={`/jobs/${d.activeJobId}`}
+                  to={`/jobs/${d.activeJobId}`}
                   className="font-mono text-xs text-sky-400 hover:text-sky-300 transition-colors"
                 >
                   {d.activeJobId.slice(0, 12)}...

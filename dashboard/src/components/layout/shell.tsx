@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect } from "react"
 import { useConfigStore } from "@/stores/config-store"
 import { useUiStore } from "@/stores/ui-store"
