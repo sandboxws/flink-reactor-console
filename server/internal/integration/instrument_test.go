@@ -32,7 +32,7 @@ func TestIntegration_Instruments_ListWithHealth(t *testing.T) {
 	registry := instruments.NewRegistry(logger)
 	registry.Register(&testInstrument{name: "test-kafka", instType: "kafka"})
 	_ = registry.InitAll(context.Background(), []instruments.InstrumentConfig{
-		{Name: "test-kafka", Config: json.RawMessage(`{}`)},
+		{Name: "test-kafka", Config: map[string]any{}},
 	})
 
 	srv := server.New(":0", logger, mgr, registry)

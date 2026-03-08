@@ -183,7 +183,7 @@ func TestDashboardConfig_WithInstruments(t *testing.T) {
 	registry := instruments.NewRegistry(testLogger())
 	registry.Register(&mockInstrument{name: "test-kafka"})
 	_ = registry.InitAll(context.Background(), []instruments.InstrumentConfig{
-		{Name: "test-kafka", Config: json.RawMessage(`{}`)},
+		{Name: "test-kafka", Config: map[string]any{}},
 	})
 	resolver.InstrumentRegistry = registry
 

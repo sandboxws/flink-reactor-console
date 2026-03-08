@@ -3,12 +3,13 @@ package config
 import (
 	"log/slog"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
 
 // loadClean calls Load() from a temp directory with no config files,
-// ensuring only defaults and env vars take effect.
+// ensuring only defaults take effect.
 func loadClean(t *testing.T) *Config {
 	t.Helper()
 
@@ -25,13 +26,47 @@ func loadClean(t *testing.T) *Config {
 		_ = os.Chdir(origDir)
 	})
 
-	// Clear all env vars that could interfere.
+	// Clear env vars that could interfere.
 	for _, key := range []string{
-		"REACTOR_ENV", "APP_ENV", "CLUSTERS", "INSTRUMENTS",
-		"FLINK_REST_URL", "FLINK_AUTH_TOKEN", "SQL_GATEWAY_URL",
-		"HEALTH_CHECK_INTERVAL", "STATIC_DIR",
-		"REACTOR_SERVER_PORT", "REACTOR_LOG_LEVEL",
-		"REACTOR_HEALTH_INTERVAL", "REACTOR_FLINK_REST_URL",
+		"REACTOR_ENV", "APP_ENV", "FLINK_AUTH_TOKEN",
+	} {
+		t.Setenv(key, "")
+	}
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+	return cfg
+}
+
+// loadWithYAML creates a temp directory with a development.yml config file
+// and calls Load() from there.
+func loadWithYAML(t *testing.T, yamlContent string) *Config {
+	t.Helper()
+
+	origDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Getwd: %v", err)
+	}
+
+	tmpDir := t.TempDir()
+	configDir := filepath.Join(tmpDir, "config")
+	if err := os.MkdirAll(configDir, 0o750); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(configDir, "development.yml"), []byte(yamlContent), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Chdir: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = os.Chdir(origDir)
+	})
+
+	for _, key := range []string{
+		"REACTOR_ENV", "APP_ENV", "FLINK_AUTH_TOKEN",
 	} {
 		t.Setenv(key, "")
 	}
@@ -68,6 +103,9 @@ func TestLoadDefaults(t *testing.T) {
 	// Flink defaults.
 	if cfg.Flink.RestURL != "http://localhost:8081" {
 		t.Errorf("Flink.RestURL = %q, want %q", cfg.Flink.RestURL, "http://localhost:8081")
+	}
+	if cfg.Flink.SQLGatewayURL != "" {
+		t.Errorf("Flink.SQLGatewayURL = %q, want empty", cfg.Flink.SQLGatewayURL)
 	}
 
 	// Health defaults.
@@ -119,114 +157,168 @@ func TestDetectEnvironment_Default(t *testing.T) {
 	}
 }
 
-func TestEnvVarOverrides(t *testing.T) {
-	// Start from a clean state (temp dir, no YAML).
+func TestAuthTokenEnvVar(t *testing.T) {
+	// Set up YAML config dir, then set the secret env var before loading.
 	origDir, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Getwd: %v", err)
 	}
+
 	tmpDir := t.TempDir()
+	configDir := filepath.Join(tmpDir, "config")
+	if err := os.MkdirAll(configDir, 0o750); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	yamlContent := "flink:\n  rest_url: \"http://flink:8081\"\n"
+	if err := os.WriteFile(filepath.Join(configDir, "development.yml"), []byte(yamlContent), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("Chdir: %v", err)
 	}
 	t.Cleanup(func() { _ = os.Chdir(origDir) })
 
-	for _, key := range []string{
-		"REACTOR_ENV", "APP_ENV", "CLUSTERS", "INSTRUMENTS",
-		"FLINK_REST_URL", "FLINK_AUTH_TOKEN", "SQL_GATEWAY_URL",
-		"HEALTH_CHECK_INTERVAL", "STATIC_DIR",
-	} {
-		t.Setenv(key, "")
-	}
-
-	t.Setenv("REACTOR_SERVER_PORT", "9090")
-	t.Setenv("REACTOR_LOG_LEVEL", "debug")
+	t.Setenv("REACTOR_ENV", "")
+	t.Setenv("APP_ENV", "")
+	t.Setenv("FLINK_AUTH_TOKEN", "my-secret-token")
 
 	cfg, err := Load()
 	if err != nil {
 		t.Fatalf("Load() error: %v", err)
 	}
 
-	if cfg.Server.Port != 9090 {
-		t.Errorf("Server.Port = %d, want 9090", cfg.Server.Port)
-	}
-	if cfg.Log.Level != "debug" {
-		t.Errorf("Log.Level = %q, want %q", cfg.Log.Level, "debug")
+	if cfg.Flink.AuthToken != "my-secret-token" {
+		t.Errorf("Flink.AuthToken = %q, want %q", cfg.Flink.AuthToken, "my-secret-token")
 	}
 }
 
-func TestLegacyEnvVarBindings(t *testing.T) {
-	origDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Getwd: %v", err)
-	}
-	tmpDir := t.TempDir()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("Chdir: %v", err)
-	}
-	t.Cleanup(func() { _ = os.Chdir(origDir) })
+func TestYAMLConfigValues(t *testing.T) {
+	cfg := loadWithYAML(t, `
+flink:
+  rest_url: "http://flink:8081"
+  sql_gateway_url: "http://sqlgw:8083"
 
-	for _, key := range []string{"REACTOR_ENV", "APP_ENV", "CLUSTERS", "INSTRUMENTS"} {
-		t.Setenv(key, "")
-	}
+server:
+  port: 9090
 
-	t.Setenv("FLINK_REST_URL", "http://flink:8081")
-	t.Setenv("FLINK_AUTH_TOKEN", "my-token")
-	t.Setenv("SQL_GATEWAY_URL", "http://sqlgw:8083")
-	t.Setenv("HEALTH_CHECK_INTERVAL", "45s")
-	t.Setenv("STATIC_DIR", "/app/dist")
+health:
+  interval: "45s"
 
-	cfg, err := Load()
-	if err != nil {
-		t.Fatalf("Load() error: %v", err)
-	}
+log:
+  level: "debug"
+
+spa:
+  static_dir: "/app/dist"
+`)
 
 	if cfg.Flink.RestURL != "http://flink:8081" {
 		t.Errorf("Flink.RestURL = %q, want %q", cfg.Flink.RestURL, "http://flink:8081")
 	}
-	if cfg.Flink.AuthToken != "my-token" {
-		t.Errorf("Flink.AuthToken = %q, want %q", cfg.Flink.AuthToken, "my-token")
+	if cfg.Flink.SQLGatewayURL != "http://sqlgw:8083" {
+		t.Errorf("Flink.SQLGatewayURL = %q, want %q", cfg.Flink.SQLGatewayURL, "http://sqlgw:8083")
 	}
-	if cfg.SQLGateway.URL != "http://sqlgw:8083" {
-		t.Errorf("SQLGateway.URL = %q, want %q", cfg.SQLGateway.URL, "http://sqlgw:8083")
+	if cfg.Server.Port != 9090 {
+		t.Errorf("Server.Port = %d, want 9090", cfg.Server.Port)
 	}
 	if cfg.Health.Interval != 45*time.Second {
 		t.Errorf("Health.Interval = %v, want %v", cfg.Health.Interval, 45*time.Second)
+	}
+	if cfg.Log.Level != "debug" {
+		t.Errorf("Log.Level = %q, want %q", cfg.Log.Level, "debug")
 	}
 	if cfg.SPA.StaticDir != "/app/dist" {
 		t.Errorf("SPA.StaticDir = %q, want %q", cfg.SPA.StaticDir, "/app/dist")
 	}
 
-	// Clusters should use the legacy FLINK_REST_URL.
+	// Single cluster from flink.* settings.
 	if len(cfg.Clusters) != 1 {
 		t.Fatalf("len(Clusters) = %d, want 1", len(cfg.Clusters))
 	}
 	if cfg.Clusters[0].URL != "http://flink:8081" {
 		t.Errorf("Clusters[0].URL = %q, want %q", cfg.Clusters[0].URL, "http://flink:8081")
 	}
+	if cfg.Clusters[0].SQLGatewayURL != "http://sqlgw:8083" {
+		t.Errorf("Clusters[0].SQLGatewayURL = %q, want %q", cfg.Clusters[0].SQLGatewayURL, "http://sqlgw:8083")
+	}
 }
 
-func TestDurationFromEnvVar(t *testing.T) {
-	origDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Getwd: %v", err)
-	}
-	tmpDir := t.TempDir()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("Chdir: %v", err)
-	}
-	t.Cleanup(func() { _ = os.Chdir(origDir) })
+func TestYAMLMultiCluster(t *testing.T) {
+	cfg := loadWithYAML(t, `
+clusters:
+  - name: "production"
+    url: "http://flink-prod:8081"
+    sql_gateway_url: "http://sqlgw-prod:8083"
+    default: true
+  - name: "staging"
+    url: "http://flink-staging:8081"
+`)
 
-	for _, key := range []string{"REACTOR_ENV", "APP_ENV", "CLUSTERS", "INSTRUMENTS", "FLINK_REST_URL"} {
-		t.Setenv(key, "")
+	if len(cfg.Clusters) != 2 {
+		t.Fatalf("len(Clusters) = %d, want 2", len(cfg.Clusters))
 	}
 
-	t.Setenv("REACTOR_HEALTH_INTERVAL", "2m")
-
-	cfg, err := Load()
-	if err != nil {
-		t.Fatalf("Load() error: %v", err)
+	prod := cfg.Clusters[0]
+	if prod.Name != "production" {
+		t.Errorf("Clusters[0].Name = %q, want %q", prod.Name, "production")
 	}
+	if prod.URL != "http://flink-prod:8081" {
+		t.Errorf("Clusters[0].URL = %q, want %q", prod.URL, "http://flink-prod:8081")
+	}
+	if prod.SQLGatewayURL != "http://sqlgw-prod:8083" {
+		t.Errorf("Clusters[0].SQLGatewayURL = %q, want %q", prod.SQLGatewayURL, "http://sqlgw-prod:8083")
+	}
+	if !prod.Default {
+		t.Error("Clusters[0].Default = false, want true")
+	}
+
+	staging := cfg.Clusters[1]
+	if staging.Name != "staging" {
+		t.Errorf("Clusters[1].Name = %q, want %q", staging.Name, "staging")
+	}
+	if staging.URL != "http://flink-staging:8081" {
+		t.Errorf("Clusters[1].URL = %q, want %q", staging.URL, "http://flink-staging:8081")
+	}
+}
+
+func TestYAMLInstruments(t *testing.T) {
+	cfg := loadWithYAML(t, `
+flink:
+  rest_url: "http://localhost:8081"
+
+instruments:
+  - type: "kafka"
+    name: "local-kafka"
+    config:
+      brokers: "localhost:9092"
+  - type: "database"
+    name: "local-pg"
+    config:
+      driver: "postgres"
+      dsn: "postgres://localhost:5432/mydb"
+`)
+
+	if len(cfg.Instruments) != 2 {
+		t.Fatalf("len(Instruments) = %d, want 2", len(cfg.Instruments))
+	}
+	if cfg.Instruments[0].Type != "kafka" {
+		t.Errorf("Instruments[0].Type = %q, want %q", cfg.Instruments[0].Type, "kafka")
+	}
+	if cfg.Instruments[0].Name != "local-kafka" {
+		t.Errorf("Instruments[0].Name = %q, want %q", cfg.Instruments[0].Name, "local-kafka")
+	}
+	if cfg.Instruments[1].Type != "database" {
+		t.Errorf("Instruments[1].Type = %q, want %q", cfg.Instruments[1].Type, "database")
+	}
+}
+
+func TestDurationFromYAML(t *testing.T) {
+	cfg := loadWithYAML(t, `
+flink:
+  rest_url: "http://localhost:8081"
+
+health:
+  interval: "2m"
+`)
 
 	if cfg.Health.Interval != 2*time.Minute {
 		t.Errorf("Health.Interval = %v, want %v", cfg.Health.Interval, 2*time.Minute)

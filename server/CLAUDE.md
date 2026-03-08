@@ -98,17 +98,60 @@ Instruments are pluggable infrastructure connectors (Kafka, Database). Each impl
 ### EventBus
 `flink.EventBus[T]` is a generic pub/sub bus used for WebSocket subscriptions. Watchers (job status poller, K8s CRD watcher) publish events; GraphQL subscription resolvers subscribe. Subscribers receive a channel and must read from it to avoid blocking.
 
-## Environment Variables
+## Configuration
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `FLINK_REST_URL` | Yes (single-cluster) | `http://localhost:8081` | Flink REST API URL |
-| `FLINK_AUTH_TOKEN` | No | — | Bearer token for Flink API auth |
-| `SQL_GATEWAY_URL` | No | — | Flink SQL Gateway URL |
-| `CLUSTERS` | No | — | JSON array for multi-cluster mode (overrides single-cluster vars) |
-| `HEALTH_CHECK_INTERVAL` | No | `30s` | Go duration for health polling interval |
-| `INSTRUMENTS` | No | — | JSON array of instrument configs (`[{"name":"...","type":"kafka",...}]`) |
-| `STATIC_DIR` | No | — | Path to dashboard static files for SPA serving |
+All non-secret configuration is defined in YAML config files under `config/`. The environment-specific file is selected by `REACTOR_ENV` or `APP_ENV` (defaults to `development`).
+
+### Environment Variables (secrets only)
+
+| Variable | Description |
+|----------|-------------|
+| `REACTOR_ENV` / `APP_ENV` | Selects which YAML config file to load (e.g. `production` → `config/production.yml`) |
+| `FLINK_AUTH_TOKEN` | Bearer token for Flink API auth |
+
+### YAML Config Structure
+
+```yaml
+app:
+  debug: true
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: "30s"
+  write_timeout: "30s"
+  drain_timeout: "30s"
+
+flink:
+  rest_url: "http://localhost:8081"
+  sql_gateway_url: "http://localhost:8083"
+  # auth_token: set via FLINK_AUTH_TOKEN env var
+
+# Multi-cluster mode (overrides flink.* for cluster creation):
+# clusters:
+#   - name: "production"
+#     url: "http://flink-prod:8081"
+#     sql_gateway_url: "http://sqlgw-prod:8083"
+#     default: true
+#   - name: "staging"
+#     url: "http://flink-staging:8081"
+
+health:
+  interval: "30s"
+
+log:
+  level: "info"       # debug, info, warn, error
+  format: "console"   # console, json
+
+spa:
+  static_dir: ""
+
+instruments:
+  - type: "kafka"
+    name: "local-kafka"
+    config:
+      brokers: "localhost:9092"
+```
 
 ## Cross-References
 

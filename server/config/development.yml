@@ -7,6 +7,7 @@ server:
 
 flink:
   rest_url: "http://localhost:8081"
+  sql_gateway_url: "http://localhost:8083"
 
 health:
   interval: "30s"

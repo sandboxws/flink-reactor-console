@@ -1,6 +1,6 @@
 // Package config provides centralized configuration loading for the reactor-server.
-// It uses Viper to load settings from environment-specific YAML files, env var
-// overrides (REACTOR_ prefix), and legacy env var bindings for backward compatibility.
+// It uses Viper to load settings from environment-specific YAML files with env var
+// overrides limited to secrets only (e.g. FLINK_AUTH_TOKEN).
 package config
 
 import (
@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -23,7 +22,6 @@ type Config struct {
 	Server      ServerConfig                   `mapstructure:"server"`
 	Clusters    []cluster.Config               `mapstructure:"clusters"`
 	Flink       FlinkConfig                    `mapstructure:"flink"`
-	SQLGateway  SQLGatewayConfig               `mapstructure:"sql_gateway"`
 	Health      HealthConfig                   `mapstructure:"health"`
 	Instruments []instruments.InstrumentConfig `mapstructure:"instruments"`
 	Log         LogConfig                      `mapstructure:"log"`
@@ -46,15 +44,11 @@ type ServerConfig struct {
 	DrainTimeout time.Duration `mapstructure:"drain_timeout"`
 }
 
-// FlinkConfig holds default Flink REST connection settings.
+// FlinkConfig holds default Flink connection settings.
 type FlinkConfig struct {
-	RestURL   string `mapstructure:"rest_url"`
-	AuthToken string `mapstructure:"auth_token"`
-}
-
-// SQLGatewayConfig holds SQL Gateway settings.
-type SQLGatewayConfig struct {
-	URL string `mapstructure:"url"`
+	RestURL       string `mapstructure:"rest_url"`
+	AuthToken     string `mapstructure:"auth_token"`
+	SQLGatewayURL string `mapstructure:"sql_gateway_url"`
 }
 
 // HealthConfig holds health check settings.
@@ -132,14 +126,8 @@ func Load() (*Config, error) {
 		}
 	}
 
-	// Enable automatic env var binding with REACTOR_ prefix.
-	// Replace dots with underscores so "server.port" maps to REACTOR_SERVER_PORT.
-	v.SetEnvPrefix("REACTOR")
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	v.AutomaticEnv()
-
-	// Bind legacy env vars for backward compatibility.
-	bindLegacyEnvVars(v)
+	// Bind env vars only for secrets — all other config comes from YAML files.
+	bindSecretEnvVars(v)
 
 	// Override environment from detection (not from YAML/env binding).
 	v.Set("app.environment", env)
@@ -154,13 +142,11 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("unmarshaling config: %w", err)
 	}
 
-	// Load clusters: env var JSON takes precedence over YAML.
+	// Build clusters from YAML config, falling back to flink.* settings
+	// for single-cluster mode.
 	if err := loadClusters(v, cfg); err != nil {
 		return nil, fmt.Errorf("loading clusters: %w", err)
 	}
-
-	// Load instruments: env var JSON takes precedence over YAML.
-	loadInstruments(cfg)
 
 	return cfg, nil
 }
@@ -179,8 +165,7 @@ func setDefaults(v *viper.Viper) {
 
 	v.SetDefault("flink.rest_url", "http://localhost:8081")
 	v.SetDefault("flink.auth_token", "")
-
-	v.SetDefault("sql_gateway.url", "")
+	v.SetDefault("flink.sql_gateway_url", "")
 
 	v.SetDefault("health.interval", "30s")
 
@@ -201,59 +186,34 @@ func detectEnvironment() string {
 	return "development"
 }
 
-// bindLegacyEnvVars binds existing env vars to their config paths so deployments
-// using the old env var names continue to work.
-func bindLegacyEnvVars(v *viper.Viper) {
-	_ = v.BindEnv("flink.rest_url", "FLINK_REST_URL")         // legacy: FLINK_REST_URL
-	_ = v.BindEnv("flink.auth_token", "FLINK_AUTH_TOKEN")     // legacy: FLINK_AUTH_TOKEN
-	_ = v.BindEnv("sql_gateway.url", "SQL_GATEWAY_URL")       // legacy: SQL_GATEWAY_URL
-	_ = v.BindEnv("health.interval", "HEALTH_CHECK_INTERVAL") // legacy: HEALTH_CHECK_INTERVAL
-	_ = v.BindEnv("spa.static_dir", "STATIC_DIR")             // legacy: STATIC_DIR
+// bindSecretEnvVars binds env vars for secrets only. All other configuration
+// must come from YAML config files.
+func bindSecretEnvVars(v *viper.Viper) {
+	_ = v.BindEnv("flink.auth_token", "FLINK_AUTH_TOKEN")
 }
 
-// loadClusters handles cluster config from the CLUSTERS env var (JSON) or falls
-// back to constructing a single-cluster config from flink.* settings.
+// loadClusters builds the cluster list. If explicit clusters are defined in YAML,
+// they are used as-is. Otherwise, a single "default" cluster is constructed from
+// the flink.* settings.
 func loadClusters(v *viper.Viper, cfg *Config) error {
-	if clustersJSON := os.Getenv("CLUSTERS"); clustersJSON != "" {
-		configs, err := cluster.ParseClustersEnv(clustersJSON, "", "", "")
-		if err != nil {
-			return err
-		}
-		cfg.Clusters = configs
+	if len(cfg.Clusters) > 0 {
 		return nil
 	}
 
-	// If no CLUSTERS env var and no clusters in YAML, build a single-cluster
-	// config from the flink.* settings.
-	if len(cfg.Clusters) == 0 {
-		configs, err := cluster.ParseClustersEnv(
-			"",
-			v.GetString("flink.rest_url"),
-			v.GetString("flink.auth_token"),
-			v.GetString("sql_gateway.url"),
-		)
-		if err != nil {
-			return err
-		}
-		cfg.Clusters = configs
+	restURL := v.GetString("flink.rest_url")
+	if restURL == "" {
+		return fmt.Errorf("no clusters configured and flink.rest_url is empty")
 	}
+
+	cfg.Clusters = []cluster.Config{{
+		Name:          "default",
+		URL:           restURL,
+		Token:         v.GetString("flink.auth_token"),
+		SQLGatewayURL: v.GetString("flink.sql_gateway_url"),
+		Default:       true,
+	}}
 
 	return nil
-}
-
-// loadInstruments handles instrument config from the INSTRUMENTS env var (JSON).
-// If the env var is set, it overrides any YAML-defined instruments.
-func loadInstruments(cfg *Config) {
-	if instJSON := os.Getenv("INSTRUMENTS"); instJSON != "" {
-		configs, err := instruments.ParseInstrumentsEnv(instJSON)
-		if err != nil {
-			// Log warning but don't fail — instruments are optional.
-			slog.Warn("invalid INSTRUMENTS env var, ignoring", "error", err)
-			cfg.Instruments = nil
-			return
-		}
-		cfg.Instruments = configs
-	}
 }
 
 // durationDecodeHook returns a mapstructure decode hook that converts numeric
