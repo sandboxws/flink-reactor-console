@@ -1,0 +1,20 @@
+app:
+  environment: "test"
+  debug: true
+
+server:
+  host: "127.0.0.1"
+  port: 0
+  read_timeout: "5s"
+  write_timeout: "5s"
+  drain_timeout: "5s"
+
+flink:
+  rest_url: "http://localhost:8081"
+
+health:
+  interval: "5s"
+
+log:
+  level: "debug"
+  format: "console"
