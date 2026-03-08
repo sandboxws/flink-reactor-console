@@ -1,0 +1,11 @@
+query Instruments {
+  instruments {
+    name
+    displayName
+    type
+    version
+    healthy
+    lastHealthCheck
+    capabilities
+  }
+}

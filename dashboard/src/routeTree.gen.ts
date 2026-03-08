@@ -16,6 +16,7 @@ import { Route as ErrorsRouteImport } from './routes/errors'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TaskManagersIndexRouteImport } from './routes/task-managers/index'
 import { Route as MaterializedTablesIndexRouteImport } from './routes/materialized-tables/index'
+import { Route as InstrumentsIndexRouteImport } from './routes/instruments/index'
 import { Route as DeploymentsIndexRouteImport } from './routes/deployments/index'
 import { Route as TaskManagersIdRouteImport } from './routes/task-managers/$id'
 import { Route as MonitoringCheckpointsRouteImport } from './routes/monitoring/checkpoints'
@@ -25,6 +26,7 @@ import { Route as JobsSubmitRouteImport } from './routes/jobs/submit'
 import { Route as JobsRunningRouteImport } from './routes/jobs/running'
 import { Route as JobsCompletedRouteImport } from './routes/jobs/completed'
 import { Route as JobsIdRouteImport } from './routes/jobs/$id'
+import { Route as InstrumentsInstrumentNameRouteImport } from './routes/instruments/$instrumentName'
 import { Route as InsightsMetricsRouteImport } from './routes/insights/metrics'
 import { Route as InsightsHealthRouteImport } from './routes/insights/health'
 import { Route as InsightsBottlenecksRouteImport } from './routes/insights/bottlenecks'
@@ -63,6 +65,11 @@ const TaskManagersIndexRoute = TaskManagersIndexRouteImport.update({
 const MaterializedTablesIndexRoute = MaterializedTablesIndexRouteImport.update({
   id: '/materialized-tables/',
   path: '/materialized-tables/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstrumentsIndexRoute = InstrumentsIndexRouteImport.update({
+  id: '/instruments/',
+  path: '/instruments/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeploymentsIndexRoute = DeploymentsIndexRouteImport.update({
@@ -110,6 +117,12 @@ const JobsIdRoute = JobsIdRouteImport.update({
   path: '/jobs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstrumentsInstrumentNameRoute =
+  InstrumentsInstrumentNameRouteImport.update({
+    id: '/instruments/$instrumentName',
+    path: '/instruments/$instrumentName',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const InsightsMetricsRoute = InsightsMetricsRouteImport.update({
   id: '/insights/metrics',
   path: '/insights/metrics',
@@ -141,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
+  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRoute
   '/jobs/$id': typeof JobsIdRoute
   '/jobs/completed': typeof JobsCompletedRoute
   '/jobs/running': typeof JobsRunningRoute
@@ -150,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
   '/deployments/': typeof DeploymentsIndexRoute
+  '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
 }
@@ -163,6 +178,7 @@ export interface FileRoutesByTo {
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
+  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRoute
   '/jobs/$id': typeof JobsIdRoute
   '/jobs/completed': typeof JobsCompletedRoute
   '/jobs/running': typeof JobsRunningRoute
@@ -172,6 +188,7 @@ export interface FileRoutesByTo {
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
   '/deployments': typeof DeploymentsIndexRoute
+  '/instruments': typeof InstrumentsIndexRoute
   '/materialized-tables': typeof MaterializedTablesIndexRoute
   '/task-managers': typeof TaskManagersIndexRoute
 }
@@ -186,6 +203,7 @@ export interface FileRoutesById {
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
+  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRoute
   '/jobs/$id': typeof JobsIdRoute
   '/jobs/completed': typeof JobsCompletedRoute
   '/jobs/running': typeof JobsRunningRoute
@@ -195,6 +213,7 @@ export interface FileRoutesById {
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
   '/deployments/': typeof DeploymentsIndexRoute
+  '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
 }
@@ -210,6 +229,7 @@ export interface FileRouteTypes {
     | '/insights/bottlenecks'
     | '/insights/health'
     | '/insights/metrics'
+    | '/instruments/$instrumentName'
     | '/jobs/$id'
     | '/jobs/completed'
     | '/jobs/running'
@@ -219,6 +239,7 @@ export interface FileRouteTypes {
     | '/monitoring/checkpoints'
     | '/task-managers/$id'
     | '/deployments/'
+    | '/instruments/'
     | '/materialized-tables/'
     | '/task-managers/'
   fileRoutesByTo: FileRoutesByTo
@@ -232,6 +253,7 @@ export interface FileRouteTypes {
     | '/insights/bottlenecks'
     | '/insights/health'
     | '/insights/metrics'
+    | '/instruments/$instrumentName'
     | '/jobs/$id'
     | '/jobs/completed'
     | '/jobs/running'
@@ -241,6 +263,7 @@ export interface FileRouteTypes {
     | '/monitoring/checkpoints'
     | '/task-managers/$id'
     | '/deployments'
+    | '/instruments'
     | '/materialized-tables'
     | '/task-managers'
   id:
@@ -254,6 +277,7 @@ export interface FileRouteTypes {
     | '/insights/bottlenecks'
     | '/insights/health'
     | '/insights/metrics'
+    | '/instruments/$instrumentName'
     | '/jobs/$id'
     | '/jobs/completed'
     | '/jobs/running'
@@ -263,6 +287,7 @@ export interface FileRouteTypes {
     | '/monitoring/checkpoints'
     | '/task-managers/$id'
     | '/deployments/'
+    | '/instruments/'
     | '/materialized-tables/'
     | '/task-managers/'
   fileRoutesById: FileRoutesById
@@ -277,6 +302,7 @@ export interface RootRouteChildren {
   InsightsBottlenecksRoute: typeof InsightsBottlenecksRoute
   InsightsHealthRoute: typeof InsightsHealthRoute
   InsightsMetricsRoute: typeof InsightsMetricsRoute
+  InstrumentsInstrumentNameRoute: typeof InstrumentsInstrumentNameRoute
   JobsIdRoute: typeof JobsIdRoute
   JobsCompletedRoute: typeof JobsCompletedRoute
   JobsRunningRoute: typeof JobsRunningRoute
@@ -286,6 +312,7 @@ export interface RootRouteChildren {
   MonitoringCheckpointsRoute: typeof MonitoringCheckpointsRoute
   TaskManagersIdRoute: typeof TaskManagersIdRoute
   DeploymentsIndexRoute: typeof DeploymentsIndexRoute
+  InstrumentsIndexRoute: typeof InstrumentsIndexRoute
   MaterializedTablesIndexRoute: typeof MaterializedTablesIndexRoute
   TaskManagersIndexRoute: typeof TaskManagersIndexRoute
 }
@@ -339,6 +366,13 @@ declare module '@tanstack/react-router' {
       path: '/materialized-tables'
       fullPath: '/materialized-tables/'
       preLoaderRoute: typeof MaterializedTablesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instruments/': {
+      id: '/instruments/'
+      path: '/instruments'
+      fullPath: '/instruments/'
+      preLoaderRoute: typeof InstrumentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deployments/': {
@@ -404,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instruments/$instrumentName': {
+      id: '/instruments/$instrumentName'
+      path: '/instruments/$instrumentName'
+      fullPath: '/instruments/$instrumentName'
+      preLoaderRoute: typeof InstrumentsInstrumentNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/insights/metrics': {
       id: '/insights/metrics'
       path: '/insights/metrics'
@@ -445,6 +486,7 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsBottlenecksRoute: InsightsBottlenecksRoute,
   InsightsHealthRoute: InsightsHealthRoute,
   InsightsMetricsRoute: InsightsMetricsRoute,
+  InstrumentsInstrumentNameRoute: InstrumentsInstrumentNameRoute,
   JobsIdRoute: JobsIdRoute,
   JobsCompletedRoute: JobsCompletedRoute,
   JobsRunningRoute: JobsRunningRoute,
@@ -454,6 +496,7 @@ const rootRouteChildren: RootRouteChildren = {
   MonitoringCheckpointsRoute: MonitoringCheckpointsRoute,
   TaskManagersIdRoute: TaskManagersIdRoute,
   DeploymentsIndexRoute: DeploymentsIndexRoute,
+  InstrumentsIndexRoute: InstrumentsIndexRoute,
   MaterializedTablesIndexRoute: MaterializedTablesIndexRoute,
   TaskManagersIndexRoute: TaskManagersIndexRoute,
 }
