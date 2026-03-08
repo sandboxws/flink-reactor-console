@@ -18,6 +18,7 @@ import { Route as TaskManagersIndexRouteImport } from './routes/task-managers/in
 import { Route as MaterializedTablesIndexRouteImport } from './routes/materialized-tables/index'
 import { Route as InstrumentsIndexRouteImport } from './routes/instruments/index'
 import { Route as DeploymentsIndexRouteImport } from './routes/deployments/index'
+import { Route as CatalogsIndexRouteImport } from './routes/catalogs/index'
 import { Route as TaskManagersIdRouteImport } from './routes/task-managers/$id'
 import { Route as MonitoringCheckpointsRouteImport } from './routes/monitoring/checkpoints'
 import { Route as MonitoringAlertsRouteImport } from './routes/monitoring/alerts'
@@ -31,6 +32,8 @@ import { Route as InsightsMetricsRouteImport } from './routes/insights/metrics'
 import { Route as InsightsHealthRouteImport } from './routes/insights/health'
 import { Route as InsightsBottlenecksRouteImport } from './routes/insights/bottlenecks'
 import { Route as DeploymentsNameRouteImport } from './routes/deployments/$name'
+import { Route as CatalogsExploreRouteImport } from './routes/catalogs/explore'
+import { Route as CatalogsAvailableRouteImport } from './routes/catalogs/available'
 import { Route as InstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/instruments/$instrumentName/database/index'
 import { Route as InstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/instruments/$instrumentName/database/table'
 import { Route as InstrumentsInstrumentNameDatabaseQueryRouteImport } from './routes/instruments/$instrumentName/database/query'
@@ -78,6 +81,11 @@ const InstrumentsIndexRoute = InstrumentsIndexRouteImport.update({
 const DeploymentsIndexRoute = DeploymentsIndexRouteImport.update({
   id: '/deployments/',
   path: '/deployments/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogsIndexRoute = CatalogsIndexRouteImport.update({
+  id: '/catalogs/',
+  path: '/catalogs/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TaskManagersIdRoute = TaskManagersIdRouteImport.update({
@@ -146,6 +154,16 @@ const DeploymentsNameRoute = DeploymentsNameRouteImport.update({
   path: '/deployments/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CatalogsExploreRoute = CatalogsExploreRouteImport.update({
+  id: '/catalogs/explore',
+  path: '/catalogs/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogsAvailableRoute = CatalogsAvailableRouteImport.update({
+  id: '/catalogs/available',
+  path: '/catalogs/available',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InstrumentsInstrumentNameDatabaseIndexRoute =
   InstrumentsInstrumentNameDatabaseIndexRouteImport.update({
     id: '/database/',
@@ -171,6 +189,8 @@ export interface FileRoutesByFullPath {
   '/job-manager': typeof JobManagerRoute
   '/logs': typeof LogsRoute
   '/overview': typeof OverviewRoute
+  '/catalogs/available': typeof CatalogsAvailableRoute
+  '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
@@ -184,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/monitoring/alerts': typeof MonitoringAlertsRoute
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
+  '/catalogs/': typeof CatalogsIndexRoute
   '/deployments/': typeof DeploymentsIndexRoute
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
@@ -198,6 +219,8 @@ export interface FileRoutesByTo {
   '/job-manager': typeof JobManagerRoute
   '/logs': typeof LogsRoute
   '/overview': typeof OverviewRoute
+  '/catalogs/available': typeof CatalogsAvailableRoute
+  '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
@@ -211,6 +234,7 @@ export interface FileRoutesByTo {
   '/monitoring/alerts': typeof MonitoringAlertsRoute
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
+  '/catalogs': typeof CatalogsIndexRoute
   '/deployments': typeof DeploymentsIndexRoute
   '/instruments': typeof InstrumentsIndexRoute
   '/materialized-tables': typeof MaterializedTablesIndexRoute
@@ -226,6 +250,8 @@ export interface FileRoutesById {
   '/job-manager': typeof JobManagerRoute
   '/logs': typeof LogsRoute
   '/overview': typeof OverviewRoute
+  '/catalogs/available': typeof CatalogsAvailableRoute
+  '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
@@ -239,6 +265,7 @@ export interface FileRoutesById {
   '/monitoring/alerts': typeof MonitoringAlertsRoute
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
+  '/catalogs/': typeof CatalogsIndexRoute
   '/deployments/': typeof DeploymentsIndexRoute
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
@@ -255,6 +282,8 @@ export interface FileRouteTypes {
     | '/job-manager'
     | '/logs'
     | '/overview'
+    | '/catalogs/available'
+    | '/catalogs/explore'
     | '/deployments/$name'
     | '/insights/bottlenecks'
     | '/insights/health'
@@ -268,6 +297,7 @@ export interface FileRouteTypes {
     | '/monitoring/alerts'
     | '/monitoring/checkpoints'
     | '/task-managers/$id'
+    | '/catalogs/'
     | '/deployments/'
     | '/instruments/'
     | '/materialized-tables/'
@@ -282,6 +312,8 @@ export interface FileRouteTypes {
     | '/job-manager'
     | '/logs'
     | '/overview'
+    | '/catalogs/available'
+    | '/catalogs/explore'
     | '/deployments/$name'
     | '/insights/bottlenecks'
     | '/insights/health'
@@ -295,6 +327,7 @@ export interface FileRouteTypes {
     | '/monitoring/alerts'
     | '/monitoring/checkpoints'
     | '/task-managers/$id'
+    | '/catalogs'
     | '/deployments'
     | '/instruments'
     | '/materialized-tables'
@@ -309,6 +342,8 @@ export interface FileRouteTypes {
     | '/job-manager'
     | '/logs'
     | '/overview'
+    | '/catalogs/available'
+    | '/catalogs/explore'
     | '/deployments/$name'
     | '/insights/bottlenecks'
     | '/insights/health'
@@ -322,6 +357,7 @@ export interface FileRouteTypes {
     | '/monitoring/alerts'
     | '/monitoring/checkpoints'
     | '/task-managers/$id'
+    | '/catalogs/'
     | '/deployments/'
     | '/instruments/'
     | '/materialized-tables/'
@@ -337,6 +373,8 @@ export interface RootRouteChildren {
   JobManagerRoute: typeof JobManagerRoute
   LogsRoute: typeof LogsRoute
   OverviewRoute: typeof OverviewRoute
+  CatalogsAvailableRoute: typeof CatalogsAvailableRoute
+  CatalogsExploreRoute: typeof CatalogsExploreRoute
   DeploymentsNameRoute: typeof DeploymentsNameRoute
   InsightsBottlenecksRoute: typeof InsightsBottlenecksRoute
   InsightsHealthRoute: typeof InsightsHealthRoute
@@ -350,6 +388,7 @@ export interface RootRouteChildren {
   MonitoringAlertsRoute: typeof MonitoringAlertsRoute
   MonitoringCheckpointsRoute: typeof MonitoringCheckpointsRoute
   TaskManagersIdRoute: typeof TaskManagersIdRoute
+  CatalogsIndexRoute: typeof CatalogsIndexRoute
   DeploymentsIndexRoute: typeof DeploymentsIndexRoute
   InstrumentsIndexRoute: typeof InstrumentsIndexRoute
   MaterializedTablesIndexRoute: typeof MaterializedTablesIndexRoute
@@ -419,6 +458,13 @@ declare module '@tanstack/react-router' {
       path: '/deployments'
       fullPath: '/deployments/'
       preLoaderRoute: typeof DeploymentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalogs/': {
+      id: '/catalogs/'
+      path: '/catalogs'
+      fullPath: '/catalogs/'
+      preLoaderRoute: typeof CatalogsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/task-managers/$id': {
@@ -512,6 +558,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeploymentsNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/catalogs/explore': {
+      id: '/catalogs/explore'
+      path: '/catalogs/explore'
+      fullPath: '/catalogs/explore'
+      preLoaderRoute: typeof CatalogsExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalogs/available': {
+      id: '/catalogs/available'
+      path: '/catalogs/available'
+      fullPath: '/catalogs/available'
+      preLoaderRoute: typeof CatalogsAvailableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/instruments/$instrumentName/database/': {
       id: '/instruments/$instrumentName/database/'
       path: '/database'
@@ -563,6 +623,8 @@ const rootRouteChildren: RootRouteChildren = {
   JobManagerRoute: JobManagerRoute,
   LogsRoute: LogsRoute,
   OverviewRoute: OverviewRoute,
+  CatalogsAvailableRoute: CatalogsAvailableRoute,
+  CatalogsExploreRoute: CatalogsExploreRoute,
   DeploymentsNameRoute: DeploymentsNameRoute,
   InsightsBottlenecksRoute: InsightsBottlenecksRoute,
   InsightsHealthRoute: InsightsHealthRoute,
@@ -576,6 +638,7 @@ const rootRouteChildren: RootRouteChildren = {
   MonitoringAlertsRoute: MonitoringAlertsRoute,
   MonitoringCheckpointsRoute: MonitoringCheckpointsRoute,
   TaskManagersIdRoute: TaskManagersIdRoute,
+  CatalogsIndexRoute: CatalogsIndexRoute,
   DeploymentsIndexRoute: DeploymentsIndexRoute,
   InstrumentsIndexRoute: InstrumentsIndexRoute,
   MaterializedTablesIndexRoute: MaterializedTablesIndexRoute,

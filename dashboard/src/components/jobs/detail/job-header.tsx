@@ -50,6 +50,20 @@ function tapDisplayName(name: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Explore job detection
+// ---------------------------------------------------------------------------
+
+const EXPLORE_JOB_PREFIX = "explore: "
+
+function isExploreJob(name: string): boolean {
+  return name.startsWith(EXPLORE_JOB_PREFIX)
+}
+
+function exploreDisplayName(name: string): string {
+  return name.slice(EXPLORE_JOB_PREFIX.length)
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -233,6 +247,10 @@ export function JobHeader({
               <span className="shrink-0 rounded-full bg-fr-purple/20 px-2 py-0.5 text-xs font-medium text-fr-purple">
                 TAP
               </span>
+            ) : isExploreJob(job.name) ? (
+              <span className="shrink-0 rounded-full bg-fr-coral/20 px-2 py-0.5 text-xs font-medium text-fr-coral">
+                EXPLORE
+              </span>
             ) : tappablePipelines.has(job.name) ? (
               <span className="flex shrink-0 items-center gap-1 rounded-full bg-fr-purple/10 px-2 py-0.5 text-xs font-medium text-fr-purple/70">
                 <Radio className="size-3" />
@@ -240,7 +258,11 @@ export function JobHeader({
               </span>
             ) : null}
             <h1 className="truncate text-lg font-semibold text-zinc-100">
-              {isTapJob(job.name) ? tapDisplayName(job.name) : job.name}
+              {isTapJob(job.name)
+                ? tapDisplayName(job.name)
+                : isExploreJob(job.name)
+                  ? exploreDisplayName(job.name)
+                  : job.name}
             </h1>
             <Badge
               variant="outline"

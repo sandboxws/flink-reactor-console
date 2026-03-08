@@ -46,6 +46,20 @@ function tapDisplayName(name: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Explore job detection
+// ---------------------------------------------------------------------------
+
+const EXPLORE_JOB_PREFIX = "explore: "
+
+function isExploreJob(name: string): boolean {
+  return name.startsWith(EXPLORE_JOB_PREFIX)
+}
+
+function exploreDisplayName(name: string): string {
+  return name.slice(EXPLORE_JOB_PREFIX.length)
+}
+
+// ---------------------------------------------------------------------------
 // Sort logic
 // ---------------------------------------------------------------------------
 
@@ -300,22 +314,30 @@ export function JobsTable({
                         <span className="shrink-0 rounded-full bg-fr-purple/20 px-1.5 py-0.5 text-[10px] font-medium text-fr-purple">
                           TAP
                         </span>
+                      ) : isExploreJob(job.name) ? (
+                        <span className="shrink-0 rounded-full bg-fr-coral/20 px-1.5 py-0.5 text-[10px] font-medium text-fr-coral">
+                          EXPLORE
+                        </span>
                       ) : tappablePipelines.has(job.name) ? (
                         <Radio className="size-3.5 shrink-0 text-fr-purple/60" />
                       ) : null}
                       <span className="truncate">
                         {isTapJob(job.name)
                           ? tapDisplayName(job.name)
-                          : job.name}
+                          : isExploreJob(job.name)
+                            ? exploreDisplayName(job.name)
+                            : job.name}
                       </span>
                     </span>
                   </TooltipTrigger>
                   <TooltipContent>
                     {isTapJob(job.name)
                       ? "Tap observation job"
-                      : tappablePipelines.has(job.name)
-                        ? "Tappable pipeline"
-                        : job.name}
+                      : isExploreJob(job.name)
+                        ? "Explore query job"
+                        : tappablePipelines.has(job.name)
+                          ? "Tappable pipeline"
+                          : job.name}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

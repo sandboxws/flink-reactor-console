@@ -2,6 +2,7 @@
 package graphql
 
 import (
+	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
@@ -14,4 +15,5 @@ type Resolver struct {
 	Manager            *cluster.Manager
 	InstrumentRegistry *instruments.Registry
 	TapLoader          *tap.Loader
+	CatalogService     *catalogs.Service
 }

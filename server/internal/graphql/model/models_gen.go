@@ -43,6 +43,18 @@ type CancelJobResult struct {
 	Success bool `json:"success"`
 }
 
+type CatalogDatabase struct {
+	Name string `json:"name"`
+}
+
+type CatalogInfo struct {
+	Name string `json:"name"`
+}
+
+type CatalogTable struct {
+	Name string `json:"name"`
+}
+
 type CheckpointConfig struct {
 	Mode                             string `json:"mode"`
 	Interval                         string `json:"interval"`

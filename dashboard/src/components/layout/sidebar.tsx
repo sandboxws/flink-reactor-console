@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
+  FlaskConical,
   GitFork,
   HeartPulse,
   LayoutDashboard,
@@ -64,6 +65,21 @@ const NAV_GROUPS: NavGroup[] = [
         href: "/materialized-tables",
         label: "Materialized Tables",
         icon: Database,
+      },
+    ],
+  },
+  {
+    label: "Catalogs",
+    items: [
+      {
+        href: "/catalogs/available",
+        label: "Available Catalogs",
+        icon: Database,
+      },
+      {
+        href: "/catalogs/explore",
+        label: "Explore Catalogs",
+        icon: FlaskConical,
       },
     ],
   },

@@ -1,0 +1,24 @@
+# Catalog browsing via SQL Gateway
+
+type CatalogInfo {
+  name: String!
+}
+
+type CatalogDatabase {
+  name: String!
+}
+
+type CatalogTable {
+  name: String!
+}
+
+extend type Query {
+  """List all registered Flink catalogs"""
+  catalogs(cluster: String): [CatalogInfo!]!
+
+  """List databases within a catalog"""
+  catalogDatabases(catalog: String!, cluster: String): [CatalogDatabase!]!
+
+  """List tables within a catalog database"""
+  catalogTables(catalog: String!, database: String!, cluster: String): [CatalogTable!]!
+}

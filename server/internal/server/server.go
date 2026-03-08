@@ -15,6 +15,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
@@ -120,10 +121,15 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	e.GET("/readyz", readyzHandler(manager))
 
 	// GraphQL endpoint with WebSocket support for subscriptions.
+	var catalogService *catalogs.Service
+	if manager != nil {
+		catalogService = catalogs.NewService(manager)
+	}
 	resolver := &graphql.Resolver{
 		Manager:            manager,
 		InstrumentRegistry: registry,
 		TapLoader:          cfg.TapLoader,
+		CatalogService:     catalogService,
 	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
