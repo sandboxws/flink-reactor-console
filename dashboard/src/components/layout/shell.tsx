@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useConfigStore } from "@/stores/config-store"
+import { useInstrumentStore } from "@/stores/instrument-store"
 import { useUiStore } from "@/stores/ui-store"
 import { CommandPalette } from "./command-palette"
 import { Header } from "./header"
@@ -10,11 +11,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const fetchConfig = useConfigStore((s) => s.fetchConfig)
   const configLoading = useConfigStore((s) => s.loading)
   const configError = useConfigStore((s) => s.error)
+  const fetchInstruments = useInstrumentStore((s) => s.fetchInstruments)
 
-  // Fetch runtime config on mount
+  // Fetch runtime config and instruments on mount
   useEffect(() => {
     fetchConfig()
-  }, [fetchConfig])
+    fetchInstruments()
+  }, [fetchConfig, fetchInstruments])
 
   // cmd+k / ctrl+k keyboard listener
   useEffect(() => {
