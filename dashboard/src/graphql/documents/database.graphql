@@ -1,0 +1,66 @@
+query DatabaseSchemas($instrument: String!) {
+  databaseSchemas(instrument: $instrument) {
+    name
+    tableCount
+  }
+}
+
+query DatabaseTables($instrument: String!, $schema: String!) {
+  databaseTables(instrument: $instrument, schema: $schema) {
+    name
+    schema
+    type
+    rowCountEstimate
+  }
+}
+
+query DatabaseTable($instrument: String!, $schema: String!, $table: String!) {
+  databaseTable(instrument: $instrument, schema: $schema, table: $table) {
+    name
+    schema
+    columns {
+      name
+      dataType
+      nullable
+      defaultValue
+      isPrimaryKey
+      comment
+    }
+    indexes {
+      name
+      columns
+      unique
+      type
+    }
+    constraints {
+      name
+      type
+      columns
+      refTable
+      refColumns
+    }
+  }
+}
+
+query DatabaseQueryHistory($instrument: String!) {
+  databaseQueryHistory(instrument: $instrument) {
+    sql
+    executedAt
+    executionTimeMs
+    rowCount
+    error
+  }
+}
+
+mutation ExecuteDatabaseQuery($instrument: String!, $sql: String!) {
+  executeDatabaseQuery(instrument: $instrument, sql: $sql) {
+    columns {
+      name
+      dataType
+    }
+    rows
+    rowCount
+    executionTimeMs
+    truncated
+  }
+}

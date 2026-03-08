@@ -31,6 +31,9 @@ import { Route as InsightsMetricsRouteImport } from './routes/insights/metrics'
 import { Route as InsightsHealthRouteImport } from './routes/insights/health'
 import { Route as InsightsBottlenecksRouteImport } from './routes/insights/bottlenecks'
 import { Route as DeploymentsNameRouteImport } from './routes/deployments/$name'
+import { Route as InstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/instruments/$instrumentName/database/index'
+import { Route as InstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/instruments/$instrumentName/database/table'
+import { Route as InstrumentsInstrumentNameDatabaseQueryRouteImport } from './routes/instruments/$instrumentName/database/query'
 
 const OverviewRoute = OverviewRouteImport.update({
   id: '/overview',
@@ -143,6 +146,24 @@ const DeploymentsNameRoute = DeploymentsNameRouteImport.update({
   path: '/deployments/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstrumentsInstrumentNameDatabaseIndexRoute =
+  InstrumentsInstrumentNameDatabaseIndexRouteImport.update({
+    id: '/database/',
+    path: '/database/',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
+const InstrumentsInstrumentNameDatabaseTableRoute =
+  InstrumentsInstrumentNameDatabaseTableRouteImport.update({
+    id: '/database/table',
+    path: '/database/table',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
+const InstrumentsInstrumentNameDatabaseQueryRoute =
+  InstrumentsInstrumentNameDatabaseQueryRouteImport.update({
+    id: '/database/query',
+    path: '/database/query',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -154,7 +175,7 @@ export interface FileRoutesByFullPath {
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
-  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRoute
+  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRouteWithChildren
   '/jobs/$id': typeof JobsIdRoute
   '/jobs/completed': typeof JobsCompletedRoute
   '/jobs/running': typeof JobsRunningRoute
@@ -167,6 +188,9 @@ export interface FileRoutesByFullPath {
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
+  '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
+  '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
+  '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -178,7 +202,7 @@ export interface FileRoutesByTo {
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
-  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRoute
+  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRouteWithChildren
   '/jobs/$id': typeof JobsIdRoute
   '/jobs/completed': typeof JobsCompletedRoute
   '/jobs/running': typeof JobsRunningRoute
@@ -191,6 +215,9 @@ export interface FileRoutesByTo {
   '/instruments': typeof InstrumentsIndexRoute
   '/materialized-tables': typeof MaterializedTablesIndexRoute
   '/task-managers': typeof TaskManagersIndexRoute
+  '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
+  '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
+  '/instruments/$instrumentName/database': typeof InstrumentsInstrumentNameDatabaseIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -203,7 +230,7 @@ export interface FileRoutesById {
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
-  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRoute
+  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRouteWithChildren
   '/jobs/$id': typeof JobsIdRoute
   '/jobs/completed': typeof JobsCompletedRoute
   '/jobs/running': typeof JobsRunningRoute
@@ -216,6 +243,9 @@ export interface FileRoutesById {
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
+  '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
+  '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
+  '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -242,6 +272,9 @@ export interface FileRouteTypes {
     | '/instruments/'
     | '/materialized-tables/'
     | '/task-managers/'
+    | '/instruments/$instrumentName/database/query'
+    | '/instruments/$instrumentName/database/table'
+    | '/instruments/$instrumentName/database/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -266,6 +299,9 @@ export interface FileRouteTypes {
     | '/instruments'
     | '/materialized-tables'
     | '/task-managers'
+    | '/instruments/$instrumentName/database/query'
+    | '/instruments/$instrumentName/database/table'
+    | '/instruments/$instrumentName/database'
   id:
     | '__root__'
     | '/'
@@ -290,6 +326,9 @@ export interface FileRouteTypes {
     | '/instruments/'
     | '/materialized-tables/'
     | '/task-managers/'
+    | '/instruments/$instrumentName/database/query'
+    | '/instruments/$instrumentName/database/table'
+    | '/instruments/$instrumentName/database/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -302,7 +341,7 @@ export interface RootRouteChildren {
   InsightsBottlenecksRoute: typeof InsightsBottlenecksRoute
   InsightsHealthRoute: typeof InsightsHealthRoute
   InsightsMetricsRoute: typeof InsightsMetricsRoute
-  InstrumentsInstrumentNameRoute: typeof InstrumentsInstrumentNameRoute
+  InstrumentsInstrumentNameRoute: typeof InstrumentsInstrumentNameRouteWithChildren
   JobsIdRoute: typeof JobsIdRoute
   JobsCompletedRoute: typeof JobsCompletedRoute
   JobsRunningRoute: typeof JobsRunningRoute
@@ -473,8 +512,50 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeploymentsNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instruments/$instrumentName/database/': {
+      id: '/instruments/$instrumentName/database/'
+      path: '/database'
+      fullPath: '/instruments/$instrumentName/database/'
+      preLoaderRoute: typeof InstrumentsInstrumentNameDatabaseIndexRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
+    '/instruments/$instrumentName/database/table': {
+      id: '/instruments/$instrumentName/database/table'
+      path: '/database/table'
+      fullPath: '/instruments/$instrumentName/database/table'
+      preLoaderRoute: typeof InstrumentsInstrumentNameDatabaseTableRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
+    '/instruments/$instrumentName/database/query': {
+      id: '/instruments/$instrumentName/database/query'
+      path: '/database/query'
+      fullPath: '/instruments/$instrumentName/database/query'
+      preLoaderRoute: typeof InstrumentsInstrumentNameDatabaseQueryRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
   }
 }
+
+interface InstrumentsInstrumentNameRouteChildren {
+  InstrumentsInstrumentNameDatabaseQueryRoute: typeof InstrumentsInstrumentNameDatabaseQueryRoute
+  InstrumentsInstrumentNameDatabaseTableRoute: typeof InstrumentsInstrumentNameDatabaseTableRoute
+  InstrumentsInstrumentNameDatabaseIndexRoute: typeof InstrumentsInstrumentNameDatabaseIndexRoute
+}
+
+const InstrumentsInstrumentNameRouteChildren: InstrumentsInstrumentNameRouteChildren =
+  {
+    InstrumentsInstrumentNameDatabaseQueryRoute:
+      InstrumentsInstrumentNameDatabaseQueryRoute,
+    InstrumentsInstrumentNameDatabaseTableRoute:
+      InstrumentsInstrumentNameDatabaseTableRoute,
+    InstrumentsInstrumentNameDatabaseIndexRoute:
+      InstrumentsInstrumentNameDatabaseIndexRoute,
+  }
+
+const InstrumentsInstrumentNameRouteWithChildren =
+  InstrumentsInstrumentNameRoute._addFileChildren(
+    InstrumentsInstrumentNameRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -486,7 +567,7 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsBottlenecksRoute: InsightsBottlenecksRoute,
   InsightsHealthRoute: InsightsHealthRoute,
   InsightsMetricsRoute: InsightsMetricsRoute,
-  InstrumentsInstrumentNameRoute: InstrumentsInstrumentNameRoute,
+  InstrumentsInstrumentNameRoute: InstrumentsInstrumentNameRouteWithChildren,
   JobsIdRoute: JobsIdRoute,
   JobsCompletedRoute: JobsCompletedRoute,
   JobsRunningRoute: JobsRunningRoute,

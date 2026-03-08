@@ -71,8 +71,16 @@ function InstrumentDetailRoute() {
     )
   }
 
-  // Tabs will be populated by per-instrument type changes (e.g., kafka → topics, consumer groups)
+  // Build tabs based on instrument type
+  const basePath = `/instruments/${instrumentName}`
   const tabs: { label: string; path: string }[] = []
+
+  if (instrument.type === "database") {
+    tabs.push(
+      { label: "Schemas", path: `${basePath}/database` },
+      { label: "Query", path: `${basePath}/database/query` },
+    )
+  }
 
   return (
     <InstrumentShell instrument={instrument} tabs={tabs}>

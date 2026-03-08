@@ -1,15 +1,118 @@
 """
-Placeholder types for the database instrument.
-Future changes will add table browsing, schema inspection, and query preview.
+A database schema (e.g., public, analytics).
 """
-type DatabaseTable {
+type DatabaseSchema {
+  name: String!
+  tableCount: Int!
+}
+
+"""
+Summary of a database table within a schema.
+"""
+type DatabaseTableSummary {
   name: String!
   schema: String!
+  type: String!
+  rowCountEstimate: Int!
+}
+
+"""
+Detailed information about a database table.
+"""
+type DatabaseTableDetail {
+  name: String!
+  schema: String!
+  columns: [DatabaseColumn!]!
+  indexes: [DatabaseIndex!]!
+  constraints: [DatabaseConstraint!]!
+}
+
+"""
+A column in a database table.
+"""
+type DatabaseColumn {
+  name: String!
+  dataType: String!
+  nullable: Boolean!
+  defaultValue: String!
+  isPrimaryKey: Boolean!
+  comment: String!
+}
+
+"""
+An index on a database table.
+"""
+type DatabaseIndex {
+  name: String!
+  columns: [String!]!
+  unique: Boolean!
+  type: String!
+}
+
+"""
+A constraint on a database table.
+"""
+type DatabaseConstraint {
+  name: String!
+  type: String!
+  columns: [String!]!
+  refTable: String!
+  refColumns: [String!]!
+}
+
+"""
+Result of executing a database query.
+"""
+type DatabaseQueryResult {
+  columns: [DatabaseResultColumn!]!
+  rows: [[JSON]]!
+  rowCount: Int!
+  executionTimeMs: Int!
+  truncated: Boolean!
+}
+
+"""
+A column in a query result set.
+"""
+type DatabaseResultColumn {
+  name: String!
+  dataType: String!
+}
+
+"""
+A recorded query execution in the history.
+"""
+type DatabaseQueryHistoryEntry {
+  sql: String!
+  executedAt: String!
+  executionTimeMs: Int!
+  rowCount: Int!
+  error: String
 }
 
 extend type Query {
   """
-  List tables for a database instrument (stub — not yet implemented).
+  List schemas for a database instrument.
   """
-  databaseTables(instrument: String!): [DatabaseTable!]!
+  databaseSchemas(instrument: String!): [DatabaseSchema!]!
+  """
+  List tables in a schema for a database instrument.
+  """
+  databaseTables(instrument: String!, schema: String!): [DatabaseTableSummary!]!
+  """
+  Get detailed information about a specific database table.
+  """
+  databaseTable(instrument: String!, schema: String!, table: String!): DatabaseTableDetail!
+  """
+  Get query execution history for a database instrument.
+  """
+  databaseQueryHistory(instrument: String!): [DatabaseQueryHistoryEntry!]!
+}
+
+extend type Mutation {
+  """
+  Execute a read-only SQL query against a database instrument.
+  DDL statements are rejected. Results are capped at the configured row limit.
+  """
+  executeDatabaseQuery(instrument: String!, sql: String!): DatabaseQueryResult!
 }

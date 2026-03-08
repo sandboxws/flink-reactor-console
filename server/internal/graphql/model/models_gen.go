@@ -127,11 +127,78 @@ type DashboardConfig struct {
 	Instruments []string `json:"instruments"`
 }
 
-// Placeholder types for the database instrument.
-// Future changes will add table browsing, schema inspection, and query preview.
-type DatabaseTable struct {
-	Name   string `json:"name"`
-	Schema string `json:"schema"`
+// A column in a database table.
+type DatabaseColumn struct {
+	Name         string `json:"name"`
+	DataType     string `json:"dataType"`
+	Nullable     bool   `json:"nullable"`
+	DefaultValue string `json:"defaultValue"`
+	IsPrimaryKey bool   `json:"isPrimaryKey"`
+	Comment      string `json:"comment"`
+}
+
+// A constraint on a database table.
+type DatabaseConstraint struct {
+	Name       string   `json:"name"`
+	Type       string   `json:"type"`
+	Columns    []string `json:"columns"`
+	RefTable   string   `json:"refTable"`
+	RefColumns []string `json:"refColumns"`
+}
+
+// An index on a database table.
+type DatabaseIndex struct {
+	Name    string   `json:"name"`
+	Columns []string `json:"columns"`
+	Unique  bool     `json:"unique"`
+	Type    string   `json:"type"`
+}
+
+// A recorded query execution in the history.
+type DatabaseQueryHistoryEntry struct {
+	SQL             string  `json:"sql"`
+	ExecutedAt      string  `json:"executedAt"`
+	ExecutionTimeMs int     `json:"executionTimeMs"`
+	RowCount        int     `json:"rowCount"`
+	Error           *string `json:"error,omitempty"`
+}
+
+// Result of executing a database query.
+type DatabaseQueryResult struct {
+	Columns         []*DatabaseResultColumn `json:"columns"`
+	Rows            [][]map[string]any      `json:"rows"`
+	RowCount        int                     `json:"rowCount"`
+	ExecutionTimeMs int                     `json:"executionTimeMs"`
+	Truncated       bool                    `json:"truncated"`
+}
+
+// A column in a query result set.
+type DatabaseResultColumn struct {
+	Name     string `json:"name"`
+	DataType string `json:"dataType"`
+}
+
+// A database schema (e.g., public, analytics).
+type DatabaseSchema struct {
+	Name       string `json:"name"`
+	TableCount int    `json:"tableCount"`
+}
+
+// Detailed information about a database table.
+type DatabaseTableDetail struct {
+	Name        string                `json:"name"`
+	Schema      string                `json:"schema"`
+	Columns     []*DatabaseColumn     `json:"columns"`
+	Indexes     []*DatabaseIndex      `json:"indexes"`
+	Constraints []*DatabaseConstraint `json:"constraints"`
+}
+
+// Summary of a database table within a schema.
+type DatabaseTableSummary struct {
+	Name             string `json:"name"`
+	Schema           string `json:"schema"`
+	Type             string `json:"type"`
+	RowCountEstimate int    `json:"rowCountEstimate"`
 }
 
 type DeleteResult struct {

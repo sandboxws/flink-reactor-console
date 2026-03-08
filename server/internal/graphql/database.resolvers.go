@@ -11,8 +11,165 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
+// ExecuteDatabaseQuery is the resolver for the executeDatabaseQuery field.
+func (r *mutationResolver) ExecuteDatabaseQuery(ctx context.Context, instrument string, sql string) (*model.DatabaseQueryResult, error) {
+	di, err := r.resolveDatabaseInstrument(instrument)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := di.Client().ExecuteQuery(ctx, sql, di.StatementTimeout(), di.MaxRows())
+	if err != nil {
+		return nil, err
+	}
+
+	cols := make([]*model.DatabaseResultColumn, len(result.Columns))
+	for i, c := range result.Columns {
+		cols[i] = &model.DatabaseResultColumn{
+			Name:     c.Name,
+			DataType: c.DataType,
+		}
+	}
+
+	// Convert rows: [][]any → [][]map[string]any (each cell is a JSON scalar)
+	rows := make([][]map[string]any, len(result.Rows))
+	for i, row := range result.Rows {
+		cells := make([]map[string]any, len(row))
+		for j, val := range row {
+			cells[j] = map[string]any{"v": val}
+		}
+		rows[i] = cells
+	}
+
+	return &model.DatabaseQueryResult{
+		Columns:         cols,
+		Rows:            rows,
+		RowCount:        result.RowCount,
+		ExecutionTimeMs: int(result.ExecutionTimeMs),
+		Truncated:       result.Truncated,
+	}, nil
+}
+
+// DatabaseSchemas is the resolver for the databaseSchemas field.
+func (r *queryResolver) DatabaseSchemas(ctx context.Context, instrument string) ([]*model.DatabaseSchema, error) {
+	di, err := r.resolveDatabaseInstrument(instrument)
+	if err != nil {
+		return nil, err
+	}
+
+	schemas, err := di.Client().ListSchemas(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.DatabaseSchema, len(schemas))
+	for i, s := range schemas {
+		result[i] = &model.DatabaseSchema{
+			Name:       s.Name,
+			TableCount: s.TableCount,
+		}
+	}
+	return result, nil
+}
+
 // DatabaseTables is the resolver for the databaseTables field.
-func (r *queryResolver) DatabaseTables(_ context.Context, _ string) ([]*model.DatabaseTable, error) {
-	// Stub — database instrument is a placeholder for future implementation.
-	return []*model.DatabaseTable{}, nil
+func (r *queryResolver) DatabaseTables(ctx context.Context, instrument string, schema string) ([]*model.DatabaseTableSummary, error) {
+	di, err := r.resolveDatabaseInstrument(instrument)
+	if err != nil {
+		return nil, err
+	}
+
+	tables, err := di.Client().ListTables(ctx, schema)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.DatabaseTableSummary, len(tables))
+	for i, t := range tables {
+		result[i] = &model.DatabaseTableSummary{
+			Name:             t.Name,
+			Schema:           t.Schema,
+			Type:             t.Type,
+			RowCountEstimate: int(t.RowCountEstimate),
+		}
+	}
+	return result, nil
+}
+
+// DatabaseTable is the resolver for the databaseTable field.
+func (r *queryResolver) DatabaseTable(ctx context.Context, instrument string, schema string, table string) (*model.DatabaseTableDetail, error) {
+	di, err := r.resolveDatabaseInstrument(instrument)
+	if err != nil {
+		return nil, err
+	}
+
+	detail, err := di.Client().GetTableDetail(ctx, schema, table)
+	if err != nil {
+		return nil, err
+	}
+
+	columns := make([]*model.DatabaseColumn, len(detail.Columns))
+	for i, c := range detail.Columns {
+		columns[i] = &model.DatabaseColumn{
+			Name:         c.Name,
+			DataType:     c.DataType,
+			Nullable:     c.Nullable,
+			DefaultValue: c.DefaultValue,
+			IsPrimaryKey: c.IsPrimaryKey,
+			Comment:      c.Comment,
+		}
+	}
+
+	indexes := make([]*model.DatabaseIndex, len(detail.Indexes))
+	for i, idx := range detail.Indexes {
+		indexes[i] = &model.DatabaseIndex{
+			Name:    idx.Name,
+			Columns: idx.Columns,
+			Unique:  idx.Unique,
+			Type:    idx.Type,
+		}
+	}
+
+	constraints := make([]*model.DatabaseConstraint, len(detail.Constraints))
+	for i, c := range detail.Constraints {
+		constraints[i] = &model.DatabaseConstraint{
+			Name:       c.Name,
+			Type:       c.Type,
+			Columns:    c.Columns,
+			RefTable:   c.RefTable,
+			RefColumns: c.RefColumns,
+		}
+	}
+
+	return &model.DatabaseTableDetail{
+		Name:        detail.Name,
+		Schema:      detail.Schema,
+		Columns:     columns,
+		Indexes:     indexes,
+		Constraints: constraints,
+	}, nil
+}
+
+// DatabaseQueryHistory is the resolver for the databaseQueryHistory field.
+func (r *queryResolver) DatabaseQueryHistory(_ context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error) {
+	di, err := r.resolveDatabaseInstrument(instrument)
+	if err != nil {
+		return nil, err
+	}
+
+	entries := di.Client().GetQueryHistory()
+	result := make([]*model.DatabaseQueryHistoryEntry, len(entries))
+	for i, e := range entries {
+		entry := &model.DatabaseQueryHistoryEntry{
+			SQL:             e.SQL,
+			ExecutedAt:      e.ExecutedAt.Format("2006-01-02T15:04:05Z07:00"),
+			ExecutionTimeMs: int(e.ExecutionTimeMs),
+			RowCount:        e.RowCount,
+		}
+		if e.Error != "" {
+			entry.Error = &e.Error
+		}
+		result[i] = entry
+	}
+	return result, nil
 }

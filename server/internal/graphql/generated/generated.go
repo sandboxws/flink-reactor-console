@@ -153,9 +153,69 @@ type ComplexityRoot struct {
 		Instruments func(childComplexity int) int
 	}
 
-	DatabaseTable struct {
-		Name   func(childComplexity int) int
-		Schema func(childComplexity int) int
+	DatabaseColumn struct {
+		Comment      func(childComplexity int) int
+		DataType     func(childComplexity int) int
+		DefaultValue func(childComplexity int) int
+		IsPrimaryKey func(childComplexity int) int
+		Name         func(childComplexity int) int
+		Nullable     func(childComplexity int) int
+	}
+
+	DatabaseConstraint struct {
+		Columns    func(childComplexity int) int
+		Name       func(childComplexity int) int
+		RefColumns func(childComplexity int) int
+		RefTable   func(childComplexity int) int
+		Type       func(childComplexity int) int
+	}
+
+	DatabaseIndex struct {
+		Columns func(childComplexity int) int
+		Name    func(childComplexity int) int
+		Type    func(childComplexity int) int
+		Unique  func(childComplexity int) int
+	}
+
+	DatabaseQueryHistoryEntry struct {
+		Error           func(childComplexity int) int
+		ExecutedAt      func(childComplexity int) int
+		ExecutionTimeMs func(childComplexity int) int
+		RowCount        func(childComplexity int) int
+		SQL             func(childComplexity int) int
+	}
+
+	DatabaseQueryResult struct {
+		Columns         func(childComplexity int) int
+		ExecutionTimeMs func(childComplexity int) int
+		RowCount        func(childComplexity int) int
+		Rows            func(childComplexity int) int
+		Truncated       func(childComplexity int) int
+	}
+
+	DatabaseResultColumn struct {
+		DataType func(childComplexity int) int
+		Name     func(childComplexity int) int
+	}
+
+	DatabaseSchema struct {
+		Name       func(childComplexity int) int
+		TableCount func(childComplexity int) int
+	}
+
+	DatabaseTableDetail struct {
+		Columns     func(childComplexity int) int
+		Constraints func(childComplexity int) int
+		Indexes     func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Schema      func(childComplexity int) int
+	}
+
+	DatabaseTableSummary struct {
+		Name             func(childComplexity int) int
+		RowCountEstimate func(childComplexity int) int
+		Schema           func(childComplexity int) int
+		Type             func(childComplexity int) int
 	}
 
 	DeleteResult struct {
@@ -393,6 +453,7 @@ type ComplexityRoot struct {
 		CloseSQLSession          func(childComplexity int, sessionHandle string, cluster *string) int
 		CreateSQLSession         func(childComplexity int, cluster *string) int
 		DeleteJar                func(childComplexity int, id string, cluster *string) int
+		ExecuteDatabaseQuery     func(childComplexity int, instrument string, sql string) int
 		FetchSQLResults          func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
 		RefreshMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
 		ResumeMaterializedTable  func(childComplexity int, name string, catalog string, cluster *string) int
@@ -423,7 +484,10 @@ type ComplexityRoot struct {
 		CheckpointDetail      func(childComplexity int, jobID string, checkpointID string, cluster *string) int
 		Clusters              func(childComplexity int) int
 		DashboardConfig       func(childComplexity int) int
-		DatabaseTables        func(childComplexity int, instrument string) int
+		DatabaseQueryHistory  func(childComplexity int, instrument string) int
+		DatabaseSchemas       func(childComplexity int, instrument string) int
+		DatabaseTable         func(childComplexity int, instrument string, schema string, table string) int
+		DatabaseTables        func(childComplexity int, instrument string, schema string) int
 		Flamegraph            func(childComplexity int, jobID string, vertexID string, typeArg string, cluster *string) int
 		FlinkConfig           func(childComplexity int, cluster *string) int
 		Health                func(childComplexity int) int
@@ -661,6 +725,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	ExecuteDatabaseQuery(ctx context.Context, instrument string, sql string) (*model.DatabaseQueryResult, error)
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
 	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
 	CancelJob(ctx context.Context, id string, cluster *string) (*model.CancelJobResult, error)
@@ -679,7 +744,10 @@ type QueryResolver interface {
 	BlueGreenDeployment(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenDeployment, error)
 	FlinkConfig(ctx context.Context, cluster *string) (*model.FlinkConfig, error)
 	DashboardConfig(ctx context.Context) (*model.DashboardConfig, error)
-	DatabaseTables(ctx context.Context, instrument string) ([]*model.DatabaseTable, error)
+	DatabaseSchemas(ctx context.Context, instrument string) ([]*model.DatabaseSchema, error)
+	DatabaseTables(ctx context.Context, instrument string, schema string) ([]*model.DatabaseTableSummary, error)
+	DatabaseTable(ctx context.Context, instrument string, schema string, table string) (*model.DatabaseTableDetail, error)
+	DatabaseQueryHistory(ctx context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error)
 	Instruments(ctx context.Context) ([]*model.InstrumentInfo, error)
 	Jars(ctx context.Context, cluster *string) ([]*model.JarFile, error)
 	JobManager(ctx context.Context, cluster *string) (*model.JobManagerDetail, error)
@@ -1185,18 +1253,242 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.DashboardConfig.Instruments(childComplexity), true
 
-	case "DatabaseTable.name":
-		if e.ComplexityRoot.DatabaseTable.Name == nil {
+	case "DatabaseColumn.comment":
+		if e.ComplexityRoot.DatabaseColumn.Comment == nil {
 			break
 		}
 
-		return e.ComplexityRoot.DatabaseTable.Name(childComplexity), true
-	case "DatabaseTable.schema":
-		if e.ComplexityRoot.DatabaseTable.Schema == nil {
+		return e.ComplexityRoot.DatabaseColumn.Comment(childComplexity), true
+	case "DatabaseColumn.dataType":
+		if e.ComplexityRoot.DatabaseColumn.DataType == nil {
 			break
 		}
 
-		return e.ComplexityRoot.DatabaseTable.Schema(childComplexity), true
+		return e.ComplexityRoot.DatabaseColumn.DataType(childComplexity), true
+	case "DatabaseColumn.defaultValue":
+		if e.ComplexityRoot.DatabaseColumn.DefaultValue == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseColumn.DefaultValue(childComplexity), true
+	case "DatabaseColumn.isPrimaryKey":
+		if e.ComplexityRoot.DatabaseColumn.IsPrimaryKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseColumn.IsPrimaryKey(childComplexity), true
+	case "DatabaseColumn.name":
+		if e.ComplexityRoot.DatabaseColumn.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseColumn.Name(childComplexity), true
+	case "DatabaseColumn.nullable":
+		if e.ComplexityRoot.DatabaseColumn.Nullable == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseColumn.Nullable(childComplexity), true
+
+	case "DatabaseConstraint.columns":
+		if e.ComplexityRoot.DatabaseConstraint.Columns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseConstraint.Columns(childComplexity), true
+	case "DatabaseConstraint.name":
+		if e.ComplexityRoot.DatabaseConstraint.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseConstraint.Name(childComplexity), true
+	case "DatabaseConstraint.refColumns":
+		if e.ComplexityRoot.DatabaseConstraint.RefColumns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseConstraint.RefColumns(childComplexity), true
+	case "DatabaseConstraint.refTable":
+		if e.ComplexityRoot.DatabaseConstraint.RefTable == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseConstraint.RefTable(childComplexity), true
+	case "DatabaseConstraint.type":
+		if e.ComplexityRoot.DatabaseConstraint.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseConstraint.Type(childComplexity), true
+
+	case "DatabaseIndex.columns":
+		if e.ComplexityRoot.DatabaseIndex.Columns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseIndex.Columns(childComplexity), true
+	case "DatabaseIndex.name":
+		if e.ComplexityRoot.DatabaseIndex.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseIndex.Name(childComplexity), true
+	case "DatabaseIndex.type":
+		if e.ComplexityRoot.DatabaseIndex.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseIndex.Type(childComplexity), true
+	case "DatabaseIndex.unique":
+		if e.ComplexityRoot.DatabaseIndex.Unique == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseIndex.Unique(childComplexity), true
+
+	case "DatabaseQueryHistoryEntry.error":
+		if e.ComplexityRoot.DatabaseQueryHistoryEntry.Error == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryHistoryEntry.Error(childComplexity), true
+	case "DatabaseQueryHistoryEntry.executedAt":
+		if e.ComplexityRoot.DatabaseQueryHistoryEntry.ExecutedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryHistoryEntry.ExecutedAt(childComplexity), true
+	case "DatabaseQueryHistoryEntry.executionTimeMs":
+		if e.ComplexityRoot.DatabaseQueryHistoryEntry.ExecutionTimeMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryHistoryEntry.ExecutionTimeMs(childComplexity), true
+	case "DatabaseQueryHistoryEntry.rowCount":
+		if e.ComplexityRoot.DatabaseQueryHistoryEntry.RowCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryHistoryEntry.RowCount(childComplexity), true
+	case "DatabaseQueryHistoryEntry.sql":
+		if e.ComplexityRoot.DatabaseQueryHistoryEntry.SQL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryHistoryEntry.SQL(childComplexity), true
+
+	case "DatabaseQueryResult.columns":
+		if e.ComplexityRoot.DatabaseQueryResult.Columns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryResult.Columns(childComplexity), true
+	case "DatabaseQueryResult.executionTimeMs":
+		if e.ComplexityRoot.DatabaseQueryResult.ExecutionTimeMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryResult.ExecutionTimeMs(childComplexity), true
+	case "DatabaseQueryResult.rowCount":
+		if e.ComplexityRoot.DatabaseQueryResult.RowCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryResult.RowCount(childComplexity), true
+	case "DatabaseQueryResult.rows":
+		if e.ComplexityRoot.DatabaseQueryResult.Rows == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryResult.Rows(childComplexity), true
+	case "DatabaseQueryResult.truncated":
+		if e.ComplexityRoot.DatabaseQueryResult.Truncated == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseQueryResult.Truncated(childComplexity), true
+
+	case "DatabaseResultColumn.dataType":
+		if e.ComplexityRoot.DatabaseResultColumn.DataType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseResultColumn.DataType(childComplexity), true
+	case "DatabaseResultColumn.name":
+		if e.ComplexityRoot.DatabaseResultColumn.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseResultColumn.Name(childComplexity), true
+
+	case "DatabaseSchema.name":
+		if e.ComplexityRoot.DatabaseSchema.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseSchema.Name(childComplexity), true
+	case "DatabaseSchema.tableCount":
+		if e.ComplexityRoot.DatabaseSchema.TableCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseSchema.TableCount(childComplexity), true
+
+	case "DatabaseTableDetail.columns":
+		if e.ComplexityRoot.DatabaseTableDetail.Columns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableDetail.Columns(childComplexity), true
+	case "DatabaseTableDetail.constraints":
+		if e.ComplexityRoot.DatabaseTableDetail.Constraints == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableDetail.Constraints(childComplexity), true
+	case "DatabaseTableDetail.indexes":
+		if e.ComplexityRoot.DatabaseTableDetail.Indexes == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableDetail.Indexes(childComplexity), true
+	case "DatabaseTableDetail.name":
+		if e.ComplexityRoot.DatabaseTableDetail.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableDetail.Name(childComplexity), true
+	case "DatabaseTableDetail.schema":
+		if e.ComplexityRoot.DatabaseTableDetail.Schema == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableDetail.Schema(childComplexity), true
+
+	case "DatabaseTableSummary.name":
+		if e.ComplexityRoot.DatabaseTableSummary.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableSummary.Name(childComplexity), true
+	case "DatabaseTableSummary.rowCountEstimate":
+		if e.ComplexityRoot.DatabaseTableSummary.RowCountEstimate == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableSummary.RowCountEstimate(childComplexity), true
+	case "DatabaseTableSummary.schema":
+		if e.ComplexityRoot.DatabaseTableSummary.Schema == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableSummary.Schema(childComplexity), true
+	case "DatabaseTableSummary.type":
+		if e.ComplexityRoot.DatabaseTableSummary.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DatabaseTableSummary.Type(childComplexity), true
 
 	case "DeleteResult.success":
 		if e.ComplexityRoot.DeleteResult.Success == nil {
@@ -2095,6 +2387,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.DeleteJar(childComplexity, args["id"].(string), args["cluster"].(*string)), true
+	case "Mutation.executeDatabaseQuery":
+		if e.ComplexityRoot.Mutation.ExecuteDatabaseQuery == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_executeDatabaseQuery_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ExecuteDatabaseQuery(childComplexity, args["instrument"].(string), args["sql"].(string)), true
 	case "Mutation.fetchSQLResults":
 		if e.ComplexityRoot.Mutation.FetchSQLResults == nil {
 			break
@@ -2269,6 +2572,39 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.DashboardConfig(childComplexity), true
+	case "Query.databaseQueryHistory":
+		if e.ComplexityRoot.Query.DatabaseQueryHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_databaseQueryHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.DatabaseQueryHistory(childComplexity, args["instrument"].(string)), true
+	case "Query.databaseSchemas":
+		if e.ComplexityRoot.Query.DatabaseSchemas == nil {
+			break
+		}
+
+		args, err := ec.field_Query_databaseSchemas_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.DatabaseSchemas(childComplexity, args["instrument"].(string)), true
+	case "Query.databaseTable":
+		if e.ComplexityRoot.Query.DatabaseTable == nil {
+			break
+		}
+
+		args, err := ec.field_Query_databaseTable_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.DatabaseTable(childComplexity, args["instrument"].(string), args["schema"].(string), args["table"].(string)), true
 	case "Query.databaseTables":
 		if e.ComplexityRoot.Query.DatabaseTables == nil {
 			break
@@ -2279,7 +2615,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Query.DatabaseTables(childComplexity, args["instrument"].(string)), true
+		return e.ComplexityRoot.Query.DatabaseTables(childComplexity, args["instrument"].(string), args["schema"].(string)), true
 	case "Query.flamegraph":
 		if e.ComplexityRoot.Query.Flamegraph == nil {
 			break
@@ -3476,19 +3812,122 @@ extend type Query {
 }
 `, BuiltIn: false},
 	{Name: "../schema/database.graphqls", Input: `"""
-Placeholder types for the database instrument.
-Future changes will add table browsing, schema inspection, and query preview.
+A database schema (e.g., public, analytics).
 """
-type DatabaseTable {
+type DatabaseSchema {
+  name: String!
+  tableCount: Int!
+}
+
+"""
+Summary of a database table within a schema.
+"""
+type DatabaseTableSummary {
   name: String!
   schema: String!
+  type: String!
+  rowCountEstimate: Int!
+}
+
+"""
+Detailed information about a database table.
+"""
+type DatabaseTableDetail {
+  name: String!
+  schema: String!
+  columns: [DatabaseColumn!]!
+  indexes: [DatabaseIndex!]!
+  constraints: [DatabaseConstraint!]!
+}
+
+"""
+A column in a database table.
+"""
+type DatabaseColumn {
+  name: String!
+  dataType: String!
+  nullable: Boolean!
+  defaultValue: String!
+  isPrimaryKey: Boolean!
+  comment: String!
+}
+
+"""
+An index on a database table.
+"""
+type DatabaseIndex {
+  name: String!
+  columns: [String!]!
+  unique: Boolean!
+  type: String!
+}
+
+"""
+A constraint on a database table.
+"""
+type DatabaseConstraint {
+  name: String!
+  type: String!
+  columns: [String!]!
+  refTable: String!
+  refColumns: [String!]!
+}
+
+"""
+Result of executing a database query.
+"""
+type DatabaseQueryResult {
+  columns: [DatabaseResultColumn!]!
+  rows: [[JSON]]!
+  rowCount: Int!
+  executionTimeMs: Int!
+  truncated: Boolean!
+}
+
+"""
+A column in a query result set.
+"""
+type DatabaseResultColumn {
+  name: String!
+  dataType: String!
+}
+
+"""
+A recorded query execution in the history.
+"""
+type DatabaseQueryHistoryEntry {
+  sql: String!
+  executedAt: String!
+  executionTimeMs: Int!
+  rowCount: Int!
+  error: String
 }
 
 extend type Query {
   """
-  List tables for a database instrument (stub — not yet implemented).
+  List schemas for a database instrument.
   """
-  databaseTables(instrument: String!): [DatabaseTable!]!
+  databaseSchemas(instrument: String!): [DatabaseSchema!]!
+  """
+  List tables in a schema for a database instrument.
+  """
+  databaseTables(instrument: String!, schema: String!): [DatabaseTableSummary!]!
+  """
+  Get detailed information about a specific database table.
+  """
+  databaseTable(instrument: String!, schema: String!, table: String!): DatabaseTableDetail!
+  """
+  Get query execution history for a database instrument.
+  """
+  databaseQueryHistory(instrument: String!): [DatabaseQueryHistoryEntry!]!
+}
+
+extend type Mutation {
+  """
+  Execute a read-only SQL query against a database instrument.
+  DDL statements are rejected. Results are capped at the configured row limit.
+  """
+  executeDatabaseQuery(instrument: String!, sql: String!): DatabaseQueryResult!
 }
 `, BuiltIn: false},
 	{Name: "../schema/instruments.graphqls", Input: `"""
@@ -4328,6 +4767,22 @@ func (ec *executionContext) field_Mutation_deleteJar_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_executeDatabaseQuery_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "sql", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["sql"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_fetchSQLResults_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -4548,6 +5003,49 @@ func (ec *executionContext) field_Query_checkpointDetail_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_databaseQueryHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_databaseSchemas_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_databaseTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "schema", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["schema"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "table", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["table"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_databaseTables_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -4556,6 +5054,11 @@ func (ec *executionContext) field_Query_databaseTables_args(ctx context.Context,
 		return nil, err
 	}
 	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "schema", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["schema"] = arg1
 	return args, nil
 }
 
@@ -7326,12 +7829,12 @@ func (ec *executionContext) fieldContext_DashboardConfig_instruments(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _DatabaseTable_name(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTable) (ret graphql.Marshaler) {
+func (ec *executionContext) _DatabaseColumn_name(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseColumn) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_DatabaseTable_name,
+		ec.fieldContext_DatabaseColumn_name,
 		func(ctx context.Context) (any, error) {
 			return obj.Name, nil
 		},
@@ -7342,9 +7845,9 @@ func (ec *executionContext) _DatabaseTable_name(ctx context.Context, field graph
 	)
 }
 
-func (ec *executionContext) fieldContext_DatabaseTable_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DatabaseColumn_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "DatabaseTable",
+		Object:     "DatabaseColumn",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7355,12 +7858,859 @@ func (ec *executionContext) fieldContext_DatabaseTable_name(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _DatabaseTable_schema(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTable) (ret graphql.Marshaler) {
+func (ec *executionContext) _DatabaseColumn_dataType(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseColumn) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_DatabaseTable_schema,
+		ec.fieldContext_DatabaseColumn_dataType,
+		func(ctx context.Context) (any, error) {
+			return obj.DataType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseColumn_dataType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseColumn_nullable(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseColumn_nullable,
+		func(ctx context.Context) (any, error) {
+			return obj.Nullable, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseColumn_nullable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseColumn_defaultValue(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseColumn_defaultValue,
+		func(ctx context.Context) (any, error) {
+			return obj.DefaultValue, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseColumn_defaultValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseColumn_isPrimaryKey(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseColumn_isPrimaryKey,
+		func(ctx context.Context) (any, error) {
+			return obj.IsPrimaryKey, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseColumn_isPrimaryKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseColumn_comment(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseColumn_comment,
+		func(ctx context.Context) (any, error) {
+			return obj.Comment, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseColumn_comment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseConstraint_name(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseConstraint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseConstraint_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseConstraint_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseConstraint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseConstraint_type(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseConstraint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseConstraint_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseConstraint_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseConstraint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseConstraint_columns(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseConstraint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseConstraint_columns,
+		func(ctx context.Context) (any, error) {
+			return obj.Columns, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseConstraint_columns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseConstraint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseConstraint_refTable(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseConstraint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseConstraint_refTable,
+		func(ctx context.Context) (any, error) {
+			return obj.RefTable, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseConstraint_refTable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseConstraint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseConstraint_refColumns(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseConstraint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseConstraint_refColumns,
+		func(ctx context.Context) (any, error) {
+			return obj.RefColumns, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseConstraint_refColumns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseConstraint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseIndex_name(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseIndex) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseIndex_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseIndex_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseIndex",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseIndex_columns(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseIndex) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseIndex_columns,
+		func(ctx context.Context) (any, error) {
+			return obj.Columns, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseIndex_columns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseIndex",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseIndex_unique(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseIndex) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseIndex_unique,
+		func(ctx context.Context) (any, error) {
+			return obj.Unique, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseIndex_unique(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseIndex",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseIndex_type(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseIndex) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseIndex_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseIndex_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseIndex",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryHistoryEntry_sql(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryHistoryEntry_sql,
+		func(ctx context.Context) (any, error) {
+			return obj.SQL, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryHistoryEntry_sql(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryHistoryEntry_executedAt(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryHistoryEntry_executedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.ExecutedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryHistoryEntry_executedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryHistoryEntry_executionTimeMs(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryHistoryEntry_executionTimeMs,
+		func(ctx context.Context) (any, error) {
+			return obj.ExecutionTimeMs, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryHistoryEntry_executionTimeMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryHistoryEntry_rowCount(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryHistoryEntry_rowCount,
+		func(ctx context.Context) (any, error) {
+			return obj.RowCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryHistoryEntry_rowCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryHistoryEntry_error(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryHistoryEntry_error,
+		func(ctx context.Context) (any, error) {
+			return obj.Error, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryHistoryEntry_error(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryResult_columns(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryResult_columns,
+		func(ctx context.Context) (any, error) {
+			return obj.Columns, nil
+		},
+		nil,
+		ec.marshalNDatabaseResultColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumnᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryResult_columns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_DatabaseResultColumn_name(ctx, field)
+			case "dataType":
+				return ec.fieldContext_DatabaseResultColumn_dataType(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseResultColumn", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryResult_rows(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryResult_rows,
+		func(ctx context.Context) (any, error) {
+			return obj.Rows, nil
+		},
+		nil,
+		ec.marshalNJSON2ᚕᚕmap,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryResult_rows(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type JSON does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryResult_rowCount(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryResult_rowCount,
+		func(ctx context.Context) (any, error) {
+			return obj.RowCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryResult_rowCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryResult_executionTimeMs(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryResult_executionTimeMs,
+		func(ctx context.Context) (any, error) {
+			return obj.ExecutionTimeMs, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryResult_executionTimeMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseQueryResult_truncated(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseQueryResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseQueryResult_truncated,
+		func(ctx context.Context) (any, error) {
+			return obj.Truncated, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseQueryResult_truncated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseResultColumn_name(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseResultColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseResultColumn_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseResultColumn_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseResultColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseResultColumn_dataType(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseResultColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseResultColumn_dataType,
+		func(ctx context.Context) (any, error) {
+			return obj.DataType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseResultColumn_dataType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseResultColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseSchema_name(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseSchema) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseSchema_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseSchema_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseSchema",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseSchema_tableCount(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseSchema) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseSchema_tableCount,
+		func(ctx context.Context) (any, error) {
+			return obj.TableCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseSchema_tableCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseSchema",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableDetail_name(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableDetail_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseTableDetail_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseTableDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableDetail_schema(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableDetail_schema,
 		func(ctx context.Context) (any, error) {
 			return obj.Schema, nil
 		},
@@ -7371,14 +8721,253 @@ func (ec *executionContext) _DatabaseTable_schema(ctx context.Context, field gra
 	)
 }
 
-func (ec *executionContext) fieldContext_DatabaseTable_schema(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DatabaseTableDetail_schema(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "DatabaseTable",
+		Object:     "DatabaseTableDetail",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableDetail_columns(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableDetail_columns,
+		func(ctx context.Context) (any, error) {
+			return obj.Columns, nil
+		},
+		nil,
+		ec.marshalNDatabaseColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumnᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseTableDetail_columns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseTableDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_DatabaseColumn_name(ctx, field)
+			case "dataType":
+				return ec.fieldContext_DatabaseColumn_dataType(ctx, field)
+			case "nullable":
+				return ec.fieldContext_DatabaseColumn_nullable(ctx, field)
+			case "defaultValue":
+				return ec.fieldContext_DatabaseColumn_defaultValue(ctx, field)
+			case "isPrimaryKey":
+				return ec.fieldContext_DatabaseColumn_isPrimaryKey(ctx, field)
+			case "comment":
+				return ec.fieldContext_DatabaseColumn_comment(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseColumn", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableDetail_indexes(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableDetail_indexes,
+		func(ctx context.Context) (any, error) {
+			return obj.Indexes, nil
+		},
+		nil,
+		ec.marshalNDatabaseIndex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndexᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseTableDetail_indexes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseTableDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_DatabaseIndex_name(ctx, field)
+			case "columns":
+				return ec.fieldContext_DatabaseIndex_columns(ctx, field)
+			case "unique":
+				return ec.fieldContext_DatabaseIndex_unique(ctx, field)
+			case "type":
+				return ec.fieldContext_DatabaseIndex_type(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseIndex", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableDetail_constraints(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableDetail_constraints,
+		func(ctx context.Context) (any, error) {
+			return obj.Constraints, nil
+		},
+		nil,
+		ec.marshalNDatabaseConstraint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraintᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseTableDetail_constraints(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseTableDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_DatabaseConstraint_name(ctx, field)
+			case "type":
+				return ec.fieldContext_DatabaseConstraint_type(ctx, field)
+			case "columns":
+				return ec.fieldContext_DatabaseConstraint_columns(ctx, field)
+			case "refTable":
+				return ec.fieldContext_DatabaseConstraint_refTable(ctx, field)
+			case "refColumns":
+				return ec.fieldContext_DatabaseConstraint_refColumns(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseConstraint", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableSummary_name(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableSummary_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseTableSummary_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableSummary_schema(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableSummary_schema,
+		func(ctx context.Context) (any, error) {
+			return obj.Schema, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseTableSummary_schema(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableSummary_type(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableSummary_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseTableSummary_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DatabaseTableSummary_rowCountEstimate(ctx context.Context, field graphql.CollectedField, obj *model.DatabaseTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DatabaseTableSummary_rowCountEstimate,
+		func(ctx context.Context) (any, error) {
+			return obj.RowCountEstimate, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DatabaseTableSummary_rowCountEstimate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DatabaseTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -11643,6 +13232,59 @@ func (ec *executionContext) fieldContext_MetricEntry_value(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_executeDatabaseQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_executeDatabaseQuery,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ExecuteDatabaseQuery(ctx, fc.Args["instrument"].(string), fc.Args["sql"].(string))
+		},
+		nil,
+		ec.marshalNDatabaseQueryResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_executeDatabaseQuery(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "columns":
+				return ec.fieldContext_DatabaseQueryResult_columns(ctx, field)
+			case "rows":
+				return ec.fieldContext_DatabaseQueryResult_rows(ctx, field)
+			case "rowCount":
+				return ec.fieldContext_DatabaseQueryResult_rowCount(ctx, field)
+			case "executionTimeMs":
+				return ec.fieldContext_DatabaseQueryResult_executionTimeMs(ctx, field)
+			case "truncated":
+				return ec.fieldContext_DatabaseQueryResult_truncated(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_executeDatabaseQuery_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_deleteJar(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -12739,6 +14381,53 @@ func (ec *executionContext) fieldContext_Query_dashboardConfig(_ context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_databaseSchemas(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_databaseSchemas,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().DatabaseSchemas(ctx, fc.Args["instrument"].(string))
+		},
+		nil,
+		ec.marshalNDatabaseSchema2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchemaᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_databaseSchemas(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_DatabaseSchema_name(ctx, field)
+			case "tableCount":
+				return ec.fieldContext_DatabaseSchema_tableCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseSchema", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_databaseSchemas_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_databaseTables(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -12747,10 +14436,10 @@ func (ec *executionContext) _Query_databaseTables(ctx context.Context, field gra
 		ec.fieldContext_Query_databaseTables,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Query().DatabaseTables(ctx, fc.Args["instrument"].(string))
+			return ec.Resolvers.Query().DatabaseTables(ctx, fc.Args["instrument"].(string), fc.Args["schema"].(string))
 		},
 		nil,
-		ec.marshalNDatabaseTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableᚄ,
+		ec.marshalNDatabaseTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummaryᚄ,
 		true,
 		true,
 	)
@@ -12765,11 +14454,15 @@ func (ec *executionContext) fieldContext_Query_databaseTables(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "name":
-				return ec.fieldContext_DatabaseTable_name(ctx, field)
+				return ec.fieldContext_DatabaseTableSummary_name(ctx, field)
 			case "schema":
-				return ec.fieldContext_DatabaseTable_schema(ctx, field)
+				return ec.fieldContext_DatabaseTableSummary_schema(ctx, field)
+			case "type":
+				return ec.fieldContext_DatabaseTableSummary_type(ctx, field)
+			case "rowCountEstimate":
+				return ec.fieldContext_DatabaseTableSummary_rowCountEstimate(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type DatabaseTable", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseTableSummary", field.Name)
 		},
 	}
 	defer func() {
@@ -12780,6 +14473,112 @@ func (ec *executionContext) fieldContext_Query_databaseTables(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_databaseTables_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_databaseTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_databaseTable,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().DatabaseTable(ctx, fc.Args["instrument"].(string), fc.Args["schema"].(string), fc.Args["table"].(string))
+		},
+		nil,
+		ec.marshalNDatabaseTableDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_databaseTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_DatabaseTableDetail_name(ctx, field)
+			case "schema":
+				return ec.fieldContext_DatabaseTableDetail_schema(ctx, field)
+			case "columns":
+				return ec.fieldContext_DatabaseTableDetail_columns(ctx, field)
+			case "indexes":
+				return ec.fieldContext_DatabaseTableDetail_indexes(ctx, field)
+			case "constraints":
+				return ec.fieldContext_DatabaseTableDetail_constraints(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseTableDetail", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_databaseTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_databaseQueryHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_databaseQueryHistory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().DatabaseQueryHistory(ctx, fc.Args["instrument"].(string))
+		},
+		nil,
+		ec.marshalNDatabaseQueryHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_databaseQueryHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "sql":
+				return ec.fieldContext_DatabaseQueryHistoryEntry_sql(ctx, field)
+			case "executedAt":
+				return ec.fieldContext_DatabaseQueryHistoryEntry_executedAt(ctx, field)
+			case "executionTimeMs":
+				return ec.fieldContext_DatabaseQueryHistoryEntry_executionTimeMs(ctx, field)
+			case "rowCount":
+				return ec.fieldContext_DatabaseQueryHistoryEntry_rowCount(ctx, field)
+			case "error":
+				return ec.fieldContext_DatabaseQueryHistoryEntry_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DatabaseQueryHistoryEntry", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_databaseQueryHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -20233,24 +22032,473 @@ func (ec *executionContext) _DashboardConfig(ctx context.Context, sel ast.Select
 	return out
 }
 
-var databaseTableImplementors = []string{"DatabaseTable"}
+var databaseColumnImplementors = []string{"DatabaseColumn"}
 
-func (ec *executionContext) _DatabaseTable(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseTable) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, databaseTableImplementors)
+func (ec *executionContext) _DatabaseColumn(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseColumn) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseColumnImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("DatabaseTable")
+			out.Values[i] = graphql.MarshalString("DatabaseColumn")
 		case "name":
-			out.Values[i] = ec._DatabaseTable_name(ctx, field, obj)
+			out.Values[i] = ec._DatabaseColumn_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dataType":
+			out.Values[i] = ec._DatabaseColumn_dataType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nullable":
+			out.Values[i] = ec._DatabaseColumn_nullable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "defaultValue":
+			out.Values[i] = ec._DatabaseColumn_defaultValue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isPrimaryKey":
+			out.Values[i] = ec._DatabaseColumn_isPrimaryKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "comment":
+			out.Values[i] = ec._DatabaseColumn_comment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var databaseConstraintImplementors = []string{"DatabaseConstraint"}
+
+func (ec *executionContext) _DatabaseConstraint(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseConstraint) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseConstraintImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DatabaseConstraint")
+		case "name":
+			out.Values[i] = ec._DatabaseConstraint_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._DatabaseConstraint_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "columns":
+			out.Values[i] = ec._DatabaseConstraint_columns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "refTable":
+			out.Values[i] = ec._DatabaseConstraint_refTable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "refColumns":
+			out.Values[i] = ec._DatabaseConstraint_refColumns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var databaseIndexImplementors = []string{"DatabaseIndex"}
+
+func (ec *executionContext) _DatabaseIndex(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseIndex) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseIndexImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DatabaseIndex")
+		case "name":
+			out.Values[i] = ec._DatabaseIndex_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "columns":
+			out.Values[i] = ec._DatabaseIndex_columns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "unique":
+			out.Values[i] = ec._DatabaseIndex_unique(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._DatabaseIndex_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var databaseQueryHistoryEntryImplementors = []string{"DatabaseQueryHistoryEntry"}
+
+func (ec *executionContext) _DatabaseQueryHistoryEntry(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseQueryHistoryEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseQueryHistoryEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DatabaseQueryHistoryEntry")
+		case "sql":
+			out.Values[i] = ec._DatabaseQueryHistoryEntry_sql(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "executedAt":
+			out.Values[i] = ec._DatabaseQueryHistoryEntry_executedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "executionTimeMs":
+			out.Values[i] = ec._DatabaseQueryHistoryEntry_executionTimeMs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rowCount":
+			out.Values[i] = ec._DatabaseQueryHistoryEntry_rowCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "error":
+			out.Values[i] = ec._DatabaseQueryHistoryEntry_error(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var databaseQueryResultImplementors = []string{"DatabaseQueryResult"}
+
+func (ec *executionContext) _DatabaseQueryResult(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseQueryResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseQueryResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DatabaseQueryResult")
+		case "columns":
+			out.Values[i] = ec._DatabaseQueryResult_columns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rows":
+			out.Values[i] = ec._DatabaseQueryResult_rows(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rowCount":
+			out.Values[i] = ec._DatabaseQueryResult_rowCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "executionTimeMs":
+			out.Values[i] = ec._DatabaseQueryResult_executionTimeMs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "truncated":
+			out.Values[i] = ec._DatabaseQueryResult_truncated(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var databaseResultColumnImplementors = []string{"DatabaseResultColumn"}
+
+func (ec *executionContext) _DatabaseResultColumn(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseResultColumn) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseResultColumnImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DatabaseResultColumn")
+		case "name":
+			out.Values[i] = ec._DatabaseResultColumn_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dataType":
+			out.Values[i] = ec._DatabaseResultColumn_dataType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var databaseSchemaImplementors = []string{"DatabaseSchema"}
+
+func (ec *executionContext) _DatabaseSchema(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseSchema) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseSchemaImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DatabaseSchema")
+		case "name":
+			out.Values[i] = ec._DatabaseSchema_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tableCount":
+			out.Values[i] = ec._DatabaseSchema_tableCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var databaseTableDetailImplementors = []string{"DatabaseTableDetail"}
+
+func (ec *executionContext) _DatabaseTableDetail(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseTableDetail) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseTableDetailImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DatabaseTableDetail")
+		case "name":
+			out.Values[i] = ec._DatabaseTableDetail_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "schema":
-			out.Values[i] = ec._DatabaseTable_schema(ctx, field, obj)
+			out.Values[i] = ec._DatabaseTableDetail_schema(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "columns":
+			out.Values[i] = ec._DatabaseTableDetail_columns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "indexes":
+			out.Values[i] = ec._DatabaseTableDetail_indexes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "constraints":
+			out.Values[i] = ec._DatabaseTableDetail_constraints(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var databaseTableSummaryImplementors = []string{"DatabaseTableSummary"}
+
+func (ec *executionContext) _DatabaseTableSummary(ctx context.Context, sel ast.SelectionSet, obj *model.DatabaseTableSummary) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, databaseTableSummaryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DatabaseTableSummary")
+		case "name":
+			out.Values[i] = ec._DatabaseTableSummary_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "schema":
+			out.Values[i] = ec._DatabaseTableSummary_schema(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._DatabaseTableSummary_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rowCountEstimate":
+			out.Values[i] = ec._DatabaseTableSummary_rowCountEstimate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -21984,6 +24232,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "executeDatabaseQuery":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_executeDatabaseQuery(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "deleteJar":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteJar(ctx, field)
@@ -22340,6 +24595,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "databaseSchemas":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_databaseSchemas(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "databaseTables":
 			field := field
 
@@ -22350,6 +24627,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_databaseTables(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "databaseTable":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_databaseTable(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "databaseQueryHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_databaseQueryHistory(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -24922,11 +27243,11 @@ func (ec *executionContext) marshalNDashboardConfig2ᚖgithubᚗcomᚋsandboxws�
 	return ec._DashboardConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseTable) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseColumn) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDatabaseTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTable(ctx, sel, v[i])
+		return ec.marshalNDatabaseColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumn(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -24938,14 +27259,198 @@ func (ec *executionContext) marshalNDatabaseTable2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalNDatabaseTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTable(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseTable) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumn(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseColumn) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._DatabaseTable(ctx, sel, v)
+	return ec._DatabaseColumn(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDatabaseConstraint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraintᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseConstraint) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDatabaseConstraint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraint(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDatabaseConstraint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraint(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseConstraint) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DatabaseConstraint(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDatabaseIndex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndexᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseIndex) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDatabaseIndex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndex(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDatabaseIndex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndex(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseIndex) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DatabaseIndex(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDatabaseQueryHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseQueryHistoryEntry) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDatabaseQueryHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDatabaseQueryHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseQueryHistoryEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DatabaseQueryHistoryEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDatabaseQueryResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult(ctx context.Context, sel ast.SelectionSet, v model.DatabaseQueryResult) graphql.Marshaler {
+	return ec._DatabaseQueryResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDatabaseQueryResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseQueryResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DatabaseQueryResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDatabaseResultColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseResultColumn) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDatabaseResultColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumn(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDatabaseResultColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumn(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseResultColumn) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DatabaseResultColumn(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDatabaseSchema2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchemaᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseSchema) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDatabaseSchema2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchema(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDatabaseSchema2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchema(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseSchema) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DatabaseSchema(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDatabaseTableDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail(ctx context.Context, sel ast.SelectionSet, v model.DatabaseTableDetail) graphql.Marshaler {
+	return ec._DatabaseTableDetail(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDatabaseTableDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseTableDetail) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DatabaseTableDetail(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDatabaseTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseTableSummary) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDatabaseTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummary(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDatabaseTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummary(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseTableSummary) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DatabaseTableSummary(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNDeleteResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult(ctx context.Context, sel ast.SelectionSet, v model.DeleteResult) graphql.Marshaler {
@@ -25174,6 +27679,30 @@ func (ec *executionContext) marshalNJMEnvironmentJVM2ᚖgithubᚗcomᚋsandboxws
 		return graphql.Null
 	}
 	return ec._JMEnvironmentJVM(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNJSON2ᚕᚕmap(ctx context.Context, v any) ([][]map[string]any, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([][]map[string]any, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOJSON2ᚕmap(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNJSON2ᚕᚕmap(ctx context.Context, sel ast.SelectionSet, v [][]map[string]any) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOJSON2ᚕmap(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNJarEntryPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JarEntryPoint) graphql.Marshaler {
@@ -26493,6 +29022,36 @@ func (ec *executionContext) marshalOJSON2map(ctx context.Context, sel ast.Select
 	_ = ctx
 	res := graphql.MarshalMap(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOJSON2ᚕmap(ctx context.Context, v any) ([]map[string]any, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]map[string]any, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOJSON2map(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOJSON2ᚕmap(ctx context.Context, sel ast.SelectionSet, v []map[string]any) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOJSON2map(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {

@@ -96,4 +96,3 @@ func (r *queryResolver) MaterializedTable(ctx context.Context, name string, cata
 	}
 	return mapMaterializedTable(table), nil
 }
-
