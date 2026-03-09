@@ -9,15 +9,17 @@ export const Route = createFileRoute("/jobs/completed")({
 
 function CompletedJobs() {
   const initialize = useClusterStore((s) => s.initialize)
+  const refresh = useClusterStore((s) => s.refresh)
   const startPolling = useClusterStore((s) => s.startPolling)
   const stopPolling = useClusterStore((s) => s.stopPolling)
   const completedJobs = useClusterStore((s) => s.completedJobs)
 
   useEffect(() => {
     initialize()
+    refresh()
     startPolling()
     return () => stopPolling()
-  }, [initialize, startPolling, stopPolling])
+  }, [initialize, refresh, startPolling, stopPolling])
 
   return (
     <div className="flex flex-col gap-4 p-4">

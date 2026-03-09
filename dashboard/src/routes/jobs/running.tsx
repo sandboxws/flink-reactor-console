@@ -9,6 +9,7 @@ export const Route = createFileRoute("/jobs/running")({
 
 function RunningJobs() {
   const initialize = useClusterStore((s) => s.initialize)
+  const refresh = useClusterStore((s) => s.refresh)
   const startPolling = useClusterStore((s) => s.startPolling)
   const stopPolling = useClusterStore((s) => s.stopPolling)
   const runningJobs = useClusterStore((s) => s.runningJobs)
@@ -16,9 +17,10 @@ function RunningJobs() {
 
   useEffect(() => {
     initialize()
+    refresh()
     startPolling()
     return () => stopPolling()
-  }, [initialize, startPolling, stopPolling])
+  }, [initialize, refresh, startPolling, stopPolling])
 
   return (
     <div className="flex flex-col gap-4 p-4">
