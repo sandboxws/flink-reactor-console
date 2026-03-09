@@ -1,6 +1,7 @@
 import {
   ChevronDown,
   ChevronRight,
+  Columns3,
   Database,
   Folder,
   Loader2,
@@ -14,6 +15,7 @@ export function CatalogTree() {
   const expandedNodes = useCatalogStore((s) => s.expandedNodes)
   const databases = useCatalogStore((s) => s.databases)
   const tables = useCatalogStore((s) => s.tables)
+  const columns = useCatalogStore((s) => s.columns)
   const loadingNodes = useCatalogStore((s) => s.loadingNodes)
   const toggleNode = useCatalogStore((s) => s.toggleNode)
 
@@ -38,6 +40,7 @@ export function CatalogTree() {
             <TreeButton
               icon={Database}
               label={catalog.name}
+              badge={catalog.source === "bundled" ? "(example)" : undefined}
               expanded={isExpanded}
               loading={isLoading}
               depth={0}
@@ -78,17 +81,60 @@ export function CatalogTree() {
                                 No tables
                               </div>
                             ) : (
-                              dbTables.map((table) => (
-                                <div
-                                  key={table.name}
-                                  className="flex items-center gap-2 py-1 pl-14 text-xs text-zinc-400"
-                                >
-                                  <Table2 className="size-3 shrink-0 text-zinc-600" />
-                                  <span className="truncate font-mono text-[11px]">
-                                    {table.name}
-                                  </span>
-                                </div>
-                              ))
+                              dbTables.map((table) => {
+                                const tableKey = `${catalog.name}.${db.name}.${table.name}`
+                                const isTableExpanded =
+                                  expandedNodes.has(tableKey)
+                                const isTableLoading =
+                                  loadingNodes.has(tableKey)
+                                const tableCols = columns[tableKey] ?? []
+
+                                return (
+                                  <div key={tableKey}>
+                                    <TreeButton
+                                      icon={Table2}
+                                      label={table.name}
+                                      expanded={isTableExpanded}
+                                      loading={isTableLoading}
+                                      depth={2}
+                                      onClick={() =>
+                                        toggleNode(
+                                          tableKey,
+                                          catalog.name,
+                                          db.name,
+                                          table.name,
+                                        )
+                                      }
+                                    />
+                                    {isTableExpanded && (
+                                      <div>
+                                        {isTableLoading &&
+                                        tableCols.length ===
+                                          0 ? null : tableCols.length === 0 ? (
+                                          <div className="pl-[5.5rem] py-1 text-[10px] text-zinc-600">
+                                            No columns
+                                          </div>
+                                        ) : (
+                                          tableCols.map((col) => (
+                                            <div
+                                              key={col.name}
+                                              className="flex items-center gap-2 py-0.5 pl-[5.5rem] text-xs text-zinc-400"
+                                            >
+                                              <Columns3 className="size-3 shrink-0 text-zinc-600" />
+                                              <span className="truncate font-mono text-[10px]">
+                                                {col.name}
+                                              </span>
+                                              <span className="shrink-0 font-mono text-[10px] text-zinc-600">
+                                                {col.type}
+                                              </span>
+                                            </div>
+                                          ))
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })
                             )}
                           </div>
                         )}
@@ -108,6 +154,7 @@ export function CatalogTree() {
 function TreeButton({
   icon: Icon,
   label,
+  badge,
   expanded,
   loading,
   depth,
@@ -115,6 +162,7 @@ function TreeButton({
 }: {
   icon: typeof Database
   label: string
+  badge?: string
   expanded: boolean
   loading: boolean
   depth: number
@@ -127,6 +175,7 @@ function TreeButton({
       className={cn(
         "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-white/[0.04]",
         depth === 1 && "pl-8",
+        depth === 2 && "pl-14",
       )}
     >
       {loading ? (
@@ -138,6 +187,9 @@ function TreeButton({
       )}
       <Icon className="size-3.5 shrink-0 text-zinc-500" />
       <span className="truncate font-mono text-[11px]">{label}</span>
+      {badge && (
+        <span className="shrink-0 text-[9px] text-zinc-600">{badge}</span>
+      )}
     </button>
   )
 }

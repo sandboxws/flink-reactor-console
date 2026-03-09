@@ -120,11 +120,34 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	})
 	e.GET("/readyz", readyzHandler(manager))
 
-	// GraphQL endpoint with WebSocket support for subscriptions.
-	var catalogService *catalogs.Service
-	if manager != nil {
-		catalogService = catalogs.NewService(manager)
+	// Catalog service: bundled provider always, SQL Gateway conditionally.
+	var catalogProviders []catalogs.CatalogProvider
+	bundledProvider, err := catalogs.NewBundledProvider()
+	if err != nil {
+		logger.Error("failed to load bundled catalogs", "error", err)
+	} else {
+		catalogProviders = append(catalogProviders, bundledProvider)
 	}
+	if manager != nil {
+		sqlGW := catalogs.NewSQLGatewayProvider(manager)
+		catalogProviders = append(catalogProviders, sqlGW)
+
+		// Register bundled catalogs in Flink so they are queryable.
+		if bundledProvider != nil {
+			conn, resolveErr := manager.Resolve(nil)
+			if resolveErr != nil {
+				logger.Warn("cannot initialize bundled catalogs: no default cluster", "error", resolveErr)
+			} else if conn.SQLClient != nil {
+				initializer := catalogs.NewInitializer(bundledProvider.Data(), conn.SQLClient, logger)
+				go func() {
+					if initErr := initializer.Initialize(context.Background()); initErr != nil {
+						logger.Error("bundled catalog initialization failed", "error", initErr)
+					}
+				}()
+			}
+		}
+	}
+	catalogService := catalogs.NewService(logger, catalogProviders...)
 	resolver := &graphql.Resolver{
 		Manager:            manager,
 		InstrumentRegistry: registry,

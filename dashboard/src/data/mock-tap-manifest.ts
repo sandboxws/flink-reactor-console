@@ -212,7 +212,7 @@ export function generateMockTapManifest(): TapManifest {
           "  `region` VARCHAR(100)",
           ") WITH (",
           "  'connector' = 'jdbc',",
-          "  'url' = 'jdbc:postgresql://postgres:5432/catalog',",
+          "  'url' = 'jdbc:postgresql://postgres:5433/catalog',",
           "  'table-name' = 'products'",
           ");",
           "",
@@ -229,7 +229,7 @@ export function generateMockTapManifest(): TapManifest {
         },
         connectorProperties: {
           connector: "jdbc",
-          url: "jdbc:postgresql://postgres:5432/catalog",
+          url: "jdbc:postgresql://postgres:5433/catalog",
           "table-name": "products",
         },
       },

@@ -1,7 +1,8 @@
-# Catalog browsing via SQL Gateway
+# Catalog browsing via SQL Gateway and bundled examples
 
 type CatalogInfo {
   name: String!
+  source: String!
 }
 
 type CatalogDatabase {
@@ -10,6 +11,11 @@ type CatalogDatabase {
 
 type CatalogTable {
   name: String!
+}
+
+type ColumnInfo {
+  name: String!
+  type: String!
 }
 
 extend type Query {
@@ -21,4 +27,7 @@ extend type Query {
 
   """List tables within a catalog database"""
   catalogTables(catalog: String!, database: String!, cluster: String): [CatalogTable!]!
+
+  """List columns for a table"""
+  catalogColumns(catalog: String!, database: String!, table: String!, cluster: String): [ColumnInfo!]!
 }

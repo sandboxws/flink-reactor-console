@@ -7,36 +7,27 @@ package graphql
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
 // Catalogs is the resolver for the catalogs field.
 func (r *queryResolver) Catalogs(ctx context.Context, cluster *string) ([]*model.CatalogInfo, error) {
-	if r.CatalogService == nil {
-		return nil, fmt.Errorf("catalog service not available (SQL Gateway not configured)")
-	}
-
-	catalogs, err := r.CatalogService.ListCatalogs(ctx, cluster)
+	catalogs, err := r.CatalogService.ListCatalogs(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]*model.CatalogInfo, len(catalogs))
 	for i, c := range catalogs {
-		result[i] = &model.CatalogInfo{Name: c.Name}
+		result[i] = &model.CatalogInfo{Name: c.Name, Source: c.Source}
 	}
 	return result, nil
 }
 
 // CatalogDatabases is the resolver for the catalogDatabases field.
 func (r *queryResolver) CatalogDatabases(ctx context.Context, catalog string, cluster *string) ([]*model.CatalogDatabase, error) {
-	if r.CatalogService == nil {
-		return nil, fmt.Errorf("catalog service not available (SQL Gateway not configured)")
-	}
-
-	databases, err := r.CatalogService.ListDatabases(ctx, catalog, cluster)
+	databases, err := r.CatalogService.ListDatabases(ctx, catalog)
 	if err != nil {
 		return nil, err
 	}
@@ -50,11 +41,7 @@ func (r *queryResolver) CatalogDatabases(ctx context.Context, catalog string, cl
 
 // CatalogTables is the resolver for the catalogTables field.
 func (r *queryResolver) CatalogTables(ctx context.Context, catalog string, database string, cluster *string) ([]*model.CatalogTable, error) {
-	if r.CatalogService == nil {
-		return nil, fmt.Errorf("catalog service not available (SQL Gateway not configured)")
-	}
-
-	tables, err := r.CatalogService.ListTables(ctx, catalog, database, cluster)
+	tables, err := r.CatalogService.ListTables(ctx, catalog, database)
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +49,20 @@ func (r *queryResolver) CatalogTables(ctx context.Context, catalog string, datab
 	result := make([]*model.CatalogTable, len(tables))
 	for i, t := range tables {
 		result[i] = &model.CatalogTable{Name: t.Name}
+	}
+	return result, nil
+}
+
+// CatalogColumns is the resolver for the catalogColumns field.
+func (r *queryResolver) CatalogColumns(ctx context.Context, catalog string, database string, table string, _ *string) ([]*model.ColumnInfo, error) {
+	columns, err := r.CatalogService.ListColumns(ctx, catalog, database, table)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.ColumnInfo, len(columns))
+	for i, c := range columns {
+		result[i] = &model.ColumnInfo{Name: c.Name, Type: c.Type}
 	}
 	return result, nil
 }

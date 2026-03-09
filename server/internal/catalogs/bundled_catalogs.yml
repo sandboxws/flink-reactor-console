@@ -1,0 +1,272 @@
+catalogs:
+  - name: pagila
+    connector:
+      type: jdbc
+      properties:
+        url: "jdbc:postgresql://postgres:5433/pagila"
+        username: "reactor"
+        password: "reactor"
+    databases:
+      - name: public
+        tables:
+          - name: actor
+            columns:
+              - { name: actor_id, type: INT }
+              - { name: first_name, type: STRING }
+              - { name: last_name, type: STRING }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: film
+            columns:
+              - { name: film_id, type: INT }
+              - { name: title, type: STRING }
+              - { name: description, type: STRING }
+              - { name: release_year, type: INT }
+              - { name: language_id, type: INT }
+              - { name: original_language_id, type: INT }
+              - { name: rental_duration, type: SMALLINT }
+              - { name: rental_rate, type: "DECIMAL(4,2)" }
+              - { name: length, type: SMALLINT }
+              - { name: replacement_cost, type: "DECIMAL(5,2)" }
+              - { name: rating, type: STRING }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+              - { name: special_features, type: STRING }
+              - { name: fulltext, type: STRING }
+          - name: customer
+            columns:
+              - { name: customer_id, type: INT }
+              - { name: store_id, type: INT }
+              - { name: first_name, type: STRING }
+              - { name: last_name, type: STRING }
+              - { name: email, type: STRING }
+              - { name: address_id, type: INT }
+              - { name: activebool, type: BOOLEAN }
+              - { name: create_date, type: DATE }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+              - { name: active, type: INT }
+          - name: rental
+            columns:
+              - { name: rental_id, type: INT }
+              - { name: rental_date, type: "TIMESTAMP(3)" }
+              - { name: inventory_id, type: INT }
+              - { name: customer_id, type: INT }
+              - { name: return_date, type: "TIMESTAMP(3)" }
+              - { name: staff_id, type: INT }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: payment
+            columns:
+              - { name: payment_id, type: INT }
+              - { name: customer_id, type: INT }
+              - { name: staff_id, type: INT }
+              - { name: rental_id, type: INT }
+              - { name: amount, type: "DECIMAL(5,2)" }
+              - { name: payment_date, type: "TIMESTAMP(3)" }
+          - name: inventory
+            columns:
+              - { name: inventory_id, type: INT }
+              - { name: film_id, type: INT }
+              - { name: store_id, type: INT }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: film_actor
+            columns:
+              - { name: actor_id, type: INT }
+              - { name: film_id, type: INT }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: film_category
+            columns:
+              - { name: film_id, type: INT }
+              - { name: category_id, type: INT }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: category
+            columns:
+              - { name: category_id, type: INT }
+              - { name: name, type: STRING }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: language
+            columns:
+              - { name: language_id, type: INT }
+              - { name: name, type: STRING }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: country
+            columns:
+              - { name: country_id, type: INT }
+              - { name: country, type: STRING }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: city
+            columns:
+              - { name: city_id, type: INT }
+              - { name: city, type: STRING }
+              - { name: country_id, type: INT }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: address
+            columns:
+              - { name: address_id, type: INT }
+              - { name: address, type: STRING }
+              - { name: address2, type: STRING }
+              - { name: district, type: STRING }
+              - { name: city_id, type: INT }
+              - { name: postal_code, type: STRING }
+              - { name: phone, type: STRING }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+          - name: staff
+            columns:
+              - { name: staff_id, type: INT }
+              - { name: first_name, type: STRING }
+              - { name: last_name, type: STRING }
+              - { name: address_id, type: INT }
+              - { name: email, type: STRING }
+              - { name: store_id, type: INT }
+              - { name: active, type: BOOLEAN }
+              - { name: username, type: STRING }
+              - { name: password, type: STRING }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+              - { name: picture, type: BYTES }
+          - name: store
+            columns:
+              - { name: store_id, type: INT }
+              - { name: manager_staff_id, type: INT }
+              - { name: address_id, type: INT }
+              - { name: last_update, type: "TIMESTAMP(3)" }
+
+  - name: chinook
+    connector:
+      type: jdbc
+      properties:
+        url: "jdbc:postgresql://postgres:5433/chinook"
+        username: "reactor"
+        password: "reactor"
+    databases:
+      - name: public
+        tables:
+          - name: artist
+            columns:
+              - { name: artist_id, type: INT }
+              - { name: name, type: STRING }
+          - name: album
+            columns:
+              - { name: album_id, type: INT }
+              - { name: title, type: STRING }
+              - { name: artist_id, type: INT }
+          - name: track
+            columns:
+              - { name: track_id, type: INT }
+              - { name: name, type: STRING }
+              - { name: album_id, type: INT }
+              - { name: media_type_id, type: INT }
+              - { name: genre_id, type: INT }
+              - { name: composer, type: STRING }
+              - { name: milliseconds, type: INT }
+              - { name: bytes, type: INT }
+              - { name: unit_price, type: "DECIMAL(10,2)" }
+          - name: genre
+            columns:
+              - { name: genre_id, type: INT }
+              - { name: name, type: STRING }
+          - name: media_type
+            columns:
+              - { name: media_type_id, type: INT }
+              - { name: name, type: STRING }
+          - name: playlist
+            columns:
+              - { name: playlist_id, type: INT }
+              - { name: name, type: STRING }
+          - name: playlist_track
+            columns:
+              - { name: playlist_id, type: INT }
+              - { name: track_id, type: INT }
+          - name: customer
+            columns:
+              - { name: customer_id, type: INT }
+              - { name: first_name, type: STRING }
+              - { name: last_name, type: STRING }
+              - { name: company, type: STRING }
+              - { name: address, type: STRING }
+              - { name: city, type: STRING }
+              - { name: state, type: STRING }
+              - { name: country, type: STRING }
+              - { name: postal_code, type: STRING }
+              - { name: phone, type: STRING }
+              - { name: fax, type: STRING }
+              - { name: email, type: STRING }
+              - { name: support_rep_id, type: INT }
+          - name: employee
+            columns:
+              - { name: employee_id, type: INT }
+              - { name: last_name, type: STRING }
+              - { name: first_name, type: STRING }
+              - { name: title, type: STRING }
+              - { name: reports_to, type: INT }
+              - { name: birth_date, type: "TIMESTAMP(3)" }
+              - { name: hire_date, type: "TIMESTAMP(3)" }
+              - { name: address, type: STRING }
+              - { name: city, type: STRING }
+              - { name: state, type: STRING }
+              - { name: country, type: STRING }
+              - { name: postal_code, type: STRING }
+              - { name: phone, type: STRING }
+              - { name: fax, type: STRING }
+              - { name: email, type: STRING }
+          - name: invoice
+            columns:
+              - { name: invoice_id, type: INT }
+              - { name: customer_id, type: INT }
+              - { name: invoice_date, type: "TIMESTAMP(3)" }
+              - { name: billing_address, type: STRING }
+              - { name: billing_city, type: STRING }
+              - { name: billing_state, type: STRING }
+              - { name: billing_country, type: STRING }
+              - { name: billing_postal_code, type: STRING }
+              - { name: total, type: "DECIMAL(10,2)" }
+          - name: invoice_line
+            columns:
+              - { name: invoice_line_id, type: INT }
+              - { name: invoice_id, type: INT }
+              - { name: track_id, type: INT }
+              - { name: unit_price, type: "DECIMAL(10,2)" }
+              - { name: quantity, type: INT }
+
+  - name: employees
+    connector:
+      type: jdbc
+      properties:
+        url: "jdbc:postgresql://postgres:5433/employees"
+        username: "reactor"
+        password: "reactor"
+    databases:
+      - name: employees
+        tables:
+          - name: employee
+            columns:
+              - { name: id, type: BIGINT }
+              - { name: birth_date, type: DATE }
+              - { name: first_name, type: STRING }
+              - { name: last_name, type: STRING }
+              - { name: gender, type: STRING }
+              - { name: hire_date, type: DATE }
+          - name: department
+            columns:
+              - { name: id, type: STRING }
+              - { name: dept_name, type: STRING }
+          - name: department_employee
+            columns:
+              - { name: employee_id, type: BIGINT }
+              - { name: department_id, type: STRING }
+              - { name: from_date, type: DATE }
+              - { name: to_date, type: DATE }
+          - name: department_manager
+            columns:
+              - { name: employee_id, type: BIGINT }
+              - { name: department_id, type: STRING }
+              - { name: from_date, type: DATE }
+              - { name: to_date, type: DATE }
+          - name: salary
+            columns:
+              - { name: employee_id, type: BIGINT }
+              - { name: amount, type: BIGINT }
+              - { name: from_date, type: DATE }
+              - { name: to_date, type: DATE }
+          - name: title
+            columns:
+              - { name: employee_id, type: BIGINT }
+              - { name: title, type: STRING }
+              - { name: from_date, type: DATE }
+              - { name: to_date, type: DATE }

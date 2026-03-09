@@ -48,7 +48,8 @@ type CatalogDatabase struct {
 }
 
 type CatalogInfo struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
+	Source string `json:"source"`
 }
 
 type CatalogTable struct {
@@ -132,6 +133,11 @@ type ClusterInfo struct {
 	LastCheckTime *string       `json:"lastCheckTime,omitempty"`
 	Version       *string       `json:"version,omitempty"`
 	Capabilities  []string      `json:"capabilities"`
+}
+
+type ColumnInfo struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type DashboardConfig struct {

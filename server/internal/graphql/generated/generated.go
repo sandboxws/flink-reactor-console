@@ -75,7 +75,8 @@ type ComplexityRoot struct {
 	}
 
 	CatalogInfo struct {
-		Name func(childComplexity int) int
+		Name   func(childComplexity int) int
+		Source func(childComplexity int) int
 	}
 
 	CatalogTable struct {
@@ -158,6 +159,11 @@ type ComplexityRoot struct {
 		Status        func(childComplexity int) int
 		URL           func(childComplexity int) int
 		Version       func(childComplexity int) int
+	}
+
+	ColumnInfo struct {
+		Name func(childComplexity int) int
+		Type func(childComplexity int) int
 	}
 
 	DashboardConfig struct {
@@ -493,6 +499,7 @@ type ComplexityRoot struct {
 	Query struct {
 		BlueGreenDeployment   func(childComplexity int, name string, namespace *string, cluster *string) int
 		BlueGreenDeployments  func(childComplexity int, cluster *string, namespace *string) int
+		CatalogColumns        func(childComplexity int, catalog string, database string, table string, cluster *string) int
 		CatalogDatabases      func(childComplexity int, catalog string, cluster *string) int
 		CatalogTables         func(childComplexity int, catalog string, database string, cluster *string) int
 		Catalogs              func(childComplexity int, cluster *string) int
@@ -760,6 +767,7 @@ type QueryResolver interface {
 	Catalogs(ctx context.Context, cluster *string) ([]*model.CatalogInfo, error)
 	CatalogDatabases(ctx context.Context, catalog string, cluster *string) ([]*model.CatalogDatabase, error)
 	CatalogTables(ctx context.Context, catalog string, database string, cluster *string) ([]*model.CatalogTable, error)
+	CatalogColumns(ctx context.Context, catalog string, database string, table string, cluster *string) ([]*model.ColumnInfo, error)
 	FlinkConfig(ctx context.Context, cluster *string) (*model.FlinkConfig, error)
 	DashboardConfig(ctx context.Context) (*model.DashboardConfig, error)
 	DatabaseSchemas(ctx context.Context, instrument string) ([]*model.DatabaseSchema, error)
@@ -956,6 +964,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CatalogInfo.Name(childComplexity), true
+	case "CatalogInfo.source":
+		if e.ComplexityRoot.CatalogInfo.Source == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CatalogInfo.Source(childComplexity), true
 
 	case "CatalogTable.name":
 		if e.ComplexityRoot.CatalogTable.Name == nil {
@@ -1278,6 +1292,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ClusterInfo.Version(childComplexity), true
+
+	case "ColumnInfo.name":
+		if e.ComplexityRoot.ColumnInfo.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ColumnInfo.Name(childComplexity), true
+	case "ColumnInfo.type":
+		if e.ComplexityRoot.ColumnInfo.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ColumnInfo.Type(childComplexity), true
 
 	case "DashboardConfig.clusters":
 		if e.ComplexityRoot.DashboardConfig.Clusters == nil {
@@ -2588,6 +2615,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.BlueGreenDeployments(childComplexity, args["cluster"].(*string), args["namespace"].(*string)), true
+	case "Query.catalogColumns":
+		if e.ComplexityRoot.Query.CatalogColumns == nil {
+			break
+		}
+
+		args, err := ec.field_Query_catalogColumns_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.CatalogColumns(childComplexity, args["catalog"].(string), args["database"].(string), args["table"].(string), args["cluster"].(*string)), true
 	case "Query.catalogDatabases":
 		if e.ComplexityRoot.Query.CatalogDatabases == nil {
 			break
@@ -3852,10 +3890,11 @@ extend type Subscription {
   blueGreenStateChanged(cluster: String, namespace: String): BlueGreenDeployment!
 }
 `, BuiltIn: false},
-	{Name: "../schema/catalogs.graphqls", Input: `# Catalog browsing via SQL Gateway
+	{Name: "../schema/catalogs.graphqls", Input: `# Catalog browsing via SQL Gateway and bundled examples
 
 type CatalogInfo {
   name: String!
+  source: String!
 }
 
 type CatalogDatabase {
@@ -3864,6 +3903,11 @@ type CatalogDatabase {
 
 type CatalogTable {
   name: String!
+}
+
+type ColumnInfo {
+  name: String!
+  type: String!
 }
 
 extend type Query {
@@ -3875,6 +3919,9 @@ extend type Query {
 
   """List tables within a catalog database"""
   catalogTables(catalog: String!, database: String!, cluster: String): [CatalogTable!]!
+
+  """List columns for a table"""
+  catalogColumns(catalog: String!, database: String!, table: String!, cluster: String): [ColumnInfo!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/config.graphqls", Input: `# Dashboard and Flink configuration types and queries
@@ -5076,6 +5123,32 @@ func (ec *executionContext) field_Query_blueGreenDeployments_args(ctx context.Co
 		return nil, err
 	}
 	args["namespace"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_catalogColumns_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "catalog", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["catalog"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "database", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["database"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "table", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["table"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg3
 	return args, nil
 }
 
@@ -6295,6 +6368,35 @@ func (ec *executionContext) _CatalogInfo_name(ctx context.Context, field graphql
 }
 
 func (ec *executionContext) fieldContext_CatalogInfo_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CatalogInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CatalogInfo_source(ctx context.Context, field graphql.CollectedField, obj *model.CatalogInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CatalogInfo_source,
+		func(ctx context.Context) (any, error) {
+			return obj.Source, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CatalogInfo_source(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CatalogInfo",
 		Field:      field,
@@ -7993,6 +8095,64 @@ func (ec *executionContext) _ClusterInfo_capabilities(ctx context.Context, field
 func (ec *executionContext) fieldContext_ClusterInfo_capabilities(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClusterInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ColumnInfo_name(ctx context.Context, field graphql.CollectedField, obj *model.ColumnInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ColumnInfo_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ColumnInfo_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ColumnInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ColumnInfo_type(ctx context.Context, field graphql.CollectedField, obj *model.ColumnInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ColumnInfo_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ColumnInfo_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ColumnInfo",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -14550,6 +14710,8 @@ func (ec *executionContext) fieldContext_Query_catalogs(ctx context.Context, fie
 			switch field.Name {
 			case "name":
 				return ec.fieldContext_CatalogInfo_name(ctx, field)
+			case "source":
+				return ec.fieldContext_CatalogInfo_source(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CatalogInfo", field.Name)
 		},
@@ -14652,6 +14814,53 @@ func (ec *executionContext) fieldContext_Query_catalogTables(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_catalogTables_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_catalogColumns(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_catalogColumns,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().CatalogColumns(ctx, fc.Args["catalog"].(string), fc.Args["database"].(string), fc.Args["table"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNColumnInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfoᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_catalogColumns(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_ColumnInfo_name(ctx, field)
+			case "type":
+				return ec.fieldContext_ColumnInfo_type(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ColumnInfo", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_catalogColumns_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -21894,6 +22103,11 @@ func (ec *executionContext) _CatalogInfo(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "source":
+			out.Values[i] = ec._CatalogInfo_source(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22446,6 +22660,50 @@ func (ec *executionContext) _ClusterInfo(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ClusterInfo_version(ctx, field, obj)
 		case "capabilities":
 			out.Values[i] = ec._ClusterInfo_capabilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var columnInfoImplementors = []string{"ColumnInfo"}
+
+func (ec *executionContext) _ColumnInfo(ctx context.Context, sel ast.SelectionSet, obj *model.ColumnInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, columnInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ColumnInfo")
+		case "name":
+			out.Values[i] = ec._ColumnInfo_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._ColumnInfo_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -25089,6 +25347,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_catalogTables(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "catalogColumns":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_catalogColumns(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -27855,6 +28135,32 @@ func (ec *executionContext) unmarshalNClusterStatus2githubᚗcomᚋsandboxwsᚋf
 
 func (ec *executionContext) marshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus(ctx context.Context, sel ast.SelectionSet, v model.ClusterStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNColumnInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ColumnInfo) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNColumnInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfo(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNColumnInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfo(ctx context.Context, sel ast.SelectionSet, v *model.ColumnInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ColumnInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNDashboardConfig2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig(ctx context.Context, sel ast.SelectionSet, v model.DashboardConfig) graphql.Marshaler {

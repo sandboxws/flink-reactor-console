@@ -17,6 +17,7 @@ require (
 	github.com/twmb/franz-go/pkg/kadm v1.17.2
 	github.com/vektah/gqlparser/v2 v2.5.32
 	golang.org/x/sync v0.19.0
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/apimachinery v0.35.2
 	k8s.io/client-go v0.35.2
 )

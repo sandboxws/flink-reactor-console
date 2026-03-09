@@ -3,6 +3,8 @@ import {
   type CatalogDatabase,
   type CatalogInfo,
   type CatalogTable,
+  type ColumnInfo,
+  fetchCatalogColumns,
   fetchCatalogDatabases,
   fetchCatalogs,
   fetchCatalogTables,
@@ -17,12 +19,18 @@ interface CatalogState {
   expandedNodes: Set<string>
   databases: Record<string, CatalogDatabase[]>
   tables: Record<string, CatalogTable[]>
+  columns: Record<string, ColumnInfo[]>
   loadingNodes: Set<string>
 }
 
 interface CatalogActions {
   fetchCatalogs: () => Promise<void>
-  toggleNode: (nodeKey: string, catalog: string, database?: string) => void
+  toggleNode: (
+    nodeKey: string,
+    catalog: string,
+    database?: string,
+    table?: string,
+  ) => void
 }
 
 export type CatalogStore = CatalogState & CatalogActions
@@ -34,6 +42,7 @@ export const useCatalogStore = create<CatalogStore>((set, get) => ({
   expandedNodes: new Set(),
   databases: {},
   tables: {},
+  columns: {},
   loadingNodes: new Set(),
 
   fetchCatalogs: async () => {
@@ -49,7 +58,12 @@ export const useCatalogStore = create<CatalogStore>((set, get) => ({
     }
   },
 
-  toggleNode: async (nodeKey: string, catalog: string, database?: string) => {
+  toggleNode: async (
+    nodeKey: string,
+    catalog: string,
+    database?: string,
+    table?: string,
+  ) => {
     const { expandedNodes, loadingNodes } = get()
 
     if (expandedNodes.has(nodeKey)) {
@@ -67,7 +81,18 @@ export const useCatalogStore = create<CatalogStore>((set, get) => ({
     set({ expandedNodes: nextExpanded, loadingNodes: nextLoading })
 
     try {
-      if (database) {
+      if (database && table) {
+        // Loading columns for a table
+        const data = await fetchCatalogColumns(catalog, database, table)
+        set((s) => {
+          const next = new Set(s.loadingNodes)
+          next.delete(nodeKey)
+          return {
+            columns: { ...s.columns, [nodeKey]: data },
+            loadingNodes: next,
+          }
+        })
+      } else if (database) {
         // Loading tables for a database
         const data = await fetchCatalogTables(catalog, database)
         set((s) => {

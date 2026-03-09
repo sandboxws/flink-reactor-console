@@ -294,7 +294,7 @@ instruments:
     name: "local-pg"
     config:
       driver: "postgres"
-      dsn: "postgres://localhost:5432/mydb"
+      dsn: "postgres://localhost:5433/mydb"
 `)
 
 	if len(cfg.Instruments) != 2 {
