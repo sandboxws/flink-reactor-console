@@ -74,16 +74,23 @@ export const useCatalogExploreStore = create<CatalogExploreStore>(
           set({ sessionHandle: session })
         }
 
-        // Tag the job with the explore prefix
-        const truncatedSql = sql.length > 80 ? `${sql.slice(0, 80)}...` : sql
+        // Tag the job with the explore prefix (strip newlines for SQL string literal)
+        const flatSql = sql.replace(/\s+/g, " ").trim()
+        const truncatedSql =
+          flatSql.length > 80 ? `${flatSql.slice(0, 80)}...` : flatSql
         const pipelineName = `explore: ${truncatedSql}`
-        try {
-          await submitSQLStatement(
-            session,
-            `SET 'pipeline.name' = '${pipelineName.replaceAll("'", "''")}'`,
-          )
-        } catch {
-          // SET may fail on some SQL Gateway versions; continue anyway
+        // Configure session: automatic runtime mode lets Flink pick batch vs
+        // streaming based on source boundedness (e.g. JDBC → batch, Kafka → streaming).
+        const sessionSetStatements = [
+          `SET 'execution.runtime-mode' = 'AUTOMATIC'`,
+          `SET 'pipeline.name' = '${pipelineName.replaceAll("'", "''")}'`,
+        ]
+        for (const stmt of sessionSetStatements) {
+          try {
+            await submitSQLStatement(session, stmt)
+          } catch {
+            // SET may fail on some SQL Gateway versions; continue anyway
+          }
         }
 
         // Submit the actual statement
@@ -101,14 +108,13 @@ export const useCatalogExploreStore = create<CatalogExploreStore>(
             session = await createSQLSession()
             set({ sessionHandle: session })
 
-            // Re-tag with pipeline name
-            try {
-              await submitSQLStatement(
-                session,
-                `SET 'pipeline.name' = '${pipelineName.replaceAll("'", "''")}'`,
-              )
-            } catch {
-              // Ignore SET failures
+            // Re-configure session after recovery
+            for (const stmt of sessionSetStatements) {
+              try {
+                await submitSQLStatement(session, stmt)
+              } catch {
+                // Ignore SET failures
+              }
             }
 
             operationHandle = await submitSQLStatement(session, sql)
@@ -122,6 +128,7 @@ export const useCatalogExploreStore = create<CatalogExploreStore>(
         // Poll results
         let token: string | undefined
         let allRows: Array<Array<string | null>> = []
+        const POLL_DELAY_MS = 200
 
         while (true) {
           if (get().cancelled) {
@@ -157,6 +164,10 @@ export const useCatalogExploreStore = create<CatalogExploreStore>(
           }
 
           token = result.nextToken ?? undefined
+
+          // Brief pause between polls to avoid hammering the gateway
+          // while results are being computed (NOT_READY state).
+          await new Promise((resolve) => setTimeout(resolve, POLL_DELAY_MS))
         }
       } catch (err) {
         set({
