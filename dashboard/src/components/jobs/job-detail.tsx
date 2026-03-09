@@ -1,11 +1,11 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from "react"
+import { TapPanel } from "@/components/tap/tap-panel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlinkJob } from "@/data/cluster-types"
 import type { TapMetadata } from "@/data/tap-types"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useSqlGatewayStore } from "@/stores/sql-gateway-store"
 import { useTapStore } from "@/stores/tap-store"
-import { TapPanel } from "../tap/tap-panel"
 import { CheckpointsTab } from "./detail/checkpoints-tab"
 import { ConfigurationTab } from "./detail/configuration-tab"
 import { DataSkewTab } from "./detail/data-skew-tab"
@@ -21,10 +21,7 @@ const JobGraph = lazy(() =>
 
 function JobGraphFallback() {
   return (
-    <div
-      className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500"
-      style={{ height: 500 }}
-    >
+    <div className="glass-card flex min-h-0 flex-1 items-center justify-center py-16 text-xs text-zinc-500">
       Loading graph...
     </div>
   )
@@ -109,7 +106,7 @@ export function JobDetail({
   )
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex h-[calc(100vh-2.75rem)] flex-col gap-4 p-4">
       <JobHeader
         job={job}
         onCancelJob={onCancelJob}
@@ -124,7 +121,11 @@ export function JobDetail({
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="flex min-h-0 flex-1 flex-col"
+      >
         <TabsList className="detail-tabs-list">
           <TabsTrigger value="overview" className="detail-tab">
             Overview
@@ -159,7 +160,10 @@ export function JobDetail({
           )}
         </TabsList>
 
-        <TabsContent value="overview" className="mt-4">
+        <TabsContent
+          value="overview"
+          className="mt-4 flex min-h-0 flex-1 flex-col"
+        >
           {job.plan ? (
             <Suspense fallback={<JobGraphFallback />}>
               <JobGraph
@@ -172,35 +176,35 @@ export function JobDetail({
               />
             </Suspense>
           ) : (
-            <div className="glass-card flex items-center justify-center py-16 text-xs text-zinc-500">
+            <div className="glass-card flex min-h-0 flex-1 items-center justify-center py-16 text-xs text-zinc-500">
               No execution plan available
             </div>
           )}
         </TabsContent>
 
-        <TabsContent value="vertices" className="mt-4">
+        <TabsContent value="vertices" className="mt-4 flex-1 overflow-auto">
           <VerticesTab job={job} selectedVertexId={selectedVertexId} />
         </TabsContent>
 
-        <TabsContent value="exceptions" className="mt-4">
+        <TabsContent value="exceptions" className="mt-4 flex-1 overflow-auto">
           <ExceptionsTab exceptions={job.exceptions} />
         </TabsContent>
 
-        <TabsContent value="data-skew" className="mt-4">
+        <TabsContent value="data-skew" className="mt-4 flex-1 overflow-auto">
           <DataSkewTab
             subtaskMetrics={job.subtaskMetrics}
             vertices={job.plan?.vertices ?? []}
           />
         </TabsContent>
 
-        <TabsContent value="timeline" className="mt-4">
+        <TabsContent value="timeline" className="mt-4 flex-1 overflow-auto">
           <TimelineTab
             vertices={job.plan?.vertices ?? []}
             jobStartTime={job.startTime}
           />
         </TabsContent>
 
-        <TabsContent value="checkpoints" className="mt-4">
+        <TabsContent value="checkpoints" className="mt-4 flex-1 overflow-auto">
           <CheckpointsTab
             jobId={job.id}
             checkpoints={job.checkpoints}
@@ -211,14 +215,17 @@ export function JobDetail({
           />
         </TabsContent>
 
-        <TabsContent value="configuration" className="mt-4">
+        <TabsContent
+          value="configuration"
+          className="mt-4 flex-1 overflow-auto"
+        >
           <ConfigurationTab configuration={job.configuration} />
         </TabsContent>
 
         {!job.name.startsWith("flink-reactor-tap-") && (
           <TabsContent
             value="tap"
-            className="mt-4 data-[state=inactive]:hidden"
+            className="mt-4 flex-1 overflow-auto data-[state=inactive]:hidden"
             forceMount
           >
             <TapPanel jobName={jobName} />

@@ -235,7 +235,7 @@ export function JobGraph({
   onStopTap?: (vertexName: string) => void
 }) {
   return (
-    <div className={`glass-card ${className ?? ""}`} style={{ height: 500 }}>
+    <div className={`glass-card min-h-0 flex-1 ${className ?? ""}`}>
       <ReactFlowProvider>
         <JobGraphInner
           plan={plan}
