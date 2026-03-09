@@ -7,13 +7,13 @@
   "license": "BUSL-1.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sandboxws/flink-reactor.git",
-    "directory": "apps/dashboard"
+    "url": "https://github.com/sandboxws/flink-reactor-console.git",
+    "directory": "dashboard"
   },
   "bugs": {
-    "url": "https://github.com/sandboxws/flink-reactor/issues"
+    "url": "https://github.com/sandboxws/flink-reactor-console/issues"
   },
-  "homepage": "https://github.com/sandboxws/flink-reactor/tree/main/apps/dashboard#readme",
+  "homepage": "https://github.com/sandboxws/flink-reactor-console#readme",
   "publishConfig": {
     "access": "public"
   },
@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "build": "vite build",
-    "build:static": "vite build && cp -r dist/ ../../apps/server/static/",
+    "build:static": "vite build && cp -r dist/ ../server/static/",
     "dev": "vite --port 3001",
     "preview": "vite preview --port 3001",
     "lint": "biome check",
@@ -35,7 +35,18 @@
     "graphql:codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
+    "@radix-ui/react-collapsible": "^1.1.11",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-hover-card": "^1.1.14",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-popover": "^1.1.14",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.12",
+    "@radix-ui/react-tooltip": "^1.2.7",
+    "cmdk": "^1.1.1",
     "@shikijs/core": "^4.0.2",
     "@shikijs/langs": "^4.0.2",
     "@shikijs/themes": "^4.0.2",
@@ -50,10 +61,12 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-icons": "^5.5.0",
+    "react-resizable-panels": "^4.5.9",
     "recharts": "^2.15.4",
     "shiki": "^4.0.2",
     "tslog": "^4.9.3",
     "urql": "^5.0.1",
+    "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
@@ -71,6 +84,7 @@
     "@vitejs/plugin-react": "^4.5.2",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
+    "vitest": "^3.0.0",
     "vite": "^6.3.5",
     "vite-tsconfig-paths": "^5.1.4"
   }
