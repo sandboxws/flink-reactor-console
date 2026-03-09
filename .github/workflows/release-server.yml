@@ -26,13 +26,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter dashboard build
-      - run: mkdir -p apps/server/dashboard && cp -r apps/dashboard/out/* apps/server/dashboard/
+      - run: mkdir -p server/dashboard && cp -r dashboard/out/* server/dashboard/
 
       # Build Go binaries + Docker image.
       - uses: actions/setup-go@v5
         with:
           go-version: "1.24"
-          cache-dependency-path: apps/server/go.sum
+          cache-dependency-path: server/go.sum
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -46,7 +46,7 @@ jobs:
           distribution: goreleaser
           version: "~> v2"
           args: release --clean
-          workdir: apps/server
+          workdir: server
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
