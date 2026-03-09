@@ -4,10 +4,12 @@ import type { LogEntry, LogSource } from "@/data/types"
 import { LOG_BUFFER_LIMIT } from "@/lib/constants"
 import {
   fetchJobManagerLog,
+  fetchSQLGatewayLog,
   fetchTaskManagerLog,
 } from "@/lib/graphql-api-client"
 import { createClientLogger } from "@/lib/logger"
 import { useClusterStore } from "./cluster-store"
+import { useErrorStore } from "./error-store"
 
 const log = createClientLogger().getSubLogger({ name: "store:log" })
 
@@ -54,6 +56,13 @@ const JM_SOURCE: LogSource = {
   type: "jobmanager",
   id: "jobmanager",
   label: "JobManager",
+}
+
+/** SQL Gateway log source identifier. */
+const SGW_SOURCE: LogSource = {
+  type: "sqlgateway",
+  id: "sqlgateway",
+  label: "SQL Gateway",
 }
 
 /** Build a TM log source from its ID. Label matches SourceBadge format. */
@@ -143,6 +152,14 @@ async function pollLogs(appendEntries: (entries: LogEntry[]) => void) {
   )
   allEntries.push(...jmEntries)
 
+  // Poll SQL Gateway log (silently skips if not available)
+  const sgwEntries = await fetchAndParseDelta(
+    () => fetchSQLGatewayLog(),
+    "sgw",
+    SGW_SOURCE,
+  )
+  allEntries.push(...sgwEntries)
+
   // Poll TM logs (IDs from cluster-store)
   const tms = useClusterStore.getState().taskManagers
   if (tms.length > 0) {
@@ -165,6 +182,14 @@ async function pollLogs(appendEntries: (entries: LogEntry[]) => void) {
     // Sort by timestamp before appending
     allEntries.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
     appendEntries(allEntries)
+
+    // Feed exceptions from the log stream into the error store
+    const { processEntry } = useErrorStore.getState()
+    for (const entry of allEntries) {
+      if (entry.isException) {
+        processEntry(entry)
+      }
+    }
   }
 }
 
@@ -211,7 +236,9 @@ export const useLogStore = create<LogStore>((set, get) => ({
   },
 
   startStreaming: () => {
-    log.info("LIVE → polling JM/TM log endpoints", { screen: "Log Explorer" })
+    log.info("LIVE → polling JM/TM/SGW log endpoints", {
+      screen: "Log Explorer",
+    })
     // Reset offsets on fresh start
     for (const key of Object.keys(lastOffset)) {
       delete lastOffset[key]

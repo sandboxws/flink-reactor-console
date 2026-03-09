@@ -29,6 +29,40 @@ func Register(e *echo.Echo, manager *cluster.Manager) {
 	g.GET("/jobmanager/logs/:name", func(c echo.Context) error {
 		return proxyLog(c, manager, "/jobmanager/logs/"+c.Param("name"))
 	})
+
+	// SQL Gateway log proxy — the SQL Gateway is a Flink process that may
+	// expose standard Flink monitoring endpoints including /log.
+	g.GET("/sql-gateway", func(c echo.Context) error {
+		return proxySQLGatewayLog(c, manager, "/log")
+	})
+}
+
+func proxySQLGatewayLog(c echo.Context, manager *cluster.Manager, path string) error {
+	if manager == nil {
+		return c.String(http.StatusServiceUnavailable, "cluster manager not configured")
+	}
+
+	clusterName := c.QueryParam("cluster")
+	var clusterPtr *string
+	if clusterName != "" {
+		clusterPtr = &clusterName
+	}
+
+	conn, err := manager.Resolve(clusterPtr)
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+
+	if conn.SQLClient == nil {
+		return c.String(http.StatusServiceUnavailable, "SQL Gateway not configured")
+	}
+
+	text, err := conn.SQLClient.GetText(c.Request().Context(), path)
+	if err != nil {
+		return c.String(http.StatusBadGateway, err.Error())
+	}
+
+	return c.String(http.StatusOK, text)
 }
 
 func proxyLog(c echo.Context, manager *cluster.Manager, path string) error {

@@ -1,7 +1,7 @@
 export type LogLevel = "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR"
 
 export type LogSource = {
-  type: "taskmanager" | "jobmanager" | "client"
+  type: "taskmanager" | "jobmanager" | "sqlgateway" | "client"
   id: string
   label: string
 }

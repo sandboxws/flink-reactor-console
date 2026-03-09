@@ -147,12 +147,21 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 			}
 		}
 	}
+
+	// Pre-generate DDL so new SQL sessions can replay it.
+	var catalogInitDDL []string
+	if bundledProvider != nil {
+		dummyInit := catalogs.NewInitializer(bundledProvider.Data(), nil, logger)
+		catalogInitDDL = dummyInit.GenerateSQL()
+	}
+
 	catalogService := catalogs.NewService(logger, catalogProviders...)
 	resolver := &graphql.Resolver{
 		Manager:            manager,
 		InstrumentRegistry: registry,
 		TapLoader:          cfg.TapLoader,
 		CatalogService:     catalogService,
+		CatalogInitDDL:     catalogInitDDL,
 	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,

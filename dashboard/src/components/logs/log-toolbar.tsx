@@ -87,9 +87,17 @@ function SourceDropdown() {
         seen.set(entry.source.id, entry.source)
       }
     }
-    // Sort: jobmanager first, then taskmanagers alphabetically by label
+    // Sort: jobmanager first, then sqlgateway, then taskmanagers alphabetically
+    const typeOrder: Record<string, number> = {
+      jobmanager: 0,
+      sqlgateway: 1,
+      taskmanager: 2,
+      client: 3,
+    }
     return [...seen.values()].sort((a, b) => {
-      if (a.type !== b.type) return a.type === "jobmanager" ? -1 : 1
+      const aOrder = typeOrder[a.type] ?? 99
+      const bOrder = typeOrder[b.type] ?? 99
+      if (aOrder !== bOrder) return aOrder - bOrder
       return a.label.localeCompare(b.label)
     })
   }, [entries])

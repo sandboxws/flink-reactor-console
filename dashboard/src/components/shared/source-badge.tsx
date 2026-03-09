@@ -3,6 +3,7 @@ import type { LogSource } from "@/data/types"
 const SHORT_LABELS: Record<string, string> = {
   jobmanager: "JM",
   taskmanager: "TM",
+  sqlgateway: "SGW",
   client: "CLI",
 }
 
