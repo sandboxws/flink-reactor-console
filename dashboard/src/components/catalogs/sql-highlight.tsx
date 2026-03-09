@@ -1,6 +1,6 @@
 import type { HighlighterCore } from "@shikijs/core"
 import { useEffect, useState } from "react"
-import flinkrDark from "../../themes/flinkr-dark.json"
+import flinkrDark from "@/themes/flinkr-dark.json"
 
 let highlighterPromise: Promise<HighlighterCore> | null = null
 
