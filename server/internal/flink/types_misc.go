@@ -56,22 +56,41 @@ type SQLGatewayOperationResponse struct {
 	OperationHandle string `json:"operationHandle"`
 }
 
+// SQLGatewayOperationStatusResponse represents a SQL Gateway operation status response.
+type SQLGatewayOperationStatusResponse struct {
+	Status string `json:"status"` // RUNNING, FINISHED, CANCELED, ERROR
+}
+
+// SQLGatewayLogicalType represents the type info for a column in v3 API responses.
+type SQLGatewayLogicalType struct {
+	Type     string `json:"type"`
+	Nullable bool   `json:"nullable"`
+}
+
 // SQLGatewayColumn represents a column in a SQL Gateway result set.
 type SQLGatewayColumn struct {
-	Name     string `json:"name"`
-	DataType string `json:"dataType"`
+	Name        string                `json:"name"`
+	LogicalType SQLGatewayLogicalType `json:"logicalType"`
 }
 
 // SQLGatewayRow represents a single row in a SQL Gateway result set.
 type SQLGatewayRow struct {
-	Fields []any `json:"fields"`
+	Kind   string `json:"kind"`
+	Fields []any  `json:"fields"`
 }
 
-// SQLGatewayResultSet represents a SQL Gateway result set response.
+// SQLGatewayResults is the nested "results" wrapper in v3 API responses.
+type SQLGatewayResults struct {
+	Columns []SQLGatewayColumn `json:"columns"`
+	Data    []SQLGatewayRow    `json:"data"`
+}
+
+// SQLGatewayResultSet represents a SQL Gateway v3 result set response.
+// In v3, columns and data are nested under "results", and the next page
+// URI is "nextResultUri" (not "nextUri").
 type SQLGatewayResultSet struct {
-	Columns       []SQLGatewayColumn `json:"columns"`
-	Data          []SQLGatewayRow    `json:"data"`
-	ResultType    string             `json:"resultType"`
-	NextURI       *string            `json:"nextUri,omitempty"`
-	IsQueryResult bool               `json:"isQueryResult"`
+	ResultType    string            `json:"resultType"`
+	IsQueryResult bool              `json:"isQueryResult"`
+	Results       SQLGatewayResults `json:"results"`
+	NextResultURI *string           `json:"nextResultUri,omitempty"`
 }

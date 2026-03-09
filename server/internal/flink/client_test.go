@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -256,6 +257,47 @@ func TestAPIError_4xx(t *testing.T) {
 	}
 	if apiErr.StatusCode != 404 {
 		t.Errorf("StatusCode = %d, want 404", apiErr.StatusCode)
+	}
+}
+
+func TestAPIError_SQLGatewayStackTrace(t *testing.T) {
+	t.Parallel()
+
+	// Flink REST returns non-RestHandlerException errors as two entries:
+	// ["Internal server error.", "<full stack trace with Caused by lines>"]
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		body := map[string]any{
+			"errors": []string{
+				"Internal server error.",
+				"org.apache.flink.table.gateway.service.utils.SqlExecutionException: Failed to execute the operation abc.\n\tat org.apache.flink.Foo.bar(Foo.java:42)\nCaused by: org.apache.flink.table.api.TableException: Sort on a non-time-attribute field is not supported.\n\tat org.apache.flink.Baz.qux(Baz.java:99)",
+			},
+		}
+		_ = json.NewEncoder(w).Encode(body)
+	}))
+	defer srv.Close()
+
+	client := NewClient(WithBaseURL(srv.URL))
+
+	var result map[string]any
+	err := client.GetJSON(context.Background(), "/v3/sessions/s1/operations/o1/result/0", &result)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("expected APIError, got %T: %v", err, err)
+	}
+
+	// Error() should extract the root cause, not "Internal server error."
+	errMsg := apiErr.Error()
+	if !strings.Contains(errMsg, "Sort on a non-time-attribute field is not supported") {
+		t.Errorf("expected root cause in error message, got: %s", errMsg)
+	}
+	if strings.Contains(errMsg, "Internal server error") {
+		t.Errorf("error message should not contain generic message, got: %s", errMsg)
 	}
 }
 

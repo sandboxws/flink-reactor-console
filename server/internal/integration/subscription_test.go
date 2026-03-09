@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -78,32 +79,58 @@ func TestIntegration_Subscription_SQLResults(t *testing.T) {
 	}))
 	defer mockFlink.Close()
 
-	// Mock SQL Gateway.
-	callCount := 0
+	// Mock SQL Gateway — route by path, not by call count, because
+	// server.New() may run catalog initialization in the background.
+	var resultCalls int
 	var mu sync.Mutex
-	sqlGW := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		mu.Lock()
-		call := callCount
-		callCount++
-		mu.Unlock()
-
+	sqlGW := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		switch call {
-		case 0:
-			_ = json.NewEncoder(w).Encode(map[string]any{
-				"columns":       []map[string]string{{"name": "id", "dataType": "INT"}},
-				"data":          []map[string]any{{"fields": []any{1}}},
-				"resultType":    "PAYLOAD",
-				"isQueryResult": true,
-				"nextUri":       "/v3/sessions/s1/operations/o1/result/1",
-			})
+
+		switch {
+		case r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/sessions"):
+			_ = json.NewEncoder(w).Encode(map[string]string{"sessionHandle": "test-init-session"})
+		case r.Method == http.MethodPost && strings.Contains(r.URL.Path, "/statements"):
+			_ = json.NewEncoder(w).Encode(map[string]string{"operationHandle": "test-init-op"})
+		case r.Method == http.MethodDelete:
+			w.WriteHeader(http.StatusOK)
+		case r.Method == http.MethodGet && strings.Contains(r.URL.Path, "/result/"):
+			// Subscription uses session "s1"; initializer uses other sessions.
+			if !strings.Contains(r.URL.Path, "/sessions/s1/") {
+				// Return empty result for initializer DDL fetches.
+				_ = json.NewEncoder(w).Encode(map[string]any{
+					"results":    map[string]any{"columns": []any{}, "data": []any{}},
+					"resultType": "EOS",
+				})
+				return
+			}
+
+			mu.Lock()
+			call := resultCalls
+			resultCalls++
+			mu.Unlock()
+
+			if call == 0 {
+				_ = json.NewEncoder(w).Encode(map[string]any{
+					"results": map[string]any{
+						"columns": []map[string]any{{"name": "id", "logicalType": map[string]any{"type": "INT", "nullable": false}}},
+						"data":    []map[string]any{{"kind": "INSERT", "fields": []any{1}}},
+					},
+					"resultType":    "PAYLOAD",
+					"isQueryResult": true,
+					"nextResultUri": "/v3/sessions/s1/operations/o1/result/1",
+				})
+			} else {
+				_ = json.NewEncoder(w).Encode(map[string]any{
+					"results": map[string]any{
+						"columns": []map[string]any{{"name": "id", "logicalType": map[string]any{"type": "INT", "nullable": false}}},
+						"data":    []map[string]any{{"kind": "INSERT", "fields": []any{2}}},
+					},
+					"resultType":    "EOS",
+					"isQueryResult": true,
+				})
+			}
 		default:
-			_ = json.NewEncoder(w).Encode(map[string]any{
-				"columns":       []map[string]string{{"name": "id", "dataType": "INT"}},
-				"data":          []map[string]any{{"fields": []any{2}}},
-				"resultType":    "EOS",
-				"isQueryResult": true,
-			})
+			http.NotFound(w, r)
 		}
 	}))
 	defer sqlGW.Close()

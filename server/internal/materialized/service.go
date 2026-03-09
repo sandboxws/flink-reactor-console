@@ -160,8 +160,8 @@ func (s *Service) executeAndFetch(ctx context.Context, statement string) ([][]an
 		return nil, fmt.Errorf("fetching results: %w", err)
 	}
 
-	rows := make([][]any, len(resultSet.Data))
-	for i, row := range resultSet.Data {
+	rows := make([][]any, len(resultSet.Results.Data))
+	for i, row := range resultSet.Results.Data {
 		rows[i] = row.Fields
 	}
 

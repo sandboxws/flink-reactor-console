@@ -69,10 +69,12 @@ func TestSQLGatewayProvider_ListCatalogs(t *testing.T) {
 			writeJSON(w, map[string]string{"operationHandle": "op-1"})
 		case r.Method == http.MethodGet:
 			writeJSON(w, flink.SQLGatewayResultSet{
-				Columns: []flink.SQLGatewayColumn{{Name: "catalog name", DataType: "STRING"}},
-				Data: []flink.SQLGatewayRow{
-					{Fields: []any{"default_catalog"}},
-					{Fields: []any{"paimon"}},
+				Results: flink.SQLGatewayResults{
+					Columns: []flink.SQLGatewayColumn{{Name: "catalog name", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}}},
+					Data: []flink.SQLGatewayRow{
+						{Fields: []any{"default_catalog"}},
+						{Fields: []any{"paimon"}},
+					},
 				},
 			})
 		}
@@ -106,8 +108,10 @@ func TestSQLGatewayProvider_ListDatabases(t *testing.T) {
 			writeJSON(w, map[string]string{"operationHandle": "op-1"})
 		case r.Method == http.MethodGet:
 			writeJSON(w, flink.SQLGatewayResultSet{
-				Columns: []flink.SQLGatewayColumn{{Name: "database name", DataType: "STRING"}},
-				Data:    []flink.SQLGatewayRow{{Fields: []any{"my_db"}}},
+				Results: flink.SQLGatewayResults{
+					Columns: []flink.SQLGatewayColumn{{Name: "database name", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}}},
+					Data:    []flink.SQLGatewayRow{{Fields: []any{"my_db"}}},
+				},
 			})
 		}
 	})
@@ -137,10 +141,12 @@ func TestSQLGatewayProvider_ListTables(t *testing.T) {
 			writeJSON(w, map[string]string{"operationHandle": "op-1"})
 		case r.Method == http.MethodGet:
 			writeJSON(w, flink.SQLGatewayResultSet{
-				Columns: []flink.SQLGatewayColumn{{Name: "table name", DataType: "STRING"}},
-				Data: []flink.SQLGatewayRow{
-					{Fields: []any{"orders"}},
-					{Fields: []any{"users"}},
+				Results: flink.SQLGatewayResults{
+					Columns: []flink.SQLGatewayColumn{{Name: "table name", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}}},
+					Data: []flink.SQLGatewayRow{
+						{Fields: []any{"orders"}},
+						{Fields: []any{"users"}},
+					},
 				},
 			})
 		}
@@ -171,13 +177,15 @@ func TestSQLGatewayProvider_ListColumns(t *testing.T) {
 			writeJSON(w, map[string]string{"operationHandle": "op-1"})
 		case r.Method == http.MethodGet:
 			writeJSON(w, flink.SQLGatewayResultSet{
-				Columns: []flink.SQLGatewayColumn{
-					{Name: "column_name", DataType: "STRING"},
-					{Name: "column_type", DataType: "STRING"},
-				},
-				Data: []flink.SQLGatewayRow{
-					{Fields: []any{"id", "INT"}},
-					{Fields: []any{"name", "STRING"}},
+				Results: flink.SQLGatewayResults{
+					Columns: []flink.SQLGatewayColumn{
+						{Name: "column_name", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}},
+						{Name: "column_type", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}},
+					},
+					Data: []flink.SQLGatewayRow{
+						{Fields: []any{"id", "INT"}},
+						{Fields: []any{"name", "STRING"}},
+					},
 				},
 			})
 		}
@@ -209,8 +217,10 @@ func TestSQLGatewayProvider_SessionReuse(t *testing.T) {
 			writeJSON(w, map[string]string{"operationHandle": "op-1"})
 		case r.Method == http.MethodGet:
 			writeJSON(w, flink.SQLGatewayResultSet{
-				Columns: []flink.SQLGatewayColumn{{Name: "name", DataType: "STRING"}},
-				Data:    []flink.SQLGatewayRow{{Fields: []any{"test"}}},
+				Results: flink.SQLGatewayResults{
+					Columns: []flink.SQLGatewayColumn{{Name: "name", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}}},
+					Data:    []flink.SQLGatewayRow{{Fields: []any{"test"}}},
+				},
 			})
 		}
 	})
@@ -246,8 +256,10 @@ func TestSQLGatewayProvider_SessionRecovery(t *testing.T) {
 			writeJSON(w, map[string]string{"operationHandle": "op-1"})
 		case r.Method == http.MethodGet:
 			writeJSON(w, flink.SQLGatewayResultSet{
-				Columns: []flink.SQLGatewayColumn{{Name: "name", DataType: "STRING"}},
-				Data:    []flink.SQLGatewayRow{{Fields: []any{"recovered"}}},
+				Results: flink.SQLGatewayResults{
+					Columns: []flink.SQLGatewayColumn{{Name: "name", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}}},
+					Data:    []flink.SQLGatewayRow{{Fields: []any{"recovered"}}},
+				},
 			})
 		}
 	})

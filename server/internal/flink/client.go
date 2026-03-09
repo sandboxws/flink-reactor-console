@@ -260,14 +260,26 @@ func (c *Client) buildAPIError(statusCode int, status string, body []byte) *APIE
 	apiErr := &APIError{
 		StatusCode: statusCode,
 		Status:     status,
+		RawBody:    string(body),
 	}
 
-	// Flink error responses have the shape: {"errors": [...]}
+	// Try Flink REST format: {"errors": [{"message": "...", "root-cause": [...]}]}
 	var errBody struct {
 		Errors []ErrorEntry `json:"errors"`
 	}
-	if err := json.Unmarshal(body, &errBody); err == nil {
+	if err := json.Unmarshal(body, &errBody); err == nil && len(errBody.Errors) > 0 {
 		apiErr.Errors = errBody.Errors
+		return apiErr
+	}
+
+	// Try SQL Gateway format: {"errors": ["plain string", ...]}
+	var strErrBody struct {
+		Errors []string `json:"errors"`
+	}
+	if err := json.Unmarshal(body, &strErrBody); err == nil && len(strErrBody.Errors) > 0 {
+		for _, msg := range strErrBody.Errors {
+			apiErr.Errors = append(apiErr.Errors, ErrorEntry{Message: msg})
+		}
 	}
 
 	return apiErr

@@ -2,6 +2,7 @@ package flink
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -16,13 +17,55 @@ type APIError struct {
 	StatusCode int
 	Status     string
 	Errors     []ErrorEntry
+	RawBody    string // raw response body for error messages not matching known formats
 }
 
 func (e *APIError) Error() string {
+	if msg := e.rootCauseMessage(); msg != "" {
+		return fmt.Sprintf("flink api error %d: %s", e.StatusCode, msg)
+	}
 	if len(e.Errors) > 0 {
 		return fmt.Sprintf("flink api error %d: %s", e.StatusCode, e.Errors[0].Message)
 	}
+	if e.RawBody != "" {
+		return fmt.Sprintf("flink api error %d: %s", e.StatusCode, e.RawBody)
+	}
 	return fmt.Sprintf("flink api error %d: %s", e.StatusCode, e.Status)
+}
+
+// rootCauseMessage extracts the most useful error message from the error entries.
+// Flink REST returns non-RestHandlerException errors as:
+//
+//	{"errors": ["Internal server error.", "<full stack trace>"]}
+//
+// The stack trace often contains "Caused by:" lines with the actual root cause.
+func (e *APIError) rootCauseMessage() string {
+	// Check all error entries for stack traces with "Caused by:" lines.
+	for _, entry := range e.Errors {
+		if cause := extractRootCause(entry.Message); cause != "" {
+			return cause
+		}
+	}
+	// If there are multiple entries, the second one is typically the stack trace.
+	// Extract the first line (exception class + message) as a fallback.
+	if len(e.Errors) > 1 && e.Errors[1].Message != "" {
+		firstLine, _, _ := strings.Cut(e.Errors[1].Message, "\n")
+		return strings.TrimSpace(firstLine)
+	}
+	return ""
+}
+
+// extractRootCause finds the deepest "Caused by:" line in a Java stack trace
+// and returns just the exception message (class + description).
+func extractRootCause(stackTrace string) string {
+	var lastCause string
+	for _, line := range strings.Split(stackTrace, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "Caused by: ") {
+			lastCause = strings.TrimPrefix(trimmed, "Caused by: ")
+		}
+	}
+	return lastCause
 }
 
 // ConnectionError wraps connection failures (DNS, refused, etc.).

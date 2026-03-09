@@ -106,7 +106,7 @@ func (r *subscriptionResolver) SQLResults(ctx context.Context, cluster *string, 
 			}
 
 			batch := convertResultSet(&result)
-			hasMore := result.NextURI != nil
+			hasMore := result.NextResultURI != nil
 
 			batch.HasMore = hasMore
 			select {
@@ -119,9 +119,7 @@ func (r *subscriptionResolver) SQLResults(ctx context.Context, cluster *string, 
 				return
 			}
 
-			// Extract the next token from NextURI.
-			// NextURI is a full path like /v3/sessions/.../result/1
-			token = extractToken(*result.NextURI)
+			token = extractToken(*result.NextResultURI)
 
 			// Brief pause between fetches.
 			select {

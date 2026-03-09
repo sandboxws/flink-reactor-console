@@ -16,4 +16,5 @@ type Resolver struct {
 	InstrumentRegistry *instruments.Registry
 	TapLoader          *tap.Loader
 	CatalogService     *catalogs.Service
+	CatalogInitDDL     []string // DDL statements to replay into new SQL sessions
 }

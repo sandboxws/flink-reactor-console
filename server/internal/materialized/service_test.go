@@ -40,8 +40,10 @@ func mockSQLGateway(t *testing.T, responses map[string]any) *httptest.Server {
 			resp := responses[key]
 			if resp == nil {
 				resp = flink.SQLGatewayResultSet{
-					Columns: []flink.SQLGatewayColumn{},
-					Data:    []flink.SQLGatewayRow{},
+					Results: flink.SQLGatewayResults{
+						Columns: []flink.SQLGatewayColumn{},
+						Data:    []flink.SQLGatewayRow{},
+					},
 				}
 			}
 			_ = json.NewEncoder(w).Encode(resp)
@@ -65,10 +67,12 @@ func TestNewServiceNilClient(t *testing.T) {
 func TestListTables(t *testing.T) {
 	server := mockSQLGateway(t, map[string]any{
 		"default": flink.SQLGatewayResultSet{
-			Columns: []flink.SQLGatewayColumn{{Name: "table_name", DataType: "STRING"}},
-			Data: []flink.SQLGatewayRow{
-				{Fields: []any{"user_summary"}},
-				{Fields: []any{"order_totals"}},
+			Results: flink.SQLGatewayResults{
+				Columns: []flink.SQLGatewayColumn{{Name: "table_name", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}}},
+				Data: []flink.SQLGatewayRow{
+					{Fields: []any{"user_summary"}},
+					{Fields: []any{"order_totals"}},
+				},
 			},
 		},
 	})
@@ -96,8 +100,10 @@ func TestListTables(t *testing.T) {
 func TestListTablesEmpty(t *testing.T) {
 	server := mockSQLGateway(t, map[string]any{
 		"default": flink.SQLGatewayResultSet{
-			Columns: []flink.SQLGatewayColumn{},
-			Data:    []flink.SQLGatewayRow{},
+			Results: flink.SQLGatewayResults{
+				Columns: []flink.SQLGatewayColumn{},
+				Data:    []flink.SQLGatewayRow{},
+			},
 		},
 	})
 	defer server.Close()
@@ -117,15 +123,17 @@ func TestListTablesEmpty(t *testing.T) {
 func TestGetTable(t *testing.T) {
 	server := mockSQLGateway(t, map[string]any{
 		"default": flink.SQLGatewayResultSet{
-			Columns: []flink.SQLGatewayColumn{
-				{Name: "key", DataType: "STRING"},
-				{Name: "value", DataType: "STRING"},
-			},
-			Data: []flink.SQLGatewayRow{
-				{Fields: []any{"refresh_status", "ACTIVATED"}},
-				{Fields: []any{"refresh_mode", "CONTINUOUS"}},
-				{Fields: []any{"freshness", "INTERVAL '30' SECOND"}},
-				{Fields: []any{"definition", "SELECT * FROM events"}},
+			Results: flink.SQLGatewayResults{
+				Columns: []flink.SQLGatewayColumn{
+					{Name: "key", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}},
+					{Name: "value", LogicalType: flink.SQLGatewayLogicalType{Type: "STRING"}},
+				},
+				Data: []flink.SQLGatewayRow{
+					{Fields: []any{"refresh_status", "ACTIVATED"}},
+					{Fields: []any{"refresh_mode", "CONTINUOUS"}},
+					{Fields: []any{"freshness", "INTERVAL '30' SECOND"}},
+					{Fields: []any{"definition", "SELECT * FROM events"}},
+				},
 			},
 		},
 	})

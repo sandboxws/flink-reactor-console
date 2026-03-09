@@ -7,6 +7,7 @@ package graphql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
@@ -27,6 +28,25 @@ func (r *mutationResolver) CreateSQLSession(ctx context.Context, cluster *string
 	if err := conn.SQLClient.PostJSON(ctx, "/v3/sessions", map[string]any{}, &result); err != nil {
 		return nil, err
 	}
+
+	// Replay bundled catalog DDL so sample databases are available in this session.
+	if len(r.CatalogInitDDL) > 0 {
+		for _, stmt := range r.CatalogInitDDL {
+			var op flink.SQLGatewayOperationResponse
+			body := map[string]string{"statement": stmt}
+			submitPath := fmt.Sprintf("/v3/sessions/%s/statements", result.SessionHandle)
+			if submitErr := conn.SQLClient.PostJSON(ctx, submitPath, body, &op); submitErr != nil {
+				// Log but don't fail — partial catalog availability is acceptable.
+				continue
+			}
+			// Fetch result to ensure DDL completes before the next statement.
+			fetchPath := fmt.Sprintf("/v3/sessions/%s/operations/%s/result/0",
+				result.SessionHandle, op.OperationHandle)
+			var rs flink.SQLGatewayResultSet
+			_ = conn.SQLClient.GetJSON(ctx, fetchPath, &rs)
+		}
+	}
+
 	return &model.SQLSessionResult{SessionHandle: result.SessionHandle}, nil
 }
 
@@ -67,23 +87,44 @@ func (r *mutationResolver) FetchSQLResults(ctx context.Context, sessionHandle st
 	path := fmt.Sprintf("/v3/sessions/%s/operations/%s/result/%s", sessionHandle, operationHandle, tok)
 	var resultSet flink.SQLGatewayResultSet
 	if err := conn.SQLClient.GetJSON(ctx, path, &resultSet); err != nil {
+		// Flink SQL Gateway returns HTTP 500 both when an operation is still
+		// running (e.g., JDBC query in progress) AND when it has failed.
+		// Check the operation status to distinguish these cases.
+		var apiErr *flink.APIError
+		if errors.As(err, &apiErr) && apiErr.StatusCode == 500 {
+			statusPath := fmt.Sprintf("/v3/sessions/%s/operations/%s/status", sessionHandle, operationHandle)
+			var opStatus flink.SQLGatewayOperationStatusResponse
+			if statusErr := conn.SQLClient.GetJSON(ctx, statusPath, &opStatus); statusErr == nil {
+				if opStatus.Status == "ERROR" {
+					// Operation failed — surface the original error.
+					return nil, fmt.Errorf("query failed: %s", apiErr.Error())
+				}
+			}
+			// Operation is still running — tell the client to retry.
+			return &model.SQLFetchResult{
+				Columns:   []*model.SQLColumn{},
+				Rows:      [][]*string{},
+				HasMore:   true,
+				NextToken: &tok,
+			}, nil
+		}
 		return nil, err
 	}
 
-	columns := make([]*model.SQLColumn, len(resultSet.Columns))
-	for i, c := range resultSet.Columns {
-		columns[i] = &model.SQLColumn{Name: c.Name, DataType: c.DataType}
+	columns := make([]*model.SQLColumn, len(resultSet.Results.Columns))
+	for i, c := range resultSet.Results.Columns {
+		columns[i] = &model.SQLColumn{Name: c.Name, DataType: c.LogicalType.Type}
 	}
 
-	rows := make([][]*string, len(resultSet.Data))
-	for i, row := range resultSet.Data {
+	rows := make([][]*string, len(resultSet.Results.Data))
+	for i, row := range resultSet.Results.Data {
 		rows[i] = mapSQLRow(&row)
 	}
 
-	hasMore := resultSet.NextURI != nil
+	hasMore := resultSet.NextResultURI != nil
 	var nextToken *string
-	if hasMore {
-		t := extractToken(*resultSet.NextURI)
+	if resultSet.NextResultURI != nil {
+		t := extractToken(*resultSet.NextResultURI)
 		nextToken = &t
 	}
 

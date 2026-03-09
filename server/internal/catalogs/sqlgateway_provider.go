@@ -193,8 +193,8 @@ func (p *SQLGatewayProvider) submitAndFetch(ctx context.Context, client *flink.C
 		return nil, err
 	}
 
-	rows := make([][]any, len(resultSet.Data))
-	for i, row := range resultSet.Data {
+	rows := make([][]any, len(resultSet.Results.Data))
+	for i, row := range resultSet.Results.Data {
 		rows[i] = row.Fields
 	}
 	return rows, nil

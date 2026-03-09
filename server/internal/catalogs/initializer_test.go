@@ -51,7 +51,7 @@ func TestGenerateSQL_JDBCTable(t *testing.T) {
 	checks := []string{
 		"'connector' = 'jdbc'",
 		"'table-name' = 'actor'",
-		"'url' = 'jdbc:postgresql://postgres:5433/pagila'",
+		"'url' = 'jdbc:postgresql://postgres:5432/pagila'",
 		"'username' = 'reactor'",
 		"`actor_id` INT",
 		"`first_name` STRING",
@@ -93,7 +93,7 @@ func TestGenerateSQL_ChinookTables(t *testing.T) {
 	if trackSQL == "" {
 		t.Fatal("CREATE TABLE for track not found")
 	}
-	if !strings.Contains(trackSQL, "'url' = 'jdbc:postgresql://postgres:5433/chinook'") {
+	if !strings.Contains(trackSQL, "'url' = 'jdbc:postgresql://postgres:5432/chinook'") {
 		t.Errorf("track SQL missing chinook JDBC URL")
 	}
 }
@@ -128,7 +128,7 @@ func TestGenerateSQL_EmployeesTables(t *testing.T) {
 	if salarySQL == "" {
 		t.Fatal("CREATE TABLE for salary not found")
 	}
-	if !strings.Contains(salarySQL, "'url' = 'jdbc:postgresql://postgres:5433/employees'") {
+	if !strings.Contains(salarySQL, "'url' = 'jdbc:postgresql://postgres:5432/employees'") {
 		t.Errorf("salary SQL missing employees JDBC URL")
 	}
 }

@@ -212,28 +212,32 @@ func TestSubscription_SQLResults(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		switch call {
 		case 0:
-			// First batch with nextUri.
+			// First batch with nextResultUri.
 			_ = json.NewEncoder(w).Encode(map[string]any{
-				"columns": []map[string]string{
-					{"name": "id", "dataType": "INT"},
-					{"name": "name", "dataType": "VARCHAR"},
-				},
-				"data": []map[string]any{
-					{"fields": []any{1, "alice"}},
+				"results": map[string]any{
+					"columns": []map[string]any{
+						{"name": "id", "logicalType": map[string]any{"type": "INT", "nullable": false}},
+						{"name": "name", "logicalType": map[string]any{"type": "VARCHAR", "nullable": true}},
+					},
+					"data": []map[string]any{
+						{"kind": "INSERT", "fields": []any{1, "alice"}},
+					},
 				},
 				"resultType":    "PAYLOAD",
 				"isQueryResult": true,
-				"nextUri":       "/v3/sessions/s1/operations/o1/result/1",
+				"nextResultUri": "/v3/sessions/s1/operations/o1/result/1",
 			})
 		default:
-			// Final batch, no nextUri.
+			// Final batch, no nextResultUri.
 			_ = json.NewEncoder(w).Encode(map[string]any{
-				"columns": []map[string]string{
-					{"name": "id", "dataType": "INT"},
-					{"name": "name", "dataType": "VARCHAR"},
-				},
-				"data": []map[string]any{
-					{"fields": []any{2, "bob"}},
+				"results": map[string]any{
+					"columns": []map[string]any{
+						{"name": "id", "logicalType": map[string]any{"type": "INT", "nullable": false}},
+						{"name": "name", "logicalType": map[string]any{"type": "VARCHAR", "nullable": true}},
+					},
+					"data": []map[string]any{
+						{"kind": "INSERT", "fields": []any{2, "bob"}},
+					},
 				},
 				"resultType":    "EOS",
 				"isQueryResult": true,

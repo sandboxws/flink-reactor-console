@@ -3,7 +3,7 @@ catalogs:
     connector:
       type: jdbc
       properties:
-        url: "jdbc:postgresql://postgres:5433/pagila"
+        url: "jdbc:postgresql://postgres:5432/pagila"
         username: "reactor"
         password: "reactor"
     databases:
@@ -131,7 +131,7 @@ catalogs:
     connector:
       type: jdbc
       properties:
-        url: "jdbc:postgresql://postgres:5433/chinook"
+        url: "jdbc:postgresql://postgres:5432/chinook"
         username: "reactor"
         password: "reactor"
     databases:
@@ -228,7 +228,7 @@ catalogs:
     connector:
       type: jdbc
       properties:
-        url: "jdbc:postgresql://postgres:5433/employees"
+        url: "jdbc:postgresql://postgres:5432/employees"
         username: "reactor"
         password: "reactor"
     databases:
