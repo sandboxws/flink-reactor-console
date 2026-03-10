@@ -371,6 +371,23 @@ $RECYCLE.BIN/
 # Embedding index (local-only, generated per-machine)
 **/.embeddings/
 
+### AI/IDE tool configs ###
+# Keep .claude/settings.json, .claude/hooks/, dashboard/.claude/rules/ tracked
+.claude/settings.local.json
+.claude/commands/
+.claude/skills/
+dashboard/.claude/settings.local.json
+.agent/
+.cursor/
+.gemini/
+.crush/
+.opencode/
+.codex/
+
+### Environment (production/staging) ###
+dashboard/.env.production
+dashboard/.env.staging
+
 ### Go ###
 bin/
 *.exe
