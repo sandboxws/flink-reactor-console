@@ -34,6 +34,7 @@ import { Route as InsightsBottlenecksRouteImport } from './routes/insights/bottl
 import { Route as DeploymentsNameRouteImport } from './routes/deployments/$name'
 import { Route as CatalogsExploreRouteImport } from './routes/catalogs/explore'
 import { Route as CatalogsAvailableRouteImport } from './routes/catalogs/available'
+import { Route as InstrumentsInstrumentNameIndexRouteImport } from './routes/instruments/$instrumentName/index'
 import { Route as InstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/instruments/$instrumentName/database/index'
 import { Route as InstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/instruments/$instrumentName/database/table'
 import { Route as InstrumentsInstrumentNameDatabaseQueryRouteImport } from './routes/instruments/$instrumentName/database/query'
@@ -164,6 +165,12 @@ const CatalogsAvailableRoute = CatalogsAvailableRouteImport.update({
   path: '/catalogs/available',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstrumentsInstrumentNameIndexRoute =
+  InstrumentsInstrumentNameIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
 const InstrumentsInstrumentNameDatabaseIndexRoute =
   InstrumentsInstrumentNameDatabaseIndexRouteImport.update({
     id: '/database/',
@@ -209,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
+  '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
@@ -225,7 +233,6 @@ export interface FileRoutesByTo {
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
-  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameRouteWithChildren
   '/jobs/$id': typeof JobsIdRoute
   '/jobs/completed': typeof JobsCompletedRoute
   '/jobs/running': typeof JobsRunningRoute
@@ -239,6 +246,7 @@ export interface FileRoutesByTo {
   '/instruments': typeof InstrumentsIndexRoute
   '/materialized-tables': typeof MaterializedTablesIndexRoute
   '/task-managers': typeof TaskManagersIndexRoute
+  '/instruments/$instrumentName': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/database': typeof InstrumentsInstrumentNameDatabaseIndexRoute
@@ -270,6 +278,7 @@ export interface FileRoutesById {
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
+  '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/instruments/'
     | '/materialized-tables/'
     | '/task-managers/'
+    | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/database/'
@@ -318,7 +328,6 @@ export interface FileRouteTypes {
     | '/insights/bottlenecks'
     | '/insights/health'
     | '/insights/metrics'
-    | '/instruments/$instrumentName'
     | '/jobs/$id'
     | '/jobs/completed'
     | '/jobs/running'
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/instruments'
     | '/materialized-tables'
     | '/task-managers'
+    | '/instruments/$instrumentName'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/database'
@@ -362,6 +372,7 @@ export interface FileRouteTypes {
     | '/instruments/'
     | '/materialized-tables/'
     | '/task-managers/'
+    | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/database/'
@@ -572,6 +583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogsAvailableRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instruments/$instrumentName/': {
+      id: '/instruments/$instrumentName/'
+      path: '/'
+      fullPath: '/instruments/$instrumentName/'
+      preLoaderRoute: typeof InstrumentsInstrumentNameIndexRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
     '/instruments/$instrumentName/database/': {
       id: '/instruments/$instrumentName/database/'
       path: '/database'
@@ -597,6 +615,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface InstrumentsInstrumentNameRouteChildren {
+  InstrumentsInstrumentNameIndexRoute: typeof InstrumentsInstrumentNameIndexRoute
   InstrumentsInstrumentNameDatabaseQueryRoute: typeof InstrumentsInstrumentNameDatabaseQueryRoute
   InstrumentsInstrumentNameDatabaseTableRoute: typeof InstrumentsInstrumentNameDatabaseTableRoute
   InstrumentsInstrumentNameDatabaseIndexRoute: typeof InstrumentsInstrumentNameDatabaseIndexRoute
@@ -604,6 +623,7 @@ interface InstrumentsInstrumentNameRouteChildren {
 
 const InstrumentsInstrumentNameRouteChildren: InstrumentsInstrumentNameRouteChildren =
   {
+    InstrumentsInstrumentNameIndexRoute: InstrumentsInstrumentNameIndexRoute,
     InstrumentsInstrumentNameDatabaseQueryRoute:
       InstrumentsInstrumentNameDatabaseQueryRoute,
     InstrumentsInstrumentNameDatabaseTableRoute:

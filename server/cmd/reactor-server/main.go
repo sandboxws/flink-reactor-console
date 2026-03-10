@@ -8,11 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	instruments "github.com/sandboxws/flink-reactor-instruments"
+	"github.com/sandboxws/flink-reactor-instruments/database"
+	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments/database"
-	kafkainst "github.com/sandboxws/flink-reactor/apps/server/internal/instruments/kafka"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 )
@@ -49,7 +49,7 @@ func run() int {
 	manager.Start(ctx, cfg.Health.Interval)
 
 	// Initialize instrument registry.
-	registry := instruments.NewRegistry(logger)
+	registry := instruments.NewRegistry(logger, instruments.WithHealthReporter(&observability.InstrumentHealthAdapter{}))
 
 	for _, instCfg := range cfg.Instruments {
 		switch instCfg.Type {

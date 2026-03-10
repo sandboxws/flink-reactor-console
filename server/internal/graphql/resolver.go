@@ -2,9 +2,9 @@
 package graphql
 
 import (
+	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
 )
 

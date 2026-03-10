@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
+	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
 	"github.com/spf13/viper"
 )
 

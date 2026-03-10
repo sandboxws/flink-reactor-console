@@ -1,13 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { QueryEditor } from "@/components/instruments/database/query-editor"
+import { DatabaseQueryRoute } from "@flink-reactor/instruments-ui"
 
 export const Route = createFileRoute(
   "/instruments/$instrumentName/database/query",
 )({
-  component: DatabaseQueryRoute,
+  component: () => {
+    const { instrumentName } = Route.useParams()
+    return <DatabaseQueryRoute instrumentName={instrumentName} />
+  },
 })
-
-function DatabaseQueryRoute() {
-  const { instrumentName } = Route.useParams()
-  return <QueryEditor instrumentName={instrumentName} />
-}

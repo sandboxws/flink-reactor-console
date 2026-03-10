@@ -11,6 +11,7 @@ export {
   SourceBadge,
   type SourceBadgeProps,
 } from "./source-badge"
+export { QueryResults, type QueryResultsProps } from "./query-results"
 export { TextViewer, type TextViewerProps } from "./text-viewer"
 export {
   TimeRange,

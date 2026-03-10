@@ -1,18 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useEffect } from "react"
-import { InstrumentListPage } from "@/components/instruments/instrument-list-page"
-import { useInstrumentStore } from "@/stores/instrument-store"
+import { Link } from "@tanstack/react-router"
+import { InstrumentsIndexRoute } from "@flink-reactor/instruments-ui"
 
 export const Route = createFileRoute("/instruments/")({
-  component: InstrumentsRoute,
+  component: () => <InstrumentsIndexRoute LinkComponent={Link} />,
 })
-
-function InstrumentsRoute() {
-  const fetchInstruments = useInstrumentStore((s) => s.fetchInstruments)
-
-  useEffect(() => {
-    fetchInstruments()
-  }, [fetchInstruments])
-
-  return <InstrumentListPage />
-}

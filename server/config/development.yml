@@ -15,3 +15,20 @@ health:
 log:
   level: "info"
   format: "console"
+
+instruments:
+  - name: "pagila"
+    type: "database"
+    config:
+      driver: "postgres"
+      dsn: "postgres://reactor:reactor@localhost:5433/pagila"
+  - name: "chinook"
+    type: "database"
+    config:
+      driver: "postgres"
+      dsn: "postgres://reactor:reactor@localhost:5433/chinook"
+  - name: "employees"
+    type: "database"
+    config:
+      driver: "postgres"
+      dsn: "postgres://reactor:reactor@localhost:5433/employees"

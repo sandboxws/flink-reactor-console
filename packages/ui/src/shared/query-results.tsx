@@ -1,3 +1,5 @@
+"use client"
+
 import { AlertTriangle, Clock, Loader2, Rows3 } from "lucide-react"
 
 export interface QueryResultsProps {

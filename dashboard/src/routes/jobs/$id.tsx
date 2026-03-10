@@ -3,7 +3,7 @@ import { AlertCircle, RefreshCw } from "lucide-react"
 import { useEffect } from "react"
 import { JobDetail } from "@/components/jobs/job-detail"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@flink-reactor/ui"
 import { useClusterStore } from "@/stores/cluster-store"
 
 export const Route = createFileRoute("/jobs/$id")({

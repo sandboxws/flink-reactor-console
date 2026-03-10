@@ -7,11 +7,11 @@ import (
 	"log/slog"
 	"testing"
 
+	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
 )
 
 // testLogger returns a silent logger for tests.

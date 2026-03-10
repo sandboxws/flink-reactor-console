@@ -113,6 +113,19 @@ var (
 	)
 )
 
+// InstrumentHealthAdapter implements the instruments.HealthReporter interface,
+// bridging the external instruments module to the reactor Prometheus metrics.
+type InstrumentHealthAdapter struct{}
+
+// ReportHealth updates the InstrumentHealthStatus gauge for the given instrument.
+func (a *InstrumentHealthAdapter) ReportHealth(instrumentName string, healthy bool) {
+	val := 0.0
+	if healthy {
+		val = 1.0
+	}
+	InstrumentHealthStatus.WithLabelValues(instrumentName, "").Set(val)
+}
+
 // RegisterMetrics registers all metrics with the default prometheus registry.
 func RegisterMetrics() {
 	prometheus.MustRegister(

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
+	dbinst "github.com/sandboxws/flink-reactor-instruments/database"
+	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	dbinst "github.com/sandboxws/flink-reactor/apps/server/internal/instruments/database"
-	kafkainst "github.com/sandboxws/flink-reactor/apps/server/internal/instruments/kafka"
 )
 
 // resolveCluster resolves a cluster connection from an optional cluster name.

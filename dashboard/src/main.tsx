@@ -1,7 +1,12 @@
 import { createRouter, RouterProvider } from "@tanstack/react-router"
+import { initInstrumentsUI } from "@flink-reactor/instruments-ui"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
+import { graphqlClient } from "./lib/graphql-client"
 import { routeTree } from "./routeTree.gen"
+
+// Initialize the instruments UI package with the shared GraphQL client.
+initInstrumentsUI({ graphqlClient })
 
 const router = createRouter({ routeTree })
 

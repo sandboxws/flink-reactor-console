@@ -62,5 +62,6 @@ pnpm ui:embed             # Rebuild UI embeddings
 |------|---------|---------|
 | `flink-reactor-dsl` | Core DSL + CLI | BSL 1.1 |
 | **`flink-reactor-console`** | **Dashboard + Server (this repo)** | **BSL 1.1** |
+| `flink-reactor-instruments` | Instruments subsystem (Go + TS) | BSL 1.1 |
 | `flink-reactor-platform` | Docs + orchestration | BSL 1.1 |
 | `flink-reactor-specs` | Specifications | BSL 1.1 |

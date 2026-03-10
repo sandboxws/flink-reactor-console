@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@flink-reactor/ui"
 import { useClusterStore } from "@/stores/cluster-store"
 import { ClusterInfo } from "./cluster-info"
 import { JobList } from "./job-list"

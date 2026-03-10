@@ -14,9 +14,9 @@ import (
 	"time"
 
 	ws "github.com/gorilla/websocket"
+	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 )
 

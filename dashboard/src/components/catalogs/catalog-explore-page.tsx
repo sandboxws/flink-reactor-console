@@ -1,5 +1,5 @@
 import { AlertTriangle, FlaskConical } from "lucide-react"
-import { QueryResults } from "@/components/shared/query-results"
+import { QueryResults } from "@flink-reactor/ui"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
 import { ExploreEditor } from "./explore-editor"
 import { TemplateSelector } from "./template-selector"

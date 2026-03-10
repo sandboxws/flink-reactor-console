@@ -1,4 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router"
+import { InstrumentSidebarSection } from "@flink-reactor/instruments-ui"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
@@ -20,9 +21,7 @@ import {
   Settings,
   Upload,
 } from "lucide-react"
-import { getInstrumentIcon } from "@/components/instruments/instrument-icons"
 import { cn } from "@/lib/cn"
-import { useInstrumentStore } from "@/stores/instrument-store"
 import { useUiStore } from "@/stores/ui-store"
 
 type NavItem = {
@@ -126,38 +125,10 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
-function InstrumentsSidebarSkeleton({ collapsed }: { collapsed: boolean }) {
-  return (
-    <div className="mb-1">
-      {!collapsed && (
-        <div className="px-2.5 pb-1 pt-2.5 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
-          Instruments
-        </div>
-      )}
-      <div className="space-y-0.5">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder skeletons never reorder
-            key={i}
-            className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5"
-          >
-            <div className="size-3.5 shrink-0 animate-pulse rounded bg-zinc-700" />
-            {!collapsed && (
-              <div className="h-3 w-20 animate-pulse rounded bg-zinc-700" />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggle = useUiStore((s) => s.toggleSidebar)
   const pathname = useLocation({ select: (l) => l.pathname })
-  const instruments = useInstrumentStore((s) => s.instruments)
-  const instrumentsLoading = useInstrumentStore((s) => s.loading)
 
   return (
     <aside
@@ -208,41 +179,12 @@ export function Sidebar() {
           </div>
         ))}
 
-        {/* Dynamic instruments group */}
-        {instrumentsLoading && instruments.length === 0 && (
-          <InstrumentsSidebarSkeleton collapsed={collapsed} />
-        )}
-        {instruments.length > 0 && (
-          <div className="mb-1">
-            {!collapsed && (
-              <div className="px-2.5 pb-1 pt-2.5 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
-                Instruments
-              </div>
-            )}
-            <div className="space-y-0.5">
-              {instruments.map((inst) => {
-                const Icon = getInstrumentIcon(inst.type)
-                const href = `/instruments/${inst.name}`
-                const active = pathname.startsWith(href)
-                return (
-                  <Link
-                    key={inst.name}
-                    to={href}
-                    className={cn(
-                      "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors",
-                      active
-                        ? "bg-white/[0.08] text-white"
-                        : "text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300",
-                    )}
-                  >
-                    <Icon className="size-3.5 shrink-0" />
-                    {!collapsed && <span>{inst.displayName}</span>}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        )}
+        {/* Dynamic instruments group — rendered by the instruments UI package */}
+        <InstrumentSidebarSection
+          collapsed={collapsed}
+          activePath={pathname}
+          LinkComponent={Link}
+        />
       </nav>
 
       {/* Collapse toggle */}

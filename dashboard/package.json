@@ -67,7 +67,9 @@
     "tslog": "^4.9.3",
     "urql": "^5.0.1",
     "tailwind-merge": "^3.4.0",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.5",
+    "@flink-reactor/instruments-ui": "workspace:*",
+    "@flink-reactor/ui": "workspace:*"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.6",

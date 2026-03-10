@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"testing"
 
+	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
