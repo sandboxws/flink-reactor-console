@@ -1,0 +1,11 @@
+{
+  "name": "flink-reactor-instruments",
+  "private": true,
+  "description": "Instruments subsystem for FlinkReactor (Go + TypeScript)",
+  "license": "BUSL-1.1",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
