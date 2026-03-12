@@ -196,10 +196,7 @@ export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
   const nodeContent = (
     <div
       title=""
-      className={cn(
-        "glass-card w-[320px] border-l-[3px] overflow-hidden",
-        bpColor(metrics.busyTimeMsPerSecond),
-      )}
+      className="relative z-10 w-[320px] overflow-hidden rounded-xl border border-white/6 bg-dash-panel"
     >
       <Handle
         type="target"
