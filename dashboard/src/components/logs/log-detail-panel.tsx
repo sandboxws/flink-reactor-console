@@ -1,6 +1,6 @@
 import { format } from "date-fns"
 import { Copy, X } from "lucide-react"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { StackTrace } from "@/components/errors/stack-trace"
 import { SeverityBadge } from "@/components/shared/severity-badge"
 import { SourceBadge } from "@/components/shared/source-badge"
@@ -62,6 +62,8 @@ export function LogDetailPanel() {
     }
   }
 
+  const [activeTab, setActiveTab] = useState("details")
+
   if (!entry) return null
 
   return (
@@ -90,7 +92,8 @@ export function LogDetailPanel() {
 
       {/* Tabbed content */}
       <Tabs
-        defaultValue="details"
+        value={activeTab}
+        onValueChange={setActiveTab}
         className="flex flex-1 flex-col overflow-hidden"
       >
         <TabsList className="detail-tabs-list">
@@ -146,9 +149,15 @@ export function LogDetailPanel() {
             <DetailField label="Level">
               <SeverityBadge level={entry.level} />
             </DetailField>
-            {entry.isException && (
-              <DetailField label="Exception">
-                <span className="text-log-error">Yes</span>
+            {entry.stackTrace && (
+              <DetailField label="Stack Trace">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("stacktrace")}
+                  className="text-fr-coral underline underline-offset-2 transition-colors hover:text-fr-coral/80"
+                >
+                  View Trace
+                </button>
               </DetailField>
             )}
           </div>
