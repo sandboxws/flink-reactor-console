@@ -23,6 +23,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/metrics"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
@@ -196,6 +197,9 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 
 	// Log proxy endpoints (plain text, not GraphQL).
 	logs.Register(e, manager)
+
+	// Metrics proxy endpoints (JSON, not GraphQL).
+	metrics.Register(e, manager)
 
 	// SPA static file handler (registered last as catch-all).
 	if cfg.StaticDir != "" {
