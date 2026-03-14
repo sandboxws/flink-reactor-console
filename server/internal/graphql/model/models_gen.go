@@ -75,6 +75,22 @@ type CheckpointCounts struct {
 	Restored   int `json:"restored"`
 }
 
+// Connection type for paginated checkpoint history results.
+type CheckpointHistoryConnection struct {
+	// List of checkpoint history edges.
+	Edges []*CheckpointHistoryEdge `json:"edges"`
+	// Pagination metadata.
+	PageInfo *CheckpointHistoryPageInfo `json:"pageInfo"`
+}
+
+// A single edge in the checkpoint history connection.
+type CheckpointHistoryEdge struct {
+	// The checkpoint record.
+	Node *StoredCheckpoint `json:"node"`
+	// Opaque cursor for this edge.
+	Cursor string `json:"cursor"`
+}
+
 type CheckpointHistoryEntry struct {
 	ID                      string  `json:"id"`
 	Status                  string  `json:"status"`
@@ -88,6 +104,30 @@ type CheckpointHistoryEntry struct {
 	NumSubtasks             int     `json:"numSubtasks"`
 	NumAcknowledgedSubtasks int     `json:"numAcknowledgedSubtasks"`
 	CheckpointedSize        *string `json:"checkpointedSize,omitempty"`
+}
+
+// Filter criteria for historical checkpoint queries.
+type CheckpointHistoryFilter struct {
+	// Filter by cluster name.
+	ClusterID *string `json:"clusterID,omitempty"`
+	// Filter by job ID.
+	JobID *string `json:"jobID,omitempty"`
+	// Filter by checkpoint status (e.g. COMPLETED, FAILED, IN_PROGRESS).
+	Status *string `json:"status,omitempty"`
+	// Filter to savepoints only.
+	IsSavepoint *bool `json:"isSavepoint,omitempty"`
+	// Return only checkpoints with trigger_timestamp >= this timestamp.
+	After *string `json:"after,omitempty"`
+	// Return only checkpoints with trigger_timestamp <= this timestamp.
+	Before *string `json:"before,omitempty"`
+}
+
+// Page info for checkpoint history pagination.
+type CheckpointHistoryPageInfo struct {
+	// Whether there are more pages after this one.
+	HasNextPage bool `json:"hasNextPage"`
+	// Cursor for fetching the next page.
+	EndCursor *string `json:"endCursor,omitempty"`
 }
 
 type CheckpointLatest struct {
@@ -230,6 +270,44 @@ type ExceptionEntry struct {
 	TaskName      *string `json:"taskName,omitempty"`
 	Endpoint      *string `json:"endpoint,omitempty"`
 	TaskManagerID *string `json:"taskManagerId,omitempty"`
+}
+
+// Connection type for paginated exception history results.
+type ExceptionHistoryConnection struct {
+	// List of exception history edges.
+	Edges []*ExceptionHistoryEdge `json:"edges"`
+	// Pagination metadata.
+	PageInfo *ExceptionHistoryPageInfo `json:"pageInfo"`
+}
+
+// A single edge in the exception history connection.
+type ExceptionHistoryEdge struct {
+	// The exception record.
+	Node *StoredException `json:"node"`
+	// Opaque cursor for this edge.
+	Cursor string `json:"cursor"`
+}
+
+// Filter criteria for historical exception queries.
+type ExceptionHistoryFilter struct {
+	// Filter by cluster name.
+	ClusterID *string `json:"clusterID,omitempty"`
+	// Filter by job ID.
+	JobID *string `json:"jobID,omitempty"`
+	// Filter by exception name (case-insensitive substring match).
+	ExceptionName *string `json:"exceptionName,omitempty"`
+	// Return only exceptions with timestamp >= this timestamp.
+	After *string `json:"after,omitempty"`
+	// Return only exceptions with timestamp <= this timestamp.
+	Before *string `json:"before,omitempty"`
+}
+
+// Page info for exception history pagination.
+type ExceptionHistoryPageInfo struct {
+	// Whether there are more pages after this one.
+	HasNextPage bool `json:"hasNextPage"`
+	// Cursor for fetching the next page.
+	EndCursor *string `json:"endCursor,omitempty"`
 }
 
 type Flamegraph struct {
@@ -589,6 +667,39 @@ type StorageStatus struct {
 	TotalConns int `json:"totalConns"`
 	// Idle connections in the pool.
 	IdleConns int `json:"idleConns"`
+}
+
+// A historical checkpoint record from PostgreSQL.
+type StoredCheckpoint struct {
+	CheckpointID     string  `json:"checkpointID"`
+	Jid              string  `json:"jid"`
+	Cluster          string  `json:"cluster"`
+	Status           string  `json:"status"`
+	IsSavepoint      bool    `json:"isSavepoint"`
+	TriggerTimestamp *string `json:"triggerTimestamp,omitempty"`
+	LatestAck        *string `json:"latestAck,omitempty"`
+	StateSize        string  `json:"stateSize"`
+	EndToEndDuration string  `json:"endToEndDuration"`
+	ProcessedData    string  `json:"processedData"`
+	PersistedData    string  `json:"persistedData"`
+	NumSubtasks      int     `json:"numSubtasks"`
+	NumAckSubtasks   int     `json:"numAckSubtasks"`
+	CheckpointedSize *string `json:"checkpointedSize,omitempty"`
+	CapturedAt       string  `json:"capturedAt"`
+}
+
+// A historical exception record from PostgreSQL.
+type StoredException struct {
+	ID            string  `json:"id"`
+	Jid           string  `json:"jid"`
+	Cluster       string  `json:"cluster"`
+	ExceptionName string  `json:"exceptionName"`
+	Stacktrace    *string `json:"stacktrace,omitempty"`
+	Timestamp     string  `json:"timestamp"`
+	TaskName      *string `json:"taskName,omitempty"`
+	Endpoint      *string `json:"endpoint,omitempty"`
+	TaskManagerID *string `json:"taskManagerID,omitempty"`
+	CapturedAt    string  `json:"capturedAt"`
 }
 
 type Subscription struct {

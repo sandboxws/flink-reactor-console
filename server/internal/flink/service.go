@@ -149,6 +149,24 @@ func (s *Service) GetCheckpointSubtasks(ctx context.Context, jobID string, cpID 
 	return &result, nil
 }
 
+// GetCheckpointStats returns checkpoint statistics for a job.
+func (s *Service) GetCheckpointStats(ctx context.Context, jobID string) (*CheckpointStats, error) {
+	var result CheckpointStats
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/checkpoints", jobID), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// GetJobExceptions returns the exception history for a job.
+func (s *Service) GetJobExceptions(ctx context.Context, jobID string) (*JobExceptions, error) {
+	var result JobExceptions
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/exceptions?maxExceptions=100", jobID), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 // GetVertexDetail returns the vertex detail for a specific vertex.
 func (s *Service) GetVertexDetail(ctx context.Context, jobID string, vertexID string) (*VertexDetail, error) {
 	var result VertexDetail

@@ -102,6 +102,16 @@ type ComplexityRoot struct {
 		Total      func(childComplexity int) int
 	}
 
+	CheckpointHistoryConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	CheckpointHistoryEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	CheckpointHistoryEntry struct {
 		CheckpointedSize        func(childComplexity int) int
 		EndToEndDuration        func(childComplexity int) int
@@ -115,6 +125,11 @@ type ComplexityRoot struct {
 		StateSize               func(childComplexity int) int
 		Status                  func(childComplexity int) int
 		TriggerTimestamp        func(childComplexity int) int
+	}
+
+	CheckpointHistoryPageInfo struct {
+		EndCursor   func(childComplexity int) int
+		HasNextPage func(childComplexity int) int
 	}
 
 	CheckpointLatest struct {
@@ -247,6 +262,21 @@ type ComplexityRoot struct {
 		TaskManagerID func(childComplexity int) int
 		TaskName      func(childComplexity int) int
 		Timestamp     func(childComplexity int) int
+	}
+
+	ExceptionHistoryConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	ExceptionHistoryEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	ExceptionHistoryPageInfo struct {
+		EndCursor   func(childComplexity int) int
+		HasNextPage func(childComplexity int) int
 	}
 
 	Flamegraph struct {
@@ -535,12 +565,14 @@ type ComplexityRoot struct {
 		CatalogTables         func(childComplexity int, catalog string, database string, cluster *string) int
 		Catalogs              func(childComplexity int, cluster *string) int
 		CheckpointDetail      func(childComplexity int, jobID string, checkpointID string, cluster *string) int
+		CheckpointHistory     func(childComplexity int, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) int
 		Clusters              func(childComplexity int) int
 		DashboardConfig       func(childComplexity int) int
 		DatabaseQueryHistory  func(childComplexity int, instrument string) int
 		DatabaseSchemas       func(childComplexity int, instrument string) int
 		DatabaseTable         func(childComplexity int, instrument string, schema string, table string) int
 		DatabaseTables        func(childComplexity int, instrument string, schema string) int
+		ExceptionHistory      func(childComplexity int, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) int
 		Flamegraph            func(childComplexity int, jobID string, vertexID string, typeArg string, cluster *string) int
 		FlinkConfig           func(childComplexity int, cluster *string) int
 		Health                func(childComplexity int) int
@@ -602,6 +634,37 @@ type ComplexityRoot struct {
 		IdleConns        func(childComplexity int) int
 		MigrationVersion func(childComplexity int) int
 		TotalConns       func(childComplexity int) int
+	}
+
+	StoredCheckpoint struct {
+		CapturedAt       func(childComplexity int) int
+		CheckpointID     func(childComplexity int) int
+		CheckpointedSize func(childComplexity int) int
+		Cluster          func(childComplexity int) int
+		EndToEndDuration func(childComplexity int) int
+		IsSavepoint      func(childComplexity int) int
+		Jid              func(childComplexity int) int
+		LatestAck        func(childComplexity int) int
+		NumAckSubtasks   func(childComplexity int) int
+		NumSubtasks      func(childComplexity int) int
+		PersistedData    func(childComplexity int) int
+		ProcessedData    func(childComplexity int) int
+		StateSize        func(childComplexity int) int
+		Status           func(childComplexity int) int
+		TriggerTimestamp func(childComplexity int) int
+	}
+
+	StoredException struct {
+		CapturedAt    func(childComplexity int) int
+		Cluster       func(childComplexity int) int
+		Endpoint      func(childComplexity int) int
+		ExceptionName func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Jid           func(childComplexity int) int
+		Stacktrace    func(childComplexity int) int
+		TaskManagerID func(childComplexity int) int
+		TaskName      func(childComplexity int) int
+		Timestamp     func(childComplexity int) int
 	}
 
 	Subscription struct {
@@ -817,6 +880,8 @@ type QueryResolver interface {
 	DatabaseQueryHistory(ctx context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error)
 	StorageStatus(ctx context.Context) (*model.StorageStatus, error)
 	JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput) (*model.JobHistoryConnection, error)
+	CheckpointHistory(ctx context.Context, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) (*model.CheckpointHistoryConnection, error)
+	ExceptionHistory(ctx context.Context, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) (*model.ExceptionHistoryConnection, error)
 	Instruments(ctx context.Context) ([]*model.InstrumentInfo, error)
 	Jars(ctx context.Context, cluster *string) ([]*model.JarFile, error)
 	JobManager(ctx context.Context, cluster *string) (*model.JobManagerDetail, error)
@@ -1101,6 +1166,32 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CheckpointCounts.Total(childComplexity), true
 
+	case "CheckpointHistoryConnection.edges":
+		if e.ComplexityRoot.CheckpointHistoryConnection.Edges == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryConnection.Edges(childComplexity), true
+	case "CheckpointHistoryConnection.pageInfo":
+		if e.ComplexityRoot.CheckpointHistoryConnection.PageInfo == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryConnection.PageInfo(childComplexity), true
+
+	case "CheckpointHistoryEdge.cursor":
+		if e.ComplexityRoot.CheckpointHistoryEdge.Cursor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryEdge.Cursor(childComplexity), true
+	case "CheckpointHistoryEdge.node":
+		if e.ComplexityRoot.CheckpointHistoryEdge.Node == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryEdge.Node(childComplexity), true
+
 	case "CheckpointHistoryEntry.checkpointedSize":
 		if e.ComplexityRoot.CheckpointHistoryEntry.CheckpointedSize == nil {
 			break
@@ -1173,6 +1264,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CheckpointHistoryEntry.TriggerTimestamp(childComplexity), true
+
+	case "CheckpointHistoryPageInfo.endCursor":
+		if e.ComplexityRoot.CheckpointHistoryPageInfo.EndCursor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryPageInfo.EndCursor(childComplexity), true
+	case "CheckpointHistoryPageInfo.hasNextPage":
+		if e.ComplexityRoot.CheckpointHistoryPageInfo.HasNextPage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryPageInfo.HasNextPage(childComplexity), true
 
 	case "CheckpointLatest.completed":
 		if e.ComplexityRoot.CheckpointLatest.Completed == nil {
@@ -1642,6 +1746,45 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ExceptionEntry.Timestamp(childComplexity), true
+
+	case "ExceptionHistoryConnection.edges":
+		if e.ComplexityRoot.ExceptionHistoryConnection.Edges == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ExceptionHistoryConnection.Edges(childComplexity), true
+	case "ExceptionHistoryConnection.pageInfo":
+		if e.ComplexityRoot.ExceptionHistoryConnection.PageInfo == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ExceptionHistoryConnection.PageInfo(childComplexity), true
+
+	case "ExceptionHistoryEdge.cursor":
+		if e.ComplexityRoot.ExceptionHistoryEdge.Cursor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ExceptionHistoryEdge.Cursor(childComplexity), true
+	case "ExceptionHistoryEdge.node":
+		if e.ComplexityRoot.ExceptionHistoryEdge.Node == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ExceptionHistoryEdge.Node(childComplexity), true
+
+	case "ExceptionHistoryPageInfo.endCursor":
+		if e.ComplexityRoot.ExceptionHistoryPageInfo.EndCursor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ExceptionHistoryPageInfo.EndCursor(childComplexity), true
+	case "ExceptionHistoryPageInfo.hasNextPage":
+		if e.ComplexityRoot.ExceptionHistoryPageInfo.HasNextPage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ExceptionHistoryPageInfo.HasNextPage(childComplexity), true
 
 	case "Flamegraph.data":
 		if e.ComplexityRoot.Flamegraph.Data == nil {
@@ -2831,6 +2974,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.CheckpointDetail(childComplexity, args["jobId"].(string), args["checkpointId"].(string), args["cluster"].(*string)), true
+	case "Query.checkpointHistory":
+		if e.ComplexityRoot.Query.CheckpointHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkpointHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.CheckpointHistory(childComplexity, args["filter"].(*model.CheckpointHistoryFilter), args["pagination"].(*model.PaginationInput)), true
 	case "Query.clusters":
 		if e.ComplexityRoot.Query.Clusters == nil {
 			break
@@ -2887,6 +3041,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.DatabaseTables(childComplexity, args["instrument"].(string), args["schema"].(string)), true
+	case "Query.exceptionHistory":
+		if e.ComplexityRoot.Query.ExceptionHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_exceptionHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.ExceptionHistory(childComplexity, args["filter"].(*model.ExceptionHistoryFilter), args["pagination"].(*model.PaginationInput)), true
 	case "Query.flamegraph":
 		if e.ComplexityRoot.Query.Flamegraph == nil {
 			break
@@ -3230,6 +3395,158 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.StorageStatus.TotalConns(childComplexity), true
+
+	case "StoredCheckpoint.capturedAt":
+		if e.ComplexityRoot.StoredCheckpoint.CapturedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.CapturedAt(childComplexity), true
+	case "StoredCheckpoint.checkpointID":
+		if e.ComplexityRoot.StoredCheckpoint.CheckpointID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.CheckpointID(childComplexity), true
+	case "StoredCheckpoint.checkpointedSize":
+		if e.ComplexityRoot.StoredCheckpoint.CheckpointedSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.CheckpointedSize(childComplexity), true
+	case "StoredCheckpoint.cluster":
+		if e.ComplexityRoot.StoredCheckpoint.Cluster == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.Cluster(childComplexity), true
+	case "StoredCheckpoint.endToEndDuration":
+		if e.ComplexityRoot.StoredCheckpoint.EndToEndDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.EndToEndDuration(childComplexity), true
+	case "StoredCheckpoint.isSavepoint":
+		if e.ComplexityRoot.StoredCheckpoint.IsSavepoint == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.IsSavepoint(childComplexity), true
+	case "StoredCheckpoint.jid":
+		if e.ComplexityRoot.StoredCheckpoint.Jid == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.Jid(childComplexity), true
+	case "StoredCheckpoint.latestAck":
+		if e.ComplexityRoot.StoredCheckpoint.LatestAck == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.LatestAck(childComplexity), true
+	case "StoredCheckpoint.numAckSubtasks":
+		if e.ComplexityRoot.StoredCheckpoint.NumAckSubtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.NumAckSubtasks(childComplexity), true
+	case "StoredCheckpoint.numSubtasks":
+		if e.ComplexityRoot.StoredCheckpoint.NumSubtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.NumSubtasks(childComplexity), true
+	case "StoredCheckpoint.persistedData":
+		if e.ComplexityRoot.StoredCheckpoint.PersistedData == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.PersistedData(childComplexity), true
+	case "StoredCheckpoint.processedData":
+		if e.ComplexityRoot.StoredCheckpoint.ProcessedData == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.ProcessedData(childComplexity), true
+	case "StoredCheckpoint.stateSize":
+		if e.ComplexityRoot.StoredCheckpoint.StateSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.StateSize(childComplexity), true
+	case "StoredCheckpoint.status":
+		if e.ComplexityRoot.StoredCheckpoint.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.Status(childComplexity), true
+	case "StoredCheckpoint.triggerTimestamp":
+		if e.ComplexityRoot.StoredCheckpoint.TriggerTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.TriggerTimestamp(childComplexity), true
+
+	case "StoredException.capturedAt":
+		if e.ComplexityRoot.StoredException.CapturedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.CapturedAt(childComplexity), true
+	case "StoredException.cluster":
+		if e.ComplexityRoot.StoredException.Cluster == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.Cluster(childComplexity), true
+	case "StoredException.endpoint":
+		if e.ComplexityRoot.StoredException.Endpoint == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.Endpoint(childComplexity), true
+	case "StoredException.exceptionName":
+		if e.ComplexityRoot.StoredException.ExceptionName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.ExceptionName(childComplexity), true
+	case "StoredException.id":
+		if e.ComplexityRoot.StoredException.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.ID(childComplexity), true
+	case "StoredException.jid":
+		if e.ComplexityRoot.StoredException.Jid == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.Jid(childComplexity), true
+	case "StoredException.stacktrace":
+		if e.ComplexityRoot.StoredException.Stacktrace == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.Stacktrace(childComplexity), true
+	case "StoredException.taskManagerID":
+		if e.ComplexityRoot.StoredException.TaskManagerID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.TaskManagerID(childComplexity), true
+	case "StoredException.taskName":
+		if e.ComplexityRoot.StoredException.TaskName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.TaskName(childComplexity), true
+	case "StoredException.timestamp":
+		if e.ComplexityRoot.StoredException.Timestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredException.Timestamp(childComplexity), true
 
 	case "Subscription.blueGreenStateChanged":
 		if e.ComplexityRoot.Subscription.BlueGreenStateChanged == nil {
@@ -3972,6 +4289,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCheckpointHistoryFilter,
+		ec.unmarshalInputExceptionHistoryFilter,
 		ec.unmarshalInputJobHistoryFilter,
 		ec.unmarshalInputPaginationInput,
 	)
@@ -4365,11 +4684,126 @@ type JobHistoryConnection {
   pageInfo: JobHistoryPageInfo!
 }
 
+"""Filter criteria for historical checkpoint queries."""
+input CheckpointHistoryFilter {
+  """Filter by cluster name."""
+  clusterID: String
+  """Filter by job ID."""
+  jobID: String
+  """Filter by checkpoint status (e.g. COMPLETED, FAILED, IN_PROGRESS)."""
+  status: String
+  """Filter to savepoints only."""
+  isSavepoint: Boolean
+  """Return only checkpoints with trigger_timestamp >= this timestamp."""
+  after: String
+  """Return only checkpoints with trigger_timestamp <= this timestamp."""
+  before: String
+}
+
+"""A historical checkpoint record from PostgreSQL."""
+type StoredCheckpoint {
+  checkpointID: String!
+  jid: String!
+  cluster: String!
+  status: String!
+  isSavepoint: Boolean!
+  triggerTimestamp: String
+  latestAck: String
+  stateSize: String!
+  endToEndDuration: String!
+  processedData: String!
+  persistedData: String!
+  numSubtasks: Int!
+  numAckSubtasks: Int!
+  checkpointedSize: String
+  capturedAt: String!
+}
+
+"""A single edge in the checkpoint history connection."""
+type CheckpointHistoryEdge {
+  """The checkpoint record."""
+  node: StoredCheckpoint!
+  """Opaque cursor for this edge."""
+  cursor: String!
+}
+
+"""Page info for checkpoint history pagination."""
+type CheckpointHistoryPageInfo {
+  """Whether there are more pages after this one."""
+  hasNextPage: Boolean!
+  """Cursor for fetching the next page."""
+  endCursor: String
+}
+
+"""Connection type for paginated checkpoint history results."""
+type CheckpointHistoryConnection {
+  """List of checkpoint history edges."""
+  edges: [CheckpointHistoryEdge!]!
+  """Pagination metadata."""
+  pageInfo: CheckpointHistoryPageInfo!
+}
+
+"""Filter criteria for historical exception queries."""
+input ExceptionHistoryFilter {
+  """Filter by cluster name."""
+  clusterID: String
+  """Filter by job ID."""
+  jobID: String
+  """Filter by exception name (case-insensitive substring match)."""
+  exceptionName: String
+  """Return only exceptions with timestamp >= this timestamp."""
+  after: String
+  """Return only exceptions with timestamp <= this timestamp."""
+  before: String
+}
+
+"""A historical exception record from PostgreSQL."""
+type StoredException {
+  id: String!
+  jid: String!
+  cluster: String!
+  exceptionName: String!
+  stacktrace: String
+  timestamp: String!
+  taskName: String
+  endpoint: String
+  taskManagerID: String
+  capturedAt: String!
+}
+
+"""A single edge in the exception history connection."""
+type ExceptionHistoryEdge {
+  """The exception record."""
+  node: StoredException!
+  """Opaque cursor for this edge."""
+  cursor: String!
+}
+
+"""Page info for exception history pagination."""
+type ExceptionHistoryPageInfo {
+  """Whether there are more pages after this one."""
+  hasNextPage: Boolean!
+  """Cursor for fetching the next page."""
+  endCursor: String
+}
+
+"""Connection type for paginated exception history results."""
+type ExceptionHistoryConnection {
+  """List of exception history edges."""
+  edges: [ExceptionHistoryEdge!]!
+  """Pagination metadata."""
+  pageInfo: ExceptionHistoryPageInfo!
+}
+
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
   """Returns paginated historical jobs with optional filtering."""
   jobHistory(filter: JobHistoryFilter, pagination: PaginationInput): JobHistoryConnection!
+  """Returns paginated historical checkpoints with optional filtering."""
+  checkpointHistory(filter: CheckpointHistoryFilter, pagination: PaginationInput): CheckpointHistoryConnection!
+  """Returns paginated historical exceptions with optional filtering."""
+  exceptionHistory(filter: ExceptionHistoryFilter, pagination: PaginationInput): ExceptionHistoryConnection!
 }
 `, BuiltIn: false},
 	{Name: "../schema/instruments.graphqls", Input: `"""
@@ -5519,6 +5953,22 @@ func (ec *executionContext) field_Query_checkpointDetail_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_checkpointHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOCheckpointHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
+	if err != nil {
+		return nil, err
+	}
+	args["pagination"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_databaseQueryHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -5575,6 +6025,22 @@ func (ec *executionContext) field_Query_databaseTables_args(ctx context.Context,
 		return nil, err
 	}
 	args["schema"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_exceptionHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
+	if err != nil {
+		return nil, err
+	}
+	args["pagination"] = arg1
 	return args, nil
 }
 
@@ -7129,6 +7595,166 @@ func (ec *executionContext) fieldContext_CheckpointCounts_restored(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _CheckpointHistoryConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryConnection_edges,
+		func(ctx context.Context) (any, error) {
+			return obj.Edges, nil
+		},
+		nil,
+		ec.marshalNCheckpointHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdgeᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_CheckpointHistoryEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_CheckpointHistoryEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointHistoryEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointHistoryConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryConnection_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNCheckpointHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_CheckpointHistoryPageInfo_hasNextPage(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_CheckpointHistoryPageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointHistoryPageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointHistoryEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryEdge) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryEdge_node,
+		func(ctx context.Context) (any, error) {
+			return obj.Node, nil
+		},
+		nil,
+		ec.marshalNStoredCheckpoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredCheckpoint,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "checkpointID":
+				return ec.fieldContext_StoredCheckpoint_checkpointID(ctx, field)
+			case "jid":
+				return ec.fieldContext_StoredCheckpoint_jid(ctx, field)
+			case "cluster":
+				return ec.fieldContext_StoredCheckpoint_cluster(ctx, field)
+			case "status":
+				return ec.fieldContext_StoredCheckpoint_status(ctx, field)
+			case "isSavepoint":
+				return ec.fieldContext_StoredCheckpoint_isSavepoint(ctx, field)
+			case "triggerTimestamp":
+				return ec.fieldContext_StoredCheckpoint_triggerTimestamp(ctx, field)
+			case "latestAck":
+				return ec.fieldContext_StoredCheckpoint_latestAck(ctx, field)
+			case "stateSize":
+				return ec.fieldContext_StoredCheckpoint_stateSize(ctx, field)
+			case "endToEndDuration":
+				return ec.fieldContext_StoredCheckpoint_endToEndDuration(ctx, field)
+			case "processedData":
+				return ec.fieldContext_StoredCheckpoint_processedData(ctx, field)
+			case "persistedData":
+				return ec.fieldContext_StoredCheckpoint_persistedData(ctx, field)
+			case "numSubtasks":
+				return ec.fieldContext_StoredCheckpoint_numSubtasks(ctx, field)
+			case "numAckSubtasks":
+				return ec.fieldContext_StoredCheckpoint_numAckSubtasks(ctx, field)
+			case "checkpointedSize":
+				return ec.fieldContext_StoredCheckpoint_checkpointedSize(ctx, field)
+			case "capturedAt":
+				return ec.fieldContext_StoredCheckpoint_capturedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StoredCheckpoint", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointHistoryEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryEdge) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryEdge_cursor,
+		func(ctx context.Context) (any, error) {
+			return obj.Cursor, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryEdge_cursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CheckpointHistoryEntry_id(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryEntry) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -7467,6 +8093,64 @@ func (ec *executionContext) _CheckpointHistoryEntry_checkpointedSize(ctx context
 func (ec *executionContext) fieldContext_CheckpointHistoryEntry_checkpointedSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CheckpointHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointHistoryPageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryPageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryPageInfo_hasNextPage,
+		func(ctx context.Context) (any, error) {
+			return obj.HasNextPage, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryPageInfo_hasNextPage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryPageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointHistoryPageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryPageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryPageInfo_endCursor,
+		func(ctx context.Context) (any, error) {
+			return obj.EndCursor, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryPageInfo_endCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryPageInfo",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -9872,6 +10556,214 @@ func (ec *executionContext) _ExceptionEntry_taskManagerId(ctx context.Context, f
 func (ec *executionContext) fieldContext_ExceptionEntry_taskManagerId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ExceptionEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExceptionHistoryConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionHistoryConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ExceptionHistoryConnection_edges,
+		func(ctx context.Context) (any, error) {
+			return obj.Edges, nil
+		},
+		nil,
+		ec.marshalNExceptionHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdgeᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ExceptionHistoryConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExceptionHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_ExceptionHistoryEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_ExceptionHistoryEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExceptionHistoryEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExceptionHistoryConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionHistoryConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ExceptionHistoryConnection_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNExceptionHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ExceptionHistoryConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExceptionHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_ExceptionHistoryPageInfo_hasNextPage(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_ExceptionHistoryPageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExceptionHistoryPageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExceptionHistoryEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionHistoryEdge) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ExceptionHistoryEdge_node,
+		func(ctx context.Context) (any, error) {
+			return obj.Node, nil
+		},
+		nil,
+		ec.marshalNStoredException2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredException,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ExceptionHistoryEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExceptionHistoryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StoredException_id(ctx, field)
+			case "jid":
+				return ec.fieldContext_StoredException_jid(ctx, field)
+			case "cluster":
+				return ec.fieldContext_StoredException_cluster(ctx, field)
+			case "exceptionName":
+				return ec.fieldContext_StoredException_exceptionName(ctx, field)
+			case "stacktrace":
+				return ec.fieldContext_StoredException_stacktrace(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_StoredException_timestamp(ctx, field)
+			case "taskName":
+				return ec.fieldContext_StoredException_taskName(ctx, field)
+			case "endpoint":
+				return ec.fieldContext_StoredException_endpoint(ctx, field)
+			case "taskManagerID":
+				return ec.fieldContext_StoredException_taskManagerID(ctx, field)
+			case "capturedAt":
+				return ec.fieldContext_StoredException_capturedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StoredException", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExceptionHistoryEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionHistoryEdge) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ExceptionHistoryEdge_cursor,
+		func(ctx context.Context) (any, error) {
+			return obj.Cursor, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ExceptionHistoryEdge_cursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExceptionHistoryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExceptionHistoryPageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionHistoryPageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ExceptionHistoryPageInfo_hasNextPage,
+		func(ctx context.Context) (any, error) {
+			return obj.HasNextPage, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ExceptionHistoryPageInfo_hasNextPage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExceptionHistoryPageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExceptionHistoryPageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionHistoryPageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ExceptionHistoryPageInfo_endCursor,
+		func(ctx context.Context) (any, error) {
+			return obj.EndCursor, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ExceptionHistoryPageInfo_endCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExceptionHistoryPageInfo",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -16154,6 +17046,100 @@ func (ec *executionContext) fieldContext_Query_jobHistory(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_checkpointHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_checkpointHistory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().CheckpointHistory(ctx, fc.Args["filter"].(*model.CheckpointHistoryFilter), fc.Args["pagination"].(*model.PaginationInput))
+		},
+		nil,
+		ec.marshalNCheckpointHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_checkpointHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_CheckpointHistoryConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_CheckpointHistoryConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointHistoryConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_checkpointHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_exceptionHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_exceptionHistory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().ExceptionHistory(ctx, fc.Args["filter"].(*model.ExceptionHistoryFilter), fc.Args["pagination"].(*model.PaginationInput))
+		},
+		nil,
+		ec.marshalNExceptionHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_exceptionHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_ExceptionHistoryConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_ExceptionHistoryConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExceptionHistoryConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_exceptionHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_instruments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -17854,6 +18840,731 @@ func (ec *executionContext) fieldContext_StorageStatus_idleConns(_ context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_checkpointID(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_checkpointID,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_checkpointID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_jid(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_jid,
+		func(ctx context.Context) (any, error) {
+			return obj.Jid, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_jid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_cluster(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_cluster,
+		func(ctx context.Context) (any, error) {
+			return obj.Cluster, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_cluster(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_status(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_isSavepoint(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_isSavepoint,
+		func(ctx context.Context) (any, error) {
+			return obj.IsSavepoint, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_isSavepoint(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_triggerTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_triggerTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.TriggerTimestamp, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_triggerTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_latestAck(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_latestAck,
+		func(ctx context.Context) (any, error) {
+			return obj.LatestAck, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_latestAck(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_stateSize(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_stateSize,
+		func(ctx context.Context) (any, error) {
+			return obj.StateSize, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_stateSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_endToEndDuration(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_endToEndDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.EndToEndDuration, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_endToEndDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_processedData(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_processedData,
+		func(ctx context.Context) (any, error) {
+			return obj.ProcessedData, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_processedData(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_persistedData(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_persistedData,
+		func(ctx context.Context) (any, error) {
+			return obj.PersistedData, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_persistedData(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_numSubtasks(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_numSubtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.NumSubtasks, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_numSubtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_numAckSubtasks(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_numAckSubtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.NumAckSubtasks, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_numAckSubtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_checkpointedSize(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_checkpointedSize,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointedSize, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_checkpointedSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_capturedAt(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_capturedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CapturedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_capturedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_id(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_jid(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_jid,
+		func(ctx context.Context) (any, error) {
+			return obj.Jid, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_jid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_cluster(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_cluster,
+		func(ctx context.Context) (any, error) {
+			return obj.Cluster, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_cluster(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_exceptionName(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_exceptionName,
+		func(ctx context.Context) (any, error) {
+			return obj.ExceptionName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_exceptionName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_stacktrace(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_stacktrace,
+		func(ctx context.Context) (any, error) {
+			return obj.Stacktrace, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_stacktrace(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_timestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.Timestamp, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_timestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_taskName(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_taskName,
+		func(ctx context.Context) (any, error) {
+			return obj.TaskName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_taskName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_endpoint(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_endpoint,
+		func(ctx context.Context) (any, error) {
+			return obj.Endpoint, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_endpoint(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_taskManagerID(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_taskManagerID,
+		func(ctx context.Context) (any, error) {
+			return obj.TaskManagerID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_taskManagerID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredException_capturedAt(ctx context.Context, field graphql.CollectedField, obj *model.StoredException) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredException_capturedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CapturedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredException_capturedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredException",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -22965,6 +24676,121 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCheckpointHistoryFilter(ctx context.Context, obj any) (model.CheckpointHistoryFilter, error) {
+	var it model.CheckpointHistoryFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"clusterID", "jobID", "status", "isSavepoint", "after", "before"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "clusterID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clusterID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClusterID = data
+		case "jobID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("jobID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.JobID = data
+		case "status":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Status = data
+		case "isSavepoint":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isSavepoint"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsSavepoint = data
+		case "after":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		case "before":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Before = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputExceptionHistoryFilter(ctx context.Context, obj any) (model.ExceptionHistoryFilter, error) {
+	var it model.ExceptionHistoryFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"clusterID", "jobID", "exceptionName", "after", "before"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "clusterID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clusterID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClusterID = data
+		case "jobID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("jobID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.JobID = data
+		case "exceptionName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exceptionName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExceptionName = data
+		case "after":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		case "before":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Before = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputJobHistoryFilter(ctx context.Context, obj any) (model.JobHistoryFilter, error) {
 	var it model.JobHistoryFilter
 	asMap := map[string]any{}
@@ -23528,6 +25354,94 @@ func (ec *executionContext) _CheckpointCounts(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var checkpointHistoryConnectionImplementors = []string{"CheckpointHistoryConnection"}
+
+func (ec *executionContext) _CheckpointHistoryConnection(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointHistoryConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkpointHistoryConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckpointHistoryConnection")
+		case "edges":
+			out.Values[i] = ec._CheckpointHistoryConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._CheckpointHistoryConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var checkpointHistoryEdgeImplementors = []string{"CheckpointHistoryEdge"}
+
+func (ec *executionContext) _CheckpointHistoryEdge(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointHistoryEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkpointHistoryEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckpointHistoryEdge")
+		case "node":
+			out.Values[i] = ec._CheckpointHistoryEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cursor":
+			out.Values[i] = ec._CheckpointHistoryEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var checkpointHistoryEntryImplementors = []string{"CheckpointHistoryEntry"}
 
 func (ec *executionContext) _CheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointHistoryEntry) graphql.Marshaler {
@@ -23596,6 +25510,47 @@ func (ec *executionContext) _CheckpointHistoryEntry(ctx context.Context, sel ast
 			}
 		case "checkpointedSize":
 			out.Values[i] = ec._CheckpointHistoryEntry_checkpointedSize(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var checkpointHistoryPageInfoImplementors = []string{"CheckpointHistoryPageInfo"}
+
+func (ec *executionContext) _CheckpointHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointHistoryPageInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkpointHistoryPageInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckpointHistoryPageInfo")
+		case "hasNextPage":
+			out.Values[i] = ec._CheckpointHistoryPageInfo_hasNextPage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endCursor":
+			out.Values[i] = ec._CheckpointHistoryPageInfo_endCursor(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -24563,6 +26518,135 @@ func (ec *executionContext) _ExceptionEntry(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ExceptionEntry_endpoint(ctx, field, obj)
 		case "taskManagerId":
 			out.Values[i] = ec._ExceptionEntry_taskManagerId(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var exceptionHistoryConnectionImplementors = []string{"ExceptionHistoryConnection"}
+
+func (ec *executionContext) _ExceptionHistoryConnection(ctx context.Context, sel ast.SelectionSet, obj *model.ExceptionHistoryConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, exceptionHistoryConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ExceptionHistoryConnection")
+		case "edges":
+			out.Values[i] = ec._ExceptionHistoryConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._ExceptionHistoryConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var exceptionHistoryEdgeImplementors = []string{"ExceptionHistoryEdge"}
+
+func (ec *executionContext) _ExceptionHistoryEdge(ctx context.Context, sel ast.SelectionSet, obj *model.ExceptionHistoryEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, exceptionHistoryEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ExceptionHistoryEdge")
+		case "node":
+			out.Values[i] = ec._ExceptionHistoryEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cursor":
+			out.Values[i] = ec._ExceptionHistoryEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var exceptionHistoryPageInfoImplementors = []string{"ExceptionHistoryPageInfo"}
+
+func (ec *executionContext) _ExceptionHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, obj *model.ExceptionHistoryPageInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, exceptionHistoryPageInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ExceptionHistoryPageInfo")
+		case "hasNextPage":
+			out.Values[i] = ec._ExceptionHistoryPageInfo_hasNextPage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endCursor":
+			out.Values[i] = ec._ExceptionHistoryPageInfo_endCursor(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -27004,6 +29088,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "checkpointHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkpointHistory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "exceptionHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_exceptionHistory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "instruments":
 			field := field
 
@@ -27766,6 +29894,178 @@ func (ec *executionContext) _StorageStatus(ctx context.Context, sel ast.Selectio
 			}
 		case "idleConns":
 			out.Values[i] = ec._StorageStatus_idleConns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var storedCheckpointImplementors = []string{"StoredCheckpoint"}
+
+func (ec *executionContext) _StoredCheckpoint(ctx context.Context, sel ast.SelectionSet, obj *model.StoredCheckpoint) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, storedCheckpointImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StoredCheckpoint")
+		case "checkpointID":
+			out.Values[i] = ec._StoredCheckpoint_checkpointID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jid":
+			out.Values[i] = ec._StoredCheckpoint_jid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cluster":
+			out.Values[i] = ec._StoredCheckpoint_cluster(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._StoredCheckpoint_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isSavepoint":
+			out.Values[i] = ec._StoredCheckpoint_isSavepoint(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "triggerTimestamp":
+			out.Values[i] = ec._StoredCheckpoint_triggerTimestamp(ctx, field, obj)
+		case "latestAck":
+			out.Values[i] = ec._StoredCheckpoint_latestAck(ctx, field, obj)
+		case "stateSize":
+			out.Values[i] = ec._StoredCheckpoint_stateSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endToEndDuration":
+			out.Values[i] = ec._StoredCheckpoint_endToEndDuration(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "processedData":
+			out.Values[i] = ec._StoredCheckpoint_processedData(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "persistedData":
+			out.Values[i] = ec._StoredCheckpoint_persistedData(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "numSubtasks":
+			out.Values[i] = ec._StoredCheckpoint_numSubtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "numAckSubtasks":
+			out.Values[i] = ec._StoredCheckpoint_numAckSubtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "checkpointedSize":
+			out.Values[i] = ec._StoredCheckpoint_checkpointedSize(ctx, field, obj)
+		case "capturedAt":
+			out.Values[i] = ec._StoredCheckpoint_capturedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var storedExceptionImplementors = []string{"StoredException"}
+
+func (ec *executionContext) _StoredException(ctx context.Context, sel ast.SelectionSet, obj *model.StoredException) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, storedExceptionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StoredException")
+		case "id":
+			out.Values[i] = ec._StoredException_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jid":
+			out.Values[i] = ec._StoredException_jid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cluster":
+			out.Values[i] = ec._StoredException_cluster(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "exceptionName":
+			out.Values[i] = ec._StoredException_exceptionName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stacktrace":
+			out.Values[i] = ec._StoredException_stacktrace(ctx, field, obj)
+		case "timestamp":
+			out.Values[i] = ec._StoredException_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "taskName":
+			out.Values[i] = ec._StoredException_taskName(ctx, field, obj)
+		case "endpoint":
+			out.Values[i] = ec._StoredException_endpoint(ctx, field, obj)
+		case "taskManagerID":
+			out.Values[i] = ec._StoredException_taskManagerID(ctx, field, obj)
+		case "capturedAt":
+			out.Values[i] = ec._StoredException_capturedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -29621,6 +31921,46 @@ func (ec *executionContext) marshalNCheckpointCounts2ᚖgithubᚗcomᚋsandboxws
 	return ec._CheckpointCounts(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCheckpointHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.CheckpointHistoryConnection) graphql.Marshaler {
+	return ec._CheckpointHistoryConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCheckpointHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CheckpointHistoryConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CheckpointHistoryEdge) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCheckpointHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdge(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CheckpointHistoryEdge(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNCheckpointHistoryEntry2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, v model.CheckpointHistoryEntry) graphql.Marshaler {
 	return ec._CheckpointHistoryEntry(ctx, sel, &v)
 }
@@ -29649,6 +31989,16 @@ func (ec *executionContext) marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsan
 		return graphql.Null
 	}
 	return ec._CheckpointHistoryEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCheckpointHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryPageInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CheckpointHistoryPageInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClusterInfo) graphql.Marshaler {
@@ -29975,6 +32325,56 @@ func (ec *executionContext) marshalNExceptionEntry2ᚖgithubᚗcomᚋsandboxws�
 		return graphql.Null
 	}
 	return ec._ExceptionEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNExceptionHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.ExceptionHistoryConnection) graphql.Marshaler {
+	return ec._ExceptionHistoryConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNExceptionHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ExceptionHistoryConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNExceptionHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExceptionHistoryEdge) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNExceptionHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdge(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNExceptionHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ExceptionHistoryEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNExceptionHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryPageInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ExceptionHistoryPageInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNFlamegraph2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraph(ctx context.Context, sel ast.SelectionSet, v model.Flamegraph) graphql.Marshaler {
@@ -30841,6 +33241,26 @@ func (ec *executionContext) marshalNStorageStatus2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._StorageStatus(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNStoredCheckpoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredCheckpoint(ctx context.Context, sel ast.SelectionSet, v *model.StoredCheckpoint) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StoredCheckpoint(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNStoredException2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredException(ctx context.Context, sel ast.SelectionSet, v *model.StoredException) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StoredException(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -31485,6 +33905,14 @@ func (ec *executionContext) marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsan
 	return ec._CheckpointHistoryEntry(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOCheckpointHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryFilter(ctx context.Context, v any) (*model.CheckpointHistoryFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCheckpointHistoryFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOCheckpointLatest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointLatest(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointLatest) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -31518,6 +33946,14 @@ func (ec *executionContext) marshalOCheckpointSummary2ᚖgithubᚗcomᚋsandboxw
 		return graphql.Null
 	}
 	return ec._CheckpointSummary(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryFilter(ctx context.Context, v any) (*model.ExceptionHistoryFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputExceptionHistoryFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOFlamegraphNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlamegraphNode) graphql.Marshaler {

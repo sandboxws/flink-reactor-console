@@ -36,6 +36,14 @@ fmt:
 # Run full CI pipeline (build + lint + test)
 ci: build lint test
 
+# Create the reactor database
+db-create:
+    psql -h localhost -p 5433 -U reactor -d postgres -c "CREATE DATABASE reactor;"
+
+# Create the reactor_test database
+db-create-test:
+    psql -h localhost -p 5433 -U reactor -d postgres -c "CREATE DATABASE reactor_test;"
+
 # Apply all pending database migrations
 db-migrate:
     go run ./cmd/migrate up

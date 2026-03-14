@@ -77,9 +77,124 @@ type JobHistoryConnection {
   pageInfo: JobHistoryPageInfo!
 }
 
+"""Filter criteria for historical checkpoint queries."""
+input CheckpointHistoryFilter {
+  """Filter by cluster name."""
+  clusterID: String
+  """Filter by job ID."""
+  jobID: String
+  """Filter by checkpoint status (e.g. COMPLETED, FAILED, IN_PROGRESS)."""
+  status: String
+  """Filter to savepoints only."""
+  isSavepoint: Boolean
+  """Return only checkpoints with trigger_timestamp >= this timestamp."""
+  after: String
+  """Return only checkpoints with trigger_timestamp <= this timestamp."""
+  before: String
+}
+
+"""A historical checkpoint record from PostgreSQL."""
+type StoredCheckpoint {
+  checkpointID: String!
+  jid: String!
+  cluster: String!
+  status: String!
+  isSavepoint: Boolean!
+  triggerTimestamp: String
+  latestAck: String
+  stateSize: String!
+  endToEndDuration: String!
+  processedData: String!
+  persistedData: String!
+  numSubtasks: Int!
+  numAckSubtasks: Int!
+  checkpointedSize: String
+  capturedAt: String!
+}
+
+"""A single edge in the checkpoint history connection."""
+type CheckpointHistoryEdge {
+  """The checkpoint record."""
+  node: StoredCheckpoint!
+  """Opaque cursor for this edge."""
+  cursor: String!
+}
+
+"""Page info for checkpoint history pagination."""
+type CheckpointHistoryPageInfo {
+  """Whether there are more pages after this one."""
+  hasNextPage: Boolean!
+  """Cursor for fetching the next page."""
+  endCursor: String
+}
+
+"""Connection type for paginated checkpoint history results."""
+type CheckpointHistoryConnection {
+  """List of checkpoint history edges."""
+  edges: [CheckpointHistoryEdge!]!
+  """Pagination metadata."""
+  pageInfo: CheckpointHistoryPageInfo!
+}
+
+"""Filter criteria for historical exception queries."""
+input ExceptionHistoryFilter {
+  """Filter by cluster name."""
+  clusterID: String
+  """Filter by job ID."""
+  jobID: String
+  """Filter by exception name (case-insensitive substring match)."""
+  exceptionName: String
+  """Return only exceptions with timestamp >= this timestamp."""
+  after: String
+  """Return only exceptions with timestamp <= this timestamp."""
+  before: String
+}
+
+"""A historical exception record from PostgreSQL."""
+type StoredException {
+  id: String!
+  jid: String!
+  cluster: String!
+  exceptionName: String!
+  stacktrace: String
+  timestamp: String!
+  taskName: String
+  endpoint: String
+  taskManagerID: String
+  capturedAt: String!
+}
+
+"""A single edge in the exception history connection."""
+type ExceptionHistoryEdge {
+  """The exception record."""
+  node: StoredException!
+  """Opaque cursor for this edge."""
+  cursor: String!
+}
+
+"""Page info for exception history pagination."""
+type ExceptionHistoryPageInfo {
+  """Whether there are more pages after this one."""
+  hasNextPage: Boolean!
+  """Cursor for fetching the next page."""
+  endCursor: String
+}
+
+"""Connection type for paginated exception history results."""
+type ExceptionHistoryConnection {
+  """List of exception history edges."""
+  edges: [ExceptionHistoryEdge!]!
+  """Pagination metadata."""
+  pageInfo: ExceptionHistoryPageInfo!
+}
+
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
   """Returns paginated historical jobs with optional filtering."""
   jobHistory(filter: JobHistoryFilter, pagination: PaginationInput): JobHistoryConnection!
+  """Returns paginated historical checkpoints with optional filtering."""
+  checkpointHistory(filter: CheckpointHistoryFilter, pagination: PaginationInput): CheckpointHistoryConnection!
+  """Returns paginated historical exceptions with optional filtering."""
+  exceptionHistory(filter: ExceptionHistoryFilter, pagination: PaginationInput): ExceptionHistoryConnection!
 }

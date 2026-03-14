@@ -16,6 +16,10 @@ log:
   level: "info"
   format: "console"
 
+storage:
+  enabled: true
+  dsn: "postgres://reactor:reactor@localhost:5433/reactor"
+
 instruments:
   - name: "pagila"
     type: "database"

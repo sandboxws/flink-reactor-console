@@ -116,33 +116,137 @@ func (r *queryResolver) JobHistory(ctx context.Context, filter *model.JobHistory
 	}, nil
 }
 
-// dbJobToHistoryEntry converts a storage.DBJob to a GraphQL JobHistoryEntry.
-func dbJobToHistoryEntry(j storage.DBJob) *model.JobHistoryEntry {
-	entry := &model.JobHistoryEntry{
-		Jid:           j.JID,
-		Cluster:       j.Cluster,
-		Name:          j.Name,
-		State:         j.State,
-		DurationMs:    fmt.Sprintf("%d", j.DurationMs),
-		TasksTotal:    j.TasksTotal,
-		TasksRunning:  j.TasksRunning,
-		TasksFinished: j.TasksFinished,
-		TasksCanceled: j.TasksCanceled,
-		TasksFailed:   j.TasksFailed,
-		CapturedAt:    j.CapturedAt.Format(time.RFC3339),
+// CheckpointHistory is the resolver for the checkpointHistory field.
+func (r *queryResolver) CheckpointHistory(ctx context.Context, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) (*model.CheckpointHistoryConnection, error) {
+	if r.Stores == nil {
+		return &model.CheckpointHistoryConnection{
+			Edges:    []*model.CheckpointHistoryEdge{},
+			PageInfo: &model.CheckpointHistoryPageInfo{HasNextPage: false},
+		}, nil
 	}
-	if j.StartTime != nil {
-		s := j.StartTime.Format(time.RFC3339)
-		entry.StartTime = &s
+
+	var cf store.CheckpointFilter
+	if filter != nil {
+		cf.ClusterID = filter.ClusterID
+		cf.JobID = filter.JobID
+		cf.Status = filter.Status
+		cf.IsSavepoint = filter.IsSavepoint
+		if filter.After != nil {
+			t, err := time.Parse(time.RFC3339, *filter.After)
+			if err != nil {
+				return nil, fmt.Errorf("invalid 'after' timestamp: %w", err)
+			}
+			cf.After = &t
+		}
+		if filter.Before != nil {
+			t, err := time.Parse(time.RFC3339, *filter.Before)
+			if err != nil {
+				return nil, fmt.Errorf("invalid 'before' timestamp: %w", err)
+			}
+			cf.Before = &t
+		}
 	}
-	if j.EndTime != nil {
-		s := j.EndTime.Format(time.RFC3339)
-		entry.EndTime = &s
+
+	var cp store.CursorPagination
+	if pagination != nil {
+		if pagination.First != nil {
+			cp.First = *pagination.First
+		}
+		cp.After = pagination.After
 	}
-	return entry
+
+	checkpoints, nextCursor, err := r.Stores.Checkpoints.QueryCheckpoints(ctx, cf, cp)
+	if err != nil {
+		return nil, fmt.Errorf("query checkpoint history: %w", err)
+	}
+
+	edges := make([]*model.CheckpointHistoryEdge, len(checkpoints))
+	for i, c := range checkpoints {
+		entry := dbCheckpointToStoredCheckpoint(c)
+		edges[i] = &model.CheckpointHistoryEdge{
+			Node:   entry,
+			Cursor: store.EncodeCursor(c.TriggerTimestamp, fmt.Sprintf("%d", c.CheckpointID)),
+		}
+	}
+
+	hasNext := nextCursor != ""
+	var endCursor *string
+	if hasNext {
+		endCursor = &nextCursor
+	}
+
+	return &model.CheckpointHistoryConnection{
+		Edges: edges,
+		PageInfo: &model.CheckpointHistoryPageInfo{
+			HasNextPage: hasNext,
+			EndCursor:   endCursor,
+		},
+	}, nil
 }
 
-// buildJobCursor creates an opaque cursor from a DBJob for pagination.
-func buildJobCursor(j storage.DBJob) string {
-	return store.EncodeCursor(j.StartTime, j.JID)
+// ExceptionHistory is the resolver for the exceptionHistory field.
+func (r *queryResolver) ExceptionHistory(ctx context.Context, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) (*model.ExceptionHistoryConnection, error) {
+	if r.Stores == nil {
+		return &model.ExceptionHistoryConnection{
+			Edges:    []*model.ExceptionHistoryEdge{},
+			PageInfo: &model.ExceptionHistoryPageInfo{HasNextPage: false},
+		}, nil
+	}
+
+	var ef store.ExceptionFilter
+	if filter != nil {
+		ef.ClusterID = filter.ClusterID
+		ef.JobID = filter.JobID
+		ef.ExceptionName = filter.ExceptionName
+		if filter.After != nil {
+			t, err := time.Parse(time.RFC3339, *filter.After)
+			if err != nil {
+				return nil, fmt.Errorf("invalid 'after' timestamp: %w", err)
+			}
+			ef.After = &t
+		}
+		if filter.Before != nil {
+			t, err := time.Parse(time.RFC3339, *filter.Before)
+			if err != nil {
+				return nil, fmt.Errorf("invalid 'before' timestamp: %w", err)
+			}
+			ef.Before = &t
+		}
+	}
+
+	var cp store.CursorPagination
+	if pagination != nil {
+		if pagination.First != nil {
+			cp.First = *pagination.First
+		}
+		cp.After = pagination.After
+	}
+
+	exceptions, nextCursor, err := r.Stores.Exceptions.QueryExceptions(ctx, ef, cp)
+	if err != nil {
+		return nil, fmt.Errorf("query exception history: %w", err)
+	}
+
+	edges := make([]*model.ExceptionHistoryEdge, len(exceptions))
+	for i, e := range exceptions {
+		entry := dbExceptionToStoredException(e)
+		edges[i] = &model.ExceptionHistoryEdge{
+			Node:   entry,
+			Cursor: store.EncodeCursor(&e.Timestamp, fmt.Sprintf("%d", e.ID)),
+		}
+	}
+
+	hasNext := nextCursor != ""
+	var endCursor *string
+	if hasNext {
+		endCursor = &nextCursor
+	}
+
+	return &model.ExceptionHistoryConnection{
+		Edges: edges,
+		PageInfo: &model.ExceptionHistoryPageInfo{
+			HasNextPage: hasNext,
+			EndCursor:   endCursor,
+		},
+	}, nil
 }

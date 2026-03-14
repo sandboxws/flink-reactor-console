@@ -18,3 +18,7 @@ health:
 log:
   level: "debug"
   format: "console"
+
+storage:
+  enabled: true
+  dsn: "postgres://reactor:reactor@localhost:5433/reactor_test"

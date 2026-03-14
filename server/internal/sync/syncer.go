@@ -47,7 +47,25 @@ func (s *Syncer) Start(ctx context.Context) {
 		s.runJobSync(ctx)
 	}()
 
-	s.logger.Info("sync started", "jobs_interval", s.config.Jobs)
+	// Checkpoints domain.
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.runCheckpointSync(ctx)
+	}()
+
+	// Exceptions domain.
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.runExceptionSync(ctx)
+	}()
+
+	s.logger.Info("sync started",
+		"jobs_interval", s.config.Jobs,
+		"checkpoints_interval", s.config.Checkpoints,
+		"exceptions_interval", s.config.Exceptions,
+	)
 }
 
 // Stop cancels all sync goroutines and waits for them to finish.

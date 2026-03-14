@@ -19,3 +19,7 @@ health:
 log:
   level: "warn"
   format: "json"
+
+storage:
+  enabled: true
+  dsn: "postgres://reactor:reactor@localhost:5432/reactor"

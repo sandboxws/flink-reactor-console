@@ -56,6 +56,10 @@ pnpm ui:embed             # Rebuild UI embeddings
 - `dashboard/.claude/rules/api-routes.md` — Proxy pattern, mock mode
 - `dashboard/.claude/rules/components.md` — Page delegation, styling, store access
 
+## Specs (OpenSpec)
+
+Specs for this project live in a separate repository at `~/Development/reactors/flink/flink-reactor-specs`. When `/opsx:*` commands are invoked with an absolute path (e.g. `/opsx:apply /Users/ahmed/Development/reactors/flink/flink-reactor-specs/openspec/changes/fr-console-01-storage-foundation`), use that path directly to locate the change artifacts — do NOT attempt to find or run `openspec` CLI commands against the current working directory.
+
 ## Related Repositories
 
 | Repo | Purpose | License |
