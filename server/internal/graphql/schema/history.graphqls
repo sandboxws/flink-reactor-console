@@ -188,6 +188,54 @@ type ExceptionHistoryConnection {
   pageInfo: ExceptionHistoryPageInfo!
 }
 
+"""Filter criteria for metric time-series queries."""
+input MetricHistoryFilter {
+  """Filter by cluster name (required)."""
+  clusterID: String!
+  """Filter by source type: job_manager, task_manager, vertex."""
+  sourceType: String
+  """Filter by source ID (e.g. TM ID, vertex ID)."""
+  sourceID: String
+  """Filter by metric ID (e.g. Status.JVM.CPU.Load)."""
+  metricID: String
+  """Return only data points captured after this timestamp (RFC3339)."""
+  after: String
+  """Return only data points captured before this timestamp (RFC3339)."""
+  before: String
+}
+
+"""A single metric data point in a time series."""
+type MetricDataPoint {
+  """The metric value."""
+  value: Float!
+  """When this data point was captured (RFC3339)."""
+  capturedAt: String!
+}
+
+"""A cluster overview snapshot capturing capacity and job counts at a point in time."""
+type ClusterOverviewSnapshot {
+  """Cluster name."""
+  cluster: String!
+  """Flink version string."""
+  flinkVersion: String!
+  """Total task slots."""
+  slotsTotal: Int!
+  """Available (free) task slots."""
+  slotsAvailable: Int!
+  """Number of running jobs."""
+  jobsRunning: Int!
+  """Number of finished jobs."""
+  jobsFinished: Int!
+  """Number of cancelled jobs."""
+  jobsCancelled: Int!
+  """Number of failed jobs."""
+  jobsFailed: Int!
+  """Number of task managers."""
+  taskManagers: Int!
+  """When this snapshot was captured (RFC3339)."""
+  capturedAt: String!
+}
+
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
@@ -197,4 +245,8 @@ extend type Query {
   checkpointHistory(filter: CheckpointHistoryFilter, pagination: PaginationInput): CheckpointHistoryConnection!
   """Returns paginated historical exceptions with optional filtering."""
   exceptionHistory(filter: ExceptionHistoryFilter, pagination: PaginationInput): ExceptionHistoryConnection!
+  """Returns time-series metric data points matching the filter."""
+  metricHistory(filter: MetricHistoryFilter!): [MetricDataPoint!]!
+  """Returns historical cluster overview snapshots for capacity trend analysis."""
+  clusterOverviewHistory(clusterID: String!, after: String, before: String): [ClusterOverviewSnapshot!]!
 }

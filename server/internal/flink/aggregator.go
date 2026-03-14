@@ -65,6 +65,21 @@ var jmMetricIDs = []string{
 // JMMetricQuery is the pre-joined query string for JM metrics.
 var JMMetricQuery = strings.Join(jmMetricIDs, ",")
 
+// Vertex metric IDs fetched per running vertex (8 metrics).
+var vertexMetricIDs = []string{
+	"numRecordsIn",
+	"numRecordsOut",
+	"numBytesIn",
+	"numBytesOut",
+	"numRecordsInPerSecond",
+	"numRecordsOutPerSecond",
+	"numBytesInPerSecond",
+	"numBytesOutPerSecond",
+}
+
+// VertexMetricQuery is the pre-joined query string for vertex metrics.
+var VertexMetricQuery = strings.Join(vertexMetricIDs, ",")
+
 // JobDetailAggregate holds the result of a two-phase job detail aggregation.
 type JobDetailAggregate struct {
 	Job              *JobDetail

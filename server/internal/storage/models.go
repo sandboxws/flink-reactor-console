@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
@@ -183,21 +184,41 @@ func FromFlinkException(e flink.ExceptionHistoryEntry, jid, cluster string) DBEx
 
 // DBTaskManagerSnapshot mirrors the task_manager_snapshots table.
 type DBTaskManagerSnapshot struct {
-	ID             string    `db:"id"`
-	Cluster        string    `db:"cluster"`
-	Path           string    `db:"path"`
-	DataPort       int       `db:"data_port"`
-	SlotsTotal     int       `db:"slots_total"`
-	SlotsFree      int       `db:"slots_free"`
-	CPUCores       int       `db:"cpu_cores"`
-	PhysicalMemory int64     `db:"physical_memory"`
-	FreeMemory     int64     `db:"free_memory"`
-	ManagedMemory  int64     `db:"managed_memory"`
-	CapturedAt     time.Time `db:"captured_at"`
+	ID             string          `db:"id"`
+	Cluster        string          `db:"cluster"`
+	Path           string          `db:"path"`
+	DataPort       int             `db:"data_port"`
+	SlotsTotal     int             `db:"slots_total"`
+	SlotsFree      int             `db:"slots_free"`
+	CPUCores       int             `db:"cpu_cores"`
+	PhysicalMemory int64           `db:"physical_memory"`
+	FreeMemory     int64           `db:"free_memory"`
+	ManagedMemory  int64           `db:"managed_memory"`
+	MemoryConfig   json.RawMessage `db:"memory_config"`
+	TotalResource  json.RawMessage `db:"total_resource"`
+	FreeResource   json.RawMessage `db:"free_resource"`
+	AllocatedSlots json.RawMessage `db:"allocated_slots"`
+	CapturedAt     time.Time       `db:"captured_at"`
 }
 
 // FromFlinkTaskManager converts a Flink TaskManagerItem to a DBTaskManagerSnapshot.
-func FromFlinkTaskManager(tm flink.TaskManagerItem, cluster string) DBTaskManagerSnapshot {
+func FromFlinkTaskManager(tm flink.TaskManagerItem, cluster string) (DBTaskManagerSnapshot, error) {
+	memCfg, err := json.Marshal(tm.MemoryConfiguration)
+	if err != nil {
+		return DBTaskManagerSnapshot{}, fmt.Errorf("marshal memory_config: %w", err)
+	}
+	totalRes, err := json.Marshal(tm.TotalResource)
+	if err != nil {
+		return DBTaskManagerSnapshot{}, fmt.Errorf("marshal total_resource: %w", err)
+	}
+	freeRes, err := json.Marshal(tm.FreeResource)
+	if err != nil {
+		return DBTaskManagerSnapshot{}, fmt.Errorf("marshal free_resource: %w", err)
+	}
+	allocSlots, err := json.Marshal(tm.AllocatedSlots)
+	if err != nil {
+		return DBTaskManagerSnapshot{}, fmt.Errorf("marshal allocated_slots: %w", err)
+	}
 	return DBTaskManagerSnapshot{
 		ID:             tm.ID,
 		Cluster:        cluster,
@@ -209,8 +230,12 @@ func FromFlinkTaskManager(tm flink.TaskManagerItem, cluster string) DBTaskManage
 		PhysicalMemory: tm.Hardware.PhysicalMemory,
 		FreeMemory:     tm.Hardware.FreeMemory,
 		ManagedMemory:  tm.Hardware.ManagedMemory,
+		MemoryConfig:   memCfg,
+		TotalResource:  totalRes,
+		FreeResource:   freeRes,
+		AllocatedSlots: allocSlots,
 		CapturedAt:     time.Now(),
-	}
+	}, nil
 }
 
 // DBJobManagerSnapshot mirrors the job_manager_snapshots table.

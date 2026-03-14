@@ -176,6 +176,19 @@ type ComplexityRoot struct {
 		Version       func(childComplexity int) int
 	}
 
+	ClusterOverviewSnapshot struct {
+		CapturedAt     func(childComplexity int) int
+		Cluster        func(childComplexity int) int
+		FlinkVersion   func(childComplexity int) int
+		JobsCancelled  func(childComplexity int) int
+		JobsFailed     func(childComplexity int) int
+		JobsFinished   func(childComplexity int) int
+		JobsRunning    func(childComplexity int) int
+		SlotsAvailable func(childComplexity int) int
+		SlotsTotal     func(childComplexity int) int
+		TaskManagers   func(childComplexity int) int
+	}
+
 	ColumnInfo struct {
 		Name func(childComplexity int) int
 		Type func(childComplexity int) int
@@ -522,6 +535,11 @@ type ComplexityRoot struct {
 		RefreshStatus func(childComplexity int) int
 	}
 
+	MetricDataPoint struct {
+		CapturedAt func(childComplexity int) int
+		Value      func(childComplexity int) int
+	}
+
 	MetricEntry struct {
 		ID    func(childComplexity int) int
 		Value func(childComplexity int) int
@@ -558,44 +576,46 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		BlueGreenDeployment   func(childComplexity int, name string, namespace *string, cluster *string) int
-		BlueGreenDeployments  func(childComplexity int, cluster *string, namespace *string) int
-		CatalogColumns        func(childComplexity int, catalog string, database string, table string, cluster *string) int
-		CatalogDatabases      func(childComplexity int, catalog string, cluster *string) int
-		CatalogTables         func(childComplexity int, catalog string, database string, cluster *string) int
-		Catalogs              func(childComplexity int, cluster *string) int
-		CheckpointDetail      func(childComplexity int, jobID string, checkpointID string, cluster *string) int
-		CheckpointHistory     func(childComplexity int, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) int
-		Clusters              func(childComplexity int) int
-		DashboardConfig       func(childComplexity int) int
-		DatabaseQueryHistory  func(childComplexity int, instrument string) int
-		DatabaseSchemas       func(childComplexity int, instrument string) int
-		DatabaseTable         func(childComplexity int, instrument string, schema string, table string) int
-		DatabaseTables        func(childComplexity int, instrument string, schema string) int
-		ExceptionHistory      func(childComplexity int, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) int
-		Flamegraph            func(childComplexity int, jobID string, vertexID string, typeArg string, cluster *string) int
-		FlinkConfig           func(childComplexity int, cluster *string) int
-		Health                func(childComplexity int) int
-		Instruments           func(childComplexity int) int
-		Jars                  func(childComplexity int, cluster *string) int
-		Job                   func(childComplexity int, id string, cluster *string) int
-		JobHistory            func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput) int
-		JobManager            func(childComplexity int, cluster *string) int
-		Jobs                  func(childComplexity int, cluster *string) int
-		KafkaConsumerGroup    func(childComplexity int, instrument string, groupID string) int
-		KafkaConsumerGroups   func(childComplexity int, instrument string) int
-		KafkaTopic            func(childComplexity int, instrument string, name string) int
-		KafkaTopics           func(childComplexity int, instrument string) int
-		MaterializedTable     func(childComplexity int, name string, catalog string, cluster *string) int
-		MaterializedTables    func(childComplexity int, cluster *string, catalog *string) int
-		StorageStatus         func(childComplexity int) int
-		SubtaskTimes          func(childComplexity int, jobID string, vertexID string, cluster *string) int
-		TapManifests          func(childComplexity int) int
-		TaskManager           func(childComplexity int, id string, cluster *string) int
-		TaskManagerLogs       func(childComplexity int, id string, cluster *string) int
-		TaskManagerThreadDump func(childComplexity int, id string, cluster *string) int
-		TaskManagers          func(childComplexity int, cluster *string) int
-		VertexDetail          func(childComplexity int, jobID string, vertexID string, cluster *string) int
+		BlueGreenDeployment    func(childComplexity int, name string, namespace *string, cluster *string) int
+		BlueGreenDeployments   func(childComplexity int, cluster *string, namespace *string) int
+		CatalogColumns         func(childComplexity int, catalog string, database string, table string, cluster *string) int
+		CatalogDatabases       func(childComplexity int, catalog string, cluster *string) int
+		CatalogTables          func(childComplexity int, catalog string, database string, cluster *string) int
+		Catalogs               func(childComplexity int, cluster *string) int
+		CheckpointDetail       func(childComplexity int, jobID string, checkpointID string, cluster *string) int
+		CheckpointHistory      func(childComplexity int, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) int
+		ClusterOverviewHistory func(childComplexity int, clusterID string, after *string, before *string) int
+		Clusters               func(childComplexity int) int
+		DashboardConfig        func(childComplexity int) int
+		DatabaseQueryHistory   func(childComplexity int, instrument string) int
+		DatabaseSchemas        func(childComplexity int, instrument string) int
+		DatabaseTable          func(childComplexity int, instrument string, schema string, table string) int
+		DatabaseTables         func(childComplexity int, instrument string, schema string) int
+		ExceptionHistory       func(childComplexity int, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) int
+		Flamegraph             func(childComplexity int, jobID string, vertexID string, typeArg string, cluster *string) int
+		FlinkConfig            func(childComplexity int, cluster *string) int
+		Health                 func(childComplexity int) int
+		Instruments            func(childComplexity int) int
+		Jars                   func(childComplexity int, cluster *string) int
+		Job                    func(childComplexity int, id string, cluster *string) int
+		JobHistory             func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput) int
+		JobManager             func(childComplexity int, cluster *string) int
+		Jobs                   func(childComplexity int, cluster *string) int
+		KafkaConsumerGroup     func(childComplexity int, instrument string, groupID string) int
+		KafkaConsumerGroups    func(childComplexity int, instrument string) int
+		KafkaTopic             func(childComplexity int, instrument string, name string) int
+		KafkaTopics            func(childComplexity int, instrument string) int
+		MaterializedTable      func(childComplexity int, name string, catalog string, cluster *string) int
+		MaterializedTables     func(childComplexity int, cluster *string, catalog *string) int
+		MetricHistory          func(childComplexity int, filter model.MetricHistoryFilter) int
+		StorageStatus          func(childComplexity int) int
+		SubtaskTimes           func(childComplexity int, jobID string, vertexID string, cluster *string) int
+		TapManifests           func(childComplexity int) int
+		TaskManager            func(childComplexity int, id string, cluster *string) int
+		TaskManagerLogs        func(childComplexity int, id string, cluster *string) int
+		TaskManagerThreadDump  func(childComplexity int, id string, cluster *string) int
+		TaskManagers           func(childComplexity int, cluster *string) int
+		VertexDetail           func(childComplexity int, jobID string, vertexID string, cluster *string) int
 	}
 
 	SQLCloseResult struct {
@@ -882,6 +902,8 @@ type QueryResolver interface {
 	JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput) (*model.JobHistoryConnection, error)
 	CheckpointHistory(ctx context.Context, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) (*model.CheckpointHistoryConnection, error)
 	ExceptionHistory(ctx context.Context, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) (*model.ExceptionHistoryConnection, error)
+	MetricHistory(ctx context.Context, filter model.MetricHistoryFilter) ([]*model.MetricDataPoint, error)
+	ClusterOverviewHistory(ctx context.Context, clusterID string, after *string, before *string) ([]*model.ClusterOverviewSnapshot, error)
 	Instruments(ctx context.Context) ([]*model.InstrumentInfo, error)
 	Jars(ctx context.Context, cluster *string) ([]*model.JarFile, error)
 	JobManager(ctx context.Context, cluster *string) (*model.JobManagerDetail, error)
@@ -1439,6 +1461,67 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ClusterInfo.Version(childComplexity), true
+
+	case "ClusterOverviewSnapshot.capturedAt":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.CapturedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.CapturedAt(childComplexity), true
+	case "ClusterOverviewSnapshot.cluster":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.Cluster == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.Cluster(childComplexity), true
+	case "ClusterOverviewSnapshot.flinkVersion":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.FlinkVersion == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.FlinkVersion(childComplexity), true
+	case "ClusterOverviewSnapshot.jobsCancelled":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.JobsCancelled == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.JobsCancelled(childComplexity), true
+	case "ClusterOverviewSnapshot.jobsFailed":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.JobsFailed == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.JobsFailed(childComplexity), true
+	case "ClusterOverviewSnapshot.jobsFinished":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.JobsFinished == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.JobsFinished(childComplexity), true
+	case "ClusterOverviewSnapshot.jobsRunning":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.JobsRunning == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.JobsRunning(childComplexity), true
+	case "ClusterOverviewSnapshot.slotsAvailable":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.SlotsAvailable == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.SlotsAvailable(childComplexity), true
+	case "ClusterOverviewSnapshot.slotsTotal":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.SlotsTotal == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.SlotsTotal(childComplexity), true
+	case "ClusterOverviewSnapshot.taskManagers":
+		if e.ComplexityRoot.ClusterOverviewSnapshot.TaskManagers == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ClusterOverviewSnapshot.TaskManagers(childComplexity), true
 
 	case "ColumnInfo.name":
 		if e.ComplexityRoot.ColumnInfo.Name == nil {
@@ -2700,6 +2783,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.MaterializedTable.RefreshStatus(childComplexity), true
 
+	case "MetricDataPoint.capturedAt":
+		if e.ComplexityRoot.MetricDataPoint.CapturedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MetricDataPoint.CapturedAt(childComplexity), true
+	case "MetricDataPoint.value":
+		if e.ComplexityRoot.MetricDataPoint.Value == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MetricDataPoint.Value(childComplexity), true
+
 	case "MetricEntry.id":
 		if e.ComplexityRoot.MetricEntry.ID == nil {
 			break
@@ -2985,6 +3081,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.CheckpointHistory(childComplexity, args["filter"].(*model.CheckpointHistoryFilter), args["pagination"].(*model.PaginationInput)), true
+	case "Query.clusterOverviewHistory":
+		if e.ComplexityRoot.Query.ClusterOverviewHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_clusterOverviewHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.ClusterOverviewHistory(childComplexity, args["clusterID"].(string), args["after"].(*string), args["before"].(*string)), true
 	case "Query.clusters":
 		if e.ComplexityRoot.Query.Clusters == nil {
 			break
@@ -3208,6 +3315,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.MaterializedTables(childComplexity, args["cluster"].(*string), args["catalog"].(*string)), true
+	case "Query.metricHistory":
+		if e.ComplexityRoot.Query.MetricHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_metricHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.MetricHistory(childComplexity, args["filter"].(model.MetricHistoryFilter)), true
 	case "Query.storageStatus":
 		if e.ComplexityRoot.Query.StorageStatus == nil {
 			break
@@ -4292,6 +4410,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCheckpointHistoryFilter,
 		ec.unmarshalInputExceptionHistoryFilter,
 		ec.unmarshalInputJobHistoryFilter,
+		ec.unmarshalInputMetricHistoryFilter,
 		ec.unmarshalInputPaginationInput,
 	)
 	first := true
@@ -4795,6 +4914,54 @@ type ExceptionHistoryConnection {
   pageInfo: ExceptionHistoryPageInfo!
 }
 
+"""Filter criteria for metric time-series queries."""
+input MetricHistoryFilter {
+  """Filter by cluster name (required)."""
+  clusterID: String!
+  """Filter by source type: job_manager, task_manager, vertex."""
+  sourceType: String
+  """Filter by source ID (e.g. TM ID, vertex ID)."""
+  sourceID: String
+  """Filter by metric ID (e.g. Status.JVM.CPU.Load)."""
+  metricID: String
+  """Return only data points captured after this timestamp (RFC3339)."""
+  after: String
+  """Return only data points captured before this timestamp (RFC3339)."""
+  before: String
+}
+
+"""A single metric data point in a time series."""
+type MetricDataPoint {
+  """The metric value."""
+  value: Float!
+  """When this data point was captured (RFC3339)."""
+  capturedAt: String!
+}
+
+"""A cluster overview snapshot capturing capacity and job counts at a point in time."""
+type ClusterOverviewSnapshot {
+  """Cluster name."""
+  cluster: String!
+  """Flink version string."""
+  flinkVersion: String!
+  """Total task slots."""
+  slotsTotal: Int!
+  """Available (free) task slots."""
+  slotsAvailable: Int!
+  """Number of running jobs."""
+  jobsRunning: Int!
+  """Number of finished jobs."""
+  jobsFinished: Int!
+  """Number of cancelled jobs."""
+  jobsCancelled: Int!
+  """Number of failed jobs."""
+  jobsFailed: Int!
+  """Number of task managers."""
+  taskManagers: Int!
+  """When this snapshot was captured (RFC3339)."""
+  capturedAt: String!
+}
+
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
@@ -4804,6 +4971,10 @@ extend type Query {
   checkpointHistory(filter: CheckpointHistoryFilter, pagination: PaginationInput): CheckpointHistoryConnection!
   """Returns paginated historical exceptions with optional filtering."""
   exceptionHistory(filter: ExceptionHistoryFilter, pagination: PaginationInput): ExceptionHistoryConnection!
+  """Returns time-series metric data points matching the filter."""
+  metricHistory(filter: MetricHistoryFilter!): [MetricDataPoint!]!
+  """Returns historical cluster overview snapshots for capacity trend analysis."""
+  clusterOverviewHistory(clusterID: String!, after: String, before: String): [ClusterOverviewSnapshot!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/instruments.graphqls", Input: `"""
@@ -5969,6 +6140,27 @@ func (ec *executionContext) field_Query_checkpointHistory_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_clusterOverviewHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "clusterID", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["clusterID"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "before", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["before"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_databaseQueryHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -6234,6 +6426,17 @@ func (ec *executionContext) field_Query_materializedTables_args(ctx context.Cont
 		return nil, err
 	}
 	args["catalog"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_metricHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalNMetricHistoryFilter2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricHistoryFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
 	return args, nil
 }
 
@@ -9093,6 +9296,296 @@ func (ec *executionContext) _ClusterInfo_capabilities(ctx context.Context, field
 func (ec *executionContext) fieldContext_ClusterInfo_capabilities(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClusterInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_cluster(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_cluster,
+		func(ctx context.Context) (any, error) {
+			return obj.Cluster, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_cluster(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_flinkVersion(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_flinkVersion,
+		func(ctx context.Context) (any, error) {
+			return obj.FlinkVersion, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_flinkVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_slotsTotal(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_slotsTotal,
+		func(ctx context.Context) (any, error) {
+			return obj.SlotsTotal, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_slotsTotal(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_slotsAvailable(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_slotsAvailable,
+		func(ctx context.Context) (any, error) {
+			return obj.SlotsAvailable, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_slotsAvailable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_jobsRunning(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_jobsRunning,
+		func(ctx context.Context) (any, error) {
+			return obj.JobsRunning, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_jobsRunning(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_jobsFinished(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_jobsFinished,
+		func(ctx context.Context) (any, error) {
+			return obj.JobsFinished, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_jobsFinished(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_jobsCancelled(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_jobsCancelled,
+		func(ctx context.Context) (any, error) {
+			return obj.JobsCancelled, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_jobsCancelled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_jobsFailed(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_jobsFailed,
+		func(ctx context.Context) (any, error) {
+			return obj.JobsFailed, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_jobsFailed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_taskManagers(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_taskManagers,
+		func(ctx context.Context) (any, error) {
+			return obj.TaskManagers, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_taskManagers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterOverviewSnapshot_capturedAt(ctx context.Context, field graphql.CollectedField, obj *model.ClusterOverviewSnapshot) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ClusterOverviewSnapshot_capturedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CapturedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ClusterOverviewSnapshot_capturedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterOverviewSnapshot",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -15363,6 +15856,64 @@ func (ec *executionContext) fieldContext_MaterializedTable_definingQuery(_ conte
 	return fc, nil
 }
 
+func (ec *executionContext) _MetricDataPoint_value(ctx context.Context, field graphql.CollectedField, obj *model.MetricDataPoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MetricDataPoint_value,
+		func(ctx context.Context) (any, error) {
+			return obj.Value, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MetricDataPoint_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricDataPoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricDataPoint_capturedAt(ctx context.Context, field graphql.CollectedField, obj *model.MetricDataPoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MetricDataPoint_capturedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CapturedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MetricDataPoint_capturedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricDataPoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricEntry_id(ctx context.Context, field graphql.CollectedField, obj *model.MetricEntry) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -17134,6 +17685,116 @@ func (ec *executionContext) fieldContext_Query_exceptionHistory(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_exceptionHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_metricHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_metricHistory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().MetricHistory(ctx, fc.Args["filter"].(model.MetricHistoryFilter))
+		},
+		nil,
+		ec.marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPointᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_metricHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "value":
+				return ec.fieldContext_MetricDataPoint_value(ctx, field)
+			case "capturedAt":
+				return ec.fieldContext_MetricDataPoint_capturedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricDataPoint", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_metricHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_clusterOverviewHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_clusterOverviewHistory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().ClusterOverviewHistory(ctx, fc.Args["clusterID"].(string), fc.Args["after"].(*string), fc.Args["before"].(*string))
+		},
+		nil,
+		ec.marshalNClusterOverviewSnapshot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshotᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_clusterOverviewHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cluster":
+				return ec.fieldContext_ClusterOverviewSnapshot_cluster(ctx, field)
+			case "flinkVersion":
+				return ec.fieldContext_ClusterOverviewSnapshot_flinkVersion(ctx, field)
+			case "slotsTotal":
+				return ec.fieldContext_ClusterOverviewSnapshot_slotsTotal(ctx, field)
+			case "slotsAvailable":
+				return ec.fieldContext_ClusterOverviewSnapshot_slotsAvailable(ctx, field)
+			case "jobsRunning":
+				return ec.fieldContext_ClusterOverviewSnapshot_jobsRunning(ctx, field)
+			case "jobsFinished":
+				return ec.fieldContext_ClusterOverviewSnapshot_jobsFinished(ctx, field)
+			case "jobsCancelled":
+				return ec.fieldContext_ClusterOverviewSnapshot_jobsCancelled(ctx, field)
+			case "jobsFailed":
+				return ec.fieldContext_ClusterOverviewSnapshot_jobsFailed(ctx, field)
+			case "taskManagers":
+				return ec.fieldContext_ClusterOverviewSnapshot_taskManagers(ctx, field)
+			case "capturedAt":
+				return ec.fieldContext_ClusterOverviewSnapshot_capturedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ClusterOverviewSnapshot", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_clusterOverviewHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -24845,6 +25506,67 @@ func (ec *executionContext) unmarshalInputJobHistoryFilter(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMetricHistoryFilter(ctx context.Context, obj any) (model.MetricHistoryFilter, error) {
+	var it model.MetricHistoryFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"clusterID", "sourceType", "sourceID", "metricID", "after", "before"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "clusterID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clusterID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClusterID = data
+		case "sourceType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceType"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SourceType = data
+		case "sourceID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SourceID = data
+		case "metricID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metricID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MetricID = data
+		case "after":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		case "before":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Before = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj any) (model.PaginationInput, error) {
 	var it model.PaginationInput
 	asMap := map[string]any{}
@@ -25840,6 +26562,90 @@ func (ec *executionContext) _ClusterInfo(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ClusterInfo_version(ctx, field, obj)
 		case "capabilities":
 			out.Values[i] = ec._ClusterInfo_capabilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var clusterOverviewSnapshotImplementors = []string{"ClusterOverviewSnapshot"}
+
+func (ec *executionContext) _ClusterOverviewSnapshot(ctx context.Context, sel ast.SelectionSet, obj *model.ClusterOverviewSnapshot) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, clusterOverviewSnapshotImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ClusterOverviewSnapshot")
+		case "cluster":
+			out.Values[i] = ec._ClusterOverviewSnapshot_cluster(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "flinkVersion":
+			out.Values[i] = ec._ClusterOverviewSnapshot_flinkVersion(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "slotsTotal":
+			out.Values[i] = ec._ClusterOverviewSnapshot_slotsTotal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "slotsAvailable":
+			out.Values[i] = ec._ClusterOverviewSnapshot_slotsAvailable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jobsRunning":
+			out.Values[i] = ec._ClusterOverviewSnapshot_jobsRunning(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jobsFinished":
+			out.Values[i] = ec._ClusterOverviewSnapshot_jobsFinished(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jobsCancelled":
+			out.Values[i] = ec._ClusterOverviewSnapshot_jobsCancelled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jobsFailed":
+			out.Values[i] = ec._ClusterOverviewSnapshot_jobsFailed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "taskManagers":
+			out.Values[i] = ec._ClusterOverviewSnapshot_taskManagers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "capturedAt":
+			out.Values[i] = ec._ClusterOverviewSnapshot_capturedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -28442,6 +29248,50 @@ func (ec *executionContext) _MaterializedTable(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var metricDataPointImplementors = []string{"MetricDataPoint"}
+
+func (ec *executionContext) _MetricDataPoint(ctx context.Context, sel ast.SelectionSet, obj *model.MetricDataPoint) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metricDataPointImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetricDataPoint")
+		case "value":
+			out.Values[i] = ec._MetricDataPoint_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "capturedAt":
+			out.Values[i] = ec._MetricDataPoint_capturedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var metricEntryImplementors = []string{"MetricEntry"}
 
 func (ec *executionContext) _MetricEntry(ctx context.Context, sel ast.SelectionSet, obj *model.MetricEntry) graphql.Marshaler {
@@ -29120,6 +29970,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_exceptionHistory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "metricHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_metricHistory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "clusterOverviewHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_clusterOverviewHistory(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -32027,6 +32921,32 @@ func (ec *executionContext) marshalNClusterInfo2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._ClusterInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNClusterOverviewSnapshot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClusterOverviewSnapshot) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNClusterOverviewSnapshot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshot(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNClusterOverviewSnapshot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.ClusterOverviewSnapshot) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ClusterOverviewSnapshot(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus(ctx context.Context, v any) (model.ClusterStatus, error) {
 	var res model.ClusterStatus
 	err := res.UnmarshalGQL(v)
@@ -33069,6 +33989,32 @@ func (ec *executionContext) marshalNMaterializedTableRefreshStatus2githubᚗcom�
 	return v
 }
 
+func (ec *executionContext) marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricDataPoint) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNMetricDataPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPoint(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMetricDataPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPoint(ctx context.Context, sel ast.SelectionSet, v *model.MetricDataPoint) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MetricDataPoint(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -33093,6 +34039,11 @@ func (ec *executionContext) marshalNMetricEntry2ᚖgithubᚗcomᚋsandboxwsᚋfl
 		return graphql.Null
 	}
 	return ec._MetricEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMetricHistoryFilter2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricHistoryFilter(ctx context.Context, v any) (model.MetricHistoryFilter, error) {
+	res, err := ec.unmarshalInputMetricHistoryFilter(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNPlanNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNode) graphql.Marshaler {

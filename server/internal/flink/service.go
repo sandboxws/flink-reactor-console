@@ -103,6 +103,24 @@ func (s *Service) UploadJar(ctx context.Context, reader io.Reader, contentType s
 	return &result, nil
 }
 
+// GetJobManagerConfig returns the job manager configuration.
+func (s *Service) GetJobManagerConfig(ctx context.Context) (JMConfig, error) {
+	var result JMConfig
+	if err := s.client.GetJSON(ctx, "/jobmanager/config", &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// GetJobManagerEnvironment returns the job manager environment.
+func (s *Service) GetJobManagerEnvironment(ctx context.Context) (*JMEnvironment, error) {
+	var result JMEnvironment
+	if err := s.client.GetJSON(ctx, "/jobmanager/environment", &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 // GetFlinkConfig returns the Flink cluster configuration.
 func (s *Service) GetFlinkConfig(ctx context.Context) (*ClusterConfig, error) {
 	var result ClusterConfig
@@ -127,6 +145,35 @@ func (s *Service) GetTaskManagerDetail(ctx context.Context, tmID string) (*TMDet
 // GetJobManager returns aggregated JM detail with metrics.
 func (s *Service) GetJobManager(ctx context.Context) (*JMDetailAggregate, error) {
 	return s.aggregator.JMDetail(ctx)
+}
+
+// --- Metric fetch methods ---
+
+// GetJobManagerMetrics returns JM metrics for the pre-defined metric set.
+func (s *Service) GetJobManagerMetrics(ctx context.Context) ([]MetricItem, error) {
+	var metrics []MetricItem
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobmanager/metrics?get=%s", JMMetricQuery), &metrics); err != nil {
+		return nil, err
+	}
+	return metrics, nil
+}
+
+// GetTaskManagerMetrics returns TM metrics for the pre-defined metric set.
+func (s *Service) GetTaskManagerMetrics(ctx context.Context, tmID string) ([]MetricItem, error) {
+	var metrics []MetricItem
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/taskmanagers/%s/metrics?get=%s", tmID, TMMetricQuery), &metrics); err != nil {
+		return nil, err
+	}
+	return metrics, nil
+}
+
+// GetVertexMetrics returns vertex metrics for the pre-defined metric set.
+func (s *Service) GetVertexMetrics(ctx context.Context, jobID, vertexID string) ([]MetricItem, error) {
+	var metrics []MetricItem
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/vertices/%s/metrics?get=%s", jobID, vertexID, VertexMetricQuery), &metrics); err != nil {
+		return nil, err
+	}
+	return metrics, nil
 }
 
 // --- Direct vertex-level methods ---

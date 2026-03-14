@@ -250,3 +250,90 @@ func (r *queryResolver) ExceptionHistory(ctx context.Context, filter *model.Exce
 		},
 	}, nil
 }
+
+// MetricHistory is the resolver for the metricHistory field.
+func (r *queryResolver) MetricHistory(ctx context.Context, filter model.MetricHistoryFilter) ([]*model.MetricDataPoint, error) {
+	if r.Stores == nil {
+		return []*model.MetricDataPoint{}, nil
+	}
+
+	mf := store.MetricFilter{
+		ClusterID:  &filter.ClusterID,
+		SourceType: filter.SourceType,
+		SourceID:   filter.SourceID,
+		MetricID:   filter.MetricID,
+	}
+	if filter.After != nil {
+		t, err := time.Parse(time.RFC3339, *filter.After)
+		if err != nil {
+			return nil, fmt.Errorf("invalid 'after' timestamp: %w", err)
+		}
+		mf.After = &t
+	}
+	if filter.Before != nil {
+		t, err := time.Parse(time.RFC3339, *filter.Before)
+		if err != nil {
+			return nil, fmt.Errorf("invalid 'before' timestamp: %w", err)
+		}
+		mf.Before = &t
+	}
+
+	metrics, err := r.Stores.Metrics.QueryMetrics(ctx, mf)
+	if err != nil {
+		return nil, fmt.Errorf("query metric history: %w", err)
+	}
+
+	result := make([]*model.MetricDataPoint, len(metrics))
+	for i, m := range metrics {
+		result[i] = &model.MetricDataPoint{
+			Value:      m.Value,
+			CapturedAt: m.CapturedAt.Format(time.RFC3339),
+		}
+	}
+	return result, nil
+}
+
+// ClusterOverviewHistory is the resolver for the clusterOverviewHistory field.
+func (r *queryResolver) ClusterOverviewHistory(ctx context.Context, clusterID string, after *string, before *string) ([]*model.ClusterOverviewSnapshot, error) {
+	if r.Stores == nil {
+		return []*model.ClusterOverviewSnapshot{}, nil
+	}
+
+	var afterTime, beforeTime time.Time
+	if after != nil {
+		t, err := time.Parse(time.RFC3339, *after)
+		if err != nil {
+			return nil, fmt.Errorf("invalid 'after' timestamp: %w", err)
+		}
+		afterTime = t
+	}
+	if before != nil {
+		t, err := time.Parse(time.RFC3339, *before)
+		if err != nil {
+			return nil, fmt.Errorf("invalid 'before' timestamp: %w", err)
+		}
+		beforeTime = t
+	}
+
+	snapshots, err := r.Stores.Metrics.QueryOverviewSnapshots(ctx, clusterID, afterTime, beforeTime)
+	if err != nil {
+		return nil, fmt.Errorf("query overview history: %w", err)
+	}
+
+	result := make([]*model.ClusterOverviewSnapshot, len(snapshots))
+	for i, s := range snapshots {
+		result[i] = &model.ClusterOverviewSnapshot{
+			Cluster:        s.Cluster,
+			FlinkVersion:   s.FlinkVersion,
+			SlotsTotal:     s.SlotsTotal,
+			SlotsAvailable: s.SlotsAvailable,
+			JobsRunning:    s.JobsRunning,
+			JobsFinished:   s.JobsFinished,
+			JobsCancelled:  s.JobsCancelled,
+			JobsFailed:     s.JobsFailed,
+			TaskManagers:   s.TaskManagers,
+			CapturedAt:     s.CapturedAt.Format(time.RFC3339),
+		}
+	}
+	return result, nil
+}

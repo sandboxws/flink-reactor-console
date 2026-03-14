@@ -175,6 +175,30 @@ type ClusterInfo struct {
 	Capabilities  []string      `json:"capabilities"`
 }
 
+// A cluster overview snapshot capturing capacity and job counts at a point in time.
+type ClusterOverviewSnapshot struct {
+	// Cluster name.
+	Cluster string `json:"cluster"`
+	// Flink version string.
+	FlinkVersion string `json:"flinkVersion"`
+	// Total task slots.
+	SlotsTotal int `json:"slotsTotal"`
+	// Available (free) task slots.
+	SlotsAvailable int `json:"slotsAvailable"`
+	// Number of running jobs.
+	JobsRunning int `json:"jobsRunning"`
+	// Number of finished jobs.
+	JobsFinished int `json:"jobsFinished"`
+	// Number of cancelled jobs.
+	JobsCancelled int `json:"jobsCancelled"`
+	// Number of failed jobs.
+	JobsFailed int `json:"jobsFailed"`
+	// Number of task managers.
+	TaskManagers int `json:"taskManagers"`
+	// When this snapshot was captured (RFC3339).
+	CapturedAt string `json:"capturedAt"`
+}
+
 type ColumnInfo struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
@@ -588,9 +612,33 @@ type MaterializedTable struct {
 	DefiningQuery *string                        `json:"definingQuery,omitempty"`
 }
 
+// A single metric data point in a time series.
+type MetricDataPoint struct {
+	// The metric value.
+	Value float64 `json:"value"`
+	// When this data point was captured (RFC3339).
+	CapturedAt string `json:"capturedAt"`
+}
+
 type MetricEntry struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
+}
+
+// Filter criteria for metric time-series queries.
+type MetricHistoryFilter struct {
+	// Filter by cluster name (required).
+	ClusterID string `json:"clusterID"`
+	// Filter by source type: job_manager, task_manager, vertex.
+	SourceType *string `json:"sourceType,omitempty"`
+	// Filter by source ID (e.g. TM ID, vertex ID).
+	SourceID *string `json:"sourceID,omitempty"`
+	// Filter by metric ID (e.g. Status.JVM.CPU.Load).
+	MetricID *string `json:"metricID,omitempty"`
+	// Return only data points captured after this timestamp (RFC3339).
+	After *string `json:"after,omitempty"`
+	// Return only data points captured before this timestamp (RFC3339).
+	Before *string `json:"before,omitempty"`
 }
 
 type Mutation struct {
