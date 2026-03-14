@@ -11,6 +11,7 @@ const INTERVAL_OPTIONS: { value: RefreshInterval; label: string }[] = [
   { value: 10000, label: "10s" },
   { value: 30000, label: "30s" },
   { value: 60000, label: "1m" },
+  { value: 3_600_000, label: "1h" },
 ]
 
 export function MetricsExplorer() {

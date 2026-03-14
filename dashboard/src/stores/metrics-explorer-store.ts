@@ -18,17 +18,89 @@ export type MetricDataPoint = {
   value: number
 }
 
+export type MetricType = "gauge" | "counter" | "meter"
+export type MetricUnit =
+  | "bytes"
+  | "ms"
+  | "count"
+  | "ratio"
+  | "records"
+  | "records/s"
+  | "bytes/s"
+  | "segments"
+export type MetricMeta = { type: MetricType; unit: MetricUnit }
+
+// ---------------------------------------------------------------------------
+// Metric metadata registry — pattern-matched, based on Flink docs
+// ---------------------------------------------------------------------------
+
+const METRIC_PATTERNS: [RegExp, MetricMeta][] = [
+  // JVM Memory (bytes)
+  [
+    /Status\.JVM\.Memory\..+\.(Used|Max|Committed)$/,
+    { type: "gauge", unit: "bytes" },
+  ],
+  [/Status\.JVM\.Memory\..+\.MemoryUsed$/, { type: "gauge", unit: "bytes" }],
+  [/Status\.JVM\.Memory\..+\.TotalCapacity$/, { type: "gauge", unit: "bytes" }],
+
+  // JVM CPU
+  [/Status\.JVM\.CPU\.Load$/, { type: "gauge", unit: "ratio" }],
+
+  // JVM Threads
+  [/Status\.JVM\.Threads\.Count$/, { type: "gauge", unit: "count" }],
+
+  // JVM GC — cumulative despite Flink calling them Gauge
+  [
+    /Status\.JVM\.GarbageCollector\..+\.Count$/,
+    { type: "counter", unit: "count" },
+  ],
+  [/Status\.JVM\.GarbageCollector\..+\.Time$/, { type: "counter", unit: "ms" }],
+
+  // Shuffle / Network
+  [/Status\.Shuffle\.Netty\..+Memory$/, { type: "gauge", unit: "bytes" }],
+  [
+    /Status\.(Shuffle\.Netty|Network)\..+Segments$/,
+    { type: "gauge", unit: "segments" },
+  ],
+
+  // Flink Managed Memory
+  [/Status\.Flink\.Memory\.Managed\./, { type: "gauge", unit: "bytes" }],
+
+  // Record / byte counters
+  [/numRecords(In|Out)$/, { type: "counter", unit: "records" }],
+  [/numBytes(In|Out)$/, { type: "counter", unit: "bytes" }],
+
+  // Rate meters
+  [/numRecords.*PerSecond$/, { type: "meter", unit: "records/s" }],
+  [/numBytes.*PerSecond$/, { type: "meter", unit: "bytes/s" }],
+
+  // Checkpointing
+  [/lastCheckpointDuration$/, { type: "gauge", unit: "ms" }],
+  [/lastCheckpointSize$/, { type: "gauge", unit: "bytes" }],
+  [/numberOf(Completed|Failed)Checkpoints$/, { type: "gauge", unit: "count" }],
+]
+
+const DEFAULT_META: MetricMeta = { type: "gauge", unit: "count" }
+
+export function getMetricMeta(metricName: string): MetricMeta {
+  for (const [pattern, meta] of METRIC_PATTERNS) {
+    if (pattern.test(metricName)) return meta
+  }
+  return DEFAULT_META
+}
+
 export type MetricSeries = {
   id: string // "${source.id}:${metricName}"
   source: MetricSource
   metricName: string
+  meta: MetricMeta
   data: MetricDataPoint[]
   currentValue: number | null
   minValue: number | null
   maxValue: number | null
 }
 
-export type RefreshInterval = 5000 | 10000 | 30000 | 60000
+export type RefreshInterval = 5000 | 10000 | 30000 | 60000 | 3_600_000
 
 // ---------------------------------------------------------------------------
 // Ring buffer — O(1) push, no reallocation
@@ -159,6 +231,11 @@ interface MetricsExplorerState {
 
 // Per-series ring buffers, keyed by series ID
 const ringBuffers = new Map<string, RingBuffer<MetricDataPoint>>()
+// Previous raw values for counter → rate conversion
+const previousRawValues = new Map<
+  string,
+  { value: number; timestamp: number }
+>()
 let pollInterval: ReturnType<typeof setInterval> | null = null
 
 async function pollMetrics(
@@ -211,8 +288,30 @@ async function pollMetrics(
       const sourceValues = valuesBySource.get(s.source.id)
       if (!sourceValues || !(s.metricName in sourceValues)) return s
 
-      const value = sourceValues[s.metricName]
-      const point: MetricDataPoint = { timestamp: now, value }
+      const rawValue = sourceValues[s.metricName]
+
+      // For counters, convert cumulative value → rate (/s)
+      let chartValue: number | null = null
+      if (s.meta.type === "counter") {
+        const prev = previousRawValues.get(s.id)
+        previousRawValues.set(s.id, { value: rawValue, timestamp: now })
+        if (prev) {
+          const delta = rawValue - prev.value
+          const elapsedSec = (now - prev.timestamp) / 1000
+          if (delta >= 0 && elapsedSec > 0) {
+            chartValue = delta / elapsedSec
+          }
+          // delta < 0 means counter reset — skip this point
+        }
+        // No prev means first poll — skip (establishes baseline)
+      } else {
+        chartValue = rawValue
+      }
+
+      // Skip if we couldn't compute a value (first counter poll or reset)
+      if (chartValue === null) return s
+
+      const point: MetricDataPoint = { timestamp: now, value: chartValue }
 
       let rb = ringBuffers.get(s.id)
       if (!rb) {
@@ -221,13 +320,15 @@ async function pollMetrics(
       }
       rb.push(point)
 
-      const newMin = s.minValue === null ? value : Math.min(s.minValue, value)
-      const newMax = s.maxValue === null ? value : Math.max(s.maxValue, value)
+      const newMin =
+        s.minValue === null ? chartValue : Math.min(s.minValue, chartValue)
+      const newMax =
+        s.maxValue === null ? chartValue : Math.max(s.maxValue, chartValue)
 
       return {
         ...s,
         data: rb.toArray(),
-        currentValue: value,
+        currentValue: chartValue,
         minValue: newMin,
         maxValue: newMax,
       }
@@ -282,6 +383,7 @@ export const useMetricsExplorerStore = create<MetricsExplorerState>(
         id: seriesId,
         source,
         metricName,
+        meta: getMetricMeta(metricName),
         data: [],
         currentValue: null,
         minValue: null,
@@ -304,6 +406,7 @@ export const useMetricsExplorerStore = create<MetricsExplorerState>(
 
     removeMetric: (seriesId) => {
       ringBuffers.delete(seriesId)
+      previousRawValues.delete(seriesId)
       set((state) => ({
         series: state.series.filter((s) => s.id !== seriesId),
       }))
@@ -311,6 +414,7 @@ export const useMetricsExplorerStore = create<MetricsExplorerState>(
 
     clearAllMetrics: () => {
       ringBuffers.clear()
+      previousRawValues.clear()
       set({ series: [] })
     },
 
@@ -331,6 +435,7 @@ export const useMetricsExplorerStore = create<MetricsExplorerState>(
 
       // Clear existing and add all preset metrics
       ringBuffers.clear()
+      previousRawValues.clear()
       const newSeries: MetricSeries[] = preset.metrics.map((metricName) => {
         const id = `${source.id}:${metricName}`
         ringBuffers.set(id, new RingBuffer<MetricDataPoint>(MAX_DATA_POINTS))
@@ -338,6 +443,7 @@ export const useMetricsExplorerStore = create<MetricsExplorerState>(
           id,
           source,
           metricName,
+          meta: getMetricMeta(metricName),
           data: [],
           currentValue: null,
           minValue: null,
