@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { MetricsExplorer } from "@/components/insights/metrics-explorer"
-import { useClusterStore } from "@/stores/cluster-store"
 import { useMetricsExplorerStore } from "@/stores/metrics-explorer-store"
 
 export const Route = createFileRoute("/insights/metrics")({
@@ -9,28 +8,17 @@ export const Route = createFileRoute("/insights/metrics")({
 })
 
 function Metrics() {
-  const initCluster = useClusterStore((s) => s.initialize)
-  const startClusterPolling = useClusterStore((s) => s.startPolling)
-  const stopClusterPolling = useClusterStore((s) => s.stopPolling)
-
-  const startMetricsPolling = useMetricsExplorerStore((s) => s.startPolling)
-  const stopMetricsPolling = useMetricsExplorerStore((s) => s.stopPolling)
+  const startPolling = useMetricsExplorerStore((s) => s.startPolling)
+  const stopPolling = useMetricsExplorerStore((s) => s.stopPolling)
+  const fetchCatalog = useMetricsExplorerStore((s) => s.fetchCatalog)
 
   useEffect(() => {
-    initCluster()
-    startClusterPolling()
-    startMetricsPolling()
+    fetchCatalog()
+    startPolling()
     return () => {
-      stopClusterPolling()
-      stopMetricsPolling()
+      stopPolling()
     }
-  }, [
-    initCluster,
-    startClusterPolling,
-    stopClusterPolling,
-    startMetricsPolling,
-    stopMetricsPolling,
-  ])
+  }, [fetchCatalog, startPolling, stopPolling])
 
   return <MetricsExplorer />
 }

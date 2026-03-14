@@ -1,69 +1,93 @@
 import { Loader2, Plus, Search, X } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { cn } from "@/lib/cn"
-import { useClusterStore } from "@/stores/cluster-store"
-import type {
-  MetricSeries,
-  MetricSource,
-  MetricSourceType,
-} from "@/stores/metrics-explorer-store"
+import type { MetricCatalogEntry } from "@/lib/graphql-api-client"
+import type { SelectedMetric } from "@/stores/metrics-explorer-store"
 
-type MetricsBrowserProps = {
-  selectedSource: MetricSource | null
-  availableMetrics: string[]
-  activeSeries: MetricSeries[]
-  onSelectSource: (source: MetricSource) => void
-  onAddMetric: (metricName: string) => void
-  onRemoveMetric: (seriesId: string) => void
-  loading: boolean
-}
+type SourceTab = "job_manager" | "task_manager" | "vertex"
 
-const SOURCE_TABS: { type: MetricSourceType; label: string }[] = [
-  { type: "jm", label: "JM" },
-  { type: "tm", label: "TM" },
-  { type: "job-vertex", label: "Job" },
+const SOURCE_TABS: { type: SourceTab; label: string }[] = [
+  { type: "job_manager", label: "JM" },
+  { type: "task_manager", label: "TM" },
+  { type: "vertex", label: "Vertex" },
 ]
 
+function seriesKey(m: {
+  sourceType: string
+  sourceID: string
+  metricID: string
+}): string {
+  return `${m.sourceType}:${m.sourceID}:${m.metricID}`
+}
+
+type MetricsBrowserProps = {
+  catalog: MetricCatalogEntry[]
+  catalogLoading: boolean
+  selectedSeries: SelectedMetric[]
+  onAddMetric: (
+    sourceType: string,
+    sourceID: string,
+    metricID: string,
+    label: string,
+  ) => void
+  onRemoveMetric: (key: string) => void
+}
+
 export function MetricsBrowser({
-  selectedSource,
-  availableMetrics,
-  activeSeries,
-  onSelectSource,
+  catalog,
+  catalogLoading,
+  selectedSeries,
   onAddMetric,
   onRemoveMetric,
-  loading,
 }: MetricsBrowserProps) {
-  const [activeTab, setActiveTab] = useState<MetricSourceType>(
-    selectedSource?.type ?? "jm",
-  )
+  const [activeTab, setActiveTab] = useState<SourceTab>("job_manager")
+  const [selectedSourceID, setSelectedSourceID] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedTmId, setSelectedTmId] = useState<string | null>(null)
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
-  const [selectedVertexId, setSelectedVertexId] = useState<string | null>(null)
 
-  const taskManagers = useClusterStore((s) => s.taskManagers)
-  const runningJobs = useClusterStore((s) => s.runningJobs)
+  // Active series keys for quick lookup
+  const activeKeys = useMemo(
+    () => new Set(selectedSeries.map((s) => seriesKey(s))),
+    [selectedSeries],
+  )
 
-  // Auto-select JM source on mount if no source is selected
-  useEffect(() => {
-    if (!selectedSource && activeTab === "jm") {
-      onSelectSource({ type: "jm", id: "jm", label: "Job Manager" })
+  // Group catalog by source type
+  const sourceTypes = useMemo(() => {
+    const byType = new Map<string, MetricCatalogEntry[]>()
+    for (const entry of catalog) {
+      const existing = byType.get(entry.sourceType)
+      if (existing) {
+        existing.push(entry)
+      } else {
+        byType.set(entry.sourceType, [entry])
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, onSelectSource, selectedSource])
+    return byType
+  }, [catalog])
 
-  // Get vertices for selected job
-  const selectedJob = useMemo(
-    () => runningJobs.find((j) => j.id === selectedJobId),
-    [runningJobs, selectedJobId],
-  )
-  const vertices = selectedJob?.plan?.vertices ?? []
+  // Get entries for active tab
+  const tabEntries = sourceTypes.get(activeTab) ?? []
 
-  // Active series set for quick lookup
-  const activeSeriesIds = useMemo(
-    () => new Set(activeSeries.map((s) => s.id)),
-    [activeSeries],
-  )
+  // Get unique source IDs for the active tab
+  const sourceIDs = useMemo(() => {
+    const ids = new Set<string>()
+    for (const entry of tabEntries) {
+      ids.add(entry.sourceID)
+    }
+    return Array.from(ids).sort()
+  }, [tabEntries])
+
+  // Auto-select source ID for JM (always "jobmanager")
+  const effectiveSourceID =
+    activeTab === "job_manager" ? (sourceIDs[0] ?? null) : selectedSourceID
+
+  // Get metrics for the selected source
+  const availableMetrics = useMemo(() => {
+    if (!effectiveSourceID) return []
+    return tabEntries
+      .filter((e) => e.sourceID === effectiveSourceID)
+      .map((e) => e.metricID)
+      .sort()
+  }, [tabEntries, effectiveSourceID])
 
   // Filtered metrics
   const filteredMetrics = useMemo(() => {
@@ -72,54 +96,23 @@ export function MetricsBrowser({
     return availableMetrics.filter((m) => m.toLowerCase().includes(q))
   }, [availableMetrics, searchQuery])
 
-  function handleTabChange(type: MetricSourceType) {
+  function handleTabChange(type: SourceTab) {
     setActiveTab(type)
+    setSelectedSourceID(null)
     setSearchQuery("")
-    if (type === "jm") {
-      const source: MetricSource = {
-        type: "jm",
-        id: "jm",
-        label: "Job Manager",
-      }
-      onSelectSource(source)
-    }
-    // For TM and Job, user needs to select instance first
   }
 
-  function handleTmSelect(tmId: string) {
-    setSelectedTmId(tmId)
-    const source: MetricSource = {
-      type: "tm",
-      id: `tm:${tmId}`,
-      label: `TM ${tmId.slice(0, 8)}`,
-    }
-    onSelectSource(source)
-  }
-
-  function handleJobSelect(jobId: string) {
-    setSelectedJobId(jobId)
-    setSelectedVertexId(null)
-  }
-
-  function handleVertexSelect(vertexId: string) {
-    setSelectedVertexId(vertexId)
-    const vertex = vertices.find((v) => v.id === vertexId)
-    if (!selectedJobId || !vertex) return
-    const source: MetricSource = {
-      type: "job-vertex",
-      id: `job:${selectedJobId}:vertex:${vertexId}`,
-      label: `${selectedJob?.name ?? "Job"} > ${vertex.name}`,
-    }
-    onSelectSource(source)
-  }
-
-  function handleMetricToggle(metricName: string) {
-    if (!selectedSource) return
-    const seriesId = `${selectedSource.id}:${metricName}`
-    if (activeSeriesIds.has(seriesId)) {
-      onRemoveMetric(seriesId)
+  function handleMetricToggle(metricID: string) {
+    if (!effectiveSourceID) return
+    const key = seriesKey({
+      sourceType: activeTab,
+      sourceID: effectiveSourceID,
+      metricID,
+    })
+    if (activeKeys.has(key)) {
+      onRemoveMetric(key)
     } else {
-      onAddMetric(metricName)
+      onAddMetric(activeTab, effectiveSourceID, metricID, metricID)
     }
   }
 
@@ -144,57 +137,32 @@ export function MetricsBrowser({
         ))}
       </div>
 
-      {/* Source instance selector */}
-      {activeTab === "tm" && (
+      {/* Source ID selector (for TM and Vertex) */}
+      {activeTab !== "job_manager" && (
         <select
-          value={selectedTmId ?? ""}
-          onChange={(e) => e.target.value && handleTmSelect(e.target.value)}
+          value={selectedSourceID ?? ""}
+          onChange={(e) =>
+            e.target.value && setSelectedSourceID(e.target.value)
+          }
           className="w-full rounded-md border border-dash-border bg-dash-surface px-2 py-1.5 text-xs text-zinc-300 outline-none"
         >
-          <option value="">Select Task Manager…</option>
-          {taskManagers.map((tm) => (
-            <option key={tm.id} value={tm.id}>
-              TM {tm.id.slice(0, 12)}
+          <option value="">
+            {activeTab === "task_manager"
+              ? "Select Task Manager…"
+              : "Select Vertex…"}
+          </option>
+          {sourceIDs.map((id) => (
+            <option key={id} value={id}>
+              {activeTab === "task_manager"
+                ? `TM ${id.slice(0, 12)}`
+                : id.slice(0, 16)}
             </option>
           ))}
         </select>
       )}
 
-      {activeTab === "job-vertex" && (
-        <div className="flex flex-col gap-1.5">
-          <select
-            value={selectedJobId ?? ""}
-            onChange={(e) => e.target.value && handleJobSelect(e.target.value)}
-            className="w-full rounded-md border border-dash-border bg-dash-surface px-2 py-1.5 text-xs text-zinc-300 outline-none"
-          >
-            <option value="">Select Job…</option>
-            {runningJobs.map((job) => (
-              <option key={job.id} value={job.id}>
-                {job.name}
-              </option>
-            ))}
-          </select>
-          {selectedJobId && (
-            <select
-              value={selectedVertexId ?? ""}
-              onChange={(e) =>
-                e.target.value && handleVertexSelect(e.target.value)
-              }
-              className="w-full rounded-md border border-dash-border bg-dash-surface px-2 py-1.5 text-xs text-zinc-300 outline-none"
-            >
-              <option value="">Select Vertex…</option>
-              {vertices.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-      )}
-
       {/* Search input */}
-      {selectedSource && (
+      {effectiveSourceID && (
         <div className="flex items-center gap-1 rounded-md border border-dash-border bg-dash-surface px-2 py-1">
           <Search className="size-3.5 shrink-0 text-zinc-500" />
           <input
@@ -217,9 +185,9 @@ export function MetricsBrowser({
       )}
 
       {/* Metric list */}
-      {selectedSource && (
+      {effectiveSourceID && (
         <div className="max-h-[360px] overflow-y-auto">
-          {loading ? (
+          {catalogLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="size-4 animate-spin text-zinc-500" />
             </div>
@@ -232,8 +200,12 @@ export function MetricsBrowser({
           ) : (
             <div className="space-y-0.5">
               {filteredMetrics.map((metric) => {
-                const seriesId = `${selectedSource.id}:${metric}`
-                const isActive = activeSeriesIds.has(seriesId)
+                const key = seriesKey({
+                  sourceType: activeTab,
+                  sourceID: effectiveSourceID,
+                  metricID: metric,
+                })
+                const isActive = activeKeys.has(key)
                 return (
                   <button
                     key={metric}
@@ -263,11 +235,11 @@ export function MetricsBrowser({
       )}
 
       {/* No source selected message */}
-      {!selectedSource && activeTab !== "jm" && (
+      {!effectiveSourceID && activeTab !== "job_manager" && (
         <div className="py-4 text-center text-xs text-zinc-600">
-          {activeTab === "tm"
+          {activeTab === "task_manager"
             ? "Select a Task Manager above"
-            : "Select a Job and Vertex above"}
+            : "Select a Vertex above"}
         </div>
       )}
     </div>

@@ -227,7 +227,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("storage.sync.task_managers", "60s")
 	v.SetDefault("storage.sync.job_manager", "60s")
 	v.SetDefault("storage.sync.logs", "300s")
-	v.SetDefault("storage.sync.metrics", "60s")
+	v.SetDefault("storage.sync.metrics", "15s")
 	v.SetDefault("storage.sync.cluster_overview", "30s")
 
 	v.SetDefault("storage.retention.jobs", "2160h")

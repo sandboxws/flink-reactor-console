@@ -272,6 +272,28 @@ type ClusterOverviewSnapshot {
   capturedAt: String!
 }
 
+"""A metric available in the catalog (discovered from stored data)."""
+type MetricCatalogEntry {
+  sourceType: String!
+  sourceID: String!
+  metricID: String!
+}
+
+"""Request for a single metric time series."""
+input MetricSeriesRequest {
+  sourceType: String!
+  sourceID: String!
+  metricID: String!
+}
+
+"""A time series for one metric."""
+type MetricTimeSeries {
+  sourceType: String!
+  sourceID: String!
+  metricID: String!
+  points: [MetricDataPoint!]!
+}
+
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
@@ -285,4 +307,14 @@ extend type Query {
   metricHistory(filter: MetricHistoryFilter!): [MetricDataPoint!]!
   """Returns historical cluster overview snapshots for capacity trend analysis."""
   clusterOverviewHistory(clusterID: String!, after: String, before: String): [ClusterOverviewSnapshot!]!
+  """Returns available metrics from stored data for a cluster."""
+  metricCatalog(clusterID: String!): [MetricCatalogEntry!]!
+  """Returns multiple metric time series in a single batch query."""
+  metricSeries(
+    clusterID: String!
+    series: [MetricSeriesRequest!]!
+    after: String!
+    before: String!
+    maxPoints: Int
+  ): [MetricTimeSeries!]!
 }

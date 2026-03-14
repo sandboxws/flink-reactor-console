@@ -115,21 +115,21 @@ func FromFlinkVertex(v flink.Vertex, jid, cluster string) DBVertex {
 
 // DBCheckpoint mirrors the checkpoints table.
 type DBCheckpoint struct {
-	CheckpointID      int64      `db:"checkpoint_id"`
-	JID               string     `db:"jid"`
-	Cluster           string     `db:"cluster"`
-	Status            string     `db:"status"`
-	IsSavepoint       bool       `db:"is_savepoint"`
-	TriggerTimestamp  *time.Time `db:"trigger_timestamp"`
-	LatestAck         *time.Time `db:"latest_ack"`
-	StateSize         int64      `db:"state_size"`
-	EndToEndDuration  int64      `db:"end_to_end_duration"`
-	ProcessedData     int64      `db:"processed_data"`
-	PersistedData     int64      `db:"persisted_data"`
-	NumSubtasks       int        `db:"num_subtasks"`
-	NumAckSubtasks    int        `db:"num_ack_subtasks"`
-	CheckpointedSize  *int64     `db:"checkpointed_size"`
-	CapturedAt        time.Time  `db:"captured_at"`
+	CheckpointID     int64      `db:"checkpoint_id"`
+	JID              string     `db:"jid"`
+	Cluster          string     `db:"cluster"`
+	Status           string     `db:"status"`
+	IsSavepoint      bool       `db:"is_savepoint"`
+	TriggerTimestamp *time.Time `db:"trigger_timestamp"`
+	LatestAck        *time.Time `db:"latest_ack"`
+	StateSize        int64      `db:"state_size"`
+	EndToEndDuration int64      `db:"end_to_end_duration"`
+	ProcessedData    int64      `db:"processed_data"`
+	PersistedData    int64      `db:"persisted_data"`
+	NumSubtasks      int        `db:"num_subtasks"`
+	NumAckSubtasks   int        `db:"num_ack_subtasks"`
+	CheckpointedSize *int64     `db:"checkpointed_size"`
+	CapturedAt       time.Time  `db:"captured_at"`
 }
 
 // FromFlinkCheckpoint converts a Flink CheckpointHistoryEntry to a DBCheckpoint.
@@ -264,9 +264,8 @@ func FromFlinkJobManager(cfg flink.JMConfig, env flink.JMEnvironment, cluster st
 	}, nil
 }
 
-// DBMetric mirrors the metrics table.
+// DBMetric mirrors the metrics hypertable.
 type DBMetric struct {
-	ID         int64     `db:"id"`
 	Cluster    string    `db:"cluster"`
 	SourceType string    `db:"source_type"`
 	SourceID   string    `db:"source_id"`
@@ -289,7 +288,7 @@ func FromFlinkMetricItem(m flink.MetricItem, sourceType, sourceID, cluster strin
 		SourceID:   sourceID,
 		MetricID:   m.ID,
 		Value:      val,
-		CapturedAt: time.Now(),
+		CapturedAt: time.Now().UTC(),
 	}
 }
 

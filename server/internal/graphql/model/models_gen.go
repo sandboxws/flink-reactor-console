@@ -616,6 +616,13 @@ type MaterializedTable struct {
 	DefiningQuery *string                        `json:"definingQuery,omitempty"`
 }
 
+// A metric available in the catalog (discovered from stored data).
+type MetricCatalogEntry struct {
+	SourceType string `json:"sourceType"`
+	SourceID   string `json:"sourceID"`
+	MetricID   string `json:"metricID"`
+}
+
 // A single metric data point in a time series.
 type MetricDataPoint struct {
 	// The metric value.
@@ -643,6 +650,21 @@ type MetricHistoryFilter struct {
 	After *string `json:"after,omitempty"`
 	// Return only data points captured before this timestamp (RFC3339).
 	Before *string `json:"before,omitempty"`
+}
+
+// Request for a single metric time series.
+type MetricSeriesRequest struct {
+	SourceType string `json:"sourceType"`
+	SourceID   string `json:"sourceID"`
+	MetricID   string `json:"metricID"`
+}
+
+// A time series for one metric.
+type MetricTimeSeries struct {
+	SourceType string             `json:"sourceType"`
+	SourceID   string             `json:"sourceID"`
+	MetricID   string             `json:"metricID"`
+	Points     []*MetricDataPoint `json:"points"`
 }
 
 type Mutation struct {

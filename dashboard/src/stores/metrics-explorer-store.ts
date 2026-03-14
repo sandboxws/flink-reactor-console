@@ -1,17 +1,14 @@
 import { create } from "zustand"
-import { fetchMetricList, fetchMetricValues } from "@/lib/graphql-api-client"
+import { persist } from "zustand/middleware"
+import {
+  fetchMetricCatalog,
+  fetchMetricSeries,
+  type MetricCatalogEntry,
+} from "@/lib/graphql-api-client"
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-export type MetricSourceType = "jm" | "tm" | "job-vertex"
-
-export type MetricSource = {
-  type: MetricSourceType
-  id: string // "jm", "tm:{tmId}", "job:{jid}:vertex:{vid}"
-  label: string // "Job Manager", "TM abc123", "OrderProcessing > Map"
-}
 
 export type MetricDataPoint = {
   timestamp: number
@@ -89,64 +86,55 @@ export function getMetricMeta(metricName: string): MetricMeta {
   return DEFAULT_META
 }
 
-export type MetricSeries = {
-  id: string // "${source.id}:${metricName}"
-  source: MetricSource
-  metricName: string
+// ---------------------------------------------------------------------------
+// Time range + refresh types
+// ---------------------------------------------------------------------------
+
+export type TimeRange = "5m" | "15m" | "1h" | "6h" | "24h"
+export type RefreshInterval = 5000 | 10000 | 30000 | 60000
+
+const TIME_RANGE_MS: Record<TimeRange, number> = {
+  "5m": 5 * 60_000,
+  "15m": 15 * 60_000,
+  "1h": 60 * 60_000,
+  "6h": 6 * 60 * 60_000,
+  "24h": 24 * 60 * 60_000,
+}
+
+// ---------------------------------------------------------------------------
+// Selected metric type
+// ---------------------------------------------------------------------------
+
+export type SelectedMetric = {
+  sourceType: string
+  sourceID: string
+  metricID: string
+  label: string
   meta: MetricMeta
-  data: MetricDataPoint[]
-  currentValue: number | null
-  minValue: number | null
-  maxValue: number | null
 }
 
-export type RefreshInterval = 5000 | 10000 | 30000 | 60000 | 3_600_000
-
-// ---------------------------------------------------------------------------
-// Ring buffer — O(1) push, no reallocation
-// ---------------------------------------------------------------------------
-
-class RingBuffer<T> {
-  private buffer: (T | undefined)[]
-  private writePtr = 0
-  private count = 0
-
-  constructor(private capacity: number) {
-    this.buffer = new Array(capacity)
-  }
-
-  push(item: T): void {
-    this.buffer[this.writePtr] = item
-    this.writePtr = (this.writePtr + 1) % this.capacity
-    if (this.count < this.capacity) this.count++
-  }
-
-  toArray(): T[] {
-    if (this.count === 0) return []
-    if (this.count < this.capacity) {
-      return this.buffer.slice(0, this.count) as T[]
-    }
-    return [
-      ...this.buffer.slice(this.writePtr),
-      ...this.buffer.slice(0, this.writePtr),
-    ] as T[]
-  }
+function seriesKey(m: {
+  sourceType: string
+  sourceID: string
+  metricID: string
+}): string {
+  return `${m.sourceType}:${m.sourceID}:${m.metricID}`
 }
-
-const MAX_DATA_POINTS = 200
 
 // ---------------------------------------------------------------------------
 // Presets
 // ---------------------------------------------------------------------------
 
 type PresetDef = {
-  source: MetricSourceType
+  sourceType: string
+  sourceID: string
   metrics: string[]
 }
 
 const PRESETS: Record<string, PresetDef> = {
   "JVM Health": {
-    source: "jm",
+    sourceType: "job_manager",
+    sourceID: "jobmanager",
     metrics: [
       "Status.JVM.Memory.Heap.Used",
       "Status.JVM.Memory.Heap.Max",
@@ -156,7 +144,8 @@ const PRESETS: Record<string, PresetDef> = {
     ],
   },
   Network: {
-    source: "jm",
+    sourceType: "job_manager",
+    sourceID: "jobmanager",
     metrics: [
       "Status.Shuffle.Netty.UsedMemory",
       "Status.Shuffle.Netty.AvailableMemory",
@@ -164,38 +153,29 @@ const PRESETS: Record<string, PresetDef> = {
       "Status.Network.TotalMemorySegments",
     ],
   },
-  Checkpointing: {
-    source: "job-vertex",
-    metrics: [
-      "lastCheckpointDuration",
-      "lastCheckpointSize",
-      "numberOfCompletedCheckpoints",
-      "numberOfFailedCheckpoints",
-    ],
-  },
 }
 
 export { PRESETS }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Counter rate conversion
 // ---------------------------------------------------------------------------
 
-function sourceToProxyUrl(source: MetricSource): string {
-  switch (source.type) {
-    case "jm":
-      return "/api/flink/jobmanager/metrics"
-    case "tm": {
-      const tmId = source.id.replace("tm:", "")
-      return `/api/flink/taskmanagers/${tmId}/metrics`
+function computeCounterRate(points: MetricDataPoint[]): MetricDataPoint[] {
+  if (points.length < 2) return []
+  const result: MetricDataPoint[] = []
+  for (let i = 1; i < points.length; i++) {
+    const dv = points[i].value - points[i - 1].value
+    const dt = (points[i].timestamp - points[i - 1].timestamp) / 1000
+    if (dv >= 0 && dt > 0) {
+      result.push({
+        timestamp: points[i].timestamp,
+        value: dv / dt,
+      })
     }
-    case "job-vertex": {
-      // id format: "job:{jid}:vertex:{vid}"
-      const match = source.id.match(/^job:(.+):vertex:(.+)$/)
-      if (!match) return "/api/flink/jobmanager/metrics"
-      return `/api/flink/jobs/${match[1]}/vertices/${match[2]}/metrics`
-    }
+    // Skip negative deltas (counter reset)
   }
+  return result
 }
 
 // ---------------------------------------------------------------------------
@@ -203,293 +183,225 @@ function sourceToProxyUrl(source: MetricSource): string {
 // ---------------------------------------------------------------------------
 
 interface MetricsExplorerState {
-  // Source browsing
-  selectedSource: MetricSource | null
-  availableMetrics: string[]
-  metricsLoading: boolean
+  // Catalog (from DB)
+  catalog: MetricCatalogEntry[]
+  catalogLoading: boolean
 
-  // Active series
-  series: MetricSeries[]
+  // Selected series
+  selectedSeries: SelectedMetric[]
 
-  // Refresh control
+  // Time-series data (fetched, processed)
+  seriesData: Record<string, MetricDataPoint[]> // key = "sourceType:sourceID:metricID"
+  dataLoading: boolean
+
+  // Time range + refresh
+  timeRange: TimeRange
   refreshInterval: RefreshInterval
   isPaused: boolean
   isPolling: boolean
 
   // Actions
-  selectSource: (source: MetricSource) => void
-  fetchAvailableMetrics: (source: MetricSource) => Promise<void>
-  addMetric: (source: MetricSource, metricName: string) => void
-  removeMetric: (seriesId: string) => void
+  fetchCatalog: () => Promise<void>
+  addMetric: (
+    sourceType: string,
+    sourceID: string,
+    metricID: string,
+    label: string,
+  ) => void
+  removeMetric: (key: string) => void
   clearAllMetrics: () => void
   applyPreset: (presetName: string) => void
+  setTimeRange: (range: TimeRange) => void
   setRefreshInterval: (interval: RefreshInterval) => void
   togglePause: () => void
   startPolling: () => void
   stopPolling: () => void
+  fetchData: () => Promise<void>
 }
 
-// Per-series ring buffers, keyed by series ID
-const ringBuffers = new Map<string, RingBuffer<MetricDataPoint>>()
-// Previous raw values for counter → rate conversion
-const previousRawValues = new Map<
-  string,
-  { value: number; timestamp: number }
->()
-let pollInterval: ReturnType<typeof setInterval> | null = null
+let pollTimer: ReturnType<typeof setInterval> | null = null
 
-async function pollMetrics(
-  set: (
-    fn: (state: MetricsExplorerState) => Partial<MetricsExplorerState>,
-  ) => void,
-  get: () => MetricsExplorerState,
-) {
-  const { series, isPaused } = get()
-  if (isPaused || series.length === 0) return
+export const useMetricsExplorerStore = create<MetricsExplorerState>()(
+  persist(
+    (set, get) => ({
+      catalog: [],
+      catalogLoading: false,
 
-  // Group metrics by source for batched fetching
-  const grouped = new Map<
-    string,
-    { source: MetricSource; metricNames: string[] }
-  >()
-  for (const s of series) {
-    const existing = grouped.get(s.source.id)
-    if (existing) {
-      existing.metricNames.push(s.metricName)
-    } else {
-      grouped.set(s.source.id, {
-        source: s.source,
-        metricNames: [s.metricName],
-      })
-    }
-  }
+      selectedSeries: [],
 
-  // Fetch all source groups in parallel
-  const results = await Promise.allSettled(
-    Array.from(grouped.values()).map(async ({ source, metricNames }) => {
-      const url = sourceToProxyUrl(source)
-      const values = await fetchMetricValues(url, metricNames)
-      return { sourceId: source.id, values }
-    }),
-  )
+      seriesData: {},
+      dataLoading: false,
 
-  // Collect values by source
-  const valuesBySource = new Map<string, Record<string, number>>()
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      valuesBySource.set(result.value.sourceId, result.value.values)
-    }
-  }
+      timeRange: "15m",
+      refreshInterval: 5000,
+      isPaused: false,
+      isPolling: false,
 
-  const now = Date.now()
+      fetchCatalog: async () => {
+        set({ catalogLoading: true })
+        try {
+          const catalog = await fetchMetricCatalog("default")
+          set({ catalog, catalogLoading: false })
+        } catch {
+          set({ catalogLoading: false })
+        }
+      },
 
-  set((state) => {
-    const updatedSeries = state.series.map((s) => {
-      const sourceValues = valuesBySource.get(s.source.id)
-      if (!sourceValues || !(s.metricName in sourceValues)) return s
+      addMetric: (sourceType, sourceID, metricID, label) => {
+        const key = seriesKey({ sourceType, sourceID, metricID })
+        if (get().selectedSeries.some((s) => seriesKey(s) === key)) return
 
-      const rawValue = sourceValues[s.metricName]
+        const metric: SelectedMetric = {
+          sourceType,
+          sourceID,
+          metricID,
+          label,
+          meta: getMetricMeta(metricID),
+        }
+        set((state) => ({
+          selectedSeries: [...state.selectedSeries, metric],
+        }))
 
-      // For counters, convert cumulative value → rate (/s)
-      let chartValue: number | null = null
-      if (s.meta.type === "counter") {
-        const prev = previousRawValues.get(s.id)
-        previousRawValues.set(s.id, { value: rawValue, timestamp: now })
-        if (prev) {
-          const delta = rawValue - prev.value
-          const elapsedSec = (now - prev.timestamp) / 1000
-          if (delta >= 0 && elapsedSec > 0) {
-            chartValue = delta / elapsedSec
+        // Immediately fetch data if polling is active
+        if (get().isPolling && !get().isPaused) {
+          get().fetchData()
+        }
+      },
+
+      removeMetric: (key) => {
+        set((state) => ({
+          selectedSeries: state.selectedSeries.filter(
+            (s) => seriesKey(s) !== key,
+          ),
+          seriesData: Object.fromEntries(
+            Object.entries(state.seriesData).filter(([k]) => k !== key),
+          ),
+        }))
+      },
+
+      clearAllMetrics: () => {
+        set({ selectedSeries: [], seriesData: {} })
+      },
+
+      applyPreset: (presetName) => {
+        const preset = PRESETS[presetName]
+        if (!preset) return
+
+        const newSeries: SelectedMetric[] = preset.metrics.map((metricID) => ({
+          sourceType: preset.sourceType,
+          sourceID: preset.sourceID,
+          metricID,
+          label: metricID.split(".").slice(-2).join("."),
+          meta: getMetricMeta(metricID),
+        }))
+
+        set({ selectedSeries: newSeries, seriesData: {} })
+
+        // Immediately fetch data
+        if (get().isPolling && !get().isPaused) {
+          get().fetchData()
+        }
+      },
+
+      setTimeRange: (range) => {
+        set({ timeRange: range })
+        // Re-fetch immediately with new range
+        if (get().isPolling && !get().isPaused) {
+          get().fetchData()
+        }
+      },
+
+      setRefreshInterval: (interval) => {
+        set({ refreshInterval: interval })
+        // Restart polling with new interval
+        if (pollTimer) {
+          clearInterval(pollTimer)
+          pollTimer = setInterval(() => get().fetchData(), interval)
+        }
+      },
+
+      togglePause: () => {
+        set((state) => ({ isPaused: !state.isPaused }))
+      },
+
+      startPolling: () => {
+        if (pollTimer) return
+        set({ isPolling: true })
+        const interval = get().refreshInterval
+        // Fetch catalog + data immediately
+        get().fetchCatalog()
+        get().fetchData()
+        pollTimer = setInterval(() => {
+          if (!get().isPaused) {
+            get().fetchData()
           }
-          // delta < 0 means counter reset — skip this point
+        }, interval)
+      },
+
+      stopPolling: () => {
+        if (pollTimer) {
+          clearInterval(pollTimer)
+          pollTimer = null
         }
-        // No prev means first poll — skip (establishes baseline)
-      } else {
-        chartValue = rawValue
-      }
+        set({ isPolling: false })
+      },
 
-      // Skip if we couldn't compute a value (first counter poll or reset)
-      if (chartValue === null) return s
+      fetchData: async () => {
+        const { selectedSeries, timeRange, isPaused } = get()
+        if (isPaused || selectedSeries.length === 0) return
 
-      const point: MetricDataPoint = { timestamp: now, value: chartValue }
+        set({ dataLoading: true })
 
-      let rb = ringBuffers.get(s.id)
-      if (!rb) {
-        rb = new RingBuffer<MetricDataPoint>(MAX_DATA_POINTS)
-        ringBuffers.set(s.id, rb)
-      }
-      rb.push(point)
+        const now = Date.now()
+        const after = new Date(now - TIME_RANGE_MS[timeRange]).toISOString()
+        const before = new Date(now).toISOString()
 
-      const newMin =
-        s.minValue === null ? chartValue : Math.min(s.minValue, chartValue)
-      const newMax =
-        s.maxValue === null ? chartValue : Math.max(s.maxValue, chartValue)
+        try {
+          const results = await fetchMetricSeries({
+            clusterID: "default",
+            series: selectedSeries.map((s) => ({
+              sourceType: s.sourceType,
+              sourceID: s.sourceID,
+              metricID: s.metricID,
+            })),
+            after,
+            before,
+            maxPoints: 500,
+          })
 
-      return {
-        ...s,
-        data: rb.toArray(),
-        currentValue: chartValue,
-        minValue: newMin,
-        maxValue: newMax,
-      }
-    })
+          const newSeriesData: Record<string, MetricDataPoint[]> = {}
 
-    return { series: updatedSeries }
-  })
-}
+          for (const ts of results) {
+            const key = seriesKey(ts)
+            // Convert capturedAt strings to timestamp numbers
+            const rawPoints: MetricDataPoint[] = ts.points.map((p) => ({
+              timestamp: new Date(p.capturedAt).getTime(),
+              value: p.value,
+            }))
 
-export const useMetricsExplorerStore = create<MetricsExplorerState>(
-  (set, get) => ({
-    selectedSource: null,
-    availableMetrics: [],
-    metricsLoading: false,
+            // Find the meta for this series
+            const selected = selectedSeries.find((s) => seriesKey(s) === key)
+            if (selected?.meta.type === "counter") {
+              // Counter → rate conversion
+              newSeriesData[key] = computeCounterRate(rawPoints)
+            } else {
+              newSeriesData[key] = rawPoints
+            }
+          }
 
-    series: [],
-
-    refreshInterval: 5000,
-    isPaused: false,
-    isPolling: false,
-
-    selectSource: (source) => {
-      set({
-        selectedSource: source,
-        availableMetrics: [],
-        metricsLoading: true,
-      })
-      get().fetchAvailableMetrics(source)
-    },
-
-    fetchAvailableMetrics: async (source) => {
-      try {
-        const url = sourceToProxyUrl(source)
-        const metrics = await fetchMetricList(url)
-        // Only update if this source is still selected
-        if (get().selectedSource?.id === source.id) {
-          set({ availableMetrics: metrics, metricsLoading: false })
+          set({ seriesData: newSeriesData, dataLoading: false })
+        } catch {
+          set({ dataLoading: false })
         }
-      } catch {
-        if (get().selectedSource?.id === source.id) {
-          set({ availableMetrics: [], metricsLoading: false })
-        }
-      }
+      },
+    }),
+    {
+      name: "metrics-explorer",
+      partialize: (state) => ({
+        selectedSeries: state.selectedSeries,
+        timeRange: state.timeRange,
+        refreshInterval: state.refreshInterval,
+      }),
     },
-
-    addMetric: (source, metricName) => {
-      const seriesId = `${source.id}:${metricName}`
-      // Don't add duplicates
-      if (get().series.some((s) => s.id === seriesId)) return
-
-      const newSeries: MetricSeries = {
-        id: seriesId,
-        source,
-        metricName,
-        meta: getMetricMeta(metricName),
-        data: [],
-        currentValue: null,
-        minValue: null,
-        maxValue: null,
-      }
-
-      // Create a fresh ring buffer
-      ringBuffers.set(
-        seriesId,
-        new RingBuffer<MetricDataPoint>(MAX_DATA_POINTS),
-      )
-
-      set((state) => ({ series: [...state.series, newSeries] }))
-
-      // If polling is active, immediately fetch the first value
-      if (get().isPolling && !get().isPaused) {
-        pollMetrics(set, get)
-      }
-    },
-
-    removeMetric: (seriesId) => {
-      ringBuffers.delete(seriesId)
-      previousRawValues.delete(seriesId)
-      set((state) => ({
-        series: state.series.filter((s) => s.id !== seriesId),
-      }))
-    },
-
-    clearAllMetrics: () => {
-      ringBuffers.clear()
-      previousRawValues.clear()
-      set({ series: [] })
-    },
-
-    applyPreset: (presetName) => {
-      const preset = PRESETS[presetName]
-      if (!preset) return
-
-      // For JM presets, auto-create the source
-      let source: MetricSource
-      if (preset.source === "jm") {
-        source = { type: "jm", id: "jm", label: "Job Manager" }
-      } else {
-        // job-vertex presets require an active job-vertex source
-        const selected = get().selectedSource
-        if (!selected || selected.type !== "job-vertex") return
-        source = selected
-      }
-
-      // Clear existing and add all preset metrics
-      ringBuffers.clear()
-      previousRawValues.clear()
-      const newSeries: MetricSeries[] = preset.metrics.map((metricName) => {
-        const id = `${source.id}:${metricName}`
-        ringBuffers.set(id, new RingBuffer<MetricDataPoint>(MAX_DATA_POINTS))
-        return {
-          id,
-          source,
-          metricName,
-          meta: getMetricMeta(metricName),
-          data: [],
-          currentValue: null,
-          minValue: null,
-          maxValue: null,
-        }
-      })
-
-      set({ series: newSeries, selectedSource: source })
-
-      // Fetch available metrics for the preset source
-      get().fetchAvailableMetrics(source)
-
-      // Immediately poll if active
-      if (get().isPolling && !get().isPaused) {
-        pollMetrics(set, get)
-      }
-    },
-
-    setRefreshInterval: (interval) => {
-      set({ refreshInterval: interval })
-      // Restart polling with new interval
-      if (pollInterval) {
-        clearInterval(pollInterval)
-        pollInterval = setInterval(() => pollMetrics(set, get), interval)
-      }
-    },
-
-    togglePause: () => {
-      set((state) => ({ isPaused: !state.isPaused }))
-    },
-
-    startPolling: () => {
-      if (pollInterval) return
-      set({ isPolling: true })
-      const interval = get().refreshInterval
-      // Immediate first poll
-      pollMetrics(set, get)
-      pollInterval = setInterval(() => pollMetrics(set, get), interval)
-    },
-
-    stopPolling: () => {
-      if (pollInterval) {
-        clearInterval(pollInterval)
-        pollInterval = null
-      }
-      set({ isPolling: false })
-    },
-  }),
+  ),
 )

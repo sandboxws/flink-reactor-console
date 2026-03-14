@@ -407,3 +407,78 @@ func (r *queryResolver) ClusterOverviewHistory(ctx context.Context, clusterID st
 	}
 	return result, nil
 }
+
+// MetricCatalog is the resolver for the metricCatalog field.
+func (r *queryResolver) MetricCatalog(ctx context.Context, clusterID string) ([]*model.MetricCatalogEntry, error) {
+	if r.Stores == nil {
+		return []*model.MetricCatalogEntry{}, nil
+	}
+
+	entries, err := r.Stores.Metrics.QueryMetricCatalog(ctx, clusterID)
+	if err != nil {
+		return nil, fmt.Errorf("query metric catalog: %w", err)
+	}
+
+	result := make([]*model.MetricCatalogEntry, len(entries))
+	for i, e := range entries {
+		result[i] = &model.MetricCatalogEntry{
+			SourceType: e.SourceType,
+			SourceID:   e.SourceID,
+			MetricID:   e.MetricID,
+		}
+	}
+	return result, nil
+}
+
+// MetricSeries is the resolver for the metricSeries field.
+func (r *queryResolver) MetricSeries(ctx context.Context, clusterID string, series []*model.MetricSeriesRequest, after string, before string, maxPoints *int) ([]*model.MetricTimeSeries, error) {
+	if r.Stores == nil {
+		return []*model.MetricTimeSeries{}, nil
+	}
+
+	afterTime, err := time.Parse(time.RFC3339, after)
+	if err != nil {
+		return nil, fmt.Errorf("invalid 'after' timestamp: %w", err)
+	}
+	beforeTime, err := time.Parse(time.RFC3339, before)
+	if err != nil {
+		return nil, fmt.Errorf("invalid 'before' timestamp: %w", err)
+	}
+
+	mp := 500
+	if maxPoints != nil && *maxPoints > 0 {
+		mp = *maxPoints
+	}
+
+	requests := make([]store.MetricSeriesRequest, len(series))
+	for i, s := range series {
+		requests[i] = store.MetricSeriesRequest{
+			SourceType: s.SourceType,
+			SourceID:   s.SourceID,
+			MetricID:   s.MetricID,
+		}
+	}
+
+	results, err := r.Stores.Metrics.QueryMetricSeries(ctx, clusterID, requests, afterTime, beforeTime, mp)
+	if err != nil {
+		return nil, fmt.Errorf("query metric series: %w", err)
+	}
+
+	out := make([]*model.MetricTimeSeries, len(results))
+	for i, r := range results {
+		points := make([]*model.MetricDataPoint, len(r.Points))
+		for j, p := range r.Points {
+			points[j] = &model.MetricDataPoint{
+				Value:      p.Value,
+				CapturedAt: p.Timestamp.Format(time.RFC3339),
+			}
+		}
+		out[i] = &model.MetricTimeSeries{
+			SourceType: r.SourceType,
+			SourceID:   r.SourceID,
+			MetricID:   r.MetricID,
+			Points:     points,
+		}
+	}
+	return out, nil
+}

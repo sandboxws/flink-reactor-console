@@ -1,6 +1,9 @@
 import { LineChart, Pause, Play, Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
-import type { RefreshInterval } from "@/stores/metrics-explorer-store"
+import type {
+  RefreshInterval,
+  TimeRange,
+} from "@/stores/metrics-explorer-store"
 import { useMetricsExplorerStore } from "@/stores/metrics-explorer-store"
 import { getChartColor, MetricChart } from "./metric-chart"
 import { MetricsBrowser } from "./metrics-browser"
@@ -11,18 +14,46 @@ const INTERVAL_OPTIONS: { value: RefreshInterval; label: string }[] = [
   { value: 10000, label: "10s" },
   { value: 30000, label: "30s" },
   { value: 60000, label: "1m" },
-  { value: 3_600_000, label: "1h" },
 ]
 
+const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
+  { value: "5m", label: "5m" },
+  { value: "15m", label: "15m" },
+  { value: "1h", label: "1h" },
+  { value: "6h", label: "6h" },
+  { value: "24h", label: "24h" },
+]
+
+function seriesKey(m: {
+  sourceType: string
+  sourceID: string
+  metricID: string
+}): string {
+  return `${m.sourceType}:${m.sourceID}:${m.metricID}`
+}
+
+function sourceBadge(sourceType: string): string {
+  switch (sourceType) {
+    case "job_manager":
+      return "JM"
+    case "task_manager":
+      return "TM"
+    case "vertex":
+      return "Vertex"
+    default:
+      return sourceType
+  }
+}
+
 export function MetricsExplorer() {
-  const selectedSource = useMetricsExplorerStore((s) => s.selectedSource)
-  const availableMetrics = useMetricsExplorerStore((s) => s.availableMetrics)
-  const metricsLoading = useMetricsExplorerStore((s) => s.metricsLoading)
-  const series = useMetricsExplorerStore((s) => s.series)
+  const catalog = useMetricsExplorerStore((s) => s.catalog)
+  const catalogLoading = useMetricsExplorerStore((s) => s.catalogLoading)
+  const selectedSeries = useMetricsExplorerStore((s) => s.selectedSeries)
+  const seriesData = useMetricsExplorerStore((s) => s.seriesData)
   const refreshInterval = useMetricsExplorerStore((s) => s.refreshInterval)
+  const timeRange = useMetricsExplorerStore((s) => s.timeRange)
   const isPaused = useMetricsExplorerStore((s) => s.isPaused)
 
-  const selectSource = useMetricsExplorerStore((s) => s.selectSource)
   const addMetric = useMetricsExplorerStore((s) => s.addMetric)
   const removeMetric = useMetricsExplorerStore((s) => s.removeMetric)
   const clearAllMetrics = useMetricsExplorerStore((s) => s.clearAllMetrics)
@@ -30,13 +61,8 @@ export function MetricsExplorer() {
   const setRefreshInterval = useMetricsExplorerStore(
     (s) => s.setRefreshInterval,
   )
+  const setTimeRange = useMetricsExplorerStore((s) => s.setTimeRange)
   const togglePause = useMetricsExplorerStore((s) => s.togglePause)
-
-  function handleAddMetric(metricName: string) {
-    if (selectedSource) {
-      addMetric(selectedSource, metricName)
-    }
-  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -46,6 +72,28 @@ export function MetricsExplorer() {
           Metrics Explorer
         </h1>
         <div className="flex items-center gap-2">
+          {/* Time range selector */}
+          <div className="flex items-center gap-0.5 rounded-md bg-white/[0.04] p-0.5">
+            {TIME_RANGE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setTimeRange(opt.value)}
+                className={cn(
+                  "rounded px-2 py-0.5 text-[11px] font-medium transition-colors",
+                  timeRange === opt.value
+                    ? "bg-white/[0.08] text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-400",
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Separator */}
+          <div className="h-4 w-px bg-zinc-700" />
+
           {/* Refresh interval selector */}
           <div className="flex items-center gap-0.5 rounded-md bg-white/[0.04] p-0.5">
             {INTERVAL_OPTIONS.map((opt) => (
@@ -85,7 +133,7 @@ export function MetricsExplorer() {
           </button>
 
           {/* Clear all */}
-          {series.length > 0 && (
+          {selectedSeries.length > 0 && (
             <button
               type="button"
               onClick={clearAllMetrics}
@@ -104,24 +152,19 @@ export function MetricsExplorer() {
         <div className="w-80 shrink-0 overflow-y-auto">
           <div className="glass-card p-3">
             <MetricsBrowser
-              selectedSource={selectedSource}
-              availableMetrics={availableMetrics}
-              activeSeries={series}
-              onSelectSource={selectSource}
-              onAddMetric={handleAddMetric}
+              catalog={catalog}
+              catalogLoading={catalogLoading}
+              selectedSeries={selectedSeries}
+              onAddMetric={addMetric}
               onRemoveMetric={removeMetric}
-              loading={metricsLoading}
             />
-            <PresetSelector
-              selectedSource={selectedSource}
-              onApply={applyPreset}
-            />
+            <PresetSelector onApply={applyPreset} />
           </div>
         </div>
 
         {/* Right panel — Chart grid */}
         <div className="flex-1 overflow-y-auto">
-          {series.length === 0 ? (
+          {selectedSeries.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-zinc-600">
               <LineChart className="size-10 text-zinc-700" />
               <p className="text-sm">
@@ -130,14 +173,20 @@ export function MetricsExplorer() {
             </div>
           ) : (
             <div className="grid gap-4 lg:grid-cols-2">
-              {series.map((s, i) => (
-                <MetricChart
-                  key={s.id}
-                  series={s}
-                  color={getChartColor(i)}
-                  onRemove={removeMetric}
-                />
-              ))}
+              {selectedSeries.map((s, i) => {
+                const key = seriesKey(s)
+                return (
+                  <MetricChart
+                    key={key}
+                    data={seriesData[key] ?? []}
+                    meta={s.meta}
+                    label={s.metricID}
+                    sourceBadge={sourceBadge(s.sourceType)}
+                    color={getChartColor(i)}
+                    onRemove={() => removeMetric(key)}
+                  />
+                )
+              })}
             </div>
           )}
         </div>

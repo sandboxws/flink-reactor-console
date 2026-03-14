@@ -519,8 +519,14 @@ export async function fetchOverviewPageData(): Promise<{
   const overview: ClusterOverview = {
     flinkVersion: data.clusters?.[0]?.version ?? "unknown",
     flinkCommitId: "",
-    totalTaskSlots: tms.reduce((sum: number, tm: any) => sum + (tm.slotsNumber ?? 0), 0),
-    availableTaskSlots: tms.reduce((sum: number, tm: any) => sum + (tm.freeSlots ?? 0), 0),
+    totalTaskSlots: tms.reduce(
+      (sum: number, tm: any) => sum + (tm.slotsNumber ?? 0),
+      0,
+    ),
+    availableTaskSlots: tms.reduce(
+      (sum: number, tm: any) => sum + (tm.freeSlots ?? 0),
+      0,
+    ),
     runningJobs: 0,
     finishedJobs: 0,
     cancelledJobs: 0,
@@ -1520,4 +1526,89 @@ export async function fetchJobHistory(
     endCursor: conn.pageInfo.endCursor ?? null,
     totalCount: conn.pageInfo.totalCount,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Metrics Explorer — DB-backed catalog and time-series queries
+// ---------------------------------------------------------------------------
+
+export type MetricCatalogEntry = {
+  sourceType: string
+  sourceID: string
+  metricID: string
+}
+
+export type MetricTimeSeries = {
+  sourceType: string
+  sourceID: string
+  metricID: string
+  points: Array<{ value: number; capturedAt: string }>
+}
+
+const METRIC_CATALOG_QUERY = gql`
+  query MetricCatalog($clusterID: String!) {
+    metricCatalog(clusterID: $clusterID) {
+      sourceType
+      sourceID
+      metricID
+    }
+  }
+`
+
+const METRIC_SERIES_QUERY = gql`
+  query MetricSeries(
+    $clusterID: String!
+    $series: [MetricSeriesRequest!]!
+    $after: String!
+    $before: String!
+    $maxPoints: Int
+  ) {
+    metricSeries(
+      clusterID: $clusterID
+      series: $series
+      after: $after
+      before: $before
+      maxPoints: $maxPoints
+    ) {
+      sourceType
+      sourceID
+      metricID
+      points {
+        value
+        capturedAt
+      }
+    }
+  }
+`
+
+/** Fetch the metric catalog (distinct metrics with recent data) for a cluster. */
+export async function fetchMetricCatalog(
+  clusterID: string,
+): Promise<MetricCatalogEntry[]> {
+  const result = await graphqlClient
+    .query(METRIC_CATALOG_QUERY, { clusterID })
+    .toPromise()
+  if (result.error) throw result.error
+  return (result.data?.metricCatalog ?? []) as MetricCatalogEntry[]
+}
+
+/** Fetch multiple metric time series in a single batch query. */
+export async function fetchMetricSeries(params: {
+  clusterID: string
+  series: Array<{ sourceType: string; sourceID: string; metricID: string }>
+  after: string
+  before: string
+  maxPoints?: number
+}): Promise<MetricTimeSeries[]> {
+  const result = await graphqlClient
+    .query(METRIC_SERIES_QUERY, {
+      clusterID: params.clusterID,
+      series: params.series,
+      after: params.after,
+      before: params.before,
+      maxPoints: params.maxPoints ?? 500,
+    })
+    .toPromise()
+  if (result.error) throw result.error
+  return (result.data?.metricSeries ?? []) as MetricTimeSeries[]
 }

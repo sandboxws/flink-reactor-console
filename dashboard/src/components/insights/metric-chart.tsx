@@ -9,7 +9,10 @@ import {
   YAxis,
 } from "recharts"
 import { cn } from "@/lib/cn"
-import type { MetricMeta, MetricSeries } from "@/stores/metrics-explorer-store"
+import type {
+  MetricDataPoint,
+  MetricMeta,
+} from "@/stores/metrics-explorer-store"
 
 // Rotating color palette for chart lines
 const CHART_COLORS = [
@@ -34,7 +37,10 @@ function formatTime(timestamp: number): string {
   })
 }
 
-function formatMetricValue(value: number | null, meta: MetricMeta): string {
+export function formatMetricValue(
+  value: number | null,
+  meta: MetricMeta,
+): string {
   if (value === null) return "—"
   const abs = Math.abs(value)
 
@@ -58,7 +64,6 @@ function formatMetricValue(value: number | null, meta: MetricMeta): string {
     }
     case "records":
     case "records/s": {
-      // Counters are already converted to /s in the poll loop
       const suffix =
         meta.type === "counter" || meta.unit === "records/s" ? "/s" : ""
       if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M${suffix}`
@@ -66,7 +71,6 @@ function formatMetricValue(value: number | null, meta: MetricMeta): string {
       return `${value.toFixed(0)}${suffix}`
     }
     default: {
-      // Counters shown as rate get /s suffix
       const suffix = meta.type === "counter" ? "/s" : ""
       if (abs >= 1_000_000_000)
         return `${(value / 1_000_000_000).toFixed(1)}G${suffix}`
@@ -77,62 +81,46 @@ function formatMetricValue(value: number | null, meta: MetricMeta): string {
   }
 }
 
-function getUnitBadgeLabel(meta: MetricMeta): string {
+export function getUnitBadgeLabel(meta: MetricMeta): string {
   if (meta.type === "counter") return `rate \u00b7 ${meta.unit}/s`
   if (meta.unit === "ratio") return "%"
   return meta.unit
 }
 
 type MetricChartProps = {
-  series: MetricSeries
+  data: MetricDataPoint[]
+  meta: MetricMeta
+  label: string
+  sourceBadge: string
   color: string
-  onRemove: (seriesId: string) => void
+  onRemove: () => void
 }
 
-export function MetricChart({ series, color, onRemove }: MetricChartProps) {
-  // Short metric name (last segment)
-  const shortName = series.metricName.split(".").slice(-2).join(".")
+export function MetricChart({
+  data,
+  meta,
+  label,
+  sourceBadge,
+  color,
+  onRemove,
+}: MetricChartProps) {
+  const shortName = label.split(".").slice(-2).join(".")
 
-  // Compute stable tick positions rounded to clean time boundaries
-  const xTicks = useMemo(() => {
-    const data = series.data
-    if (data.length < 2) return undefined
-    const min = data[0].timestamp
-    const max = data[data.length - 1].timestamp
-    const range = max - min
-    if (range <= 0) return undefined
-
-    // Pick a round interval that yields 3–5 ticks
-    const intervals = [
-      1000, 2000, 5000, 10000, 30000, 60000, 300000, 600000, 1800000,
-    ]
-    const targetTicks = 4
-    let step = intervals[0]
-    for (const iv of intervals) {
-      if (range / iv <= targetTicks + 1) {
-        step = iv
-        break
-      }
-      step = iv
+  const { currentValue, minValue, maxValue } = useMemo(() => {
+    if (data.length === 0)
+      return { currentValue: null, minValue: null, maxValue: null }
+    let min = data[0].value
+    let max = data[0].value
+    for (const p of data) {
+      if (p.value < min) min = p.value
+      if (p.value > max) max = p.value
     }
-
-    // Round the first tick up to the nearest step boundary
-    const firstTick = Math.ceil(min / step) * step
-    const ticks: number[] = []
-    for (let t = firstTick; t <= max; t += step) {
-      ticks.push(t)
+    return {
+      currentValue: data[data.length - 1].value,
+      minValue: min,
+      maxValue: max,
     }
-    // If snapping produced too few ticks, fall back to evenly-spaced raw ticks
-    if (ticks.length < 2) {
-      const count = Math.min(targetTicks, data.length)
-      const rawStep = range / (count - 1)
-      ticks.length = 0
-      for (let i = 0; i < count; i++) {
-        ticks.push(Math.round(min + i * rawStep))
-      }
-    }
-    return ticks
-  }, [series.data])
+  }, [data])
 
   return (
     <div className="glass-card flex flex-col overflow-hidden">
@@ -142,7 +130,7 @@ export function MetricChart({ series, color, onRemove }: MetricChartProps) {
           <div className="flex items-center gap-2">
             <span
               className="text-sm font-medium text-zinc-200 truncate"
-              title={series.metricName}
+              title={label}
             >
               {shortName}
             </span>
@@ -152,11 +140,7 @@ export function MetricChart({ series, color, onRemove }: MetricChartProps) {
                 "bg-zinc-800 text-zinc-400",
               )}
             >
-              {series.source.type === "jm"
-                ? "JM"
-                : series.source.type === "tm"
-                  ? "TM"
-                  : "Vertex"}
+              {sourceBadge}
             </span>
             <span
               className={cn(
@@ -164,16 +148,16 @@ export function MetricChart({ series, color, onRemove }: MetricChartProps) {
                 "bg-zinc-800 text-zinc-400",
               )}
             >
-              {getUnitBadgeLabel(series.meta)}
+              {getUnitBadgeLabel(meta)}
             </span>
           </div>
           <div className="mt-0.5 text-lg font-semibold text-zinc-100">
-            {formatMetricValue(series.currentValue, series.meta)}
+            {formatMetricValue(currentValue, meta)}
           </div>
         </div>
         <button
           type="button"
-          onClick={() => onRemove(series.id)}
+          onClick={onRemove}
           className="shrink-0 rounded p-1 text-zinc-600 transition-colors hover:bg-white/[0.06] hover:text-zinc-400"
         >
           <X className="size-3.5" />
@@ -184,14 +168,13 @@ export function MetricChart({ series, color, onRemove }: MetricChartProps) {
       <div className="px-1 pb-1">
         <ResponsiveContainer width="100%" height={200}>
           <LineChart
-            data={series.data}
+            data={data}
             margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
           >
             <XAxis
               dataKey="timestamp"
               type="number"
               domain={["dataMin", "dataMax"]}
-              ticks={xTicks}
               tickFormatter={formatTime}
               stroke="#3f3f46"
               tick={{ fill: "#71717a", fontSize: 10 }}
@@ -204,7 +187,7 @@ export function MetricChart({ series, color, onRemove }: MetricChartProps) {
               tickLine={false}
               axisLine={false}
               width={54}
-              tickFormatter={(v: number) => formatMetricValue(v, series.meta)}
+              tickFormatter={(v: number) => formatMetricValue(v, meta)}
             />
             <Tooltip
               contentStyle={{
@@ -215,7 +198,7 @@ export function MetricChart({ series, color, onRemove }: MetricChartProps) {
               }}
               labelFormatter={formatTime}
               formatter={(value: number) => [
-                formatMetricValue(value, series.meta),
+                formatMetricValue(value, meta),
                 shortName,
               ]}
             />
@@ -233,8 +216,8 @@ export function MetricChart({ series, color, onRemove }: MetricChartProps) {
 
       {/* Footer — min/max */}
       <div className="flex items-center gap-3 border-t border-white/[0.04] px-3 py-1.5 text-xs text-zinc-500">
-        <span>Min: {formatMetricValue(series.minValue, series.meta)}</span>
-        <span>Max: {formatMetricValue(series.maxValue, series.meta)}</span>
+        <span>Min: {formatMetricValue(minValue, meta)}</span>
+        <span>Max: {formatMetricValue(maxValue, meta)}</span>
       </div>
     </div>
   )

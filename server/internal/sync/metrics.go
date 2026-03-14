@@ -33,11 +33,6 @@ func (s *Syncer) runMetricsSync(ctx context.Context) {
 // syncMetrics fetches metrics from job manager, task managers, and active job
 // vertices for all clusters, then batch-inserts them.
 func (s *Syncer) syncMetrics(ctx context.Context) {
-	// Ensure partitions exist before inserting.
-	if err := s.stores.Metrics.EnsureCurrentPartitions(ctx); err != nil {
-		s.logger.Warn("sync: ensure metric partitions failed", "error", err)
-	}
-
 	clusters := s.manager.List()
 
 	for _, info := range clusters {
