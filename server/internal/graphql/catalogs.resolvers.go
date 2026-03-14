@@ -54,7 +54,7 @@ func (r *queryResolver) CatalogTables(ctx context.Context, catalog string, datab
 }
 
 // CatalogColumns is the resolver for the catalogColumns field.
-func (r *queryResolver) CatalogColumns(ctx context.Context, catalog string, database string, table string, _ *string) ([]*model.ColumnInfo, error) {
+func (r *queryResolver) CatalogColumns(ctx context.Context, catalog string, database string, table string, cluster *string) ([]*model.ColumnInfo, error) {
 	columns, err := r.CatalogService.ListColumns(ctx, catalog, database, table)
 	if err != nil {
 		return nil, err

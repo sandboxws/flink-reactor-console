@@ -151,7 +151,7 @@ func (r *queryResolver) DatabaseTable(ctx context.Context, instrument string, sc
 }
 
 // DatabaseQueryHistory is the resolver for the databaseQueryHistory field.
-func (r *queryResolver) DatabaseQueryHistory(_ context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error) {
+func (r *queryResolver) DatabaseQueryHistory(ctx context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error) {
 	di, err := r.resolveDatabaseInstrument(instrument)
 	if err != nil {
 		return nil, err

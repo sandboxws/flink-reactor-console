@@ -40,7 +40,7 @@ func (r *queryResolver) FlinkConfig(ctx context.Context, cluster *string) (*mode
 }
 
 // DashboardConfig is the resolver for the dashboardConfig field.
-func (r *queryResolver) DashboardConfig(_ context.Context) (*model.DashboardConfig, error) {
+func (r *queryResolver) DashboardConfig(ctx context.Context) (*model.DashboardConfig, error) {
 	var clusters []string
 	var instrumentNames []string
 

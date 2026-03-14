@@ -13,7 +13,7 @@ import (
 )
 
 // TapManifests is the resolver for the tapManifests field.
-func (r *queryResolver) TapManifests(_ context.Context) ([]*model.TapManifest, error) {
+func (r *queryResolver) TapManifests(ctx context.Context) ([]*model.TapManifest, error) {
 	if r.TapLoader == nil {
 		return []*model.TapManifest{}, nil
 	}

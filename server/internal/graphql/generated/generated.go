@@ -524,6 +524,7 @@ type ComplexityRoot struct {
 		KafkaTopics           func(childComplexity int, instrument string) int
 		MaterializedTable     func(childComplexity int, name string, catalog string, cluster *string) int
 		MaterializedTables    func(childComplexity int, cluster *string, catalog *string) int
+		StorageStatus         func(childComplexity int) int
 		SubtaskTimes          func(childComplexity int, jobID string, vertexID string, cluster *string) int
 		TapManifests          func(childComplexity int) int
 		TaskManager           func(childComplexity int, id string, cluster *string) int
@@ -561,6 +562,14 @@ type ComplexityRoot struct {
 
 	SQLStatementResult struct {
 		OperationHandle func(childComplexity int) int
+	}
+
+	StorageStatus struct {
+		Connected        func(childComplexity int) int
+		Enabled          func(childComplexity int) int
+		IdleConns        func(childComplexity int) int
+		MigrationVersion func(childComplexity int) int
+		TotalConns       func(childComplexity int) int
 	}
 
 	Subscription struct {
@@ -774,6 +783,7 @@ type QueryResolver interface {
 	DatabaseTables(ctx context.Context, instrument string, schema string) ([]*model.DatabaseTableSummary, error)
 	DatabaseTable(ctx context.Context, instrument string, schema string, table string) (*model.DatabaseTableDetail, error)
 	DatabaseQueryHistory(ctx context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error)
+	StorageStatus(ctx context.Context) (*model.StorageStatus, error)
 	Instruments(ctx context.Context) ([]*model.InstrumentInfo, error)
 	Jars(ctx context.Context, cluster *string) ([]*model.JarFile, error)
 	JobManager(ctx context.Context, cluster *string) (*model.JobManagerDetail, error)
@@ -2871,6 +2881,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.MaterializedTables(childComplexity, args["cluster"].(*string), args["catalog"].(*string)), true
+	case "Query.storageStatus":
+		if e.ComplexityRoot.Query.StorageStatus == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.StorageStatus(childComplexity), true
 	case "Query.subtaskTimes":
 		if e.ComplexityRoot.Query.SubtaskTimes == nil {
 			break
@@ -3021,6 +3037,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.SQLStatementResult.OperationHandle(childComplexity), true
+
+	case "StorageStatus.connected":
+		if e.ComplexityRoot.StorageStatus.Connected == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StorageStatus.Connected(childComplexity), true
+	case "StorageStatus.enabled":
+		if e.ComplexityRoot.StorageStatus.Enabled == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StorageStatus.Enabled(childComplexity), true
+	case "StorageStatus.idleConns":
+		if e.ComplexityRoot.StorageStatus.IdleConns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StorageStatus.IdleConns(childComplexity), true
+	case "StorageStatus.migrationVersion":
+		if e.ComplexityRoot.StorageStatus.MigrationVersion == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StorageStatus.MigrationVersion(childComplexity), true
+	case "StorageStatus.totalConns":
+		if e.ComplexityRoot.StorageStatus.TotalConns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StorageStatus.TotalConns(childComplexity), true
 
 	case "Subscription.blueGreenStateChanged":
 		if e.ComplexityRoot.Subscription.BlueGreenStateChanged == nil {
@@ -4072,6 +4119,27 @@ extend type Mutation {
   DDL statements are rejected. Results are capped at the configured row limit.
   """
   executeDatabaseQuery(instrument: String!, sql: String!): DatabaseQueryResult!
+}
+`, BuiltIn: false},
+	{Name: "../schema/history.graphqls", Input: `"""
+Status of the PostgreSQL historical storage backend.
+"""
+type StorageStatus {
+  """Whether storage is enabled in configuration."""
+  enabled: Boolean!
+  """Whether the database connection is healthy."""
+  connected: Boolean!
+  """Current migration version applied, empty if none."""
+  migrationVersion: String!
+  """Total connections in the pool."""
+  totalConns: Int!
+  """Idle connections in the pool."""
+  idleConns: Int!
+}
+
+extend type Query {
+  """Returns the status of the PostgreSQL storage backend."""
+  storageStatus: StorageStatus!
 }
 `, BuiltIn: false},
 	{Name: "../schema/instruments.graphqls", Input: `"""
@@ -15161,6 +15229,47 @@ func (ec *executionContext) fieldContext_Query_databaseQueryHistory(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_storageStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_storageStatus,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().StorageStatus(ctx)
+		},
+		nil,
+		ec.marshalNStorageStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_storageStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_StorageStatus_enabled(ctx, field)
+			case "connected":
+				return ec.fieldContext_StorageStatus_connected(ctx, field)
+			case "migrationVersion":
+				return ec.fieldContext_StorageStatus_migrationVersion(ctx, field)
+			case "totalConns":
+				return ec.fieldContext_StorageStatus_totalConns(ctx, field)
+			case "idleConns":
+				return ec.fieldContext_StorageStatus_idleConns(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StorageStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_instruments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -16716,6 +16825,151 @@ func (ec *executionContext) fieldContext_SQLStatementResult_operationHandle(_ co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StorageStatus_enabled(ctx context.Context, field graphql.CollectedField, obj *model.StorageStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StorageStatus_enabled,
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StorageStatus_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StorageStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StorageStatus_connected(ctx context.Context, field graphql.CollectedField, obj *model.StorageStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StorageStatus_connected,
+		func(ctx context.Context) (any, error) {
+			return obj.Connected, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StorageStatus_connected(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StorageStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StorageStatus_migrationVersion(ctx context.Context, field graphql.CollectedField, obj *model.StorageStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StorageStatus_migrationVersion,
+		func(ctx context.Context) (any, error) {
+			return obj.MigrationVersion, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StorageStatus_migrationVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StorageStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StorageStatus_totalConns(ctx context.Context, field graphql.CollectedField, obj *model.StorageStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StorageStatus_totalConns,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalConns, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StorageStatus_totalConns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StorageStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StorageStatus_idleConns(ctx context.Context, field graphql.CollectedField, obj *model.StorageStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StorageStatus_idleConns,
+		func(ctx context.Context) (any, error) {
+			return obj.IdleConns, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StorageStatus_idleConns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StorageStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -25513,6 +25767,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "storageStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_storageStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "instruments":
 			field := field
 
@@ -26216,6 +26492,65 @@ func (ec *executionContext) _SQLStatementResult(ctx context.Context, sel ast.Sel
 			out.Values[i] = graphql.MarshalString("SQLStatementResult")
 		case "operationHandle":
 			out.Values[i] = ec._SQLStatementResult_operationHandle(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var storageStatusImplementors = []string{"StorageStatus"}
+
+func (ec *executionContext) _StorageStatus(ctx context.Context, sel ast.SelectionSet, obj *model.StorageStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, storageStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StorageStatus")
+		case "enabled":
+			out.Values[i] = ec._StorageStatus_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "connected":
+			out.Values[i] = ec._StorageStatus_connected(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "migrationVersion":
+			out.Values[i] = ec._StorageStatus_migrationVersion(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalConns":
+			out.Values[i] = ec._StorageStatus_totalConns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "idleConns":
+			out.Values[i] = ec._StorageStatus_idleConns(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -29215,6 +29550,20 @@ func (ec *executionContext) marshalNSQLStatementResult2ᚖgithubᚗcomᚋsandbox
 		return graphql.Null
 	}
 	return ec._SQLStatementResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNStorageStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus(ctx context.Context, sel ast.SelectionSet, v model.StorageStatus) graphql.Marshaler {
+	return ec._StorageStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStorageStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus(ctx context.Context, sel ast.SelectionSet, v *model.StorageStatus) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StorageStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {

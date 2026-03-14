@@ -14,12 +14,12 @@ import (
 )
 
 // Health is the resolver for the health field.
-func (r *queryResolver) Health(_ context.Context) (bool, error) {
+func (r *queryResolver) Health(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
 // Clusters is the resolver for the clusters field.
-func (r *queryResolver) Clusters(_ context.Context) ([]*model.ClusterInfo, error) {
+func (r *queryResolver) Clusters(ctx context.Context) ([]*model.ClusterInfo, error) {
 	if r.Manager == nil {
 		return []*model.ClusterInfo{}, nil
 	}
@@ -57,8 +57,6 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
-type (
-	mutationResolver     struct{ *Resolver }
-	queryResolver        struct{ *Resolver }
-	subscriptionResolver struct{ *Resolver }
-)
+type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

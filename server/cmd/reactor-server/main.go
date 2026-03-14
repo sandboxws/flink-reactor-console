@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor-instruments/database"
 	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
@@ -15,6 +16,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
 )
 
 func main() {
@@ -69,9 +71,32 @@ func run() int {
 		registry.StartHealthChecks(ctx, cfg.Health.Interval)
 	}
 
+	// Initialize PostgreSQL storage if enabled.
+	var pool *pgxpool.Pool
+	if cfg.Storage.Enabled {
+		var err error
+		pool, err = storage.New(ctx, cfg.Storage)
+		if err != nil {
+			logger.Error("failed to create storage pool", "error", err)
+		} else {
+			defer storage.Close(pool)
+
+			if err := storage.Migrate(ctx, pool); err != nil {
+				logger.Error("storage migration failed", "error", err)
+			} else {
+				logger.Info("storage enabled", "dsn_set", cfg.Storage.DSN != "")
+			}
+		}
+	} else {
+		logger.Info("storage disabled")
+	}
+
 	var serverOpts []server.Option
 	if cfg.SPA.StaticDir != "" {
 		serverOpts = append(serverOpts, server.WithStaticDir(cfg.SPA.StaticDir))
+	}
+	if pool != nil {
+		serverOpts = append(serverOpts, server.WithStoragePool(pool, cfg.Storage))
 	}
 
 	srv := server.New(cfg.Address(), logger, manager, registry, serverOpts...)

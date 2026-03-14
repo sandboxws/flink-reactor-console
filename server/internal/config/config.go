@@ -26,6 +26,46 @@ type Config struct {
 	Instruments []instruments.InstrumentConfig `mapstructure:"instruments"`
 	Log         LogConfig                      `mapstructure:"log"`
 	SPA         SPAConfig                      `mapstructure:"spa"`
+	Storage     StorageConfig                  `mapstructure:"storage"`
+}
+
+// StorageConfig holds PostgreSQL storage settings.
+type StorageConfig struct {
+	Enabled   bool            `mapstructure:"enabled"`
+	DSN       string          `mapstructure:"dsn"`
+	Pool      PoolConfig      `mapstructure:"pool"`
+	Sync      SyncConfig      `mapstructure:"sync"`
+	Retention RetentionConfig `mapstructure:"retention"`
+}
+
+// PoolConfig holds connection pool tuning parameters.
+type PoolConfig struct {
+	MaxConns    int32         `mapstructure:"max_conns"`
+	MinConns    int32         `mapstructure:"min_conns"`
+	MaxConnLife time.Duration `mapstructure:"max_conn_lifetime"`
+	MaxConnIdle time.Duration `mapstructure:"max_conn_idle_time"`
+}
+
+// SyncConfig holds per-domain sync interval settings.
+type SyncConfig struct {
+	Jobs            time.Duration `mapstructure:"jobs"`
+	Checkpoints     time.Duration `mapstructure:"checkpoints"`
+	Exceptions      time.Duration `mapstructure:"exceptions"`
+	TaskManagers    time.Duration `mapstructure:"task_managers"`
+	JobManager      time.Duration `mapstructure:"job_manager"`
+	Logs            time.Duration `mapstructure:"logs"`
+	Metrics         time.Duration `mapstructure:"metrics"`
+	ClusterOverview time.Duration `mapstructure:"cluster_overview"`
+}
+
+// RetentionConfig holds per-domain data retention settings.
+type RetentionConfig struct {
+	Jobs            time.Duration `mapstructure:"jobs"`
+	Checkpoints     time.Duration `mapstructure:"checkpoints"`
+	Exceptions      time.Duration `mapstructure:"exceptions"`
+	Metrics         time.Duration `mapstructure:"metrics"`
+	Logs            time.Duration `mapstructure:"logs"`
+	CleanupInterval time.Duration `mapstructure:"cleanup_interval"`
 }
 
 // AppConfig holds application-level settings.
@@ -173,6 +213,29 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("log.format", "console")
 
 	v.SetDefault("spa.static_dir", "")
+
+	v.SetDefault("storage.enabled", false)
+	v.SetDefault("storage.dsn", "")
+	v.SetDefault("storage.pool.max_conns", 10)
+	v.SetDefault("storage.pool.min_conns", 2)
+	v.SetDefault("storage.pool.max_conn_lifetime", "1h")
+	v.SetDefault("storage.pool.max_conn_idle_time", "30m")
+
+	v.SetDefault("storage.sync.jobs", "10s")
+	v.SetDefault("storage.sync.checkpoints", "30s")
+	v.SetDefault("storage.sync.exceptions", "30s")
+	v.SetDefault("storage.sync.task_managers", "60s")
+	v.SetDefault("storage.sync.job_manager", "60s")
+	v.SetDefault("storage.sync.logs", "300s")
+	v.SetDefault("storage.sync.metrics", "60s")
+	v.SetDefault("storage.sync.cluster_overview", "30s")
+
+	v.SetDefault("storage.retention.jobs", "2160h")
+	v.SetDefault("storage.retention.checkpoints", "720h")
+	v.SetDefault("storage.retention.exceptions", "720h")
+	v.SetDefault("storage.retention.metrics", "168h")
+	v.SetDefault("storage.retention.logs", "168h")
+	v.SetDefault("storage.retention.cleanup_interval", "1h")
 }
 
 // detectEnvironment returns the environment name from REACTOR_ENV, APP_ENV, or "development".
@@ -190,6 +253,7 @@ func detectEnvironment() string {
 // must come from YAML config files.
 func bindSecretEnvVars(v *viper.Viper) {
 	_ = v.BindEnv("flink.auth_token", "FLINK_AUTH_TOKEN")
+	_ = v.BindEnv("storage.dsn", "REACTOR_STORAGE_DSN")
 }
 
 // loadClusters builds the cluster list. If explicit clusters are defined in YAML,

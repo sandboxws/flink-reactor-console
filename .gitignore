@@ -383,6 +383,7 @@ dashboard/.claude/settings.local.json
 .crush/
 .opencode/
 .codex/
+openspec/
 
 ### Environment (production/staging) ###
 dashboard/.env.production

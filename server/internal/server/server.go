@@ -12,12 +12,14 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/gorilla/websocket"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
@@ -34,6 +36,12 @@ type Config struct {
 
 	// TapLoader provides tap pipeline manifests. May be nil.
 	TapLoader *tap.Loader
+
+	// StoragePool is the PostgreSQL connection pool. May be nil when storage is disabled.
+	StoragePool *pgxpool.Pool
+
+	// StorageConfig holds storage configuration for the resolver.
+	StorageConfig config.StorageConfig
 }
 
 // Server wraps an Echo server with middleware and health endpoints.
@@ -162,6 +170,8 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		TapLoader:          cfg.TapLoader,
 		CatalogService:     catalogService,
 		CatalogInitDDL:     catalogInitDDL,
+		StoragePool:        cfg.StoragePool,
+		StorageConfig:      cfg.StorageConfig,
 	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
@@ -208,6 +218,14 @@ func WithStaticDir(dir string) Option {
 func WithTapLoader(loader *tap.Loader) Option {
 	return func(c *Config) {
 		c.TapLoader = loader
+	}
+}
+
+// WithStoragePool sets the PostgreSQL connection pool.
+func WithStoragePool(pool *pgxpool.Pool, storageCfg config.StorageConfig) Option {
+	return func(c *Config) {
+		c.StoragePool = pool
+		c.StorageConfig = storageCfg
 	}
 }
 

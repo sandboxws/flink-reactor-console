@@ -1,0 +1,20 @@
+"""
+Status of the PostgreSQL historical storage backend.
+"""
+type StorageStatus {
+  """Whether storage is enabled in configuration."""
+  enabled: Boolean!
+  """Whether the database connection is healthy."""
+  connected: Boolean!
+  """Current migration version applied, empty if none."""
+  migrationVersion: String!
+  """Total connections in the pool."""
+  totalConns: Int!
+  """Idle connections in the pool."""
+  idleConns: Int!
+}
+
+extend type Query {
+  """Returns the status of the PostgreSQL storage backend."""
+  storageStatus: StorageStatus!
+}

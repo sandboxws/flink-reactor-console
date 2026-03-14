@@ -514,6 +514,20 @@ type SQLStatementResult struct {
 	OperationHandle string `json:"operationHandle"`
 }
 
+// Status of the PostgreSQL historical storage backend.
+type StorageStatus struct {
+	// Whether storage is enabled in configuration.
+	Enabled bool `json:"enabled"`
+	// Whether the database connection is healthy.
+	Connected bool `json:"connected"`
+	// Current migration version applied, empty if none.
+	MigrationVersion string `json:"migrationVersion"`
+	// Total connections in the pool.
+	TotalConns int `json:"totalConns"`
+	// Idle connections in the pool.
+	IdleConns int `json:"idleConns"`
+}
+
 type Subscription struct {
 }
 
