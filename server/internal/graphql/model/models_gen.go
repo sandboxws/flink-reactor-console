@@ -326,6 +326,61 @@ type JobDetail struct {
 	Accumulators     []*VertexAccumulators `json:"accumulators,omitempty"`
 }
 
+// Connection type for paginated job history results.
+type JobHistoryConnection struct {
+	// List of job history edges.
+	Edges []*JobHistoryEdge `json:"edges"`
+	// Pagination metadata.
+	PageInfo *JobHistoryPageInfo `json:"pageInfo"`
+}
+
+// A single edge in the job history connection.
+type JobHistoryEdge struct {
+	// The job record.
+	Node *JobHistoryEntry `json:"node"`
+	// Opaque cursor for this edge.
+	Cursor string `json:"cursor"`
+}
+
+// A historical job record from PostgreSQL.
+type JobHistoryEntry struct {
+	Jid           string  `json:"jid"`
+	Cluster       string  `json:"cluster"`
+	Name          string  `json:"name"`
+	State         string  `json:"state"`
+	StartTime     *string `json:"startTime,omitempty"`
+	EndTime       *string `json:"endTime,omitempty"`
+	DurationMs    string  `json:"durationMs"`
+	TasksTotal    int     `json:"tasksTotal"`
+	TasksRunning  int     `json:"tasksRunning"`
+	TasksFinished int     `json:"tasksFinished"`
+	TasksCanceled int     `json:"tasksCanceled"`
+	TasksFailed   int     `json:"tasksFailed"`
+	CapturedAt    string  `json:"capturedAt"`
+}
+
+// Filter criteria for historical job queries.
+type JobHistoryFilter struct {
+	// Filter by cluster name.
+	ClusterID *string `json:"clusterID,omitempty"`
+	// Filter by job state (e.g. RUNNING, FAILED, FINISHED, CANCELED).
+	State *string `json:"state,omitempty"`
+	// Filter by job name (case-insensitive substring match).
+	Name *string `json:"name,omitempty"`
+	// Return only jobs with start_time >= this timestamp.
+	After *string `json:"after,omitempty"`
+	// Return only jobs with start_time <= this timestamp.
+	Before *string `json:"before,omitempty"`
+}
+
+// Page info for cursor-based pagination.
+type JobHistoryPageInfo struct {
+	// Whether there are more pages after this one.
+	HasNextPage bool `json:"hasNextPage"`
+	// Cursor for fetching the next page.
+	EndCursor *string `json:"endCursor,omitempty"`
+}
+
 type JobManagerDetail struct {
 	Config      []*JMConfigEntry `json:"config"`
 	Environment *JMEnvironment   `json:"environment,omitempty"`
@@ -461,6 +516,14 @@ type MetricEntry struct {
 }
 
 type Mutation struct {
+}
+
+// Cursor-based pagination input.
+type PaginationInput struct {
+	// Maximum number of items to return.
+	First *int `json:"first,omitempty"`
+	// Opaque cursor for the next page.
+	After *string `json:"after,omitempty"`
 }
 
 type PlanNode struct {

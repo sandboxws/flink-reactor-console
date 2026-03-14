@@ -25,6 +25,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
 )
 
@@ -42,6 +43,9 @@ type Config struct {
 
 	// StorageConfig holds storage configuration for the resolver.
 	StorageConfig config.StorageConfig
+
+	// Stores provides typed access to PostgreSQL sub-stores. May be nil when storage is disabled.
+	Stores *store.Stores
 }
 
 // Server wraps an Echo server with middleware and health endpoints.
@@ -170,6 +174,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		TapLoader:          cfg.TapLoader,
 		CatalogService:     catalogService,
 		CatalogInitDDL:     catalogInitDDL,
+		Stores:             cfg.Stores,
 		StoragePool:        cfg.StoragePool,
 		StorageConfig:      cfg.StorageConfig,
 	}
@@ -226,6 +231,13 @@ func WithStoragePool(pool *pgxpool.Pool, storageCfg config.StorageConfig) Option
 	return func(c *Config) {
 		c.StoragePool = pool
 		c.StorageConfig = storageCfg
+	}
+}
+
+// WithStores sets the typed store aggregate for the GraphQL resolver.
+func WithStores(stores *store.Stores) Option {
+	return func(c *Config) {
+		c.Stores = stores
 	}
 }
 

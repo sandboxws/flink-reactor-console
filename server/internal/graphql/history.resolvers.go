@@ -7,9 +7,12 @@ package graphql
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
 )
 
 // StorageStatus is the resolver for the storageStatus field.
@@ -43,4 +46,103 @@ func (r *queryResolver) StorageStatus(ctx context.Context) (*model.StorageStatus
 		TotalConns:       int(stat.TotalConns()),
 		IdleConns:        int(stat.IdleConns()),
 	}, nil
+}
+
+// JobHistory is the resolver for the jobHistory field.
+func (r *queryResolver) JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput) (*model.JobHistoryConnection, error) {
+	if r.Stores == nil {
+		return &model.JobHistoryConnection{
+			Edges:    []*model.JobHistoryEdge{},
+			PageInfo: &model.JobHistoryPageInfo{HasNextPage: false},
+		}, nil
+	}
+
+	// Build store filter from GraphQL input.
+	var jf store.JobFilter
+	if filter != nil {
+		jf.ClusterID = filter.ClusterID
+		jf.State = filter.State
+		jf.Name = filter.Name
+		if filter.After != nil {
+			t, err := time.Parse(time.RFC3339, *filter.After)
+			if err != nil {
+				return nil, fmt.Errorf("invalid 'after' timestamp: %w", err)
+			}
+			jf.After = &t
+		}
+		if filter.Before != nil {
+			t, err := time.Parse(time.RFC3339, *filter.Before)
+			if err != nil {
+				return nil, fmt.Errorf("invalid 'before' timestamp: %w", err)
+			}
+			jf.Before = &t
+		}
+	}
+
+	var cp store.CursorPagination
+	if pagination != nil {
+		if pagination.First != nil {
+			cp.First = *pagination.First
+		}
+		cp.After = pagination.After
+	}
+
+	jobs, nextCursor, err := r.Stores.Jobs.QueryJobs(ctx, jf, cp)
+	if err != nil {
+		return nil, fmt.Errorf("query job history: %w", err)
+	}
+
+	edges := make([]*model.JobHistoryEdge, len(jobs))
+	for i, j := range jobs {
+		entry := dbJobToHistoryEntry(j)
+		edges[i] = &model.JobHistoryEdge{
+			Node:   entry,
+			Cursor: buildJobCursor(j),
+		}
+	}
+
+	hasNext := nextCursor != ""
+	var endCursor *string
+	if hasNext {
+		endCursor = &nextCursor
+	}
+
+	return &model.JobHistoryConnection{
+		Edges: edges,
+		PageInfo: &model.JobHistoryPageInfo{
+			HasNextPage: hasNext,
+			EndCursor:   endCursor,
+		},
+	}, nil
+}
+
+// dbJobToHistoryEntry converts a storage.DBJob to a GraphQL JobHistoryEntry.
+func dbJobToHistoryEntry(j storage.DBJob) *model.JobHistoryEntry {
+	entry := &model.JobHistoryEntry{
+		Jid:           j.JID,
+		Cluster:       j.Cluster,
+		Name:          j.Name,
+		State:         j.State,
+		DurationMs:    fmt.Sprintf("%d", j.DurationMs),
+		TasksTotal:    j.TasksTotal,
+		TasksRunning:  j.TasksRunning,
+		TasksFinished: j.TasksFinished,
+		TasksCanceled: j.TasksCanceled,
+		TasksFailed:   j.TasksFailed,
+		CapturedAt:    j.CapturedAt.Format(time.RFC3339),
+	}
+	if j.StartTime != nil {
+		s := j.StartTime.Format(time.RFC3339)
+		entry.StartTime = &s
+	}
+	if j.EndTime != nil {
+		s := j.EndTime.Format(time.RFC3339)
+		entry.EndTime = &s
+	}
+	return entry
+}
+
+// buildJobCursor creates an opaque cursor from a DBJob for pagination.
+func buildJobCursor(j storage.DBJob) string {
+	return store.EncodeCursor(j.StartTime, j.JID)
 }

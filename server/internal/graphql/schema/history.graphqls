@@ -14,7 +14,72 @@ type StorageStatus {
   idleConns: Int!
 }
 
+"""Filter criteria for historical job queries."""
+input JobHistoryFilter {
+  """Filter by cluster name."""
+  clusterID: String
+  """Filter by job state (e.g. RUNNING, FAILED, FINISHED, CANCELED)."""
+  state: String
+  """Filter by job name (case-insensitive substring match)."""
+  name: String
+  """Return only jobs with start_time >= this timestamp."""
+  after: String
+  """Return only jobs with start_time <= this timestamp."""
+  before: String
+}
+
+"""Cursor-based pagination input."""
+input PaginationInput {
+  """Maximum number of items to return."""
+  first: Int
+  """Opaque cursor for the next page."""
+  after: String
+}
+
+"""A single edge in the job history connection."""
+type JobHistoryEdge {
+  """The job record."""
+  node: JobHistoryEntry!
+  """Opaque cursor for this edge."""
+  cursor: String!
+}
+
+"""A historical job record from PostgreSQL."""
+type JobHistoryEntry {
+  jid: String!
+  cluster: String!
+  name: String!
+  state: String!
+  startTime: String
+  endTime: String
+  durationMs: String!
+  tasksTotal: Int!
+  tasksRunning: Int!
+  tasksFinished: Int!
+  tasksCanceled: Int!
+  tasksFailed: Int!
+  capturedAt: String!
+}
+
+"""Page info for cursor-based pagination."""
+type JobHistoryPageInfo {
+  """Whether there are more pages after this one."""
+  hasNextPage: Boolean!
+  """Cursor for fetching the next page."""
+  endCursor: String
+}
+
+"""Connection type for paginated job history results."""
+type JobHistoryConnection {
+  """List of job history edges."""
+  edges: [JobHistoryEdge!]!
+  """Pagination metadata."""
+  pageInfo: JobHistoryPageInfo!
+}
+
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
+  """Returns paginated historical jobs with optional filtering."""
+  jobHistory(filter: JobHistoryFilter, pagination: PaginationInput): JobHistoryConnection!
 }

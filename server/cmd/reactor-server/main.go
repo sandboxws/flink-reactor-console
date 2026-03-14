@@ -17,6 +17,8 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	bgsync "github.com/sandboxws/flink-reactor/apps/server/internal/sync"
 )
 
 func main() {
@@ -91,12 +93,24 @@ func run() int {
 		logger.Info("storage disabled")
 	}
 
+	// Create stores and start background syncer if storage is enabled.
+	var stores *store.Stores
+	var syncer *bgsync.Syncer
+	if pool != nil {
+		stores = store.New(pool)
+		syncer = bgsync.New(manager, stores, cfg.Storage.Sync, logger)
+		syncer.Start(ctx)
+	}
+
 	var serverOpts []server.Option
 	if cfg.SPA.StaticDir != "" {
 		serverOpts = append(serverOpts, server.WithStaticDir(cfg.SPA.StaticDir))
 	}
 	if pool != nil {
 		serverOpts = append(serverOpts, server.WithStoragePool(pool, cfg.Storage))
+	}
+	if stores != nil {
+		serverOpts = append(serverOpts, server.WithStores(stores))
 	}
 
 	srv := server.New(cfg.Address(), logger, manager, registry, serverOpts...)
@@ -117,6 +131,11 @@ func run() int {
 			return 1
 		}
 		return 0
+	}
+
+	// Stop background syncer.
+	if syncer != nil {
+		syncer.Stop()
 	}
 
 	// Shutdown instruments.

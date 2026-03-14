@@ -7,6 +7,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
 )
 
@@ -19,6 +20,7 @@ type Resolver struct {
 	TapLoader          *tap.Loader
 	CatalogService     *catalogs.Service
 	CatalogInitDDL     []string // DDL statements to replay into new SQL sessions
+	Stores             *store.Stores // nil when storage disabled
 	StoragePool        *pgxpool.Pool
 	StorageConfig      config.StorageConfig
 }

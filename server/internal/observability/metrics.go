@@ -113,6 +113,37 @@ var (
 	)
 )
 
+// Background sync metrics.
+var (
+	SyncDurationSeconds = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: metricsNamespace,
+			Name:      "sync_duration_seconds",
+			Help:      "Duration of background sync ticks in seconds.",
+			Buckets:   prometheus.DefBuckets,
+		},
+		[]string{"domain", "cluster"},
+	)
+
+	SyncUpsertsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: metricsNamespace,
+			Name:      "sync_upserts_total",
+			Help:      "Total number of upserted records during background sync.",
+		},
+		[]string{"domain", "cluster"},
+	)
+
+	SyncErrorsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: metricsNamespace,
+			Name:      "sync_errors_total",
+			Help:      "Total number of errors during background sync.",
+		},
+		[]string{"domain", "cluster"},
+	)
+)
+
 // InstrumentHealthAdapter implements the instruments.HealthReporter interface,
 // bridging the external instruments module to the reactor Prometheus metrics.
 type InstrumentHealthAdapter struct{}
@@ -139,5 +170,8 @@ func RegisterMetrics() {
 		BlueGreenDeploymentsTotal,
 		BlueGreenActiveState,
 		BlueGreenTransitionDuration,
+		SyncDurationSeconds,
+		SyncUpsertsTotal,
+		SyncErrorsTotal,
 	)
 }

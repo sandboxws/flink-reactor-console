@@ -342,6 +342,37 @@ type ComplexityRoot struct {
 		Watermarks       func(childComplexity int) int
 	}
 
+	JobHistoryConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	JobHistoryEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	JobHistoryEntry struct {
+		CapturedAt    func(childComplexity int) int
+		Cluster       func(childComplexity int) int
+		DurationMs    func(childComplexity int) int
+		EndTime       func(childComplexity int) int
+		Jid           func(childComplexity int) int
+		Name          func(childComplexity int) int
+		StartTime     func(childComplexity int) int
+		State         func(childComplexity int) int
+		TasksCanceled func(childComplexity int) int
+		TasksFailed   func(childComplexity int) int
+		TasksFinished func(childComplexity int) int
+		TasksRunning  func(childComplexity int) int
+		TasksTotal    func(childComplexity int) int
+	}
+
+	JobHistoryPageInfo struct {
+		EndCursor   func(childComplexity int) int
+		HasNextPage func(childComplexity int) int
+	}
+
 	JobManagerDetail struct {
 		Config      func(childComplexity int) int
 		Environment func(childComplexity int) int
@@ -516,6 +547,7 @@ type ComplexityRoot struct {
 		Instruments           func(childComplexity int) int
 		Jars                  func(childComplexity int, cluster *string) int
 		Job                   func(childComplexity int, id string, cluster *string) int
+		JobHistory            func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput) int
 		JobManager            func(childComplexity int, cluster *string) int
 		Jobs                  func(childComplexity int, cluster *string) int
 		KafkaConsumerGroup    func(childComplexity int, instrument string, groupID string) int
@@ -784,6 +816,7 @@ type QueryResolver interface {
 	DatabaseTable(ctx context.Context, instrument string, schema string, table string) (*model.DatabaseTableDetail, error)
 	DatabaseQueryHistory(ctx context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error)
 	StorageStatus(ctx context.Context) (*model.StorageStatus, error)
+	JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput) (*model.JobHistoryConnection, error)
 	Instruments(ctx context.Context) ([]*model.InstrumentInfo, error)
 	Jars(ctx context.Context, cluster *string) ([]*model.JarFile, error)
 	JobManager(ctx context.Context, cluster *string) (*model.JobManagerDetail, error)
@@ -1947,6 +1980,124 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.JobDetail.Watermarks(childComplexity), true
 
+	case "JobHistoryConnection.edges":
+		if e.ComplexityRoot.JobHistoryConnection.Edges == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryConnection.Edges(childComplexity), true
+	case "JobHistoryConnection.pageInfo":
+		if e.ComplexityRoot.JobHistoryConnection.PageInfo == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryConnection.PageInfo(childComplexity), true
+
+	case "JobHistoryEdge.cursor":
+		if e.ComplexityRoot.JobHistoryEdge.Cursor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEdge.Cursor(childComplexity), true
+	case "JobHistoryEdge.node":
+		if e.ComplexityRoot.JobHistoryEdge.Node == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEdge.Node(childComplexity), true
+
+	case "JobHistoryEntry.capturedAt":
+		if e.ComplexityRoot.JobHistoryEntry.CapturedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.CapturedAt(childComplexity), true
+	case "JobHistoryEntry.cluster":
+		if e.ComplexityRoot.JobHistoryEntry.Cluster == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.Cluster(childComplexity), true
+	case "JobHistoryEntry.durationMs":
+		if e.ComplexityRoot.JobHistoryEntry.DurationMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.DurationMs(childComplexity), true
+	case "JobHistoryEntry.endTime":
+		if e.ComplexityRoot.JobHistoryEntry.EndTime == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.EndTime(childComplexity), true
+	case "JobHistoryEntry.jid":
+		if e.ComplexityRoot.JobHistoryEntry.Jid == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.Jid(childComplexity), true
+	case "JobHistoryEntry.name":
+		if e.ComplexityRoot.JobHistoryEntry.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.Name(childComplexity), true
+	case "JobHistoryEntry.startTime":
+		if e.ComplexityRoot.JobHistoryEntry.StartTime == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.StartTime(childComplexity), true
+	case "JobHistoryEntry.state":
+		if e.ComplexityRoot.JobHistoryEntry.State == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.State(childComplexity), true
+	case "JobHistoryEntry.tasksCanceled":
+		if e.ComplexityRoot.JobHistoryEntry.TasksCanceled == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.TasksCanceled(childComplexity), true
+	case "JobHistoryEntry.tasksFailed":
+		if e.ComplexityRoot.JobHistoryEntry.TasksFailed == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.TasksFailed(childComplexity), true
+	case "JobHistoryEntry.tasksFinished":
+		if e.ComplexityRoot.JobHistoryEntry.TasksFinished == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.TasksFinished(childComplexity), true
+	case "JobHistoryEntry.tasksRunning":
+		if e.ComplexityRoot.JobHistoryEntry.TasksRunning == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.TasksRunning(childComplexity), true
+	case "JobHistoryEntry.tasksTotal":
+		if e.ComplexityRoot.JobHistoryEntry.TasksTotal == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryEntry.TasksTotal(childComplexity), true
+
+	case "JobHistoryPageInfo.endCursor":
+		if e.ComplexityRoot.JobHistoryPageInfo.EndCursor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryPageInfo.EndCursor(childComplexity), true
+	case "JobHistoryPageInfo.hasNextPage":
+		if e.ComplexityRoot.JobHistoryPageInfo.HasNextPage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryPageInfo.HasNextPage(childComplexity), true
+
 	case "JobManagerDetail.config":
 		if e.ComplexityRoot.JobManagerDetail.Config == nil {
 			break
@@ -2793,6 +2944,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Job(childComplexity, args["id"].(string), args["cluster"].(*string)), true
+	case "Query.jobHistory":
+		if e.ComplexityRoot.Query.JobHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_jobHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.JobHistory(childComplexity, args["filter"].(*model.JobHistoryFilter), args["pagination"].(*model.PaginationInput)), true
 	case "Query.jobManager":
 		if e.ComplexityRoot.Query.JobManager == nil {
 			break
@@ -3809,7 +3971,10 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputJobHistoryFilter,
+		ec.unmarshalInputPaginationInput,
+	)
 	first := true
 
 	switch opCtx.Operation.Operation {
@@ -4137,9 +4302,74 @@ type StorageStatus {
   idleConns: Int!
 }
 
+"""Filter criteria for historical job queries."""
+input JobHistoryFilter {
+  """Filter by cluster name."""
+  clusterID: String
+  """Filter by job state (e.g. RUNNING, FAILED, FINISHED, CANCELED)."""
+  state: String
+  """Filter by job name (case-insensitive substring match)."""
+  name: String
+  """Return only jobs with start_time >= this timestamp."""
+  after: String
+  """Return only jobs with start_time <= this timestamp."""
+  before: String
+}
+
+"""Cursor-based pagination input."""
+input PaginationInput {
+  """Maximum number of items to return."""
+  first: Int
+  """Opaque cursor for the next page."""
+  after: String
+}
+
+"""A single edge in the job history connection."""
+type JobHistoryEdge {
+  """The job record."""
+  node: JobHistoryEntry!
+  """Opaque cursor for this edge."""
+  cursor: String!
+}
+
+"""A historical job record from PostgreSQL."""
+type JobHistoryEntry {
+  jid: String!
+  cluster: String!
+  name: String!
+  state: String!
+  startTime: String
+  endTime: String
+  durationMs: String!
+  tasksTotal: Int!
+  tasksRunning: Int!
+  tasksFinished: Int!
+  tasksCanceled: Int!
+  tasksFailed: Int!
+  capturedAt: String!
+}
+
+"""Page info for cursor-based pagination."""
+type JobHistoryPageInfo {
+  """Whether there are more pages after this one."""
+  hasNextPage: Boolean!
+  """Cursor for fetching the next page."""
+  endCursor: String
+}
+
+"""Connection type for paginated job history results."""
+type JobHistoryConnection {
+  """List of job history edges."""
+  edges: [JobHistoryEdge!]!
+  """Pagination metadata."""
+  pageInfo: JobHistoryPageInfo!
+}
+
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
+  """Returns paginated historical jobs with optional filtering."""
+  jobHistory(filter: JobHistoryFilter, pagination: PaginationInput): JobHistoryConnection!
 }
 `, BuiltIn: false},
 	{Name: "../schema/instruments.graphqls", Input: `"""
@@ -5393,6 +5623,22 @@ func (ec *executionContext) field_Query_jars_args(ctx context.Context, rawArgs m
 		return nil, err
 	}
 	args["cluster"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_jobHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
+	if err != nil {
+		return nil, err
+	}
+	args["pagination"] = arg1
 	return args, nil
 }
 
@@ -11346,6 +11592,597 @@ func (ec *executionContext) fieldContext_JobDetail_accumulators(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _JobHistoryConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryConnection_edges,
+		func(ctx context.Context) (any, error) {
+			return obj.Edges, nil
+		},
+		nil,
+		ec.marshalNJobHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdgeᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_JobHistoryEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_JobHistoryEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobHistoryEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryConnection_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNJobHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_JobHistoryPageInfo_hasNextPage(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_JobHistoryPageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobHistoryPageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEdge) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEdge_node,
+		func(ctx context.Context) (any, error) {
+			return obj.Node, nil
+		},
+		nil,
+		ec.marshalNJobHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEntry,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "jid":
+				return ec.fieldContext_JobHistoryEntry_jid(ctx, field)
+			case "cluster":
+				return ec.fieldContext_JobHistoryEntry_cluster(ctx, field)
+			case "name":
+				return ec.fieldContext_JobHistoryEntry_name(ctx, field)
+			case "state":
+				return ec.fieldContext_JobHistoryEntry_state(ctx, field)
+			case "startTime":
+				return ec.fieldContext_JobHistoryEntry_startTime(ctx, field)
+			case "endTime":
+				return ec.fieldContext_JobHistoryEntry_endTime(ctx, field)
+			case "durationMs":
+				return ec.fieldContext_JobHistoryEntry_durationMs(ctx, field)
+			case "tasksTotal":
+				return ec.fieldContext_JobHistoryEntry_tasksTotal(ctx, field)
+			case "tasksRunning":
+				return ec.fieldContext_JobHistoryEntry_tasksRunning(ctx, field)
+			case "tasksFinished":
+				return ec.fieldContext_JobHistoryEntry_tasksFinished(ctx, field)
+			case "tasksCanceled":
+				return ec.fieldContext_JobHistoryEntry_tasksCanceled(ctx, field)
+			case "tasksFailed":
+				return ec.fieldContext_JobHistoryEntry_tasksFailed(ctx, field)
+			case "capturedAt":
+				return ec.fieldContext_JobHistoryEntry_capturedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobHistoryEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEdge) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEdge_cursor,
+		func(ctx context.Context) (any, error) {
+			return obj.Cursor, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEdge_cursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_jid(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_jid,
+		func(ctx context.Context) (any, error) {
+			return obj.Jid, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_jid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_cluster(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_cluster,
+		func(ctx context.Context) (any, error) {
+			return obj.Cluster, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_cluster(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_name(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_state(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_state,
+		func(ctx context.Context) (any, error) {
+			return obj.State, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_state(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_startTime(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_startTime,
+		func(ctx context.Context) (any, error) {
+			return obj.StartTime, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_startTime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_endTime(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_endTime,
+		func(ctx context.Context) (any, error) {
+			return obj.EndTime, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_endTime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_durationMs(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_durationMs,
+		func(ctx context.Context) (any, error) {
+			return obj.DurationMs, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_durationMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_tasksTotal(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_tasksTotal,
+		func(ctx context.Context) (any, error) {
+			return obj.TasksTotal, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_tasksTotal(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_tasksRunning(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_tasksRunning,
+		func(ctx context.Context) (any, error) {
+			return obj.TasksRunning, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_tasksRunning(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_tasksFinished(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_tasksFinished,
+		func(ctx context.Context) (any, error) {
+			return obj.TasksFinished, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_tasksFinished(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_tasksCanceled(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_tasksCanceled,
+		func(ctx context.Context) (any, error) {
+			return obj.TasksCanceled, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_tasksCanceled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_tasksFailed(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_tasksFailed,
+		func(ctx context.Context) (any, error) {
+			return obj.TasksFailed, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_tasksFailed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryEntry_capturedAt(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryEntry_capturedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CapturedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryEntry_capturedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryPageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryPageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryPageInfo_hasNextPage,
+		func(ctx context.Context) (any, error) {
+			return obj.HasNextPage, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryPageInfo_hasNextPage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryPageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryPageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryPageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryPageInfo_endCursor,
+		func(ctx context.Context) (any, error) {
+			return obj.EndCursor, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryPageInfo_endCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryPageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobManagerDetail_config(ctx context.Context, field graphql.CollectedField, obj *model.JobManagerDetail) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -15266,6 +16103,53 @@ func (ec *executionContext) fieldContext_Query_storageStatus(_ context.Context, 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StorageStatus", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_jobHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_jobHistory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().JobHistory(ctx, fc.Args["filter"].(*model.JobHistoryFilter), fc.Args["pagination"].(*model.PaginationInput))
+		},
+		nil,
+		ec.marshalNJobHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_jobHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_JobHistoryConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_JobHistoryConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobHistoryConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_jobHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -22081,6 +22965,93 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputJobHistoryFilter(ctx context.Context, obj any) (model.JobHistoryFilter, error) {
+	var it model.JobHistoryFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"clusterID", "state", "name", "after", "before"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "clusterID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clusterID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClusterID = data
+		case "state":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.State = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "after":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		case "before":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Before = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj any) (model.PaginationInput, error) {
+	var it model.PaginationInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"first", "after"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "first":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.First = data
+		case "after":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		}
+	}
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -24300,6 +25271,228 @@ func (ec *executionContext) _JobDetail(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var jobHistoryConnectionImplementors = []string{"JobHistoryConnection"}
+
+func (ec *executionContext) _JobHistoryConnection(ctx context.Context, sel ast.SelectionSet, obj *model.JobHistoryConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobHistoryConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobHistoryConnection")
+		case "edges":
+			out.Values[i] = ec._JobHistoryConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._JobHistoryConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var jobHistoryEdgeImplementors = []string{"JobHistoryEdge"}
+
+func (ec *executionContext) _JobHistoryEdge(ctx context.Context, sel ast.SelectionSet, obj *model.JobHistoryEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobHistoryEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobHistoryEdge")
+		case "node":
+			out.Values[i] = ec._JobHistoryEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cursor":
+			out.Values[i] = ec._JobHistoryEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var jobHistoryEntryImplementors = []string{"JobHistoryEntry"}
+
+func (ec *executionContext) _JobHistoryEntry(ctx context.Context, sel ast.SelectionSet, obj *model.JobHistoryEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobHistoryEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobHistoryEntry")
+		case "jid":
+			out.Values[i] = ec._JobHistoryEntry_jid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cluster":
+			out.Values[i] = ec._JobHistoryEntry_cluster(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._JobHistoryEntry_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "state":
+			out.Values[i] = ec._JobHistoryEntry_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "startTime":
+			out.Values[i] = ec._JobHistoryEntry_startTime(ctx, field, obj)
+		case "endTime":
+			out.Values[i] = ec._JobHistoryEntry_endTime(ctx, field, obj)
+		case "durationMs":
+			out.Values[i] = ec._JobHistoryEntry_durationMs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tasksTotal":
+			out.Values[i] = ec._JobHistoryEntry_tasksTotal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tasksRunning":
+			out.Values[i] = ec._JobHistoryEntry_tasksRunning(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tasksFinished":
+			out.Values[i] = ec._JobHistoryEntry_tasksFinished(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tasksCanceled":
+			out.Values[i] = ec._JobHistoryEntry_tasksCanceled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tasksFailed":
+			out.Values[i] = ec._JobHistoryEntry_tasksFailed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "capturedAt":
+			out.Values[i] = ec._JobHistoryEntry_capturedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var jobHistoryPageInfoImplementors = []string{"JobHistoryPageInfo"}
+
+func (ec *executionContext) _JobHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, obj *model.JobHistoryPageInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobHistoryPageInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobHistoryPageInfo")
+		case "hasNextPage":
+			out.Values[i] = ec._JobHistoryPageInfo_hasNextPage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endCursor":
+			out.Values[i] = ec._JobHistoryPageInfo_endCursor(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var jobManagerDetailImplementors = []string{"JobManagerDetail"}
 
 func (ec *executionContext) _JobManagerDetail(ctx context.Context, sel ast.SelectionSet, obj *model.JobManagerDetail) graphql.Marshaler {
@@ -25777,6 +26970,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_storageStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "jobHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_jobHistory(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -29054,6 +30269,66 @@ func (ec *executionContext) marshalNJobDetail2ᚖgithubᚗcomᚋsandboxwsᚋflin
 	return ec._JobDetail(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNJobHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.JobHistoryConnection) graphql.Marshaler {
+	return ec._JobHistoryConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNJobHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobHistoryConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNJobHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobHistoryEdge) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNJobHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdge(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNJobHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobHistoryEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNJobHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobHistoryEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNJobHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryPageInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobHistoryPageInfo(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNJobManagerDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobManagerDetail(ctx context.Context, sel ast.SelectionSet, v model.JobManagerDetail) graphql.Marshaler {
 	return ec._JobManagerDetail(ctx, sel, &v)
 }
@@ -30337,11 +31612,27 @@ func (ec *executionContext) marshalOJSON2ᚕmap(ctx context.Context, sel ast.Sel
 	return ret
 }
 
+func (ec *executionContext) unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryFilter(ctx context.Context, v any) (*model.JobHistoryFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputJobHistoryFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._MaterializedTable(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput(ctx context.Context, v any) (*model.PaginationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPaginationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOPlanNodeInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInputᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNodeInput) graphql.Marshaler {

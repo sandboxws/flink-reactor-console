@@ -35,3 +35,23 @@ fmt:
 
 # Run full CI pipeline (build + lint + test)
 ci: build lint test
+
+# Apply all pending database migrations
+db-migrate:
+    go run ./cmd/migrate up
+
+# Roll back the most recent migration
+db-rollback:
+    go run ./cmd/migrate down
+
+# Show migration status
+db-status:
+    go run ./cmd/migrate status
+
+# Roll back all migrations
+db-reset:
+    go run ./cmd/migrate reset
+
+# Show current migration version
+db-version:
+    go run ./cmd/migrate version

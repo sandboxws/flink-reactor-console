@@ -1,4 +1,4 @@
--- 001_initial.up.sql
+-- +goose Up
 -- Creates all tables for the FlinkReactor historical data store.
 
 -- Clusters: one row per monitored Flink cluster.
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS job_manager_snapshots (
 CREATE TABLE IF NOT EXISTS metrics (
     id              BIGSERIAL,
     cluster         TEXT NOT NULL,
-    source_type     TEXT NOT NULL, -- 'job', 'vertex', 'taskmanager', 'jobmanager'
+    source_type     TEXT NOT NULL,
     source_id       TEXT NOT NULL,
     metric_id       TEXT NOT NULL,
     value           DOUBLE PRECISION,
@@ -140,7 +140,7 @@ CREATE INDEX IF NOT EXISTS idx_metrics_id ON metrics (metric_id, captured_at);
 CREATE TABLE IF NOT EXISTS logs (
     id              BIGSERIAL PRIMARY KEY,
     cluster         TEXT NOT NULL,
-    source_type     TEXT NOT NULL, -- 'taskmanager', 'jobmanager'
+    source_type     TEXT NOT NULL,
     source_id       TEXT NOT NULL,
     log_file        TEXT NOT NULL,
     content         TEXT,
@@ -163,3 +163,15 @@ CREATE TABLE IF NOT EXISTS cluster_overview_snapshots (
 );
 
 CREATE INDEX IF NOT EXISTS idx_cluster_overview_time ON cluster_overview_snapshots (captured_at);
+
+-- +goose Down
+DROP TABLE IF EXISTS cluster_overview_snapshots;
+DROP TABLE IF EXISTS logs;
+DROP TABLE IF EXISTS metrics;
+DROP TABLE IF EXISTS job_manager_snapshots;
+DROP TABLE IF EXISTS task_manager_snapshots;
+DROP TABLE IF EXISTS exceptions;
+DROP TABLE IF EXISTS checkpoints;
+DROP TABLE IF EXISTS vertices;
+DROP TABLE IF EXISTS jobs;
+DROP TABLE IF EXISTS clusters;
