@@ -14,6 +14,38 @@ type StorageStatus {
   idleConns: Int!
 }
 
+"""Preset time range for filtering historical data."""
+enum TimeRange {
+  LAST_1H
+  LAST_2H
+  LAST_24H
+  LAST_7D
+  LAST_30D
+}
+
+"""Sortable fields for job history results."""
+enum JobHistoryOrderField {
+  START_TIME
+  END_TIME
+  DURATION
+  NAME
+  STATE
+}
+
+"""Sort direction."""
+enum OrderDirection {
+  ASC
+  DESC
+}
+
+"""Sorting configuration for query results."""
+input OrderByInput {
+  """The field to sort by."""
+  field: JobHistoryOrderField!
+  """Sort direction (ASC or DESC)."""
+  direction: OrderDirection!
+}
+
 """Filter criteria for historical job queries."""
 input JobHistoryFilter {
   """Filter by cluster name."""
@@ -26,6 +58,8 @@ input JobHistoryFilter {
   after: String
   """Return only jobs with start_time <= this timestamp."""
   before: String
+  """Preset time range filter. Custom after/before takes precedence if both provided."""
+  timeRange: TimeRange
 }
 
 """Cursor-based pagination input."""
@@ -67,6 +101,8 @@ type JobHistoryPageInfo {
   hasNextPage: Boolean!
   """Cursor for fetching the next page."""
   endCursor: String
+  """Total number of items matching the filter (for UI pagination controls)."""
+  totalCount: Int!
 }
 
 """Connection type for paginated job history results."""
@@ -239,8 +275,8 @@ type ClusterOverviewSnapshot {
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
-  """Returns paginated historical jobs with optional filtering."""
-  jobHistory(filter: JobHistoryFilter, pagination: PaginationInput): JobHistoryConnection!
+  """Returns paginated historical jobs with optional filtering and sorting."""
+  jobHistory(filter: JobHistoryFilter, pagination: PaginationInput, orderBy: OrderByInput): JobHistoryConnection!
   """Returns paginated historical checkpoints with optional filtering."""
   checkpointHistory(filter: CheckpointHistoryFilter, pagination: PaginationInput): CheckpointHistoryConnection!
   """Returns paginated historical exceptions with optional filtering."""

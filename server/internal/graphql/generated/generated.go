@@ -414,6 +414,7 @@ type ComplexityRoot struct {
 	JobHistoryPageInfo struct {
 		EndCursor   func(childComplexity int) int
 		HasNextPage func(childComplexity int) int
+		TotalCount  func(childComplexity int) int
 	}
 
 	JobManagerDetail struct {
@@ -598,7 +599,7 @@ type ComplexityRoot struct {
 		Instruments            func(childComplexity int) int
 		Jars                   func(childComplexity int, cluster *string) int
 		Job                    func(childComplexity int, id string, cluster *string) int
-		JobHistory             func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput) int
+		JobHistory             func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput, orderBy *model.OrderByInput) int
 		JobManager             func(childComplexity int, cluster *string) int
 		Jobs                   func(childComplexity int, cluster *string) int
 		KafkaConsumerGroup     func(childComplexity int, instrument string, groupID string) int
@@ -899,7 +900,7 @@ type QueryResolver interface {
 	DatabaseTable(ctx context.Context, instrument string, schema string, table string) (*model.DatabaseTableDetail, error)
 	DatabaseQueryHistory(ctx context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error)
 	StorageStatus(ctx context.Context) (*model.StorageStatus, error)
-	JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput) (*model.JobHistoryConnection, error)
+	JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput, orderBy *model.OrderByInput) (*model.JobHistoryConnection, error)
 	CheckpointHistory(ctx context.Context, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) (*model.CheckpointHistoryConnection, error)
 	ExceptionHistory(ctx context.Context, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) (*model.ExceptionHistoryConnection, error)
 	MetricHistory(ctx context.Context, filter model.MetricHistoryFilter) ([]*model.MetricDataPoint, error)
@@ -2323,6 +2324,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobHistoryPageInfo.HasNextPage(childComplexity), true
+	case "JobHistoryPageInfo.totalCount":
+		if e.ComplexityRoot.JobHistoryPageInfo.TotalCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobHistoryPageInfo.TotalCount(childComplexity), true
 
 	case "JobManagerDetail.config":
 		if e.ComplexityRoot.JobManagerDetail.Config == nil {
@@ -3226,7 +3233,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Query.JobHistory(childComplexity, args["filter"].(*model.JobHistoryFilter), args["pagination"].(*model.PaginationInput)), true
+		return e.ComplexityRoot.Query.JobHistory(childComplexity, args["filter"].(*model.JobHistoryFilter), args["pagination"].(*model.PaginationInput), args["orderBy"].(*model.OrderByInput)), true
 	case "Query.jobManager":
 		if e.ComplexityRoot.Query.JobManager == nil {
 			break
@@ -4411,6 +4418,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputExceptionHistoryFilter,
 		ec.unmarshalInputJobHistoryFilter,
 		ec.unmarshalInputMetricHistoryFilter,
+		ec.unmarshalInputOrderByInput,
 		ec.unmarshalInputPaginationInput,
 	)
 	first := true
@@ -4740,6 +4748,38 @@ type StorageStatus {
   idleConns: Int!
 }
 
+"""Preset time range for filtering historical data."""
+enum TimeRange {
+  LAST_1H
+  LAST_2H
+  LAST_24H
+  LAST_7D
+  LAST_30D
+}
+
+"""Sortable fields for job history results."""
+enum JobHistoryOrderField {
+  START_TIME
+  END_TIME
+  DURATION
+  NAME
+  STATE
+}
+
+"""Sort direction."""
+enum OrderDirection {
+  ASC
+  DESC
+}
+
+"""Sorting configuration for query results."""
+input OrderByInput {
+  """The field to sort by."""
+  field: JobHistoryOrderField!
+  """Sort direction (ASC or DESC)."""
+  direction: OrderDirection!
+}
+
 """Filter criteria for historical job queries."""
 input JobHistoryFilter {
   """Filter by cluster name."""
@@ -4752,6 +4792,8 @@ input JobHistoryFilter {
   after: String
   """Return only jobs with start_time <= this timestamp."""
   before: String
+  """Preset time range filter. Custom after/before takes precedence if both provided."""
+  timeRange: TimeRange
 }
 
 """Cursor-based pagination input."""
@@ -4793,6 +4835,8 @@ type JobHistoryPageInfo {
   hasNextPage: Boolean!
   """Cursor for fetching the next page."""
   endCursor: String
+  """Total number of items matching the filter (for UI pagination controls)."""
+  totalCount: Int!
 }
 
 """Connection type for paginated job history results."""
@@ -4965,8 +5009,8 @@ type ClusterOverviewSnapshot {
 extend type Query {
   """Returns the status of the PostgreSQL storage backend."""
   storageStatus: StorageStatus!
-  """Returns paginated historical jobs with optional filtering."""
-  jobHistory(filter: JobHistoryFilter, pagination: PaginationInput): JobHistoryConnection!
+  """Returns paginated historical jobs with optional filtering and sorting."""
+  jobHistory(filter: JobHistoryFilter, pagination: PaginationInput, orderBy: OrderByInput): JobHistoryConnection!
   """Returns paginated historical checkpoints with optional filtering."""
   checkpointHistory(filter: CheckpointHistoryFilter, pagination: PaginationInput): CheckpointHistoryConnection!
   """Returns paginated historical exceptions with optional filtering."""
@@ -6297,6 +6341,11 @@ func (ec *executionContext) field_Query_jobHistory_args(ctx context.Context, raw
 		return nil, err
 	}
 	args["pagination"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "orderBy", ec.unmarshalOOrderByInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderByInput)
+	if err != nil {
+		return nil, err
+	}
+	args["orderBy"] = arg2
 	return args, nil
 }
 
@@ -13040,6 +13089,8 @@ func (ec *executionContext) fieldContext_JobHistoryConnection_pageInfo(_ context
 				return ec.fieldContext_JobHistoryPageInfo_hasNextPage(ctx, field)
 			case "endCursor":
 				return ec.fieldContext_JobHistoryPageInfo_endCursor(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_JobHistoryPageInfo_totalCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobHistoryPageInfo", field.Name)
 		},
@@ -13563,6 +13614,35 @@ func (ec *executionContext) fieldContext_JobHistoryPageInfo_endCursor(_ context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobHistoryPageInfo_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.JobHistoryPageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobHistoryPageInfo_totalCount,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobHistoryPageInfo_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobHistoryPageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -17558,7 +17638,7 @@ func (ec *executionContext) _Query_jobHistory(ctx context.Context, field graphql
 		ec.fieldContext_Query_jobHistory,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Query().JobHistory(ctx, fc.Args["filter"].(*model.JobHistoryFilter), fc.Args["pagination"].(*model.PaginationInput))
+			return ec.Resolvers.Query().JobHistory(ctx, fc.Args["filter"].(*model.JobHistoryFilter), fc.Args["pagination"].(*model.PaginationInput), fc.Args["orderBy"].(*model.OrderByInput))
 		},
 		nil,
 		ec.marshalNJobHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection,
@@ -25459,7 +25539,7 @@ func (ec *executionContext) unmarshalInputJobHistoryFilter(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"clusterID", "state", "name", "after", "before"}
+	fieldsInOrder := [...]string{"clusterID", "state", "name", "after", "before", "timeRange"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25501,6 +25581,13 @@ func (ec *executionContext) unmarshalInputJobHistoryFilter(ctx context.Context, 
 				return it, err
 			}
 			it.Before = data
+		case "timeRange":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeRange"))
+			data, err := ec.unmarshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TimeRange = data
 		}
 	}
 	return it, nil
@@ -25562,6 +25649,39 @@ func (ec *executionContext) unmarshalInputMetricHistoryFilter(ctx context.Contex
 				return it, err
 			}
 			it.Before = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOrderByInput(ctx context.Context, obj any) (model.OrderByInput, error) {
+	var it model.OrderByInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"field", "direction"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "field":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
+		case "direction":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			data, err := ec.unmarshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Direction = data
 		}
 	}
 	return it, nil
@@ -28360,6 +28480,11 @@ func (ec *executionContext) _JobHistoryPageInfo(ctx context.Context, sel ast.Sel
 			}
 		case "endCursor":
 			out.Values[i] = ec._JobHistoryPageInfo_endCursor(ctx, field, obj)
+		case "totalCount":
+			out.Values[i] = ec._JobHistoryPageInfo_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -33639,6 +33764,16 @@ func (ec *executionContext) marshalNJobHistoryEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._JobHistoryEntry(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx context.Context, v any) (model.JobHistoryOrderField, error) {
+	var res model.JobHistoryOrderField
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx context.Context, sel ast.SelectionSet, v model.JobHistoryOrderField) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNJobHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryPageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -34044,6 +34179,16 @@ func (ec *executionContext) marshalNMetricEntry2ᚖgithubᚗcomᚋsandboxwsᚋfl
 func (ec *executionContext) unmarshalNMetricHistoryFilter2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricHistoryFilter(ctx context.Context, v any) (model.MetricHistoryFilter, error) {
 	res, err := ec.unmarshalInputMetricHistoryFilter(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx context.Context, v any) (model.OrderDirection, error) {
+	var res model.OrderDirection
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v model.OrderDirection) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNPlanNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNode) graphql.Marshaler {
@@ -35014,6 +35159,14 @@ func (ec *executionContext) marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxw
 	return ec._MaterializedTable(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOOrderByInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderByInput(ctx context.Context, v any) (*model.OrderByInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputOrderByInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput(ctx context.Context, v any) (*model.PaginationInput, error) {
 	if v == nil {
 		return nil, nil
@@ -35087,6 +35240,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx context.Context, v any) (*model.TimeRange, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.TimeRange)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx context.Context, sel ast.SelectionSet, v *model.TimeRange) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOVertexAccumulators2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulatorsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexAccumulators) graphql.Marshaler {

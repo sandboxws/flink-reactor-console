@@ -292,6 +292,36 @@ const CLOSE_SQL_SESSION = gql`
   }
 `
 
+const JOB_HISTORY_QUERY = gql`
+  query JobHistory($filter: JobHistoryFilter, $pagination: PaginationInput, $orderBy: OrderByInput) {
+    jobHistory(filter: $filter, pagination: $pagination, orderBy: $orderBy) {
+      edges {
+        node {
+          jid
+          cluster
+          name
+          state
+          startTime
+          endTime
+          durationMs
+          tasksTotal
+          tasksRunning
+          tasksFinished
+          tasksCanceled
+          tasksFailed
+          capturedAt
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+        totalCount
+      }
+    }
+  }
+`
+
 // ---------------------------------------------------------------------------
 // Query execution helper
 // ---------------------------------------------------------------------------
@@ -1416,4 +1446,78 @@ export async function fetchCatalogColumns(
     .toPromise()
   if (result.error) throw new Error(result.error.message)
   return result.data?.catalogColumns ?? []
+}
+
+// ---------------------------------------------------------------------------
+// Job History
+// ---------------------------------------------------------------------------
+
+export interface JobHistoryEntry {
+  jid: string
+  cluster: string
+  name: string
+  state: string
+  startTime: string | null
+  endTime: string | null
+  durationMs: number
+  tasksTotal: number
+  tasksRunning: number
+  tasksFinished: number
+  tasksCanceled: number
+  tasksFailed: number
+  capturedAt: string
+}
+
+export interface JobHistoryPage {
+  entries: JobHistoryEntry[]
+  hasNextPage: boolean
+  endCursor: string | null
+  totalCount: number
+}
+
+export interface JobHistoryParams {
+  filter?: {
+    clusterID?: string
+    state?: string
+    name?: string
+    after?: string
+    before?: string
+    timeRange?: string
+  }
+  pagination?: {
+    first?: number
+    after?: string
+  }
+  orderBy?: {
+    field: string
+    direction: string
+  }
+}
+
+export async function fetchJobHistory(
+  params: JobHistoryParams,
+): Promise<JobHistoryPage> {
+  const data = await query<any>(JOB_HISTORY_QUERY, params, "network-only")
+  const conn = data.jobHistory
+  const entries: JobHistoryEntry[] = (conn.edges ?? []).map((edge: any) => ({
+    jid: edge.node.jid,
+    cluster: edge.node.cluster,
+    name: edge.node.name,
+    state: edge.node.state,
+    startTime: edge.node.startTime ?? null,
+    endTime: edge.node.endTime ?? null,
+    durationMs: Number.parseInt(edge.node.durationMs, 10) || 0,
+    tasksTotal: edge.node.tasksTotal,
+    tasksRunning: edge.node.tasksRunning,
+    tasksFinished: edge.node.tasksFinished,
+    tasksCanceled: edge.node.tasksCanceled,
+    tasksFailed: edge.node.tasksFailed,
+    capturedAt: edge.node.capturedAt,
+  }))
+  return {
+    entries,
+    hasNextPage: conn.pageInfo.hasNextPage,
+    endCursor: conn.pageInfo.endCursor ?? null,
+    totalCount: conn.pageInfo.totalCount,
+  }
 }

@@ -1,0 +1,31 @@
+query JobHistory(
+  $filter: JobHistoryFilter
+  $pagination: PaginationInput
+  $orderBy: OrderByInput
+) {
+  jobHistory(filter: $filter, pagination: $pagination, orderBy: $orderBy) {
+    edges {
+      node {
+        jid
+        cluster
+        name
+        state
+        startTime
+        endTime
+        durationMs
+        tasksTotal
+        tasksRunning
+        tasksFinished
+        tasksCanceled
+        tasksFailed
+        capturedAt
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+      totalCount
+    }
+  }
+}

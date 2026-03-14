@@ -49,12 +49,12 @@ func (r *queryResolver) StorageStatus(ctx context.Context) (*model.StorageStatus
 }
 
 // JobHistory is the resolver for the jobHistory field.
-func (r *queryResolver) JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput) (*model.JobHistoryConnection, error) {
-	if r.Stores == nil {
-		return &model.JobHistoryConnection{
-			Edges:    []*model.JobHistoryEdge{},
-			PageInfo: &model.JobHistoryPageInfo{HasNextPage: false},
-		}, nil
+// It merges historical jobs from PostgreSQL with live jobs from the Flink API,
+// deduplicating by (cluster, jid) and preferring live data for active jobs.
+func (r *queryResolver) JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput, orderBy *model.OrderByInput) (*model.JobHistoryConnection, error) {
+	empty := &model.JobHistoryConnection{
+		Edges:    []*model.JobHistoryEdge{},
+		PageInfo: &model.JobHistoryPageInfo{HasNextPage: false, TotalCount: 0},
 	}
 
 	// Build store filter from GraphQL input.
@@ -63,6 +63,8 @@ func (r *queryResolver) JobHistory(ctx context.Context, filter *model.JobHistory
 		jf.ClusterID = filter.ClusterID
 		jf.State = filter.State
 		jf.Name = filter.Name
+
+		// Custom time range takes precedence over preset timeRange.
 		if filter.After != nil {
 			t, err := time.Parse(time.RFC3339, *filter.After)
 			if err != nil {
@@ -77,34 +79,101 @@ func (r *queryResolver) JobHistory(ctx context.Context, filter *model.JobHistory
 			}
 			jf.Before = &t
 		}
-	}
 
-	var cp store.CursorPagination
-	if pagination != nil {
-		if pagination.First != nil {
-			cp.First = *pagination.First
+		// Apply preset timeRange if no custom after/before provided.
+		if filter.TimeRange != nil && jf.After == nil && jf.Before == nil {
+			t := timeRangeToAfter(*filter.TimeRange)
+			jf.After = &t
 		}
-		cp.After = pagination.After
 	}
 
-	jobs, nextCursor, err := r.Stores.Jobs.QueryJobs(ctx, jf, cp)
-	if err != nil {
-		return nil, fmt.Errorf("query job history: %w", err)
+	// Collect entries from both sources into a unified map keyed by "cluster|jid".
+	entries := make(map[string]*model.JobHistoryEntry)
+
+	// 1. Fetch historical jobs from PostgreSQL (large limit, no cursor pagination).
+	if r.Stores != nil {
+		cp := store.CursorPagination{First: 10000}
+		jobs, _, err := r.Stores.Jobs.QueryJobs(ctx, jf, cp)
+		if err != nil {
+			return nil, fmt.Errorf("query job history: %w", err)
+		}
+		for _, j := range jobs {
+			key := j.Cluster + "|" + j.JID
+			entries[key] = dbJobToHistoryEntry(j)
+		}
 	}
 
-	edges := make([]*model.JobHistoryEdge, len(jobs))
-	for i, j := range jobs {
-		entry := dbJobToHistoryEntry(j)
+	// 2. Fetch live jobs from all Flink clusters and overlay.
+	if r.Manager != nil {
+		for _, info := range r.Manager.List() {
+			conn, err := r.Manager.Get(info.Name)
+			if err != nil {
+				continue
+			}
+			overview, err := conn.Service.GetJobs(ctx)
+			if err != nil {
+				continue // graceful degradation
+			}
+			for _, j := range overview.Jobs {
+				entry := flinkJobToHistoryEntry(j, info.Name)
+
+				// Apply filters to live jobs.
+				if !matchesFilter(entry, filter) {
+					continue
+				}
+
+				// Live data wins: overwrite any PG entry for the same job.
+				key := info.Name + "|" + j.JID
+				entries[key] = entry
+			}
+		}
+	}
+
+	if len(entries) == 0 {
+		return empty, nil
+	}
+
+	// Flatten map to slice.
+	allEntries := make([]*model.JobHistoryEntry, 0, len(entries))
+	for _, e := range entries {
+		allEntries = append(allEntries, e)
+	}
+
+	// Sort.
+	sortJobEntries(allEntries, orderBy)
+
+	totalCount := len(allEntries)
+
+	// Paginate.
+	pageSize := 20
+	if pagination != nil && pagination.First != nil && *pagination.First > 0 {
+		pageSize = *pagination.First
+	}
+
+	startIdx := 0
+	if pagination != nil && pagination.After != nil {
+		startIdx = findCursorIndex(allEntries, *pagination.After) + 1
+	}
+
+	endIdx := startIdx + pageSize
+	if endIdx > len(allEntries) {
+		endIdx = len(allEntries)
+	}
+
+	page := allEntries[startIdx:endIdx]
+	edges := make([]*model.JobHistoryEdge, len(page))
+	for i, e := range page {
 		edges[i] = &model.JobHistoryEdge{
-			Node:   entry,
-			Cursor: buildJobCursor(j),
+			Node:   e,
+			Cursor: buildEntryCursor(e, i+startIdx),
 		}
 	}
 
-	hasNext := nextCursor != ""
+	hasNext := endIdx < len(allEntries)
 	var endCursor *string
-	if hasNext {
-		endCursor = &nextCursor
+	if hasNext && len(edges) > 0 {
+		c := edges[len(edges)-1].Cursor
+		endCursor = &c
 	}
 
 	return &model.JobHistoryConnection{
@@ -112,6 +181,7 @@ func (r *queryResolver) JobHistory(ctx context.Context, filter *model.JobHistory
 		PageInfo: &model.JobHistoryPageInfo{
 			HasNextPage: hasNext,
 			EndCursor:   endCursor,
+			TotalCount:  totalCount,
 		},
 	}, nil
 }

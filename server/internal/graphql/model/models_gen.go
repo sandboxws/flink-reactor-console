@@ -473,6 +473,8 @@ type JobHistoryFilter struct {
 	After *string `json:"after,omitempty"`
 	// Return only jobs with start_time <= this timestamp.
 	Before *string `json:"before,omitempty"`
+	// Preset time range filter. Custom after/before takes precedence if both provided.
+	TimeRange *TimeRange `json:"timeRange,omitempty"`
 }
 
 // Page info for cursor-based pagination.
@@ -481,6 +483,8 @@ type JobHistoryPageInfo struct {
 	HasNextPage bool `json:"hasNextPage"`
 	// Cursor for fetching the next page.
 	EndCursor *string `json:"endCursor,omitempty"`
+	// Total number of items matching the filter (for UI pagination controls).
+	TotalCount int `json:"totalCount"`
 }
 
 type JobManagerDetail struct {
@@ -642,6 +646,14 @@ type MetricHistoryFilter struct {
 }
 
 type Mutation struct {
+}
+
+// Sorting configuration for query results.
+type OrderByInput struct {
+	// The field to sort by.
+	Field JobHistoryOrderField `json:"field"`
+	// Sort direction (ASC or DESC).
+	Direction OrderDirection `json:"direction"`
 }
 
 // Cursor-based pagination input.
@@ -1052,6 +1064,68 @@ func (e ClusterStatus) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// Sortable fields for job history results.
+type JobHistoryOrderField string
+
+const (
+	JobHistoryOrderFieldStartTime JobHistoryOrderField = "START_TIME"
+	JobHistoryOrderFieldEndTime   JobHistoryOrderField = "END_TIME"
+	JobHistoryOrderFieldDuration  JobHistoryOrderField = "DURATION"
+	JobHistoryOrderFieldName      JobHistoryOrderField = "NAME"
+	JobHistoryOrderFieldState     JobHistoryOrderField = "STATE"
+)
+
+var AllJobHistoryOrderField = []JobHistoryOrderField{
+	JobHistoryOrderFieldStartTime,
+	JobHistoryOrderFieldEndTime,
+	JobHistoryOrderFieldDuration,
+	JobHistoryOrderFieldName,
+	JobHistoryOrderFieldState,
+}
+
+func (e JobHistoryOrderField) IsValid() bool {
+	switch e {
+	case JobHistoryOrderFieldStartTime, JobHistoryOrderFieldEndTime, JobHistoryOrderFieldDuration, JobHistoryOrderFieldName, JobHistoryOrderFieldState:
+		return true
+	}
+	return false
+}
+
+func (e JobHistoryOrderField) String() string {
+	return string(e)
+}
+
+func (e *JobHistoryOrderField) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = JobHistoryOrderField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid JobHistoryOrderField", str)
+	}
+	return nil
+}
+
+func (e JobHistoryOrderField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *JobHistoryOrderField) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e JobHistoryOrderField) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 type MaterializedTableRefreshStatus string
 
 const (
@@ -1104,6 +1178,124 @@ func (e *MaterializedTableRefreshStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e MaterializedTableRefreshStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Sort direction.
+type OrderDirection string
+
+const (
+	OrderDirectionAsc  OrderDirection = "ASC"
+	OrderDirectionDesc OrderDirection = "DESC"
+)
+
+var AllOrderDirection = []OrderDirection{
+	OrderDirectionAsc,
+	OrderDirectionDesc,
+}
+
+func (e OrderDirection) IsValid() bool {
+	switch e {
+	case OrderDirectionAsc, OrderDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e OrderDirection) String() string {
+	return string(e)
+}
+
+func (e *OrderDirection) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrderDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OrderDirection", str)
+	}
+	return nil
+}
+
+func (e OrderDirection) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *OrderDirection) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e OrderDirection) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Preset time range for filtering historical data.
+type TimeRange string
+
+const (
+	TimeRangeLast1h  TimeRange = "LAST_1H"
+	TimeRangeLast2h  TimeRange = "LAST_2H"
+	TimeRangeLast24h TimeRange = "LAST_24H"
+	TimeRangeLast7d  TimeRange = "LAST_7D"
+	TimeRangeLast30d TimeRange = "LAST_30D"
+)
+
+var AllTimeRange = []TimeRange{
+	TimeRangeLast1h,
+	TimeRangeLast2h,
+	TimeRangeLast24h,
+	TimeRangeLast7d,
+	TimeRangeLast30d,
+}
+
+func (e TimeRange) IsValid() bool {
+	switch e {
+	case TimeRangeLast1h, TimeRangeLast2h, TimeRangeLast24h, TimeRangeLast7d, TimeRangeLast30d:
+		return true
+	}
+	return false
+}
+
+func (e TimeRange) String() string {
+	return string(e)
+}
+
+func (e *TimeRange) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TimeRange(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TimeRange", str)
+	}
+	return nil
+}
+
+func (e TimeRange) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *TimeRange) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e TimeRange) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

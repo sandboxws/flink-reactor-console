@@ -18,6 +18,7 @@ type Stores struct {
 	TaskManagers *TaskManagerStore
 	JobManager   *JobManagerStore
 	Metrics      *MetricStore
+	Logs         *LogStore
 }
 
 // New creates a Stores aggregate backed by the given connection pool.
@@ -31,5 +32,6 @@ func New(pool *pgxpool.Pool) *Stores {
 		TaskManagers: &TaskManagerStore{pool: pool},
 		JobManager:   &JobManagerStore{pool: pool},
 		Metrics:      &MetricStore{pool: pool},
+		Logs:         &LogStore{pool: pool},
 	}
 }

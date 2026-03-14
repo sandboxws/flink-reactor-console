@@ -82,6 +82,13 @@ func (s *Syncer) Start(ctx context.Context) {
 		s.runMetricsSync(ctx)
 	}()
 
+	// Logs domain.
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.runLogSync(ctx)
+	}()
+
 	// Cluster overview domain.
 	s.wg.Add(1)
 	go func() {
@@ -95,6 +102,7 @@ func (s *Syncer) Start(ctx context.Context) {
 		"exceptions_interval", s.config.Exceptions,
 		"task_managers_interval", s.config.TaskManagers,
 		"job_manager_interval", s.config.JobManager,
+		"logs_interval", s.config.Logs,
 		"metrics_interval", s.config.Metrics,
 		"cluster_overview_interval", s.config.ClusterOverview,
 	)

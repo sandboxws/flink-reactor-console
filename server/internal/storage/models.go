@@ -301,6 +301,7 @@ type DBLog struct {
 	SourceID   string    `db:"source_id"`
 	LogFile    string    `db:"log_file"`
 	Content    string    `db:"content"`
+	ByteOffset int64     `db:"byte_offset"`
 	CapturedAt time.Time `db:"captured_at"`
 }
 
