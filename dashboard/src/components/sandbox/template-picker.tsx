@@ -18,7 +18,7 @@ export function TemplatePicker({ value, onSelect }: TemplatPickerProps) {
       value={value ?? undefined}
       onValueChange={(v) => onSelect(v as TemplateId)}
     >
-      <SelectTrigger className="h-7 w-52 text-xs">
+      <SelectTrigger className="h-7 w-64 text-xs">
         <SelectValue placeholder="Select a template…" />
       </SelectTrigger>
       <SelectContent>

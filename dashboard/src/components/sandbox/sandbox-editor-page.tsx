@@ -108,9 +108,6 @@ export function SandboxEditorPage() {
                   <TemplatePicker value={activeTemplate} onSelect={setTemplate} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-zinc-600">
-                    Cmd+Enter
-                  </span>
                   <Button
                     variant="ghost"
                     size="sm"
