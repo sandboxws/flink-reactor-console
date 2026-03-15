@@ -9,6 +9,8 @@ export interface SandboxExample {
   name: string
   description: string
   code: string
+  /** JSX tag names to keep bright (everything else dimmed) — Transform examples only */
+  focusComponents?: string[]
 }
 
 export interface SandboxCategory {
@@ -90,6 +92,8 @@ export const SANDBOX_CATEGORIES: SandboxCategory[] = [
         id: "group-aggregate",
         name: "Group Aggregate",
         description: "Continuous aggregation with GROUP BY",
+        focusComponents: ["Aggregate"],
+
         code: `const TransactionSchema = Schema({
   fields: {
     user_id: Field.STRING(),
@@ -127,6 +131,7 @@ export const SANDBOX_CATEGORIES: SandboxCategory[] = [
         id: "dedup-aggregate",
         name: "Deduplicate + Aggregate",
         description: "Remove duplicates then aggregate by window",
+        focusComponents: ["Deduplicate", "Aggregate"],
         code: `const RawEventSchema = Schema({
   fields: {
     event_id: Field.STRING(),
@@ -159,6 +164,264 @@ export const SANDBOX_CATEGORIES: SandboxCategory[] = [
     />
   </TumbleWindow>
   <KafkaSink topic="hourly_user_events" bootstrapServers="kafka:9092" />
+</Pipeline>`,
+      },
+      {
+        id: "flatmap-unnest",
+        name: "Flatten Nested Data",
+        description: "Unnest an array column into individual rows with FlatMap",
+        focusComponents: ["FlatMap"],
+        code: `const OrderSchema = Schema({
+  fields: {
+    order_id: Field.STRING(),
+    customer_id: Field.STRING(),
+    line_items: Field.ARRAY(Field.STRING()),
+    order_time: Field.TIMESTAMP(3),
+  },
+})
+
+<Pipeline name="unnest-line-items" parallelism={4}>
+  <KafkaSource
+    topic="orders"
+    bootstrapServers="kafka:9092"
+    schema={OrderSchema}
+  />
+  <FlatMap
+    unnest="line_items"
+    as={{
+      product_id: "STRING",
+      quantity: "INT",
+      price: "DECIMAL(10, 2)",
+    }}
+  />
+  <KafkaSink topic="order_line_items" bootstrapServers="kafka:9092" />
+</Pipeline>`,
+      },
+      {
+        id: "top-n-ranking",
+        name: "Top N Ranking",
+        description: "Rank top 3 products per category by revenue",
+        focusComponents: ["TopN", "Aggregate"],
+        code: `const SalesSchema = Schema({
+  fields: {
+    product_id: Field.STRING(),
+    category: Field.STRING(),
+    revenue: Field.DECIMAL(10, 2),
+    sale_time: Field.TIMESTAMP(3),
+  },
+  watermark: {
+    column: "sale_time",
+    expression: "sale_time - INTERVAL '5' SECOND",
+  },
+})
+
+<Pipeline name="top-products-by-category" parallelism={8}>
+  <KafkaSource
+    topic="sales"
+    bootstrapServers="kafka:9092"
+    schema={SalesSchema}
+  />
+  <Aggregate
+    groupBy={["category", "product_id"]}
+    select={{
+      category: "category",
+      product_id: "product_id",
+      total_revenue: "SUM(revenue)",
+    }}
+  />
+  <TopN
+    partitionBy={["category"]}
+    orderBy={{ total_revenue: "DESC" }}
+    n={3}
+  />
+  <KafkaSink topic="top_products" bootstrapServers="kafka:9092" />
+</Pipeline>`,
+      },
+      {
+        id: "union-streams",
+        name: "Merge Streams",
+        description: "Combine same-schema event streams from multiple regions",
+        focusComponents: ["Union"],
+        code: `const RegionalEventSchema = Schema({
+  fields: {
+    event_id: Field.STRING(),
+    user_id: Field.STRING(),
+    event_type: Field.STRING(),
+    region: Field.STRING(),
+    event_time: Field.TIMESTAMP(3),
+  },
+})
+
+const us = (
+  <KafkaSource
+    topic="events_us"
+    bootstrapServers="kafka-us:9092"
+    schema={RegionalEventSchema}
+  />
+)
+
+const eu = (
+  <KafkaSource
+    topic="events_eu"
+    bootstrapServers="kafka-eu:9092"
+    schema={RegionalEventSchema}
+  />
+)
+
+<Pipeline name="merged-regional-events" parallelism={8}>
+  <Union>{us}{eu}</Union>
+  <KafkaSink topic="events_global" bootstrapServers="kafka:9092" />
+</Pipeline>`,
+      },
+      {
+        id: "rename-fields",
+        name: "Rename Fields",
+        description:
+          "Standardize legacy column names to consistent conventions",
+        focusComponents: ["Rename"],
+        code: `const LegacySchema = Schema({
+  fields: {
+    usr_id: Field.STRING(),
+    evt_type: Field.STRING(),
+    ts: Field.TIMESTAMP(3),
+    payload: Field.STRING(),
+  },
+})
+
+<Pipeline name="standardize-columns" parallelism={4}>
+  <KafkaSource
+    topic="legacy_events"
+    bootstrapServers="kafka:9092"
+    schema={LegacySchema}
+  />
+  <Rename
+    columns={{
+      usr_id: "user_id",
+      evt_type: "event_type",
+      ts: "event_time",
+    }}
+  />
+  <KafkaSink topic="standardized_events" bootstrapServers="kafka:9092" />
+</Pipeline>`,
+      },
+      {
+        id: "drop-fields",
+        name: "Drop Fields",
+        description:
+          "Strip internal fields before publishing to an external topic",
+        focusComponents: ["Drop"],
+        code: `const InternalEventSchema = Schema({
+  fields: {
+    event_id: Field.STRING(),
+    user_id: Field.STRING(),
+    event_type: Field.STRING(),
+    internal_trace_id: Field.STRING(),
+    debug_flags: Field.STRING(),
+    raw_payload: Field.STRING(),
+    event_time: Field.TIMESTAMP(3),
+  },
+})
+
+<Pipeline name="strip-internal-fields" parallelism={4}>
+  <KafkaSource
+    topic="internal_events"
+    bootstrapServers="kafka:9092"
+    schema={InternalEventSchema}
+  />
+  <Drop columns={["internal_trace_id", "debug_flags", "raw_payload"]} />
+  <KafkaSink topic="public_events" bootstrapServers="kafka:9092" />
+</Pipeline>`,
+      },
+      {
+        id: "cast-types",
+        name: "Cast Types",
+        description: "Convert string-encoded sensor readings to numeric types",
+        focusComponents: ["Cast"],
+        code: `const RawSensorSchema = Schema({
+  fields: {
+    sensor_id: Field.STRING(),
+    temperature: Field.STRING(),
+    humidity: Field.STRING(),
+    reading_time: Field.STRING(),
+  },
+})
+
+<Pipeline name="cast-sensor-readings" parallelism={4}>
+  <KafkaSource
+    topic="raw_sensor_data"
+    bootstrapServers="kafka:9092"
+    schema={RawSensorSchema}
+  />
+  <Cast
+    columns={{
+      temperature: "DOUBLE",
+      humidity: "DOUBLE",
+      reading_time: "TIMESTAMP(3)",
+    }}
+    safe={true}
+  />
+  <KafkaSink topic="typed_sensor_data" bootstrapServers="kafka:9092" />
+</Pipeline>`,
+      },
+      {
+        id: "coalesce-defaults",
+        name: "Coalesce Defaults",
+        description: "Fill nullable user profile fields with sensible defaults",
+        focusComponents: ["Coalesce"],
+        code: `const UserProfileSchema = Schema({
+  fields: {
+    user_id: Field.STRING(),
+    display_name: Field.STRING(),
+    locale: Field.STRING(),
+    timezone: Field.STRING(),
+    updated_at: Field.TIMESTAMP(3),
+  },
+})
+
+<Pipeline name="fill-profile-defaults" parallelism={4}>
+  <KafkaSource
+    topic="user_profiles"
+    bootstrapServers="kafka:9092"
+    schema={UserProfileSchema}
+  />
+  <Coalesce
+    columns={{
+      display_name: "user_id",
+      locale: "'en-US'",
+      timezone: "'UTC'",
+    }}
+  />
+  <KafkaSink topic="enriched_profiles" bootstrapServers="kafka:9092" />
+</Pipeline>`,
+      },
+      {
+        id: "add-computed-field",
+        name: "Add Computed Field",
+        description: "Enrich orders with computed total and high-value flag",
+        focusComponents: ["AddField"],
+        code: `const OrderSchema = Schema({
+  fields: {
+    order_id: Field.STRING(),
+    product_id: Field.STRING(),
+    quantity: Field.INT(),
+    unit_price: Field.DECIMAL(10, 2),
+    order_time: Field.TIMESTAMP(3),
+  },
+})
+
+<Pipeline name="enrich-orders" parallelism={8}>
+  <KafkaSource
+    topic="orders"
+    bootstrapServers="kafka:9092"
+    schema={OrderSchema}
+  />
+  <AddField
+    columns={{
+      total_price: "quantity * unit_price",
+      is_high_value: "quantity * unit_price > 500",
+    }}
+  />
+  <KafkaSink topic="enriched_orders" bootstrapServers="kafka:9092" />
 </Pipeline>`,
       },
     ],
@@ -401,6 +664,13 @@ export function findExample(id: string): SandboxExample | undefined {
     if (example) return example
   }
   return undefined
+}
+
+export function findCategoryForExample(id: string): string | null {
+  for (const cat of SANDBOX_CATEGORIES) {
+    if (cat.examples.some((e) => e.id === id)) return cat.id
+  }
+  return null
 }
 
 export const DEFAULT_EXAMPLE_ID = "hello-world"

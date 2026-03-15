@@ -1,27 +1,32 @@
-import { useCallback, useEffect, useRef } from "react"
+import { autocompletion, completionKeymap } from "@codemirror/autocomplete"
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
+import { javascript } from "@codemirror/lang-javascript"
+import { bracketMatching } from "@codemirror/language"
 import {
-  EditorState,
   Compartment,
+  EditorState,
+  RangeSet,
   StateEffect,
   StateField,
-  RangeSet,
 } from "@codemirror/state"
 import {
   EditorView,
-  keymap,
-  lineNumbers,
-  highlightActiveLine,
   GutterMarker,
   gutter,
+  highlightActiveLine,
+  keymap,
+  lineNumbers,
 } from "@codemirror/view"
-import { javascript } from "@codemirror/lang-javascript"
-import { bracketMatching } from "@codemirror/language"
-import { autocompletion, completionKeymap } from "@codemirror/autocomplete"
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
+import { useCallback, useEffect, useRef } from "react"
+import type { ValidationDiagnostic } from "@/stores/sandbox-store"
 import { dslCompletionSource } from "./completions"
+import {
+  computeTsxFocusLines,
+  focusHighlightField,
+  setFocusLines,
+} from "./focus-highlight"
 import { gruvpuccinCmTheme } from "./themes/gruvpuccin-cm-theme"
 import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
-import type { ValidationDiagnostic } from "@/stores/sandbox-store"
 
 // ---------------------------------------------------------------------------
 // Gutter marker classes — each instance carries its diagnostic message
@@ -65,14 +70,20 @@ class DiagnosticGutterMarker extends GutterMarker {
 
 let tooltipEl: HTMLDivElement | null = null
 
-function showTooltip(messages: string[], severity: "error" | "warning", anchor: HTMLElement) {
+function showTooltip(
+  messages: string[],
+  severity: "error" | "warning",
+  anchor: HTMLElement,
+) {
   hideTooltip()
 
   tooltipEl = document.createElement("div")
   tooltipEl.className = "cm-diagnostic-tooltip"
 
-  const borderColor = severity === "error" ? "rgba(239,68,68,0.4)" : "rgba(245,158,11,0.4)"
-  const bgColor = severity === "error" ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)"
+  const borderColor =
+    severity === "error" ? "rgba(239,68,68,0.4)" : "rgba(245,158,11,0.4)"
+  const bgColor =
+    severity === "error" ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)"
   const textColor = severity === "error" ? "#fca5a5" : "#fcd34d"
 
   Object.assign(tooltipEl.style, {
@@ -136,7 +147,9 @@ const diagnosticGutter = gutter({
   domEventHandlers: {
     mouseover(view, line, event) {
       const target = event.target as HTMLElement
-      const markerEl = target.closest(".cm-diagnostic-error, .cm-diagnostic-warning")
+      const markerEl = target.closest(
+        ".cm-diagnostic-error, .cm-diagnostic-warning",
+      )
       if (!markerEl) return false
 
       // Find the marker for this line
@@ -144,7 +157,11 @@ const diagnosticGutter = gutter({
       const lineFrom = line.from
       let found: DiagnosticGutterMarker | null = null
       const cursor = markers.iter(lineFrom)
-      if (cursor.value && cursor.from === lineFrom && cursor.value instanceof DiagnosticGutterMarker) {
+      if (
+        cursor.value &&
+        cursor.from === lineFrom &&
+        cursor.value instanceof DiagnosticGutterMarker
+      ) {
         found = cursor.value
       }
 
@@ -225,6 +242,7 @@ interface SandboxEditorProps {
   onChange: (value: string) => void
   onSynthesize: () => void
   diagnostics?: ValidationDiagnostic[]
+  focusComponents?: string[] | null
 }
 
 const themeCompartment = new Compartment()
@@ -236,7 +254,13 @@ function getActiveTheme() {
     : tokyoNightCmTheme
 }
 
-export function SandboxEditor({ value, onChange, onSynthesize, diagnostics = [] }: SandboxEditorProps) {
+export function SandboxEditor({
+  value,
+  onChange,
+  onSynthesize,
+  diagnostics = [],
+  focusComponents,
+}: SandboxEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -271,6 +295,7 @@ export function SandboxEditor({ value, onChange, onSynthesize, diagnostics = [] 
         }),
         diagnosticMarkersField,
         diagnosticGutter,
+        focusHighlightField,
         themeCompartment.of(getActiveTheme()),
         keymap.of([
           ...defaultKeymap,
@@ -331,6 +356,19 @@ export function SandboxEditor({ value, onChange, onSynthesize, diagnostics = [] 
     const entries = mapDiagnosticsToLines(doc, diagnostics)
     view.dispatch({ effects: setDiagnosticMarkers.of(entries) })
   }, [diagnostics])
+
+  // Update focus highlighting when focusComponents change
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    if (!focusComponents || focusComponents.length === 0) {
+      view.dispatch({ effects: setFocusLines.of(null) })
+      return
+    }
+    const doc = view.state.doc.toString()
+    const lines = computeTsxFocusLines(doc, focusComponents)
+    view.dispatch({ effects: setFocusLines.of(lines) })
+  }, [focusComponents])
 
   // Watch for palette changes and reconfigure the theme compartment
   useEffect(() => {

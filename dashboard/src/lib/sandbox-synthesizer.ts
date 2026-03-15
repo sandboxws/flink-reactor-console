@@ -16,7 +16,13 @@ export interface ValidationDiagnostic {
   message: string
   componentName?: string
   nodeId?: string
-  category?: "schema" | "expression" | "connector" | "changelog" | "structure" | "sql"
+  category?:
+    | "schema"
+    | "expression"
+    | "connector"
+    | "changelog"
+    | "structure"
+    | "sql"
   details?: {
     readonly availableColumns?: readonly string[]
     readonly referencedColumn?: string
@@ -25,10 +31,20 @@ export interface ValidationDiagnostic {
   }
 }
 
+export interface StatementOrigin {
+  readonly nodeId: string
+  readonly component: string
+  readonly kind: string
+}
+
 export interface PipelineOutput {
   name: string
   sql: string
   crdYaml: string
+  /** Individual SQL statements before joining. */
+  statements: readonly string[]
+  /** Maps each SQL statement index to the construct node that produced it. */
+  statementOrigins: ReadonlyMap<number, StatementOrigin>
 }
 
 interface SynthesisSuccess {
@@ -88,10 +104,7 @@ function transpile(code: string): string {
   const match = prepared.match(bareJsxPattern)
   if (match?.index != null) {
     prepared =
-      prepared.slice(0, match.index) +
-      "(" +
-      prepared.slice(match.index) +
-      "\n)"
+      prepared.slice(0, match.index) + "(" + prepared.slice(match.index) + "\n)"
   }
 
   const result = transform(prepared, {
@@ -114,9 +127,7 @@ function execute(
   // need import statements. `import * as DSL` captures everything,
   // including any newly added components.
   const paramNames = Object.keys(dsl)
-  const paramValues = paramNames.map(
-    (k) => (dsl as Record<string, unknown>)[k],
-  )
+  const paramValues = paramNames.map((k) => (dsl as Record<string, unknown>)[k])
 
   // The transpiled code has statements (const schema = ...) followed
   // by a parenthesized createElement() expression (from the JSX we
@@ -184,6 +195,8 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
       name: p.name,
       sql: p.sql.sql,
       crdYaml: dsl.toYaml(p.crd),
+      statements: p.sql.statements,
+      statementOrigins: p.sql.statementOrigins,
     }))
 
     // 6. Run full validation pipeline
@@ -205,10 +218,11 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
 
     // Run SynthContext-based validation (schema, connector, changelog, structure)
     for (const p of result.pipelines) {
-      const pipelineNode = resultNode.children?.find(
-        (c: import("flink-reactor/browser").ConstructNode) =>
-          c.kind === "Pipeline" && c.props.name === p.name,
-      ) ?? resultNode
+      const pipelineNode =
+        resultNode.children?.find(
+          (c: import("flink-reactor/browser").ConstructNode) =>
+            c.kind === "Pipeline" && c.props.name === p.name,
+        ) ?? resultNode
 
       const ctx = new dsl.SynthContext()
       ctx.buildFromTree(pipelineNode)

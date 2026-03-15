@@ -1,19 +1,20 @@
-import { useState, useRef, useCallback } from "react"
 import { Play } from "lucide-react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { SiTypescript } from "react-icons/si"
 import { Button } from "@/components/ui/button"
 import {
-  ResizablePanelGroup,
-  ResizablePanel,
   ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import { useSandboxStore } from "@/stores/sandbox-store"
 import { SandboxEditor } from "./sandbox-editor"
+import { findCategoryForExample, findExample } from "./sandbox-examples"
 import { SandboxSidebar } from "./sandbox-sidebar"
 import { SandboxStatusBar } from "./sandbox-status-bar"
 import { SynthesisOutput } from "./synthesis-output"
 import { TemplatePicker } from "./template-picker"
 import { ValidationPanel } from "./validation-panel"
-import { useSandboxStore } from "@/stores/sandbox-store"
 
 // ---------------------------------------------------------------------------
 // Resizable secondary sidebar — vanilla mouse events, no library
@@ -86,6 +87,18 @@ export function SandboxEditorPage() {
   const diagnostics = useSandboxStore((s) => s.diagnostics)
   const activeTemplate = useSandboxStore((s) => s.activeTemplate)
   const setTemplate = useSandboxStore((s) => s.setTemplate)
+  const activeExample = useSandboxStore((s) => s.activeExample)
+
+  const focusComponents = useMemo(() => {
+    if (!activeExample) return null
+    const catId = findCategoryForExample(activeExample)
+    if (catId !== "transforms") return null
+    const example = findExample(activeExample)
+    if (!example?.focusComponents) return null
+    // Clear focus when user has edited the code
+    if (code !== example.code) return null
+    return example.focusComponents
+  }, [activeExample, code])
 
   return (
     <div className="flex h-full flex-col">
@@ -105,7 +118,10 @@ export function SandboxEditorPage() {
                     <SiTypescript className="size-3.5" />
                     Editor
                   </span>
-                  <TemplatePicker value={activeTemplate} onSelect={setTemplate} />
+                  <TemplatePicker
+                    value={activeTemplate}
+                    onSelect={setTemplate}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -125,6 +141,7 @@ export function SandboxEditorPage() {
                   onChange={setCode}
                   onSynthesize={synthesize}
                   diagnostics={diagnostics}
+                  focusComponents={focusComponents}
                 />
               </div>
             </div>
@@ -140,7 +157,7 @@ export function SandboxEditorPage() {
                 </span>
               </div>
               <div className="flex-1 overflow-hidden">
-                <SynthesisOutput />
+                <SynthesisOutput focusComponents={focusComponents} />
               </div>
               <ValidationPanel />
             </div>

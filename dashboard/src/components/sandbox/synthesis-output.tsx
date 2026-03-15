@@ -1,13 +1,19 @@
-import { useEffect, useRef, useCallback } from "react"
-import { EditorState, Compartment } from "@codemirror/state"
-import { EditorView, lineNumbers } from "@codemirror/view"
 import { javascript } from "@codemirror/lang-javascript"
 import { bracketMatching } from "@codemirror/language"
-import { TbSql } from "react-icons/tb"
+import { Compartment, EditorState } from "@codemirror/state"
+import { EditorView, lineNumbers } from "@codemirror/view"
+import { useCallback, useEffect, useRef } from "react"
 import { SiKubernetes } from "react-icons/si"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { TbSql } from "react-icons/tb"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { StatementOrigin } from "@/lib/sandbox-synthesizer"
 import { useSandboxStore } from "@/stores/sandbox-store"
+import {
+  computeSqlFocusLines,
+  focusHighlightField,
+  setFocusLines,
+} from "./focus-highlight"
 import { gruvpuccinCmTheme } from "./themes/gruvpuccin-cm-theme"
 import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
 
@@ -24,7 +30,19 @@ function getActiveTheme() {
     : tokyoNightCmTheme
 }
 
-function CodeViewer({ value }: { value: string }) {
+interface CodeViewerProps {
+  value: string
+  focusComponents?: string[] | null
+  statements?: readonly string[]
+  statementOrigins?: ReadonlyMap<number, StatementOrigin>
+}
+
+function CodeViewer({
+  value,
+  focusComponents,
+  statements,
+  statementOrigins,
+}: CodeViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
 
@@ -37,6 +55,7 @@ function CodeViewer({ value }: { value: string }) {
         lineNumbers(),
         bracketMatching(),
         javascript(),
+        focusHighlightField,
         themeCompartment.of(getActiveTheme()),
         EditorView.editable.of(false),
         EditorState.readOnly.of(true),
@@ -48,10 +67,26 @@ function CodeViewer({ value }: { value: string }) {
       parent: containerRef.current,
     })
 
+    // Apply focus highlighting after creation
+    if (
+      focusComponents &&
+      focusComponents.length > 0 &&
+      statements &&
+      statementOrigins
+    ) {
+      const lines = computeSqlFocusLines(
+        value,
+        statements,
+        statementOrigins,
+        focusComponents,
+      )
+      view.dispatch({ effects: setFocusLines.of(lines) })
+    }
+
     viewRef.current = view
 
     return () => view.destroy()
-  }, [value])
+  }, [value, focusComponents, statements, statementOrigins])
 
   // Watch for palette changes
   useEffect(() => {
@@ -171,7 +206,11 @@ function LoadingSkeleton() {
 // Main output component
 // ---------------------------------------------------------------------------
 
-export function SynthesisOutput() {
+export function SynthesisOutput({
+  focusComponents,
+}: {
+  focusComponents?: string[] | null
+}) {
   const status = useSandboxStore((s) => s.status)
   const pipelines = useSandboxStore((s) => s.pipelines)
   const dslLoading = useSandboxStore((s) => s.dslLoading)
@@ -234,7 +273,12 @@ export function SynthesisOutput() {
       </div>
 
       <TabsContent value="sql" className="flex-1 overflow-hidden">
-        <CodeViewer value={sqlText} />
+        <CodeViewer
+          value={sqlText}
+          focusComponents={focusComponents}
+          statements={pipeline.statements}
+          statementOrigins={pipeline.statementOrigins}
+        />
       </TabsContent>
 
       <TabsContent value="crd" className="flex-1 overflow-hidden">

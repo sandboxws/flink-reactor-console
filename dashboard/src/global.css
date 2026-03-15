@@ -988,3 +988,14 @@ html.light .data-row-selected {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ── Focus highlighting (sandbox) ────────────── */
+
+.cm-dim-line {
+  opacity: 0.3;
+  transition: opacity 150ms ease;
+}
+
+.cm-dim-line:hover {
+  opacity: 0.7;
+}
