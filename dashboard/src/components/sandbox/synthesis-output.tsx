@@ -4,6 +4,7 @@ import {
   codeFolding,
   foldEffect,
   foldGutter,
+  foldService,
 } from "@codemirror/language"
 import { Compartment, EditorState } from "@codemirror/state"
 import { EditorView, lineNumbers } from "@codemirror/view"
@@ -46,6 +47,27 @@ function getActiveTheme() {
     ? gruvpuccinCmTheme
     : tokyoNightCmTheme
 }
+
+/**
+ * Fold service that tells CM6 where CREATE TABLE folds are possible.
+ * This ensures the fold gutter always shows ▾/▸ on CREATE TABLE lines,
+ * even after the user unfolds them.
+ */
+const createTableFoldService = foldService.of((state, lineStart) => {
+  const line = state.doc.lineAt(lineStart)
+  const text = line.text.trimStart()
+  if (!text.startsWith("CREATE TABLE")) return null
+
+  // Find the end of the statement (the line ending with ;)
+  let endLine = line
+  for (let n = line.number + 1; n <= state.doc.lines; n++) {
+    endLine = state.doc.line(n)
+    if (endLine.text.trimEnd().endsWith(";")) break
+  }
+
+  // Fold from end of first line to end of last line
+  return { from: line.to, to: endLine.to }
+})
 
 /**
  * Compute fold ranges for CREATE TABLE statements.
@@ -115,6 +137,7 @@ function CodeViewer({
         bracketMatching(),
         javascript(),
         codeFolding({ placeholderText: "…" }),
+        createTableFoldService,
         foldGutter({
           openText: "▾",
           closedText: "▸",
