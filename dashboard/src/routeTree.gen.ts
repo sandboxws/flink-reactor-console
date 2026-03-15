@@ -15,11 +15,13 @@ import { Route as JobManagerRouteImport } from './routes/job-manager'
 import { Route as ErrorsRouteImport } from './routes/errors'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TaskManagersIndexRouteImport } from './routes/task-managers/index'
+import { Route as SandboxIndexRouteImport } from './routes/sandbox/index'
 import { Route as MaterializedTablesIndexRouteImport } from './routes/materialized-tables/index'
 import { Route as InstrumentsIndexRouteImport } from './routes/instruments/index'
 import { Route as DeploymentsIndexRouteImport } from './routes/deployments/index'
 import { Route as CatalogsIndexRouteImport } from './routes/catalogs/index'
 import { Route as TaskManagersIdRouteImport } from './routes/task-managers/$id'
+import { Route as SandboxEditorRouteImport } from './routes/sandbox/editor'
 import { Route as MonitoringCheckpointsRouteImport } from './routes/monitoring/checkpoints'
 import { Route as MonitoringAlertsRouteImport } from './routes/monitoring/alerts'
 import { Route as MaterializedTablesNameRouteImport } from './routes/materialized-tables/$name'
@@ -69,6 +71,11 @@ const TaskManagersIndexRoute = TaskManagersIndexRouteImport.update({
   path: '/task-managers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SandboxIndexRoute = SandboxIndexRouteImport.update({
+  id: '/sandbox/',
+  path: '/sandbox/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MaterializedTablesIndexRoute = MaterializedTablesIndexRouteImport.update({
   id: '/materialized-tables/',
   path: '/materialized-tables/',
@@ -92,6 +99,11 @@ const CatalogsIndexRoute = CatalogsIndexRouteImport.update({
 const TaskManagersIdRoute = TaskManagersIdRouteImport.update({
   id: '/task-managers/$id',
   path: '/task-managers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SandboxEditorRoute = SandboxEditorRouteImport.update({
+  id: '/sandbox/editor',
+  path: '/sandbox/editor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MonitoringCheckpointsRoute = MonitoringCheckpointsRouteImport.update({
@@ -210,11 +222,13 @@ export interface FileRoutesByFullPath {
   '/materialized-tables/$name': typeof MaterializedTablesNameRoute
   '/monitoring/alerts': typeof MonitoringAlertsRoute
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
+  '/sandbox/editor': typeof SandboxEditorRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
   '/catalogs/': typeof CatalogsIndexRoute
   '/deployments/': typeof DeploymentsIndexRoute
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
+  '/sandbox/': typeof SandboxIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
@@ -240,11 +254,13 @@ export interface FileRoutesByTo {
   '/materialized-tables/$name': typeof MaterializedTablesNameRoute
   '/monitoring/alerts': typeof MonitoringAlertsRoute
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
+  '/sandbox/editor': typeof SandboxEditorRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
   '/catalogs': typeof CatalogsIndexRoute
   '/deployments': typeof DeploymentsIndexRoute
   '/instruments': typeof InstrumentsIndexRoute
   '/materialized-tables': typeof MaterializedTablesIndexRoute
+  '/sandbox': typeof SandboxIndexRoute
   '/task-managers': typeof TaskManagersIndexRoute
   '/instruments/$instrumentName': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
@@ -272,11 +288,13 @@ export interface FileRoutesById {
   '/materialized-tables/$name': typeof MaterializedTablesNameRoute
   '/monitoring/alerts': typeof MonitoringAlertsRoute
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
+  '/sandbox/editor': typeof SandboxEditorRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
   '/catalogs/': typeof CatalogsIndexRoute
   '/deployments/': typeof DeploymentsIndexRoute
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
+  '/sandbox/': typeof SandboxIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
@@ -305,11 +323,13 @@ export interface FileRouteTypes {
     | '/materialized-tables/$name'
     | '/monitoring/alerts'
     | '/monitoring/checkpoints'
+    | '/sandbox/editor'
     | '/task-managers/$id'
     | '/catalogs/'
     | '/deployments/'
     | '/instruments/'
     | '/materialized-tables/'
+    | '/sandbox/'
     | '/task-managers/'
     | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
@@ -335,11 +355,13 @@ export interface FileRouteTypes {
     | '/materialized-tables/$name'
     | '/monitoring/alerts'
     | '/monitoring/checkpoints'
+    | '/sandbox/editor'
     | '/task-managers/$id'
     | '/catalogs'
     | '/deployments'
     | '/instruments'
     | '/materialized-tables'
+    | '/sandbox'
     | '/task-managers'
     | '/instruments/$instrumentName'
     | '/instruments/$instrumentName/database/query'
@@ -366,11 +388,13 @@ export interface FileRouteTypes {
     | '/materialized-tables/$name'
     | '/monitoring/alerts'
     | '/monitoring/checkpoints'
+    | '/sandbox/editor'
     | '/task-managers/$id'
     | '/catalogs/'
     | '/deployments/'
     | '/instruments/'
     | '/materialized-tables/'
+    | '/sandbox/'
     | '/task-managers/'
     | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
@@ -398,11 +422,13 @@ export interface RootRouteChildren {
   MaterializedTablesNameRoute: typeof MaterializedTablesNameRoute
   MonitoringAlertsRoute: typeof MonitoringAlertsRoute
   MonitoringCheckpointsRoute: typeof MonitoringCheckpointsRoute
+  SandboxEditorRoute: typeof SandboxEditorRoute
   TaskManagersIdRoute: typeof TaskManagersIdRoute
   CatalogsIndexRoute: typeof CatalogsIndexRoute
   DeploymentsIndexRoute: typeof DeploymentsIndexRoute
   InstrumentsIndexRoute: typeof InstrumentsIndexRoute
   MaterializedTablesIndexRoute: typeof MaterializedTablesIndexRoute
+  SandboxIndexRoute: typeof SandboxIndexRoute
   TaskManagersIndexRoute: typeof TaskManagersIndexRoute
 }
 
@@ -450,6 +476,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaskManagersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sandbox/': {
+      id: '/sandbox/'
+      path: '/sandbox'
+      fullPath: '/sandbox/'
+      preLoaderRoute: typeof SandboxIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/materialized-tables/': {
       id: '/materialized-tables/'
       path: '/materialized-tables'
@@ -483,6 +516,13 @@ declare module '@tanstack/react-router' {
       path: '/task-managers/$id'
       fullPath: '/task-managers/$id'
       preLoaderRoute: typeof TaskManagersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sandbox/editor': {
+      id: '/sandbox/editor'
+      path: '/sandbox/editor'
+      fullPath: '/sandbox/editor'
+      preLoaderRoute: typeof SandboxEditorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/monitoring/checkpoints': {
@@ -657,11 +697,13 @@ const rootRouteChildren: RootRouteChildren = {
   MaterializedTablesNameRoute: MaterializedTablesNameRoute,
   MonitoringAlertsRoute: MonitoringAlertsRoute,
   MonitoringCheckpointsRoute: MonitoringCheckpointsRoute,
+  SandboxEditorRoute: SandboxEditorRoute,
   TaskManagersIdRoute: TaskManagersIdRoute,
   CatalogsIndexRoute: CatalogsIndexRoute,
   DeploymentsIndexRoute: DeploymentsIndexRoute,
   InstrumentsIndexRoute: InstrumentsIndexRoute,
   MaterializedTablesIndexRoute: MaterializedTablesIndexRoute,
+  SandboxIndexRoute: SandboxIndexRoute,
   TaskManagersIndexRoute: TaskManagersIndexRoute,
 }
 export const routeTree = rootRouteImport

@@ -123,6 +123,16 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Operations",
     items: [{ href: "/jobs/submit", label: "Submit New Job", icon: Upload }],
   },
+  {
+    label: "Sandbox",
+    items: [
+      {
+        href: "/sandbox",
+        label: "Synthesis Sandbox",
+        icon: FlaskConical,
+      },
+    ],
+  },
 ]
 
 export function Sidebar() {
