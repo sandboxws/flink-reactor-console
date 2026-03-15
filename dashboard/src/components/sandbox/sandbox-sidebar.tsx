@@ -39,7 +39,7 @@ export function SandboxSidebar() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-dash-border px-4 py-3">
+      <div className="flex h-9 items-center border-b border-dash-border px-4">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
           Examples
         </h2>
