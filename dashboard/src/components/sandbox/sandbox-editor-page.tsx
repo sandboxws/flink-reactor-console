@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback } from "react"
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -9,6 +10,70 @@ import { SandboxStatusBar } from "./sandbox-status-bar"
 import { SynthesisOutput } from "./synthesis-output"
 import { useSandboxStore } from "@/stores/sandbox-store"
 
+// ---------------------------------------------------------------------------
+// Resizable secondary sidebar — vanilla mouse events, no library
+// Mirrors the pattern from reactor-md's SecondarySidebar.
+// ---------------------------------------------------------------------------
+
+const SIDEBAR_MIN = 180
+const SIDEBAR_MAX = 380
+const SIDEBAR_DEFAULT = 240
+
+function SecondarySidebar({ children }: { children: React.ReactNode }) {
+  const [width, setWidth] = useState(SIDEBAR_DEFAULT)
+  const isResizing = useRef(false)
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      isResizing.current = true
+      const startX = e.clientX
+      const startWidth = width
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        if (!isResizing.current) return
+        const delta = moveEvent.clientX - startX
+        setWidth(
+          Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, startWidth + delta)),
+        )
+      }
+
+      const handleMouseUp = () => {
+        isResizing.current = false
+        document.removeEventListener("mousemove", handleMouseMove)
+        document.removeEventListener("mouseup", handleMouseUp)
+        document.body.style.cursor = ""
+        document.body.style.userSelect = ""
+      }
+
+      document.body.style.cursor = "col-resize"
+      document.body.style.userSelect = "none"
+      document.addEventListener("mousemove", handleMouseMove)
+      document.addEventListener("mouseup", handleMouseUp)
+    },
+    [width],
+  )
+
+  return (
+    <div
+      className="relative flex shrink-0 flex-col border-r border-dash-border bg-dash-panel/50"
+      style={{ width }}
+    >
+      <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
+      <div
+        className="absolute top-0 right-0 bottom-0 w-1 cursor-col-resize transition-colors hover:bg-fr-purple/60 active:bg-fr-purple/80"
+        onMouseDown={handleMouseDown}
+        role="separator"
+        aria-orientation="vertical"
+      />
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Main layout
+// ---------------------------------------------------------------------------
+
 export function SandboxEditorPage() {
   const code = useSandboxStore((s) => s.code)
   const setCode = useSandboxStore((s) => s.setCode)
@@ -16,53 +81,50 @@ export function SandboxEditorPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <ResizablePanelGroup orientation="horizontal" className="flex-1">
-        {/* ── Examples sidebar ────────────────────────────────── */}
-        <ResizablePanel defaultSize={18} minSize={12} maxSize={30}>
-          <div className="h-full overflow-hidden border-r border-dash-border bg-dash-panel/50">
-            <SandboxSidebar />
-          </div>
-        </ResizablePanel>
+      <div className="flex flex-1 overflow-hidden">
+        {/* ── Examples sidebar (custom resize) ──────────────── */}
+        <SecondarySidebar>
+          <SandboxSidebar />
+        </SecondarySidebar>
 
-        <ResizableHandle />
+        {/* ── Editor + Output (library resize) ─────────────── */}
+        <ResizablePanelGroup orientation="horizontal" className="flex-1">
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <div className="flex h-full flex-col">
+              <div className="flex h-9 items-center justify-between border-b border-dash-border px-4">
+                <span className="text-xs font-medium text-zinc-400">
+                  Editor
+                </span>
+                <span className="text-[10px] text-zinc-600">
+                  Cmd+Enter to synthesize
+                </span>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <SandboxEditor
+                  value={code}
+                  onChange={setCode}
+                  onSynthesize={synthesize}
+                />
+              </div>
+            </div>
+          </ResizablePanel>
 
-        {/* ── Code editor ────────────────────────────────────── */}
-        <ResizablePanel defaultSize={42} minSize={25}>
-          <div className="flex h-full flex-col">
-            <div className="flex h-9 items-center justify-between border-b border-dash-border px-4">
-              <span className="text-xs font-medium text-zinc-400">
-                Editor
-              </span>
-              <span className="text-[10px] text-zinc-600">
-                Cmd+Enter to synthesize
-              </span>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <SandboxEditor
-                value={code}
-                onChange={setCode}
-                onSynthesize={synthesize}
-              />
-            </div>
-          </div>
-        </ResizablePanel>
+          <ResizableHandle />
 
-        <ResizableHandle />
-
-        {/* ── Output panel ───────────────────────────────────── */}
-        <ResizablePanel defaultSize={40} minSize={20}>
-          <div className="flex h-full flex-col">
-            <div className="flex h-9 items-center border-b border-dash-border px-4">
-              <span className="text-xs font-medium text-zinc-400">
-                Output
-              </span>
+          <ResizablePanel defaultSize={50} minSize={25}>
+            <div className="flex h-full flex-col">
+              <div className="flex h-9 items-center border-b border-dash-border px-4">
+                <span className="text-xs font-medium text-zinc-400">
+                  Output
+                </span>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <SynthesisOutput />
+              </div>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <SynthesisOutput />
-            </div>
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
 
       {/* ── Status bar ─────────────────────────────────────── */}
       <SandboxStatusBar />
