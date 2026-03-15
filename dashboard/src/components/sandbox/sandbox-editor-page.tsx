@@ -16,18 +16,9 @@ export function SandboxEditorPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <ResizablePanelGroup
-        orientation="horizontal"
-        id="sandbox-panels"
-        className="flex-1"
-      >
+      <ResizablePanelGroup orientation="horizontal" className="flex-1">
         {/* ── Examples sidebar ────────────────────────────────── */}
-        <ResizablePanel
-          defaultSize={18}
-          minSize={14}
-          maxSize={28}
-          id="sandbox-sidebar"
-        >
+        <ResizablePanel defaultSize={18} minSize={12} maxSize={30}>
           <div className="h-full overflow-hidden border-r border-dash-border bg-dash-panel/50">
             <SandboxSidebar />
           </div>
@@ -36,9 +27,9 @@ export function SandboxEditorPage() {
         <ResizableHandle />
 
         {/* ── Code editor ────────────────────────────────────── */}
-        <ResizablePanel defaultSize={42} minSize={25} id="sandbox-editor">
+        <ResizablePanel defaultSize={42} minSize={25}>
           <div className="flex h-full flex-col">
-            <div className="flex items-center justify-between border-b border-dash-border px-4 py-2">
+            <div className="flex h-9 items-center justify-between border-b border-dash-border px-4">
               <span className="text-xs font-medium text-zinc-400">
                 Editor
               </span>
@@ -59,9 +50,9 @@ export function SandboxEditorPage() {
         <ResizableHandle />
 
         {/* ── Output panel ───────────────────────────────────── */}
-        <ResizablePanel defaultSize={40} minSize={20} id="sandbox-output">
+        <ResizablePanel defaultSize={40} minSize={20}>
           <div className="flex h-full flex-col">
-            <div className="border-b border-dash-border px-4 py-2">
+            <div className="flex h-9 items-center border-b border-dash-border px-4">
               <span className="text-xs font-medium text-zinc-400">
                 Output
               </span>
