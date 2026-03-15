@@ -24,8 +24,10 @@ export function TemplatePicker({ value, onSelect }: TemplatPickerProps) {
       <SelectContent>
         {TEMPLATES.map((t) => (
           <SelectItem key={t.id} value={t.id} textValue={t.name}>
-            <span>{t.name}</span>
-            <span className="text-[10px] text-zinc-500">{t.description}</span>
+            <div className="flex flex-col">
+              <span>{t.name}</span>
+              <span className="text-[10px] text-zinc-500">{t.description}</span>
+            </div>
           </SelectItem>
         ))}
       </SelectContent>
