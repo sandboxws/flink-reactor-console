@@ -12,14 +12,14 @@
     "@anthropic-ai/sdk": "^0.39.0",
     "@lancedb/lancedb": "^0.13.0",
     "apache-arrow": "^17.0.0",
-    "chromadb": "^1.9.2",
-    "chromadb-default-embed": "^2.13.2",
-    "glob": "^11.0.1",
-    "ollama": "^0.5.14"
+    "chromadb": "^1.10.5",
+    "chromadb-default-embed": "^2.14.0",
+    "glob": "^11.1.0",
+    "ollama": "^0.5.18"
   },
   "devDependencies": {
-    "@types/node": "^22.12.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "@types/node": "^22.19.15",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
