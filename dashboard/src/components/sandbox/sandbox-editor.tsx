@@ -16,7 +16,9 @@ import {
 } from "@codemirror/view"
 import { javascript } from "@codemirror/lang-javascript"
 import { bracketMatching } from "@codemirror/language"
+import { autocompletion, completionKeymap } from "@codemirror/autocomplete"
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
+import { dslCompletionSource } from "./completions"
 import { gruvpuccinCmTheme } from "./themes/gruvpuccin-cm-theme"
 import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
 import type { ValidationDiagnostic } from "@/stores/sandbox-store"
@@ -262,12 +264,18 @@ export function SandboxEditor({ value, onChange, onSynthesize, diagnostics = [] 
         bracketMatching(),
         history(),
         javascript({ jsx: true, typescript: true }),
+        autocompletion({
+          override: [dslCompletionSource],
+          activateOnTyping: true,
+          icons: true,
+        }),
         diagnosticMarkersField,
         diagnosticGutter,
         themeCompartment.of(getActiveTheme()),
         keymap.of([
           ...defaultKeymap,
           ...historyKeymap,
+          ...completionKeymap,
           {
             key: "Mod-Enter",
             run: () => {

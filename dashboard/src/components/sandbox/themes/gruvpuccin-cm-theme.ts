@@ -35,6 +35,50 @@ const gruvpuccinTheme = EditorView.theme(
       backgroundColor: "rgba(212, 190, 152, 0.2)",
       outline: "none",
     },
+    ".cm-tooltip": {
+      backgroundColor: "#1d2021",
+      border: "1px solid #3c3836",
+      borderRadius: "6px",
+      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4)",
+    },
+    ".cm-tooltip-autocomplete": {
+      "& > ul": {
+        fontFamily: "var(--font-mono)",
+        fontSize: "12px",
+        maxHeight: "220px",
+      },
+      "& > ul > li": {
+        padding: "3px 8px",
+        lineHeight: "1.4",
+      },
+      "& > ul > li[aria-selected]": {
+        backgroundColor: "rgba(212, 190, 152, 0.15)",
+        color: "#ebdbb2",
+      },
+    },
+    ".cm-completionLabel": {
+      color: "#ebdbb2",
+    },
+    ".cm-completionDetail": {
+      color: "#928374",
+      fontStyle: "italic",
+      marginLeft: "8px",
+    },
+    ".cm-completionInfo": {
+      backgroundColor: "#1d2021",
+      border: "1px solid #3c3836",
+      borderRadius: "6px",
+      padding: "6px 10px",
+      color: "#a89984",
+      fontSize: "11px",
+      lineHeight: "1.5",
+      maxWidth: "320px",
+    },
+    ".cm-completionMatchedText": {
+      color: "#fabd2f",
+      textDecoration: "none",
+      fontWeight: "600",
+    },
   },
   { dark: true },
 )

@@ -22,7 +22,8 @@
     "version-packages": "changeset version",
     "ui:embed": "pnpm --filter @flink-reactor/ui-embeddings embed",
     "ui:search": "pnpm --filter @flink-reactor/ui-embeddings search",
-    "ui:benchmark": "pnpm --filter @flink-reactor/ui-embeddings benchmark"
+    "ui:benchmark": "pnpm --filter @flink-reactor/ui-embeddings benchmark",
+    "generate:completions": "npx tsx tools/generate-dsl-completions.ts"
   },
   "engines": {
     "node": ">=18"
