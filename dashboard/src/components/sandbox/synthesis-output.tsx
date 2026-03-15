@@ -44,7 +44,8 @@ function getActiveTheme() {
 
 /**
  * Compute fold ranges for CREATE TABLE statements.
- * Each fold hides the \n\n separator + DDL body, leaving the comment block visible.
+ * Keeps the first line (CREATE TABLE `name` (...) visible and folds the body
+ * so it's obvious the DDL exists and can be expanded.
  */
 function computeCreateTableFolds(
   statements: readonly string[],
@@ -62,8 +63,12 @@ function computeCreateTableFolds(
       commentIndices.has(i - 1) &&
       stmt.trimStart().startsWith("CREATE TABLE")
     ) {
-      // Fold from end of previous comment block to end of this CREATE TABLE
-      folds.push({ from: docPos - 2, to: stmtEnd })
+      // Find the end of the first line within the statement
+      const firstNewline = stmt.indexOf("\n")
+      if (firstNewline > 0) {
+        // Fold from end of first line to end of statement
+        folds.push({ from: docPos + firstNewline, to: stmtEnd })
+      }
     }
 
     docPos = stmtEnd + 2 // +2 for \n\n separator
