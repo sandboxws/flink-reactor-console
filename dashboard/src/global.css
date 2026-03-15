@@ -1014,6 +1014,38 @@ html.light .data-row-selected {
   font-style: italic;
 }
 
+/* ── Connector icon gutter ──────────────────── */
+
+.cm-connector-gutter {
+  width: 22px !important;
+  min-width: 22px !important;
+}
+
+.cm-connector-gutter .cm-gutterElement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+}
+
+.cm-connector-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.cm-connector-icon-svg {
+  color: var(--color-fr-purple);
+  opacity: 0.7;
+  transition: opacity 150ms ease;
+}
+
+.cm-connector-icon:hover .cm-connector-icon-svg {
+  opacity: 1;
+}
+
 .cm-foldPlaceholder {
   background: transparent !important;
   border: 1px solid color-mix(in srgb, var(--color-fr-purple) 40%, transparent) !important;

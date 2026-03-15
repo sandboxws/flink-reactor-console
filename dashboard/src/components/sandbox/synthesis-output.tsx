@@ -13,6 +13,11 @@ import type {
   StatementMeta,
   StatementOrigin,
 } from "@/lib/sandbox-synthesizer"
+import {
+  computeConnectorIcons,
+  connectorIconGutter,
+  setConnectorIcons,
+} from "./connector-gutter"
 import { useSandboxStore } from "@/stores/sandbox-store"
 import {
   computeSqlFocusLines,
@@ -73,6 +78,7 @@ interface CodeViewerProps {
   statementOrigins?: ReadonlyMap<number, StatementOrigin>
   statementContributors?: ReadonlyMap<number, readonly SqlFragment[]>
   commentIndices?: ReadonlySet<number>
+  statementMeta?: ReadonlyMap<number, StatementMeta>
 }
 
 function CodeViewer({
@@ -82,6 +88,7 @@ function CodeViewer({
   statementOrigins,
   statementContributors,
   commentIndices,
+  statementMeta,
 }: CodeViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
@@ -97,6 +104,7 @@ function CodeViewer({
         bracketMatching(),
         javascript(),
         codeFolding({ placeholderText: "…" }),
+        connectorIconGutter,
         focusHighlightField,
         themeCompartment.of(getActiveTheme()),
         EditorView.editable.of(false),
@@ -178,14 +186,28 @@ function CodeViewer({
 
     // Auto-fold CREATE TABLE statements when content changes
     if (changes && statements && commentIndices && commentIndices.size > 0) {
+      const postEffects: import("@codemirror/state").StateEffect<unknown>[] = []
+
       const folds = computeCreateTableFolds(statements, commentIndices)
-      if (folds.length > 0) {
-        view.dispatch({
-          effects: folds.map((f) => foldEffect.of(f)),
-        })
+      for (const f of folds) {
+        postEffects.push(foldEffect.of(f))
+      }
+
+      // Update connector icons
+      if (statementMeta) {
+        const iconData = computeConnectorIcons(
+          statements,
+          commentIndices,
+          statementMeta,
+        )
+        postEffects.push(setConnectorIcons.of(iconData))
+      }
+
+      if (postEffects.length > 0) {
+        view.dispatch({ effects: postEffects })
       }
     }
-  }, [value, focusComponents, statements, statementOrigins, statementContributors, commentIndices])
+  }, [value, focusComponents, statements, statementOrigins, statementContributors, commentIndices, statementMeta])
 
   // Watch for palette changes
   useEffect(() => {
@@ -425,6 +447,7 @@ export function SynthesisOutput({
               statementOrigins={pipeline.statementOrigins}
               statementContributors={pipeline.statementContributors}
               commentIndices={pipeline.commentIndices}
+              statementMeta={pipeline.statementMeta}
             />
           </div>
           <CollapsibleInspector
