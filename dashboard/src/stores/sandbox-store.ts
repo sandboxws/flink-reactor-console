@@ -5,12 +5,14 @@ import {
   type SynthesisResult,
   type PipelineOutput,
 } from "@/lib/sandbox-synthesizer"
+import {
+  findExample,
+  DEFAULT_EXAMPLE_ID,
+} from "@/components/sandbox/sandbox-examples"
 
 // ---------------------------------------------------------------------------
 // Sandbox store — editor state, synthesis status, output tabs
 // ---------------------------------------------------------------------------
-
-export type TemplateId = "blank" | "hello-world" | "kafka-filter" | "windowed-aggregate"
 
 export type SynthStatus = "idle" | "synthesizing" | "done" | "error"
 
@@ -24,7 +26,7 @@ export interface ValidationDiagnostic {
 
 interface SandboxState {
   code: string
-  activeTemplate: TemplateId
+  activeExample: string | null
   status: SynthStatus
   pipelines: PipelineOutput[]
   diagnostics: ValidationDiagnostic[]
@@ -39,16 +41,19 @@ interface SandboxState {
 
 interface SandboxActions {
   setCode: (code: string) => void
-  setTemplate: (template: TemplateId) => void
+  loadExample: (id: string) => void
   setActiveOutputTab: (tab: "sql" | "crd") => void
   synthesize: () => Promise<void>
 }
 
 export type SandboxStore = SandboxState & SandboxActions
 
+// Load the default example on init
+const defaultExample = findExample(DEFAULT_EXAMPLE_ID)
+
 export const useSandboxStore = create<SandboxStore>((set, get) => ({
-  code: "",
-  activeTemplate: "blank",
+  code: defaultExample?.code ?? "",
+  activeExample: DEFAULT_EXAMPLE_ID,
   status: "idle",
   pipelines: [],
   diagnostics: [],
@@ -62,7 +67,22 @@ export const useSandboxStore = create<SandboxStore>((set, get) => ({
 
   setCode: (code: string) => set({ code }),
 
-  setTemplate: (template: TemplateId) => set({ activeTemplate: template }),
+  loadExample: (id: string) => {
+    const example = findExample(id)
+    if (!example) return
+    set({
+      code: example.code,
+      activeExample: id,
+      status: "idle",
+      pipelines: [],
+      diagnostics: [],
+      synthError: null,
+      synthErrorKind: null,
+      synthTimeMs: null,
+    })
+    // Auto-synthesize after loading
+    setTimeout(() => get().synthesize(), 0)
+  },
 
   setActiveOutputTab: (tab: "sql" | "crd") => set({ activeOutputTab: tab }),
 

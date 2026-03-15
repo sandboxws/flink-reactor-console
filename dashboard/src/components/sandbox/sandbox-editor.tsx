@@ -87,6 +87,18 @@ export function SandboxEditor({ value, onChange, onSynthesize }: SandboxEditorPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Sync external value changes (e.g. example loaded from sidebar)
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    const current = view.state.doc.toString()
+    if (current !== value) {
+      view.dispatch({
+        changes: { from: 0, to: current.length, insert: value },
+      })
+    }
+  }, [value])
+
   // Watch for palette changes and reconfigure the theme compartment
   useEffect(() => {
     const observer = new MutationObserver(() => {
