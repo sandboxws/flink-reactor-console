@@ -4,7 +4,6 @@ import {
   Compartment,
   StateEffect,
   StateField,
-  type Extension,
   RangeSet,
 } from "@codemirror/state"
 import {
@@ -23,44 +22,96 @@ import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
 import type { ValidationDiagnostic } from "@/stores/sandbox-store"
 
 // ---------------------------------------------------------------------------
-// Gutter marker classes
+// Gutter marker classes — each instance carries its diagnostic message
 // ---------------------------------------------------------------------------
 
-class ErrorMarker extends GutterMarker {
+class DiagnosticGutterMarker extends GutterMarker {
+  constructor(
+    readonly severity: "error" | "warning",
+    readonly messages: string[],
+  ) {
+    super()
+  }
+
   toDOM() {
     const el = document.createElement("div")
-    el.className = "cm-diagnostic-error"
-    el.style.width = "6px"
-    el.style.height = "6px"
-    el.style.borderRadius = "50%"
-    el.style.backgroundColor = "#ef4444"
     el.style.margin = "4px 2px"
+    el.style.cursor = "default"
+
+    if (this.severity === "error") {
+      el.className = "cm-diagnostic-error"
+      el.style.width = "6px"
+      el.style.height = "6px"
+      el.style.borderRadius = "50%"
+      el.style.backgroundColor = "#ef4444"
+    } else {
+      el.className = "cm-diagnostic-warning"
+      el.style.width = "0"
+      el.style.height = "0"
+      el.style.borderLeft = "3px solid transparent"
+      el.style.borderRight = "3px solid transparent"
+      el.style.borderBottom = "6px solid #f59e0b"
+    }
+
     return el
   }
 }
 
-class WarningMarker extends GutterMarker {
-  toDOM() {
-    const el = document.createElement("div")
-    el.className = "cm-diagnostic-warning"
-    el.style.width = "0"
-    el.style.height = "0"
-    el.style.borderLeft = "3px solid transparent"
-    el.style.borderRight = "3px solid transparent"
-    el.style.borderBottom = "6px solid #f59e0b"
-    el.style.margin = "4px 2px"
-    return el
-  }
+// ---------------------------------------------------------------------------
+// Hover tooltip — plain DOM element positioned near the gutter
+// ---------------------------------------------------------------------------
+
+let tooltipEl: HTMLDivElement | null = null
+
+function showTooltip(messages: string[], severity: "error" | "warning", anchor: HTMLElement) {
+  hideTooltip()
+
+  tooltipEl = document.createElement("div")
+  tooltipEl.className = "cm-diagnostic-tooltip"
+
+  const borderColor = severity === "error" ? "rgba(239,68,68,0.4)" : "rgba(245,158,11,0.4)"
+  const bgColor = severity === "error" ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)"
+  const textColor = severity === "error" ? "#fca5a5" : "#fcd34d"
+
+  Object.assign(tooltipEl.style, {
+    position: "fixed",
+    zIndex: "1000",
+    maxWidth: "420px",
+    padding: "6px 10px",
+    borderRadius: "6px",
+    border: `1px solid ${borderColor}`,
+    backgroundColor: bgColor,
+    backdropFilter: "blur(8px)",
+    color: textColor,
+    fontSize: "11px",
+    lineHeight: "1.5",
+    pointerEvents: "none",
+    whiteSpace: "pre-wrap",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+  })
+
+  tooltipEl.textContent = messages.join("\n")
+
+  document.body.appendChild(tooltipEl)
+
+  // Position to the right of the gutter marker
+  const rect = anchor.getBoundingClientRect()
+  tooltipEl.style.left = `${rect.right + 8}px`
+  tooltipEl.style.top = `${rect.top - 4}px`
 }
 
-const errorMarker = new ErrorMarker()
-const warningMarker = new WarningMarker()
+function hideTooltip() {
+  if (tooltipEl) {
+    tooltipEl.remove()
+    tooltipEl = null
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Diagnostic gutter state
 // ---------------------------------------------------------------------------
 
-type DiagnosticMarkerEntry = { from: number; marker: GutterMarker }
+type DiagnosticMarkerEntry = { from: number; marker: DiagnosticGutterMarker }
 
 const setDiagnosticMarkers = StateEffect.define<DiagnosticMarkerEntry[]>()
 
@@ -80,49 +131,87 @@ const diagnosticMarkersField = StateField.define<RangeSet<GutterMarker>>({
 const diagnosticGutter = gutter({
   class: "cm-diagnostic-gutter",
   markers: (view) => view.state.field(diagnosticMarkersField),
+  domEventHandlers: {
+    mouseover(view, line, event) {
+      const target = event.target as HTMLElement
+      const markerEl = target.closest(".cm-diagnostic-error, .cm-diagnostic-warning")
+      if (!markerEl) return false
+
+      // Find the marker for this line
+      const markers = view.state.field(diagnosticMarkersField)
+      const lineFrom = line.from
+      let found: DiagnosticGutterMarker | null = null
+      const cursor = markers.iter(lineFrom)
+      if (cursor.value && cursor.from === lineFrom && cursor.value instanceof DiagnosticGutterMarker) {
+        found = cursor.value
+      }
+
+      if (found) {
+        showTooltip(found.messages, found.severity, markerEl as HTMLElement)
+      }
+      return false
+    },
+    mouseout() {
+      hideTooltip()
+      return false
+    },
+  },
 })
 
 // ---------------------------------------------------------------------------
 // Map diagnostics to source lines via component name matching
 // ---------------------------------------------------------------------------
 
+interface LineDiagnostic {
+  offset: number
+  severity: "error" | "warning"
+  messages: string[]
+}
+
 function mapDiagnosticsToLines(
   doc: string,
   diagnostics: ValidationDiagnostic[],
 ): DiagnosticMarkerEntry[] {
-  const entries: DiagnosticMarkerEntry[] = []
   const lines = doc.split("\n")
-  const usedLines = new Set<number>()
+  // Collect all diagnostics per line
+  const lineMap = new Map<number, LineDiagnostic>()
 
   for (const d of diagnostics) {
     const compName = d.componentName
     if (!compName) continue
 
-    // Find the first line containing this component name as a JSX tag or function call
     for (let i = 0; i < lines.length; i++) {
-      if (usedLines.has(i)) continue
       const line = lines[i]
       if (
         line.includes(`<${compName}`) ||
         line.includes(`${compName}(`) ||
         line.includes(`${compName} `)
       ) {
-        // Calculate character offset for the start of this line
-        let offset = 0
-        for (let j = 0; j < i; j++) {
-          offset += lines[j].length + 1 // +1 for newline
+        const existing = lineMap.get(i)
+        if (existing) {
+          existing.messages.push(d.message)
+          // Promote to error if any diagnostic on this line is an error
+          if (d.severity === "error") existing.severity = "error"
+        } else {
+          let offset = 0
+          for (let j = 0; j < i; j++) {
+            offset += lines[j].length + 1
+          }
+          lineMap.set(i, {
+            offset,
+            severity: d.severity,
+            messages: [d.message],
+          })
         }
-        entries.push({
-          from: offset,
-          marker: d.severity === "error" ? errorMarker : warningMarker,
-        })
-        usedLines.add(i)
         break
       }
     }
   }
 
-  return entries
+  return Array.from(lineMap.values()).map((ld) => ({
+    from: ld.offset,
+    marker: new DiagnosticGutterMarker(ld.severity, ld.messages),
+  }))
 }
 
 // ---------------------------------------------------------------------------
@@ -206,6 +295,7 @@ export function SandboxEditor({ value, onChange, onSynthesize, diagnostics = [] 
     viewRef.current = view
 
     return () => {
+      hideTooltip()
       if (debounceRef.current) clearTimeout(debounceRef.current)
       view.destroy()
     }
@@ -228,6 +318,7 @@ export function SandboxEditor({ value, onChange, onSynthesize, diagnostics = [] 
   useEffect(() => {
     const view = viewRef.current
     if (!view) return
+    hideTooltip()
     const doc = view.state.doc.toString()
     const entries = mapDiagnosticsToLines(doc, diagnostics)
     view.dispatch({ effects: setDiagnosticMarkers.of(entries) })
