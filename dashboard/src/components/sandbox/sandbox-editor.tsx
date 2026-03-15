@@ -301,7 +301,7 @@ export function SandboxEditor({
         }),
         diagnosticMarkersField,
         diagnosticGutter,
-        connectorIconGutter,
+        // connectorIconGutter, // disabled — revisit icon design
         focusHighlightField,
         themeCompartment.of(getActiveTheme()),
         keymap.of([
@@ -377,15 +377,6 @@ export function SandboxEditor({
     const lines = computeTsxFocusLines(doc, focusComponents)
     view.dispatch({ effects: setFocusLines.of(lines) })
   }, [focusComponents])
-
-  // Update connector icons when content changes
-  useEffect(() => {
-    const view = viewRef.current
-    if (!view) return
-    const doc = view.state.doc.toString()
-    const iconData = computeTsxConnectorIcons(doc)
-    view.dispatch({ effects: setConnectorIcons.of(iconData) })
-  }, [value])
 
   // Watch for palette changes and reconfigure the theme compartment
   useEffect(() => {

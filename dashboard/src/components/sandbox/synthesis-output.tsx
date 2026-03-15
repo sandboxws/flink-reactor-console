@@ -105,7 +105,7 @@ function CodeViewer({
         bracketMatching(),
         javascript(),
         codeFolding({ placeholderText: "…" }),
-        connectorIconGutter,
+        // connectorIconGutter, // disabled — revisit icon design
         focusHighlightField,
         themeCompartment.of(getActiveTheme()),
         EditorView.editable.of(false),
@@ -193,16 +193,6 @@ function CodeViewer({
       const folds = computeCreateTableFolds(statements, commentIndices)
       for (const f of folds) {
         postEffects.push(foldEffect.of(f))
-      }
-
-      // Update connector icons
-      if (statementMeta) {
-        const iconData = computeConnectorIcons(
-          statements,
-          commentIndices,
-          statementMeta,
-        )
-        postEffects.push(setConnectorIcons.of(iconData))
       }
 
       if (postEffects.length > 0) {
