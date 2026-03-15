@@ -43,7 +43,7 @@ export const SANDBOX_CATEGORIES: SandboxCategory[] = [
     bootstrapServers="kafka:9092"
     schema={EventSchema}
   />
-  <KafkaSink topic="user_events_processed" />
+  <KafkaSink topic="user_events_processed" bootstrapServers="kafka:9092" />
 </Pipeline>`,
       },
       {
@@ -158,7 +158,7 @@ export const SANDBOX_CATEGORIES: SandboxCategory[] = [
       }}
     />
   </TumbleWindow>
-  <KafkaSink topic="hourly_user_events" />
+  <KafkaSink topic="hourly_user_events" bootstrapServers="kafka:9092" />
 </Pipeline>`,
       },
     ],
@@ -203,7 +203,7 @@ export const SANDBOX_CATEGORIES: SandboxCategory[] = [
     />
   </TumbleWindow>
   <Filter condition="page_views > 5" />
-  <KafkaSink topic="active_users_per_minute" />
+  <KafkaSink topic="active_users_per_minute" bootstrapServers="kafka:9092" />
 </Pipeline>`,
       },
     ],
@@ -280,7 +280,7 @@ const shipments = (
       fulfillment_time: "ship_time - order_time",
     }}
   />
-  <KafkaSink topic="order_fulfillment" />
+  <KafkaSink topic="order_fulfillment" bootstrapServers="kafka:9092" />
 </Pipeline>`,
       },
       {
@@ -315,7 +315,7 @@ const actions = (
     cache={{ type: "lru", maxRows: 10000, ttl: "1m" }}
   />
   <Filter condition="user_tier IN ('premium', 'enterprise')" />
-  <KafkaSink topic="premium_user_actions" />
+  <KafkaSink topic="premium_user_actions" bootstrapServers="kafka:9092" />
 </Pipeline>`,
       },
     ],
@@ -366,10 +366,10 @@ const actions = (
   />
   <Route>
     <Route.Branch condition="total_amount >= 1000">
-      <KafkaSink topic="high_value_orders" />
+      <KafkaSink topic="high_value_orders" bootstrapServers="kafka:9092" />
     </Route.Branch>
     <Route.Branch condition="order_status = 'FAILED'">
-      <KafkaSink topic="failed_orders_alerts" />
+      <KafkaSink topic="failed_orders_alerts" bootstrapServers="kafka:9092" />
     </Route.Branch>
     <Route.Default>
       <TumbleWindow size="1 minute" on="order_time">
