@@ -11,6 +11,8 @@ import { SandboxEditor } from "./sandbox-editor"
 import { SandboxSidebar } from "./sandbox-sidebar"
 import { SandboxStatusBar } from "./sandbox-status-bar"
 import { SynthesisOutput } from "./synthesis-output"
+import { TemplatePicker } from "./template-picker"
+import { ValidationPanel } from "./validation-panel"
 import { useSandboxStore } from "@/stores/sandbox-store"
 
 // ---------------------------------------------------------------------------
@@ -81,6 +83,9 @@ export function SandboxEditorPage() {
   const code = useSandboxStore((s) => s.code)
   const setCode = useSandboxStore((s) => s.setCode)
   const synthesize = useSandboxStore((s) => s.synthesize)
+  const diagnostics = useSandboxStore((s) => s.diagnostics)
+  const activeTemplate = useSandboxStore((s) => s.activeTemplate)
+  const setTemplate = useSandboxStore((s) => s.setTemplate)
 
   return (
     <div className="flex h-full flex-col">
@@ -95,10 +100,13 @@ export function SandboxEditorPage() {
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="flex h-full flex-col">
               <div className="flex h-9 items-center justify-between border-b border-dash-border px-4">
-                <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
-                  <SiTypescript className="size-3.5" />
-                  Editor
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                    <SiTypescript className="size-3.5" />
+                    Editor
+                  </span>
+                  <TemplatePicker value={activeTemplate} onSelect={setTemplate} />
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-zinc-600">
                     Cmd+Enter
@@ -119,6 +127,7 @@ export function SandboxEditorPage() {
                   value={code}
                   onChange={setCode}
                   onSynthesize={synthesize}
+                  diagnostics={diagnostics}
                 />
               </div>
             </div>
@@ -136,6 +145,7 @@ export function SandboxEditorPage() {
               <div className="flex-1 overflow-hidden">
                 <SynthesisOutput />
               </div>
+              <ValidationPanel />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

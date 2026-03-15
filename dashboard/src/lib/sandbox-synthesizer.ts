@@ -11,6 +11,20 @@ import { transform } from "sucrase"
 // Types
 // ---------------------------------------------------------------------------
 
+export interface ValidationDiagnostic {
+  severity: "error" | "warning"
+  message: string
+  componentName?: string
+  nodeId?: string
+  category?: "schema" | "expression" | "connector" | "changelog" | "structure" | "sql"
+  details?: {
+    readonly availableColumns?: readonly string[]
+    readonly referencedColumn?: string
+    readonly expressionErrors?: readonly string[]
+    readonly missingProps?: readonly string[]
+  }
+}
+
 export interface PipelineOutput {
   name: string
   sql: string
@@ -20,11 +34,7 @@ export interface PipelineOutput {
 interface SynthesisSuccess {
   ok: true
   pipelines: PipelineOutput[]
-  diagnostics: Array<{
-    severity: "error" | "warning"
-    message: string
-    componentName?: string
-  }>
+  diagnostics: ValidationDiagnostic[]
   timeMs: number
 }
 
@@ -169,20 +179,87 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
       children: [resultNode],
     })
 
-    // 5. Serialize outputs and collect diagnostics
+    // 5. Serialize outputs
     const pipelines: PipelineOutput[] = result.pipelines.map((p) => ({
       name: p.name,
       sql: p.sql.sql,
       crdYaml: dsl.toYaml(p.crd),
     }))
 
-    const diagnostics = result.pipelines.flatMap((p) =>
-      p.sql.diagnostics.map((d) => ({
-        severity: d.severity,
-        message: d.message,
-        componentName: d.componentName,
-      })),
-    )
+    // 6. Run full validation pipeline
+    const diagnostics: ValidationDiagnostic[] = []
+
+    // Collect SQL-generation diagnostics
+    for (const p of result.pipelines) {
+      for (const d of p.sql.diagnostics) {
+        diagnostics.push({
+          severity: d.severity,
+          message: d.message,
+          componentName: d.component,
+          nodeId: d.nodeId,
+          category: d.category,
+          details: d.details,
+        })
+      }
+    }
+
+    // Run SynthContext-based validation (schema, connector, changelog, structure)
+    for (const p of result.pipelines) {
+      const pipelineNode = resultNode.children?.find(
+        (c: import("flink-reactor/browser").ConstructNode) =>
+          c.kind === "Pipeline" && c.props.name === p.name,
+      ) ?? resultNode
+
+      const ctx = new dsl.SynthContext()
+      ctx.buildFromTree(pipelineNode)
+      const syncDiags = ctx.validate(pipelineNode)
+      for (const d of syncDiags) {
+        diagnostics.push({
+          severity: d.severity,
+          message: d.message,
+          nodeId: d.nodeId,
+          category: d.category,
+          componentName: d.component,
+          details: d.details,
+        })
+      }
+
+      // Expression syntax validation (async, conditional on no schema errors)
+      const hasSchemaErrors = diagnostics.some(
+        (d) => d.category === "schema" && d.severity === "error",
+      )
+      if (!hasSchemaErrors) {
+        try {
+          const exprDiags = await dsl.validateExpressionSyntax(pipelineNode)
+          for (const d of exprDiags) {
+            diagnostics.push({
+              severity: d.severity,
+              message: d.message,
+              nodeId: d.nodeId,
+              category: d.category,
+              componentName: d.component,
+              details: d.details,
+            })
+          }
+        } catch {
+          // Expression validation depends on dt-sql-parser — skip on failure
+        }
+      }
+
+      // Post-generation SQL verification
+      const sqlStatements = p.sql.sql
+        .split(";")
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+      const sqlDiags = dsl.verifySql(sqlStatements)
+      for (const d of sqlDiags) {
+        diagnostics.push({
+          severity: d.severity,
+          message: d.message,
+          category: "sql",
+        })
+      }
+    }
 
     const timeMs = Math.round(performance.now() - start)
 

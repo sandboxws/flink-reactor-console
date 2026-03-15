@@ -145,7 +145,7 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       flink-reactor:
-        specifier: ^0.1.0
+        specifier: 0.1.0
         version: 0.1.0(@effect/cluster@0.56.4(@effect/platform@0.94.5(effect@3.19.19))(@effect/rpc@0.73.2(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(@effect/platform@0.94.5(effect@3.19.19))(@effect/rpc@0.73.2(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(effect@3.19.19))(effect@3.19.19))(@effect/rpc@0.73.2(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(@effect/platform@0.94.5(effect@3.19.19))(effect@3.19.19))(antlr4ng-cli@1.0.7)
       graphql:
         specifier: ^16.13.1
@@ -3257,7 +3257,7 @@ packages:
     resolution: {integrity: sha512-dLVCAISd5mhls514keQzmEG6QHmUUsNuWsb4tFafIUwvvgDjXhtfAYSKOzt5SWOy+qByV5pbsDZ+Vb7HUOBEdA==}
 
   flink-reactor@0.1.0:
-    resolution: {integrity: sha512-3RA/Xo6uhfntHUj0dYBC+4wSG840BtupehMJ4NU969YGnuSMdRg5L4SuRAKmY8SrhfKu13pyWOEToy1ucLkSTA==}
+    resolution: {integrity: sha512-jVbjTnoAR1n+TEK1pmIvKsZE9hYsPZSSPVpAxIdkIQgPjvEunnsdx5YnfTxOjv0/T7NJq2ICc0PRs/CeDrL8Ig==}
     engines: {node: '>=18'}
     hasBin: true
 
