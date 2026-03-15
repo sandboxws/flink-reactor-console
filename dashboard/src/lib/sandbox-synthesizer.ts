@@ -69,7 +69,22 @@ async function loadDsl(): Promise<DslModule> {
 // ---------------------------------------------------------------------------
 
 function transpile(code: string): string {
-  const result = transform(code, {
+  // Bare JSX at statement position (`<Pipeline>...`) is invalid JS —
+  // Sucrase sees `<` as less-than. Find the last top-level JSX tag
+  // that starts at column 0 (not indented/nested in parens) and wrap
+  // it in parentheses to put it in expression position.
+  let prepared = code
+  const bareJsxPattern = /^(<[A-Z])/m
+  const match = prepared.match(bareJsxPattern)
+  if (match?.index != null) {
+    prepared =
+      prepared.slice(0, match.index) +
+      "(" +
+      prepared.slice(match.index) +
+      "\n)"
+  }
+
+  const result = transform(prepared, {
     transforms: ["typescript", "jsx"],
     jsxPragma: "createElement",
     jsxFragmentPragma: "Fragment",
@@ -94,16 +109,19 @@ function execute(
   )
 
   // The transpiled code has statements (const schema = ...) followed
-  // by a bare createElement() call (from JSX). We need to insert
-  // `return` before the last top-level createElement so the function
-  // returns the construct tree.
-  const lastIdx = jsCode.lastIndexOf("\ncreateElement(")
+  // by a parenthesized createElement() expression (from the JSX we
+  // wrapped in parens before transpilation). Insert `return` before
+  // the last top-level expression so the function returns the tree.
+  let lastIdx = jsCode.lastIndexOf("\n(createElement(")
+  if (lastIdx < 0) lastIdx = jsCode.lastIndexOf("\ncreateElement(")
+
   let wrappedCode: string
   if (lastIdx >= 0) {
-    // Statements before + return the final expression
     wrappedCode = `"use strict";\n${jsCode.slice(0, lastIdx + 1)}return ${jsCode.slice(lastIdx + 1)}`
-  } else if (jsCode.trimStart().startsWith("createElement(")) {
-    // Pure JSX, no preamble
+  } else if (
+    jsCode.trimStart().startsWith("createElement(") ||
+    jsCode.trimStart().startsWith("(createElement(")
+  ) {
     wrappedCode = `"use strict";\nreturn ${jsCode}`
   } else {
     wrappedCode = `"use strict";\nreturn (\n${jsCode}\n);`
