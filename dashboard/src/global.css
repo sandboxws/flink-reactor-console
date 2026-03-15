@@ -1013,3 +1013,14 @@ html.light .data-row-selected {
   opacity: 0.5;
   font-style: italic;
 }
+
+.cm-foldPlaceholder {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--color-fr-purple) 40%, transparent) !important;
+  color: var(--color-fr-purple) !important;
+  border-radius: 3px;
+  padding: 0 6px !important;
+  margin: 0 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+}

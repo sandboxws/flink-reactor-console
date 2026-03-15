@@ -1,5 +1,5 @@
 import { javascript } from "@codemirror/lang-javascript"
-import { bracketMatching } from "@codemirror/language"
+import { bracketMatching, codeFolding, foldEffect } from "@codemirror/language"
 import { Compartment, EditorState } from "@codemirror/state"
 import { EditorView, lineNumbers } from "@codemirror/view"
 import { ChevronDown, ChevronRight } from "lucide-react"
@@ -36,6 +36,36 @@ function getActiveTheme() {
     : tokyoNightCmTheme
 }
 
+/**
+ * Compute fold ranges for CREATE TABLE statements.
+ * Each fold hides the \n\n separator + DDL body, leaving the comment block visible.
+ */
+function computeCreateTableFolds(
+  statements: readonly string[],
+  commentIndices: ReadonlySet<number>,
+): Array<{ from: number; to: number }> {
+  const folds: Array<{ from: number; to: number }> = []
+  let docPos = 0
+
+  for (let i = 0; i < statements.length; i++) {
+    const stmt = statements[i]
+    const stmtEnd = docPos + stmt.length
+
+    if (
+      i > 0 &&
+      commentIndices.has(i - 1) &&
+      stmt.trimStart().startsWith("CREATE TABLE")
+    ) {
+      // Fold from end of previous comment block to end of this CREATE TABLE
+      folds.push({ from: docPos - 2, to: stmtEnd })
+    }
+
+    docPos = stmtEnd + 2 // +2 for \n\n separator
+  }
+
+  return folds
+}
+
 interface CodeViewerProps {
   value: string
   focusComponents?: string[] | null
@@ -66,6 +96,7 @@ function CodeViewer({
         lineNumbers(),
         bracketMatching(),
         javascript(),
+        codeFolding({ placeholderText: "…" }),
         focusHighlightField,
         themeCompartment.of(getActiveTheme()),
         EditorView.editable.of(false),
@@ -143,6 +174,16 @@ function CodeViewer({
     // Dispatch content + decorations in a single transaction
     if (changes || effects.length > 0) {
       view.dispatch({ changes, effects })
+    }
+
+    // Auto-fold CREATE TABLE statements when content changes
+    if (changes && statements && commentIndices && commentIndices.size > 0) {
+      const folds = computeCreateTableFolds(statements, commentIndices)
+      if (folds.length > 0) {
+        view.dispatch({
+          effects: folds.map((f) => foldEffect.of(f)),
+        })
+      }
     }
   }, [value, focusComponents, statements, statementOrigins, statementContributors, commentIndices])
 
