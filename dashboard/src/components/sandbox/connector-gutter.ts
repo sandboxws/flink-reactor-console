@@ -57,25 +57,72 @@ const STROKE_ICONS: Record<string, string> = {
     "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
 }
 
-// Map component names to icon keys
-function resolveIconKey(
-  component: string,
-): { key: string; type: "fill" | "stroke" } | null {
+// ---------------------------------------------------------------------------
+// JDBC URL → database brand detection
+// ---------------------------------------------------------------------------
+
+const JDBC_PATTERNS: Array<{
+  pattern: RegExp
+  key: string
+  type: "fill" | "stroke"
+  label: string
+}> = [
+  { pattern: /jdbc:postgresql/i, key: "postgresql", type: "fill", label: "PostgreSQL" },
+  { pattern: /jdbc:mysql/i, key: "mysql", type: "fill", label: "MySQL" },
+  { pattern: /jdbc:clickhouse/i, key: "clickhouse", type: "fill", label: "ClickHouse" },
+  { pattern: /jdbc:mongodb/i, key: "mongodb", type: "fill", label: "MongoDB" },
+  { pattern: /jdbc:sqlserver/i, key: "database", type: "stroke", label: "SQL Server" },
+  { pattern: /jdbc:oracle/i, key: "database", type: "stroke", label: "Oracle" },
+  { pattern: /jdbc:sqlite/i, key: "database", type: "stroke", label: "SQLite" },
+  { pattern: /jdbc:mariadb/i, key: "mysql", type: "fill", label: "MariaDB" },
+  { pattern: /jdbc:h2/i, key: "database", type: "stroke", label: "H2" },
+  { pattern: /jdbc:derby/i, key: "database", type: "stroke", label: "Derby" },
+]
+
+function resolveJdbcIcon(
+  url: string,
+): { key: string; type: "fill" | "stroke"; label: string } {
+  for (const { pattern, key, type, label } of JDBC_PATTERNS) {
+    if (pattern.test(url)) return { key, type, label }
+  }
+  return { key: "database", type: "stroke", label: "JDBC" }
+}
+
+// ---------------------------------------------------------------------------
+// Icon key + label for display names
+// ---------------------------------------------------------------------------
+
+interface ResolvedIcon {
+  key: string
+  type: "fill" | "stroke"
+  label: string
+}
+
+/** Map component names to icon keys. `jdbcUrl` enables smart JDBC detection. */
+function resolveIconKey(component: string, jdbcUrl?: string): ResolvedIcon | null {
   switch (component) {
     case "KafkaSource":
+      return { key: "kafka", type: "fill", label: "Kafka Source" }
     case "KafkaSink":
-      return { key: "kafka", type: "fill" }
-    case "JdbcSource":
-    case "JdbcSink":
-      return { key: "database", type: "stroke" }
+      return { key: "kafka", type: "fill", label: "Kafka Sink" }
+    case "JdbcSource": {
+      const jdbc = jdbcUrl ? resolveJdbcIcon(jdbcUrl) : { key: "database", type: "stroke" as const, label: "JDBC" }
+      return { ...jdbc, label: `${jdbc.label} Source` }
+    }
+    case "JdbcSink": {
+      const jdbc = jdbcUrl ? resolveJdbcIcon(jdbcUrl) : { key: "database", type: "stroke" as const, label: "JDBC" }
+      return { ...jdbc, label: `${jdbc.label} Sink` }
+    }
     case "GenericSource":
+      return { key: "plug", type: "stroke", label: "Generic Source" }
     case "GenericSink":
-      return { key: "plug", type: "stroke" }
+      return { key: "plug", type: "stroke", label: "Generic Sink" }
     case "FileSystemSink":
-      return { key: "filesystem", type: "stroke" }
+      return { key: "filesystem", type: "stroke", label: "FileSystem Sink" }
     case "IcebergSink":
+      return { key: "database", type: "stroke", label: "Iceberg Sink" }
     case "PaimonSink":
-      return { key: "database", type: "stroke" }
+      return { key: "database", type: "stroke", label: "Paimon Sink" }
     default:
       // Check if connector type name matches a known brand
       for (const brand of [
@@ -88,7 +135,7 @@ function resolveIconKey(
         "elasticsearch",
       ]) {
         if (component.toLowerCase().includes(brand))
-          return { key: brand, type: "fill" }
+          return { key: brand, type: "fill", label: component }
       }
       return null
   }
@@ -143,6 +190,7 @@ class ConnectorIconMarker extends GutterMarker {
   constructor(
     readonly iconKey: string,
     readonly iconType: "fill" | "stroke",
+    readonly label: string,
   ) {
     super()
   }
@@ -150,27 +198,18 @@ class ConnectorIconMarker extends GutterMarker {
   override toDOM(): HTMLElement {
     const wrapper = document.createElement("div")
     wrapper.className = "cm-connector-icon"
+    wrapper.dataset.label = this.label
     wrapper.appendChild(createIconSvg(this.iconKey, this.iconType))
     return wrapper
   }
 
   override eq(other: GutterMarker): boolean {
     return (
-      other instanceof ConnectorIconMarker && other.iconKey === this.iconKey
+      other instanceof ConnectorIconMarker &&
+      other.iconKey === this.iconKey &&
+      other.label === this.label
     )
   }
-}
-
-// Singleton markers for common connectors (avoid re-creating DOM)
-const markerCache = new Map<string, ConnectorIconMarker>()
-function getMarker(iconKey: string, iconType: "fill" | "stroke") {
-  const cacheKey = `${iconType}:${iconKey}`
-  let marker = markerCache.get(cacheKey)
-  if (!marker) {
-    marker = new ConnectorIconMarker(iconKey, iconType)
-    markerCache.set(cacheKey, marker)
-  }
-  return marker
 }
 
 // ---------------------------------------------------------------------------
@@ -179,7 +218,10 @@ function getMarker(iconKey: string, iconType: "fill" | "stroke") {
 
 /** Maps 0-based line indices to icon info. */
 export interface ConnectorIconData {
-  lineIcons: Map<number, { key: string; type: "fill" | "stroke" }>
+  lineIcons: Map<
+    number,
+    { key: string; type: "fill" | "stroke"; label: string }
+  >
 }
 
 export const setConnectorIcons =
@@ -196,6 +238,47 @@ const connectorIconField = StateField.define<ConnectorIconData | null>({
 })
 
 // ---------------------------------------------------------------------------
+// Tooltip (shared with diagnostic gutter pattern)
+// ---------------------------------------------------------------------------
+
+let iconTooltipEl: HTMLDivElement | null = null
+
+function showIconTooltip(label: string, anchor: HTMLElement) {
+  hideIconTooltip()
+  iconTooltipEl = document.createElement("div")
+  iconTooltipEl.className = "cm-connector-tooltip"
+  Object.assign(iconTooltipEl.style, {
+    position: "fixed",
+    zIndex: "1000",
+    padding: "4px 10px",
+    borderRadius: "6px",
+    border: "1px solid color-mix(in srgb, var(--color-fr-purple) 40%, transparent)",
+    backgroundColor: "color-mix(in srgb, var(--color-fr-purple) 12%, var(--color-dash-surface))",
+    backdropFilter: "blur(8px)",
+    color: "var(--color-fr-purple)",
+    fontSize: "11px",
+    lineHeight: "1.5",
+    fontWeight: "500",
+    pointerEvents: "none",
+    whiteSpace: "nowrap",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+  })
+  iconTooltipEl.textContent = label
+  document.body.appendChild(iconTooltipEl)
+
+  const rect = anchor.getBoundingClientRect()
+  iconTooltipEl.style.left = `${rect.right + 6}px`
+  iconTooltipEl.style.top = `${rect.top - 2}px`
+}
+
+function hideIconTooltip() {
+  if (iconTooltipEl) {
+    iconTooltipEl.remove()
+    iconTooltipEl = null
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Gutter extension
 // ---------------------------------------------------------------------------
 
@@ -210,11 +293,28 @@ const connectorGutter = gutter({
       const lineNum = lineIdx + 1 // 1-based
       if (lineNum <= view.state.doc.lines) {
         const line = view.state.doc.line(lineNum)
-        markers.push({ from: line.from, marker: getMarker(icon.key, icon.type) })
+        markers.push({
+          from: line.from,
+          marker: new ConnectorIconMarker(icon.key, icon.type, icon.label),
+        })
       }
     }
     markers.sort((a, b) => a.from - b.from)
     return RangeSet.of(markers.map((m) => m.marker.range(m.from)))
+  },
+  domEventHandlers: {
+    mouseover(_view, _line, event) {
+      const target = event.target as HTMLElement
+      const iconEl = target.closest(".cm-connector-icon")
+      if (!iconEl) return false
+      const label = (iconEl as HTMLElement).dataset.label
+      if (label) showIconTooltip(label, iconEl as HTMLElement)
+      return false
+    },
+    mouseout() {
+      hideIconTooltip()
+      return false
+    },
   },
 })
 
@@ -223,10 +323,16 @@ export const connectorIconGutter: Extension = [
   connectorGutter,
 ]
 
+/** Clean up tooltip on editor destroy. */
+export function cleanupConnectorTooltip(): void {
+  hideIconTooltip()
+}
+
 // ---------------------------------------------------------------------------
 // Compute icon positions from statement metadata
 // ---------------------------------------------------------------------------
 
+/** Compute connector icons for SQL output (from statement metadata). */
 export function computeConnectorIcons(
   statements: readonly string[],
   commentIndices: ReadonlySet<number>,
@@ -234,7 +340,7 @@ export function computeConnectorIcons(
 ): ConnectorIconData {
   const lineIcons = new Map<
     number,
-    { key: string; type: "fill" | "stroke" }
+    { key: string; type: "fill" | "stroke"; label: string }
   >()
   let lineNum = 0
 
@@ -249,7 +355,11 @@ export function computeConnectorIcons(
         (meta.section === "sources" || meta.section === "sinks") &&
         meta.component
       ) {
-        const icon = resolveIconKey(meta.component)
+        // Extract JDBC URL from meta details for smart icon detection
+        const urlDetail = meta.details.find(
+          (d) => d.key === "url" || d.key === "base-url",
+        )
+        const icon = resolveIconKey(meta.component, urlDetail?.value)
         if (icon) {
           // Place icon on the type label line (2nd line: "-- SOURCE TABLE")
           lineIcons.set(lineNum + 1, icon)
@@ -261,4 +371,65 @@ export function computeConnectorIcons(
   }
 
   return { lineIcons }
+}
+
+// ---------------------------------------------------------------------------
+// TSX connector icon scanning
+// ---------------------------------------------------------------------------
+
+/** Known source/sink component names for TSX scanning. */
+const TSX_COMPONENTS = [
+  "KafkaSource",
+  "KafkaSink",
+  "JdbcSource",
+  "JdbcSink",
+  "GenericSource",
+  "GenericSink",
+  "FileSystemSink",
+  "IcebergSink",
+  "PaimonSink",
+]
+
+/** Compute connector icons for TSX editor by scanning for component tags. */
+export function computeTsxConnectorIcons(code: string): ConnectorIconData {
+  const lineIcons = new Map<
+    number,
+    { key: string; type: "fill" | "stroke"; label: string }
+  >()
+  const lines = code.split("\n")
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    for (const comp of TSX_COMPONENTS) {
+      if (!new RegExp(`<${comp}(\\s|>|$|/)`).test(line)) continue
+
+      // For JDBC, try to extract `url` prop from the same or following lines
+      let jdbcUrl: string | undefined
+      if (comp === "JdbcSource" || comp === "JdbcSink") {
+        jdbcUrl = extractJdbcUrl(lines, i)
+      }
+
+      const icon = resolveIconKey(comp, jdbcUrl)
+      if (icon) lineIcons.set(i, icon)
+      break // one icon per line
+    }
+  }
+
+  return { lineIcons }
+}
+
+/**
+ * Extract the `url` prop value from a JSX element starting at `startLine`.
+ * Scans forward through multi-line props until the tag closes.
+ */
+function extractJdbcUrl(lines: string[], startLine: number): string | undefined {
+  for (let i = startLine; i < Math.min(startLine + 15, lines.length); i++) {
+    const urlMatch = lines[i].match(/url\s*=\s*["'{]([^"'}]+)["'}]/)
+    if (urlMatch) return urlMatch[1]
+    // Stop scanning at tag close
+    if (i > startLine && (lines[i].includes("/>") || lines[i].includes(">"))) {
+      break
+    }
+  }
+  return undefined
 }

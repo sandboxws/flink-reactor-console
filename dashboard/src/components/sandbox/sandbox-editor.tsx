@@ -21,6 +21,12 @@ import { useCallback, useEffect, useRef } from "react"
 import type { ValidationDiagnostic } from "@/stores/sandbox-store"
 import { dslCompletionSource } from "./completions"
 import {
+  cleanupConnectorTooltip,
+  computeTsxConnectorIcons,
+  connectorIconGutter,
+  setConnectorIcons,
+} from "./connector-gutter"
+import {
   computeTsxFocusLines,
   focusHighlightField,
   setFocusLines,
@@ -295,6 +301,7 @@ export function SandboxEditor({
         }),
         diagnosticMarkersField,
         diagnosticGutter,
+        connectorIconGutter,
         focusHighlightField,
         themeCompartment.of(getActiveTheme()),
         keymap.of([
@@ -329,6 +336,7 @@ export function SandboxEditor({
 
     return () => {
       hideTooltip()
+      cleanupConnectorTooltip()
       if (debounceRef.current) clearTimeout(debounceRef.current)
       view.destroy()
     }
@@ -369,6 +377,15 @@ export function SandboxEditor({
     const lines = computeTsxFocusLines(doc, focusComponents)
     view.dispatch({ effects: setFocusLines.of(lines) })
   }, [focusComponents])
+
+  // Update connector icons when content changes
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    const doc = view.state.doc.toString()
+    const iconData = computeTsxConnectorIcons(doc)
+    view.dispatch({ effects: setConnectorIcons.of(iconData) })
+  }, [value])
 
   // Watch for palette changes and reconfigure the theme compartment
   useEffect(() => {

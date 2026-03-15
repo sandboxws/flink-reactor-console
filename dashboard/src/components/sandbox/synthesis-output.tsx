@@ -14,6 +14,7 @@ import type {
   StatementOrigin,
 } from "@/lib/sandbox-synthesizer"
 import {
+  cleanupConnectorTooltip,
   computeConnectorIcons,
   connectorIconGutter,
   setConnectorIcons,
@@ -120,6 +121,7 @@ function CodeViewer({
     viewRef.current = view
 
     return () => {
+      cleanupConnectorTooltip()
       view.destroy()
       viewRef.current = null
     }
