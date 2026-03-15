@@ -16,6 +16,7 @@ interface TemplatePickerProps {
 export function TemplatePicker({ value, onSelect }: TemplatePickerProps) {
   return (
     <Select
+      key={value ?? "__empty__"}
       value={value ?? undefined}
       onValueChange={(v) => onSelect(v as TemplateId)}
     >
