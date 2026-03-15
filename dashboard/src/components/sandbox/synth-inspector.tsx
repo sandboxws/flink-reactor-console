@@ -172,16 +172,5 @@ export function SynthInspector({
     statementContributors: contributorsToObject(statementContributors),
   }
 
-  return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex h-7 shrink-0 items-center border-b border-dash-border px-3">
-        <span className="text-[11px] font-medium text-zinc-500">
-          Synth Inspector
-        </span>
-      </div>
-      <div className="flex-1 overflow-auto p-2 font-mono text-xs leading-5">
-        <JsonNode value={data} depth={0} defaultOpen />
-      </div>
-    </div>
-  )
+  return <JsonNode value={data} depth={0} defaultOpen />
 }

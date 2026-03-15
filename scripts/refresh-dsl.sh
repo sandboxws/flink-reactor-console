@@ -29,15 +29,17 @@ fi
 # --- Remove flink-reactor from pnpm store ---
 echo "Clearing flink-reactor from pnpm store..."
 
-# Remove from the content-addressable store
-CACHED=$(find "$PNPM_STORE" -type d -name "flink-reactor" 2>/dev/null || true)
+# Remove from the content-addressable store (directories and index files)
+CACHED_DIRS=$(find "$PNPM_STORE" -type d -name "flink-reactor" 2>/dev/null || true)
+CACHED_INDEX=$(find "$PNPM_STORE/index" -type f -name "*flink-reactor*" 2>/dev/null || true)
+CACHED=$(printf '%s\n%s' "$CACHED_DIRS" "$CACHED_INDEX" | grep -v '^$' || true)
 if [[ -n "$CACHED" ]]; then
-  echo "$CACHED" | while read -r dir; do
+  echo "$CACHED" | while read -r entry; do
     if $DRY_RUN; then
-      echo "  [dry] would remove: $dir"
+      echo "  [dry] would remove: $entry"
     else
-      rm -rf "$dir"
-      echo "  removed: $dir"
+      rm -rf "$entry"
+      echo "  removed: $entry"
     fi
   done
 else
@@ -74,6 +76,13 @@ if $DRY_RUN; then
   exit 0
 fi
 
+# --- Clear Vite pre-bundle cache ---
+VITE_CACHE="$PROJECT_ROOT/dashboard/node_modules/.vite"
+if [[ -d "$VITE_CACHE" ]]; then
+  rm -rf "$VITE_CACHE"
+  echo "  removed Vite dep cache: $VITE_CACHE"
+fi
+
 # --- Reinstall from Verdaccio ---
 echo ""
 echo "Reinstalling flink-reactor from $REGISTRY..."
@@ -81,4 +90,4 @@ cd "$PROJECT_ROOT"
 pnpm install --registry "$REGISTRY"
 
 echo ""
-echo "Done! flink-reactor refreshed from local registry."
+echo "Done! flink-reactor refreshed from local registry (restart dev server to pick up changes)."

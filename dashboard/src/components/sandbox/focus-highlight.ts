@@ -100,28 +100,24 @@ export function computeTsxFocusLines(
           continue
         }
         // Multi-line: scan forward for self-close or closing tag
-        const start = i
+        const openIndent = line.search(/\S/)
         focused.add(i)
         i++
         while (i < lines.length) {
           focused.add(i)
-          if (lines[i].includes("/>") || lines[i].includes(`</${comp}>`)) {
-            // If closing tag found, but there might be nested content — check for paired close
-            if (lines[i].includes(`</${comp}>`)) {
+          if (lines[i].includes(`</${comp}>`)) {
+            i++
+            break
+          }
+          if (lines[i].includes("/>")) {
+            // Use indentation to distinguish this component's self-close
+            // from a child element's self-close. The closing /> of the
+            // current component will be at the same (or lesser) indent.
+            const closeIndent = lines[i].search(/\S/)
+            if (closeIndent <= openIndent) {
               i++
               break
             }
-            // Self-closing />: only end if we haven't seen an opening > before
-            // Check if the opening tag was closed with > (meaning children follow)
-            const openRegion = lines.slice(start, i + 1).join("\n")
-            const hasOpenClose = new RegExp(`<${comp}[^/]*>`).test(openRegion)
-            if (hasOpenClose && !lines[i].includes(`</${comp}>`)) {
-              // This /> is inside the tag props, keep scanning for </Comp>
-              i++
-              continue
-            }
-            i++
-            break
           }
           i++
         }

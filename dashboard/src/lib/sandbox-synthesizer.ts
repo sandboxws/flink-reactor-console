@@ -190,16 +190,19 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
       }
     }
 
-    // 3. Execute transpiled code with DSL scope
+    // 3. Reset node ID counter to avoid _2 suffixes from prior runs
+    dsl.resetNodeIdCounter()
+
+    // 4. Execute transpiled code with DSL scope
     const resultNode = execute(jsCode, dsl)
 
-    // 4. Synthesize the construct tree
+    // 5. Synthesize the construct tree
     const result = dsl.synthesizeApp({
       name: "sandbox",
       children: [resultNode],
     })
 
-    // 5. Serialize outputs
+    // 6. Serialize outputs
     const pipelines: PipelineOutput[] = result.pipelines.map((p) => ({
       name: p.name,
       sql: p.sql.sql,
@@ -209,7 +212,7 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
       statementContributors: p.sql.statementContributors,
     }))
 
-    // 6. Run full validation pipeline
+    // 7. Run full validation pipeline
     const diagnostics: ValidationDiagnostic[] = []
 
     // Collect SQL-generation diagnostics

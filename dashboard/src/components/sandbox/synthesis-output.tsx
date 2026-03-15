@@ -2,15 +2,11 @@ import { javascript } from "@codemirror/lang-javascript"
 import { bracketMatching } from "@codemirror/language"
 import { Compartment, EditorState } from "@codemirror/state"
 import { EditorView, lineNumbers } from "@codemirror/view"
-import { useCallback, useEffect, useRef } from "react"
+import { ChevronDown, ChevronRight } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { SiKubernetes } from "react-icons/si"
 import { TbSql } from "react-icons/tb"
 import { Button } from "@/components/ui/button"
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { SqlFragment, StatementOrigin } from "@/lib/sandbox-synthesizer"
 import { useSandboxStore } from "@/stores/sandbox-store"
@@ -54,11 +50,12 @@ function CodeViewer({
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
 
+  // Create the EditorView once on mount
   useEffect(() => {
     if (!containerRef.current) return
 
     const state = EditorState.create({
-      doc: value,
+      doc: "",
       extensions: [
         lineNumbers(),
         bracketMatching(),
@@ -75,7 +72,29 @@ function CodeViewer({
       parent: containerRef.current,
     })
 
-    // Apply focus highlighting after creation
+    viewRef.current = view
+
+    return () => {
+      view.destroy()
+      viewRef.current = null
+    }
+  }, [])
+
+  // Update content + focus decorations atomically when props change
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+
+    const currentDoc = view.state.doc.toString()
+    const effects: import("@codemirror/state").StateEffect<unknown>[] = []
+
+    // Replace document content if changed
+    const changes =
+      currentDoc !== value
+        ? { from: 0, to: currentDoc.length, insert: value }
+        : undefined
+
+    // Compute focus decorations
     if (
       focusComponents &&
       focusComponents.length > 0 &&
@@ -89,12 +108,15 @@ function CodeViewer({
         statementContributors ?? new Map(),
         focusComponents,
       )
-      view.dispatch({ effects: setFocusLines.of(lines) })
+      effects.push(setFocusLines.of(lines))
+    } else {
+      effects.push(setFocusLines.of(null))
     }
 
-    viewRef.current = view
-
-    return () => view.destroy()
+    // Dispatch content + decorations in a single transaction
+    if (changes || effects.length > 0) {
+      view.dispatch({ changes, effects })
+    }
   }, [value, focusComponents, statements, statementOrigins, statementContributors])
 
   // Watch for palette changes
@@ -212,6 +234,50 @@ function LoadingSkeleton() {
 }
 
 // ---------------------------------------------------------------------------
+// Collapsible Synth Inspector
+// ---------------------------------------------------------------------------
+
+function CollapsibleInspector({
+  statements,
+  statementOrigins,
+  statementContributors,
+}: {
+  statements: readonly string[]
+  statementOrigins: ReadonlyMap<number, StatementOrigin>
+  statementContributors: ReadonlyMap<number, readonly SqlFragment[]>
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="shrink-0 border-t border-dash-border">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-7 w-full items-center gap-1.5 px-3 text-left hover:bg-white/5"
+      >
+        {open ? (
+          <ChevronDown className="size-3 text-zinc-500" />
+        ) : (
+          <ChevronRight className="size-3 text-zinc-500" />
+        )}
+        <span className="text-[11px] font-medium text-zinc-500">
+          Synth Inspector
+        </span>
+      </button>
+      {open && (
+        <div className="h-56 overflow-auto border-t border-dash-border p-2 font-mono text-xs leading-5">
+          <SynthInspector
+            statements={statements}
+            statementOrigins={statementOrigins}
+            statementContributors={statementContributors}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Main output component
 // ---------------------------------------------------------------------------
 
@@ -282,8 +348,8 @@ export function SynthesisOutput({
       </div>
 
       <TabsContent value="sql" className="flex-1 overflow-hidden">
-        <ResizablePanelGroup orientation="vertical" className="h-full">
-          <ResizablePanel defaultSize={60} minSize={20}>
+        <div className="flex h-full flex-col">
+          <div className="min-h-0 flex-1 overflow-hidden">
             <CodeViewer
               value={sqlText}
               focusComponents={focusComponents}
@@ -291,16 +357,13 @@ export function SynthesisOutput({
               statementOrigins={pipeline.statementOrigins}
               statementContributors={pipeline.statementContributors}
             />
-          </ResizablePanel>
-          <ResizableHandle className="!h-px !w-full after:!inset-x-0 after:!inset-y-auto after:!top-1/2 after:!left-auto after:!h-3 after:!w-full after:!-translate-y-1/2 after:!translate-x-0" />
-          <ResizablePanel defaultSize={40} minSize={15}>
-            <SynthInspector
-              statements={pipeline.statements}
-              statementOrigins={pipeline.statementOrigins}
-              statementContributors={pipeline.statementContributors}
-            />
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          </div>
+          <CollapsibleInspector
+            statements={pipeline.statements}
+            statementOrigins={pipeline.statementOrigins}
+            statementContributors={pipeline.statementContributors}
+          />
+        </div>
       </TabsContent>
 
       <TabsContent value="crd" className="flex-1 overflow-hidden">
