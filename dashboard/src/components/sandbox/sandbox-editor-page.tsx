@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react"
-import { FileCode, Play } from "lucide-react"
+import { Play } from "lucide-react"
+import { SiTypescript } from "react-icons/si"
 import { Button } from "@/components/ui/button"
 import {
   ResizablePanelGroup,
@@ -95,7 +96,7 @@ export function SandboxEditorPage() {
             <div className="flex h-full flex-col">
               <div className="flex h-9 items-center justify-between border-b border-dash-border px-4">
                 <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
-                  <FileCode className="size-3.5" />
+                  <SiTypescript className="size-3.5" />
                   Editor
                 </span>
                 <div className="flex items-center gap-2">
