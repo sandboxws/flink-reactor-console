@@ -21,6 +21,8 @@ export interface FocusData {
   dimLines: Set<number>
   /** Absolute document positions of dim spans within partially-focused lines. */
   dimSpans: Array<{ from: number; to: number }>
+  /** 0-based line indices that are SQL comments (section headers, annotations). */
+  commentLines: Set<number>
 }
 
 /** Dispatch with FocusData to apply focus highlighting, or null to clear. */
@@ -28,6 +30,7 @@ export const setFocusLines = StateEffect.define<FocusData | null>()
 
 const dimLineDecoration = Decoration.line({ class: "cm-dim-line" })
 const dimMarkDecoration = Decoration.mark({ class: "cm-dim-span" })
+const commentLineDecoration = Decoration.line({ class: "cm-sql-comment" })
 
 export const focusHighlightField: Extension = (() => {
   const field = StateField.define<DecorationSet>({
@@ -36,13 +39,16 @@ export const focusHighlightField: Extension = (() => {
       for (const e of tr.effects) {
         if (e.is(setFocusLines)) {
           if (!e.value) return RangeSet.empty
-          const { dimLines, dimSpans } = e.value
+          const { dimLines, dimSpans, commentLines } = e.value
           const ranges: Range<Decoration>[] = []
 
-          // Line decorations for fully dimmed lines
+          // Line decorations for fully dimmed lines and comment lines
           for (let i = 1; i <= tr.state.doc.lines; i++) {
-            if (dimLines.has(i - 1)) {
+            const lineIdx = i - 1
+            if (dimLines.has(lineIdx)) {
               ranges.push(dimLineDecoration.range(tr.state.doc.line(i).from))
+            } else if (commentLines.has(lineIdx)) {
+              ranges.push(commentLineDecoration.range(tr.state.doc.line(i).from))
             }
           }
 
@@ -133,7 +139,7 @@ export function computeTsxFocusLines(
     if (!focused.has(i)) dimLines.add(i)
   }
 
-  return { dimLines, dimSpans: [] }
+  return { dimLines, dimSpans: [], commentLines: new Set() }
 }
 
 // ---------------------------------------------------------------------------
@@ -168,9 +174,11 @@ export function computeSqlFocusLines(
   statementOrigins: ReadonlyMap<number, StatementOrigin>,
   statementContributors: ReadonlyMap<number, readonly SqlFragment[]>,
   focusComponents: string[],
+  commentIndices?: ReadonlySet<number>,
 ): FocusData {
   const dimLines = new Set<number>()
   const dimSpans: Array<{ from: number; to: number }> = []
+  const commentLines = new Set<number>()
   const focusSet = new Set(focusComponents)
 
   // Walk through statements tracking both line indices and document offsets.
@@ -242,6 +250,12 @@ export function computeSqlFocusLines(
 
         lineByteStart = lineByteEnd + 1 // +1 for the \n
       }
+    } else if (commentIndices?.has(stmtIdx)) {
+      // ── Comment statement (section header or annotation) ──
+      // Always dim comment lines during focus mode
+      for (let j = 0; j < stmtLines.length; j++) {
+        dimLines.add(currentLine + j)
+      }
     } else {
       // ── Line-level focus (DDL, SET, etc.) ──
       const origin = statementOrigins.get(stmtIdx)
@@ -261,7 +275,24 @@ export function computeSqlFocusLines(
     docOffset += stmt.length + 2 // +2 for "\n\n" separator
   }
 
-  return { dimLines, dimSpans }
+  // Track comment lines for styling when no focus is active
+  if (commentIndices) {
+    let cl = 0
+    let co = 0
+    for (let si = 0; si < statements.length; si++) {
+      const s = statements[si]
+      const sLines = s.split("\n")
+      if (commentIndices.has(si)) {
+        for (let j = 0; j < sLines.length; j++) {
+          commentLines.add(cl + j)
+        }
+      }
+      cl += sLines.length + 1
+      co += s.length + 2
+    }
+  }
+
+  return { dimLines, dimSpans, commentLines }
 }
 
 /**

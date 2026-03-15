@@ -8,7 +8,11 @@ import { SiKubernetes } from "react-icons/si"
 import { TbSql } from "react-icons/tb"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { SqlFragment, StatementOrigin } from "@/lib/sandbox-synthesizer"
+import type {
+  SqlFragment,
+  StatementMeta,
+  StatementOrigin,
+} from "@/lib/sandbox-synthesizer"
 import { useSandboxStore } from "@/stores/sandbox-store"
 import {
   computeSqlFocusLines,
@@ -38,6 +42,7 @@ interface CodeViewerProps {
   statements?: readonly string[]
   statementOrigins?: ReadonlyMap<number, StatementOrigin>
   statementContributors?: ReadonlyMap<number, readonly SqlFragment[]>
+  commentIndices?: ReadonlySet<number>
 }
 
 function CodeViewer({
@@ -46,6 +51,7 @@ function CodeViewer({
   statements,
   statementOrigins,
   statementContributors,
+  commentIndices,
 }: CodeViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
@@ -107,8 +113,29 @@ function CodeViewer({
         statementOrigins,
         statementContributors ?? new Map(),
         focusComponents,
+        commentIndices,
       )
       effects.push(setFocusLines.of(lines))
+    } else if (commentIndices && commentIndices.size > 0 && statements) {
+      // No focus active, but apply comment line styling
+      const commentLines = new Set<number>()
+      let cl = 0
+      for (let si = 0; si < statements.length; si++) {
+        const sLines = statements[si].split("\n")
+        if (commentIndices.has(si)) {
+          for (let j = 0; j < sLines.length; j++) {
+            commentLines.add(cl + j)
+          }
+        }
+        cl += sLines.length + 1
+      }
+      effects.push(
+        setFocusLines.of({
+          dimLines: new Set(),
+          dimSpans: [],
+          commentLines,
+        }),
+      )
     } else {
       effects.push(setFocusLines.of(null))
     }
@@ -117,7 +144,7 @@ function CodeViewer({
     if (changes || effects.length > 0) {
       view.dispatch({ changes, effects })
     }
-  }, [value, focusComponents, statements, statementOrigins, statementContributors])
+  }, [value, focusComponents, statements, statementOrigins, statementContributors, commentIndices])
 
   // Watch for palette changes
   useEffect(() => {
@@ -356,6 +383,7 @@ export function SynthesisOutput({
               statements={pipeline.statements}
               statementOrigins={pipeline.statementOrigins}
               statementContributors={pipeline.statementContributors}
+              commentIndices={pipeline.commentIndices}
             />
           </div>
           <CollapsibleInspector

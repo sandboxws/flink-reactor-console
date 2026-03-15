@@ -44,6 +44,16 @@ export interface SqlFragment {
   readonly origin: StatementOrigin
 }
 
+/** Metadata for a single SQL statement, used for hover tooltips. */
+export interface StatementMeta {
+  readonly label: string
+  readonly section: string
+  readonly kind?: string
+  readonly component?: string
+  readonly details: ReadonlyArray<{ key: string; value: string }>
+  readonly schema?: ReadonlyArray<{ name: string; type: string }>
+}
+
 export interface PipelineOutput {
   name: string
   sql: string
@@ -54,6 +64,10 @@ export interface PipelineOutput {
   statementOrigins: ReadonlyMap<number, StatementOrigin>
   /** All contributing nodes per statement, with optional sub-statement spans. */
   statementContributors: ReadonlyMap<number, readonly SqlFragment[]>
+  /** Indices of comment-only statements (not executable SQL). */
+  commentIndices: ReadonlySet<number>
+  /** Per-statement metadata for hover tooltips (keyed by statement index). */
+  statementMeta: ReadonlyMap<number, StatementMeta>
 }
 
 interface SynthesisSuccess {
@@ -210,6 +224,8 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
       statements: p.sql.statements,
       statementOrigins: p.sql.statementOrigins,
       statementContributors: p.sql.statementContributors,
+      commentIndices: p.sql.commentIndices,
+      statementMeta: p.sql.statementMeta,
     }))
 
     // 7. Run full validation pipeline

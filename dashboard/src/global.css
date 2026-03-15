@@ -1008,3 +1008,8 @@ html.light .data-row-selected {
 .cm-dim-span:hover {
   opacity: 0.7;
 }
+
+.cm-sql-comment {
+  opacity: 0.5;
+  font-style: italic;
+}
