@@ -93,10 +93,21 @@ function execute(
     (k) => (dsl as Record<string, unknown>)[k],
   )
 
-  // Wrap in an IIFE that returns the last expression.
-  // Users write bare JSX like `<Pipeline>...</Pipeline>` — we need
-  // to capture the return value.
-  const wrappedCode = `"use strict";\nreturn (\n${jsCode}\n);`
+  // The transpiled code has statements (const schema = ...) followed
+  // by a bare createElement() call (from JSX). We need to insert
+  // `return` before the last top-level createElement so the function
+  // returns the construct tree.
+  const lastIdx = jsCode.lastIndexOf("\ncreateElement(")
+  let wrappedCode: string
+  if (lastIdx >= 0) {
+    // Statements before + return the final expression
+    wrappedCode = `"use strict";\n${jsCode.slice(0, lastIdx + 1)}return ${jsCode.slice(lastIdx + 1)}`
+  } else if (jsCode.trimStart().startsWith("createElement(")) {
+    // Pure JSX, no preamble
+    wrappedCode = `"use strict";\nreturn ${jsCode}`
+  } else {
+    wrappedCode = `"use strict";\nreturn (\n${jsCode}\n);`
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
   const fn = new Function(...paramNames, wrappedCode)
