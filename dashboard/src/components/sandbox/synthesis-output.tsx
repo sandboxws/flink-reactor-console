@@ -1,5 +1,10 @@
 import { javascript } from "@codemirror/lang-javascript"
-import { bracketMatching, codeFolding, foldEffect } from "@codemirror/language"
+import {
+  bracketMatching,
+  codeFolding,
+  foldEffect,
+  foldGutter,
+} from "@codemirror/language"
 import { Compartment, EditorState } from "@codemirror/state"
 import { EditorView, lineNumbers } from "@codemirror/view"
 import { ChevronDown, ChevronRight } from "lucide-react"
@@ -110,6 +115,10 @@ function CodeViewer({
         bracketMatching(),
         javascript(),
         codeFolding({ placeholderText: "…" }),
+        foldGutter({
+          openText: "▾",
+          closedText: "▸",
+        }),
         // connectorIconGutter, // disabled — revisit icon design
         focusHighlightField,
         themeCompartment.of(getActiveTheme()),

@@ -1046,6 +1046,19 @@ html.light .data-row-selected {
   opacity: 1;
 }
 
+.cm-foldGutter .cm-gutterElement {
+  color: var(--color-zinc-600);
+  cursor: pointer;
+  padding: 0 2px !important;
+  font-size: 12px;
+  line-height: inherit;
+  transition: color 150ms ease;
+}
+
+.cm-foldGutter .cm-gutterElement:hover {
+  color: var(--color-fr-purple);
+}
+
 .cm-foldPlaceholder {
   background: transparent !important;
   border: 1px solid color-mix(in srgb, var(--color-fr-purple) 40%, transparent) !important;
