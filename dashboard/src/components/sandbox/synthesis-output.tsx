@@ -3,6 +3,7 @@ import { EditorState, Compartment } from "@codemirror/state"
 import { EditorView, lineNumbers } from "@codemirror/view"
 import { javascript } from "@codemirror/lang-javascript"
 import { bracketMatching } from "@codemirror/language"
+import { Database, Box } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { useSandboxStore } from "@/stores/sandbox-store"
@@ -214,14 +215,16 @@ export function SynthesisOutput() {
         <TabsList>
           <TabsTrigger
             value="sql"
-            className="data-[state=active]:text-fr-purple data-[state=inactive]:text-zinc-500"
+            className="gap-1.5 data-[state=active]:text-fr-purple data-[state=inactive]:text-zinc-500"
           >
+            <Database className="size-3" />
             SQL
           </TabsTrigger>
           <TabsTrigger
             value="crd"
-            className="data-[state=active]:text-fr-purple data-[state=inactive]:text-zinc-500"
+            className="gap-1.5 data-[state=active]:text-fr-purple data-[state=inactive]:text-zinc-500"
           >
+            <Box className="size-3" />
             CRD
           </TabsTrigger>
         </TabsList>

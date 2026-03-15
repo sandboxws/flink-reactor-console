@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react"
-import { Play } from "lucide-react"
+import { FileCode, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   ResizablePanelGroup,
@@ -94,7 +94,8 @@ export function SandboxEditorPage() {
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="flex h-full flex-col">
               <div className="flex h-9 items-center justify-between border-b border-dash-border px-4">
-                <span className="text-xs font-medium text-zinc-400">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                  <FileCode className="size-3.5" />
                   Editor
                 </span>
                 <div className="flex items-center gap-2">
