@@ -1,9 +1,9 @@
 import { create } from "zustand"
-import type { AppSynthResult } from "flink-reactor/browser"
 import {
   synthesize as runSynthesis,
   isDslLoaded,
   type SynthesisResult,
+  type PipelineOutput,
 } from "@/lib/sandbox-synthesizer"
 
 // ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ interface SandboxState {
   code: string
   activeTemplate: TemplateId
   status: SynthStatus
-  result: AppSynthResult | null
+  pipelines: PipelineOutput[]
   diagnostics: ValidationDiagnostic[]
   synthError: string | null
   synthErrorKind: "transpile" | "synthesis" | "unexpected" | null
@@ -50,7 +50,7 @@ export const useSandboxStore = create<SandboxStore>((set, get) => ({
   code: "",
   activeTemplate: "blank",
   status: "idle",
-  result: null,
+  pipelines: [],
   diagnostics: [],
   synthError: null,
   synthErrorKind: null,
@@ -69,7 +69,7 @@ export const useSandboxStore = create<SandboxStore>((set, get) => ({
   synthesize: async () => {
     const code = get().code
     if (!code.trim()) {
-      set({ status: "idle", result: null, diagnostics: [], synthError: null })
+      set({ status: "idle", pipelines: [], diagnostics: [], synthError: null })
       return
     }
 
@@ -90,7 +90,7 @@ export const useSandboxStore = create<SandboxStore>((set, get) => ({
       set({
         status: "done",
         dslLoading: false,
-        result: res.result,
+        pipelines: res.pipelines,
         diagnostics: res.diagnostics,
         synthTimeMs: res.timeMs,
         synthError: null,
@@ -100,7 +100,7 @@ export const useSandboxStore = create<SandboxStore>((set, get) => ({
       set({
         status: "error",
         dslLoading: false,
-        result: null,
+        pipelines: [],
         synthError: res.error,
         synthErrorKind: res.errorKind,
         synthErrorLine: res.line,

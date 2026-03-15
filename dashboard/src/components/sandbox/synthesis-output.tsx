@@ -6,7 +6,6 @@ import { bracketMatching } from "@codemirror/language"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { useSandboxStore } from "@/stores/sandbox-store"
-import { toYaml } from "flink-reactor/browser"
 import { gruvpuccinCmTheme } from "./themes/gruvpuccin-cm-theme"
 import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
 
@@ -172,7 +171,7 @@ function LoadingSkeleton() {
 
 export function SynthesisOutput() {
   const status = useSandboxStore((s) => s.status)
-  const result = useSandboxStore((s) => s.result)
+  const pipelines = useSandboxStore((s) => s.pipelines)
   const dslLoading = useSandboxStore((s) => s.dslLoading)
   const activeOutputTab = useSandboxStore((s) => s.activeOutputTab)
   const setActiveOutputTab = useSandboxStore((s) => s.setActiveOutputTab)
@@ -188,7 +187,7 @@ export function SynthesisOutput() {
   }
 
   // No result yet
-  if (!result) {
+  if (pipelines.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
         <span className="text-sm text-zinc-500">
@@ -200,17 +199,10 @@ export function SynthesisOutput() {
     )
   }
 
-  const pipeline = result.pipelines[0]
-  if (!pipeline) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <span className="text-sm text-zinc-500">No pipeline output</span>
-      </div>
-    )
-  }
+  const pipeline = pipelines[0]
 
-  const sqlText = pipeline.sql.sql
-  const crdText = toYaml(pipeline.crd)
+  const sqlText = pipeline.sql
+  const crdText = pipeline.crdYaml
 
   return (
     <Tabs

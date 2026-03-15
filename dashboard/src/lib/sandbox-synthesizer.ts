@@ -11,9 +11,15 @@ import { transform } from "sucrase"
 // Types
 // ---------------------------------------------------------------------------
 
+export interface PipelineOutput {
+  name: string
+  sql: string
+  crdYaml: string
+}
+
 interface SynthesisSuccess {
   ok: true
-  result: import("flink-reactor/browser").AppSynthResult
+  pipelines: PipelineOutput[]
   diagnostics: Array<{
     severity: "error" | "warning"
     message: string
@@ -134,7 +140,13 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
       children: [resultNode],
     })
 
-    // 5. Collect diagnostics from all pipelines
+    // 5. Serialize outputs and collect diagnostics
+    const pipelines: PipelineOutput[] = result.pipelines.map((p) => ({
+      name: p.name,
+      sql: p.sql.sql,
+      crdYaml: dsl.toYaml(p.crd),
+    }))
+
     const diagnostics = result.pipelines.flatMap((p) =>
       p.sql.diagnostics.map((d) => ({
         severity: d.severity,
@@ -145,7 +157,7 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
 
     const timeMs = Math.round(performance.now() - start)
 
-    return { ok: true, result, diagnostics, timeMs }
+    return { ok: true, pipelines, diagnostics, timeMs }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
 
