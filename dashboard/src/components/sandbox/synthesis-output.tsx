@@ -6,14 +6,20 @@ import { useCallback, useEffect, useRef } from "react"
 import { SiKubernetes } from "react-icons/si"
 import { TbSql } from "react-icons/tb"
 import { Button } from "@/components/ui/button"
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { StatementOrigin } from "@/lib/sandbox-synthesizer"
+import type { SqlFragment, StatementOrigin } from "@/lib/sandbox-synthesizer"
 import { useSandboxStore } from "@/stores/sandbox-store"
 import {
   computeSqlFocusLines,
   focusHighlightField,
   setFocusLines,
 } from "./focus-highlight"
+import { SynthInspector } from "./synth-inspector"
 import { gruvpuccinCmTheme } from "./themes/gruvpuccin-cm-theme"
 import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
 
@@ -35,6 +41,7 @@ interface CodeViewerProps {
   focusComponents?: string[] | null
   statements?: readonly string[]
   statementOrigins?: ReadonlyMap<number, StatementOrigin>
+  statementContributors?: ReadonlyMap<number, readonly SqlFragment[]>
 }
 
 function CodeViewer({
@@ -42,6 +49,7 @@ function CodeViewer({
   focusComponents,
   statements,
   statementOrigins,
+  statementContributors,
 }: CodeViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
@@ -78,6 +86,7 @@ function CodeViewer({
         value,
         statements,
         statementOrigins,
+        statementContributors ?? new Map(),
         focusComponents,
       )
       view.dispatch({ effects: setFocusLines.of(lines) })
@@ -86,7 +95,7 @@ function CodeViewer({
     viewRef.current = view
 
     return () => view.destroy()
-  }, [value, focusComponents, statements, statementOrigins])
+  }, [value, focusComponents, statements, statementOrigins, statementContributors])
 
   // Watch for palette changes
   useEffect(() => {
@@ -273,12 +282,25 @@ export function SynthesisOutput({
       </div>
 
       <TabsContent value="sql" className="flex-1 overflow-hidden">
-        <CodeViewer
-          value={sqlText}
-          focusComponents={focusComponents}
-          statements={pipeline.statements}
-          statementOrigins={pipeline.statementOrigins}
-        />
+        <ResizablePanelGroup orientation="vertical" className="h-full">
+          <ResizablePanel defaultSize={60} minSize={20}>
+            <CodeViewer
+              value={sqlText}
+              focusComponents={focusComponents}
+              statements={pipeline.statements}
+              statementOrigins={pipeline.statementOrigins}
+              statementContributors={pipeline.statementContributors}
+            />
+          </ResizablePanel>
+          <ResizableHandle className="!h-px !w-full after:!inset-x-0 after:!inset-y-auto after:!top-1/2 after:!left-auto after:!h-3 after:!w-full after:!-translate-y-1/2 after:!translate-x-0" />
+          <ResizablePanel defaultSize={40} minSize={15}>
+            <SynthInspector
+              statements={pipeline.statements}
+              statementOrigins={pipeline.statementOrigins}
+              statementContributors={pipeline.statementContributors}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </TabsContent>
 
       <TabsContent value="crd" className="flex-1 overflow-hidden">

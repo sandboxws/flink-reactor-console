@@ -4,6 +4,7 @@
 
 import {
   type Extension,
+  type Range,
   RangeSet,
   StateEffect,
   StateField,
@@ -14,10 +15,19 @@ import { Decoration, type DecorationSet, EditorView } from "@codemirror/view"
 // State effect + field
 // ---------------------------------------------------------------------------
 
-/** Dispatch with a Set of 0-based line indices to keep bright, or null to clear. */
-export const setFocusLines = StateEffect.define<Set<number> | null>()
+/** Focus data: lines to fully dim + character spans to dim within partially-focused lines. */
+export interface FocusData {
+  /** 0-based line indices to dim entirely (line-level). */
+  dimLines: Set<number>
+  /** Absolute document positions of dim spans within partially-focused lines. */
+  dimSpans: Array<{ from: number; to: number }>
+}
 
-const dimDecoration = Decoration.line({ class: "cm-dim-line" })
+/** Dispatch with FocusData to apply focus highlighting, or null to clear. */
+export const setFocusLines = StateEffect.define<FocusData | null>()
+
+const dimLineDecoration = Decoration.line({ class: "cm-dim-line" })
+const dimMarkDecoration = Decoration.mark({ class: "cm-dim-span" })
 
 export const focusHighlightField: Extension = (() => {
   const field = StateField.define<DecorationSet>({
@@ -26,14 +36,26 @@ export const focusHighlightField: Extension = (() => {
       for (const e of tr.effects) {
         if (e.is(setFocusLines)) {
           if (!e.value) return RangeSet.empty
-          const focusSet = e.value
-          const builder: { from: number }[] = []
+          const { dimLines, dimSpans } = e.value
+          const ranges: Range<Decoration>[] = []
+
+          // Line decorations for fully dimmed lines
           for (let i = 1; i <= tr.state.doc.lines; i++) {
-            if (!focusSet.has(i - 1)) {
-              builder.push({ from: tr.state.doc.line(i).from })
+            if (dimLines.has(i - 1)) {
+              ranges.push(dimLineDecoration.range(tr.state.doc.line(i).from))
             }
           }
-          return RangeSet.of(builder.map((b) => dimDecoration.range(b.from)))
+
+          // Mark decorations for character-level dim spans
+          for (const span of dimSpans) {
+            if (span.from < span.to && span.to <= tr.state.doc.length) {
+              ranges.push(dimMarkDecoration.range(span.from, span.to))
+            }
+          }
+
+          // RangeSet requires sorted ranges
+          ranges.sort((a, b) => a.from - b.from || a.value.startSide - b.value.startSide)
+          return RangeSet.of(ranges)
         }
       }
       return decorations
@@ -55,7 +77,7 @@ export const focusHighlightField: Extension = (() => {
 export function computeTsxFocusLines(
   code: string,
   focusComponents: string[],
-): Set<number> {
+): FocusData {
   const lines = code.split("\n")
   const focused = new Set<number>()
 
@@ -109,7 +131,13 @@ export function computeTsxFocusLines(
     }
   }
 
-  return focused
+  // Convert focused lines to dimLines (inverse)
+  const dimLines = new Set<number>()
+  for (let i = 0; i < lines.length; i++) {
+    if (!focused.has(i)) dimLines.add(i)
+  }
+
+  return { dimLines, dimSpans: [] }
 }
 
 // ---------------------------------------------------------------------------
@@ -122,45 +150,147 @@ interface StatementOrigin {
   readonly kind: string
 }
 
+interface SqlFragment {
+  readonly offset: number
+  readonly length: number
+  readonly origin: StatementOrigin
+}
+
 /**
- * Computes which SQL lines to keep bright based on statement origins.
+ * Computes focus highlighting for SQL output.
  *
- * The synthesizer produces individual `statements[]` joined by `\n\n`.
- * `statementOrigins` maps each statement index to its source node.
- * We dim statements from Source/Sink nodes and keep statements from
- * nodes whose component name is in `focusComponents`.
+ * For DDL statements (CREATE TABLE, SET, etc.), uses line-level dimming.
+ * For DML statements with fragment contributors, uses character-level
+ * dimming: bright spans stay untouched while non-focused characters
+ * within the same line get dimmed via mark decorations. This avoids
+ * the CSS opacity inheritance issue where children can't override
+ * a parent's opacity.
  */
 export function computeSqlFocusLines(
   sql: string,
   statements: readonly string[],
   statementOrigins: ReadonlyMap<number, StatementOrigin>,
+  statementContributors: ReadonlyMap<number, readonly SqlFragment[]>,
   focusComponents: string[],
-): Set<number> {
-  const focused = new Set<number>()
+): FocusData {
+  const dimLines = new Set<number>()
+  const dimSpans: Array<{ from: number; to: number }> = []
   const focusSet = new Set(focusComponents)
 
-  // Walk through statements and map each to its line range in the joined SQL.
-  // Statements are joined with "\n\n", so we track the current line offset.
+  // Walk through statements tracking both line indices and document offsets.
+  // Statements are joined with "\n\n", so between each pair there are 2 chars.
   let currentLine = 0
+  let docOffset = 0
+
   for (let stmtIdx = 0; stmtIdx < statements.length; stmtIdx++) {
     const stmt = statements[stmtIdx]
-    const stmtLineCount = stmt.split("\n").length
+    const stmtLines = stmt.split("\n")
 
-    const origin = statementOrigins.get(stmtIdx)
-    // A statement is focused if its origin component is in focusComponents,
-    // or if it has no origin (DML/INSERT INTO — contains the transform SQL)
-    const isFocused =
-      !origin || focusSet.has(origin.component) || origin.kind === "Transform"
+    const contributors = statementContributors.get(stmtIdx)
+    if (contributors && contributors.length > 0) {
+      // ── Character-level focus ──
+      // Collect focused byte ranges within the statement
+      const brightRanges: Array<{ from: number; to: number }> = []
+      for (const f of contributors) {
+        if (focusSet.has(f.origin.component)) {
+          brightRanges.push({ from: f.offset, to: f.offset + f.length })
+        }
+      }
 
-    if (isFocused) {
-      for (let j = 0; j < stmtLineCount; j++) {
-        focused.add(currentLine + j)
+      // Merge bright ranges that are close together (gap ≤ 2 chars, e.g. ", ")
+      // so that separators between adjacent focused columns stay bright.
+      const merged = mergeBrightRanges(brightRanges, 2)
+
+      // For each line, compute dim spans (non-bright parts)
+      let lineByteStart = 0
+      for (let lineIdx = 0; lineIdx < stmtLines.length; lineIdx++) {
+        const lineLen = stmtLines[lineIdx].length
+        const lineByteEnd = lineByteStart + lineLen
+        const lineDocStart = docOffset + lineByteStart
+
+        // Find bright ranges overlapping this line, clipped to line bounds
+        const lineBrights: Array<{ from: number; to: number }> = []
+        for (const br of merged) {
+          if (br.from < lineByteEnd && br.to > lineByteStart) {
+            lineBrights.push({
+              from: Math.max(br.from, lineByteStart) - lineByteStart,
+              to: Math.min(br.to, lineByteEnd) - lineByteStart,
+            })
+          }
+        }
+
+        if (lineBrights.length === 0) {
+          // No bright ranges on this line → dim the whole line
+          dimLines.add(currentLine + lineIdx)
+        } else {
+          // Compute dim spans as the inverse of bright spans on this line
+          lineBrights.sort((a, b) => a.from - b.from)
+          let cursor = 0
+          for (const br of lineBrights) {
+            if (br.from > cursor) {
+              dimSpans.push({
+                from: lineDocStart + cursor,
+                to: lineDocStart + br.from,
+              })
+            }
+            cursor = br.to
+          }
+          // Trailing dim span
+          if (cursor < lineLen) {
+            dimSpans.push({
+              from: lineDocStart + cursor,
+              to: lineDocStart + lineLen,
+            })
+          }
+        }
+
+        lineByteStart = lineByteEnd + 1 // +1 for the \n
+      }
+    } else {
+      // ── Line-level focus (DDL, SET, etc.) ──
+      const origin = statementOrigins.get(stmtIdx)
+      const isFocused = origin
+        ? focusSet.has(origin.component) || origin.kind === "Transform"
+        : false
+
+      if (!isFocused) {
+        for (let j = 0; j < stmtLines.length; j++) {
+          dimLines.add(currentLine + j)
+        }
       }
     }
 
     // Advance past statement lines + the blank line separator (\n\n)
-    currentLine += stmtLineCount + 1
+    currentLine += stmtLines.length + 1
+    docOffset += stmt.length + 2 // +2 for "\n\n" separator
   }
 
-  return focused
+  return { dimLines, dimSpans }
+}
+
+/**
+ * Merge bright ranges that are separated by at most `threshold` characters.
+ * This keeps small gaps (like ", " between columns) bright rather than
+ * creating jarring dim/bright/dim patterns.
+ */
+function mergeBrightRanges(
+  ranges: Array<{ from: number; to: number }>,
+  threshold: number,
+): Array<{ from: number; to: number }> {
+  if (ranges.length === 0) return []
+  const sorted = [...ranges].sort((a, b) => a.from - b.from)
+  const merged: Array<{ from: number; to: number }> = [{ ...sorted[0] }]
+
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1]
+    const cur = sorted[i]
+    if (cur.from <= last.to + threshold) {
+      // Merge: extend the last range
+      last.to = Math.max(last.to, cur.to)
+    } else {
+      merged.push({ ...cur })
+    }
+  }
+
+  return merged
 }

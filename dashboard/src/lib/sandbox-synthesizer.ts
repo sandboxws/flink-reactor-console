@@ -37,6 +37,13 @@ export interface StatementOrigin {
   readonly kind: string
 }
 
+/** A fragment of a SQL statement attributed to a construct node. */
+export interface SqlFragment {
+  readonly offset: number
+  readonly length: number
+  readonly origin: StatementOrigin
+}
+
 export interface PipelineOutput {
   name: string
   sql: string
@@ -45,6 +52,8 @@ export interface PipelineOutput {
   statements: readonly string[]
   /** Maps each SQL statement index to the construct node that produced it. */
   statementOrigins: ReadonlyMap<number, StatementOrigin>
+  /** All contributing nodes per statement, with optional sub-statement spans. */
+  statementContributors: ReadonlyMap<number, readonly SqlFragment[]>
 }
 
 interface SynthesisSuccess {
@@ -197,6 +206,7 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
       crdYaml: dsl.toYaml(p.crd),
       statements: p.sql.statements,
       statementOrigins: p.sql.statementOrigins,
+      statementContributors: p.sql.statementContributors,
     }))
 
     // 6. Run full validation pipeline
