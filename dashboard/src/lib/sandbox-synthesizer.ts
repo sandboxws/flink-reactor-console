@@ -212,7 +212,12 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
 
       const ctx = new dsl.SynthContext()
       ctx.buildFromTree(pipelineNode)
-      const syncDiags = ctx.validate(pipelineNode)
+      // Exclude "structure" category — structural validators (orphan sources,
+      // dangling sinks) assume explicit DAG edges, but JSX sibling nesting
+      // uses implicit linear ordering that the graph doesn't capture.
+      const syncDiags = ctx.validate(pipelineNode, undefined, {
+        categories: ["schema", "connector", "changelog"],
+      })
       for (const d of syncDiags) {
         diagnostics.push({
           severity: d.severity,
