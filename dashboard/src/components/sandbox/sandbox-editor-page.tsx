@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/resizable"
 import { SandboxEditor } from "./sandbox-editor"
 import { SandboxStatusBar } from "./sandbox-status-bar"
+import { SynthesisOutput } from "./synthesis-output"
 import { useSandboxStore } from "@/stores/sandbox-store"
 
 export function SandboxEditorPage() {
@@ -28,10 +29,8 @@ export function SandboxEditorPage() {
         <ResizableHandle />
 
         <ResizablePanel defaultSize={50} minSize={20}>
-          <div className="glass-card flex h-full items-center justify-center p-4">
-            <span className="text-sm text-zinc-500">
-              Output will appear here
-            </span>
+          <div className="glass-card h-full overflow-hidden p-2">
+            <SynthesisOutput />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
