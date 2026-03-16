@@ -83,6 +83,11 @@ if [[ -d "$VITE_CACHE" ]]; then
   echo "  removed Vite dep cache: $VITE_CACHE"
 fi
 
+# --- Prune pnpm store metadata cache (clears stale integrity checksums) ---
+echo ""
+echo "Pruning pnpm store metadata cache..."
+pnpm store prune
+
 # --- Reinstall from Verdaccio ---
 echo ""
 echo "Reinstalling flink-reactor from $REGISTRY..."
