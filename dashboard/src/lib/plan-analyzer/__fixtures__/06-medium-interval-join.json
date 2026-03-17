@@ -1,0 +1,61 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[orders], properties=[bootstrap.servers=kafka:9092], watermark=[order_time - INTERVAL '10' SECOND])",
+      "parallelism": 8
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, user_id, product_id, amount, order_time])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[shipments], properties=[bootstrap.servers=kafka:9092], watermark=[ship_time - INTERVAL '10' SECOND])",
+      "parallelism": 8
+    },
+    {
+      "id": 4,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[shipment_id, order_id AS ship_order_id, carrier, ship_time])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "IntervalJoin",
+      "pact": "Operator",
+      "contents": "IntervalJoin(joinType=[InnerJoin], where=[order_id = ship_order_id AND ship_time BETWEEN order_time AND order_time + INTERVAL '7' DAY], select=[order_id, user_id, amount, order_time, shipment_id, carrier, ship_time])",
+      "parallelism": 8,
+      "predecessors": [
+        { "id": 2, "ship_strategy": "HASH", "side": "first" },
+        { "id": 4, "ship_strategy": "HASH", "side": "second" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, user_id, amount, carrier, (ship_time - order_time) AS fulfillment_time])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 5, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 7,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[order_fulfillment])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 6, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

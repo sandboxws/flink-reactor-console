@@ -1,0 +1,53 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[currency_rates], properties=[bootstrap.servers=kafka:9092], watermark=[rate_time - INTERVAL '1' SECOND])",
+      "parallelism": 4
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[currency_pair, exchange_rate, rate_time])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[forex_orders], properties=[bootstrap.servers=kafka:9092], watermark=[order_time - INTERVAL '1' SECOND])",
+      "parallelism": 8
+    },
+    {
+      "id": 4,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, currency_pair AS order_pair, amount, order_time])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "TemporalJoin",
+      "pact": "Operator",
+      "contents": "TemporalJoin(joinType=[InnerJoin], where=[order_pair = currency_pair AND order_time >= rate_time], select=[order_id, order_pair, amount, order_time, exchange_rate, (amount * exchange_rate) AS converted_amount], versioned=[currency_pair, rate_time])",
+      "parallelism": 8,
+      "predecessors": [
+        { "id": 4, "ship_strategy": "HASH", "side": "first" },
+        { "id": 2, "ship_strategy": "HASH", "side": "second" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[converted_orders])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 5, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

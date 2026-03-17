@@ -1,0 +1,36 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[user_events], properties=[bootstrap.servers=kafka:9092])",
+      "parallelism": 32
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, event_type, country, device_type, event_time])",
+      "parallelism": 32,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "GroupAggregate",
+      "pact": "Operator",
+      "contents": "GroupAggregate(groupBy=[country], select=[country, COUNT(*) AS event_count, COUNT(DISTINCT user_id) AS unique_users])",
+      "parallelism": 32,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 4,
+      "type": "Sink: JdbcSink",
+      "pact": "Data Sink",
+      "contents": "Sink: JdbcSink(table=[country_metrics])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 3, "ship_strategy": "REBALANCE" }]
+    }
+  ],
+  "_comment": "ANTI-PATTERN: Grouping by 'country' (low cardinality ~200 values) with parallelism 32 causes severe data skew"
+}

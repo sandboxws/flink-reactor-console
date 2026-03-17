@@ -1,0 +1,4 @@
+Sink: KafkaSink(topic=[user_aggregates])
++- GroupAggregate(groupBy=[user_id], agg=[COUNT(*), SUM(amount)], select=[user_id, COUNT(*) AS cnt, SUM(amount) AS total])
+   +- Calc(select=[user_id, CAST(amount AS DECIMAL(10,2)), event_time], where=[status <> 'deleted'])
+      +- Source: KafkaSource(topic=[click_events])

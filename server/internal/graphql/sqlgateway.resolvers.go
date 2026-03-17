@@ -9,6 +9,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
@@ -151,4 +153,105 @@ func (r *mutationResolver) CloseSQLSession(ctx context.Context, sessionHandle st
 		return &model.SQLCloseResult{Success: false}, err
 	}
 	return &model.SQLCloseResult{Success: true}, nil
+}
+
+// ExplainStatement is the resolver for the explainStatement field.
+func (r *mutationResolver) ExplainStatement(ctx context.Context, sessionHandle string, statement string, cluster *string) (*model.SQLExplainResult, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+	if conn.SQLClient == nil {
+		return nil, fmt.Errorf("SQL Gateway not configured for cluster %q", conn.Name)
+	}
+
+	// Submit EXPLAIN statement
+	var opResult flink.SQLGatewayOperationResponse
+	body := map[string]string{"statement": "EXPLAIN " + statement}
+	submitPath := fmt.Sprintf("/v3/sessions/%s/statements", sessionHandle)
+	if err := conn.SQLClient.PostJSON(ctx, submitPath, body, &opResult); err != nil {
+		return nil, err
+	}
+
+	// Poll for operation completion — SQL Gateway operations are async.
+	statusPath := fmt.Sprintf("/v3/sessions/%s/operations/%s/status",
+		sessionHandle, opResult.OperationHandle)
+	for i := 0; i < 30; i++ {
+		var opStatus flink.SQLGatewayOperationStatusResponse
+		if err := conn.SQLClient.GetJSON(ctx, statusPath, &opStatus); err != nil {
+			return nil, fmt.Errorf("failed to check EXPLAIN status: %w", err)
+		}
+		switch opStatus.Status {
+		case "FINISHED":
+			goto fetch
+		case "ERROR":
+			// Fetch results to get the actual error details — SQL Gateway returns
+			// the exception as an HTTP 500 on the result endpoint.
+			errFetchPath := fmt.Sprintf("/v3/sessions/%s/operations/%s/result/0",
+				sessionHandle, opResult.OperationHandle)
+			var errResult flink.SQLGatewayResultSet
+			if fetchErr := conn.SQLClient.GetJSON(ctx, errFetchPath, &errResult); fetchErr != nil {
+				// Extract the root cause from the Flink exception
+				var apiErr *flink.APIError
+				if errors.As(fetchErr, &apiErr) {
+					// extractRootCause finds the deepest "Caused by:" line
+					for _, entry := range apiErr.Errors {
+						if cause := flink.ExtractRootCause(entry.Message); cause != "" {
+							return nil, fmt.Errorf("EXPLAIN failed: %s", cause)
+						}
+					}
+				}
+				return nil, fmt.Errorf("EXPLAIN failed: %w", fetchErr)
+			}
+			return nil, fmt.Errorf("EXPLAIN failed on the Flink cluster")
+		case "CANCELED":
+			return nil, fmt.Errorf("EXPLAIN was canceled")
+		}
+		// Still RUNNING — wait before retrying
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
+	return nil, fmt.Errorf("EXPLAIN timed out after 3s")
+
+fetch:
+	// Fetch the result
+	fetchPath := fmt.Sprintf("/v3/sessions/%s/operations/%s/result/0",
+		sessionHandle, opResult.OperationHandle)
+	var resultSet flink.SQLGatewayResultSet
+	if err := conn.SQLClient.GetJSON(ctx, fetchPath, &resultSet); err != nil {
+		return nil, fmt.Errorf("failed to fetch EXPLAIN result: %w", err)
+	}
+
+	// Extract plan text from the result rows
+	var planText string
+	for _, row := range resultSet.Results.Data {
+		for _, field := range row.Fields {
+			if s, ok := field.(string); ok && s != "" {
+				planText = s
+				break
+			}
+		}
+		if planText != "" {
+			break
+		}
+	}
+
+	if planText == "" {
+		return nil, fmt.Errorf("EXPLAIN returned empty result")
+	}
+
+	// Detect format: JSON plans start with { or [
+	format := "text"
+	trimmed := strings.TrimSpace(planText)
+	if len(trimmed) > 0 && (trimmed[0] == '{' || trimmed[0] == '[') {
+		format = "json"
+	}
+
+	return &model.SQLExplainResult{
+		PlanText: planText,
+		Format:   format,
+	}, nil
 }

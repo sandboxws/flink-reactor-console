@@ -1,0 +1,127 @@
+{
+  "type": "BATCH",
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: FileSource",
+      "pact": "Data Source",
+      "contents": "Source: FileSource(path=[s3://data-warehouse/transactions/year=2024/month=01/], format=[parquet])",
+      "parallelism": 64
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[transaction_id, account_id, merchant_id, amount, currency, transaction_type, transaction_date, is_fraud])",
+      "parallelism": 64,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Source: FileSource",
+      "pact": "Data Source",
+      "contents": "Source: FileSource(path=[s3://data-warehouse/merchants/], format=[parquet])",
+      "parallelism": 8
+    },
+    {
+      "id": 4,
+      "type": "Exchange",
+      "pact": "Operator",
+      "contents": "Exchange(distribution=[broadcast])",
+      "parallelism": 64,
+      "predecessors": [
+        { "id": 3, "ship_strategy": "BROADCAST", "exchange": "batch" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "Join",
+      "pact": "Operator",
+      "contents": "Join(joinType=[InnerJoin], where=[merchant_id = dim_merchant_id], select=[transaction_id, account_id, amount, currency, transaction_type, transaction_date, is_fraud, merchant_name, merchant_category, merchant_country])",
+      "parallelism": 64,
+      "predecessors": [
+        {
+          "id": 2,
+          "ship_strategy": "FORWARD",
+          "side": "first",
+          "exchange": "pipelined_bounded"
+        },
+        {
+          "id": 4,
+          "ship_strategy": "FORWARD",
+          "side": "second",
+          "exchange": "batch"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "HashAggregate",
+      "pact": "Operator",
+      "contents": "HashAggregate(groupBy=[merchant_category, transaction_date], select=[merchant_category, transaction_date, SUM(amount) AS total_volume, COUNT(*) AS txn_count, SUM(CASE WHEN is_fraud THEN 1 ELSE 0 END) AS fraud_count])",
+      "parallelism": 64,
+      "predecessors": [
+        { "id": 5, "ship_strategy": "HASH", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "Sink: FileSystemSink",
+      "pact": "Data Sink",
+      "contents": "Sink: FileSystemSink(path=[s3://reports/monthly/category_summary/], format=[parquet])",
+      "parallelism": 8,
+      "predecessors": [
+        {
+          "id": 6,
+          "ship_strategy": "REBALANCE",
+          "exchange": "pipelined_bounded"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "HashAggregate",
+      "pact": "Operator",
+      "contents": "HashAggregate(groupBy=[merchant_country, transaction_type], select=[merchant_country, transaction_type, SUM(amount) AS country_volume, AVG(amount) AS avg_txn_amount, COUNT(DISTINCT account_id) AS unique_accounts])",
+      "parallelism": 64,
+      "predecessors": [
+        { "id": 5, "ship_strategy": "HASH", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "Sink: JdbcSink",
+      "pact": "Data Sink",
+      "contents": "Sink: JdbcSink(table=[monthly_country_report], driver=[org.postgresql.Driver], batchSize=[10000])",
+      "parallelism": 4,
+      "predecessors": [
+        {
+          "id": 8,
+          "ship_strategy": "REBALANCE",
+          "exchange": "pipelined_bounded"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[transaction_id, account_id, merchant_name, amount, transaction_date], where=[is_fraud = true])",
+      "parallelism": 64,
+      "predecessors": [
+        { "id": 5, "ship_strategy": "FORWARD", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "Sink: FileSystemSink",
+      "pact": "Data Sink",
+      "contents": "Sink: FileSystemSink(path=[s3://reports/fraud/january_2024/], format=[csv])",
+      "parallelism": 1,
+      "predecessors": [
+        { "id": 10, "ship_strategy": "GLOBAL", "exchange": "pipelined_bounded" }
+      ]
+    }
+  ],
+  "_comment": "BOUNDED BATCH REPORTING: Monthly financial report with 3 outputs - category summary, country report, fraud extract"
+}

@@ -42,7 +42,7 @@ func (e *APIError) Error() string {
 func (e *APIError) rootCauseMessage() string {
 	// Check all error entries for stack traces with "Caused by:" lines.
 	for _, entry := range e.Errors {
-		if cause := extractRootCause(entry.Message); cause != "" {
+		if cause := ExtractRootCause(entry.Message); cause != "" {
 			return cause
 		}
 	}
@@ -55,14 +55,27 @@ func (e *APIError) rootCauseMessage() string {
 	return ""
 }
 
-// extractRootCause finds the deepest "Caused by:" line in a Java stack trace
+// ExtractRootCause finds the deepest "Caused by:" line in a Java stack trace
 // and returns just the exception message (class + description).
-func extractRootCause(stackTrace string) string {
+// It strips the Java exception class prefix (e.g. "org.apache.flink...Exception: ")
+// to return a human-readable message.
+func ExtractRootCause(stackTrace string) string {
 	var lastCause string
 	for _, line := range strings.Split(stackTrace, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "Caused by: ") {
 			lastCause = strings.TrimPrefix(trimmed, "Caused by: ")
+		}
+	}
+	if lastCause == "" {
+		return ""
+	}
+	// Strip Java class prefix: "org.apache.flink.table.api.ValidationException: msg" → "msg"
+	if idx := strings.Index(lastCause, ": "); idx != -1 {
+		// Only strip if the prefix looks like a Java class name (contains dots)
+		prefix := lastCause[:idx]
+		if strings.Contains(prefix, ".") {
+			return lastCause[idx+2:]
 		}
 	}
 	return lastCause

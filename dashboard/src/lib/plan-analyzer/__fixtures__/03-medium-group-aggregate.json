@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[transactions], properties=[bootstrap.servers=kafka:9092], watermark=[transaction_time - INTERVAL '5' SECOND])",
+      "parallelism": 8
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, amount, transaction_time, category])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "LocalGroupAggregate",
+      "pact": "Operator",
+      "contents": "LocalGroupAggregate(groupBy=[user_id], select=[user_id, SUM(amount) AS total_amount, COUNT(*) AS txn_count])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 4,
+      "type": "GlobalGroupAggregate",
+      "pact": "Operator",
+      "contents": "GlobalGroupAggregate(groupBy=[user_id], select=[user_id, SUM(total_amount) AS total_amount, SUM(txn_count) AS txn_count])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 3, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: JdbcSink",
+      "pact": "Data Sink",
+      "contents": "Sink: JdbcSink(table=[user_totals], driver=[org.postgresql.Driver])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

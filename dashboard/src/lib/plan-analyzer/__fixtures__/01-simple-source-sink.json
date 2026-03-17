@@ -1,0 +1,19 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[user_events], properties=[bootstrap.servers=kafka:9092])",
+      "parallelism": 4
+    },
+    {
+      "id": 2,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[user_events_processed])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    }
+  ]
+}

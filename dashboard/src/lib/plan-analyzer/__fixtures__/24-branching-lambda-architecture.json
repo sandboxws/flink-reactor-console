@@ -1,0 +1,76 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[clickstream], properties=[bootstrap.servers=kafka:9092], watermark=[event_time - INTERVAL '10' SECOND])",
+      "parallelism": 24
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[session_id, user_id, page_url, referrer, event_type, event_time, user_agent, ip_address])",
+      "parallelism": 24,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Sink: FileSystemSink",
+      "pact": "Data Sink",
+      "contents": "Sink: FileSystemSink(path=[s3://data-lake/clickstream/raw/], format=[parquet], partitionBy=[DATE(event_time), HOUR(event_time)], rollingPolicy=[size=256MB, interval=10min])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 2, "ship_strategy": "REBALANCE" }]
+    },
+    {
+      "id": 4,
+      "type": "WindowAggregate",
+      "pact": "Operator",
+      "contents": "WindowAggregate(window=[TUMBLE(event_time, INTERVAL '1' MINUTE)], groupBy=[page_url], select=[page_url, COUNT(*) AS view_count, COUNT(DISTINCT user_id) AS unique_visitors, window_start, window_end])",
+      "parallelism": 24,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[realtime_page_metrics])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    },
+    {
+      "id": 6,
+      "type": "GroupAggregate",
+      "pact": "Operator",
+      "contents": "GroupAggregate(groupBy=[user_id], select=[user_id, COUNT(*) AS total_events, COUNT(DISTINCT session_id) AS session_count, MAX(event_time) AS last_seen])",
+      "parallelism": 24,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 7,
+      "type": "Sink: JdbcSink",
+      "pact": "Data Sink",
+      "contents": "Sink: JdbcSink(table=[user_activity_summary], driver=[org.postgresql.Driver], upsertMode=[true], keyFields=[user_id])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 6, "ship_strategy": "REBALANCE" }]
+    },
+    {
+      "id": 8,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[session_id, user_id, page_url, event_time], where=[event_type = 'error' OR event_type = 'exception'])",
+      "parallelism": 24,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 9,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[error_events_alerts])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 8, "ship_strategy": "REBALANCE" }]
+    }
+  ],
+  "_comment": "LAMBDA ARCHITECTURE: Raw to data lake + real-time page metrics + user activity upsert + error alerts (4 sinks)"
+}

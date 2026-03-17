@@ -123,17 +123,15 @@ export function SandboxEditorPage() {
                     onSelect={setTemplate}
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={synthesize}
-                    className="h-6 gap-1.5 px-2 text-[11px] text-zinc-400 hover:text-zinc-200"
-                  >
-                    <Play className="size-3" />
-                    Synthesize
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={synthesize}
+                  className="h-6 gap-1.5 px-2 text-[11px] text-zinc-400 hover:text-zinc-200"
+                >
+                  <Play className="size-3" />
+                  Synthesize
+                </Button>
               </div>
               <div className="flex-1 overflow-hidden">
                 <SandboxEditor
@@ -151,11 +149,6 @@ export function SandboxEditorPage() {
 
           <ResizablePanel defaultSize={50} minSize={25}>
             <div className="flex h-full flex-col">
-              <div className="flex h-9 items-center border-b border-dash-border px-4">
-                <span className="text-xs font-medium text-zinc-400">
-                  Output
-                </span>
-              </div>
               <div className="flex-1 overflow-hidden">
                 <SynthesisOutput focusComponents={focusComponents} />
               </div>

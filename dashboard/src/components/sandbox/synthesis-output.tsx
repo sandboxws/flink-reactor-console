@@ -8,10 +8,11 @@ import {
 } from "@codemirror/language"
 import { Compartment, EditorState } from "@codemirror/state"
 import { EditorView, lineNumbers } from "@codemirror/view"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight, Search } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { SiKubernetes } from "react-icons/si"
 import { TbSql } from "react-icons/tb"
+import { PlanAnalysisPanel } from "@/components/plan-analyzer/plan-analysis-panel"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type {
@@ -25,6 +26,7 @@ import {
   connectorIconGutter,
   setConnectorIcons,
 } from "./connector-gutter"
+import { usePlanAnalyzerStore } from "@/stores/plan-analyzer-store"
 import { useSandboxStore } from "@/stores/sandbox-store"
 import {
   computeSqlFocusLines,
@@ -397,31 +399,28 @@ function CollapsibleInspector({
 }
 
 // ---------------------------------------------------------------------------
-// Main output component
+// Synthesis content (loading / error / empty / results for SQL & CRD)
 // ---------------------------------------------------------------------------
 
-export function SynthesisOutput({
+function SynthesisTabContent({
+  tab,
   focusComponents,
 }: {
+  tab: "sql" | "crd"
   focusComponents?: string[] | null
 }) {
   const status = useSandboxStore((s) => s.status)
   const pipelines = useSandboxStore((s) => s.pipelines)
   const dslLoading = useSandboxStore((s) => s.dslLoading)
-  const activeOutputTab = useSandboxStore((s) => s.activeOutputTab)
-  const setActiveOutputTab = useSandboxStore((s) => s.setActiveOutputTab)
 
-  // Show loading skeleton during initial DSL bundle load
   if (dslLoading) {
     return <LoadingSkeleton />
   }
 
-  // Show errors
   if (status === "error") {
     return <SynthesisErrorDisplay />
   }
 
-  // No result yet
   if (pipelines.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -436,13 +435,176 @@ export function SynthesisOutput({
 
   const pipeline = pipelines[0]
 
-  const sqlText = pipeline.sql
-  const crdText = pipeline.crdYaml
+  if (tab === "crd") {
+    return <CodeViewer value={pipeline.crdYaml} />
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <CodeViewer
+          value={pipeline.sql}
+          focusComponents={focusComponents}
+          statements={pipeline.statements}
+          statementOrigins={pipeline.statementOrigins}
+          statementContributors={pipeline.statementContributors}
+          commentIndices={pipeline.commentIndices}
+          statementMeta={pipeline.statementMeta}
+        />
+      </div>
+      <CollapsibleInspector
+        statements={pipeline.statements}
+        statementOrigins={pipeline.statementOrigins}
+        statementContributors={pipeline.statementContributors}
+      />
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Collapsible Explain Output (raw plan text from SQL Gateway)
+// ---------------------------------------------------------------------------
+
+function CollapsibleExplainOutput() {
+  const [open, setOpen] = useState(false)
+  const planText = usePlanAnalyzerStore((s) => s.planText)
+
+  if (!planText) return null
+
+  return (
+    <div className="shrink-0 border-t border-dash-border">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-7 w-full items-center gap-1.5 px-3 text-left hover:bg-white/5"
+      >
+        {open ? (
+          <ChevronDown className="size-3 text-zinc-500" />
+        ) : (
+          <ChevronRight className="size-3 text-zinc-500" />
+        )}
+        <span className="text-[11px] font-medium text-zinc-500">
+          Explain Output
+        </span>
+      </button>
+      {open && (
+        <div className="h-56 overflow-auto border-t border-dash-border p-2">
+          <pre className="whitespace-pre-wrap font-mono text-[11px] leading-5 text-zinc-400">
+            {planText}
+          </pre>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Explain tab content
+// ---------------------------------------------------------------------------
+
+function ExplainTabContent() {
+  const pipelines = useSandboxStore((s) => s.pipelines)
+  const synthStatus = useSandboxStore((s) => s.status)
+  const activeOutputTab = useSandboxStore((s) => s.activeOutputTab)
+
+  const analyzedPlan = usePlanAnalyzerStore((s) => s.analyzedPlan)
+  const analyzerStatus = usePlanAnalyzerStore((s) => s.status)
+  const analyzerError = usePlanAnalyzerStore((s) => s.error)
+  const explainSQL = usePlanAnalyzerStore((s) => s.explainSQL)
+  const sourceSQL = usePlanAnalyzerStore((s) => s.sourceSQL)
+
+  const sql = pipelines[0]?.sql ?? ""
+
+  // Track the last SQL we attempted to explain so we don't retry on error
+  const lastAttemptedSQL = useRef("")
+
+  // Auto-explain when tab is active and we have synthesized SQL
+  useEffect(() => {
+    if (activeOutputTab !== "explain") return
+    if (!sql) return
+    if (analyzerStatus === "analyzing") return
+    // Already explained this exact SQL successfully
+    if (analyzerStatus === "done" && sourceSQL === sql) return
+    // Don't retry the same SQL that already failed
+    if (analyzerStatus === "error" && lastAttemptedSQL.current === sql) return
+
+    // Guard against React strict-mode double-fire
+    let cancelled = false
+    lastAttemptedSQL.current = sql
+    // Defer to avoid calling during render cycle
+    const id = setTimeout(() => {
+      if (!cancelled) explainSQL(sql)
+    }, 0)
+    return () => {
+      cancelled = true
+      clearTimeout(id)
+    }
+  }, [activeOutputTab, sql, explainSQL, analyzerStatus, sourceSQL])
+
+  if (synthStatus === "synthesizing" || analyzerStatus === "analyzing") {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-fr-purple" />
+        <span className="text-sm text-zinc-500">
+          {synthStatus === "synthesizing"
+            ? "Synthesizing..."
+            : "Explaining SQL..."}
+        </span>
+      </div>
+    )
+  }
+
+  if (analyzerStatus === "error" && analyzerError) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-8">
+        <div className="rounded-md border border-red-500/30 bg-red-500/10 p-4 text-center">
+          <p className="text-sm text-red-400">{analyzerError}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (analyzedPlan) {
+    return (
+      <div className="flex h-full flex-col">
+        <div className="min-h-0 flex-1">
+          <PlanAnalysisPanel plan={analyzedPlan} />
+        </div>
+        <CollapsibleExplainOutput />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex h-full items-center justify-center p-8">
+      <span className="text-center text-sm text-zinc-500">
+        Synthesize a pipeline to see its execution plan
+      </span>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Main output component
+// ---------------------------------------------------------------------------
+
+export function SynthesisOutput({
+  focusComponents,
+}: {
+  focusComponents?: string[] | null
+}) {
+  const pipelines = useSandboxStore((s) => s.pipelines)
+  const activeOutputTab = useSandboxStore((s) => s.activeOutputTab)
+  const setActiveOutputTab = useSandboxStore((s) => s.setActiveOutputTab)
+
+  const pipeline = pipelines[0]
+  const sqlText = pipeline?.sql ?? ""
+  const crdText = pipeline?.crdYaml ?? ""
 
   return (
     <Tabs
       value={activeOutputTab}
-      onValueChange={(v) => setActiveOutputTab(v as "sql" | "crd")}
+      onValueChange={(v) => setActiveOutputTab(v as "sql" | "crd" | "explain")}
       className="flex h-full flex-col"
     >
       <div className="flex items-center justify-between border-b border-dash-border px-2">
@@ -461,34 +623,30 @@ export function SynthesisOutput({
             <SiKubernetes className="size-3" />
             CRD
           </TabsTrigger>
+          <TabsTrigger
+            value="explain"
+            className="gap-1.5 data-[state=active]:text-fr-purple data-[state=inactive]:text-zinc-500"
+          >
+            <Search className="size-3" />
+            Explain
+          </TabsTrigger>
         </TabsList>
 
-        <CopyButton text={activeOutputTab === "sql" ? sqlText : crdText} />
+        {activeOutputTab !== "explain" && (
+          <CopyButton text={activeOutputTab === "sql" ? sqlText : crdText} />
+        )}
       </div>
 
       <TabsContent value="sql" className="flex-1 overflow-hidden">
-        <div className="flex h-full flex-col">
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <CodeViewer
-              value={sqlText}
-              focusComponents={focusComponents}
-              statements={pipeline.statements}
-              statementOrigins={pipeline.statementOrigins}
-              statementContributors={pipeline.statementContributors}
-              commentIndices={pipeline.commentIndices}
-              statementMeta={pipeline.statementMeta}
-            />
-          </div>
-          <CollapsibleInspector
-            statements={pipeline.statements}
-            statementOrigins={pipeline.statementOrigins}
-            statementContributors={pipeline.statementContributors}
-          />
-        </div>
+        <SynthesisTabContent tab="sql" focusComponents={focusComponents} />
       </TabsContent>
 
       <TabsContent value="crd" className="flex-1 overflow-hidden">
-        <CodeViewer value={crdText} />
+        <SynthesisTabContent tab="crd" />
+      </TabsContent>
+
+      <TabsContent value="explain" className="h-0 flex-1 overflow-hidden">
+        <ExplainTabContent />
       </TabsContent>
     </Tabs>
   )

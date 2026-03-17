@@ -1,0 +1,27 @@
+== Physical Execution Plan ==
+Stage 1 : Data Source
+	content : Source: KafkaSource(topic=[iot_sensor_data], watermark=[reading_time - INTERVAL '30' SECOND])
+
+	Stage 2 : Operator
+		content : Calc(select=[device_id, sensor_type, reading_value, reading_time, location_id])
+		ship_strategy : FORWARD
+
+		Stage 3 : Operator
+			content : Calc(select=[device_id, sensor_type, reading_value, reading_time], where=[sensor_type = 'temperature' AND reading_value > 100])
+			ship_strategy : FORWARD
+
+			Stage 4 : Data Sink
+				content : Sink: KafkaSink(topic=[high_temp_alerts])
+				ship_strategy : REBALANCE
+
+		Stage 5 : Operator
+			content : WindowAggregate(window=[TUMBLE(reading_time, INTERVAL '5' MINUTE)], groupBy=[device_id, sensor_type], select=[device_id, sensor_type, AVG(reading_value) AS avg_value, MIN(reading_value) AS min_value, MAX(reading_value) AS max_value, window_end])
+			ship_strategy : HASH
+
+			Stage 6 : Data Sink
+				content : Sink: JdbcSink(table=[sensor_metrics_5min])
+				ship_strategy : REBALANCE
+
+		Stage 7 : Data Sink
+			content : Sink: FileSystemSink(path=[s3://iot-archive/raw/], format=[parquet], partitionBy=[DATE(reading_time)])
+			ship_strategy : REBALANCE

@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[raw_events], properties=[bootstrap.servers=kafka:9092], watermark=[event_time - INTERVAL '5' SECOND])",
+      "parallelism": 16
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[event_id, user_id, event_type, event_data, event_time])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Deduplicate",
+      "pact": "Operator",
+      "contents": "Deduplicate(keep=[FirstRow], key=[event_id], order=[event_time ASC])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 4,
+      "type": "WindowAggregate",
+      "pact": "Operator",
+      "contents": "WindowAggregate(window=[TUMBLE(event_time, INTERVAL '1' HOUR)], groupBy=[user_id, event_type], select=[user_id, event_type, COUNT(*) AS event_count, window_start, window_end])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 3, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[hourly_user_events])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[raw_orders], properties=[bootstrap.servers=kafka:9092], watermark=[order_time - INTERVAL '10' SECOND])",
+      "parallelism": 16
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, customer_id, product_id, quantity, unit_price, (quantity * unit_price) AS total_amount, order_time, region, order_status])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, customer_id, product_id, total_amount, order_time, region], where=[total_amount >= 1000])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 4,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[high_value_orders])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 3, "ship_strategy": "REBALANCE" }]
+    },
+    {
+      "id": 5,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, customer_id, total_amount, order_time], where=[order_status = 'FAILED'])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 6,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[failed_orders_alerts])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 5, "ship_strategy": "REBALANCE" }]
+    },
+    {
+      "id": 7,
+      "type": "WindowAggregate",
+      "pact": "Operator",
+      "contents": "WindowAggregate(window=[TUMBLE(order_time, INTERVAL '1' MINUTE)], groupBy=[region], select=[region, SUM(total_amount) AS revenue, COUNT(*) AS order_count, window_start, window_end])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 8,
+      "type": "Sink: JdbcSink",
+      "pact": "Data Sink",
+      "contents": "Sink: JdbcSink(table=[regional_metrics_per_minute], driver=[org.postgresql.Driver])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 7, "ship_strategy": "REBALANCE" }]
+    }
+  ],
+  "_comment": "BRANCHING: Single source splits into 3 paths - high-value orders, failed orders alerts, and regional aggregates"
+}

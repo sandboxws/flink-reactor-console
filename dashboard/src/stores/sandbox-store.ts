@@ -95,7 +95,7 @@ interface SandboxState {
   synthErrorLine: number | undefined
   synthErrorColumn: number | undefined
   synthTimeMs: number | null
-  activeOutputTab: "sql" | "crd"
+  activeOutputTab: "sql" | "crd" | "explain"
   dslLoading: boolean
 }
 
@@ -103,7 +103,7 @@ interface SandboxActions {
   setCode: (code: string) => void
   loadExample: (id: string) => void
   setTemplate: (id: TemplateId) => void
-  setActiveOutputTab: (tab: "sql" | "crd") => void
+  setActiveOutputTab: (tab: "sql" | "crd" | "explain") => void
   synthesize: () => Promise<void>
 }
 
@@ -172,7 +172,7 @@ export const useSandboxStore = create<SandboxStore>((set, get) => ({
     setTimeout(() => get().synthesize(), 0)
   },
 
-  setActiveOutputTab: (tab: "sql" | "crd") => set({ activeOutputTab: tab }),
+  setActiveOutputTab: (tab: "sql" | "crd" | "explain") => set({ activeOutputTab: tab }),
 
   synthesize: async () => {
     const code = get().code

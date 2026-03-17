@@ -1,0 +1,11 @@
+== Physical Execution Plan ==
+Stage 1 : Data Source
+	content : Source: KafkaSource(topic=[raw_logs])
+
+	Stage 2 : Operator
+		content : Calc(select=[log_id, timestamp, level, message, service_name], where=[level IN ('ERROR', 'WARN')])
+		ship_strategy : FORWARD
+
+		Stage 3 : Data Sink
+			content : Sink: Elasticsearch(index=[error_logs])
+			ship_strategy : REBALANCE

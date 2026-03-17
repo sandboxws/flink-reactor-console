@@ -19,6 +19,12 @@ type SQLCloseResult {
   success: Boolean!
 }
 
+"""Result of an EXPLAIN statement — returns the plan text and detected format"""
+type SQLExplainResult {
+  planText: String!
+  format: String!
+}
+
 extend type Mutation {
   """Create a new SQL Gateway session"""
   createSQLSession(cluster: String): SQLSessionResult!
@@ -43,4 +49,11 @@ extend type Mutation {
     sessionHandle: String!
     cluster: String
   ): SQLCloseResult!
+
+  """Submit EXPLAIN for a SQL statement and return the plan text"""
+  explainStatement(
+    sessionHandle: String!
+    statement: String!
+    cluster: String
+  ): SQLExplainResult!
 }

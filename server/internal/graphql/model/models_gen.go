@@ -715,6 +715,12 @@ type SQLColumn struct {
 	DataType string `json:"dataType"`
 }
 
+// Result of an EXPLAIN statement — returns the plan text and detected format
+type SQLExplainResult struct {
+	PlanText string `json:"planText"`
+	Format   string `json:"format"`
+}
+
 type SQLFetchResult struct {
 	Columns   []*SQLColumn `json:"columns"`
 	Rows      [][]*string  `json:"rows"`

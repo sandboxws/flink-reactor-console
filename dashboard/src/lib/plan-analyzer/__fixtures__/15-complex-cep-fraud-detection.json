@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[card_transactions], properties=[bootstrap.servers=kafka:9092], watermark=[transaction_time - INTERVAL '30' SECOND])",
+      "parallelism": 16
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[transaction_id, card_id, merchant_id, amount, location, transaction_time])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Match",
+      "pact": "Operator",
+      "contents": "Match(pattern=[PATTERN (A B+ C) WITHIN INTERVAL '10' MINUTE], define=[A AS A.amount > 1000, B AS B.location <> A.location, C AS C.amount > 500 AND C.location <> B.location], partitionBy=[card_id], select=[A.card_id AS card_id, A.transaction_id AS first_txn, C.transaction_id AS last_txn, A.amount + SUM(B.amount) + C.amount AS total_amount, COUNT(B.*) + 2 AS txn_count])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 4,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[card_id, first_txn, last_txn, total_amount, txn_count, 'RAPID_GEO_CHANGE' AS fraud_type])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[fraud_alerts])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

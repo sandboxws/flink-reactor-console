@@ -565,6 +565,7 @@ type ComplexityRoot struct {
 		CreateSQLSession         func(childComplexity int, cluster *string) int
 		DeleteJar                func(childComplexity int, id string, cluster *string) int
 		ExecuteDatabaseQuery     func(childComplexity int, instrument string, sql string) int
+		ExplainStatement         func(childComplexity int, sessionHandle string, statement string, cluster *string) int
 		FetchSQLResults          func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
 		RefreshMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
 		ResumeMaterializedTable  func(childComplexity int, name string, catalog string, cluster *string) int
@@ -641,6 +642,11 @@ type ComplexityRoot struct {
 	SQLColumn struct {
 		DataType func(childComplexity int) int
 		Name     func(childComplexity int) int
+	}
+
+	SQLExplainResult struct {
+		Format   func(childComplexity int) int
+		PlanText func(childComplexity int) int
 	}
 
 	SQLFetchResult struct {
@@ -898,6 +904,7 @@ type MutationResolver interface {
 	SubmitStatement(ctx context.Context, sessionHandle string, statement string, cluster *string) (*model.SQLStatementResult, error)
 	FetchSQLResults(ctx context.Context, sessionHandle string, operationHandle string, token *string, cluster *string) (*model.SQLFetchResult, error)
 	CloseSQLSession(ctx context.Context, sessionHandle string, cluster *string) (*model.SQLCloseResult, error)
+	ExplainStatement(ctx context.Context, sessionHandle string, statement string, cluster *string) (*model.SQLExplainResult, error)
 }
 type QueryResolver interface {
 	Health(ctx context.Context) (bool, error)
@@ -2932,6 +2939,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.ExecuteDatabaseQuery(childComplexity, args["instrument"].(string), args["sql"].(string)), true
+	case "Mutation.explainStatement":
+		if e.ComplexityRoot.Mutation.ExplainStatement == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_explainStatement_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ExplainStatement(childComplexity, args["sessionHandle"].(string), args["statement"].(string), args["cluster"].(*string)), true
 	case "Mutation.fetchSQLResults":
 		if e.ComplexityRoot.Mutation.FetchSQLResults == nil {
 			break
@@ -3514,6 +3532,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.SQLColumn.Name(childComplexity), true
+
+	case "SQLExplainResult.format":
+		if e.ComplexityRoot.SQLExplainResult.Format == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SQLExplainResult.Format(childComplexity), true
+	case "SQLExplainResult.planText":
+		if e.ComplexityRoot.SQLExplainResult.PlanText == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SQLExplainResult.PlanText(childComplexity), true
 
 	case "SQLFetchResult.columns":
 		if e.ComplexityRoot.SQLFetchResult.Columns == nil {
@@ -5726,6 +5757,12 @@ type SQLCloseResult {
   success: Boolean!
 }
 
+"""Result of an EXPLAIN statement — returns the plan text and detected format"""
+type SQLExplainResult {
+  planText: String!
+  format: String!
+}
+
 extend type Mutation {
   """Create a new SQL Gateway session"""
   createSQLSession(cluster: String): SQLSessionResult!
@@ -5750,6 +5787,13 @@ extend type Mutation {
     sessionHandle: String!
     cluster: String
   ): SQLCloseResult!
+
+  """Submit EXPLAIN for a SQL statement and return the plan text"""
+  explainStatement(
+    sessionHandle: String!
+    statement: String!
+    cluster: String
+  ): SQLExplainResult!
 }
 `, BuiltIn: false},
 	{Name: "../schema/subscription.graphqls", Input: `"""
@@ -5987,6 +6031,27 @@ func (ec *executionContext) field_Mutation_executeDatabaseQuery_args(ctx context
 		return nil, err
 	}
 	args["sql"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_explainStatement_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "sessionHandle", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["sessionHandle"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "statement", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["statement"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
 	return args, nil
 }
 
@@ -16964,6 +17029,53 @@ func (ec *executionContext) fieldContext_Mutation_closeSQLSession(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_explainStatement(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_explainStatement,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ExplainStatement(ctx, fc.Args["sessionHandle"].(string), fc.Args["statement"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNSQLExplainResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_explainStatement(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "planText":
+				return ec.fieldContext_SQLExplainResult_planText(ctx, field)
+			case "format":
+				return ec.fieldContext_SQLExplainResult_format(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SQLExplainResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_explainStatement_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PlanNode_id(ctx context.Context, field graphql.CollectedField, obj *model.PlanNode) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -19625,6 +19737,64 @@ func (ec *executionContext) _SQLColumn_dataType(ctx context.Context, field graph
 func (ec *executionContext) fieldContext_SQLColumn_dataType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SQLColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SQLExplainResult_planText(ctx context.Context, field graphql.CollectedField, obj *model.SQLExplainResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SQLExplainResult_planText,
+		func(ctx context.Context) (any, error) {
+			return obj.PlanText, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SQLExplainResult_planText(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SQLExplainResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SQLExplainResult_format(ctx context.Context, field graphql.CollectedField, obj *model.SQLExplainResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SQLExplainResult_format,
+		func(ctx context.Context) (any, error) {
+			return obj.Format, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SQLExplainResult_format(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SQLExplainResult",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -30167,6 +30337,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "explainStatement":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_explainStatement(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -31330,6 +31507,50 @@ func (ec *executionContext) _SQLColumn(ctx context.Context, sel ast.SelectionSet
 			}
 		case "dataType":
 			out.Values[i] = ec._SQLColumn_dataType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var sQLExplainResultImplementors = []string{"SQLExplainResult"}
+
+func (ec *executionContext) _SQLExplainResult(ctx context.Context, sel ast.SelectionSet, obj *model.SQLExplainResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sQLExplainResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SQLExplainResult")
+		case "planText":
+			out.Values[i] = ec._SQLExplainResult_planText(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "format":
+			out.Values[i] = ec._SQLExplainResult_format(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -34991,6 +35212,20 @@ func (ec *executionContext) marshalNSQLColumn2ᚖgithubᚗcomᚋsandboxwsᚋflin
 		return graphql.Null
 	}
 	return ec._SQLColumn(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSQLExplainResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult(ctx context.Context, sel ast.SelectionSet, v model.SQLExplainResult) graphql.Marshaler {
+	return ec._SQLExplainResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSQLExplainResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLExplainResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SQLExplainResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSQLFetchResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLFetchResult(ctx context.Context, sel ast.SelectionSet, v model.SQLFetchResult) graphql.Marshaler {

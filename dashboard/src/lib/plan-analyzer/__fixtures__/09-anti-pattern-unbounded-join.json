@@ -1,0 +1,54 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[orders], properties=[bootstrap.servers=kafka:9092])",
+      "parallelism": 8
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, customer_id, product_id, amount, order_time])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[payments], properties=[bootstrap.servers=kafka:9092])",
+      "parallelism": 8
+    },
+    {
+      "id": 4,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[payment_id, order_id AS payment_order_id, payment_method, payment_status, payment_time])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "Join",
+      "pact": "Operator",
+      "contents": "Join(joinType=[InnerJoin], where=[order_id = payment_order_id], select=[order_id, customer_id, product_id, amount, order_time, payment_id, payment_method, payment_status, payment_time], leftInputSpec=[NoUniqueKey], rightInputSpec=[NoUniqueKey])",
+      "parallelism": 8,
+      "predecessors": [
+        { "id": 2, "ship_strategy": "HASH", "side": "first" },
+        { "id": 4, "ship_strategy": "HASH", "side": "second" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[paid_orders])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 5, "ship_strategy": "REBALANCE" }]
+    }
+  ],
+  "_comment": "ANTI-PATTERN: Regular join without interval condition or state TTL - will accumulate unbounded state"
+}
