@@ -286,6 +286,15 @@ const FETCH_SQL_RESULTS = gql`
   }
 `
 
+const EXPLAIN_STATEMENT = gql`
+  mutation ExplainStatement($sessionHandle: String!, $statement: String!, $cluster: String) {
+    explainStatement(sessionHandle: $sessionHandle, statement: $statement, cluster: $cluster) {
+      planText
+      format
+    }
+  }
+`
+
 const CLOSE_SQL_SESSION = gql`
   mutation CloseSQLSession($sessionHandle: String!, $cluster: String) {
     closeSQLSession(sessionHandle: $sessionHandle, cluster: $cluster) { success }
@@ -485,7 +494,7 @@ function mapTMOverview(tm: any): TaskManager {
     path: tm.path,
     dataPort: tm.dataPort,
     jmxPort: tm.jmxPort,
-    lastHeartbeat: new Date(Date.now() - parseI64(tm.timeSinceLastHeartbeat)),
+    lastHeartbeat: new Date(parseI64(tm.timeSinceLastHeartbeat)),
     slotsTotal: tm.slotsNumber,
     slotsFree: tm.freeSlots,
     cpuCores: tm.hardware.cpuCores,
@@ -1024,6 +1033,14 @@ export async function submitSQLStatement(
 ): Promise<string> {
   const data = await mutate<any>(SUBMIT_STATEMENT, { sessionHandle, statement })
   return data.submitStatement.operationHandle
+}
+
+export async function explainStatement(
+  sessionHandle: string,
+  statement: string,
+): Promise<{ planText: string; format: string }> {
+  const data = await mutate<any>(EXPLAIN_STATEMENT, { sessionHandle, statement })
+  return data.explainStatement
 }
 
 export async function fetchSQLResults(
