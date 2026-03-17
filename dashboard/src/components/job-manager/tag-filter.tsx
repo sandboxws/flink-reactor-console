@@ -79,17 +79,18 @@ export function TagChip({
       onClick={onClick}
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] font-medium transition-all duration-200"
       style={{
-        backgroundColor: active ? s.bg : "transparent",
-        color: active ? s.text : "var(--color-fg-dim)",
-        border: `1px solid ${active ? s.border : "var(--color-dash-border)"}`,
+        backgroundColor: s.bg,
+        color: s.text,
+        border: `1px solid ${s.border}`,
+        opacity: active ? 1 : 0.55,
       }}
     >
       {tag}
       <span
         className="rounded-full px-1 py-0.5 text-[9px] leading-none"
         style={{
-          backgroundColor: active ? s.border : "var(--color-chart-cursor-fill)",
-          color: active ? s.text : "var(--color-fg-faint)",
+          backgroundColor: s.border,
+          color: s.text,
         }}
       >
         {count}
