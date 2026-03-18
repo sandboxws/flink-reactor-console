@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# ── Refresh flink-reactor from local Verdaccio ──────────────────────
-# Clears the pnpm-cached flink-reactor package so `pnpm install` pulls
-# the latest version from the local Verdaccio registry (localhost:4873)
+# ── Refresh @flink-reactor/dsl from local Verdaccio ─────────────────
+# Clears the pnpm-cached @flink-reactor/dsl package so `pnpm install`
+# pulls the latest version from the local Verdaccio registry (localhost:4873)
 # without requiring a version bump in the DSL repo.
 #
 # Usage:
@@ -27,11 +27,11 @@ if ! curl -sf "$REGISTRY" > /dev/null 2>&1; then
 fi
 
 # --- Remove flink-reactor from pnpm store ---
-echo "Clearing flink-reactor from pnpm store..."
+echo "Clearing @flink-reactor/dsl from pnpm store..."
 
 # Remove from the content-addressable store (directories and index files)
-CACHED_DIRS=$(find "$PNPM_STORE" -type d -name "flink-reactor" 2>/dev/null || true)
-CACHED_INDEX=$(find "$PNPM_STORE/index" -type f -name "*flink-reactor*" 2>/dev/null || true)
+CACHED_DIRS=$(find "$PNPM_STORE" -type d -name "@flink-reactor+dsl" 2>/dev/null || true)
+CACHED_INDEX=$(find "$PNPM_STORE/index" -type f -name "*@flink-reactor+dsl*" 2>/dev/null || true)
 CACHED=$(printf '%s\n%s' "$CACHED_DIRS" "$CACHED_INDEX" | grep -v '^$' || true)
 if [[ -n "$CACHED" ]]; then
   echo "$CACHED" | while read -r entry; do
@@ -47,7 +47,7 @@ else
 fi
 
 # Remove the resolved metadata from node_modules
-RESOLVED="$PROJECT_ROOT/node_modules/.pnpm/flink-reactor@"*
+RESOLVED="$PROJECT_ROOT/node_modules/.pnpm/@flink-reactor+dsl@"*
 for dir in $RESOLVED; do
   if [[ -d "$dir" ]]; then
     if $DRY_RUN; then
@@ -60,7 +60,7 @@ for dir in $RESOLVED; do
 done
 
 # Also clear the dashboard's symlink
-DASHBOARD_LINK="$PROJECT_ROOT/dashboard/node_modules/flink-reactor"
+DASHBOARD_LINK="$PROJECT_ROOT/dashboard/node_modules/@flink-reactor/dsl"
 if [[ -L "$DASHBOARD_LINK" || -d "$DASHBOARD_LINK" ]]; then
   if $DRY_RUN; then
     echo "  [dry] would remove: $DASHBOARD_LINK"
@@ -90,9 +90,9 @@ pnpm store prune
 
 # --- Reinstall from Verdaccio ---
 echo ""
-echo "Reinstalling flink-reactor from $REGISTRY..."
+echo "Reinstalling @flink-reactor/dsl from $REGISTRY..."
 cd "$PROJECT_ROOT"
 pnpm install --registry "$REGISTRY"
 
 echo ""
-echo "Done! flink-reactor refreshed from local registry (restart dev server to pick up changes)."
+echo "Done! @flink-reactor/dsl refreshed from local registry (restart dev server to pick up changes)."

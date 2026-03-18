@@ -91,7 +91,7 @@ export type SynthesisResult = SynthesisSuccess | SynthesisError
 // Lazy-loaded DSL module cache
 // ---------------------------------------------------------------------------
 
-type DslModule = typeof import("flink-reactor/browser")
+type DslModule = typeof import("@flink-reactor/dsl/browser")
 
 let cachedDsl: DslModule | null = null
 let loadingPromise: Promise<DslModule> | null = null
@@ -104,7 +104,7 @@ async function loadDsl(): Promise<DslModule> {
   if (cachedDsl) return cachedDsl
   if (loadingPromise) return loadingPromise
 
-  loadingPromise = import("flink-reactor/browser").then((mod) => {
+  loadingPromise = import("@flink-reactor/dsl/browser").then((mod) => {
     cachedDsl = mod
     loadingPromise = null
     return mod
@@ -145,7 +145,7 @@ function transpile(code: string): string {
 function execute(
   jsCode: string,
   dsl: DslModule,
-): import("flink-reactor/browser").ConstructNode {
+): import("@flink-reactor/dsl/browser").ConstructNode {
   // Inject all DSL exports as scope parameters so the user doesn't
   // need import statements. `import * as DSL` captures everything,
   // including any newly added components.
@@ -249,7 +249,7 @@ export async function synthesize(code: string): Promise<SynthesisResult> {
     for (const p of result.pipelines) {
       const pipelineNode =
         resultNode.children?.find(
-          (c: import("flink-reactor/browser").ConstructNode) =>
+          (c: import("@flink-reactor/dsl/browser").ConstructNode) =>
             c.kind === "Pipeline" && c.props.name === p.name,
         ) ?? resultNode
 

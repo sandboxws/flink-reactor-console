@@ -22,7 +22,7 @@ import * as path from "node:path"
 
 const BROWSER_DTS = path.resolve(
   __dirname,
-  "../dashboard/node_modules/flink-reactor/dist/browser.d.ts",
+  "../dashboard/node_modules/@flink-reactor/dsl/dist/browser.d.ts",
 )
 const OUTPUT = path.resolve(
   __dirname,
