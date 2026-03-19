@@ -40,6 +40,22 @@ func (f *FlexFloat64) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON handles NaN and Infinity values that would otherwise cause
+// json.Marshal to panic. NaN → null, ±Infinity → capped to max float64.
+func (f FlexFloat64) MarshalJSON() ([]byte, error) {
+	v := float64(f)
+	switch {
+	case math.IsNaN(v):
+		return []byte("null"), nil
+	case math.IsInf(v, 1):
+		return json.Marshal(math.MaxFloat64)
+	case math.IsInf(v, -1):
+		return json.Marshal(-math.MaxFloat64)
+	default:
+		return json.Marshal(v)
+	}
+}
+
 // Float64 returns the underlying float64 value.
 func (f FlexFloat64) Float64() float64 {
 	return float64(f)

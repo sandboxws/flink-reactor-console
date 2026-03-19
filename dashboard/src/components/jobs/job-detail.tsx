@@ -12,6 +12,7 @@ import { ConfigurationTab } from "./detail/configuration-tab"
 import { DataSkewTab } from "./detail/data-skew-tab"
 import { ExceptionsTab } from "./detail/exceptions-tab"
 import { JobHeader } from "./detail/job-header"
+import { SourcesSinksTab } from "./detail/sources-sinks-tab"
 import { TimelineTab } from "./detail/timeline-tab"
 import { VerticesTab } from "./detail/vertices-tab"
 
@@ -173,6 +174,14 @@ export function JobDetail({
           <TabsTrigger value="checkpoints" className="detail-tab">
             Checkpoints
           </TabsTrigger>
+          <TabsTrigger value="sources-sinks" className="detail-tab">
+            Sources &amp; Sinks
+            {job.sourcesAndSinks.length > 0 && (
+              <span className="ml-1.5 inline-flex size-4 items-center justify-center rounded-full bg-blue-500/20 text-[10px] text-blue-400">
+                {job.sourcesAndSinks.length}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="configuration" className="detail-tab">
             Configuration
           </TabsTrigger>
@@ -236,6 +245,13 @@ export function JobDetail({
             checkpointLatest={job.checkpointLatest}
             vertexNames={vertexNames}
           />
+        </TabsContent>
+
+        <TabsContent
+          value="sources-sinks"
+          className="mt-4 flex-1 overflow-auto"
+        >
+          <SourcesSinksTab sourcesAndSinks={job.sourcesAndSinks} />
         </TabsContent>
 
         <TabsContent

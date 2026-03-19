@@ -1,0 +1,38 @@
+# Sources & Sinks detection and enrichment types
+
+"""Detected source or sink connector for a job"""
+type JobConnector {
+  """Flink vertex ID"""
+  vertexId: ID!
+  """Vertex or component name"""
+  vertexName: String!
+  """Connector technology: kafka, iceberg, paimon, jdbc, filesystem, unknown"""
+  connectorType: String!
+  """Role in the pipeline: source or sink"""
+  role: String!
+  """Primary resource identifier (topic, table, path)"""
+  resource: String!
+  """Detection confidence 0.0-1.0"""
+  confidence: Float!
+  """How the connector was detected: manifest, vertex_name, plan_node"""
+  detectionMethod: String!
+  """I/O metrics for this connector's vertex"""
+  metrics: ConnectorMetrics
+}
+
+"""I/O throughput metrics for a connector"""
+type ConnectorMetrics {
+  """Records read (for sources)"""
+  recordsRead: String!
+  """Records written (for sinks)"""
+  recordsWritten: String!
+  """Bytes read"""
+  bytesRead: String!
+  """Bytes written"""
+  bytesWritten: String!
+}
+
+extend type JobDetail {
+  """Detected sources and sinks for this job"""
+  sourcesAndSinks: [JobConnector!]!
+}

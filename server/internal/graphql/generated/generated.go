@@ -194,6 +194,13 @@ type ComplexityRoot struct {
 		Type func(childComplexity int) int
 	}
 
+	ConnectorMetrics struct {
+		BytesRead      func(childComplexity int) int
+		BytesWritten   func(childComplexity int) int
+		RecordsRead    func(childComplexity int) int
+		RecordsWritten func(childComplexity int) int
+	}
+
 	DashboardConfig struct {
 		Clusters    func(childComplexity int) int
 		Instruments func(childComplexity int) int
@@ -366,6 +373,17 @@ type ComplexityRoot struct {
 		Status   func(childComplexity int) int
 	}
 
+	JobConnector struct {
+		Confidence      func(childComplexity int) int
+		ConnectorType   func(childComplexity int) int
+		DetectionMethod func(childComplexity int) int
+		Metrics         func(childComplexity int) int
+		Resource        func(childComplexity int) int
+		Role            func(childComplexity int) int
+		VertexID        func(childComplexity int) int
+		VertexName      func(childComplexity int) int
+	}
+
 	JobDetail struct {
 		Accumulators     func(childComplexity int) int
 		BackPressure     func(childComplexity int) int
@@ -378,6 +396,7 @@ type ComplexityRoot struct {
 		Name             func(childComplexity int) int
 		Now              func(childComplexity int) int
 		Plan             func(childComplexity int) int
+		SourcesAndSinks  func(childComplexity int) int
 		StartTime        func(childComplexity int) int
 		State            func(childComplexity int) int
 		VertexDetails    func(childComplexity int) int
@@ -1561,6 +1580,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.ColumnInfo.Type(childComplexity), true
 
+	case "ConnectorMetrics.bytesRead":
+		if e.ComplexityRoot.ConnectorMetrics.BytesRead == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConnectorMetrics.BytesRead(childComplexity), true
+	case "ConnectorMetrics.bytesWritten":
+		if e.ComplexityRoot.ConnectorMetrics.BytesWritten == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConnectorMetrics.BytesWritten(childComplexity), true
+	case "ConnectorMetrics.recordsRead":
+		if e.ComplexityRoot.ConnectorMetrics.RecordsRead == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConnectorMetrics.RecordsRead(childComplexity), true
+	case "ConnectorMetrics.recordsWritten":
+		if e.ComplexityRoot.ConnectorMetrics.RecordsWritten == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConnectorMetrics.RecordsWritten(childComplexity), true
+
 	case "DashboardConfig.clusters":
 		if e.ComplexityRoot.DashboardConfig.Clusters == nil {
 			break
@@ -2134,6 +2178,55 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.JarUploadResult.Status(childComplexity), true
 
+	case "JobConnector.confidence":
+		if e.ComplexityRoot.JobConnector.Confidence == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConnector.Confidence(childComplexity), true
+	case "JobConnector.connectorType":
+		if e.ComplexityRoot.JobConnector.ConnectorType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConnector.ConnectorType(childComplexity), true
+	case "JobConnector.detectionMethod":
+		if e.ComplexityRoot.JobConnector.DetectionMethod == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConnector.DetectionMethod(childComplexity), true
+	case "JobConnector.metrics":
+		if e.ComplexityRoot.JobConnector.Metrics == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConnector.Metrics(childComplexity), true
+	case "JobConnector.resource":
+		if e.ComplexityRoot.JobConnector.Resource == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConnector.Resource(childComplexity), true
+	case "JobConnector.role":
+		if e.ComplexityRoot.JobConnector.Role == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConnector.Role(childComplexity), true
+	case "JobConnector.vertexId":
+		if e.ComplexityRoot.JobConnector.VertexID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConnector.VertexID(childComplexity), true
+	case "JobConnector.vertexName":
+		if e.ComplexityRoot.JobConnector.VertexName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConnector.VertexName(childComplexity), true
+
 	case "JobDetail.accumulators":
 		if e.ComplexityRoot.JobDetail.Accumulators == nil {
 			break
@@ -2200,6 +2293,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobDetail.Plan(childComplexity), true
+	case "JobDetail.sourcesAndSinks":
+		if e.ComplexityRoot.JobDetail.SourcesAndSinks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobDetail.SourcesAndSinks(childComplexity), true
 	case "JobDetail.startTime":
 		if e.ComplexityRoot.JobDetail.StartTime == nil {
 			break
@@ -5735,6 +5834,45 @@ type Query {
 type Mutation
 
 type Subscription
+`, BuiltIn: false},
+	{Name: "../schema/sources_sinks.graphqls", Input: `# Sources & Sinks detection and enrichment types
+
+"""Detected source or sink connector for a job"""
+type JobConnector {
+  """Flink vertex ID"""
+  vertexId: ID!
+  """Vertex or component name"""
+  vertexName: String!
+  """Connector technology: kafka, iceberg, paimon, jdbc, filesystem, unknown"""
+  connectorType: String!
+  """Role in the pipeline: source or sink"""
+  role: String!
+  """Primary resource identifier (topic, table, path)"""
+  resource: String!
+  """Detection confidence 0.0-1.0"""
+  confidence: Float!
+  """How the connector was detected: manifest, vertex_name, plan_node"""
+  detectionMethod: String!
+  """I/O metrics for this connector's vertex"""
+  metrics: ConnectorMetrics
+}
+
+"""I/O throughput metrics for a connector"""
+type ConnectorMetrics {
+  """Records read (for sources)"""
+  recordsRead: String!
+  """Records written (for sinks)"""
+  recordsWritten: String!
+  """Bytes read"""
+  bytesRead: String!
+  """Bytes written"""
+  bytesWritten: String!
+}
+
+extend type JobDetail {
+  """Detected sources and sinks for this job"""
+  sourcesAndSinks: [JobConnector!]!
+}
 `, BuiltIn: false},
 	{Name: "../schema/sqlgateway.graphqls", Input: `# SQL Gateway session and statement management
 
@@ -9926,6 +10064,122 @@ func (ec *executionContext) fieldContext_ColumnInfo_type(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _ConnectorMetrics_recordsRead(ctx context.Context, field graphql.CollectedField, obj *model.ConnectorMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConnectorMetrics_recordsRead,
+		func(ctx context.Context) (any, error) {
+			return obj.RecordsRead, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConnectorMetrics_recordsRead(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConnectorMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConnectorMetrics_recordsWritten(ctx context.Context, field graphql.CollectedField, obj *model.ConnectorMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConnectorMetrics_recordsWritten,
+		func(ctx context.Context) (any, error) {
+			return obj.RecordsWritten, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConnectorMetrics_recordsWritten(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConnectorMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConnectorMetrics_bytesRead(ctx context.Context, field graphql.CollectedField, obj *model.ConnectorMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConnectorMetrics_bytesRead,
+		func(ctx context.Context) (any, error) {
+			return obj.BytesRead, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConnectorMetrics_bytesRead(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConnectorMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConnectorMetrics_bytesWritten(ctx context.Context, field graphql.CollectedField, obj *model.ConnectorMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConnectorMetrics_bytesWritten,
+		func(ctx context.Context) (any, error) {
+			return obj.BytesWritten, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConnectorMetrics_bytesWritten(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConnectorMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DashboardConfig_clusters(ctx context.Context, field graphql.CollectedField, obj *model.DashboardConfig) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -12681,6 +12935,248 @@ func (ec *executionContext) fieldContext_JarUploadResult_status(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _JobConnector_vertexId(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConnector_vertexId,
+		func(ctx context.Context) (any, error) {
+			return obj.VertexID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConnector_vertexId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConnector",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConnector_vertexName(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConnector_vertexName,
+		func(ctx context.Context) (any, error) {
+			return obj.VertexName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConnector_vertexName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConnector",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConnector_connectorType(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConnector_connectorType,
+		func(ctx context.Context) (any, error) {
+			return obj.ConnectorType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConnector_connectorType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConnector",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConnector_role(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConnector_role,
+		func(ctx context.Context) (any, error) {
+			return obj.Role, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConnector_role(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConnector",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConnector_resource(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConnector_resource,
+		func(ctx context.Context) (any, error) {
+			return obj.Resource, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConnector_resource(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConnector",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConnector_confidence(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConnector_confidence,
+		func(ctx context.Context) (any, error) {
+			return obj.Confidence, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConnector_confidence(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConnector",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConnector_detectionMethod(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConnector_detectionMethod,
+		func(ctx context.Context) (any, error) {
+			return obj.DetectionMethod, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConnector_detectionMethod(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConnector",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConnector_metrics(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConnector_metrics,
+		func(ctx context.Context) (any, error) {
+			return obj.Metrics, nil
+		},
+		nil,
+		ec.marshalOConnectorMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConnectorMetrics,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConnector_metrics(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConnector",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "recordsRead":
+				return ec.fieldContext_ConnectorMetrics_recordsRead(ctx, field)
+			case "recordsWritten":
+				return ec.fieldContext_ConnectorMetrics_recordsWritten(ctx, field)
+			case "bytesRead":
+				return ec.fieldContext_ConnectorMetrics_bytesRead(ctx, field)
+			case "bytesWritten":
+				return ec.fieldContext_ConnectorMetrics_bytesWritten(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConnectorMetrics", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobDetail_id(ctx context.Context, field graphql.CollectedField, obj *model.JobDetail) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -13244,6 +13740,53 @@ func (ec *executionContext) fieldContext_JobDetail_accumulators(_ context.Contex
 				return ec.fieldContext_VertexAccumulators_accumulators(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type VertexAccumulators", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobDetail_sourcesAndSinks(ctx context.Context, field graphql.CollectedField, obj *model.JobDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobDetail_sourcesAndSinks,
+		func(ctx context.Context) (any, error) {
+			return obj.SourcesAndSinks, nil
+		},
+		nil,
+		ec.marshalNJobConnector2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnectorᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobDetail_sourcesAndSinks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vertexId":
+				return ec.fieldContext_JobConnector_vertexId(ctx, field)
+			case "vertexName":
+				return ec.fieldContext_JobConnector_vertexName(ctx, field)
+			case "connectorType":
+				return ec.fieldContext_JobConnector_connectorType(ctx, field)
+			case "role":
+				return ec.fieldContext_JobConnector_role(ctx, field)
+			case "resource":
+				return ec.fieldContext_JobConnector_resource(ctx, field)
+			case "confidence":
+				return ec.fieldContext_JobConnector_confidence(ctx, field)
+			case "detectionMethod":
+				return ec.fieldContext_JobConnector_detectionMethod(ctx, field)
+			case "metrics":
+				return ec.fieldContext_JobConnector_metrics(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobConnector", field.Name)
 		},
 	}
 	return fc, nil
@@ -18721,6 +19264,8 @@ func (ec *executionContext) fieldContext_Query_job(ctx context.Context, field gr
 				return ec.fieldContext_JobDetail_backPressure(ctx, field)
 			case "accumulators":
 				return ec.fieldContext_JobDetail_accumulators(ctx, field)
+			case "sourcesAndSinks":
+				return ec.fieldContext_JobDetail_sourcesAndSinks(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobDetail", field.Name)
 		},
@@ -27513,6 +28058,60 @@ func (ec *executionContext) _ColumnInfo(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var connectorMetricsImplementors = []string{"ConnectorMetrics"}
+
+func (ec *executionContext) _ConnectorMetrics(ctx context.Context, sel ast.SelectionSet, obj *model.ConnectorMetrics) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, connectorMetricsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConnectorMetrics")
+		case "recordsRead":
+			out.Values[i] = ec._ConnectorMetrics_recordsRead(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "recordsWritten":
+			out.Values[i] = ec._ConnectorMetrics_recordsWritten(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bytesRead":
+			out.Values[i] = ec._ConnectorMetrics_bytesRead(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bytesWritten":
+			out.Values[i] = ec._ConnectorMetrics_bytesWritten(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var dashboardConfigImplementors = []string{"DashboardConfig"}
 
 func (ec *executionContext) _DashboardConfig(ctx context.Context, sel ast.SelectionSet, obj *model.DashboardConfig) graphql.Marshaler {
@@ -28862,6 +29461,77 @@ func (ec *executionContext) _JarUploadResult(ctx context.Context, sel ast.Select
 	return out
 }
 
+var jobConnectorImplementors = []string{"JobConnector"}
+
+func (ec *executionContext) _JobConnector(ctx context.Context, sel ast.SelectionSet, obj *model.JobConnector) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobConnectorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobConnector")
+		case "vertexId":
+			out.Values[i] = ec._JobConnector_vertexId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "vertexName":
+			out.Values[i] = ec._JobConnector_vertexName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "connectorType":
+			out.Values[i] = ec._JobConnector_connectorType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "role":
+			out.Values[i] = ec._JobConnector_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "resource":
+			out.Values[i] = ec._JobConnector_resource(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "confidence":
+			out.Values[i] = ec._JobConnector_confidence(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "detectionMethod":
+			out.Values[i] = ec._JobConnector_detectionMethod(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "metrics":
+			out.Values[i] = ec._JobConnector_metrics(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var jobDetailImplementors = []string{"JobDetail"}
 
 func (ec *executionContext) _JobDetail(ctx context.Context, sel ast.SelectionSet, obj *model.JobDetail) graphql.Marshaler {
@@ -28935,6 +29605,11 @@ func (ec *executionContext) _JobDetail(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._JobDetail_backPressure(ctx, field, obj)
 		case "accumulators":
 			out.Values[i] = ec._JobDetail_accumulators(ctx, field, obj)
+		case "sourcesAndSinks":
+			out.Values[i] = ec._JobDetail_sourcesAndSinks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34575,6 +35250,32 @@ func (ec *executionContext) marshalNJarRunResult2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._JarRunResult(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNJobConnector2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnectorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobConnector) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNJobConnector2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnector(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNJobConnector2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnector(ctx context.Context, sel ast.SelectionSet, v *model.JobConnector) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobConnector(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNJobDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobDetail(ctx context.Context, sel ast.SelectionSet, v model.JobDetail) graphql.Marshaler {
 	return ec._JobDetail(ctx, sel, &v)
 }
@@ -36003,6 +36704,13 @@ func (ec *executionContext) marshalOCheckpointSummary2ᚖgithubᚗcomᚋsandboxw
 		return graphql.Null
 	}
 	return ec._CheckpointSummary(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOConnectorMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConnectorMetrics(ctx context.Context, sel ast.SelectionSet, v *model.ConnectorMetrics) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConnectorMetrics(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryFilter(ctx context.Context, v any) (*model.ExceptionHistoryFilter, error) {

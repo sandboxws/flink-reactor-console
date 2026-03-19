@@ -204,6 +204,18 @@ type ColumnInfo struct {
 	Type string `json:"type"`
 }
 
+// I/O throughput metrics for a connector
+type ConnectorMetrics struct {
+	// Records read (for sources)
+	RecordsRead string `json:"recordsRead"`
+	// Records written (for sinks)
+	RecordsWritten string `json:"recordsWritten"`
+	// Bytes read
+	BytesRead string `json:"bytesRead"`
+	// Bytes written
+	BytesWritten string `json:"bytesWritten"`
+}
+
 type DashboardConfig struct {
 	Clusters    []string `json:"clusters"`
 	Instruments []string `json:"instruments"`
@@ -409,6 +421,26 @@ type JarUploadResult struct {
 	Status   string `json:"status"`
 }
 
+// Detected source or sink connector for a job
+type JobConnector struct {
+	// Flink vertex ID
+	VertexID string `json:"vertexId"`
+	// Vertex or component name
+	VertexName string `json:"vertexName"`
+	// Connector technology: kafka, iceberg, paimon, jdbc, filesystem, unknown
+	ConnectorType string `json:"connectorType"`
+	// Role in the pipeline: source or sink
+	Role string `json:"role"`
+	// Primary resource identifier (topic, table, path)
+	Resource string `json:"resource"`
+	// Detection confidence 0.0-1.0
+	Confidence float64 `json:"confidence"`
+	// How the connector was detected: manifest, vertex_name, plan_node
+	DetectionMethod string `json:"detectionMethod"`
+	// I/O metrics for this connector's vertex
+	Metrics *ConnectorMetrics `json:"metrics,omitempty"`
+}
+
 type JobDetail struct {
 	ID               string                `json:"id"`
 	Name             string                `json:"name"`
@@ -426,6 +458,8 @@ type JobDetail struct {
 	Watermarks       []*VertexWatermarks   `json:"watermarks,omitempty"`
 	BackPressure     []*VertexBackPressure `json:"backPressure,omitempty"`
 	Accumulators     []*VertexAccumulators `json:"accumulators,omitempty"`
+	// Detected sources and sinks for this job
+	SourcesAndSinks []*JobConnector `json:"sourcesAndSinks"`
 }
 
 // Connection type for paginated job history results.

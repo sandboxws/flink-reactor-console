@@ -13,8 +13,12 @@ import type {
   CheckpointCounts,
   CheckpointLatest,
   ClusterOverview,
+  ConnectorMetrics,
+  ConnectorRole,
+  ConnectorType,
   FlinkFeatureFlags,
   FlinkJob,
+  JobConnector,
   JobEdge,
   JobException,
   JobManagerConfig,
@@ -166,6 +170,10 @@ const JOB_DETAIL_QUERY = gql`
         }
       }
       accumulators { vertexId accumulators { name type value } }
+      sourcesAndSinks {
+        vertexId vertexName connectorType role resource confidence detectionMethod
+        metrics { recordsRead recordsWritten bytesRead bytesWritten }
+      }
     }
   }
 `
@@ -386,6 +394,7 @@ function mapJobOverview(j: any): FlinkJob {
     watermarks: {},
     backpressure: {},
     accumulators: {},
+    sourcesAndSinks: [],
   }
 }
 
@@ -939,6 +948,25 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
     watermarks,
     backpressure,
     accumulators,
+    sourcesAndSinks: (j.sourcesAndSinks ?? []).map(
+      (c: any): JobConnector => ({
+        vertexId: c.vertexId,
+        vertexName: c.vertexName,
+        connectorType: c.connectorType as ConnectorType,
+        role: c.role as ConnectorRole,
+        resource: c.resource,
+        confidence: c.confidence,
+        detectionMethod: c.detectionMethod,
+        metrics: c.metrics
+          ? {
+              recordsRead: parseI64(c.metrics.recordsRead),
+              recordsWritten: parseI64(c.metrics.recordsWritten),
+              bytesRead: parseI64(c.metrics.bytesRead),
+              bytesWritten: parseI64(c.metrics.bytesWritten),
+            }
+          : null,
+      }),
+    ),
   }
 }
 

@@ -1,6 +1,7 @@
 package flink
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -79,6 +80,15 @@ func ExtractRootCause(stackTrace string) string {
 		}
 	}
 	return lastCause
+}
+
+// IsNotFound returns true if the error is a Flink API 404 response.
+func IsNotFound(err error) bool {
+	var apiErr *APIError
+	if errors.As(err, &apiErr) {
+		return apiErr.StatusCode == 404
+	}
+	return false
 }
 
 // ConnectionError wraps connection failures (DNS, refused, etc.).

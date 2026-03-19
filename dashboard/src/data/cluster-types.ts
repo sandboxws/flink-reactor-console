@@ -165,6 +165,36 @@ export type JobConfiguration = {
   value: string
 }
 
+// --- Connector detection types ---
+
+export type ConnectorType =
+  | "kafka"
+  | "iceberg"
+  | "paimon"
+  | "jdbc"
+  | "filesystem"
+  | "unknown"
+
+export type ConnectorRole = "source" | "sink"
+
+export type ConnectorMetrics = {
+  recordsRead: number
+  recordsWritten: number
+  bytesRead: number
+  bytesWritten: number
+}
+
+export type JobConnector = {
+  vertexId: string
+  vertexName: string
+  connectorType: ConnectorType
+  role: ConnectorRole
+  resource: string
+  confidence: number
+  detectionMethod: "manifest" | "vertex_name" | "plan_node"
+  metrics: ConnectorMetrics | null
+}
+
 export type FlinkJob = {
   id: string
   name: string
@@ -185,6 +215,7 @@ export type FlinkJob = {
   watermarks: Record<string, VertexWatermark[]>
   backpressure: Record<string, VertexBackPressure>
   accumulators: Record<string, UserAccumulator[]>
+  sourcesAndSinks: JobConnector[]
 }
 
 // --- Task Manager types ---
