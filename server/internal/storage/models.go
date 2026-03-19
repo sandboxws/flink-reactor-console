@@ -37,20 +37,21 @@ type DBCluster struct {
 
 // DBJob mirrors the jobs table.
 type DBJob struct {
-	JID           string     `db:"jid"`
-	Cluster       string     `db:"cluster"`
-	Name          string     `db:"name"`
-	State         string     `db:"state"`
-	StartTime     *time.Time `db:"start_time"`
-	EndTime       *time.Time `db:"end_time"`
-	DurationMs    int64      `db:"duration_ms"`
-	LastModified  *time.Time `db:"last_modified"`
-	TasksTotal    int        `db:"tasks_total"`
-	TasksRunning  int        `db:"tasks_running"`
-	TasksFinished int        `db:"tasks_finished"`
-	TasksCanceled int        `db:"tasks_canceled"`
-	TasksFailed   int        `db:"tasks_failed"`
-	CapturedAt    time.Time  `db:"captured_at"`
+	JID            string          `db:"jid"`
+	Cluster        string          `db:"cluster"`
+	Name           string          `db:"name"`
+	State          string          `db:"state"`
+	StartTime      *time.Time      `db:"start_time"`
+	EndTime        *time.Time      `db:"end_time"`
+	DurationMs     int64           `db:"duration_ms"`
+	LastModified   *time.Time      `db:"last_modified"`
+	TasksTotal     int             `db:"tasks_total"`
+	TasksRunning   int             `db:"tasks_running"`
+	TasksFinished  int             `db:"tasks_finished"`
+	TasksCanceled  int             `db:"tasks_canceled"`
+	TasksFailed    int             `db:"tasks_failed"`
+	CapturedAt     time.Time       `db:"captured_at"`
+	DetailSnapshot json.RawMessage `db:"detail_snapshot"`
 }
 
 // FromFlinkJobOverview converts a Flink JobOverview to a DBJob.
@@ -290,6 +291,15 @@ func FromFlinkMetricItem(m flink.MetricItem, sourceType, sourceID, cluster strin
 		Value:      val,
 		CapturedAt: time.Now().UTC(),
 	}
+}
+
+// DBTapManifest mirrors the tap_manifests table.
+type DBTapManifest struct {
+	PipelineName string          `db:"pipeline_name"`
+	Manifest     json.RawMessage `db:"manifest"`
+	FlinkVersion *string         `db:"flink_version"`
+	CreatedAt    time.Time       `db:"created_at"`
+	UpdatedAt    time.Time       `db:"updated_at"`
 }
 
 // DBLog mirrors the logs table.

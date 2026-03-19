@@ -7,29 +7,27 @@ package graphql
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
 // TapManifests is the resolver for the tapManifests field.
 func (r *queryResolver) TapManifests(ctx context.Context) ([]*model.TapManifest, error) {
-	if r.TapLoader == nil {
+	if r.TapStore == nil {
 		return []*model.TapManifest{}, nil
 	}
 
-	manifests := r.TapLoader.Manifests()
+	manifests, err := r.TapStore.Manifests(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	result := make([]*model.TapManifest, len(manifests))
 	for i, m := range manifests {
-		var cfg map[string]any
-		if len(m.Config) > 0 {
-			_ = json.Unmarshal(m.Config, &cfg)
-		}
 		result[i] = &model.TapManifest{
-			Name:        m.Name,
-			Description: m.Description,
-			Version:     m.Version,
-			Config:      cfg,
+			Name:        m.PipelineName,
+			Description: m.FlinkVersion,
+			Version:     m.GeneratedAt,
 		}
 	}
 	return result, nil

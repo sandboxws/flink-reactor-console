@@ -2,6 +2,7 @@ package sync
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	gosync "sync"
 	"time"
@@ -112,8 +113,11 @@ func (s *Syncer) syncClusterJobs(ctx context.Context, conn *cluster.Connection, 
 		tracker.states[job.JID] = job.State
 		tracker.mu.Unlock()
 
-		if !known {
-			// New job: fetch full detail.
+		if !known && terminalStates[job.State] {
+			// First seen and already completed: archive with full snapshot.
+			needDetail = append(needDetail, detailJob{job: job, reason: "terminal"})
+		} else if !known {
+			// New running job: fetch detail for vertices.
 			needDetail = append(needDetail, detailJob{job: job, reason: "new"})
 		} else if prevState != job.State && terminalStates[job.State] {
 			// Terminal state transition: archive complete state.
@@ -141,7 +145,7 @@ func (s *Syncer) syncClusterJobs(ctx context.Context, conn *cluster.Connection, 
 		for _, dj := range needDetail {
 			dj := dj
 			g.Go(func() error {
-				return s.fetchAndUpsertJobDetail(gctx, conn, clusterName, dj.job)
+				return s.fetchAndUpsertJobDetail(gctx, conn, clusterName, dj.job, dj.reason == "terminal")
 			})
 		}
 
@@ -154,7 +158,9 @@ func (s *Syncer) syncClusterJobs(ctx context.Context, conn *cluster.Connection, 
 }
 
 // fetchAndUpsertJobDetail fetches full job detail and upserts vertices.
-func (s *Syncer) fetchAndUpsertJobDetail(ctx context.Context, conn *cluster.Connection, clusterName string, job flink.JobOverview) error {
+// When isTerminal is true, it also captures a JSONB snapshot of the full
+// aggregate and syncs checkpoints/exceptions for historical viewing.
+func (s *Syncer) fetchAndUpsertJobDetail(ctx context.Context, conn *cluster.Connection, clusterName string, job flink.JobOverview, isTerminal bool) error {
 	detail, err := conn.Service.GetJobDetail(ctx, job.JID)
 	if err != nil {
 		return fmt.Errorf("fetch detail for %s: %w", job.JID, err)
@@ -170,6 +176,25 @@ func (s *Syncer) fetchAndUpsertJobDetail(ctx context.Context, conn *cluster.Conn
 			s.logger.Warn("sync: upsert vertices failed", "cluster", clusterName, "jid", job.JID, "error", err)
 		} else {
 			observability.SyncUpsertsTotal.WithLabelValues("vertices", clusterName).Add(float64(len(vertices)))
+		}
+	}
+
+	// On terminal state: capture full snapshot + sync checkpoints & exceptions.
+	if isTerminal {
+		snapshotJSON, err := json.Marshal(detail)
+		if err != nil {
+			s.logger.Warn("sync: marshal job snapshot failed", "cluster", clusterName, "jid", job.JID, "error", err)
+		} else {
+			if err := s.stores.Jobs.UpsertJobSnapshot(ctx, job.JID, clusterName, snapshotJSON); err != nil {
+				s.logger.Warn("sync: upsert job snapshot failed", "cluster", clusterName, "jid", job.JID, "error", err)
+			}
+		}
+
+		if err := s.syncJobCheckpoints(ctx, clusterName, job.JID); err != nil {
+			s.logger.Warn("sync: terminal checkpoint sync failed", "cluster", clusterName, "jid", job.JID, "error", err)
+		}
+		if err := s.syncJobExceptions(ctx, clusterName, job.JID); err != nil {
+			s.logger.Warn("sync: terminal exception sync failed", "cluster", clusterName, "jid", job.JID, "error", err)
 		}
 	}
 

@@ -39,7 +39,7 @@ const statusColor: Record<string, string> = {
 // Tap job detection
 // ---------------------------------------------------------------------------
 
-const TAP_JOB_PREFIX = "flink-reactor-tap-"
+const TAP_JOB_PREFIX = "fr-tap-"
 
 function isTapJob(name: string): boolean {
   return name.startsWith(TAP_JOB_PREFIX)

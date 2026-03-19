@@ -36,8 +36,8 @@ type Config struct {
 	// Empty string disables SPA serving.
 	StaticDir string
 
-	// TapLoader provides tap pipeline manifests. May be nil.
-	TapLoader *tap.Loader
+	// TapStore provides DB-backed tap pipeline manifests. May be nil.
+	TapStore *tap.Store
 
 	// StoragePool is the PostgreSQL connection pool. May be nil when storage is disabled.
 	StoragePool *pgxpool.Pool
@@ -172,7 +172,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	resolver := &graphql.Resolver{
 		Manager:            manager,
 		InstrumentRegistry: registry,
-		TapLoader:          cfg.TapLoader,
+		TapStore:           cfg.TapStore,
 		CatalogService:     catalogService,
 		CatalogInitDDL:     catalogInitDDL,
 		Stores:             cfg.Stores,
@@ -201,6 +201,9 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	// Metrics proxy endpoints (JSON, not GraphQL).
 	metrics.Register(e, manager)
 
+	// Tap manifest endpoint (serves DSL-generated tap manifests by pipeline name).
+	tap.Register(e, cfg.TapStore)
+
 	// SPA static file handler (registered last as catch-all).
 	if cfg.StaticDir != "" {
 		spa.Register(e, spa.Config{StaticDir: cfg.StaticDir}, logger)
@@ -223,10 +226,10 @@ func WithStaticDir(dir string) Option {
 	}
 }
 
-// WithTapLoader sets the tap manifest loader on the GraphQL resolver.
-func WithTapLoader(loader *tap.Loader) Option {
+// WithTapStore sets the DB-backed tap manifest store.
+func WithTapStore(s *tap.Store) Option {
 	return func(c *Config) {
-		c.TapLoader = loader
+		c.TapStore = s
 	}
 }
 

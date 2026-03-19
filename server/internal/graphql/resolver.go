@@ -17,9 +17,9 @@ import (
 type Resolver struct {
 	Manager            *cluster.Manager
 	InstrumentRegistry *instruments.Registry
-	TapLoader          *tap.Loader
+	TapStore           *tap.Store
 	CatalogService     *catalogs.Service
-	CatalogInitDDL     []string // DDL statements to replay into new SQL sessions
+	CatalogInitDDL     []string      // DDL statements to replay into new SQL sessions
 	Stores             *store.Stores // nil when storage disabled
 	StoragePool        *pgxpool.Pool
 	StorageConfig      config.StorageConfig

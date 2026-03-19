@@ -19,6 +19,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
 	bgsync "github.com/sandboxws/flink-reactor/apps/server/internal/sync"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
 )
 
 func main() {
@@ -111,6 +112,8 @@ func run() int {
 	}
 	if stores != nil {
 		serverOpts = append(serverOpts, server.WithStores(stores))
+		tapStore := tap.NewStore(stores.TapManifests)
+		serverOpts = append(serverOpts, server.WithTapStore(tapStore))
 	}
 
 	srv := server.New(cfg.Address(), logger, manager, registry, serverOpts...)

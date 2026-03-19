@@ -5,12 +5,18 @@
 
 import type { TapManifest, TapMetadata } from "@/data/tap-types"
 
+/** Derive the backend base URL from the GraphQL endpoint (strips /graphql suffix). */
+const backendBaseUrl = (import.meta.env.VITE_GRAPHQL_URL ?? "").replace(
+  /\/graphql$/,
+  "",
+)
+
 /** Load tap manifest for a pipeline by name (matches the Flink job name set via pipeline.name) */
 export async function loadTapManifest(
   pipelineName: string,
 ): Promise<TapManifest> {
   const res = await fetch(
-    `/api/flink/tap-manifest?pipeline=${encodeURIComponent(pipelineName)}`,
+    `${backendBaseUrl}/api/flink/tap-manifest?pipeline=${encodeURIComponent(pipelineName)}`,
   )
 
   if (!res.ok) {
@@ -19,6 +25,19 @@ export async function loadTapManifest(
   }
 
   return (await res.json()) as TapManifest
+}
+
+/** Check if a tap manifest exists for a pipeline (HEAD-like check, no body parsing). */
+export async function hasTapManifest(pipelineName: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${backendBaseUrl}/api/flink/tap-manifest?pipeline=${encodeURIComponent(pipelineName)}`,
+      { method: "GET" },
+    )
+    return res.ok
+  } catch {
+    return false
+  }
 }
 
 /** Component type ordering for grouped display */
