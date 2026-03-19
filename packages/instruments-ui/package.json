@@ -14,26 +14,29 @@
       }
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
+    "@flink-reactor/ui": "workspace:*",
+    "@tanstack/react-router": "^1.120.0",
+    "date-fns": "^4.0.0",
+    "lucide-react": "^0.563.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@tanstack/react-router": "^1.120.0",
-    "zustand": "^5.0.0",
     "urql": "^5.0.0",
-    "lucide-react": "^0.563.0",
-    "date-fns": "^4.0.0",
-    "@flink-reactor/ui": "workspace:*"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "tsup": "^8.5.1",
-    "typescript": "^5.7.0"
+    "typescript": "^5.9.3"
   }
 }
