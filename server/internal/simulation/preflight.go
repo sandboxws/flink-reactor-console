@@ -89,6 +89,16 @@ func RunPreflight(ctx context.Context) []PreflightCheck {
 		return checks
 	}
 
+	// ── Gate 4b: Iceberg REST catalog (optional) ────────────────────
+	icebergCheck := checkPod(ctx, "iceberg-rest", "Iceberg REST Catalog", "flink-demo", "app=iceberg-rest", "8181")
+	icebergCheck.Required = false
+	if icebergCheck.Status == "fail" {
+		icebergCheck.Status = "warn"
+		icebergCheck.Detail = "Iceberg REST catalog not deployed (optional — needed for lakehouse templates)"
+		icebergCheck.Fix = "kubectl apply -f deploy/minikube/07-iceberg-rest.yaml"
+	}
+	checks = append(checks, icebergCheck)
+
 	// ── Gate 5: FlinkDeployments (optional) ──────────────────────────
 	checks = append(checks, checkFlinkDeployments(ctx))
 
