@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -20,27 +21,103 @@ type PreflightCheck struct {
 }
 
 // RunPreflight executes all pre-flight checks and returns their results.
-// Checks run sequentially (most are fast network probes or kubectl calls).
+// Checks that use kubectl are skipped entirely if kubectl is not installed.
+// All checks run in parallel with a 3-second overall timeout.
 func RunPreflight(ctx context.Context, flinkBaseURL string, storageEnabled bool, storageConnected bool, instrumentHealthy map[string]bool) []PreflightCheck {
-	var checks []PreflightCheck
+	hasKubectl := kubectlAvailable()
 
-	checks = append(checks, checkMinikubeRunning(ctx))
-	checks = append(checks, checkNamespace(ctx, "flink-demo"))
-	checks = append(checks, checkFlinkOperator(ctx))
-	checks = append(checks, checkInfrastructurePod(ctx, "kafka", "Kafka broker"))
-	checks = append(checks, checkInfrastructurePod(ctx, "postgres", "PostgreSQL"))
-	checks = append(checks, checkInfrastructurePod(ctx, "seaweedfs", "SeaweedFS (S3)"))
-	checks = append(checks, checkStorage(storageEnabled, storageConnected))
-	checks = append(checks, checkFlinkCluster(ctx, flinkBaseURL))
-	checks = append(checks, checkFlinkDeployments(ctx))
-	checks = append(checks, checkKafkaInstrument(instrumentHealthy))
-	checks = append(checks, checkNoActiveSimulation(ctx))
+	type indexedCheck struct {
+		index int
+		check PreflightCheck
+	}
 
-	return checks
+	// Define all checks as closures.
+	type checkFunc struct {
+		fn func() PreflightCheck
+	}
+
+	allChecks := []checkFunc{
+		{func() PreflightCheck {
+			if !hasKubectl {
+				return kubectlMissing("minikube", "Kubernetes cluster reachable")
+			}
+			return checkKubeCluster(ctx)
+		}},
+		{func() PreflightCheck {
+			if !hasKubectl {
+				return kubectlMissing("namespace", "Namespace flink-demo exists")
+			}
+			return checkNamespace(ctx, "flink-demo")
+		}},
+		{func() PreflightCheck {
+			if !hasKubectl {
+				return kubectlMissing("flink-operator", "Flink Kubernetes Operator")
+			}
+			return checkFlinkOperator(ctx)
+		}},
+		{func() PreflightCheck {
+			if !hasKubectl {
+				return kubectlMissing("kafka", "Kafka pod running")
+			}
+			return checkInfrastructurePod(ctx, "kafka", "Kafka broker")
+		}},
+		{func() PreflightCheck {
+			if !hasKubectl {
+				return kubectlMissing("postgres", "PostgreSQL pod running")
+			}
+			return checkInfrastructurePod(ctx, "postgres", "PostgreSQL")
+		}},
+		{func() PreflightCheck {
+			if !hasKubectl {
+				return kubectlMissing("seaweedfs", "SeaweedFS pod running")
+			}
+			return checkInfrastructurePod(ctx, "seaweedfs", "SeaweedFS (S3)")
+		}},
+		{func() PreflightCheck { return checkStorage(storageEnabled, storageConnected) }},
+		{func() PreflightCheck { return checkFlinkCluster(ctx, flinkBaseURL) }},
+		{func() PreflightCheck {
+			if !hasKubectl {
+				return kubectlMissing("flinkdeployments", "FlinkDeployments exist")
+			}
+			return checkFlinkDeployments(ctx)
+		}},
+		{func() PreflightCheck { return checkKafkaInstrument(instrumentHealthy) }},
+		{func() PreflightCheck { return checkNoActiveSimulation() }},
+	}
+
+	// Run all checks in parallel.
+	results := make([]PreflightCheck, len(allChecks))
+	var wg sync.WaitGroup
+	for i, cf := range allChecks {
+		wg.Add(1)
+		go func(idx int, fn func() PreflightCheck) {
+			defer wg.Done()
+			results[idx] = fn()
+		}(i, cf.fn)
+	}
+	wg.Wait()
+
+	return results
+}
+
+func kubectlAvailable() bool {
+	_, err := exec.LookPath("kubectl")
+	return err == nil
+}
+
+func kubectlMissing(id string, label string) PreflightCheck {
+	return PreflightCheck{
+		ID:       id,
+		Label:    label,
+		Status:   "fail",
+		Detail:   "kubectl not found on server PATH",
+		Fix:      "Install kubectl: https://kubernetes.io/docs/tasks/tools/",
+		Required: true,
+	}
 }
 
 func kubectl(ctx context.Context, args ...string) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "kubectl", args...)
@@ -48,14 +125,14 @@ func kubectl(ctx context.Context, args ...string) (string, error) {
 	return strings.TrimSpace(string(out)), err
 }
 
-func checkMinikubeRunning(ctx context.Context) PreflightCheck {
+func checkKubeCluster(ctx context.Context) PreflightCheck {
 	check := PreflightCheck{
 		ID:       "minikube",
 		Label:    "Kubernetes cluster reachable",
 		Required: true,
 	}
 
-	output, err := kubectl(ctx, "cluster-info", "--request-timeout=3s")
+	output, err := kubectl(ctx, "cluster-info", "--request-timeout=2s")
 	if err != nil {
 		check.Status = "fail"
 		check.Detail = "Cannot reach Kubernetes API"
@@ -105,7 +182,7 @@ func checkFlinkOperator(ctx context.Context) PreflightCheck {
 	if err != nil || output == "" {
 		check.Status = "fail"
 		check.Detail = "Flink Operator not found in flink-system namespace"
-		check.Fix = "Install operator: helm install flink-operator flink-operator/flink-kubernetes-operator --namespace flink-system --create-namespace --set webhook.create=false"
+		check.Fix = "Install: helm install flink-operator flink-operator/flink-kubernetes-operator --namespace flink-system --create-namespace --set webhook.create=false"
 		return check
 	}
 
@@ -156,7 +233,7 @@ func checkStorage(enabled bool, connected bool) PreflightCheck {
 	if !enabled {
 		check.Status = "fail"
 		check.Detail = "Storage is disabled in server configuration"
-		check.Fix = "Enable storage in config: storage.enabled: true with DSN pointing to PostgreSQL in flink-demo"
+		check.Fix = "Enable storage in config: storage.enabled: true with DSN pointing to PostgreSQL"
 		return check
 	}
 	if !connected {
@@ -183,7 +260,7 @@ func checkFlinkCluster(ctx context.Context, baseURL string) PreflightCheck {
 	if err != nil {
 		check.Status = "fail"
 		check.Detail = "Cannot reach Flink REST API at " + baseURL
-		check.Fix = "Ensure a Flink session cluster or FlinkDeployment is running in flink-demo"
+		check.Fix = "Ensure a Flink session cluster or FlinkDeployment is running"
 		return check
 	}
 	defer func() { _ = resp.Body.Close() }()
@@ -207,23 +284,10 @@ func checkFlinkDeployments(ctx context.Context) PreflightCheck {
 	}
 
 	output, err := kubectl(ctx, "get", "flinkdeployment", "-n", "flink-demo", "--no-headers")
-	if err != nil {
-		if strings.Contains(err.Error(), "the server doesn't have a resource type") || strings.Contains(string(output), "No resources found") {
-			check.Status = "warn"
-			check.Detail = "No FlinkDeployments found — deploy pipelines first"
-			check.Fix = "Create and deploy: npx create-fr-app my-app --template ecommerce && cd my-app && flink-reactor deploy --env minikube"
-			return check
-		}
-		check.Status = "warn"
-		check.Detail = "Could not query FlinkDeployments"
-		check.Fix = "Ensure Flink Operator CRDs are installed"
-		return check
-	}
-
-	if output == "" || strings.Contains(output, "No resources found") {
+	if err != nil || output == "" || strings.Contains(output, "No resources found") {
 		check.Status = "warn"
 		check.Detail = "No FlinkDeployments found — deploy pipelines first"
-		check.Fix = "Create and deploy: npx create-fr-app my-app --template ecommerce && cd my-app && flink-reactor deploy --env minikube"
+		check.Fix = "npx create-fr-app my-app --template ecommerce && cd my-app && flink-reactor deploy --env minikube"
 		return check
 	}
 
@@ -249,7 +313,7 @@ func checkKafkaInstrument(instrumentHealthy map[string]bool) PreflightCheck {
 
 	if len(instrumentHealthy) == 0 {
 		check.Status = "warn"
-		check.Detail = "No instruments configured"
+		check.Detail = "No Kafka instruments configured"
 		check.Fix = "Add a Kafka instrument in server config for load simulation scenarios"
 		return check
 	}
@@ -268,9 +332,7 @@ func checkKafkaInstrument(instrumentHealthy map[string]bool) PreflightCheck {
 	return check
 }
 
-func checkNoActiveSimulation(_ context.Context) PreflightCheck {
-	// This is checked by the engine itself; here we just return pass.
-	// The engine's Run() method rejects concurrent simulations.
+func checkNoActiveSimulation() PreflightCheck {
 	return PreflightCheck{
 		ID:       "no-active",
 		Label:    "No other simulation running",
