@@ -1,11 +1,11 @@
-import { Trash2 } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
 import {
+  Switch,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@flink-reactor/ui"
+import { Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { AlertRule } from "@/stores/alerts-store"
 

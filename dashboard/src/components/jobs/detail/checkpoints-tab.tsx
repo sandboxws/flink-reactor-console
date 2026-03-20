@@ -1,3 +1,4 @@
+import { Badge } from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
   AlertTriangle,
@@ -13,7 +14,6 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import { EmptyState } from "@/components/shared/empty-state"
-import { Badge } from "@/components/ui/badge"
 import type {
   Checkpoint,
   CheckpointConfig,

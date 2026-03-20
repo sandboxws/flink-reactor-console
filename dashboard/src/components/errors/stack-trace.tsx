@@ -1,10 +1,10 @@
-import { Check, ChevronRight, Copy } from "lucide-react"
-import { useMemo, useState } from "react"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@flink-reactor/ui"
+import { Check, ChevronRight, Copy } from "lucide-react"
+import { useMemo, useState } from "react"
 import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------

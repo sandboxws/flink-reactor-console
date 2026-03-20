@@ -1,12 +1,8 @@
+import { Popover, PopoverContent, PopoverTrigger } from "@flink-reactor/ui"
 import { Check, ChevronDown, Pause, Play } from "lucide-react"
 import { useMemo } from "react"
 import { SearchInput } from "@/components/shared/search-input"
 import { TimeRange } from "@/components/shared/time-range"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import type { LogSource } from "@/data/types"
 import { cn } from "@/lib/cn"
 import { useFilterStore } from "@/stores/filter-store"

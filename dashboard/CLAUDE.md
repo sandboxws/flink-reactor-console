@@ -23,7 +23,7 @@ The `design.md` is mandatory for every dashboard change — it serves as the imp
 
 - **Framework**: TanStack Router + Vite (pure client-side SPA, React 19)
 - **State**: Zustand 5 stores (no Redux, no React Context for state)
-- **Styling**: Tailwind CSS v4 + Tokyo Night color palette (dark-only)
+- **Styling**: Tailwind CSS v4 + Gruvpuccin (default) / Tokyo Night color palettes, dark + light modes
 - **Charts**: Recharts 2 (time-series), @xyflow/react 12 (DAG visualization)
 - **Icons**: `lucide-react` exclusively
 - **Utilities**: `cn()` from `@/lib/cn`, `date-fns` for formatting
@@ -121,7 +121,7 @@ src/
 │   ├── logs/                           # LogExplorer, LogList, LogToolbar, LogDetailPanel, LogHistogram
 │   ├── errors/                         # ErrorExplorer, ErrorGroupList, StackTrace
 │   ├── shared/                         # MetricCard, EmptyState, SearchInput, TextViewer, ThreadDumpViewer
-│   └── ui/                             # Shadcn primitives only
+│   └── (ui/ removed — primitives from @flink-reactor/ui)
 ├── stores/
 │   ├── cluster-store.ts                # Overview, jobs, TMs, JM, polling, job detail fetch
 │   ├── config-store.ts                 # Runtime config from GraphQL dashboardConfig
@@ -144,13 +144,14 @@ src/
 
 ## Styling Conventions
 
-- **Theme**: Tokyo Night palette, dark-only. Tokens defined in `global.css` `@theme` block.
+- **Theme**: Gruvpuccin (default) + Tokyo Night palettes, dark + light modes. Tokens defined in `global.css` `@theme` block. Gruvpuccin renders with no `data-palette` attribute; Tokyo Night via `data-palette="tokyo-night"`.
 - **Surface layers** (darkest → lightest): `bg-fr-bg` → `bg-dash-surface` → `bg-dash-panel` → `bg-dash-elevated`
 - **Floating surfaces** (Select, HoverCard, Popover): always `bg-dash-panel border-dash-border` — never `bg-dash-elevated`
 - **Glass cards**: `.glass-card` class for frosted-glass effect with hover glow
 - **Job status colors**: `--color-job-running` (teal), `--color-job-finished` (blue), `--color-job-cancelled` (amber), `--color-job-failed` (coral)
 - **Log severity colors**: `--color-log-trace/debug/info/warn/error` (Tokyo Night)
 - **Brand accent**: `--color-fr-coral` (primary), `--color-fr-purple` (secondary), `--color-fr-amber` (tertiary)
+- **UI primitives**: Imported from `@flink-reactor/ui` (not local `@/components/ui/`)
 
 ## State Management Pattern
 

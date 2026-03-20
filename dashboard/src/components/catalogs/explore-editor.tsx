@@ -1,6 +1,6 @@
+import { Button } from "@flink-reactor/ui"
 import { Loader2, Play, Square } from "lucide-react"
 import { useCallback } from "react"
-import { Button } from "@/components/ui/button"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
 
 export function ExploreEditor() {

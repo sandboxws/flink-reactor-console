@@ -57,8 +57,7 @@ export function generateMockTapManifest(): TapManifest {
           "",
           "SELECT * FROM `_tap_orders-source`;",
         ].join("\n"),
-        consumerGroupId:
-          "fr-tap-ecommerce-pipeline-orders-source-a1b2c3d4",
+        consumerGroupId: "fr-tap-ecommerce-pipeline-orders-source-a1b2c3d4",
         config: {
           name: "Source: KafkaSource",
           groupIdPrefix: "",
@@ -111,8 +110,7 @@ export function generateMockTapManifest(): TapManifest {
           "",
           "SELECT * FROM `_tap_high-value-filter`;",
         ].join("\n"),
-        consumerGroupId:
-          "fr-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8",
+        consumerGroupId: "fr-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8",
         config: {
           name: "Filter",
           groupIdPrefix: "",
@@ -218,8 +216,7 @@ export function generateMockTapManifest(): TapManifest {
           "",
           "SELECT * FROM `_tap_products-source`;",
         ].join("\n"),
-        consumerGroupId:
-          "fr-tap-ecommerce-pipeline-products-source-d3e4f5a6",
+        consumerGroupId: "fr-tap-ecommerce-pipeline-products-source-d3e4f5a6",
         config: {
           name: "Source: JdbcSource",
           groupIdPrefix: "",

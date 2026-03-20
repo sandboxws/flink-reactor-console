@@ -1,11 +1,11 @@
-import { Check, Copy } from "lucide-react"
-import { useCallback, useRef, useState } from "react"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@flink-reactor/ui"
+import { Check, Copy } from "lucide-react"
+import { useCallback, useRef, useState } from "react"
 import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------

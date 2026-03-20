@@ -1,12 +1,12 @@
-import { Play } from "lucide-react"
-import { useCallback, useMemo, useRef, useState } from "react"
-import { SiTypescript } from "react-icons/si"
-import { Button } from "@/components/ui/button"
 import {
+  Button,
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable"
+} from "@flink-reactor/ui"
+import { Play } from "lucide-react"
+import { useCallback, useMemo, useRef, useState } from "react"
+import { SiTypescript } from "react-icons/si"
 import { useSandboxStore } from "@/stores/sandbox-store"
 import { SandboxEditor } from "./sandbox-editor"
 import { findCategoryForExample, findExample } from "./sandbox-examples"

@@ -250,8 +250,7 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
       await Promise.all([get().refresh(), get().fetchJobDetail(jobId)])
     } catch (err) {
       set({
-        fetchError:
-          err instanceof Error ? err.message : "Failed to stop job",
+        fetchError: err instanceof Error ? err.message : "Failed to stop job",
       })
     }
   },

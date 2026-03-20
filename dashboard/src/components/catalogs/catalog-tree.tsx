@@ -115,9 +115,7 @@ export function CatalogTree() {
                                             No columns
                                           </div>
                                         ) : (
-                                          <ColumnsTable
-                                            columns={tableCols}
-                                          />
+                                          <ColumnsTable columns={tableCols} />
                                         )}
                                       </div>
                                     )}

@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react"
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@flink-reactor/ui"
 import {
   AlertTriangle,
   CheckCircle2,
@@ -6,20 +12,14 @@ import {
   Play,
   XCircle,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { useEffect, useState } from "react"
+import { cn } from "@/lib/cn"
 import type {
   PreflightCheckResult,
   SimulationInputParams,
   SimulationPreset,
 } from "@/lib/graphql-api-client"
 import { checkSimulationPreflight } from "@/lib/graphql-api-client"
-import { cn } from "@/lib/cn"
 
 export function SimulationPreflightModal({
   open,
@@ -155,9 +155,7 @@ function StatusIcon({ status }: { status: string }) {
         <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-job-running" />
       )
     case "fail":
-      return (
-        <XCircle className="mt-0.5 size-3.5 shrink-0 text-job-failed" />
-      )
+      return <XCircle className="mt-0.5 size-3.5 shrink-0 text-job-failed" />
     case "warn":
       return (
         <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-fr-amber" />

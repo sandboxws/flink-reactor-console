@@ -1,11 +1,6 @@
-import {
-  AlertTriangle,
-  GitGraph,
-  Lightbulb,
-  Database,
-} from "lucide-react"
-import type { AnalyzedFlinkPlan } from "@/lib/plan-analyzer/types"
+import { AlertTriangle, Database, GitGraph, Lightbulb } from "lucide-react"
 import { cn } from "@/lib/cn"
+import type { AnalyzedFlinkPlan } from "@/lib/plan-analyzer/types"
 import { usePlanAnalyzerStore } from "@/stores/plan-analyzer-store"
 import { PlanAntiPatternCard } from "./plan-anti-pattern-card"
 import { PlanDAG } from "./plan-dag"
@@ -69,9 +64,7 @@ export function PlanAnalysisPanel({ plan }: { plan: AnalyzedFlinkPlan }) {
 
         {/* Summary badges */}
         <div className="ml-auto flex items-center gap-2 text-[10px]">
-          <span className="text-zinc-500">
-            {plan.totalNodes} operators
-          </span>
+          <span className="text-zinc-500">{plan.totalNodes} operators</span>
           <span className="text-zinc-500">{plan.workloadType}</span>
           <span className="text-zinc-500">{plan.jobType}</span>
         </div>

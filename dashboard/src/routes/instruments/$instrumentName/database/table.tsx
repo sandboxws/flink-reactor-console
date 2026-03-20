@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router"
 import { DatabaseTableRoute } from "@flink-reactor/instruments-ui"
+import { createFileRoute } from "@tanstack/react-router"
 
 type TableSearch = {
   schema: string

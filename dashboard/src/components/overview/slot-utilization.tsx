@@ -1,5 +1,5 @@
+import { Progress } from "@flink-reactor/ui"
 import { Layers } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/cn"
 
 export function SlotUtilization({

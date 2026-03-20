@@ -1,6 +1,6 @@
 import { Database } from "lucide-react"
-import type { StateGrowthForecast } from "@/lib/plan-analyzer/types"
 import { cn } from "@/lib/cn"
+import type { StateGrowthForecast } from "@/lib/plan-analyzer/types"
 
 function formatBytes(bytes: number): string {
   if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`

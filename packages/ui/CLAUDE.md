@@ -1,14 +1,15 @@
 # @flink-reactor/ui
 
-Design system package for FlinkReactor applications. Tokyo Night theme, Radix UI primitives, Tailwind CSS.
+Design system package for FlinkReactor applications. Gruvpuccin (default) + Tokyo Night themes, Radix UI primitives, Tailwind CSS.
 
 ## Package Structure
 
 ```
 packages/ui/src/
-├── components/ui/     # 16 Radix-based primitives
+├── components/ui/     # 18 Radix-based primitives (incl. Alert, Switch)
 ├── layout/            # 4 app layout components
 ├── shared/            # 7 domain-specific components
+├── themes/            # CodeMirror editor themes (Gruvpuccin, Tokyo Night)
 ├── lib/               # Utilities (cn, constants)
 └── styles/            # CSS design tokens + component classes
 ```

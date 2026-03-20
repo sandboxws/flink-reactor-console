@@ -1,4 +1,11 @@
-import { useMemo, useState } from "react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@flink-reactor/ui"
 import {
   ArrowDown,
   ArrowUp,
@@ -8,16 +15,9 @@ import {
   Search,
   X,
 } from "lucide-react"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import type { ColumnInfo } from "@/lib/graphql-api-client"
+import { useMemo, useState } from "react"
 import { cn } from "@/lib/cn"
+import type { ColumnInfo } from "@/lib/graphql-api-client"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -159,8 +159,7 @@ export function ColumnsTable({ columns }: { columns: ColumnInfo[] }) {
         <div className="flex items-center justify-between border-t border-dash-border px-2.5 py-1.5">
           <span className="text-[10px] text-zinc-600">
             {page * PAGE_SIZE + 1}–
-            {Math.min((page + 1) * PAGE_SIZE, sorted.length)} of{" "}
-            {sorted.length}
+            {Math.min((page + 1) * PAGE_SIZE, sorted.length)} of {sorted.length}
           </span>
           <div className="flex items-center gap-1">
             <button

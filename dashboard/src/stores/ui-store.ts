@@ -25,14 +25,14 @@ function getStoredTheme(): Theme {
 }
 
 function getStoredPalette(): Palette {
-  if (typeof window === "undefined") return "tokyo-night"
+  if (typeof window === "undefined") return "gruvpuccin"
   try {
     const stored = localStorage.getItem(PALETTE_STORAGE_KEY)
     if (stored === "tokyo-night" || stored === "gruvpuccin") return stored
   } catch {
     // localStorage may be unavailable
   }
-  return "tokyo-night"
+  return "gruvpuccin"
 }
 
 function applyTheme(theme: Theme) {
@@ -49,7 +49,11 @@ function applyTheme(theme: Theme) {
 
 function applyPalette(palette: Palette) {
   if (typeof document === "undefined") return
-  document.documentElement.dataset.palette = palette
+  if (palette === "gruvpuccin") {
+    delete document.documentElement.dataset.palette
+  } else {
+    document.documentElement.dataset.palette = palette
+  }
   try {
     localStorage.setItem(PALETTE_STORAGE_KEY, palette)
   } catch {

@@ -1,3 +1,4 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import {
   ArrowLeft,
@@ -9,7 +10,6 @@ import {
   Timer,
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type {
   JobManagerInfo,
   JvmMetricSample,

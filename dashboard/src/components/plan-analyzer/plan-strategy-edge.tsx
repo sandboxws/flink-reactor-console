@@ -27,7 +27,7 @@ export function PlanStrategyEdge({
   })
 
   const label = data?.shipStrategy
-    ? SHUFFLE_STRATEGY_LABELS[data.shipStrategy] ?? data.shipStrategy
+    ? (SHUFFLE_STRATEGY_LABELS[data.shipStrategy] ?? data.shipStrategy)
     : undefined
 
   return (

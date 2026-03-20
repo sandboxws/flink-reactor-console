@@ -1,17 +1,17 @@
 import { create } from "zustand"
+import {
+  closeSQLSession,
+  createSQLSession,
+  explainStatement,
+  fetchSQLResults,
+  submitSQLStatement,
+} from "@/lib/graphql-api-client"
 import { analyzePlan, detectFormat, parsePlan } from "@/lib/plan-analyzer"
 import type {
   AnalyzedFlinkPlan,
   FlinkPlanFormat,
   NormalizedFlinkPlan,
 } from "@/lib/plan-analyzer/types"
-import {
-  createSQLSession,
-  explainStatement,
-  submitSQLStatement,
-  fetchSQLResults,
-  closeSQLSession,
-} from "@/lib/graphql-api-client"
 
 type AnalysisStatus = "idle" | "analyzing" | "done" | "error"
 type AnalysisTab = "dag" | "analysis" | "recommendations" | "state"

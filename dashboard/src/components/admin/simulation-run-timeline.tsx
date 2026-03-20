@@ -1,7 +1,7 @@
+import { Badge } from "@flink-reactor/ui"
 import { formatDistanceToNow } from "date-fns"
-import { Badge } from "@/components/ui/badge"
-import type { SimulationRun } from "@/lib/graphql-api-client"
 import { cn } from "@/lib/cn"
+import type { SimulationRun } from "@/lib/graphql-api-client"
 
 const metricColors: Record<string, string> = {
   throughput: "text-job-running",

@@ -1,3 +1,4 @@
+import { Badge } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
 import {
@@ -14,7 +15,6 @@ import {
   XCircle,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Badge } from "@/components/ui/badge"
 import type { FlinkJob } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"

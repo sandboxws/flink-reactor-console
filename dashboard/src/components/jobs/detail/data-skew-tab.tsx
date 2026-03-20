@@ -1,3 +1,10 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@flink-reactor/ui"
 import { BarChart3 } from "lucide-react"
 import { useMemo, useState } from "react"
 import {
@@ -11,13 +18,6 @@ import {
   YAxis,
 } from "recharts"
 import { EmptyState } from "@/components/shared/empty-state"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { JobVertex, SubtaskMetrics } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 

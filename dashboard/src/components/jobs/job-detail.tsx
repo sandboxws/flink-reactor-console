@@ -1,6 +1,13 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import { TapPanel } from "@/components/tap/tap-panel"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlinkJob } from "@/data/cluster-types"
 import type { TapMetadata } from "@/data/tap-types"
 import { hasTapManifest } from "@/lib/tap-manifest"
@@ -67,11 +74,13 @@ export function JobDetail({
   const jobName = job.name
 
   // Tap tab visibility: only for running jobs with a manifest
-  const isRunning = ["RUNNING", "CREATED", "RESTARTING", "RECONCILING"].includes(
-    job.status,
-  )
-  const isTapEligible =
-    isRunning && !job.name.startsWith("fr-tap-")
+  const isRunning = [
+    "RUNNING",
+    "CREATED",
+    "RESTARTING",
+    "RECONCILING",
+  ].includes(job.status)
+  const isTapEligible = isRunning && !job.name.startsWith("fr-tap-")
   const [tapAvailable, setTapAvailable] = useState(false)
 
   useEffect(() => {

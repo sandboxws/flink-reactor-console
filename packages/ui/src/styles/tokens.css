@@ -1,90 +1,92 @@
 /* ── FlinkReactor theme tokens ────────────────────── */
-/* Design system color palette — dark mode (Tokyo Night) is the default */
+/* Design system color palette — dark mode (Gruvpuccin) is the default */
 
 @theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Brand colors */
-  --color-fr-bg: #0a0a0f;
-  --color-fr-subtle: #0c0c16;
-  --color-fr-coral: #d97085;
-  --color-fr-purple: #9b6bbf;
-  --color-fr-amber: #e8983e;
-
-  /* Severity colors (Tokyo Night palette) */
-  --color-log-trace: #565f89;
-  --color-log-debug: #7aa2f7;
-  --color-log-info: #7dcfff;
-  --color-log-warn: #e0af68;
-  --color-log-error: #f7768e;
-
-  /* Dashboard surface tokens */
-  --color-dash-surface: #12121a;
-  --color-dash-panel: #16161e;
-  --color-dash-elevated: #1f2335;
-  --color-dash-border: #1e1e2e;
-  --color-dash-hover: #1a1a28;
-
-  /* Job status colors (Tokyo Night palette) */
-  --color-job-running: #73daca;
-  --color-job-finished: #7aa2f7;
-  --color-job-cancelled: #e0af68;
-  --color-job-failed: #f7768e;
-  --color-job-created: #565f89;
-
-  /* Semantic foreground tokens */
-  --color-fg: #ffffff;
-  --color-fg-secondary: #d4d4d8;
-  --color-fg-muted: #a1a1aa;
-  --color-fg-dim: #71717a;
-  --color-fg-faint: #52525b;
-
-  /* Chart cursor overlays */
-  --color-chart-cursor: rgba(255, 255, 255, 0.08);
-  --color-chart-cursor-fill: rgba(255, 255, 255, 0.04);
-}
-
-/* ── Gruvpuccin palette overrides ─────────────────── */
-
-html[data-palette="gruvpuccin"] {
+  /* Brand colors (Gruvpuccin) */
   --color-fr-bg: #101213;
   --color-fr-subtle: #141617;
   --color-fr-coral: #e78a4e;
   --color-fr-purple: #a9b665;
   --color-fr-amber: #d8a657;
 
+  /* Severity colors (Gruvpuccin palette) */
   --color-log-trace: #5a524c;
   --color-log-debug: #7daea3;
   --color-log-info: #89b482;
   --color-log-warn: #d8a657;
   --color-log-error: #ea6962;
 
+  /* Dashboard surface tokens */
   --color-dash-surface: #141617;
   --color-dash-panel: #181a1b;
   --color-dash-elevated: #242424;
   --color-dash-border: #2e2c2b;
   --color-dash-hover: #242424;
 
+  /* Job status colors (Gruvpuccin palette) */
   --color-job-running: #a9b665;
   --color-job-finished: #7daea3;
   --color-job-cancelled: #d8a657;
   --color-job-failed: #ea6962;
   --color-job-created: #5a524c;
 
+  /* Semantic foreground tokens */
   --color-fg: #d4be98;
   --color-fg-secondary: #bfb3a2;
   --color-fg-muted: #a69a8a;
   --color-fg-dim: #7c7269;
   --color-fg-faint: #5a524c;
 
+  /* Chart cursor overlays */
   --color-chart-cursor: rgba(212, 190, 152, 0.08);
   --color-chart-cursor-fill: rgba(212, 190, 152, 0.04);
 }
 
-/* ── Gruvpuccin light palette ─────────────────────── */
+/* ── Tokyo Night palette overrides ──────────────── */
 
-html.light[data-palette="gruvpuccin"] {
+html[data-palette="tokyo-night"] {
+  --color-fr-bg: #0a0a0f;
+  --color-fr-subtle: #0c0c16;
+  --color-fr-coral: #d97085;
+  --color-fr-purple: #9b6bbf;
+  --color-fr-amber: #e8983e;
+
+  --color-log-trace: #565f89;
+  --color-log-debug: #7aa2f7;
+  --color-log-info: #7dcfff;
+  --color-log-warn: #e0af68;
+  --color-log-error: #f7768e;
+
+  --color-dash-surface: #12121a;
+  --color-dash-panel: #16161e;
+  --color-dash-elevated: #1f2335;
+  --color-dash-border: #1e1e2e;
+  --color-dash-hover: #1a1a28;
+
+  --color-job-running: #73daca;
+  --color-job-finished: #7aa2f7;
+  --color-job-cancelled: #e0af68;
+  --color-job-failed: #f7768e;
+  --color-job-created: #565f89;
+
+  --color-fg: #ffffff;
+  --color-fg-secondary: #d4d4d8;
+  --color-fg-muted: #a1a1aa;
+  --color-fg-dim: #71717a;
+  --color-fg-faint: #52525b;
+
+  --color-chart-cursor: rgba(255, 255, 255, 0.08);
+  --color-chart-cursor-fill: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Gruvpuccin light palette (default light) ───── */
+
+html.light {
+  color-scheme: light;
+
   --color-fr-bg: #f5f0e6;
   --color-fr-subtle: #ece7dd;
   --color-fr-coral: #c35c20;
@@ -119,47 +121,39 @@ html.light[data-palette="gruvpuccin"] {
   --color-chart-cursor-fill: rgba(60, 56, 54, 0.04);
 }
 
-/* ── Light theme overrides ────────────────────────── */
+/* ── Tokyo Night light palette ──────────────────── */
 
-html.light {
-  color-scheme: light;
-
-  /* Brand surfaces */
+html.light[data-palette="tokyo-night"] {
   --color-fr-bg: #f5f6fa;
   --color-fr-subtle: #edeef5;
   --color-fr-coral: #c4566d;
   --color-fr-purple: #8254a3;
   --color-fr-amber: #c47a2a;
 
-  /* Severity — deeper for readability on white */
   --color-log-trace: #8990ad;
   --color-log-debug: #3b6dd4;
   --color-log-info: #0b84b4;
   --color-log-warn: #b58105;
   --color-log-error: #d93b48;
 
-  /* Dashboard surfaces */
   --color-dash-surface: #edeef5;
   --color-dash-panel: #ffffff;
   --color-dash-elevated: #f0f1f8;
   --color-dash-border: #dfe1eb;
   --color-dash-hover: #e8e9f2;
 
-  /* Job status — deeper for light background contrast */
   --color-job-running: #1a9a7a;
   --color-job-finished: #3b6dd4;
   --color-job-cancelled: #b58105;
   --color-job-failed: #d93b48;
   --color-job-created: #8990ad;
 
-  /* Semantic foreground — inverted hierarchy */
   --color-fg: #1a1b2e;
   --color-fg-secondary: #343b58;
   --color-fg-muted: #6b7394;
   --color-fg-dim: #8990ad;
   --color-fg-faint: #a8aec4;
 
-  /* Chart cursor overlays — dark on light backgrounds */
   --color-chart-cursor: rgba(0, 0, 0, 0.08);
   --color-chart-cursor-fill: rgba(0, 0, 0, 0.04);
 }

@@ -1,19 +1,19 @@
-import type { NodeProps } from "@xyflow/react"
-import { Handle, Position } from "@xyflow/react"
-import { AlertTriangle, Info, OctagonAlert } from "lucide-react"
 import {
   HoverCard,
   HoverCardArrow,
   HoverCardContent,
   HoverCardTrigger,
-} from "@/components/ui/hover-card"
+} from "@flink-reactor/ui"
+import type { NodeProps } from "@xyflow/react"
+import { Handle, Position } from "@xyflow/react"
+import { AlertTriangle, Info, OctagonAlert } from "lucide-react"
+import { cn } from "@/lib/cn"
 import type {
   FlinkAntiPattern,
   FlinkOperatorCategory,
   FlinkOperatorNode,
   StateGrowthForecast,
 } from "@/lib/plan-analyzer/types"
-import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // Category → color mapping (matches console job graph palette)
@@ -145,7 +145,9 @@ export function PlanOperatorNode({
   const colors = CATEGORY_COLORS[node.category] ?? CATEGORY_COLORS.unknown
 
   const displayName =
-    node.relation || node.operation?.replace(/^(Source|Sink):\s*/, "") || node.operatorType
+    node.relation ||
+    node.operation?.replace(/^(Source|Sink):\s*/, "") ||
+    node.operatorType
 
   const criticalCount = antiPatterns.filter(
     (p) => p.severity === "critical",

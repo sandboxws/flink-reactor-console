@@ -57,7 +57,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } catch (err) {
       set({
         isLoading: false,
-        error: err instanceof Error ? err.message : "Failed to load simulations",
+        error:
+          err instanceof Error ? err.message : "Failed to load simulations",
       })
     }
   },
@@ -116,8 +117,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       await Promise.all([get().fetchRuns(), get().fetchRun(runId)])
     } catch (err) {
       set({
-        error:
-          err instanceof Error ? err.message : "Failed to stop simulation",
+        error: err instanceof Error ? err.message : "Failed to stop simulation",
       })
     }
   },

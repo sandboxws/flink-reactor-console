@@ -1,8 +1,8 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { format } from "date-fns"
 import { ArrowLeft, Clock, Cpu, HardDrive, Loader2, Server } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type {
   LogFileEntry,
   TaskManager,

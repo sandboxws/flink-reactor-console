@@ -1,4 +1,6 @@
-import { cn } from "@/lib/cn"
+"use client"
+
+import { cn } from "../../lib/cn"
 
 type AlertVariant = "default" | "destructive"
 

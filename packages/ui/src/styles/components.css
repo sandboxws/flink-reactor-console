@@ -21,30 +21,60 @@ button:not(:disabled),
   background-color: var(--color-dash-hover);
 }
 
+/* Default (Gruvpuccin) log line states */
 .log-line-selected {
-  background-color: rgba(122, 162, 247, 0.08);
+  background-color: rgba(125, 174, 163, 0.08);
   border-left-color: var(--color-log-debug);
 }
 
 .log-line-error {
-  background-color: rgba(247, 118, 142, 0.06);
+  background-color: rgba(234, 105, 98, 0.06);
   border-left-color: var(--color-log-error);
 }
 
 .log-line-warn {
+  background-color: rgba(216, 166, 87, 0.06);
+  border-left-color: var(--color-log-warn);
+}
+
+/* Gruvpuccin light log line states */
+html.light .log-line-selected {
+  background-color: rgba(66, 123, 88, 0.08);
+}
+
+html.light .log-line-error {
+  background-color: rgba(193, 74, 74, 0.06);
+}
+
+html.light .log-line-warn {
+  background-color: rgba(181, 118, 20, 0.06);
+}
+
+/* Tokyo Night log line states */
+html[data-palette="tokyo-night"] .log-line-selected {
+  background-color: rgba(122, 162, 247, 0.08);
+  border-left-color: var(--color-log-debug);
+}
+
+html[data-palette="tokyo-night"] .log-line-error {
+  background-color: rgba(247, 118, 142, 0.06);
+  border-left-color: var(--color-log-error);
+}
+
+html[data-palette="tokyo-night"] .log-line-warn {
   background-color: rgba(224, 175, 104, 0.06);
   border-left-color: var(--color-log-warn);
 }
 
-html.light .log-line-selected {
+html.light[data-palette="tokyo-night"] .log-line-selected {
   background-color: rgba(59, 109, 212, 0.08);
 }
 
-html.light .log-line-error {
+html.light[data-palette="tokyo-night"] .log-line-error {
   background-color: rgba(217, 59, 72, 0.06);
 }
 
-html.light .log-line-warn {
+html.light[data-palette="tokyo-night"] .log-line-warn {
   background-color: rgba(181, 129, 5, 0.06);
 }
 
@@ -64,6 +94,7 @@ html.light .log-line-warn {
   letter-spacing: 0.025em;
 }
 
+/* Default (Gruvpuccin) source badge */
 .source-badge {
   display: inline-flex;
   align-items: center;
@@ -73,20 +104,32 @@ html.light .log-line-warn {
   line-height: 1;
   padding: 0.125rem 0.5rem;
   border-radius: 9999px;
+  background-color: rgba(212, 190, 152, 0.05);
+  color: rgba(212, 190, 152, 0.6);
+}
+
+html.light .source-badge {
+  background-color: rgba(60, 56, 54, 0.06);
+  color: rgba(60, 56, 54, 0.6);
+}
+
+/* Tokyo Night source badge */
+html[data-palette="tokyo-night"] .source-badge {
   background-color: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.6);
 }
 
-html.light .source-badge {
+html.light[data-palette="tokyo-night"] .source-badge {
   background-color: rgba(0, 0, 0, 0.05);
   color: rgba(0, 0, 0, 0.55);
 }
 
 /* ── Glass card ───────────────────────────────────── */
 
+/* Default (Gruvpuccin) glass card */
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(212, 190, 152, 0.03);
+  border: 1px solid rgba(212, 190, 152, 0.06);
   border-radius: 0.75rem;
   backdrop-filter: blur(12px);
   transition:
@@ -95,113 +138,41 @@ html.light .source-badge {
 }
 
 .glass-card:hover {
-  border-color: rgba(217, 112, 133, 0.25);
-  box-shadow: 0 0 24px rgba(217, 112, 133, 0.06);
-}
-
-html.light .glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: var(--color-dash-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-html.light .glass-card:hover {
-  border-color: rgba(130, 84, 163, 0.35);
-  box-shadow: 0 2px 12px rgba(130, 84, 163, 0.08);
-}
-
-/* ── Gruvpuccin component overrides ──────────────── */
-
-html[data-palette="gruvpuccin"] .glass-card {
-  background: rgba(212, 190, 152, 0.03);
-  border-color: rgba(212, 190, 152, 0.06);
-}
-
-html[data-palette="gruvpuccin"] .glass-card:hover {
   border-color: rgba(231, 138, 78, 0.25);
   box-shadow: 0 0 24px rgba(231, 138, 78, 0.06);
 }
 
-html[data-palette="gruvpuccin"] .log-line-selected {
-  background-color: rgba(125, 174, 163, 0.08);
-  border-left-color: var(--color-log-debug);
-}
-
-html[data-palette="gruvpuccin"] .log-line-error {
-  background-color: rgba(234, 105, 98, 0.06);
-  border-left-color: var(--color-log-error);
-}
-
-html[data-palette="gruvpuccin"] .log-line-warn {
-  background-color: rgba(216, 166, 87, 0.06);
-  border-left-color: var(--color-log-warn);
-}
-
-html[data-palette="gruvpuccin"] .source-badge {
-  background-color: rgba(212, 190, 152, 0.05);
-  color: rgba(212, 190, 152, 0.6);
-}
-
-html[data-palette="gruvpuccin"] .data-row-selected {
-  background-color: rgba(125, 174, 163, 0.08);
-}
-
-html[data-palette="gruvpuccin"] .detail-tab {
-  color: #7c7269;
-}
-
-html[data-palette="gruvpuccin"] .detail-tab:hover {
-  color: #a69a8a;
-}
-
-html[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
-  color: #d4be98;
-}
-
-/* ── Gruvpuccin light component overrides ─────────── */
-
-html.light[data-palette="gruvpuccin"] .glass-card {
+html.light .glass-card {
   background: rgba(250, 246, 238, 0.8);
   border-color: var(--color-dash-border);
   box-shadow: 0 1px 3px rgba(60, 56, 54, 0.06);
 }
 
-html.light[data-palette="gruvpuccin"] .glass-card:hover {
+html.light .glass-card:hover {
   border-color: rgba(195, 92, 32, 0.35);
   box-shadow: 0 2px 12px rgba(195, 92, 32, 0.08);
 }
 
-html.light[data-palette="gruvpuccin"] .log-line-selected {
-  background-color: rgba(66, 123, 88, 0.08);
+/* Tokyo Night glass card */
+html[data-palette="tokyo-night"] .glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
-html.light[data-palette="gruvpuccin"] .log-line-error {
-  background-color: rgba(193, 74, 74, 0.06);
+html[data-palette="tokyo-night"] .glass-card:hover {
+  border-color: rgba(217, 112, 133, 0.25);
+  box-shadow: 0 0 24px rgba(217, 112, 133, 0.06);
 }
 
-html.light[data-palette="gruvpuccin"] .log-line-warn {
-  background-color: rgba(181, 118, 20, 0.06);
+html.light[data-palette="tokyo-night"] .glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--color-dash-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-html.light[data-palette="gruvpuccin"] .source-badge {
-  background-color: rgba(60, 56, 54, 0.06);
-  color: rgba(60, 56, 54, 0.6);
-}
-
-html.light[data-palette="gruvpuccin"] .data-row-selected {
-  background-color: rgba(66, 123, 88, 0.08);
-}
-
-html.light[data-palette="gruvpuccin"] .detail-tab {
-  color: #928374;
-}
-
-html.light[data-palette="gruvpuccin"] .detail-tab:hover {
-  color: #7c6f64;
-}
-
-html.light[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
-  color: #3c3836;
+html.light[data-palette="tokyo-night"] .glass-card:hover {
+  border-color: rgba(130, 84, 163, 0.35);
+  box-shadow: 0 2px 12px rgba(130, 84, 163, 0.08);
 }
 
 /* ── Collapsible panel ───────────────────────────── */
@@ -224,11 +195,12 @@ html.light[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
   padding: 0 0.25rem;
 }
 
+/* Default (Gruvpuccin) tab styling */
 .detail-tab {
   padding: 0.5rem 0.75rem;
   font-size: 0.6875rem;
   font-weight: 500;
-  color: #71717a;
+  color: #7c7269;
   transition: color 0.15s;
   background: none;
   border: none;
@@ -237,11 +209,11 @@ html.light[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
 }
 
 .detail-tab:hover {
-  color: #a1a1aa;
+  color: #a69a8a;
 }
 
 .detail-tab[data-state="active"] {
-  color: #e4e4e7;
+  color: #d4be98;
 }
 
 .detail-tab[data-state="active"]::after {
@@ -256,14 +228,39 @@ html.light[data-palette="gruvpuccin"] .detail-tab[data-state="active"] {
 }
 
 html.light .detail-tab {
-  color: #8990ad;
+  color: #928374;
 }
 
 html.light .detail-tab:hover {
-  color: #6b7394;
+  color: #7c6f64;
 }
 
 html.light .detail-tab[data-state="active"] {
+  color: #3c3836;
+}
+
+/* Tokyo Night tab styling */
+html[data-palette="tokyo-night"] .detail-tab {
+  color: #71717a;
+}
+
+html[data-palette="tokyo-night"] .detail-tab:hover {
+  color: #a1a1aa;
+}
+
+html[data-palette="tokyo-night"] .detail-tab[data-state="active"] {
+  color: #e4e4e7;
+}
+
+html.light[data-palette="tokyo-night"] .detail-tab {
+  color: #8990ad;
+}
+
+html.light[data-palette="tokyo-night"] .detail-tab:hover {
+  color: #6b7394;
+}
+
+html.light[data-palette="tokyo-night"] .detail-tab[data-state="active"] {
   color: #1a1b2e;
 }
 
@@ -277,11 +274,21 @@ html.light .detail-tab[data-state="active"] {
   background-color: var(--color-dash-hover);
 }
 
+/* Default (Gruvpuccin) data row selected */
 .data-row-selected {
-  background-color: rgba(122, 162, 247, 0.08);
+  background-color: rgba(125, 174, 163, 0.08);
 }
 
 html.light .data-row-selected {
+  background-color: rgba(66, 123, 88, 0.08);
+}
+
+/* Tokyo Night data row selected */
+html[data-palette="tokyo-night"] .data-row-selected {
+  background-color: rgba(122, 162, 247, 0.08);
+}
+
+html.light[data-palette="tokyo-night"] .data-row-selected {
   background-color: rgba(59, 109, 212, 0.08);
 }
 

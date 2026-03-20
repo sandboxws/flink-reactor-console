@@ -1,17 +1,14 @@
+import { Badge, Button } from "@flink-reactor/ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
 import { format, formatDistanceToNow } from "date-fns"
-import {
-  ArrowRight,
-  BarChart3,
-  FlaskConical,
-  X,
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import type { SimulationObservation, SimulationRun } from "@/lib/graphql-api-client"
-import { fetchSimulationRun } from "@/lib/graphql-api-client"
+import { ArrowRight, BarChart3, FlaskConical, X } from "lucide-react"
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/cn"
+import type {
+  SimulationObservation,
+  SimulationRun,
+} from "@/lib/graphql-api-client"
+import { fetchSimulationRun } from "@/lib/graphql-api-client"
 import { useSimulationStore } from "@/stores/simulation-store"
 
 export const Route = createFileRoute("/admin/benchmarks/")({
@@ -118,10 +115,7 @@ function BenchmarksPage() {
 
       {/* Comparison report */}
       {comparisonRuns.length >= 2 && (
-        <ComparisonReport
-          runs={comparisonRuns}
-          onClear={clearComparison}
-        />
+        <ComparisonReport runs={comparisonRuns} onClear={clearComparison} />
       )}
 
       {/* Run selector */}
@@ -232,7 +226,10 @@ function summarizeMetrics(observations: SimulationObservation[]) {
     if (!byMetric.has(obs.metric)) byMetric.set(obs.metric, [])
     byMetric.get(obs.metric)!.push(obs.value)
   }
-  const summary: Record<string, { avg: number; min: number; max: number; count: number }> = {}
+  const summary: Record<
+    string,
+    { avg: number; min: number; max: number; count: number }
+  > = {}
   for (const [metric, values] of byMetric) {
     summary[metric] = {
       avg: values.reduce((a, b) => a + b, 0) / values.length,
@@ -299,11 +296,14 @@ function ComparisonReport({
               {format(new Date(run.startedAt), "MMM d, HH:mm")}
               {run.stoppedAt && (
                 <span>
-                  {" "}— {Math.round(
+                  {" "}
+                  —{" "}
+                  {Math.round(
                     (new Date(run.stoppedAt).getTime() -
                       new Date(run.startedAt).getTime()) /
                       1000,
-                  )}s
+                  )}
+                  s
                 </span>
               )}
             </div>
@@ -324,10 +324,7 @@ function ComparisonReport({
               <tr className="border-b border-dash-border text-left text-zinc-500">
                 <th className="px-3 py-2 font-medium">Metric</th>
                 {summaries.map(({ run }) => (
-                  <th
-                    key={run.id}
-                    className="px-3 py-2 font-medium text-right"
-                  >
+                  <th key={run.id} className="px-3 py-2 font-medium text-right">
                     {run.scenario.split(".").pop()}
                   </th>
                 ))}
@@ -351,7 +348,8 @@ function ComparisonReport({
                           <div>
                             <div>{data.avg.toFixed(1)}</div>
                             <div className="text-[9px] text-zinc-600">
-                              {data.min.toFixed(0)}–{data.max.toFixed(0)} ({data.count} pts)
+                              {data.min.toFixed(0)}–{data.max.toFixed(0)} (
+                              {data.count} pts)
                             </div>
                           </div>
                         ) : (

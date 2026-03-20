@@ -1,3 +1,8 @@
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
   AlertTriangle,
@@ -8,11 +13,6 @@ import {
 import { useState } from "react"
 import { StackTrace } from "@/components/errors/stack-trace"
 import { EmptyState } from "@/components/shared/empty-state"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import type { JobException } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 

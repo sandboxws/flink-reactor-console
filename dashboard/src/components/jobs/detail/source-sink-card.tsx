@@ -3,8 +3,8 @@ import {
   FileText,
   HardDrive,
   Layers,
-  MessageSquare,
   type LucideIcon,
+  MessageSquare,
 } from "lucide-react"
 import type { ConnectorType, JobConnector } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
@@ -51,7 +51,8 @@ function formatCount(n: number): string {
 
 export function SourceSinkCard({ connector }: { connector: JobConnector }) {
   const Icon = connectorIcons[connector.connectorType] ?? Database
-  const label = connectorLabels[connector.connectorType] ?? connector.connectorType
+  const label =
+    connectorLabels[connector.connectorType] ?? connector.connectorType
   const color = connectorColors[connector.connectorType] ?? "text-zinc-400"
 
   const isSource = connector.role === "source"
@@ -60,7 +61,12 @@ export function SourceSinkCard({ connector }: { connector: JobConnector }) {
     <div className="glass-card flex flex-col gap-3 p-4">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2.5">
-          <div className={cn("flex size-8 items-center justify-center rounded-md bg-dash-panel", color)}>
+          <div
+            className={cn(
+              "flex size-8 items-center justify-center rounded-md bg-dash-panel",
+              color,
+            )}
+          >
             <Icon className="size-4" />
           </div>
           <div>
@@ -78,7 +84,9 @@ export function SourceSinkCard({ connector }: { connector: JobConnector }) {
               </span>
             </div>
             {connector.resource && (
-              <p className="mt-0.5 text-xs text-zinc-400 font-mono">{connector.resource}</p>
+              <p className="mt-0.5 text-xs text-zinc-400 font-mono">
+                {connector.resource}
+              </p>
             )}
           </div>
         </div>
@@ -97,7 +105,11 @@ export function SourceSinkCard({ connector }: { connector: JobConnector }) {
               {isSource ? "Records Read" : "Records Written"}
             </p>
             <p className="text-sm font-medium text-zinc-300">
-              {formatCount(isSource ? connector.metrics.recordsRead : connector.metrics.recordsWritten)}
+              {formatCount(
+                isSource
+                  ? connector.metrics.recordsRead
+                  : connector.metrics.recordsWritten,
+              )}
             </p>
           </div>
           <div>
@@ -105,7 +117,11 @@ export function SourceSinkCard({ connector }: { connector: JobConnector }) {
               {isSource ? "Bytes Read" : "Bytes Written"}
             </p>
             <p className="text-sm font-medium text-zinc-300">
-              {formatBytes(isSource ? connector.metrics.bytesRead : connector.metrics.bytesWritten)}
+              {formatBytes(
+                isSource
+                  ? connector.metrics.bytesRead
+                  : connector.metrics.bytesWritten,
+              )}
             </p>
           </div>
         </div>

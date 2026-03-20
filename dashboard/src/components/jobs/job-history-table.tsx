@@ -1,3 +1,11 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@flink-reactor/ui"
 import { useNavigate } from "@tanstack/react-router"
 import { format } from "date-fns"
 import {
@@ -7,18 +15,10 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import type { JobHistoryEntry } from "@/lib/graphql-api-client"
-import { cn } from "@/lib/cn"
-import { JobStatusBadge } from "./job-status-badge"
 import type { JobStatus } from "@/data/cluster-types"
+import { cn } from "@/lib/cn"
+import type { JobHistoryEntry } from "@/lib/graphql-api-client"
+import { JobStatusBadge } from "./job-status-badge"
 
 // ---------------------------------------------------------------------------
 // Types

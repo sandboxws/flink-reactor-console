@@ -2,12 +2,18 @@
 // @flink-reactor/ui — Design System Package
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── UI Components ────────────────────────────────────────────────────────────
+export {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  type AlertVariant,
+} from "./components/ui/alert"
 export {
   Badge,
   type BadgeProps,
   type BadgeVariant,
 } from "./components/ui/badge"
-// ── UI Components ────────────────────────────────────────────────────────────
 export {
   Button,
   type ButtonProps,
@@ -41,6 +47,7 @@ export {
 } from "./components/ui/dialog"
 export {
   HoverCard,
+  HoverCardArrow,
   HoverCardContent,
   HoverCardTrigger,
 } from "./components/ui/hover-card"
@@ -71,6 +78,7 @@ export {
 } from "./components/ui/select"
 export { Separator } from "./components/ui/separator"
 export { Skeleton } from "./components/ui/skeleton"
+export { Switch } from "./components/ui/switch"
 export {
   Table,
   TableBody,

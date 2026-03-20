@@ -1,7 +1,7 @@
 import { AlertTriangle, Copy, Info, OctagonAlert } from "lucide-react"
 import { useCallback } from "react"
-import type { FlinkAntiPattern } from "@/lib/plan-analyzer/types"
 import { cn } from "@/lib/cn"
+import type { FlinkAntiPattern } from "@/lib/plan-analyzer/types"
 
 const SEVERITY_STYLES = {
   critical: {
@@ -72,7 +72,9 @@ export function PlanAntiPatternCard({
       </div>
 
       {/* SQL / DDL fix */}
-      {(antiPattern.flinkConfig || antiPattern.ddlFix || antiPattern.sqlRewrite) && (
+      {(antiPattern.flinkConfig ||
+        antiPattern.ddlFix ||
+        antiPattern.sqlRewrite) && (
         <div className="mt-2">
           {antiPattern.flinkConfig && (
             <CodeBlock

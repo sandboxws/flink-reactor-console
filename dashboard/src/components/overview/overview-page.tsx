@@ -1,4 +1,10 @@
-import { useState } from "react"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Button,
+  Skeleton,
+} from "@flink-reactor/ui"
 import {
   AlertCircle,
   CheckCircle2,
@@ -9,9 +15,7 @@ import {
   Server,
   Square,
 } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@flink-reactor/ui"
+import { useState } from "react"
 import { useClusterStore } from "@/stores/cluster-store"
 import { ClusterInfo } from "./cluster-info"
 import { JobList } from "./job-list"

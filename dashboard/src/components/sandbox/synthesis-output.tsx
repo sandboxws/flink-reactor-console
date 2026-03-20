@@ -8,26 +8,31 @@ import {
 } from "@codemirror/language"
 import { Compartment, EditorState } from "@codemirror/state"
 import { EditorView, lineNumbers } from "@codemirror/view"
+import {
+  Button,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@flink-reactor/ui"
 import { ChevronDown, ChevronRight, Search } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { SiKubernetes } from "react-icons/si"
 import { TbSql } from "react-icons/tb"
 import { PlanAnalysisPanel } from "@/components/plan-analyzer/plan-analysis-panel"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type {
   SqlFragment,
   StatementMeta,
   StatementOrigin,
 } from "@/lib/sandbox-synthesizer"
+import { usePlanAnalyzerStore } from "@/stores/plan-analyzer-store"
+import { useSandboxStore } from "@/stores/sandbox-store"
 import {
   cleanupConnectorTooltip,
   computeConnectorIcons,
   connectorIconGutter,
   setConnectorIcons,
 } from "./connector-gutter"
-import { usePlanAnalyzerStore } from "@/stores/plan-analyzer-store"
-import { useSandboxStore } from "@/stores/sandbox-store"
 import {
   computeSqlFocusLines,
   focusHighlightField,
@@ -44,10 +49,10 @@ import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
 const themeCompartment = new Compartment()
 
 function getActiveTheme() {
-  if (typeof document === "undefined") return tokyoNightCmTheme
-  return document.documentElement.dataset.palette === "gruvpuccin"
-    ? gruvpuccinCmTheme
-    : tokyoNightCmTheme
+  if (typeof document === "undefined") return gruvpuccinCmTheme
+  return document.documentElement.dataset.palette === "tokyo-night"
+    ? tokyoNightCmTheme
+    : gruvpuccinCmTheme
 }
 
 /**
@@ -238,7 +243,15 @@ function CodeViewer({
         view.dispatch({ effects: postEffects })
       }
     }
-  }, [value, focusComponents, statements, statementOrigins, statementContributors, commentIndices, statementMeta])
+  }, [
+    value,
+    focusComponents,
+    statements,
+    statementOrigins,
+    statementContributors,
+    commentIndices,
+    statementMeta,
+  ])
 
   // Watch for palette changes
   useEffect(() => {

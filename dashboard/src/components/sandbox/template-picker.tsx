@@ -1,11 +1,11 @@
-import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check } from "lucide-react"
 import {
   Select,
   SelectContent,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@flink-reactor/ui"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check } from "lucide-react"
 import { TEMPLATES, type TemplateId } from "./templates"
 
 interface TemplatePickerProps {

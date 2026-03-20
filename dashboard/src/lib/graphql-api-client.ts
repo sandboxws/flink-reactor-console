@@ -1121,7 +1121,10 @@ export async function explainStatement(
   sessionHandle: string,
   statement: string,
 ): Promise<{ planText: string; format: string }> {
-  const data = await mutate<any>(EXPLAIN_STATEMENT, { sessionHandle, statement })
+  const data = await mutate<any>(EXPLAIN_STATEMENT, {
+    sessionHandle,
+    statement,
+  })
   return data.explainStatement
 }
 
@@ -1770,9 +1773,15 @@ export type PreflightCheckResult = {
   required: boolean
 }
 
-export async function checkSimulationPreflight(): Promise<PreflightCheckResult[]> {
+export async function checkSimulationPreflight(): Promise<
+  PreflightCheckResult[]
+> {
   try {
-    const data = await query<any>(SIMULATION_PREFLIGHT_QUERY, {}, "network-only")
+    const data = await query<any>(
+      SIMULATION_PREFLIGHT_QUERY,
+      {},
+      "network-only",
+    )
     return (data.simulationPreflight ?? []) as PreflightCheckResult[]
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)

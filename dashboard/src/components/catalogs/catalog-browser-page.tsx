@@ -1,6 +1,6 @@
+import { Button } from "@flink-reactor/ui"
 import { AlertTriangle, Database, Loader2, RefreshCw } from "lucide-react"
 import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { useCatalogStore } from "@/stores/catalog-store"
 import { CatalogTree } from "./catalog-tree"
 

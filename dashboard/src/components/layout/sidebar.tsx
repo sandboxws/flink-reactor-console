@@ -1,5 +1,5 @@
-import { Link, useLocation } from "@tanstack/react-router"
 import { InstrumentSidebarSection } from "@flink-reactor/instruments-ui"
+import { Link, useLocation } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,

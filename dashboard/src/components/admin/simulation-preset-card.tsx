@@ -1,9 +1,11 @@
-import { useState } from "react"
+import { Badge, Button } from "@flink-reactor/ui"
 import { Play } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import type { SimulationInputParams, SimulationPreset } from "@/lib/graphql-api-client"
+import { useState } from "react"
 import { cn } from "@/lib/cn"
+import type {
+  SimulationInputParams,
+  SimulationPreset,
+} from "@/lib/graphql-api-client"
 import { SimulationPreflightModal } from "./simulation-preflight-modal"
 
 const categoryColors: Record<string, string> = {
@@ -40,7 +42,8 @@ export function SimulationPresetCard({
               variant="outline"
               className={cn(
                 "shrink-0 border-0 text-[10px]",
-                categoryColors[preset.category] ?? "bg-zinc-500/15 text-zinc-400",
+                categoryColors[preset.category] ??
+                  "bg-zinc-500/15 text-zinc-400",
               )}
             >
               {preset.category}

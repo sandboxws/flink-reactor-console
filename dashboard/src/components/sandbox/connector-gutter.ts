@@ -5,6 +5,13 @@
 // Brand icons are rendered via react-icons (SimpleIcons set) using
 // flushSync into a DOM cache, then cloned into gutter markers.
 
+import {
+  type Extension,
+  RangeSet,
+  StateEffect,
+  StateField,
+} from "@codemirror/state"
+import { GutterMarker, gutter } from "@codemirror/view"
 import { createElement } from "react"
 import { flushSync } from "react-dom"
 import { createRoot } from "react-dom/client"
@@ -18,13 +25,6 @@ import {
   SiPostgresql,
   SiRedis,
 } from "react-icons/si"
-import {
-  type Extension,
-  RangeSet,
-  StateEffect,
-  StateField,
-} from "@codemirror/state"
-import { GutterMarker, gutter } from "@codemirror/view"
 import type { StatementMeta } from "@/lib/sandbox-synthesizer"
 
 // ---------------------------------------------------------------------------
@@ -227,8 +227,7 @@ export interface ConnectorIconData {
   lineIcons: Map<number, { key: string; label: string }>
 }
 
-export const setConnectorIcons =
-  StateEffect.define<ConnectorIconData | null>()
+export const setConnectorIcons = StateEffect.define<ConnectorIconData | null>()
 
 const connectorIconField = StateField.define<ConnectorIconData | null>({
   create: () => null,
@@ -255,8 +254,10 @@ function showIconTooltip(label: string, anchor: HTMLElement) {
     zIndex: "1000",
     padding: "4px 10px",
     borderRadius: "6px",
-    border: "1px solid color-mix(in srgb, var(--color-fr-purple) 40%, transparent)",
-    backgroundColor: "color-mix(in srgb, var(--color-fr-purple) 12%, var(--color-dash-surface))",
+    border:
+      "1px solid color-mix(in srgb, var(--color-fr-purple) 40%, transparent)",
+    backgroundColor:
+      "color-mix(in srgb, var(--color-fr-purple) 12%, var(--color-dash-surface))",
     backdropFilter: "blur(8px)",
     color: "var(--color-fr-purple)",
     fontSize: "11px",
@@ -419,7 +420,10 @@ export function computeTsxConnectorIcons(code: string): ConnectorIconData {
  * Extract the `url` prop value from a JSX element starting at `startLine`.
  * Scans forward through multi-line props until the tag closes.
  */
-function extractJdbcUrl(lines: string[], startLine: number): string | undefined {
+function extractJdbcUrl(
+  lines: string[],
+  startLine: number,
+): string | undefined {
   for (let i = startLine; i < Math.min(startLine + 15, lines.length); i++) {
     const urlMatch = lines[i].match(/url\s*=\s*["'{]([^"'}]+)["'}]/)
     if (urlMatch) return urlMatch[1]

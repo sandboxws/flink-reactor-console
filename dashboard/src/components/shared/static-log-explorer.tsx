@@ -1,3 +1,12 @@
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@flink-reactor/ui"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { format } from "date-fns"
 import {
@@ -14,12 +23,6 @@ import { StackTrace } from "@/components/errors/stack-trace"
 import { EmptyState } from "@/components/shared/empty-state"
 import { SeverityBadge } from "@/components/shared/severity-badge"
 import { SourceBadge } from "@/components/shared/source-badge"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { LogEntry, LogLevel } from "@/data/types"
 import { cn } from "@/lib/cn"
 import { DEFAULT_LEVEL_FILTER, SEVERITY_COLORS } from "@/lib/constants"

@@ -17,8 +17,8 @@ import type {
   FlinkOperatorNode,
   StateGrowthForecast,
 } from "@/lib/plan-analyzer/types"
-import { PlanOperatorNode } from "./plan-operator-node"
 import type { PlanOperatorNodeData } from "./plan-operator-node"
+import { PlanOperatorNode } from "./plan-operator-node"
 import { PlanStrategyEdge } from "./plan-strategy-edge"
 import "@xyflow/react/dist/style.css"
 
