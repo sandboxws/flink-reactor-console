@@ -46,13 +46,13 @@ export function SimulationRunTimeline({ run }: { run: SimulationRun }) {
       </div>
 
       {/* Timeline */}
-      {run.observations.length === 0 ? (
+      {(run.observations ?? []).length === 0 ? (
         <div className="text-xs text-zinc-500 text-center py-4">
           No observations yet
         </div>
       ) : (
         <div className="space-y-1">
-          {run.observations.map((obs, i) => (
+          {(run.observations ?? []).map((obs, i) => (
             <div
               key={`${obs.timestamp}-${obs.metric}-${i}`}
               className="flex items-start gap-3 rounded-md px-2 py-1.5 hover:bg-white/[0.02]"

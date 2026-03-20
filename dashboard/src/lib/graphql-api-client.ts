@@ -1778,7 +1778,7 @@ const SIMULATION_RUN_QUERY = gql`
 
 const RUN_SIMULATION_MUTATION = gql`
   mutation RunSimulation($input: SimulationInput!) {
-    runSimulation(input: $input) { id scenario status startedAt parameters }
+    runSimulation(input: $input) { id scenario status startedAt parameters observations { timestamp metric value annotation } }
   }
 `
 

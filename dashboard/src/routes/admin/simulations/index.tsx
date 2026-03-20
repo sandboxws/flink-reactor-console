@@ -38,6 +38,7 @@ function SimulationsPage() {
   const runSimulation = useSimulationStore((s) => s.runSimulation)
   const stopSimulation = useSimulationStore((s) => s.stopSimulation)
   const stopActivePolling = useSimulationStore((s) => s.stopActivePolling)
+  const error = useSimulationStore((s) => s.error)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
   useEffect(() => {
@@ -88,6 +89,13 @@ function SimulationsPage() {
           </button>
         </div>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="rounded-md bg-job-failed/10 px-3 py-2 text-xs text-job-failed">
+          {error}
+        </div>
+      )}
 
       {/* Active simulation panel */}
       {activeRun && isSimRunning && (
