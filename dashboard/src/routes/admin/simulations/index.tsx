@@ -45,13 +45,6 @@ function SimulationsPage() {
     )
   }
 
-  // Group presets by category.
-  const categories = ["resource", "checkpoint", "load", "failure"]
-  const grouped = categories.map((cat) => ({
-    category: cat,
-    presets: presets.filter((p) => p.category === cat),
-  }))
-
   return (
     <div className="flex flex-col gap-4 p-4">
       <h1 className="text-lg font-semibold text-zinc-100">Simulations</h1>
@@ -79,27 +72,17 @@ function SimulationsPage() {
         </div>
       )}
 
-      {/* Preset grid by category */}
-      {grouped.map(
-        ({ category, presets: catPresets }) =>
-          catPresets.length > 0 && (
-            <div key={category}>
-              <h2 className="mb-2 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
-                {category}
-              </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {catPresets.map((preset) => (
-                  <SimulationPresetCard
-                    key={preset.scenario}
-                    preset={preset}
-                    onRun={runSimulation}
-                    isRunning={isSimRunning}
-                  />
-                ))}
-              </div>
-            </div>
-          ),
-      )}
+      {/* Preset grid — flat layout, category shown on each card badge */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {presets.map((preset) => (
+          <SimulationPresetCard
+            key={preset.scenario}
+            preset={preset}
+            onRun={runSimulation}
+            isRunning={isSimRunning}
+          />
+        ))}
+      </div>
 
       {/* History table */}
       {runs.length > 0 && (
