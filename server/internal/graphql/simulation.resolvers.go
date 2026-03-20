@@ -54,27 +54,7 @@ func (r *mutationResolver) StopSimulation(ctx context.Context, runID string) (*m
 
 // SimulationPreflight is the resolver for the simulationPreflight field.
 func (r *queryResolver) SimulationPreflight(ctx context.Context) ([]*model.PreflightCheck, error) {
-	// Gather inputs for preflight checks.
-	storageEnabled := r.StorageConfig.Enabled
-	storageConnected := r.StoragePool != nil
-
-	// Collect instrument health.
-	instrumentHealthy := map[string]bool{}
-	if r.InstrumentRegistry != nil {
-		for _, info := range r.InstrumentRegistry.List() {
-			if info.Type == "kafka" {
-				instrumentHealthy[info.Name] = info.Healthy
-			}
-		}
-	}
-
-	// Resolve Flink REST URL.
-	flinkURL := "http://localhost:8081"
-	if conn, err := r.resolveCluster(nil); err == nil {
-		flinkURL = conn.Service.Client().BaseURL()
-	}
-
-	checks := simulation.RunPreflight(ctx, flinkURL, storageEnabled, storageConnected, instrumentHealthy)
+	checks := simulation.RunPreflight(ctx)
 
 	result := make([]*model.PreflightCheck, len(checks))
 	for i, c := range checks {
