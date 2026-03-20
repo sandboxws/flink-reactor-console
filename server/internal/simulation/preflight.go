@@ -95,7 +95,7 @@ func RunPreflight(ctx context.Context) []PreflightCheck {
 	if icebergCheck.Status == "fail" {
 		icebergCheck.Status = "warn"
 		icebergCheck.Detail = "Iceberg REST catalog not deployed (optional — needed for lakehouse templates)"
-		icebergCheck.Fix = "kubectl apply -f deploy/minikube/07-iceberg-rest.yaml"
+		icebergCheck.Fix = "flink-reactor sim up (includes Iceberg REST manifest)"
 	}
 	checks = append(checks, icebergCheck)
 
@@ -161,7 +161,7 @@ func checkNamespace(ctx context.Context, namespace string) PreflightCheck {
 	if err != nil {
 		check.Status = "fail"
 		check.Detail = fmt.Sprintf("Namespace %s not found", namespace)
-		check.Fix = "kubectl apply -f deploy/minikube/00-namespaces.yaml"
+		check.Fix = "flink-reactor sim up"
 		return check
 	}
 	check.Status = "pass"
@@ -178,7 +178,7 @@ func checkPod(ctx context.Context, id string, displayName string, namespace stri
 	if err != nil || strings.TrimSpace(output) == "" {
 		check.Status = "fail"
 		check.Detail = fmt.Sprintf("No pod found (namespace: %s, label: %s)", namespace, labelSelector)
-		check.Fix = "kubectl apply -f deploy/minikube/"
+		check.Fix = "flink-reactor sim up"
 		return check
 	}
 
