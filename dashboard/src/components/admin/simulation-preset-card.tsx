@@ -83,7 +83,7 @@ export function SimulationPresetCard({
         </div>
       )}
 
-      <div className="flex justify-end gap-2 mt-1">
+      <div className="flex justify-start gap-2 mt-1">
         <Button
           variant="ghost"
           size="sm"
