@@ -122,6 +122,10 @@ export {
   SEVERITY_COLORS,
   TIMESTAMP_FORMATS,
 } from "./lib/constants"
+export { formatBytes, formatDuration, formatTimestamp } from "./lib/format"
+
+// ── Domain Types ────────────────────────────────────────────────────────────
+export type * from "./types"
 
 // ── Shared Components ────────────────────────────────────────────────────────
 export {
@@ -145,4 +149,14 @@ export {
   type TimeRangeValue,
   QueryResults,
   type QueryResultsProps,
+  StackTrace,
+  JobStatusBadge,
+  MemoryBar,
+  DurationCell,
+  TaskCountsBar,
+  HealthScoreGauge,
+  MetricChart,
+  formatMetricValue,
+  getChartColor,
+  getUnitBadgeLabel,
 } from "./shared"

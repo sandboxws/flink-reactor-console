@@ -19,3 +19,15 @@ export {
   type TimeRangeProps,
   type TimeRangeValue,
 } from "./time-range"
+export { StackTrace } from "./stack-trace"
+export { JobStatusBadge } from "./job-status-badge"
+export { MemoryBar } from "./memory-bar"
+export { DurationCell } from "./duration-cell"
+export { TaskCountsBar } from "./task-counts-bar"
+export { HealthScoreGauge } from "./health-score-gauge"
+export {
+  MetricChart,
+  formatMetricValue,
+  getChartColor,
+  getUnitBadgeLabel,
+} from "./metric-chart"
