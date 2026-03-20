@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { formatDistanceToNow } from "date-fns"
-import { Square } from "lucide-react"
+import { Grid3x3, List, Play, Square } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SimulationPresetCard } from "@/components/admin/simulation-preset-card"
 import { SimulationRunTimeline } from "@/components/admin/simulation-run-timeline"
+import type { SimulationInputParams, SimulationPreset } from "@/lib/graphql-api-client"
 import { cn } from "@/lib/cn"
 import { useSimulationStore } from "@/stores/simulation-store"
 
@@ -21,6 +22,13 @@ const statusColors: Record<string, string> = {
   CANCELLED: "bg-job-cancelled/15 text-job-cancelled",
 }
 
+const categoryColors: Record<string, string> = {
+  resource: "bg-fr-purple/15 text-fr-purple",
+  checkpoint: "bg-fr-amber/15 text-fr-amber",
+  load: "bg-job-running/15 text-job-running",
+  failure: "bg-job-failed/15 text-job-failed",
+}
+
 function SimulationsPage() {
   const initialize = useSimulationStore((s) => s.initialize)
   const presets = useSimulationStore((s) => s.presets)
@@ -30,6 +38,7 @@ function SimulationsPage() {
   const runSimulation = useSimulationStore((s) => s.runSimulation)
   const stopSimulation = useSimulationStore((s) => s.stopSimulation)
   const stopActivePolling = useSimulationStore((s) => s.stopActivePolling)
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
   useEffect(() => {
     initialize()
@@ -47,7 +56,38 @@ function SimulationsPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold text-zinc-100">Simulations</h1>
+      {/* Header with view toggle */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-zinc-100">Simulations</h1>
+        <div className="flex items-center gap-0.5 rounded-md border border-dash-border p-0.5">
+          <button
+            type="button"
+            onClick={() => setViewMode("grid")}
+            className={cn(
+              "rounded p-1 transition-colors",
+              viewMode === "grid"
+                ? "bg-white/[0.08] text-zinc-200"
+                : "text-zinc-500 hover:text-zinc-300",
+            )}
+            title="Grid view"
+          >
+            <Grid3x3 className="size-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("list")}
+            className={cn(
+              "rounded p-1 transition-colors",
+              viewMode === "list"
+                ? "bg-white/[0.08] text-zinc-200"
+                : "text-zinc-500 hover:text-zinc-300",
+            )}
+            title="List view"
+          >
+            <List className="size-3.5" />
+          </button>
+        </div>
+      </div>
 
       {/* Active simulation panel */}
       {activeRun && isSimRunning && (
@@ -72,17 +112,25 @@ function SimulationsPage() {
         </div>
       )}
 
-      {/* Preset grid — flat layout, category shown on each card badge */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {presets.map((preset) => (
-          <SimulationPresetCard
-            key={preset.scenario}
-            preset={preset}
-            onRun={runSimulation}
-            isRunning={isSimRunning}
-          />
-        ))}
-      </div>
+      {/* Presets — grid or list view */}
+      {viewMode === "grid" ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {presets.map((preset) => (
+            <SimulationPresetCard
+              key={preset.scenario}
+              preset={preset}
+              onRun={runSimulation}
+              isRunning={isSimRunning}
+            />
+          ))}
+        </div>
+      ) : (
+        <PresetListView
+          presets={presets}
+          onRun={runSimulation}
+          isRunning={isSimRunning}
+        />
+      )}
 
       {/* History table */}
       {runs.length > 0 && (
@@ -144,5 +192,97 @@ function SimulationsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// List view for presets
+// ---------------------------------------------------------------------------
+
+function PresetListView({
+  presets,
+  onRun,
+  isRunning,
+}: {
+  presets: SimulationPreset[]
+  onRun: (input: SimulationInputParams) => Promise<void>
+  isRunning: boolean
+}) {
+  return (
+    <div className="glass-card overflow-hidden">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-dash-border text-left text-zinc-500">
+            <th className="px-3 py-2 font-medium">Scenario</th>
+            <th className="px-3 py-2 font-medium">Category</th>
+            <th className="px-3 py-2 font-medium">Description</th>
+            <th className="px-3 py-2 font-medium" />
+          </tr>
+        </thead>
+        <tbody>
+          {presets.map((preset) => (
+            <PresetListRow
+              key={preset.scenario}
+              preset={preset}
+              onRun={onRun}
+              isRunning={isRunning}
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function PresetListRow({
+  preset,
+  onRun,
+  isRunning,
+}: {
+  preset: SimulationPreset
+  onRun: (input: SimulationInputParams) => Promise<void>
+  isRunning: boolean
+}) {
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleRun = async () => {
+    setSubmitting(true)
+    await onRun({
+      scenario: preset.scenario,
+      parameters: preset.defaultParameters,
+    })
+    setSubmitting(false)
+  }
+
+  return (
+    <tr className="border-b border-dash-border/50 hover:bg-white/[0.02]">
+      <td className="px-3 py-2 font-medium text-zinc-200">{preset.name}</td>
+      <td className="px-3 py-2">
+        <Badge
+          variant="outline"
+          className={cn(
+            "border-0 text-[10px]",
+            categoryColors[preset.category] ?? "bg-zinc-500/15 text-zinc-400",
+          )}
+        >
+          {preset.category}
+        </Badge>
+      </td>
+      <td className="px-3 py-2 text-zinc-500 max-w-md truncate">
+        {preset.description}
+      </td>
+      <td className="px-3 py-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isRunning || submitting}
+          onClick={handleRun}
+          className="h-6 text-[10px]"
+        >
+          <Play className="mr-1 size-2.5" />
+          {submitting ? "Starting..." : "Run"}
+        </Button>
+      </td>
+    </tr>
   )
 }
