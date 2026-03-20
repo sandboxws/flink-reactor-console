@@ -25,6 +25,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/metrics"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/simulation"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
@@ -47,6 +48,9 @@ type Config struct {
 
 	// Stores provides typed access to PostgreSQL sub-stores. May be nil when storage is disabled.
 	Stores *store.Stores
+
+	// SimulationEngine manages chaos engineering simulations. May be nil when storage is disabled.
+	SimulationEngine *simulation.Engine
 }
 
 // Server wraps an Echo server with middleware and health endpoints.
@@ -178,6 +182,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		Stores:             cfg.Stores,
 		StoragePool:        cfg.StoragePool,
 		StorageConfig:      cfg.StorageConfig,
+		SimulationEngine:   cfg.SimulationEngine,
 	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
@@ -245,6 +250,13 @@ func WithStoragePool(pool *pgxpool.Pool, storageCfg config.StorageConfig) Option
 func WithStores(stores *store.Stores) Option {
 	return func(c *Config) {
 		c.Stores = stores
+	}
+}
+
+// WithSimulationEngine sets the simulation engine for the GraphQL resolver.
+func WithSimulationEngine(engine *simulation.Engine) Option {
+	return func(c *Config) {
+		c.SimulationEngine = engine
 	}
 }
 

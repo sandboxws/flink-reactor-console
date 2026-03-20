@@ -785,6 +785,38 @@ type SavepointTriggerResult struct {
 	RequestID string `json:"requestId"`
 }
 
+type SimulationInput struct {
+	Scenario   string         `json:"scenario"`
+	TargetJobs []string       `json:"targetJobs,omitempty"`
+	Parameters map[string]any `json:"parameters"`
+	Cluster    *string        `json:"cluster,omitempty"`
+}
+
+type SimulationObservation struct {
+	Timestamp  string  `json:"timestamp"`
+	Metric     string  `json:"metric"`
+	Value      float64 `json:"value"`
+	Annotation *string `json:"annotation,omitempty"`
+}
+
+type SimulationPreset struct {
+	Name              string         `json:"name"`
+	Description       string         `json:"description"`
+	Scenario          string         `json:"scenario"`
+	DefaultParameters map[string]any `json:"defaultParameters"`
+	Category          string         `json:"category"`
+}
+
+type SimulationRun struct {
+	ID           string                   `json:"id"`
+	Scenario     string                   `json:"scenario"`
+	Status       SimulationStatus         `json:"status"`
+	StartedAt    string                   `json:"startedAt"`
+	StoppedAt    *string                  `json:"stoppedAt,omitempty"`
+	Parameters   map[string]any           `json:"parameters"`
+	Observations []*SimulationObservation `json:"observations"`
+}
+
 // Status of the PostgreSQL historical storage backend.
 type StorageStatus struct {
 	// Whether storage is enabled in configuration.
@@ -1304,6 +1336,67 @@ func (e *OrderDirection) UnmarshalJSON(b []byte) error {
 }
 
 func (e OrderDirection) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type SimulationStatus string
+
+const (
+	SimulationStatusPending   SimulationStatus = "PENDING"
+	SimulationStatusRunning   SimulationStatus = "RUNNING"
+	SimulationStatusCompleted SimulationStatus = "COMPLETED"
+	SimulationStatusFailed    SimulationStatus = "FAILED"
+	SimulationStatusCancelled SimulationStatus = "CANCELLED"
+)
+
+var AllSimulationStatus = []SimulationStatus{
+	SimulationStatusPending,
+	SimulationStatusRunning,
+	SimulationStatusCompleted,
+	SimulationStatusFailed,
+	SimulationStatusCancelled,
+}
+
+func (e SimulationStatus) IsValid() bool {
+	switch e {
+	case SimulationStatusPending, SimulationStatusRunning, SimulationStatusCompleted, SimulationStatusFailed, SimulationStatusCancelled:
+		return true
+	}
+	return false
+}
+
+func (e SimulationStatus) String() string {
+	return string(e)
+}
+
+func (e *SimulationStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SimulationStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SimulationStatus", str)
+	}
+	return nil
+}
+
+func (e SimulationStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SimulationStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SimulationStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

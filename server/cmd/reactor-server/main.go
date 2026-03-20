@@ -16,6 +16,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/simulation"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
 	bgsync "github.com/sandboxws/flink-reactor/apps/server/internal/sync"
@@ -114,6 +115,13 @@ func run() int {
 		serverOpts = append(serverOpts, server.WithStores(stores))
 		tapStore := tap.NewStore(stores.TapManifests)
 		serverOpts = append(serverOpts, server.WithTapStore(tapStore))
+	}
+
+	// Initialize simulation engine if storage is enabled.
+	if pool != nil {
+		simStore := simulation.NewStore(pool)
+		simEngine := simulation.NewEngine(simStore, logger)
+		serverOpts = append(serverOpts, server.WithSimulationEngine(simEngine))
 	}
 
 	srv := server.New(cfg.Address(), logger, manager, registry, serverOpts...)
