@@ -28,6 +28,58 @@ func (r *mutationResolver) CancelJob(ctx context.Context, id string, cluster *st
 	return &model.CancelJobResult{Success: true}, nil
 }
 
+// TriggerSavepoint is the resolver for the triggerSavepoint field.
+func (r *mutationResolver) TriggerSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	targetDir := ""
+	if targetDirectory != nil {
+		targetDir = *targetDirectory
+	}
+
+	requestID, err := conn.Service.TriggerSavepoint(ctx, jobID, targetDir)
+	if err != nil {
+		return nil, err
+	}
+	return &model.SavepointTriggerResult{RequestID: requestID}, nil
+}
+
+// StopJobWithSavepoint is the resolver for the stopJobWithSavepoint field.
+func (r *mutationResolver) StopJobWithSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	targetDir := ""
+	if targetDirectory != nil {
+		targetDir = *targetDirectory
+	}
+
+	requestID, err := conn.Service.StopWithSavepoint(ctx, jobID, targetDir)
+	if err != nil {
+		return nil, err
+	}
+	return &model.SavepointTriggerResult{RequestID: requestID}, nil
+}
+
+// RescaleJob is the resolver for the rescaleJob field.
+func (r *mutationResolver) RescaleJob(ctx context.Context, jobID string, newParallelism int, cluster *string) (*model.RescaleResult, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	requestID, err := conn.Service.RescaleJob(ctx, jobID, newParallelism)
+	if err != nil {
+		return nil, err
+	}
+	return &model.RescaleResult{RequestID: requestID}, nil
+}
+
 // Jobs is the resolver for the jobs field.
 func (r *queryResolver) Jobs(ctx context.Context, cluster *string) ([]*model.JobOverview, error) {
 	conn, err := r.resolveCluster(cluster)

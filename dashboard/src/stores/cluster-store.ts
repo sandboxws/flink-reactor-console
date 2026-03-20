@@ -20,6 +20,8 @@ import {
   fetchTaskManagerDetail,
   fetchTaskManagers,
   runJar as runJarApi,
+  stopJobWithSavepoint as stopJobWithSavepointApi,
+  triggerSavepoint as triggerSavepointApi,
   uploadJar as uploadJarApi,
 } from "@/lib/graphql-api-client"
 import { useConfigStore } from "./config-store"
@@ -61,6 +63,9 @@ interface ClusterActions {
   selectJob: (id: string | null) => void
   submitJob: (request: SubmitJobRequest) => Promise<void>
   cancelJob: (jobId: string) => Promise<void>
+  triggerSavepoint: (jobId: string) => Promise<void>
+  stopWithSavepoint: (jobId: string) => Promise<void>
+  stopAllJobs: () => Promise<void>
   uploadJar: (file: File) => Promise<void>
   deleteJar: (jarId: string) => Promise<void>
   fetchJars: () => Promise<void>
@@ -226,6 +231,41 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
         fetchError: err instanceof Error ? err.message : "Failed to cancel job",
       })
     }
+  },
+
+  triggerSavepoint: async (jobId) => {
+    try {
+      await triggerSavepointApi(jobId)
+    } catch (err) {
+      set({
+        fetchError:
+          err instanceof Error ? err.message : "Failed to trigger savepoint",
+      })
+    }
+  },
+
+  stopWithSavepoint: async (jobId) => {
+    try {
+      await stopJobWithSavepointApi(jobId)
+      await Promise.all([get().refresh(), get().fetchJobDetail(jobId)])
+    } catch (err) {
+      set({
+        fetchError:
+          err instanceof Error ? err.message : "Failed to stop job",
+      })
+    }
+  },
+
+  stopAllJobs: async () => {
+    const jobs = get().runningJobs
+    for (const job of jobs) {
+      try {
+        await stopJobWithSavepointApi(job.id)
+      } catch {
+        // Continue stopping other jobs even if one fails
+      }
+    }
+    await get().refresh()
   },
 
   uploadJar: async (file) => {

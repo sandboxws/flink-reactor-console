@@ -10,6 +10,7 @@ import {
   Radio,
   RefreshCw,
   Save,
+  Square,
   XCircle,
 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -209,12 +210,14 @@ export function JobHeader({
   job,
   onCancelJob,
   onCreateSavepoint,
+  onStopWithSavepoint,
   onRefresh,
   isRefreshing,
 }: {
   job: FlinkJob
   onCancelJob?: () => void
   onCreateSavepoint?: () => void
+  onStopWithSavepoint?: () => void
   onRefresh?: () => void
   isRefreshing?: boolean
 }) {
@@ -315,6 +318,14 @@ export function JobHeader({
                   Cancel
                 </button>
               )}
+              <button
+                type="button"
+                onClick={onStopWithSavepoint}
+                className="flex items-center gap-1.5 rounded-md bg-fr-amber/10 px-3 py-1.5 text-xs font-medium text-fr-amber transition-colors hover:bg-fr-amber/20"
+              >
+                <Square className="size-3.5" />
+                Stop
+              </button>
               <button
                 type="button"
                 onClick={onCreateSavepoint}

@@ -243,6 +243,24 @@ const CANCEL_JOB_MUTATION = gql`
   }
 `
 
+const TRIGGER_SAVEPOINT_MUTATION = gql`
+  mutation TriggerSavepoint($jobId: ID!, $targetDirectory: String, $cluster: String) {
+    triggerSavepoint(jobId: $jobId, targetDirectory: $targetDirectory, cluster: $cluster) { requestId }
+  }
+`
+
+const STOP_JOB_WITH_SAVEPOINT_MUTATION = gql`
+  mutation StopJobWithSavepoint($jobId: ID!, $targetDirectory: String, $cluster: String) {
+    stopJobWithSavepoint(jobId: $jobId, targetDirectory: $targetDirectory, cluster: $cluster) { requestId }
+  }
+`
+
+const RESCALE_JOB_MUTATION = gql`
+  mutation RescaleJob($jobId: ID!, $newParallelism: Int!, $cluster: String) {
+    rescaleJob(jobId: $jobId, newParallelism: $newParallelism, cluster: $cluster) { requestId }
+  }
+`
+
 const DELETE_JAR_MUTATION = gql`
   mutation DeleteJar($id: ID!, $cluster: String) {
     deleteJar(id: $id, cluster: $cluster) { success }
@@ -973,6 +991,42 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
 /** Cancel a job */
 export async function cancelJob(jobId: string): Promise<void> {
   await mutate(CANCEL_JOB_MUTATION, { id: jobId })
+}
+
+/** Trigger a savepoint for a running job */
+export async function triggerSavepoint(
+  jobId: string,
+  targetDirectory?: string,
+): Promise<string> {
+  const data = await mutate<any>(TRIGGER_SAVEPOINT_MUTATION, {
+    jobId,
+    targetDirectory,
+  })
+  return data.triggerSavepoint.requestId
+}
+
+/** Stop a job with a savepoint (graceful shutdown) */
+export async function stopJobWithSavepoint(
+  jobId: string,
+  targetDirectory?: string,
+): Promise<string> {
+  const data = await mutate<any>(STOP_JOB_WITH_SAVEPOINT_MUTATION, {
+    jobId,
+    targetDirectory,
+  })
+  return data.stopJobWithSavepoint.requestId
+}
+
+/** Rescale a running job to a new parallelism */
+export async function rescaleJob(
+  jobId: string,
+  newParallelism: number,
+): Promise<string> {
+  const data = await mutate<any>(RESCALE_JOB_MUTATION, {
+    jobId,
+    newParallelism,
+  })
+  return data.rescaleJob.requestId
 }
 
 /** Run a JAR */

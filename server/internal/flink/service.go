@@ -130,6 +130,45 @@ func (s *Service) GetFlinkConfig(ctx context.Context) (*ClusterConfig, error) {
 	return &result, nil
 }
 
+// --- Job lifecycle methods ---
+
+// TriggerSavepoint triggers a savepoint for a running job.
+// If targetDir is empty, Flink uses its configured default savepoint directory.
+func (s *Service) TriggerSavepoint(ctx context.Context, jobID string, targetDir string) (string, error) {
+	req := SavepointTriggerRequest{CancelJob: false}
+	if targetDir != "" {
+		req.TargetDirectory = &targetDir
+	}
+	var resp SavepointTriggerResponse
+	if err := s.client.PostJSON(ctx, fmt.Sprintf("/jobs/%s/savepoints", jobID), req, &resp); err != nil {
+		return "", err
+	}
+	return resp.RequestID, nil
+}
+
+// StopWithSavepoint stops a job gracefully by taking a savepoint first.
+// If targetDir is empty, Flink uses its configured default savepoint directory.
+func (s *Service) StopWithSavepoint(ctx context.Context, jobID string, targetDir string) (string, error) {
+	req := StopWithSavepointRequest{Drain: false}
+	if targetDir != "" {
+		req.TargetDirectory = &targetDir
+	}
+	var resp SavepointTriggerResponse
+	if err := s.client.PostJSON(ctx, fmt.Sprintf("/jobs/%s/stop", jobID), req, &resp); err != nil {
+		return "", err
+	}
+	return resp.RequestID, nil
+}
+
+// RescaleJob rescales a running job to the given parallelism.
+func (s *Service) RescaleJob(ctx context.Context, jobID string, newParallelism int) (string, error) {
+	var resp RescaleResponse
+	if err := s.client.PostJSON(ctx, fmt.Sprintf("/jobs/%s/rescaling", jobID), RescaleRequest{Parallelism: newParallelism}, &resp); err != nil {
+		return "", err
+	}
+	return resp.RequestID, nil
+}
+
 // --- Aggregated methods ---
 
 // GetJobDetail returns a fully aggregated job detail.

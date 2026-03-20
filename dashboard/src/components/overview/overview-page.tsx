@@ -1,3 +1,4 @@
+import { useState } from "react"
 import {
   AlertCircle,
   CheckCircle2,
@@ -6,6 +7,7 @@ import {
   Play,
   RefreshCw,
   Server,
+  Square,
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -78,6 +80,8 @@ export function OverviewPage() {
   const fetchError = useClusterStore((s) => s.fetchError)
   const isLoading = useClusterStore((s) => s.isLoading)
   const refresh = useClusterStore((s) => s.refresh)
+  const stopAllJobs = useClusterStore((s) => s.stopAllJobs)
+  const [isStopping, setIsStopping] = useState(false)
 
   // Loading: first fetch in progress, no data yet
   if (isLoading && !overview) {
@@ -158,6 +162,31 @@ export function OverviewPage() {
           failed={overview.failedJobs}
         />
       </div>
+
+      {/* Cluster actions */}
+      {runningJobs.length > 0 && (
+        <div className="glass-card flex items-center justify-between p-3">
+          <div className="text-xs text-zinc-400">
+            <span className="font-medium text-zinc-200">
+              {runningJobs.length}
+            </span>{" "}
+            running {runningJobs.length === 1 ? "job" : "jobs"}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isStopping}
+            onClick={async () => {
+              setIsStopping(true)
+              await stopAllJobs()
+              setIsStopping(false)
+            }}
+          >
+            <Square className="mr-1.5 size-3.5" />
+            {isStopping ? "Stopping..." : "Stop All Jobs"}
+          </Button>
+        </div>
+      )}
 
       {/* Job lists — full width */}
       <JobList

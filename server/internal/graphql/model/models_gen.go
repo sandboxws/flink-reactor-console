@@ -739,6 +739,10 @@ type PlanNodeInput struct {
 type Query struct {
 }
 
+type RescaleResult struct {
+	RequestID string `json:"requestId"`
+}
+
 type SQLCloseResult struct {
 	Success bool `json:"success"`
 }
@@ -775,6 +779,10 @@ type SQLSessionResult struct {
 
 type SQLStatementResult struct {
 	OperationHandle string `json:"operationHandle"`
+}
+
+type SavepointTriggerResult struct {
+	RequestID string `json:"requestId"`
 }
 
 // Status of the PostgreSQL historical storage backend.

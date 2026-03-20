@@ -587,10 +587,13 @@ type ComplexityRoot struct {
 		ExplainStatement         func(childComplexity int, sessionHandle string, statement string, cluster *string) int
 		FetchSQLResults          func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
 		RefreshMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
+		RescaleJob               func(childComplexity int, jobID string, newParallelism int, cluster *string) int
 		ResumeMaterializedTable  func(childComplexity int, name string, catalog string, cluster *string) int
 		RunJar                   func(childComplexity int, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
+		StopJobWithSavepoint     func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
 		SubmitStatement          func(childComplexity int, sessionHandle string, statement string, cluster *string) int
 		SuspendMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
+		TriggerSavepoint         func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
 	}
 
 	PlanNode struct {
@@ -654,6 +657,10 @@ type ComplexityRoot struct {
 		VertexDetail           func(childComplexity int, jobID string, vertexID string, cluster *string) int
 	}
 
+	RescaleResult struct {
+		RequestID func(childComplexity int) int
+	}
+
 	SQLCloseResult struct {
 		Success func(childComplexity int) int
 	}
@@ -687,6 +694,10 @@ type ComplexityRoot struct {
 
 	SQLStatementResult struct {
 		OperationHandle func(childComplexity int) int
+	}
+
+	SavepointTriggerResult struct {
+		RequestID func(childComplexity int) int
 	}
 
 	StorageStatus struct {
@@ -916,6 +927,9 @@ type MutationResolver interface {
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
 	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
 	CancelJob(ctx context.Context, id string, cluster *string) (*model.CancelJobResult, error)
+	TriggerSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error)
+	StopJobWithSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error)
+	RescaleJob(ctx context.Context, jobID string, newParallelism int, cluster *string) (*model.RescaleResult, error)
 	SuspendMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
 	ResumeMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
 	RefreshMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
@@ -3071,6 +3085,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RefreshMaterializedTable(childComplexity, args["name"].(string), args["catalog"].(string), args["cluster"].(*string)), true
+	case "Mutation.rescaleJob":
+		if e.ComplexityRoot.Mutation.RescaleJob == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_rescaleJob_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.RescaleJob(childComplexity, args["jobId"].(string), args["newParallelism"].(int), args["cluster"].(*string)), true
 	case "Mutation.resumeMaterializedTable":
 		if e.ComplexityRoot.Mutation.ResumeMaterializedTable == nil {
 			break
@@ -3093,6 +3118,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RunJar(childComplexity, args["id"].(string), args["entryClass"].(*string), args["programArgs"].(*string), args["parallelism"].(*int), args["savepointPath"].(*string), args["allowNonRestoredState"].(*bool), args["cluster"].(*string)), true
+	case "Mutation.stopJobWithSavepoint":
+		if e.ComplexityRoot.Mutation.StopJobWithSavepoint == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_stopJobWithSavepoint_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.StopJobWithSavepoint(childComplexity, args["jobId"].(string), args["targetDirectory"].(*string), args["cluster"].(*string)), true
 	case "Mutation.submitStatement":
 		if e.ComplexityRoot.Mutation.SubmitStatement == nil {
 			break
@@ -3115,6 +3151,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.SuspendMaterializedTable(childComplexity, args["name"].(string), args["catalog"].(string), args["cluster"].(*string)), true
+	case "Mutation.triggerSavepoint":
+		if e.ComplexityRoot.Mutation.TriggerSavepoint == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_triggerSavepoint_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.TriggerSavepoint(childComplexity, args["jobId"].(string), args["targetDirectory"].(*string), args["cluster"].(*string)), true
 
 	case "PlanNode.description":
 		if e.ComplexityRoot.PlanNode.Description == nil {
@@ -3612,6 +3659,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Query.VertexDetail(childComplexity, args["jobId"].(string), args["vertexId"].(string), args["cluster"].(*string)), true
 
+	case "RescaleResult.requestId":
+		if e.ComplexityRoot.RescaleResult.RequestID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleResult.RequestID(childComplexity), true
+
 	case "SQLCloseResult.success":
 		if e.ComplexityRoot.SQLCloseResult.Success == nil {
 			break
@@ -3702,6 +3756,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.SQLStatementResult.OperationHandle(childComplexity), true
+
+	case "SavepointTriggerResult.requestId":
+		if e.ComplexityRoot.SavepointTriggerResult.RequestID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SavepointTriggerResult.RequestID(childComplexity), true
 
 	case "StorageStatus.connected":
 		if e.ComplexityRoot.StorageStatus.Connected == nil {
@@ -5653,9 +5714,26 @@ extend type Query {
   checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointHistoryEntry!
 }
 
+type SavepointTriggerResult {
+  requestId: String!
+}
+
+type RescaleResult {
+  requestId: String!
+}
+
 extend type Mutation {
   """Cancel a running job"""
   cancelJob(id: ID!, cluster: String): CancelJobResult!
+
+  """Trigger a savepoint for a running job"""
+  triggerSavepoint(jobId: ID!, targetDirectory: String, cluster: String): SavepointTriggerResult!
+
+  """Stop a running job with a savepoint (graceful shutdown)"""
+  stopJobWithSavepoint(jobId: ID!, targetDirectory: String, cluster: String): SavepointTriggerResult!
+
+  """Rescale a running job to a new parallelism"""
+  rescaleJob(jobId: ID!, newParallelism: Int!, cluster: String): RescaleResult!
 }
 `, BuiltIn: false},
 	{Name: "../schema/kafka.graphqls", Input: `"""
@@ -6240,6 +6318,27 @@ func (ec *executionContext) field_Mutation_refreshMaterializedTable_args(ctx con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_rescaleJob_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "newParallelism", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["newParallelism"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_resumeMaterializedTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -6302,6 +6401,27 @@ func (ec *executionContext) field_Mutation_runJar_args(ctx context.Context, rawA
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_stopJobWithSavepoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "targetDirectory", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["targetDirectory"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_submitStatement_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -6336,6 +6456,27 @@ func (ec *executionContext) field_Mutation_suspendMaterializedTable_args(ctx con
 		return nil, err
 	}
 	args["catalog"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_triggerSavepoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "targetDirectory", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["targetDirectory"] = arg1
 	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
 	if err != nil {
 		return nil, err
@@ -17215,6 +17356,141 @@ func (ec *executionContext) fieldContext_Mutation_cancelJob(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_triggerSavepoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_triggerSavepoint,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().TriggerSavepoint(ctx, fc.Args["jobId"].(string), fc.Args["targetDirectory"].(*string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_triggerSavepoint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "requestId":
+				return ec.fieldContext_SavepointTriggerResult_requestId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SavepointTriggerResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_triggerSavepoint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_stopJobWithSavepoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_stopJobWithSavepoint,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().StopJobWithSavepoint(ctx, fc.Args["jobId"].(string), fc.Args["targetDirectory"].(*string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_stopJobWithSavepoint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "requestId":
+				return ec.fieldContext_SavepointTriggerResult_requestId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SavepointTriggerResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_stopJobWithSavepoint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_rescaleJob(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_rescaleJob,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().RescaleJob(ctx, fc.Args["jobId"].(string), fc.Args["newParallelism"].(int), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_rescaleJob(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "requestId":
+				return ec.fieldContext_RescaleResult_requestId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RescaleResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_rescaleJob_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_suspendMaterializedTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -20205,6 +20481,35 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _RescaleResult_requestId(ctx context.Context, field graphql.CollectedField, obj *model.RescaleResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleResult_requestId,
+		func(ctx context.Context) (any, error) {
+			return obj.RequestID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleResult_requestId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SQLCloseResult_success(ctx context.Context, field graphql.CollectedField, obj *model.SQLCloseResult) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -20613,6 +20918,35 @@ func (ec *executionContext) _SQLStatementResult_operationHandle(ctx context.Cont
 func (ec *executionContext) fieldContext_SQLStatementResult_operationHandle(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SQLStatementResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SavepointTriggerResult_requestId(ctx context.Context, field graphql.CollectedField, obj *model.SavepointTriggerResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SavepointTriggerResult_requestId,
+		func(ctx context.Context) (any, error) {
+			return obj.RequestID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SavepointTriggerResult_requestId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SavepointTriggerResult",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -30963,6 +31297,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "triggerSavepoint":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_triggerSavepoint(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stopJobWithSavepoint":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_stopJobWithSavepoint(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rescaleJob":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_rescaleJob(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "suspendMaterializedTable":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_suspendMaterializedTable(ctx, field)
@@ -32125,6 +32480,45 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
+var rescaleResultImplementors = []string{"RescaleResult"}
+
+func (ec *executionContext) _RescaleResult(ctx context.Context, sel ast.SelectionSet, obj *model.RescaleResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rescaleResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RescaleResult")
+		case "requestId":
+			out.Values[i] = ec._RescaleResult_requestId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var sQLCloseResultImplementors = []string{"SQLCloseResult"}
 
 func (ec *executionContext) _SQLCloseResult(ctx context.Context, sel ast.SelectionSet, obj *model.SQLCloseResult) graphql.Marshaler {
@@ -32404,6 +32798,45 @@ func (ec *executionContext) _SQLStatementResult(ctx context.Context, sel ast.Sel
 			out.Values[i] = graphql.MarshalString("SQLStatementResult")
 		case "operationHandle":
 			out.Values[i] = ec._SQLStatementResult_operationHandle(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var savepointTriggerResultImplementors = []string{"SavepointTriggerResult"}
+
+func (ec *executionContext) _SavepointTriggerResult(ctx context.Context, sel ast.SelectionSet, obj *model.SavepointTriggerResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, savepointTriggerResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SavepointTriggerResult")
+		case "requestId":
+			out.Values[i] = ec._SavepointTriggerResult_requestId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -35875,6 +36308,20 @@ func (ec *executionContext) marshalNPlanNodeInput2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._PlanNodeInput(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNRescaleResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v model.RescaleResult) graphql.Marshaler {
+	return ec._RescaleResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v *model.RescaleResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RescaleResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNSQLCloseResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLCloseResult(ctx context.Context, sel ast.SelectionSet, v model.SQLCloseResult) graphql.Marshaler {
 	return ec._SQLCloseResult(ctx, sel, &v)
 }
@@ -35983,6 +36430,20 @@ func (ec *executionContext) marshalNSQLStatementResult2ᚖgithubᚗcomᚋsandbox
 		return graphql.Null
 	}
 	return ec._SQLStatementResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSavepointTriggerResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult(ctx context.Context, sel ast.SelectionSet, v model.SavepointTriggerResult) graphql.Marshaler {
+	return ec._SavepointTriggerResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult(ctx context.Context, sel ast.SelectionSet, v *model.SavepointTriggerResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SavepointTriggerResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNStorageStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus(ctx context.Context, sel ast.SelectionSet, v model.StorageStatus) graphql.Marshaler {

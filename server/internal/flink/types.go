@@ -185,6 +185,33 @@ type VertexTaskCounts struct {
 	INITIALIZING int `json:"INITIALIZING"`
 }
 
+// SavepointTriggerRequest represents the POST /jobs/:jid/savepoints request body.
+type SavepointTriggerRequest struct {
+	CancelJob       bool    `json:"cancel-job"`
+	TargetDirectory *string `json:"target-directory,omitempty"`
+}
+
+// SavepointTriggerResponse represents the POST /jobs/:jid/savepoints response.
+type SavepointTriggerResponse struct {
+	RequestID string `json:"request-id"`
+}
+
+// StopWithSavepointRequest represents the POST /jobs/:jid/stop request body.
+type StopWithSavepointRequest struct {
+	Drain           bool    `json:"drain"`
+	TargetDirectory *string `json:"targetDirectory,omitempty"`
+}
+
+// RescaleRequest represents the PATCH /jobs/:jid/rescaling request body.
+type RescaleRequest struct {
+	Parallelism int `json:"parallelism"`
+}
+
+// RescaleResponse represents the PATCH /jobs/:jid/rescaling response.
+type RescaleResponse struct {
+	RequestID string `json:"request-id"`
+}
+
 // JobDetail represents the GET /jobs/:jobid response.
 type JobDetail struct {
 	JID          string           `json:"jid"`

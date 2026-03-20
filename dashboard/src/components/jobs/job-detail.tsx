@@ -49,9 +49,17 @@ export function JobDetail({
     setActiveTab("vertices")
   }
 
-  const handleSavepoint = () => {
+  const triggerSavepoint = useClusterStore((s) => s.triggerSavepoint)
+  const stopWithSavepoint = useClusterStore((s) => s.stopWithSavepoint)
+
+  const handleStopWithSavepoint = async () => {
+    await stopWithSavepoint(job.id)
+  }
+
+  const handleSavepoint = async () => {
     setSavepointFeedback(true)
     setTimeout(() => setSavepointFeedback(false), 2000)
+    await triggerSavepoint(job.id)
     onCreateSavepoint?.()
   }
 
@@ -135,6 +143,7 @@ export function JobDetail({
         job={job}
         onCancelJob={onCancelJob}
         onCreateSavepoint={handleSavepoint}
+        onStopWithSavepoint={handleStopWithSavepoint}
         onRefresh={() => fetchJobDetail(job.id)}
         isRefreshing={jobDetailLoading}
       />
