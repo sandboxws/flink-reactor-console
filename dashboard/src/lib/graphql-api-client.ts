@@ -1774,14 +1774,15 @@ export async function checkSimulationPreflight(): Promise<PreflightCheckResult[]
   try {
     const data = await query<any>(SIMULATION_PREFLIGHT_QUERY, {}, "network-only")
     return (data.simulationPreflight ?? []) as PreflightCheckResult[]
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
     return [
       {
-        id: "server",
-        label: "Console server reachable",
+        id: "preflight-error",
+        label: "Pre-flight check failed",
         status: "fail",
-        detail: "Cannot connect to reactor-server",
-        fix: "Ensure the server is running and accessible",
+        detail: message,
+        fix: null,
         required: true,
       },
     ]
