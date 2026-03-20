@@ -216,7 +216,7 @@ function PresetListView({
             <th className="px-3 py-2 font-medium">Scenario</th>
             <th className="px-3 py-2 font-medium">Category</th>
             <th className="px-3 py-2 font-medium">Description</th>
-            <th className="px-3 py-2 font-medium" />
+            <th className="px-3 py-2 font-medium">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -244,45 +244,87 @@ function PresetListRow({
   isRunning: boolean
 }) {
   const [submitting, setSubmitting] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const [params, setParams] = useState<Record<string, unknown>>(
+    preset.defaultParameters,
+  )
 
   const handleRun = async () => {
     setSubmitting(true)
-    await onRun({
-      scenario: preset.scenario,
-      parameters: preset.defaultParameters,
-    })
+    await onRun({ scenario: preset.scenario, parameters: params })
     setSubmitting(false)
+    setExpanded(false)
   }
 
   return (
-    <tr className="border-b border-dash-border/50 hover:bg-white/[0.02]">
-      <td className="px-3 py-2 font-medium text-zinc-200">{preset.name}</td>
-      <td className="px-3 py-2">
-        <Badge
-          variant="outline"
-          className={cn(
-            "border-0 text-[10px]",
-            categoryColors[preset.category] ?? "bg-zinc-500/15 text-zinc-400",
-          )}
-        >
-          {preset.category}
-        </Badge>
-      </td>
-      <td className="px-3 py-2 text-zinc-500 max-w-md truncate">
-        {preset.description}
-      </td>
-      <td className="px-3 py-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={isRunning || submitting}
-          onClick={handleRun}
-          className="h-6 text-[10px]"
-        >
-          <Play className="mr-1 size-2.5" />
-          {submitting ? "Starting..." : "Run"}
-        </Button>
-      </td>
-    </tr>
+    <>
+      <tr className="border-b border-dash-border/50 hover:bg-white/[0.02]">
+        <td className="px-3 py-2 font-medium text-zinc-200">{preset.name}</td>
+        <td className="px-3 py-2">
+          <Badge
+            variant="outline"
+            className={cn(
+              "border-0 text-[10px]",
+              categoryColors[preset.category] ?? "bg-zinc-500/15 text-zinc-400",
+            )}
+          >
+            {preset.category}
+          </Badge>
+        </td>
+        <td className="px-3 py-2 text-zinc-500 max-w-md truncate">
+          {preset.description}
+        </td>
+        <td className="px-3 py-2">
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpanded(!expanded)}
+              className="h-6 text-[10px] text-zinc-500"
+            >
+              {expanded ? "Collapse" : "Configure"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isRunning || submitting}
+              onClick={handleRun}
+              className="h-6 text-[10px]"
+            >
+              <Play className="mr-1 size-2.5" />
+              {submitting ? "Starting..." : "Run"}
+            </Button>
+          </div>
+        </td>
+      </tr>
+      {expanded && (
+        <tr className="border-b border-dash-border/50 bg-white/[0.01]">
+          <td colSpan={4} className="px-3 py-2">
+            <div className="flex flex-wrap gap-3">
+              {Object.entries(params).map(([key, value]) => (
+                <div key={key} className="flex items-center gap-1.5">
+                  <label className="text-[10px] font-medium text-zinc-500">
+                    {key}
+                  </label>
+                  <input
+                    type="text"
+                    value={String(value)}
+                    onChange={(e) =>
+                      setParams((p) => ({
+                        ...p,
+                        [key]: Number.isNaN(Number(e.target.value))
+                          ? e.target.value
+                          : Number(e.target.value),
+                      }))
+                    }
+                    className="w-24 rounded bg-dash-surface px-1.5 py-0.5 text-[10px] text-zinc-200 border border-dash-border focus:border-fr-purple/50 focus:outline-none"
+                  />
+                </div>
+              ))}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   )
 }
