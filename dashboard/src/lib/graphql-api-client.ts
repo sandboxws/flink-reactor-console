@@ -1757,45 +1757,34 @@ export type SimulationInputParams = {
 
 const SIMULATION_PREFLIGHT_QUERY = gql`
   query SimulationPreflight {
-    health
-    storageStatus { enabled connected }
-    jobs { id name state }
-    simulationRuns { id status }
+    simulationPreflight { id label status detail fix required }
   }
 `
 
-export interface PreflightResult {
-  flinkReachable: boolean
-  storageEnabled: boolean
-  storageConnected: boolean
-  runningJobs: Array<{ id: string; name: string }>
-  hasActiveSimulation: boolean
+export type PreflightCheckResult = {
+  id: string
+  label: string
+  status: "pass" | "fail" | "warn"
+  detail: string | null
+  fix: string | null
+  required: boolean
 }
 
-export async function checkSimulationPreflight(): Promise<PreflightResult> {
+export async function checkSimulationPreflight(): Promise<PreflightCheckResult[]> {
   try {
     const data = await query<any>(SIMULATION_PREFLIGHT_QUERY, {}, "network-only")
-    const runningJobs = (data.jobs ?? [])
-      .filter((j: any) => j.state === "RUNNING")
-      .map((j: any) => ({ id: j.id, name: j.name }))
-    const hasActive = (data.simulationRuns ?? []).some(
-      (r: any) => r.status === "RUNNING" || r.status === "PENDING",
-    )
-    return {
-      flinkReachable: data.health === true,
-      storageEnabled: data.storageStatus?.enabled ?? false,
-      storageConnected: data.storageStatus?.connected ?? false,
-      runningJobs,
-      hasActiveSimulation: hasActive,
-    }
+    return (data.simulationPreflight ?? []) as PreflightCheckResult[]
   } catch {
-    return {
-      flinkReachable: false,
-      storageEnabled: false,
-      storageConnected: false,
-      runningJobs: [],
-      hasActiveSimulation: false,
-    }
+    return [
+      {
+        id: "server",
+        label: "Console server reachable",
+        status: "fail",
+        detail: "Cannot connect to reactor-server",
+        fix: "Ensure the server is running and accessible",
+        required: true,
+      },
+    ]
   }
 }
 

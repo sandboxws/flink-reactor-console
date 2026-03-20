@@ -614,6 +614,15 @@ type ComplexityRoot struct {
 		ShipStrategy func(childComplexity int) int
 	}
 
+	PreflightCheck struct {
+		Detail   func(childComplexity int) int
+		Fix      func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Label    func(childComplexity int) int
+		Required func(childComplexity int) int
+		Status   func(childComplexity int) int
+	}
+
 	Query struct {
 		BlueGreenDeployment    func(childComplexity int, name string, namespace *string, cluster *string) int
 		BlueGreenDeployments   func(childComplexity int, cluster *string, namespace *string) int
@@ -649,6 +658,7 @@ type ComplexityRoot struct {
 		MetricCatalog          func(childComplexity int, clusterID string) int
 		MetricHistory          func(childComplexity int, filter model.MetricHistoryFilter) int
 		MetricSeries           func(childComplexity int, clusterID string, series []*model.MetricSeriesRequest, after string, before string, maxPoints *int) int
+		SimulationPreflight    func(childComplexity int) int
 		SimulationPresets      func(childComplexity int) int
 		SimulationRun          func(childComplexity int, id string) int
 		SimulationRuns         func(childComplexity int) int
@@ -1009,6 +1019,7 @@ type QueryResolver interface {
 	KafkaConsumerGroup(ctx context.Context, instrument string, groupID string) (*model.KafkaConsumerGroupDetail, error)
 	MaterializedTables(ctx context.Context, cluster *string, catalog *string) ([]*model.MaterializedTable, error)
 	MaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
+	SimulationPreflight(ctx context.Context) ([]*model.PreflightCheck, error)
 	SimulationRuns(ctx context.Context) ([]*model.SimulationRun, error)
 	SimulationRun(ctx context.Context, id string) (*model.SimulationRun, error)
 	SimulationPresets(ctx context.Context) ([]*model.SimulationPreset, error)
@@ -3282,6 +3293,43 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PlanNodeInput.ShipStrategy(childComplexity), true
 
+	case "PreflightCheck.detail":
+		if e.ComplexityRoot.PreflightCheck.Detail == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PreflightCheck.Detail(childComplexity), true
+	case "PreflightCheck.fix":
+		if e.ComplexityRoot.PreflightCheck.Fix == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PreflightCheck.Fix(childComplexity), true
+	case "PreflightCheck.id":
+		if e.ComplexityRoot.PreflightCheck.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PreflightCheck.ID(childComplexity), true
+	case "PreflightCheck.label":
+		if e.ComplexityRoot.PreflightCheck.Label == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PreflightCheck.Label(childComplexity), true
+	case "PreflightCheck.required":
+		if e.ComplexityRoot.PreflightCheck.Required == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PreflightCheck.Required(childComplexity), true
+	case "PreflightCheck.status":
+		if e.ComplexityRoot.PreflightCheck.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PreflightCheck.Status(childComplexity), true
+
 	case "Query.blueGreenDeployment":
 		if e.ComplexityRoot.Query.BlueGreenDeployment == nil {
 			break
@@ -3637,6 +3685,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.MetricSeries(childComplexity, args["clusterID"].(string), args["series"].([]*model.MetricSeriesRequest), args["after"].(string), args["before"].(string), args["maxPoints"].(*int)), true
+	case "Query.simulationPreflight":
+		if e.ComplexityRoot.Query.SimulationPreflight == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.SimulationPreflight(childComplexity), true
 	case "Query.simulationPresets":
 		if e.ComplexityRoot.Query.SimulationPresets == nil {
 			break
@@ -6135,7 +6189,20 @@ input SimulationInput {
   cluster: String
 }
 
+"""Result of a single pre-flight check for simulation readiness."""
+type PreflightCheck {
+  id: String!
+  label: String!
+  status: String!
+  detail: String
+  fix: String
+  required: Boolean!
+}
+
 extend type Query {
+  """Run pre-flight checks verifying minikube infrastructure is ready for simulations."""
+  simulationPreflight: [PreflightCheck!]!
+
   """List all simulation runs (most recent first)"""
   simulationRuns: [SimulationRun!]!
 
@@ -18583,6 +18650,180 @@ func (ec *executionContext) fieldContext_PlanNodeInput_exchange(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _PreflightCheck_id(ctx context.Context, field graphql.CollectedField, obj *model.PreflightCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PreflightCheck_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PreflightCheck_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PreflightCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PreflightCheck_label(ctx context.Context, field graphql.CollectedField, obj *model.PreflightCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PreflightCheck_label,
+		func(ctx context.Context) (any, error) {
+			return obj.Label, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PreflightCheck_label(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PreflightCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PreflightCheck_status(ctx context.Context, field graphql.CollectedField, obj *model.PreflightCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PreflightCheck_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PreflightCheck_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PreflightCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PreflightCheck_detail(ctx context.Context, field graphql.CollectedField, obj *model.PreflightCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PreflightCheck_detail,
+		func(ctx context.Context) (any, error) {
+			return obj.Detail, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PreflightCheck_detail(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PreflightCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PreflightCheck_fix(ctx context.Context, field graphql.CollectedField, obj *model.PreflightCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PreflightCheck_fix,
+		func(ctx context.Context) (any, error) {
+			return obj.Fix, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PreflightCheck_fix(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PreflightCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PreflightCheck_required(ctx context.Context, field graphql.CollectedField, obj *model.PreflightCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PreflightCheck_required,
+		func(ctx context.Context) (any, error) {
+			return obj.Required, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PreflightCheck_required(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PreflightCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_health(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -20490,6 +20731,49 @@ func (ec *executionContext) fieldContext_Query_materializedTable(ctx context.Con
 	if fc.Args, err = ec.field_Query_materializedTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_simulationPreflight(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_simulationPreflight,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().SimulationPreflight(ctx)
+		},
+		nil,
+		ec.marshalNPreflightCheck2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheckᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_simulationPreflight(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PreflightCheck_id(ctx, field)
+			case "label":
+				return ec.fieldContext_PreflightCheck_label(ctx, field)
+			case "status":
+				return ec.fieldContext_PreflightCheck_status(ctx, field)
+			case "detail":
+				return ec.fieldContext_PreflightCheck_detail(ctx, field)
+			case "fix":
+				return ec.fieldContext_PreflightCheck_fix(ctx, field)
+			case "required":
+				return ec.fieldContext_PreflightCheck_required(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PreflightCheck", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -32578,6 +32862,64 @@ func (ec *executionContext) _PlanNodeInput(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var preflightCheckImplementors = []string{"PreflightCheck"}
+
+func (ec *executionContext) _PreflightCheck(ctx context.Context, sel ast.SelectionSet, obj *model.PreflightCheck) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, preflightCheckImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PreflightCheck")
+		case "id":
+			out.Values[i] = ec._PreflightCheck_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "label":
+			out.Values[i] = ec._PreflightCheck_label(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._PreflightCheck_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "detail":
+			out.Values[i] = ec._PreflightCheck_detail(ctx, field, obj)
+		case "fix":
+			out.Values[i] = ec._PreflightCheck_fix(ctx, field, obj)
+		case "required":
+			out.Values[i] = ec._PreflightCheck_required(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -33396,6 +33738,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_materializedTable(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "simulationPreflight":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_simulationPreflight(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -37633,6 +37997,32 @@ func (ec *executionContext) marshalNPlanNodeInput2ᚖgithubᚗcomᚋsandboxwsᚋ
 		return graphql.Null
 	}
 	return ec._PlanNodeInput(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPreflightCheck2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheckᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PreflightCheck) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheck(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheck(ctx context.Context, sel ast.SelectionSet, v *model.PreflightCheck) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PreflightCheck(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRescaleResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v model.RescaleResult) graphql.Marshaler {

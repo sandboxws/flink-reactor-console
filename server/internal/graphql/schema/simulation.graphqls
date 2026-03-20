@@ -40,7 +40,20 @@ input SimulationInput {
   cluster: String
 }
 
+"""Result of a single pre-flight check for simulation readiness."""
+type PreflightCheck {
+  id: String!
+  label: String!
+  status: String!
+  detail: String
+  fix: String
+  required: Boolean!
+}
+
 extend type Query {
+  """Run pre-flight checks verifying minikube infrastructure is ready for simulations."""
+  simulationPreflight: [PreflightCheck!]!
+
   """List all simulation runs (most recent first)"""
   simulationRuns: [SimulationRun!]!
 

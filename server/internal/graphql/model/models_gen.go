@@ -736,6 +736,16 @@ type PlanNodeInput struct {
 	Exchange     string `json:"exchange"`
 }
 
+// Result of a single pre-flight check for simulation readiness.
+type PreflightCheck struct {
+	ID       string  `json:"id"`
+	Label    string  `json:"label"`
+	Status   string  `json:"status"`
+	Detail   *string `json:"detail,omitempty"`
+	Fix      *string `json:"fix,omitempty"`
+	Required bool    `json:"required"`
+}
+
 type Query struct {
 }
 

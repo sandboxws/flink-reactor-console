@@ -52,6 +52,48 @@ func (r *mutationResolver) StopSimulation(ctx context.Context, runID string) (*m
 	return mapSimulationRun(run), nil
 }
 
+// SimulationPreflight is the resolver for the simulationPreflight field.
+func (r *queryResolver) SimulationPreflight(ctx context.Context) ([]*model.PreflightCheck, error) {
+	// Gather inputs for preflight checks.
+	storageEnabled := r.StorageConfig.Enabled
+	storageConnected := r.StoragePool != nil
+
+	// Collect instrument health.
+	instrumentHealthy := map[string]bool{}
+	if r.InstrumentRegistry != nil {
+		for _, info := range r.InstrumentRegistry.List() {
+			if info.Type == "kafka" {
+				instrumentHealthy[info.Name] = info.Healthy
+			}
+		}
+	}
+
+	// Resolve Flink REST URL.
+	flinkURL := "http://localhost:8081"
+	if conn, err := r.resolveCluster(nil); err == nil {
+		flinkURL = conn.Service.Client().BaseURL()
+	}
+
+	checks := simulation.RunPreflight(ctx, flinkURL, storageEnabled, storageConnected, instrumentHealthy)
+
+	result := make([]*model.PreflightCheck, len(checks))
+	for i, c := range checks {
+		result[i] = &model.PreflightCheck{
+			ID:       c.ID,
+			Label:    c.Label,
+			Status:   c.Status,
+			Required: c.Required,
+		}
+		if c.Detail != "" {
+			result[i].Detail = &c.Detail
+		}
+		if c.Fix != "" {
+			result[i].Fix = &c.Fix
+		}
+	}
+	return result, nil
+}
+
 // SimulationRuns is the resolver for the simulationRuns field.
 func (r *queryResolver) SimulationRuns(ctx context.Context) ([]*model.SimulationRun, error) {
 	if r.SimulationEngine == nil {
@@ -107,36 +149,4 @@ func (r *queryResolver) SimulationPresets(ctx context.Context) ([]*model.Simulat
 		}
 	}
 	return result, nil
-}
-
-// mapSimulationRun converts a domain SimulationRun to a GraphQL model.
-func mapSimulationRun(run *simulation.SimulationRun) *model.SimulationRun {
-	result := &model.SimulationRun{
-		ID:        strconv.FormatInt(run.ID, 10),
-		Scenario:  run.Scenario,
-		Status:    model.SimulationStatus(run.Status),
-		StartedAt: run.StartedAt.Format("2006-01-02T15:04:05Z07:00"),
-		Parameters: run.Parameters,
-	}
-
-	if run.StoppedAt != nil {
-		s := run.StoppedAt.Format("2006-01-02T15:04:05Z07:00")
-		result.StoppedAt = &s
-	}
-
-	observations := make([]*model.SimulationObservation, len(run.Observations))
-	for i, obs := range run.Observations {
-		o := &model.SimulationObservation{
-			Timestamp: obs.CapturedAt.Format("2006-01-02T15:04:05Z07:00"),
-			Metric:    obs.Metric,
-			Value:     obs.Value,
-		}
-		if obs.Annotation != "" {
-			o.Annotation = &obs.Annotation
-		}
-		observations[i] = o
-	}
-	result.Observations = observations
-
-	return result
 }
