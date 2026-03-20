@@ -133,6 +133,13 @@ const NAV_GROUPS: NavGroup[] = [
       },
     ],
   },
+  {
+    label: "Admin",
+    items: [
+      { href: "/admin/simulations", label: "Simulations", icon: FlaskConical },
+      { href: "/admin/benchmarks", label: "Benchmarks", icon: BarChart3 },
+    ],
+  },
 ]
 
 export function Sidebar() {

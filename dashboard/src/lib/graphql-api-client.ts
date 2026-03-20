@@ -1711,3 +1711,108 @@ export async function fetchMetricSeries(params: {
   if (result.error) throw result.error
   return (result.data?.metricSeries ?? []) as MetricTimeSeries[]
 }
+
+// ---------------------------------------------------------------------------
+// Simulations
+// ---------------------------------------------------------------------------
+
+export type SimulationStatus =
+  | "PENDING"
+  | "RUNNING"
+  | "COMPLETED"
+  | "FAILED"
+  | "CANCELLED"
+
+export type SimulationObservation = {
+  timestamp: string
+  metric: string
+  value: number
+  annotation: string | null
+}
+
+export type SimulationRun = {
+  id: string
+  scenario: string
+  status: SimulationStatus
+  startedAt: string
+  stoppedAt: string | null
+  parameters: Record<string, unknown>
+  observations: SimulationObservation[]
+}
+
+export type SimulationPreset = {
+  name: string
+  description: string
+  scenario: string
+  defaultParameters: Record<string, unknown>
+  category: string
+}
+
+export type SimulationInputParams = {
+  scenario: string
+  targetJobs?: string[]
+  parameters: Record<string, unknown>
+  cluster?: string
+}
+
+const SIMULATION_PRESETS_QUERY = gql`
+  query SimulationPresets {
+    simulationPresets { name description scenario defaultParameters category }
+  }
+`
+
+const SIMULATION_RUNS_QUERY = gql`
+  query SimulationRuns {
+    simulationRuns { id scenario status startedAt stoppedAt parameters }
+  }
+`
+
+const SIMULATION_RUN_QUERY = gql`
+  query SimulationRun($id: ID!) {
+    simulationRun(id: $id) {
+      id scenario status startedAt stoppedAt parameters
+      observations { timestamp metric value annotation }
+    }
+  }
+`
+
+const RUN_SIMULATION_MUTATION = gql`
+  mutation RunSimulation($input: SimulationInput!) {
+    runSimulation(input: $input) { id scenario status startedAt parameters }
+  }
+`
+
+const STOP_SIMULATION_MUTATION = gql`
+  mutation StopSimulation($runId: ID!) {
+    stopSimulation(runId: $runId) { id scenario status stoppedAt }
+  }
+`
+
+export async function fetchSimulationPresets(): Promise<SimulationPreset[]> {
+  const data = await query<any>(SIMULATION_PRESETS_QUERY)
+  return data.simulationPresets ?? []
+}
+
+export async function fetchSimulationRuns(): Promise<SimulationRun[]> {
+  const data = await query<any>(SIMULATION_RUNS_QUERY, {}, "network-only")
+  return data.simulationRuns ?? []
+}
+
+export async function fetchSimulationRun(
+  id: string,
+): Promise<SimulationRun | null> {
+  const data = await query<any>(SIMULATION_RUN_QUERY, { id }, "network-only")
+  return data.simulationRun ?? null
+}
+
+export async function runSimulation(
+  input: SimulationInputParams,
+): Promise<SimulationRun> {
+  const data = await mutate<any>(RUN_SIMULATION_MUTATION, { input })
+  return data.runSimulation
+}
+
+export async function stopSimulation(runId: string): Promise<SimulationRun> {
+  const data = await mutate<any>(STOP_SIMULATION_MUTATION, { runId })
+  return data.stopSimulation
+}
