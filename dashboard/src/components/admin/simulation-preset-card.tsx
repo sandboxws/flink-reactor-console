@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { SimulationInputParams, SimulationPreset } from "@/lib/graphql-api-client"
 import { cn } from "@/lib/cn"
+import { SimulationPreflightModal } from "./simulation-preflight-modal"
 
 const categoryColors: Record<string, string> = {
   resource: "bg-fr-purple/15 text-fr-purple",
@@ -25,14 +26,7 @@ export function SimulationPresetCard({
   const [params, setParams] = useState<Record<string, unknown>>(
     preset.defaultParameters,
   )
-  const [submitting, setSubmitting] = useState(false)
-
-  const handleRun = async () => {
-    setSubmitting(true)
-    await onRun({ scenario: preset.scenario, parameters: params })
-    setSubmitting(false)
-    setExpanded(false)
-  }
+  const [preflightOpen, setPreflightOpen] = useState(false)
 
   return (
     <div className="glass-card flex flex-col gap-2 p-3">
@@ -95,13 +89,21 @@ export function SimulationPresetCard({
         <Button
           variant="outline"
           size="sm"
-          disabled={isRunning || submitting}
-          onClick={expanded ? handleRun : () => setExpanded(true)}
+          disabled={isRunning}
+          onClick={() => setPreflightOpen(true)}
         >
           <Play className="mr-1 size-3" />
-          {submitting ? "Starting..." : "Run"}
+          Run
         </Button>
       </div>
+
+      <SimulationPreflightModal
+        open={preflightOpen}
+        onOpenChange={setPreflightOpen}
+        preset={preset}
+        parameters={params}
+        onLaunch={onRun}
+      />
     </div>
   )
 }

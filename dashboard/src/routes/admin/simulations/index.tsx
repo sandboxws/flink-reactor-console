@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns"
 import { Grid3x3, List, Play, Square } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { SimulationPreflightModal } from "@/components/admin/simulation-preflight-modal"
 import { SimulationPresetCard } from "@/components/admin/simulation-preset-card"
 import { SimulationRunTimeline } from "@/components/admin/simulation-run-timeline"
 import type { SimulationInputParams, SimulationPreset } from "@/lib/graphql-api-client"
@@ -251,18 +252,11 @@ function PresetListRow({
   onRun: (input: SimulationInputParams) => Promise<void>
   isRunning: boolean
 }) {
-  const [submitting, setSubmitting] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [preflightOpen, setPreflightOpen] = useState(false)
   const [params, setParams] = useState<Record<string, unknown>>(
     preset.defaultParameters,
   )
-
-  const handleRun = async () => {
-    setSubmitting(true)
-    await onRun({ scenario: preset.scenario, parameters: params })
-    setSubmitting(false)
-    setExpanded(false)
-  }
 
   return (
     <>
@@ -295,12 +289,12 @@ function PresetListRow({
             <Button
               variant="outline"
               size="sm"
-              disabled={isRunning || submitting}
-              onClick={handleRun}
+              disabled={isRunning}
+              onClick={() => setPreflightOpen(true)}
               className="h-6 text-[10px]"
             >
               <Play className="mr-1 size-2.5" />
-              {submitting ? "Starting..." : "Run"}
+              Run
             </Button>
           </div>
         </td>
@@ -333,6 +327,13 @@ function PresetListRow({
           </td>
         </tr>
       )}
+      <SimulationPreflightModal
+        open={preflightOpen}
+        onOpenChange={setPreflightOpen}
+        preset={preset}
+        parameters={params}
+        onLaunch={onRun}
+      />
     </>
   )
 }

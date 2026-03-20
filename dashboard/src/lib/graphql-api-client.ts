@@ -1755,6 +1755,50 @@ export type SimulationInputParams = {
   cluster?: string
 }
 
+const SIMULATION_PREFLIGHT_QUERY = gql`
+  query SimulationPreflight {
+    health
+    storageStatus { enabled connected }
+    jobs { id name state }
+    simulationRuns { id status }
+  }
+`
+
+export interface PreflightResult {
+  flinkReachable: boolean
+  storageEnabled: boolean
+  storageConnected: boolean
+  runningJobs: Array<{ id: string; name: string }>
+  hasActiveSimulation: boolean
+}
+
+export async function checkSimulationPreflight(): Promise<PreflightResult> {
+  try {
+    const data = await query<any>(SIMULATION_PREFLIGHT_QUERY, {}, "network-only")
+    const runningJobs = (data.jobs ?? [])
+      .filter((j: any) => j.state === "RUNNING")
+      .map((j: any) => ({ id: j.id, name: j.name }))
+    const hasActive = (data.simulationRuns ?? []).some(
+      (r: any) => r.status === "RUNNING" || r.status === "PENDING",
+    )
+    return {
+      flinkReachable: data.health === true,
+      storageEnabled: data.storageStatus?.enabled ?? false,
+      storageConnected: data.storageStatus?.connected ?? false,
+      runningJobs,
+      hasActiveSimulation: hasActive,
+    }
+  } catch {
+    return {
+      flinkReachable: false,
+      storageEnabled: false,
+      storageConnected: false,
+      runningJobs: [],
+      hasActiveSimulation: false,
+    }
+  }
+}
+
 const SIMULATION_PRESETS_QUERY = gql`
   query SimulationPresets {
     simulationPresets { name description scenario defaultParameters category }
