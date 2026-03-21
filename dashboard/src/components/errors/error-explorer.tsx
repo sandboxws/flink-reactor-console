@@ -1,6 +1,6 @@
 import { AlertTriangle } from "lucide-react"
 import { useMemo } from "react"
-import { EmptyState } from "@/components/shared/empty-state"
+import { EmptyState } from "@flink-reactor/ui"
 import { useErrorStore } from "@/stores/error-store"
 import { ErrorDetail } from "./error-detail"
 import { ErrorGroupList } from "./error-group-list"

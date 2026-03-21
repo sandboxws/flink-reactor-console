@@ -2,6 +2,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+  EmptyState,
   Select,
   SelectContent,
   SelectItem,
@@ -29,7 +30,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import { EmptyState } from "@/components/shared/empty-state"
 import type {
   FlinkJob,
   JobVertex,

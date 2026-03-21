@@ -1,6 +1,6 @@
 import { Clock, Maximize2, ZoomIn, ZoomOut } from "lucide-react"
 import { useMemo, useState } from "react"
-import { EmptyState } from "@/components/shared/empty-state"
+import { EmptyState } from "@flink-reactor/ui"
 import type { JobVertex } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 

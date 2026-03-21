@@ -1,4 +1,4 @@
-import { MetricCard } from "@/components/shared/metric-card"
+import { MetricCard } from "@flink-reactor/ui"
 
 export function StatCard({
   icon,

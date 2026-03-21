@@ -2,6 +2,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+  EmptyState,
 } from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
@@ -12,7 +13,6 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { StackTrace } from "@/components/errors/stack-trace"
-import { EmptyState } from "@/components/shared/empty-state"
 import type { JobException } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 

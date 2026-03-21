@@ -1,6 +1,6 @@
 import { Cpu } from "lucide-react"
 import { useCallback, useMemo } from "react"
-import { EmptyState } from "@/components/shared/empty-state"
+import { EmptyState } from "@flink-reactor/ui"
 import { ThreadDumpViewer } from "@/components/shared/thread-dump-viewer"
 import type { ThreadDumpInfo } from "@/data/cluster-types"
 import { parseThreadInfos } from "@/data/thread-dump-parser"

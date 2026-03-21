@@ -1,9 +1,12 @@
-import { Collapsible, CollapsibleContent } from "@flink-reactor/ui"
+import {
+  Collapsible,
+  CollapsibleContent,
+  EmptyState,
+} from "@flink-reactor/ui"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { ArrowDown, ScrollText } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { StackTrace } from "@/components/errors/stack-trace"
-import { EmptyState } from "@/components/shared/empty-state"
 import type { LogEntry } from "@/data/types"
 import { cn } from "@/lib/cn"
 import { useAutoScroll, useSearchMatches } from "@/lib/hooks"

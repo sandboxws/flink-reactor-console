@@ -2,6 +2,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+  EmptyState,
 } from "@flink-reactor/ui"
 import {
   Check,
@@ -12,7 +13,6 @@ import {
   Settings,
 } from "lucide-react"
 import { useMemo, useState } from "react"
-import { EmptyState } from "@/components/shared/empty-state"
 import type { JobConfiguration } from "@/data/cluster-types"
 
 // ---------------------------------------------------------------------------

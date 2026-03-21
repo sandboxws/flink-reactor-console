@@ -1,4 +1,5 @@
 import {
+  EmptyState,
   Select,
   SelectContent,
   SelectItem,
@@ -17,7 +18,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import { EmptyState } from "@/components/shared/empty-state"
 import type { JobVertex, SubtaskMetrics } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 

@@ -1,4 +1,4 @@
-import { TextViewer } from "@/components/shared/text-viewer"
+import { TextViewer } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // TmStdoutTab — renders TM stdout using the shared text-viewer

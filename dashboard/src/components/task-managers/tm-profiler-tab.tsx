@@ -1,5 +1,5 @@
 import { Activity } from "lucide-react"
-import { EmptyState } from "@/components/shared/empty-state"
+import { EmptyState } from "@flink-reactor/ui"
 
 export function TmProfilerTab() {
   return (
