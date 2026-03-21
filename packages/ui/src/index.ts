@@ -127,6 +127,30 @@ export { formatBytes, formatDuration, formatTimestamp } from "./lib/format"
 // ── Domain Types ────────────────────────────────────────────────────────────
 export type * from "./types"
 
+// ── Overview Components ──────────────────────────────────────────────────────
+export { ClusterInfo } from "./components/overview/cluster-info"
+export { JobStatusSummary } from "./components/overview/job-status-summary"
+export { SlotUtilization } from "./components/overview/slot-utilization"
+export { StatCard } from "./components/overview/stat-card"
+
+// ── Jobs Components ─────────────────────────────────────────────────────────
+export {
+  CheckpointsTab,
+  ConfigurationTab,
+  DataSkewTab,
+  ExceptionsTab,
+  JobHeader,
+  JobHistoryTable,
+  type JobHistoryEntry,
+  JobsTable,
+  OperatorNode,
+  SourceSinkCard,
+  SourcesSinksTab,
+  StrategyEdge,
+  TimelineTab,
+  VerticesTab,
+} from "./components/jobs"
+
 // ── Shared Components ────────────────────────────────────────────────────────
 export {
   EmptyState,
@@ -160,3 +184,87 @@ export {
   getChartColor,
   getUnitBadgeLabel,
 } from "./shared"
+
+// ── Logs Components ────────────────────────────────────────────────────────
+export {
+  LogLine,
+  type LogLineProps,
+  type TimestampFormat,
+  LogList,
+  type LogListProps,
+  LogDetailPanel,
+  type LogDetailPanelProps,
+  LogHistogram,
+  type LogHistogramProps,
+} from "./components/logs"
+
+// ── Errors Components ──────────────────────────────────────────────────────
+export {
+  ErrorDetail,
+  type ErrorDetailProps,
+  ErrorTimeline,
+  type ErrorTimelineProps,
+} from "./components/errors"
+
+// ── Monitoring Components ──────────────────────────────────────────────────
+export {
+  AlertCard,
+  type AlertCardProps,
+  CheckpointTimelineChart,
+  type CheckpointTimelineChartProps,
+  StateSizeChart,
+  type StateSizeChartProps,
+  CheckpointJobTable,
+  type CheckpointJobTableProps,
+} from "./components/monitoring"
+
+// ── Insights Components ────────────────────────────────────────────────────
+export {
+  HealthTrendChart,
+  type HealthTrendChartProps,
+  SubScoreGrid,
+  type SubScoreGridProps,
+  TopIssuesList,
+  type TopIssuesListProps,
+  BottleneckDAG,
+  type BottleneckDAGProps,
+  BottleneckTable,
+  type BottleneckTableProps,
+} from "./components/insights"
+
+// ── Plan Analyzer Components ─────────────────────────────────────────────
+export {
+  PlanDAG,
+  PlanOperatorNode,
+  type PlanOperatorNodeData,
+  PlanStrategyEdge,
+  PlanAntiPatternCard,
+  PlanStateForecast,
+} from "./components/plan-analyzer"
+export { SHUFFLE_STRATEGY_LABELS } from "./lib/plan-analyzer-constants"
+
+// ── Catalogs Components ──────────────────────────────────────────────────
+export {
+  ColumnsTable,
+  type CatalogColumnInfo,
+  TemplateSelector,
+  type ExploreTemplate,
+  EXPLORE_TEMPLATES,
+  SAMPLE_QUERY_TEMPLATES,
+  resolveTemplate,
+  SqlHighlight,
+} from "./components/catalogs"
+
+// ── Tap Components ───────────────────────────────────────────────────────
+export {
+  TapDataTable,
+  type TapColumnInfo,
+  TapStatusBar,
+  type TapSessionStatus,
+  TapSourceConfig,
+  type TapSourceConfigData,
+  TapErrorPanel,
+} from "./components/tap"
+
+// ── Materialized Tables Components ───────────────────────────────────────
+export { RefreshStatusBadge } from "./components/materialized-tables"

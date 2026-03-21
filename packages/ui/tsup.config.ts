@@ -7,6 +7,14 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ["react", "react-dom", "react/jsx-runtime", "recharts"],
+  external: [
+    "react",
+    "react-dom",
+    "react/jsx-runtime",
+    "recharts",
+    "@xyflow/react",
+    "date-fns",
+    "react-icons",
+  ],
   banner: { js: '"use client";' },
 })

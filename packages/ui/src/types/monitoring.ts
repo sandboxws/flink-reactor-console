@@ -34,3 +34,21 @@ export type CheckpointAggregates = {
   avgDuration: number
   totalStateSize: number
 }
+
+// ---------------------------------------------------------------------------
+// Alert types
+// ---------------------------------------------------------------------------
+
+export type AlertSeverity = "info" | "warning" | "critical"
+
+export type ActiveAlert = {
+  id: string
+  ruleId: string
+  ruleName: string
+  severity: AlertSeverity
+  message: string
+  currentValue: number
+  threshold: number
+  triggeredAt: Date
+  acknowledged: boolean
+}
