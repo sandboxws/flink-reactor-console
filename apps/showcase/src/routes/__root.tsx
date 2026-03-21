@@ -1,6 +1,5 @@
-import { Outlet, createRootRoute, Link } from "@tanstack/react-router"
+import { Outlet, createRootRoute, Link, useLocation } from "@tanstack/react-router"
 import { Shell, Sidebar, Header, breadcrumbFromPath } from "@flink-reactor/ui"
-import { useLocation } from "@tanstack/react-router"
 import {
   LayoutGrid,
   Layers,
@@ -9,20 +8,37 @@ import {
   Clapperboard,
 } from "lucide-react"
 
+/** Adapter: Sidebar passes href, but TanStack Router Link uses `to` */
+function NavLink({
+  href,
+  className,
+  children,
+}: {
+  href: string
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <Link to={href} className={className}>
+      {children}
+    </Link>
+  )
+}
+
 const NAV_GROUPS = [
   {
     label: "Components",
     items: [
-      { label: "Primitives", path: "/primitives", icon: LayoutGrid },
-      { label: "Shared", path: "/shared", icon: Layers },
-      { label: "Domain", path: "/domain", icon: Blocks },
+      { label: "Primitives", href: "/primitives", icon: LayoutGrid },
+      { label: "Shared", href: "/shared", icon: Layers },
+      { label: "Domain", href: "/domain", icon: Blocks },
     ],
   },
   {
     label: "Compositions",
     items: [
-      { label: "Templates", path: "/templates", icon: FileText },
-      { label: "Scenarios", path: "/scenarios", icon: Clapperboard },
+      { label: "Templates", href: "/templates", icon: FileText },
+      { label: "Scenarios", href: "/scenarios", icon: Clapperboard },
     ],
   },
 ]
@@ -35,7 +51,7 @@ function RootLayout() {
         <Sidebar
           navGroups={NAV_GROUPS}
           activePath={location.pathname}
-          LinkComponent={Link}
+          LinkComponent={NavLink}
           brandName="UI Showcase"
         />
       }
