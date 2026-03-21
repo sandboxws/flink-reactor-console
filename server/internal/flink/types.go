@@ -40,6 +40,22 @@ func (f *FlexFloat64) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON handles NaN and Infinity values that would otherwise cause
+// json.Marshal to panic. NaN → null, ±Infinity → capped to max float64.
+func (f FlexFloat64) MarshalJSON() ([]byte, error) {
+	v := float64(f)
+	switch {
+	case math.IsNaN(v):
+		return []byte("null"), nil
+	case math.IsInf(v, 1):
+		return json.Marshal(math.MaxFloat64)
+	case math.IsInf(v, -1):
+		return json.Marshal(-math.MaxFloat64)
+	default:
+		return json.Marshal(v)
+	}
+}
+
 // Float64 returns the underlying float64 value.
 func (f FlexFloat64) Float64() float64 {
 	return float64(f)
@@ -167,6 +183,33 @@ type VertexTaskCounts struct {
 	FAILED       int `json:"FAILED"`
 	RECONCILING  int `json:"RECONCILING"`
 	INITIALIZING int `json:"INITIALIZING"`
+}
+
+// SavepointTriggerRequest represents the POST /jobs/:jid/savepoints request body.
+type SavepointTriggerRequest struct {
+	CancelJob       bool    `json:"cancel-job"`
+	TargetDirectory *string `json:"target-directory,omitempty"`
+}
+
+// SavepointTriggerResponse represents the POST /jobs/:jid/savepoints response.
+type SavepointTriggerResponse struct {
+	RequestID string `json:"request-id"`
+}
+
+// StopWithSavepointRequest represents the POST /jobs/:jid/stop request body.
+type StopWithSavepointRequest struct {
+	Drain           bool    `json:"drain"`
+	TargetDirectory *string `json:"targetDirectory,omitempty"`
+}
+
+// RescaleRequest represents the PATCH /jobs/:jid/rescaling request body.
+type RescaleRequest struct {
+	Parallelism int `json:"parallelism"`
+}
+
+// RescaleResponse represents the PATCH /jobs/:jid/rescaling response.
+type RescaleResponse struct {
+	RequestID string `json:"request-id"`
 }
 
 // JobDetail represents the GET /jobs/:jobid response.

@@ -1,3 +1,9 @@
+import {
+  HoverCard,
+  HoverCardArrow,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@flink-reactor/ui"
 import type { NodeProps } from "@xyflow/react"
 import { Handle, Position } from "@xyflow/react"
 import { Radio } from "lucide-react"
@@ -12,12 +18,6 @@ import {
   PiTimerBold,
   PiUploadSimpleBold,
 } from "react-icons/pi"
-import {
-  HoverCard,
-  HoverCardArrow,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card"
 import type {
   JobVertex,
   JobVertexStatus,

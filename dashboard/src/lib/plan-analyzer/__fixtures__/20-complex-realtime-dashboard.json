@@ -1,0 +1,67 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[sales_transactions], properties=[bootstrap.servers=kafka:9092], watermark=[transaction_time - INTERVAL '5' SECOND])",
+      "parallelism": 16
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[transaction_id, store_id, product_id, quantity, unit_price, (quantity * unit_price) AS total_amount, transaction_time])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "LookupJoin",
+      "pact": "Operator",
+      "contents": "LookupJoin(table=[dim_products], async=[true], asyncCapacity=[200], cache=[LRU(size=50000, ttl=300000)], lookup=[product_id], select=[transaction_id, store_id, product_id, quantity, total_amount, transaction_time, product_name, category, brand])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 4,
+      "type": "LookupJoin",
+      "pact": "Operator",
+      "contents": "LookupJoin(table=[dim_stores], async=[true], asyncCapacity=[100], cache=[LRU(size=10000, ttl=600000)], lookup=[store_id], select=[transaction_id, store_id, product_id, quantity, total_amount, transaction_time, product_name, category, brand, store_name, region, city])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "WindowAggregate",
+      "pact": "Operator",
+      "contents": "WindowAggregate(window=[TUMBLE(transaction_time, INTERVAL '1' MINUTE)], groupBy=[region, category], select=[region, category, SUM(total_amount) AS revenue, SUM(quantity) AS units_sold, COUNT(*) AS transaction_count, window_start, window_end])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 4, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 6,
+      "type": "Rank",
+      "pact": "Operator",
+      "contents": "Rank(partitionBy=[window_start, region], orderBy=[revenue DESC], rankType=[ROW_NUMBER], select=[region, category, revenue, units_sold, transaction_count, window_start, window_end, rank_num], rankRange=[1, 10])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 5, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 7,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[region, category, revenue, units_sold, transaction_count, window_start, window_end, rank_num], where=[rank_num <= 5])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 6, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 8,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[dashboard_top_categories_per_region])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 7, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

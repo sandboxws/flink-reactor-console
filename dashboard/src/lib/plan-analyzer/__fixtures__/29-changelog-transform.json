@@ -1,0 +1,50 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source(table=[events], fields=[user_id, amount, event_time])",
+      "parallelism": 8
+    },
+    {
+      "id": 2,
+      "type": "GroupAggregate",
+      "pact": "Operator",
+      "contents": "GroupAggregate(groupBy=[user_id], select=[user_id, SUM(amount) AS total])",
+      "parallelism": 8,
+      "predecessors": [
+        {
+          "id": 1,
+          "ship_strategy": "HASH"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, total], where=[total > 100])",
+      "parallelism": 8,
+      "predecessors": [
+        {
+          "id": 2,
+          "ship_strategy": "FORWARD"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink(table=[alerts])",
+      "parallelism": 8,
+      "predecessors": [
+        {
+          "id": 3,
+          "ship_strategy": "FORWARD"
+        }
+      ]
+    }
+  ]
+}

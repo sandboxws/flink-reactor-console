@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Loader2, SearchX } from "lucide-react"
 import { useEffect } from "react"
-import { EmptyState } from "@/components/shared/empty-state"
+import { EmptyState } from "@flink-reactor/ui"
 import { TaskManagerDetail } from "@/components/task-managers/task-manager-detail"
 import { useClusterStore } from "@/stores/cluster-store"
 

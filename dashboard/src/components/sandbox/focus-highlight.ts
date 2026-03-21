@@ -48,7 +48,9 @@ export const focusHighlightField: Extension = (() => {
             if (dimLines.has(lineIdx)) {
               ranges.push(dimLineDecoration.range(tr.state.doc.line(i).from))
             } else if (commentLines.has(lineIdx)) {
-              ranges.push(commentLineDecoration.range(tr.state.doc.line(i).from))
+              ranges.push(
+                commentLineDecoration.range(tr.state.doc.line(i).from),
+              )
             }
           }
 
@@ -60,7 +62,9 @@ export const focusHighlightField: Extension = (() => {
           }
 
           // RangeSet requires sorted ranges
-          ranges.sort((a, b) => a.from - b.from || a.value.startSide - b.value.startSide)
+          ranges.sort(
+            (a, b) => a.from - b.from || a.value.startSide - b.value.startSide,
+          )
           return RangeSet.of(ranges)
         }
       }

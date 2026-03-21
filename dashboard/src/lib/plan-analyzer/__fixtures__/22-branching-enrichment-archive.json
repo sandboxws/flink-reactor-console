@@ -1,0 +1,60 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[user_events], properties=[bootstrap.servers=kafka:9092], watermark=[event_time - INTERVAL '30' SECOND])",
+      "parallelism": 12
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[event_id, user_id, event_type, event_data, event_time, processed_time])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Sink: FileSystemSink",
+      "pact": "Data Sink",
+      "contents": "Sink: FileSystemSink(path=[s3://data-lake/raw/user_events], format=[parquet], partitionBy=[DATE(event_time)], rollingPolicy=[size=128MB, interval=15min])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 2, "ship_strategy": "REBALANCE" }]
+    },
+    {
+      "id": 4,
+      "type": "LookupJoin",
+      "pact": "Operator",
+      "contents": "LookupJoin(table=[user_profiles], async=[true], asyncCapacity=[100], cache=[LRU(size=50000, ttl=300000)], lookup=[user_id], select=[event_id, user_id, event_type, event_data, event_time, user_tier, user_segment, signup_date])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[enriched_user_events])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    },
+    {
+      "id": 6,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, event_type, event_time, user_tier], where=[user_tier = 'premium' AND event_type IN ('purchase', 'subscription')])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 4, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 7,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[premium_user_conversions])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 6, "ship_strategy": "REBALANCE" }]
+    }
+  ],
+  "_comment": "BRANCHING: Raw archive to S3 + enriched stream + filtered premium conversions (3 sinks)"
+}

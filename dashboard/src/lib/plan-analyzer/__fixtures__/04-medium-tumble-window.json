@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[clickstream], properties=[bootstrap.servers=kafka:9092], watermark=[event_time - INTERVAL '10' SECOND])",
+      "parallelism": 12
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, page_url, event_time, session_id])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "WindowAggregate",
+      "pact": "Operator",
+      "contents": "WindowAggregate(window=[TUMBLE(event_time, INTERVAL '1' MINUTE)], groupBy=[user_id], select=[user_id, COUNT(*) AS page_views, COUNT(DISTINCT page_url) AS unique_pages, window_start, window_end])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 4,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, page_views, unique_pages, window_start, window_end], where=[page_views > 5])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[active_users_per_minute])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

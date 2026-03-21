@@ -51,14 +51,13 @@ export function generateMockTapManifest(): TapManifest {
           "  'topic' = 'orders',",
           "  'format' = 'json',",
           "  'properties.bootstrap.servers' = 'kafka:9092',",
-          "  'properties.group.id' = 'flink-reactor-tap-ecommerce-pipeline-orders-source-a1b2c3d4',",
+          "  'properties.group.id' = 'fr-tap-ecommerce-pipeline-orders-source-a1b2c3d4',",
           "  'scan.startup.mode' = 'latest-offset'",
           ");",
           "",
           "SELECT * FROM `_tap_orders-source`;",
         ].join("\n"),
-        consumerGroupId:
-          "flink-reactor-tap-ecommerce-pipeline-orders-source-a1b2c3d4",
+        consumerGroupId: "fr-tap-ecommerce-pipeline-orders-source-a1b2c3d4",
         config: {
           name: "Source: KafkaSource",
           groupIdPrefix: "",
@@ -72,7 +71,7 @@ export function generateMockTapManifest(): TapManifest {
           format: "json",
           "properties.bootstrap.servers": "kafka:9092",
           "properties.group.id":
-            "flink-reactor-tap-ecommerce-pipeline-orders-source-a1b2c3d4",
+            "fr-tap-ecommerce-pipeline-orders-source-a1b2c3d4",
           "scan.startup.mode": "latest-offset",
         },
       },
@@ -105,14 +104,13 @@ export function generateMockTapManifest(): TapManifest {
           "  'topic' = 'orders',",
           "  'format' = 'json',",
           "  'properties.bootstrap.servers' = 'kafka:9092',",
-          "  'properties.group.id' = 'flink-reactor-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8',",
+          "  'properties.group.id' = 'fr-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8',",
           "  'scan.startup.mode' = 'latest-offset'",
           ");",
           "",
           "SELECT * FROM `_tap_high-value-filter`;",
         ].join("\n"),
-        consumerGroupId:
-          "flink-reactor-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8",
+        consumerGroupId: "fr-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8",
         config: {
           name: "Filter",
           groupIdPrefix: "",
@@ -126,7 +124,7 @@ export function generateMockTapManifest(): TapManifest {
           format: "json",
           "properties.bootstrap.servers": "kafka:9092",
           "properties.group.id":
-            "flink-reactor-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8",
+            "fr-tap-ecommerce-pipeline-high-value-filter-e5f6a7b8",
           "scan.startup.mode": "latest-offset",
         },
       },
@@ -165,14 +163,14 @@ export function generateMockTapManifest(): TapManifest {
           "  'topic' = 'enriched-orders',",
           "  'format' = 'json',",
           "  'properties.bootstrap.servers' = 'kafka:9092',",
-          "  'properties.group.id' = 'flink-reactor-tap-ecommerce-pipeline-enriched-orders-sink-c9d0e1f2',",
+          "  'properties.group.id' = 'fr-tap-ecommerce-pipeline-enriched-orders-sink-c9d0e1f2',",
           "  'scan.startup.mode' = 'latest-offset'",
           ");",
           "",
           "SELECT * FROM `_tap_enriched-orders-sink`;",
         ].join("\n"),
         consumerGroupId:
-          "flink-reactor-tap-ecommerce-pipeline-enriched-orders-sink-c9d0e1f2",
+          "fr-tap-ecommerce-pipeline-enriched-orders-sink-c9d0e1f2",
         config: {
           name: "Sink: KafkaSink",
           groupIdPrefix: "",
@@ -186,7 +184,7 @@ export function generateMockTapManifest(): TapManifest {
           format: "json",
           "properties.bootstrap.servers": "kafka:9092",
           "properties.group.id":
-            "flink-reactor-tap-ecommerce-pipeline-enriched-orders-sink-c9d0e1f2",
+            "fr-tap-ecommerce-pipeline-enriched-orders-sink-c9d0e1f2",
           "scan.startup.mode": "latest-offset",
         },
       },
@@ -218,8 +216,7 @@ export function generateMockTapManifest(): TapManifest {
           "",
           "SELECT * FROM `_tap_products-source`;",
         ].join("\n"),
-        consumerGroupId:
-          "flink-reactor-tap-ecommerce-pipeline-products-source-d3e4f5a6",
+        consumerGroupId: "fr-tap-ecommerce-pipeline-products-source-d3e4f5a6",
         config: {
           name: "Source: JdbcSource",
           groupIdPrefix: "",

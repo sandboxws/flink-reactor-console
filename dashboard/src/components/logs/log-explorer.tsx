@@ -1,10 +1,10 @@
-import { useLayoutEffect } from "react"
-import { usePanelRef } from "react-resizable-panels"
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable"
+} from "@flink-reactor/ui"
+import { useLayoutEffect } from "react"
+import { usePanelRef } from "react-resizable-panels"
 import { useFilteredLogs } from "@/lib/hooks"
 import { useUiStore } from "@/stores/ui-store"
 import { LogDetailPanel } from "./log-detail-panel"

@@ -3,10 +3,12 @@ package store
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
@@ -111,6 +113,64 @@ func (s *JobStore) UpsertVertices(ctx context.Context, vertices []storage.DBVert
 		return fmt.Errorf("upsert vertices: %w", err)
 	}
 	return nil
+}
+
+// GetJobByID returns a single job by its JID. Returns nil if not found.
+// Includes detail_snapshot for the detail view fallback.
+func (s *JobStore) GetJobByID(ctx context.Context, jid string) (*storage.DBJob, error) {
+	row := s.pool.QueryRow(ctx, `
+		SELECT jid, cluster, name, state, start_time, end_time,
+			duration_ms, last_modified, tasks_total, tasks_running,
+			tasks_finished, tasks_canceled, tasks_failed, captured_at,
+			detail_snapshot
+		FROM jobs
+		WHERE jid = $1
+		LIMIT 1
+	`, jid)
+
+	var j storage.DBJob
+	if err := row.Scan(
+		&j.JID, &j.Cluster, &j.Name, &j.State, &j.StartTime, &j.EndTime,
+		&j.DurationMs, &j.LastModified, &j.TasksTotal, &j.TasksRunning,
+		&j.TasksFinished, &j.TasksCanceled, &j.TasksFailed, &j.CapturedAt,
+		&j.DetailSnapshot,
+	); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get job %s: %w", jid, err)
+	}
+	return &j, nil
+}
+
+// QueryVerticesByJob returns all vertices for a given job ID.
+func (s *JobStore) QueryVerticesByJob(ctx context.Context, jid string) ([]storage.DBVertex, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, jid, cluster, name, parallelism, max_parallelism,
+			status, start_time, end_time, duration_ms,
+			read_bytes, write_bytes, read_records, write_records, captured_at
+		FROM vertices
+		WHERE jid = $1
+		ORDER BY name
+	`, jid)
+	if err != nil {
+		return nil, fmt.Errorf("query vertices for job %s: %w", jid, err)
+	}
+	defer rows.Close()
+
+	var vertices []storage.DBVertex
+	for rows.Next() {
+		var v storage.DBVertex
+		if err := rows.Scan(
+			&v.ID, &v.JID, &v.Cluster, &v.Name, &v.Parallelism, &v.MaxParallelism,
+			&v.Status, &v.StartTime, &v.EndTime, &v.DurationMs,
+			&v.ReadBytes, &v.WriteBytes, &v.ReadRecords, &v.WriteRecords, &v.CapturedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan vertex row: %w", err)
+		}
+		vertices = append(vertices, v)
+	}
+	return vertices, rows.Err()
 }
 
 // QueryJobs returns jobs matching the filter with cursor-based pagination.
@@ -239,4 +299,35 @@ func decodeCursor(cursor string) (time.Time, string, error) {
 		return time.Time{}, "", fmt.Errorf("parse cursor time: %w", err)
 	}
 	return t, parts[1], nil
+}
+
+// UpsertJobSnapshot stores a JSONB snapshot of the full JobDetailAggregate.
+// Only updates the detail_snapshot column on an existing row.
+func (s *JobStore) UpsertJobSnapshot(ctx context.Context, jid, cluster string, snapshot json.RawMessage) error {
+	_, err := s.pool.Exec(ctx, `
+		UPDATE jobs SET detail_snapshot = $1
+		WHERE jid = $2 AND cluster = $3
+	`, snapshot, jid, cluster)
+	if err != nil {
+		return fmt.Errorf("upsert job snapshot %s/%s: %w", cluster, jid, err)
+	}
+	return nil
+}
+
+// GetJobSnapshot returns the JSONB snapshot for a job. Returns nil if not found or no snapshot.
+func (s *JobStore) GetJobSnapshot(ctx context.Context, jid string) (json.RawMessage, error) {
+	row := s.pool.QueryRow(ctx, `
+		SELECT detail_snapshot FROM jobs
+		WHERE jid = $1 AND detail_snapshot IS NOT NULL
+		LIMIT 1
+	`, jid)
+
+	var snapshot json.RawMessage
+	if err := row.Scan(&snapshot); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get job snapshot %s: %w", jid, err)
+	}
+	return snapshot, nil
 }

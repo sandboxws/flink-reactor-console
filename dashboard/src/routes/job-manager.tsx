@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { AlertCircle } from "lucide-react"
 import { useEffect } from "react"
 import { JobManagerPage } from "@/components/job-manager/job-manager-page"
-import { EmptyState } from "@/components/shared/empty-state"
+import { EmptyState } from "@flink-reactor/ui"
 import { useClusterStore } from "@/stores/cluster-store"
 
 export const Route = createFileRoute("/job-manager")({

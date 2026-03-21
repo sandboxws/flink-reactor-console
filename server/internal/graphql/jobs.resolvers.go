@@ -7,8 +7,11 @@ package graphql
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 
+	"github.com/sandboxws/flink-reactor/apps/server/internal/connector"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
@@ -23,6 +26,58 @@ func (r *mutationResolver) CancelJob(ctx context.Context, id string, cluster *st
 		return &model.CancelJobResult{Success: false}, err
 	}
 	return &model.CancelJobResult{Success: true}, nil
+}
+
+// TriggerSavepoint is the resolver for the triggerSavepoint field.
+func (r *mutationResolver) TriggerSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	targetDir := ""
+	if targetDirectory != nil {
+		targetDir = *targetDirectory
+	}
+
+	requestID, err := conn.Service.TriggerSavepoint(ctx, jobID, targetDir)
+	if err != nil {
+		return nil, err
+	}
+	return &model.SavepointTriggerResult{RequestID: requestID}, nil
+}
+
+// StopJobWithSavepoint is the resolver for the stopJobWithSavepoint field.
+func (r *mutationResolver) StopJobWithSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	targetDir := ""
+	if targetDirectory != nil {
+		targetDir = *targetDirectory
+	}
+
+	requestID, err := conn.Service.StopWithSavepoint(ctx, jobID, targetDir)
+	if err != nil {
+		return nil, err
+	}
+	return &model.SavepointTriggerResult{RequestID: requestID}, nil
+}
+
+// RescaleJob is the resolver for the rescaleJob field.
+func (r *mutationResolver) RescaleJob(ctx context.Context, jobID string, newParallelism int, cluster *string) (*model.RescaleResult, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	requestID, err := conn.Service.RescaleJob(ctx, jobID, newParallelism)
+	if err != nil {
+		return nil, err
+	}
+	return &model.RescaleResult{RequestID: requestID}, nil
 }
 
 // Jobs is the resolver for the jobs field.
@@ -73,160 +128,34 @@ func (r *queryResolver) Job(ctx context.Context, id string, cluster *string) (*m
 
 	agg, err := conn.Service.GetJobDetail(ctx, id)
 	if err != nil {
+		// Flink evicts completed jobs from its runtime — fall back to DB.
+		if flink.IsNotFound(err) {
+			detail, dbErr := r.jobDetailFromDB(ctx, id)
+			if dbErr != nil {
+				return nil, dbErr
+			}
+			if detail != nil {
+				return detail, nil
+			}
+		}
 		return nil, err
 	}
 
-	job := agg.Job
+	detail := mapJobDetailAggregate(agg)
 
-	// Map vertices.
-	vertices := make([]*model.JobVertex, len(job.Vertices))
-	for i, v := range job.Vertices {
-		vertices[i] = mapVertex(&v)
-	}
-
-	// Map plan nodes.
-	planNodes := make([]*model.PlanNode, len(job.Plan.Nodes))
-	for i, n := range job.Plan.Nodes {
-		var inputs []*model.PlanNodeInput
-		for _, inp := range n.Inputs {
-			inputs = append(inputs, &model.PlanNodeInput{
-				Num:          inp.Num,
-				ID:           inp.ID,
-				ShipStrategy: inp.ShipStrategy,
-				Exchange:     inp.Exchange,
-			})
-		}
-		planNodes[i] = &model.PlanNode{
-			ID:               n.ID,
-			Parallelism:      n.Parallelism,
-			Operator:         n.Operator,
-			OperatorStrategy: n.OperatorStrategy,
-			Description:      n.Description,
-			Inputs:           inputs,
+	// Detect sources and sinks from job topology.
+	var manifestJSON json.RawMessage
+	if r.TapStore != nil {
+		manifest, _ := r.TapStore.ManifestByPipeline(ctx, agg.Job.Name)
+		if manifest != nil {
+			manifestJSON, _ = json.Marshal(manifest)
 		}
 	}
+	detector := connector.NewDetector()
+	refs := detector.DetectFromJob(agg, manifestJSON)
+	detail.SourcesAndSinks = mapConnectorRefs(refs, agg)
 
-	// Map exceptions.
-	var exceptions []*model.ExceptionEntry
-	if agg.Exceptions != nil {
-		for _, e := range agg.Exceptions.ExceptionHistory.Entries {
-			exceptions = append(exceptions, &model.ExceptionEntry{
-				ExceptionName: e.ExceptionName,
-				Stacktrace:    e.Stacktrace,
-				Timestamp:     i64(e.Timestamp),
-				TaskName:      e.TaskName,
-				Endpoint:      e.Endpoint,
-				TaskManagerID: e.TaskManagerID,
-			})
-		}
-	}
-
-	// Map checkpoints.
-	var checkpoints *model.CheckpointStats
-	if agg.Checkpoints != nil {
-		checkpoints = mapCheckpointStats(agg.Checkpoints)
-	}
-
-	// Map checkpoint config.
-	var cpConfig *model.CheckpointConfig
-	if agg.CheckpointConfig != nil {
-		cc := agg.CheckpointConfig
-		cpConfig = &model.CheckpointConfig{
-			Mode:                             cc.Mode,
-			Interval:                         i64(cc.Interval),
-			Timeout:                          i64(cc.Timeout),
-			MinPause:                         i64(cc.MinPause),
-			MaxConcurrent:                    cc.MaxConcurrent,
-			ExternalizedEnabled:              cc.Externalization.Enabled,
-			ExternalizedDeleteOnCancellation: cc.Externalization.DeleteOnCancellation,
-			UnalignedCheckpoints:             cc.UnalignedCheckpoints,
-		}
-	}
-
-	// Map vertex details.
-	var vertexDetails []*model.VertexDetail
-	for vid, vd := range agg.VertexDetails {
-		vertexDetails = append(vertexDetails, mapVertexDetail(vid, vd))
-	}
-
-	// Map watermarks.
-	var watermarks []*model.VertexWatermarks
-	for vid, wms := range agg.Watermarks {
-		entries := make([]*model.WatermarkEntry, len(wms))
-		for i, w := range wms {
-			entries[i] = &model.WatermarkEntry{ID: w.ID, Value: w.Value}
-		}
-		watermarks = append(watermarks, &model.VertexWatermarks{
-			VertexID:   vid,
-			Watermarks: entries,
-		})
-	}
-
-	// Map backpressure.
-	var backPressure []*model.VertexBackPressure
-	for vid, bp := range agg.BackPressure {
-		subtasks := make([]*model.SubtaskBackPressure, len(bp.Subtasks))
-		for i, s := range bp.Subtasks {
-			subtasks[i] = &model.SubtaskBackPressure{
-				Subtask:           s.Subtask,
-				AttemptNumber:     s.AttemptNumber,
-				BackpressureLevel: s.BackpressureLevel,
-				Ratio:             s.Ratio,
-				BusyRatio:         s.BusyRatio,
-				IdleRatio:         s.IdleRatio,
-			}
-		}
-		backPressure = append(backPressure, &model.VertexBackPressure{
-			VertexID: vid,
-			BackPressure: &model.BackPressureInfo{
-				Status:            bp.Status,
-				BackpressureLevel: bp.BackpressureLevel,
-				EndTimestamp:      i64(bp.EndTimestamp),
-				Subtasks:          subtasks,
-			},
-		})
-	}
-
-	// Map accumulators.
-	var accumulators []*model.VertexAccumulators
-	for vid, acc := range agg.Accumulators {
-		entries := make([]*model.UserAccumulator, len(acc.UserAccumulators))
-		for i, a := range acc.UserAccumulators {
-			entries[i] = &model.UserAccumulator{
-				Name:  a.Name,
-				Type:  a.Type,
-				Value: a.Value,
-			}
-		}
-		accumulators = append(accumulators, &model.VertexAccumulators{
-			VertexID:     vid,
-			Accumulators: entries,
-		})
-	}
-
-	return &model.JobDetail{
-		ID:        job.JID,
-		Name:      job.Name,
-		State:     job.State,
-		StartTime: i64(job.StartTime),
-		EndTime:   i64(job.EndTime),
-		Duration:  i64(job.Duration),
-		Now:       i64(job.Now),
-		Vertices:  vertices,
-		Plan: &model.JobPlan{
-			Jid:   job.Plan.JID,
-			Name:  job.Plan.Name,
-			Type:  job.Plan.Type,
-			Nodes: planNodes,
-		},
-		Exceptions:       exceptions,
-		Checkpoints:      checkpoints,
-		CheckpointConfig: cpConfig,
-		VertexDetails:    vertexDetails,
-		Watermarks:       watermarks,
-		BackPressure:     backPressure,
-		Accumulators:     accumulators,
-	}, nil
+	return detail, nil
 }
 
 // VertexDetail is the resolver for the vertexDetail field.

@@ -1,0 +1,103 @@
+{
+  "type": "BATCH",
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: FileSource",
+      "pact": "Data Source",
+      "contents": "Source: FileSource(path=[s3://ml-data/user_interactions/], format=[parquet])",
+      "parallelism": 32
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, item_id, interaction_type, interaction_time, duration_seconds])",
+      "parallelism": 32,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "HashAggregate",
+      "pact": "Operator",
+      "contents": "HashAggregate(groupBy=[user_id], select=[user_id, COUNT(*) AS total_interactions, COUNT(DISTINCT item_id) AS unique_items, SUM(duration_seconds) AS total_duration, AVG(duration_seconds) AS avg_duration])",
+      "parallelism": 32,
+      "predecessors": [
+        { "id": 2, "ship_strategy": "HASH", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "Sink: FileSystemSink",
+      "pact": "Data Sink",
+      "contents": "Sink: FileSystemSink(path=[s3://ml-features/user_engagement_features/], format=[parquet])",
+      "parallelism": 8,
+      "predecessors": [
+        {
+          "id": 3,
+          "ship_strategy": "REBALANCE",
+          "exchange": "pipelined_bounded"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "HashAggregate",
+      "pact": "Operator",
+      "contents": "HashAggregate(groupBy=[item_id], select=[item_id, COUNT(*) AS view_count, COUNT(DISTINCT user_id) AS unique_viewers, SUM(CASE WHEN interaction_type = 'purchase' THEN 1 ELSE 0 END) AS purchase_count])",
+      "parallelism": 32,
+      "predecessors": [
+        { "id": 2, "ship_strategy": "HASH", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[item_id, view_count, unique_viewers, purchase_count, (CAST(purchase_count AS DOUBLE) / CAST(view_count AS DOUBLE)) AS conversion_rate])",
+      "parallelism": 32,
+      "predecessors": [
+        { "id": 5, "ship_strategy": "FORWARD", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "Sink: FileSystemSink",
+      "pact": "Data Sink",
+      "contents": "Sink: FileSystemSink(path=[s3://ml-features/item_popularity_features/], format=[parquet])",
+      "parallelism": 8,
+      "predecessors": [
+        {
+          "id": 6,
+          "ship_strategy": "REBALANCE",
+          "exchange": "pipelined_bounded"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "HashAggregate",
+      "pact": "Operator",
+      "contents": "HashAggregate(groupBy=[user_id, item_id], select=[user_id, item_id, COUNT(*) AS interaction_count, MAX(interaction_time) AS last_interaction])",
+      "parallelism": 32,
+      "predecessors": [
+        { "id": 2, "ship_strategy": "HASH", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "Sink: FileSystemSink",
+      "pact": "Data Sink",
+      "contents": "Sink: FileSystemSink(path=[s3://ml-features/user_item_pairs/], format=[parquet])",
+      "parallelism": 8,
+      "predecessors": [
+        {
+          "id": 8,
+          "ship_strategy": "REBALANCE",
+          "exchange": "pipelined_bounded"
+        }
+      ]
+    }
+  ],
+  "_comment": "BOUNDED ML FEATURE PIPELINE: User interactions to 3 feature tables - user features, item features, user-item pairs"
+}

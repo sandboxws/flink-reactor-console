@@ -204,6 +204,18 @@ type ColumnInfo struct {
 	Type string `json:"type"`
 }
 
+// I/O throughput metrics for a connector
+type ConnectorMetrics struct {
+	// Records read (for sources)
+	RecordsRead string `json:"recordsRead"`
+	// Records written (for sinks)
+	RecordsWritten string `json:"recordsWritten"`
+	// Bytes read
+	BytesRead string `json:"bytesRead"`
+	// Bytes written
+	BytesWritten string `json:"bytesWritten"`
+}
+
 type DashboardConfig struct {
 	Clusters    []string `json:"clusters"`
 	Instruments []string `json:"instruments"`
@@ -409,6 +421,26 @@ type JarUploadResult struct {
 	Status   string `json:"status"`
 }
 
+// Detected source or sink connector for a job
+type JobConnector struct {
+	// Flink vertex ID
+	VertexID string `json:"vertexId"`
+	// Vertex or component name
+	VertexName string `json:"vertexName"`
+	// Connector technology: kafka, iceberg, paimon, jdbc, filesystem, unknown
+	ConnectorType string `json:"connectorType"`
+	// Role in the pipeline: source or sink
+	Role string `json:"role"`
+	// Primary resource identifier (topic, table, path)
+	Resource string `json:"resource"`
+	// Detection confidence 0.0-1.0
+	Confidence float64 `json:"confidence"`
+	// How the connector was detected: manifest, vertex_name, plan_node
+	DetectionMethod string `json:"detectionMethod"`
+	// I/O metrics for this connector's vertex
+	Metrics *ConnectorMetrics `json:"metrics,omitempty"`
+}
+
 type JobDetail struct {
 	ID               string                `json:"id"`
 	Name             string                `json:"name"`
@@ -426,6 +458,8 @@ type JobDetail struct {
 	Watermarks       []*VertexWatermarks   `json:"watermarks,omitempty"`
 	BackPressure     []*VertexBackPressure `json:"backPressure,omitempty"`
 	Accumulators     []*VertexAccumulators `json:"accumulators,omitempty"`
+	// Detected sources and sinks for this job
+	SourcesAndSinks []*JobConnector `json:"sourcesAndSinks"`
 }
 
 // Connection type for paginated job history results.
@@ -702,7 +736,21 @@ type PlanNodeInput struct {
 	Exchange     string `json:"exchange"`
 }
 
+// Result of a single pre-flight check for simulation readiness.
+type PreflightCheck struct {
+	ID       string  `json:"id"`
+	Label    string  `json:"label"`
+	Status   string  `json:"status"`
+	Detail   *string `json:"detail,omitempty"`
+	Fix      *string `json:"fix,omitempty"`
+	Required bool    `json:"required"`
+}
+
 type Query struct {
+}
+
+type RescaleResult struct {
+	RequestID string `json:"requestId"`
 }
 
 type SQLCloseResult struct {
@@ -713,6 +761,12 @@ type SQLCloseResult struct {
 type SQLColumn struct {
 	Name     string `json:"name"`
 	DataType string `json:"dataType"`
+}
+
+// Result of an EXPLAIN statement — returns the plan text and detected format
+type SQLExplainResult struct {
+	PlanText string `json:"planText"`
+	Format   string `json:"format"`
 }
 
 type SQLFetchResult struct {
@@ -735,6 +789,42 @@ type SQLSessionResult struct {
 
 type SQLStatementResult struct {
 	OperationHandle string `json:"operationHandle"`
+}
+
+type SavepointTriggerResult struct {
+	RequestID string `json:"requestId"`
+}
+
+type SimulationInput struct {
+	Scenario   string         `json:"scenario"`
+	TargetJobs []string       `json:"targetJobs,omitempty"`
+	Parameters map[string]any `json:"parameters"`
+	Cluster    *string        `json:"cluster,omitempty"`
+}
+
+type SimulationObservation struct {
+	Timestamp  string  `json:"timestamp"`
+	Metric     string  `json:"metric"`
+	Value      float64 `json:"value"`
+	Annotation *string `json:"annotation,omitempty"`
+}
+
+type SimulationPreset struct {
+	Name              string         `json:"name"`
+	Description       string         `json:"description"`
+	Scenario          string         `json:"scenario"`
+	DefaultParameters map[string]any `json:"defaultParameters"`
+	Category          string         `json:"category"`
+}
+
+type SimulationRun struct {
+	ID           string                   `json:"id"`
+	Scenario     string                   `json:"scenario"`
+	Status       SimulationStatus         `json:"status"`
+	StartedAt    string                   `json:"startedAt"`
+	StoppedAt    *string                  `json:"stoppedAt,omitempty"`
+	Parameters   map[string]any           `json:"parameters"`
+	Observations []*SimulationObservation `json:"observations"`
 }
 
 // Status of the PostgreSQL historical storage backend.
@@ -1256,6 +1346,67 @@ func (e *OrderDirection) UnmarshalJSON(b []byte) error {
 }
 
 func (e OrderDirection) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type SimulationStatus string
+
+const (
+	SimulationStatusPending   SimulationStatus = "PENDING"
+	SimulationStatusRunning   SimulationStatus = "RUNNING"
+	SimulationStatusCompleted SimulationStatus = "COMPLETED"
+	SimulationStatusFailed    SimulationStatus = "FAILED"
+	SimulationStatusCancelled SimulationStatus = "CANCELLED"
+)
+
+var AllSimulationStatus = []SimulationStatus{
+	SimulationStatusPending,
+	SimulationStatusRunning,
+	SimulationStatusCompleted,
+	SimulationStatusFailed,
+	SimulationStatusCancelled,
+}
+
+func (e SimulationStatus) IsValid() bool {
+	switch e {
+	case SimulationStatusPending, SimulationStatusRunning, SimulationStatusCompleted, SimulationStatusFailed, SimulationStatusCancelled:
+		return true
+	}
+	return false
+}
+
+func (e SimulationStatus) String() string {
+	return string(e)
+}
+
+func (e *SimulationStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SimulationStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SimulationStatus", str)
+	}
+	return nil
+}
+
+func (e SimulationStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SimulationStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SimulationStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

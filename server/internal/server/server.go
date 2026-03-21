@@ -25,6 +25,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/metrics"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/simulation"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
@@ -36,8 +37,8 @@ type Config struct {
 	// Empty string disables SPA serving.
 	StaticDir string
 
-	// TapLoader provides tap pipeline manifests. May be nil.
-	TapLoader *tap.Loader
+	// TapStore provides DB-backed tap pipeline manifests. May be nil.
+	TapStore *tap.Store
 
 	// StoragePool is the PostgreSQL connection pool. May be nil when storage is disabled.
 	StoragePool *pgxpool.Pool
@@ -47,6 +48,9 @@ type Config struct {
 
 	// Stores provides typed access to PostgreSQL sub-stores. May be nil when storage is disabled.
 	Stores *store.Stores
+
+	// SimulationEngine manages chaos engineering simulations. May be nil when storage is disabled.
+	SimulationEngine *simulation.Engine
 }
 
 // Server wraps an Echo server with middleware and health endpoints.
@@ -172,12 +176,13 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	resolver := &graphql.Resolver{
 		Manager:            manager,
 		InstrumentRegistry: registry,
-		TapLoader:          cfg.TapLoader,
+		TapStore:           cfg.TapStore,
 		CatalogService:     catalogService,
 		CatalogInitDDL:     catalogInitDDL,
 		Stores:             cfg.Stores,
 		StoragePool:        cfg.StoragePool,
 		StorageConfig:      cfg.StorageConfig,
+		SimulationEngine:   cfg.SimulationEngine,
 	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
@@ -201,6 +206,9 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	// Metrics proxy endpoints (JSON, not GraphQL).
 	metrics.Register(e, manager)
 
+	// Tap manifest endpoint (serves DSL-generated tap manifests by pipeline name).
+	tap.Register(e, cfg.TapStore)
+
 	// SPA static file handler (registered last as catch-all).
 	if cfg.StaticDir != "" {
 		spa.Register(e, spa.Config{StaticDir: cfg.StaticDir}, logger)
@@ -223,10 +231,10 @@ func WithStaticDir(dir string) Option {
 	}
 }
 
-// WithTapLoader sets the tap manifest loader on the GraphQL resolver.
-func WithTapLoader(loader *tap.Loader) Option {
+// WithTapStore sets the DB-backed tap manifest store.
+func WithTapStore(s *tap.Store) Option {
 	return func(c *Config) {
-		c.TapLoader = loader
+		c.TapStore = s
 	}
 }
 
@@ -242,6 +250,13 @@ func WithStoragePool(pool *pgxpool.Pool, storageCfg config.StorageConfig) Option
 func WithStores(stores *store.Stores) Option {
 	return func(c *Config) {
 		c.Stores = stores
+	}
+}
+
+// WithSimulationEngine sets the simulation engine for the GraphQL resolver.
+func WithSimulationEngine(engine *simulation.Engine) Option {
+	return func(c *Config) {
+		c.SimulationEngine = engine
 	}
 }
 

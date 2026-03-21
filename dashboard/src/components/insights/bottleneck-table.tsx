@@ -1,5 +1,3 @@
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
-import { useState } from "react"
 import {
   Table,
   TableBody,
@@ -7,7 +5,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@flink-reactor/ui"
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
+import { useState } from "react"
 import type { BottleneckScore } from "@/data/bottleneck-analyzer"
 import { cn } from "@/lib/cn"
 

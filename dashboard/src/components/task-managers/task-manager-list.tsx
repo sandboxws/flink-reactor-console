@@ -1,7 +1,3 @@
-import { useNavigate } from "@tanstack/react-router"
-import { formatDistanceToNow } from "date-fns"
-import { ArrowDown, ArrowUp, ArrowUpDown, Check, Copy } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   Table,
   TableBody,
@@ -9,13 +5,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@flink-reactor/ui"
+import { useNavigate } from "@tanstack/react-router"
+import { formatDistanceToNow } from "date-fns"
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, Copy } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import type { TaskManager } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 import { MemoryBar } from "./memory-bar"

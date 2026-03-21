@@ -1,5 +1,5 @@
-import { Link, useLocation } from "@tanstack/react-router"
 import { InstrumentSidebarSection } from "@flink-reactor/instruments-ui"
+import { Link, useLocation } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
@@ -131,6 +131,13 @@ const NAV_GROUPS: NavGroup[] = [
         label: "Synthesis Sandbox",
         icon: FlaskConical,
       },
+    ],
+  },
+  {
+    label: "Admin",
+    items: [
+      { href: "/admin/simulations", label: "Simulations", icon: FlaskConical },
+      { href: "/admin/benchmarks", label: "Benchmarks", icon: BarChart3 },
     ],
   },
 ]

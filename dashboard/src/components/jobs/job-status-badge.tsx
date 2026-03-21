@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@flink-reactor/ui"
 import type { JobStatus } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 

@@ -22,7 +22,15 @@ export interface PropEntry {
 export interface ComponentEntry {
   readonly name: string
   readonly description: string
-  readonly category: "source" | "sink" | "transform" | "join" | "window" | "container" | "catalog" | "utility"
+  readonly category:
+    | "source"
+    | "sink"
+    | "transform"
+    | "join"
+    | "window"
+    | "container"
+    | "catalog"
+    | "utility"
   readonly props: readonly PropEntry[]
 }
 
@@ -50,17 +58,86 @@ export const components: readonly ComponentEntry[] = [
     description: "Reads from an Apache Kafka topic",
     category: "source",
     props: [
-      { name: "topic", type: "string", required: true, description: "Kafka topic name" },
-      { name: "schema", type: "SchemaDefinition", required: true, description: "Schema describing the message fields" },
-      { name: "name", type: "string", required: false, description: "SQL table name (defaults to topic)" },
-      { name: "bootstrapServers", type: "string", required: false, description: "Kafka bootstrap servers" },
-      { name: "format", type: "KafkaFormat", required: false, description: "Message format", enumValues: ["json", "avro", "csv", "debezium-json", "canal-json", "maxwell-json"] },
-      { name: "watermark", type: "WatermarkDeclaration", required: false, description: "Watermark declaration" },
-      { name: "startupMode", type: "KafkaStartupMode", required: false, description: "Where to start reading", enumValues: ["latest-offset", "earliest-offset", "group-offsets", "timestamp"] },
-      { name: "consumerGroup", type: "string", required: false, description: "Consumer group ID" },
-      { name: "primaryKey", type: "string[]", required: false, description: "Primary key columns" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "topic",
+        type: "string",
+        required: true,
+        description: "Kafka topic name",
+      },
+      {
+        name: "schema",
+        type: "SchemaDefinition",
+        required: true,
+        description: "Schema describing the message fields",
+      },
+      {
+        name: "name",
+        type: "string",
+        required: false,
+        description: "SQL table name (defaults to topic)",
+      },
+      {
+        name: "bootstrapServers",
+        type: "string",
+        required: false,
+        description: "Kafka bootstrap servers",
+      },
+      {
+        name: "format",
+        type: "KafkaFormat",
+        required: false,
+        description: "Message format",
+        enumValues: [
+          "json",
+          "avro",
+          "csv",
+          "debezium-json",
+          "canal-json",
+          "maxwell-json",
+        ],
+      },
+      {
+        name: "watermark",
+        type: "WatermarkDeclaration",
+        required: false,
+        description: "Watermark declaration",
+      },
+      {
+        name: "startupMode",
+        type: "KafkaStartupMode",
+        required: false,
+        description: "Where to start reading",
+        enumValues: [
+          "latest-offset",
+          "earliest-offset",
+          "group-offsets",
+          "timestamp",
+        ],
+      },
+      {
+        name: "consumerGroup",
+        type: "string",
+        required: false,
+        description: "Consumer group ID",
+      },
+      {
+        name: "primaryKey",
+        type: "string[]",
+        required: false,
+        description: "Primary key columns",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -68,13 +145,48 @@ export const components: readonly ComponentEntry[] = [
     description: "Reads from a relational database via JDBC",
     category: "source",
     props: [
-      { name: "url", type: "string", required: true, description: "JDBC connection URL" },
-      { name: "table", type: "string", required: true, description: "Database table name" },
-      { name: "schema", type: "SchemaDefinition", required: true, description: "Schema describing the table fields" },
-      { name: "name", type: "string", required: false, description: "SQL table name (defaults to JDBC table)" },
-      { name: "lookupCache", type: "LookupCacheConfig", required: false, description: "Lookup cache for dimension tables" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "url",
+        type: "string",
+        required: true,
+        description: "JDBC connection URL",
+      },
+      {
+        name: "table",
+        type: "string",
+        required: true,
+        description: "Database table name",
+      },
+      {
+        name: "schema",
+        type: "SchemaDefinition",
+        required: true,
+        description: "Schema describing the table fields",
+      },
+      {
+        name: "name",
+        type: "string",
+        required: false,
+        description: "SQL table name (defaults to JDBC table)",
+      },
+      {
+        name: "lookupCache",
+        type: "LookupCacheConfig",
+        required: false,
+        description: "Lookup cache for dimension tables",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -82,13 +194,48 @@ export const components: readonly ComponentEntry[] = [
     description: "Escape hatch for any Flink SQL connector",
     category: "source",
     props: [
-      { name: "connector", type: "string", required: true, description: "Flink connector identifier" },
-      { name: "schema", type: "SchemaDefinition", required: true, description: "Output schema" },
-      { name: "name", type: "string", required: false, description: "SQL table name" },
-      { name: "format", type: "string", required: false, description: "Data format" },
-      { name: "options", type: "Record<string, string>", required: false, description: "Connector options" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "connector",
+        type: "string",
+        required: true,
+        description: "Flink connector identifier",
+      },
+      {
+        name: "schema",
+        type: "SchemaDefinition",
+        required: true,
+        description: "Output schema",
+      },
+      {
+        name: "name",
+        type: "string",
+        required: false,
+        description: "SQL table name",
+      },
+      {
+        name: "format",
+        type: "string",
+        required: false,
+        description: "Data format",
+      },
+      {
+        name: "options",
+        type: "Record<string, string>",
+        required: false,
+        description: "Connector options",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -96,10 +243,30 @@ export const components: readonly ComponentEntry[] = [
     description: "Reads from a pre-existing table in a registered catalog",
     category: "source",
     props: [
-      { name: "catalog", type: "CatalogHandle", required: true, description: "Catalog handle reference" },
-      { name: "database", type: "string", required: true, description: "Database name in the catalog" },
-      { name: "table", type: "string", required: true, description: "Table name in the database" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "catalog",
+        type: "CatalogHandle",
+        required: true,
+        description: "Catalog handle reference",
+      },
+      {
+        name: "database",
+        type: "string",
+        required: true,
+        description: "Database name in the catalog",
+      },
+      {
+        name: "table",
+        type: "string",
+        required: true,
+        description: "Table name in the database",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
 
@@ -109,12 +276,43 @@ export const components: readonly ComponentEntry[] = [
     description: "Writes to an Apache Kafka topic",
     category: "sink",
     props: [
-      { name: "topic", type: "string", required: true, description: "Kafka topic name" },
-      { name: "name", type: "string", required: false, description: "SQL table name (defaults to topic)" },
-      { name: "format", type: "SinkFormat", required: false, description: "Message format", enumValues: ["json", "avro", "csv", "debezium-json", "canal-json"] },
-      { name: "bootstrapServers", type: "string", required: false, description: "Kafka bootstrap servers" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "topic",
+        type: "string",
+        required: true,
+        description: "Kafka topic name",
+      },
+      {
+        name: "name",
+        type: "string",
+        required: false,
+        description: "SQL table name (defaults to topic)",
+      },
+      {
+        name: "format",
+        type: "SinkFormat",
+        required: false,
+        description: "Message format",
+        enumValues: ["json", "avro", "csv", "debezium-json", "canal-json"],
+      },
+      {
+        name: "bootstrapServers",
+        type: "string",
+        required: false,
+        description: "Kafka bootstrap servers",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -122,13 +320,48 @@ export const components: readonly ComponentEntry[] = [
     description: "Writes to a relational database via JDBC",
     category: "sink",
     props: [
-      { name: "url", type: "string", required: true, description: "JDBC connection URL" },
-      { name: "table", type: "string", required: true, description: "Database table name" },
-      { name: "name", type: "string", required: false, description: "SQL table name" },
-      { name: "upsertMode", type: "boolean", required: false, description: "Enable upsert semantics" },
-      { name: "keyFields", type: "string[]", required: false, description: "Primary key columns for upsert" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "url",
+        type: "string",
+        required: true,
+        description: "JDBC connection URL",
+      },
+      {
+        name: "table",
+        type: "string",
+        required: true,
+        description: "Database table name",
+      },
+      {
+        name: "name",
+        type: "string",
+        required: false,
+        description: "SQL table name",
+      },
+      {
+        name: "upsertMode",
+        type: "boolean",
+        required: false,
+        description: "Enable upsert semantics",
+      },
+      {
+        name: "keyFields",
+        type: "string[]",
+        required: false,
+        description: "Primary key columns for upsert",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -136,13 +369,49 @@ export const components: readonly ComponentEntry[] = [
     description: "Writes to a file system path (S3, HDFS, local)",
     category: "sink",
     props: [
-      { name: "path", type: "string", required: true, description: "Output file path" },
-      { name: "name", type: "string", required: false, description: "SQL table name" },
-      { name: "format", type: "FileFormat", required: false, description: "File format", enumValues: ["parquet", "orc", "csv", "json"] },
-      { name: "partitionBy", type: "string[]", required: false, description: "Partition columns" },
-      { name: "rollingPolicy", type: "RollingPolicy", required: false, description: "File rolling policy" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "path",
+        type: "string",
+        required: true,
+        description: "Output file path",
+      },
+      {
+        name: "name",
+        type: "string",
+        required: false,
+        description: "SQL table name",
+      },
+      {
+        name: "format",
+        type: "FileFormat",
+        required: false,
+        description: "File format",
+        enumValues: ["parquet", "orc", "csv", "json"],
+      },
+      {
+        name: "partitionBy",
+        type: "string[]",
+        required: false,
+        description: "Partition columns",
+      },
+      {
+        name: "rollingPolicy",
+        type: "RollingPolicy",
+        required: false,
+        description: "File rolling policy",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -150,11 +419,36 @@ export const components: readonly ComponentEntry[] = [
     description: "Escape hatch for any Flink SQL sink connector",
     category: "sink",
     props: [
-      { name: "connector", type: "string", required: true, description: "Flink connector identifier" },
-      { name: "name", type: "string", required: false, description: "SQL table name" },
-      { name: "options", type: "Record<string, string>", required: false, description: "Connector options" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "connector",
+        type: "string",
+        required: true,
+        description: "Flink connector identifier",
+      },
+      {
+        name: "name",
+        type: "string",
+        required: false,
+        description: "SQL table name",
+      },
+      {
+        name: "options",
+        type: "Record<string, string>",
+        required: false,
+        description: "Connector options",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -162,15 +456,62 @@ export const components: readonly ComponentEntry[] = [
     description: "Writes to an Apache Paimon lakehouse table",
     category: "sink",
     props: [
-      { name: "catalog", type: "CatalogHandle", required: true, description: "Paimon catalog handle" },
-      { name: "database", type: "string", required: true, description: "Database name" },
-      { name: "table", type: "string", required: true, description: "Table name" },
-      { name: "primaryKey", type: "string[]", required: false, description: "Primary key columns" },
-      { name: "mergeEngine", type: "PaimonMergeEngine", required: false, description: "Merge engine", enumValues: ["deduplicate", "partial-update", "aggregation"] },
-      { name: "changelogProducer", type: "PaimonChangelogProducer", required: false, description: "Changelog producer", enumValues: ["input", "lookup", "full-compaction"] },
-      { name: "sequenceField", type: "string", required: false, description: "Sequence field for ordering" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "catalog",
+        type: "CatalogHandle",
+        required: true,
+        description: "Paimon catalog handle",
+      },
+      {
+        name: "database",
+        type: "string",
+        required: true,
+        description: "Database name",
+      },
+      {
+        name: "table",
+        type: "string",
+        required: true,
+        description: "Table name",
+      },
+      {
+        name: "primaryKey",
+        type: "string[]",
+        required: false,
+        description: "Primary key columns",
+      },
+      {
+        name: "mergeEngine",
+        type: "PaimonMergeEngine",
+        required: false,
+        description: "Merge engine",
+        enumValues: ["deduplicate", "partial-update", "aggregation"],
+      },
+      {
+        name: "changelogProducer",
+        type: "PaimonChangelogProducer",
+        required: false,
+        description: "Changelog producer",
+        enumValues: ["input", "lookup", "full-compaction"],
+      },
+      {
+        name: "sequenceField",
+        type: "string",
+        required: false,
+        description: "Sequence field for ordering",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -178,14 +519,54 @@ export const components: readonly ComponentEntry[] = [
     description: "Writes to an Apache Iceberg table",
     category: "sink",
     props: [
-      { name: "catalog", type: "CatalogHandle", required: true, description: "Iceberg catalog handle" },
-      { name: "database", type: "string", required: true, description: "Database name" },
-      { name: "table", type: "string", required: true, description: "Table name" },
-      { name: "primaryKey", type: "string[]", required: false, description: "Primary key columns" },
-      { name: "formatVersion", type: "1 | 2", required: false, description: "Iceberg format version" },
-      { name: "upsertEnabled", type: "boolean", required: false, description: "Enable upsert support (requires format v2)" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "catalog",
+        type: "CatalogHandle",
+        required: true,
+        description: "Iceberg catalog handle",
+      },
+      {
+        name: "database",
+        type: "string",
+        required: true,
+        description: "Database name",
+      },
+      {
+        name: "table",
+        type: "string",
+        required: true,
+        description: "Table name",
+      },
+      {
+        name: "primaryKey",
+        type: "string[]",
+        required: false,
+        description: "Primary key columns",
+      },
+      {
+        name: "formatVersion",
+        type: "1 | 2",
+        required: false,
+        description: "Iceberg format version",
+      },
+      {
+        name: "upsertEnabled",
+        type: "boolean",
+        required: false,
+        description: "Enable upsert support (requires format v2)",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
 
@@ -195,9 +576,24 @@ export const components: readonly ComponentEntry[] = [
     description: "Passes through only rows matching the SQL condition",
     category: "transform",
     props: [
-      { name: "condition", type: "string", required: true, description: "SQL WHERE expression" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "condition",
+        type: "string",
+        required: true,
+        description: "SQL WHERE expression",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -205,9 +601,24 @@ export const components: readonly ComponentEntry[] = [
     description: "Projects and transforms fields via SQL SELECT expressions",
     category: "transform",
     props: [
-      { name: "select", type: "Record<string, string>", required: true, description: "Output field name to SQL expression" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "select",
+        type: "Record<string, string>",
+        required: true,
+        description: "Output field name to SQL expression",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -215,10 +626,30 @@ export const components: readonly ComponentEntry[] = [
     description: "Expands array/map columns via CROSS JOIN UNNEST",
     category: "transform",
     props: [
-      { name: "unnest", type: "string", required: true, description: "Field name to expand" },
-      { name: "as", type: "Record<string, FlinkType>", required: true, description: "Output field schema for unnested elements" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "unnest",
+        type: "string",
+        required: true,
+        description: "Field name to expand",
+      },
+      {
+        name: "as",
+        type: "Record<string, FlinkType>",
+        required: true,
+        description: "Output field schema for unnested elements",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -226,10 +657,30 @@ export const components: readonly ComponentEntry[] = [
     description: "Groups rows and computes aggregate expressions",
     category: "transform",
     props: [
-      { name: "groupBy", type: "string[]", required: true, description: "Fields to group by" },
-      { name: "select", type: "Record<string, string>", required: true, description: "Output fields to aggregate expressions" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "groupBy",
+        type: "string[]",
+        required: true,
+        description: "Fields to group by",
+      },
+      {
+        name: "select",
+        type: "Record<string, string>",
+        required: true,
+        description: "Output fields to aggregate expressions",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -237,9 +688,24 @@ export const components: readonly ComponentEntry[] = [
     description: "Merges multiple same-schema streams via UNION ALL",
     category: "transform",
     props: [
-      { name: "inputs", type: "SchemaDefinition[]", required: false, description: "Input schemas for compatibility validation" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "inputs",
+        type: "SchemaDefinition[]",
+        required: false,
+        description: "Input schemas for compatibility validation",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -247,11 +713,37 @@ export const components: readonly ComponentEntry[] = [
     description: "First-row or last-row deduplication using ROW_NUMBER()",
     category: "transform",
     props: [
-      { name: "key", type: "string[]", required: true, description: "Deduplication key fields" },
-      { name: "order", type: "string", required: true, description: "Field to order by for selecting which row to keep" },
-      { name: "keep", type: '"first" | "last"', required: true, description: "Keep the first or last row per key", enumValues: ["first", "last"] },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "key",
+        type: "string[]",
+        required: true,
+        description: "Deduplication key fields",
+      },
+      {
+        name: "order",
+        type: "string",
+        required: true,
+        description: "Field to order by for selecting which row to keep",
+      },
+      {
+        name: "keep",
+        type: '"first" | "last"',
+        required: true,
+        description: "Keep the first or last row per key",
+        enumValues: ["first", "last"],
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -259,11 +751,36 @@ export const components: readonly ComponentEntry[] = [
     description: "Ranking within partitions using ROW_NUMBER()",
     category: "transform",
     props: [
-      { name: "partitionBy", type: "string[]", required: true, description: "Fields to partition the ranking by" },
-      { name: "orderBy", type: 'Record<string, "ASC" | "DESC">', required: true, description: "Ordering specification" },
-      { name: "n", type: "number", required: true, description: "Number of top rows to keep per partition" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "partitionBy",
+        type: "string[]",
+        required: true,
+        description: "Fields to partition the ranking by",
+      },
+      {
+        name: "orderBy",
+        type: 'Record<string, "ASC" | "DESC">',
+        required: true,
+        description: "Ordering specification",
+      },
+      {
+        name: "n",
+        type: "number",
+        required: true,
+        description: "Number of top rows to keep per partition",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -271,8 +788,18 @@ export const components: readonly ComponentEntry[] = [
     description: "Renames one or more fields in the upstream schema",
     category: "transform",
     props: [
-      { name: "columns", type: "Record<string, string>", required: true, description: "Current field name to new field name" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "columns",
+        type: "Record<string, string>",
+        required: true,
+        description: "Current field name to new field name",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -280,8 +807,18 @@ export const components: readonly ComponentEntry[] = [
     description: "Removes one or more fields from the upstream schema",
     category: "transform",
     props: [
-      { name: "columns", type: "string[]", required: true, description: "Field names to exclude" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "columns",
+        type: "string[]",
+        required: true,
+        description: "Field names to exclude",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -289,9 +826,24 @@ export const components: readonly ComponentEntry[] = [
     description: "Changes the type of one or more fields",
     category: "transform",
     props: [
-      { name: "columns", type: "Record<string, FlinkType>", required: true, description: "Field name to target Flink SQL type" },
-      { name: "safe", type: "boolean", required: false, description: "Use TRY_CAST instead of CAST" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "columns",
+        type: "Record<string, FlinkType>",
+        required: true,
+        description: "Field name to target Flink SQL type",
+      },
+      {
+        name: "safe",
+        type: "boolean",
+        required: false,
+        description: "Use TRY_CAST instead of CAST",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -299,8 +851,18 @@ export const components: readonly ComponentEntry[] = [
     description: "Provides default values for nullable fields",
     category: "transform",
     props: [
-      { name: "columns", type: "Record<string, string>", required: true, description: "Field name to default SQL expression" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "columns",
+        type: "Record<string, string>",
+        required: true,
+        description: "Field name to default SQL expression",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -308,9 +870,24 @@ export const components: readonly ComponentEntry[] = [
     description: "Appends computed fields to the upstream schema",
     category: "transform",
     props: [
-      { name: "columns", type: "Record<string, string>", required: true, description: "New field name to SQL expression" },
-      { name: "types", type: "Record<string, FlinkType>", required: false, description: "Type hints for the new fields" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "columns",
+        type: "Record<string, string>",
+        required: true,
+        description: "New field name to SQL expression",
+      },
+      {
+        name: "types",
+        type: "Record<string, FlinkType>",
+        required: false,
+        description: "Type hints for the new fields",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
 
@@ -320,27 +897,99 @@ export const components: readonly ComponentEntry[] = [
     description: "Regular stream-to-stream join",
     category: "join",
     props: [
-      { name: "left", type: "ConstructNode", required: true, description: "Left input stream" },
-      { name: "right", type: "ConstructNode", required: true, description: "Right input stream" },
-      { name: "on", type: "string", required: true, description: "SQL join condition" },
-      { name: "type", type: "JoinType", required: false, description: "Join type", enumValues: ["inner", "left", "right", "full", "anti", "semi"] },
-      { name: "hints", type: "JoinHints", required: false, description: "Query hints for join optimization" },
-      { name: "stateTtl", type: "string", required: false, description: "State TTL for join state expiry" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "left",
+        type: "ConstructNode",
+        required: true,
+        description: "Left input stream",
+      },
+      {
+        name: "right",
+        type: "ConstructNode",
+        required: true,
+        description: "Right input stream",
+      },
+      {
+        name: "on",
+        type: "string",
+        required: true,
+        description: "SQL join condition",
+      },
+      {
+        name: "type",
+        type: "JoinType",
+        required: false,
+        description: "Join type",
+        enumValues: ["inner", "left", "right", "full", "anti", "semi"],
+      },
+      {
+        name: "hints",
+        type: "JoinHints",
+        required: false,
+        description: "Query hints for join optimization",
+      },
+      {
+        name: "stateTtl",
+        type: "string",
+        required: false,
+        description: "State TTL for join state expiry",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
     name: "TemporalJoin",
-    description: "Joins a stream against a versioned table using point-in-time lookup",
+    description:
+      "Joins a stream against a versioned table using point-in-time lookup",
     category: "join",
     props: [
-      { name: "stream", type: "ConstructNode", required: true, description: "The driving stream" },
-      { name: "temporal", type: "ConstructNode", required: true, description: "The versioned table stream" },
-      { name: "on", type: "string", required: true, description: "SQL join condition" },
-      { name: "asOf", type: "string", required: true, description: "Time attribute for FOR SYSTEM_TIME AS OF" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "stream",
+        type: "ConstructNode",
+        required: true,
+        description: "The driving stream",
+      },
+      {
+        name: "temporal",
+        type: "ConstructNode",
+        required: true,
+        description: "The versioned table stream",
+      },
+      {
+        name: "on",
+        type: "string",
+        required: true,
+        description: "SQL join condition",
+      },
+      {
+        name: "asOf",
+        type: "string",
+        required: true,
+        description: "Time attribute for FOR SYSTEM_TIME AS OF",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -348,15 +997,60 @@ export const components: readonly ComponentEntry[] = [
     description: "Enriches a stream from an external dimension table",
     category: "join",
     props: [
-      { name: "input", type: "ConstructNode", required: true, description: "The driving input stream" },
-      { name: "table", type: "string", required: true, description: "Dimension table name" },
-      { name: "url", type: "string", required: true, description: "JDBC connection URL" },
-      { name: "on", type: "string", required: true, description: "SQL join condition" },
-      { name: "select", type: "Record<string, string>", required: false, description: "Output field mapping" },
-      { name: "async", type: "LookupAsyncConfig", required: false, description: "Async lookup configuration" },
-      { name: "cache", type: "LookupCacheConfig", required: false, description: "Lookup cache configuration" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "input",
+        type: "ConstructNode",
+        required: true,
+        description: "The driving input stream",
+      },
+      {
+        name: "table",
+        type: "string",
+        required: true,
+        description: "Dimension table name",
+      },
+      {
+        name: "url",
+        type: "string",
+        required: true,
+        description: "JDBC connection URL",
+      },
+      {
+        name: "on",
+        type: "string",
+        required: true,
+        description: "SQL join condition",
+      },
+      {
+        name: "select",
+        type: "Record<string, string>",
+        required: false,
+        description: "Output field mapping",
+      },
+      {
+        name: "async",
+        type: "LookupAsyncConfig",
+        required: false,
+        description: "Async lookup configuration",
+      },
+      {
+        name: "cache",
+        type: "LookupCacheConfig",
+        required: false,
+        description: "Lookup cache configuration",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -364,13 +1058,49 @@ export const components: readonly ComponentEntry[] = [
     description: "Time-bounded stream-to-stream join",
     category: "join",
     props: [
-      { name: "left", type: "ConstructNode", required: true, description: "Left input stream" },
-      { name: "right", type: "ConstructNode", required: true, description: "Right input stream" },
-      { name: "on", type: "string", required: true, description: "SQL join condition" },
-      { name: "interval", type: "IntervalBounds", required: true, description: "Time interval bounds" },
-      { name: "type", type: "string", required: false, description: "Join type", enumValues: ["inner", "left", "right", "full"] },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "left",
+        type: "ConstructNode",
+        required: true,
+        description: "Left input stream",
+      },
+      {
+        name: "right",
+        type: "ConstructNode",
+        required: true,
+        description: "Right input stream",
+      },
+      {
+        name: "on",
+        type: "string",
+        required: true,
+        description: "SQL join condition",
+      },
+      {
+        name: "interval",
+        type: "IntervalBounds",
+        required: true,
+        description: "Time interval bounds",
+      },
+      {
+        name: "type",
+        type: "string",
+        required: false,
+        description: "Join type",
+        enumValues: ["inner", "left", "right", "full"],
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -378,13 +1108,49 @@ export const components: readonly ComponentEntry[] = [
     description: "Table-valued function join via LATERAL TABLE()",
     category: "join",
     props: [
-      { name: "input", type: "ConstructNode", required: true, description: "Upstream stream" },
-      { name: "function", type: "string", required: true, description: "TVF name" },
-      { name: "args", type: "(string | number)[]", required: true, description: "Arguments passed to the TVF" },
-      { name: "as", type: "Record<string, FlinkType>", required: true, description: "Output column names and types" },
-      { name: "type", type: "string", required: false, description: "Join type", enumValues: ["cross", "left"] },
-      { name: "outputSchema", type: "SchemaDefinition", required: false, description: "Schema of the combined output" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "input",
+        type: "ConstructNode",
+        required: true,
+        description: "Upstream stream",
+      },
+      {
+        name: "function",
+        type: "string",
+        required: true,
+        description: "TVF name",
+      },
+      {
+        name: "args",
+        type: "(string | number)[]",
+        required: true,
+        description: "Arguments passed to the TVF",
+      },
+      {
+        name: "as",
+        type: "Record<string, FlinkType>",
+        required: true,
+        description: "Output column names and types",
+      },
+      {
+        name: "type",
+        type: "string",
+        required: false,
+        description: "Join type",
+        enumValues: ["cross", "left"],
+      },
+      {
+        name: "outputSchema",
+        type: "SchemaDefinition",
+        required: false,
+        description: "Schema of the combined output",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
 
@@ -394,33 +1160,100 @@ export const components: readonly ComponentEntry[] = [
     description: "Fixed-size, non-overlapping time windows (TUMBLE TVF)",
     category: "window",
     props: [
-      { name: "size", type: "string", required: true, description: 'Window size duration (e.g. "1 hour")' },
-      { name: "on", type: "string", required: true, description: "Time attribute column" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "size",
+        type: "string",
+        required: true,
+        description: 'Window size duration (e.g. "1 hour")',
+      },
+      {
+        name: "on",
+        type: "string",
+        required: true,
+        description: "Time attribute column",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
     name: "SlideWindow",
-    description: "Overlapping time windows that advance by the slide interval (HOP TVF)",
+    description:
+      "Overlapping time windows that advance by the slide interval (HOP TVF)",
     category: "window",
     props: [
-      { name: "size", type: "string", required: true, description: 'Window size duration (e.g. "1 hour")' },
-      { name: "slide", type: "string", required: true, description: 'Slide interval (e.g. "15 minutes")' },
-      { name: "on", type: "string", required: true, description: "Time attribute column" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "size",
+        type: "string",
+        required: true,
+        description: 'Window size duration (e.g. "1 hour")',
+      },
+      {
+        name: "slide",
+        type: "string",
+        required: true,
+        description: 'Slide interval (e.g. "15 minutes")',
+      },
+      {
+        name: "on",
+        type: "string",
+        required: true,
+        description: "Time attribute column",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
     name: "SessionWindow",
-    description: "Activity-based windows that close after a gap of inactivity (SESSION TVF)",
+    description:
+      "Activity-based windows that close after a gap of inactivity (SESSION TVF)",
     category: "window",
     props: [
-      { name: "gap", type: "string", required: true, description: 'Inactivity gap duration (e.g. "30 minutes")' },
-      { name: "on", type: "string", required: true, description: "Time attribute column" },
-      { name: "tap", type: "boolean | TapConfig", required: false, description: "Enable operator tailing" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "gap",
+        type: "string",
+        required: true,
+        description: 'Inactivity gap duration (e.g. "30 minutes")',
+      },
+      {
+        name: "on",
+        type: "string",
+        required: true,
+        description: "Time attribute column",
+      },
+      {
+        name: "tap",
+        type: "boolean | TapConfig",
+        required: false,
+        description: "Enable operator tailing",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
 
@@ -430,15 +1263,62 @@ export const components: readonly ComponentEntry[] = [
     description: "Top-level pipeline wrapper with runtime configuration",
     category: "container",
     props: [
-      { name: "name", type: "string", required: true, description: "Pipeline name" },
-      { name: "mode", type: "PipelineMode", required: false, description: "Execution mode", enumValues: ["streaming", "batch"] },
-      { name: "parallelism", type: "number", required: false, description: "Default parallelism" },
-      { name: "checkpoint", type: "CheckpointConfig", required: false, description: "Checkpoint configuration" },
-      { name: "stateBackend", type: "StateBackend", required: false, description: "State backend", enumValues: ["hashmap", "rocksdb"] },
-      { name: "stateTtl", type: "string", required: false, description: "State TTL" },
-      { name: "restartStrategy", type: "RestartStrategy", required: false, description: "Restart strategy" },
-      { name: "flinkConfig", type: "Record<string, string>", required: false, description: "Extra Flink configuration" },
-      { name: "upgradeStrategy", type: "UpgradeStrategy", required: false, description: "Deployment upgrade strategy" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "Pipeline name",
+      },
+      {
+        name: "mode",
+        type: "PipelineMode",
+        required: false,
+        description: "Execution mode",
+        enumValues: ["streaming", "batch"],
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Default parallelism",
+      },
+      {
+        name: "checkpoint",
+        type: "CheckpointConfig",
+        required: false,
+        description: "Checkpoint configuration",
+      },
+      {
+        name: "stateBackend",
+        type: "StateBackend",
+        required: false,
+        description: "State backend",
+        enumValues: ["hashmap", "rocksdb"],
+      },
+      {
+        name: "stateTtl",
+        type: "string",
+        required: false,
+        description: "State TTL",
+      },
+      {
+        name: "restartStrategy",
+        type: "RestartStrategy",
+        required: false,
+        description: "Restart strategy",
+      },
+      {
+        name: "flinkConfig",
+        type: "Record<string, string>",
+        required: false,
+        description: "Extra Flink configuration",
+      },
+      {
+        name: "upgradeStrategy",
+        type: "UpgradeStrategy",
+        required: false,
+        description: "Deployment upgrade strategy",
+      },
     ],
   },
   {
@@ -446,8 +1326,18 @@ export const components: readonly ComponentEntry[] = [
     description: "Structured SQL escape hatch with JSX clause children",
     category: "container",
     props: [
-      { name: "outputSchema", type: "SchemaDefinition", required: true, description: "Output schema of the query" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "outputSchema",
+        type: "SchemaDefinition",
+        required: true,
+        description: "Output schema of the query",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -455,8 +1345,18 @@ export const components: readonly ComponentEntry[] = [
     description: "Named reusable intermediate query (CREATE VIEW)",
     category: "container",
     props: [
-      { name: "name", type: "string", required: true, description: "View name for downstream references" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "View name for downstream references",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -464,7 +1364,12 @@ export const components: readonly ComponentEntry[] = [
     description: "Conditionally splits a stream into multiple downstream paths",
     category: "container",
     props: [
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -472,20 +1377,56 @@ export const components: readonly ComponentEntry[] = [
     description: "Declarative data quality with reject routing",
     category: "container",
     props: [
-      { name: "rules", type: "ValidationRules", required: true, description: "Validation rules (notNull, range, expression)" },
-      { name: "outputSchema", type: "SchemaDefinition", required: false, description: "Schema of valid output" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "rules",
+        type: "ValidationRules",
+        required: true,
+        description: "Validation rules (notNull, range, expression)",
+      },
+      {
+        name: "outputSchema",
+        type: "SchemaDefinition",
+        required: false,
+        description: "Schema of valid output",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
     name: "SideOutput",
-    description: "Mid-pipeline tap that siphons matching records to a side sink",
+    description:
+      "Mid-pipeline tap that siphons matching records to a side sink",
     category: "container",
     props: [
-      { name: "condition", type: "string", required: true, description: "SQL predicate for matching records" },
-      { name: "tag", type: "string", required: false, description: "Label injected as _side_tag column" },
-      { name: "outputSchema", type: "SchemaDefinition", required: false, description: "Schema for side output" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "condition",
+        type: "string",
+        required: true,
+        description: "SQL predicate for matching records",
+      },
+      {
+        name: "tag",
+        type: "string",
+        required: false,
+        description: "Label injected as _side_tag column",
+      },
+      {
+        name: "outputSchema",
+        type: "SchemaDefinition",
+        required: false,
+        description: "Schema for side output",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -493,15 +1434,61 @@ export const components: readonly ComponentEntry[] = [
     description: "Declarative auto-refreshing derived table (Flink 2.0+)",
     category: "container",
     props: [
-      { name: "name", type: "string", required: true, description: "Table name" },
-      { name: "catalog", type: "CatalogHandle", required: true, description: "Target catalog handle" },
-      { name: "database", type: "string", required: false, description: "Database within the catalog" },
-      { name: "freshness", type: "string", required: false, description: 'Freshness interval (e.g. "INTERVAL \'30\' SECOND")' },
-      { name: "refreshMode", type: "string", required: false, description: "Refresh mode", enumValues: ["continuous", "full", "automatic"] },
-      { name: "comment", type: "string", required: false, description: "Human-readable comment" },
-      { name: "partitionedBy", type: "string[]", required: false, description: "Partition columns" },
-      { name: "with", type: "Record<string, string>", required: false, description: "Table options (WITH clause)" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "Table name",
+      },
+      {
+        name: "catalog",
+        type: "CatalogHandle",
+        required: true,
+        description: "Target catalog handle",
+      },
+      {
+        name: "database",
+        type: "string",
+        required: false,
+        description: "Database within the catalog",
+      },
+      {
+        name: "freshness",
+        type: "string",
+        required: false,
+        description: "Freshness interval (e.g. \"INTERVAL '30' SECOND\")",
+      },
+      {
+        name: "refreshMode",
+        type: "string",
+        required: false,
+        description: "Refresh mode",
+        enumValues: ["continuous", "full", "automatic"],
+      },
+      {
+        name: "comment",
+        type: "string",
+        required: false,
+        description: "Human-readable comment",
+      },
+      {
+        name: "partitionedBy",
+        type: "string[]",
+        required: false,
+        description: "Partition columns",
+      },
+      {
+        name: "with",
+        type: "Record<string, string>",
+        required: false,
+        description: "Table options (WITH clause)",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
 
@@ -511,10 +1498,30 @@ export const components: readonly ComponentEntry[] = [
     description: "Escape hatch that inlines arbitrary SQL into the pipeline",
     category: "utility",
     props: [
-      { name: "sql", type: "string", required: true, description: "Arbitrary SQL string" },
-      { name: "inputs", type: "ConstructNode[]", required: true, description: "Input streams referenced in the SQL" },
-      { name: "outputSchema", type: "SchemaDefinition", required: true, description: "Output schema" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "sql",
+        type: "string",
+        required: true,
+        description: "Arbitrary SQL string",
+      },
+      {
+        name: "inputs",
+        type: "ConstructNode[]",
+        required: true,
+        description: "Input streams referenced in the SQL",
+      },
+      {
+        name: "outputSchema",
+        type: "SchemaDefinition",
+        required: true,
+        description: "Output schema",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -522,10 +1529,30 @@ export const components: readonly ComponentEntry[] = [
     description: "Registers a user-defined function via CREATE FUNCTION DDL",
     category: "utility",
     props: [
-      { name: "name", type: "string", required: true, description: "Function name in Flink" },
-      { name: "className", type: "string", required: true, description: "Fully-qualified Java/Scala class" },
-      { name: "jarPath", type: "string", required: true, description: "Path to the JAR" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "Function name in Flink",
+      },
+      {
+        name: "className",
+        type: "string",
+        required: true,
+        description: "Fully-qualified Java/Scala class",
+      },
+      {
+        name: "jarPath",
+        type: "string",
+        required: true,
+        description: "Path to the JAR",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -533,14 +1560,55 @@ export const components: readonly ComponentEntry[] = [
     description: "Complex event processing via MATCH_RECOGNIZE",
     category: "utility",
     props: [
-      { name: "input", type: "ConstructNode", required: true, description: "Input stream" },
-      { name: "pattern", type: "string", required: true, description: "Row-pattern string (e.g. 'A B+ C')" },
-      { name: "define", type: "Record<string, string>", required: true, description: "Pattern variable to SQL condition" },
-      { name: "measures", type: "Record<string, string>", required: true, description: "Output column to SQL expression" },
-      { name: "after", type: "MatchAfterStrategy", required: false, description: "Match strategy after a match", enumValues: ["MATCH_RECOGNIZED", "NEXT_ROW"] },
-      { name: "partitionBy", type: "string[]", required: false, description: "Partition fields" },
-      { name: "orderBy", type: "string", required: false, description: "Order by field" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "input",
+        type: "ConstructNode",
+        required: true,
+        description: "Input stream",
+      },
+      {
+        name: "pattern",
+        type: "string",
+        required: true,
+        description: "Row-pattern string (e.g. 'A B+ C')",
+      },
+      {
+        name: "define",
+        type: "Record<string, string>",
+        required: true,
+        description: "Pattern variable to SQL condition",
+      },
+      {
+        name: "measures",
+        type: "Record<string, string>",
+        required: true,
+        description: "Output column to SQL expression",
+      },
+      {
+        name: "after",
+        type: "MatchAfterStrategy",
+        required: false,
+        description: "Match strategy after a match",
+        enumValues: ["MATCH_RECOGNIZED", "NEXT_ROW"],
+      },
+      {
+        name: "partitionBy",
+        type: "string[]",
+        required: false,
+        description: "Partition fields",
+      },
+      {
+        name: "orderBy",
+        type: "string",
+        required: false,
+        description: "Order by field",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -548,22 +1616,60 @@ export const components: readonly ComponentEntry[] = [
     description: "Escape hatch for QUALIFY clause (Flink 2.0+)",
     category: "utility",
     props: [
-      { name: "condition", type: "string", required: true, description: 'SQL expression filtering on window function alias (e.g. "rn = 1")' },
-      { name: "window", type: "string", required: false, description: "Window function expression to add to SELECT" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "condition",
+        type: "string",
+        required: true,
+        description:
+          'SQL expression filtering on window function alias (e.g. "rn = 1")',
+      },
+      {
+        name: "window",
+        type: "string",
+        required: false,
+        description: "Window function expression to add to SELECT",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
 
   // ── Catalogs ─────────────────────────────────────────────────────────
   {
     name: "PaimonCatalog",
-    description: "Registers an Apache Paimon catalog backed by a warehouse path",
+    description:
+      "Registers an Apache Paimon catalog backed by a warehouse path",
     category: "catalog",
     props: [
-      { name: "name", type: "string", required: true, description: "Catalog name" },
-      { name: "warehouse", type: "string", required: true, description: "Warehouse path" },
-      { name: "metastore", type: "string", required: false, description: "Metastore type", enumValues: ["filesystem", "hive"] },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "Catalog name",
+      },
+      {
+        name: "warehouse",
+        type: "string",
+        required: true,
+        description: "Warehouse path",
+      },
+      {
+        name: "metastore",
+        type: "string",
+        required: false,
+        description: "Metastore type",
+        enumValues: ["filesystem", "hive"],
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -571,10 +1677,31 @@ export const components: readonly ComponentEntry[] = [
     description: "Registers an Apache Iceberg catalog",
     category: "catalog",
     props: [
-      { name: "name", type: "string", required: true, description: "Catalog name" },
-      { name: "catalogType", type: "IcebergCatalogType", required: true, description: "Catalog backend", enumValues: ["hive", "hadoop", "rest"] },
-      { name: "uri", type: "string", required: true, description: "Connection URI" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "Catalog name",
+      },
+      {
+        name: "catalogType",
+        type: "IcebergCatalogType",
+        required: true,
+        description: "Catalog backend",
+        enumValues: ["hive", "hadoop", "rest"],
+      },
+      {
+        name: "uri",
+        type: "string",
+        required: true,
+        description: "Connection URI",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -582,9 +1709,24 @@ export const components: readonly ComponentEntry[] = [
     description: "Registers a Hive Metastore catalog",
     category: "catalog",
     props: [
-      { name: "name", type: "string", required: true, description: "Catalog name" },
-      { name: "hiveConfDir", type: "string", required: true, description: "Directory containing hive-site.xml" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "Catalog name",
+      },
+      {
+        name: "hiveConfDir",
+        type: "string",
+        required: true,
+        description: "Directory containing hive-site.xml",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -592,10 +1734,30 @@ export const components: readonly ComponentEntry[] = [
     description: "Registers a JDBC-based catalog (e.g., PostgreSQL, MySQL)",
     category: "catalog",
     props: [
-      { name: "name", type: "string", required: true, description: "Catalog name" },
-      { name: "baseUrl", type: "string", required: true, description: "JDBC connection URL without database name" },
-      { name: "defaultDatabase", type: "string", required: true, description: "Initial database to use" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "Catalog name",
+      },
+      {
+        name: "baseUrl",
+        type: "string",
+        required: true,
+        description: "JDBC connection URL without database name",
+      },
+      {
+        name: "defaultDatabase",
+        type: "string",
+        required: true,
+        description: "Initial database to use",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
   {
@@ -603,10 +1765,30 @@ export const components: readonly ComponentEntry[] = [
     description: "Escape hatch for any Flink SQL catalog type",
     category: "catalog",
     props: [
-      { name: "name", type: "string", required: true, description: "Catalog name" },
-      { name: "type", type: "string", required: true, description: "Catalog type identifier" },
-      { name: "options", type: "Record<string, string>", required: false, description: "Catalog options" },
-      { name: "parallelism", type: "number", required: false, description: "Operator parallelism override" },
+      {
+        name: "name",
+        type: "string",
+        required: true,
+        description: "Catalog name",
+      },
+      {
+        name: "type",
+        type: "string",
+        required: true,
+        description: "Catalog type identifier",
+      },
+      {
+        name: "options",
+        type: "Record<string, string>",
+        required: false,
+        description: "Catalog options",
+      },
+      {
+        name: "parallelism",
+        type: "number",
+        required: false,
+        description: "Operator parallelism override",
+      },
     ],
   },
 ]
@@ -621,8 +1803,18 @@ export const subComponents: readonly SubComponentEntry[] = [
     name: "Select",
     description: "SELECT clause with column expressions",
     props: [
-      { name: "columns", type: "Record<string, ColumnExpr>", required: true, description: "Output alias to expression or WindowFunctionExpr" },
-      { name: "windows", type: "Record<string, WindowSpec>", required: false, description: "Named window definitions" },
+      {
+        name: "columns",
+        type: "Record<string, ColumnExpr>",
+        required: true,
+        description: "Output alias to expression or WindowFunctionExpr",
+      },
+      {
+        name: "windows",
+        type: "Record<string, WindowSpec>",
+        required: false,
+        description: "Named window definitions",
+      },
     ],
   },
   {
@@ -630,7 +1822,12 @@ export const subComponents: readonly SubComponentEntry[] = [
     name: "Where",
     description: "WHERE clause",
     props: [
-      { name: "condition", type: "string", required: true, description: "SQL WHERE condition" },
+      {
+        name: "condition",
+        type: "string",
+        required: true,
+        description: "SQL WHERE condition",
+      },
     ],
   },
   {
@@ -638,7 +1835,12 @@ export const subComponents: readonly SubComponentEntry[] = [
     name: "GroupBy",
     description: "GROUP BY clause",
     props: [
-      { name: "columns", type: "string[]", required: true, description: "Columns to group by" },
+      {
+        name: "columns",
+        type: "string[]",
+        required: true,
+        description: "Columns to group by",
+      },
     ],
   },
   {
@@ -646,7 +1848,12 @@ export const subComponents: readonly SubComponentEntry[] = [
     name: "Having",
     description: "HAVING clause",
     props: [
-      { name: "condition", type: "string", required: true, description: "SQL HAVING condition" },
+      {
+        name: "condition",
+        type: "string",
+        required: true,
+        description: "SQL HAVING condition",
+      },
     ],
   },
   {
@@ -654,7 +1861,12 @@ export const subComponents: readonly SubComponentEntry[] = [
     name: "OrderBy",
     description: "ORDER BY clause",
     props: [
-      { name: "columns", type: 'Record<string, "ASC" | "DESC">', required: true, description: "Column to sort direction" },
+      {
+        name: "columns",
+        type: 'Record<string, "ASC" | "DESC">',
+        required: true,
+        description: "Column to sort direction",
+      },
     ],
   },
   {
@@ -662,7 +1874,12 @@ export const subComponents: readonly SubComponentEntry[] = [
     name: "Branch",
     description: "Conditional branch of a Route",
     props: [
-      { name: "condition", type: "string", required: true, description: "SQL condition expression" },
+      {
+        name: "condition",
+        type: "string",
+        required: true,
+        description: "SQL condition expression",
+      },
     ],
   },
   {
@@ -691,29 +1908,97 @@ export const subComponents: readonly SubComponentEntry[] = [
 
 export const fieldMethods: readonly FieldMethodEntry[] = [
   // Primitive types
-  { name: "BOOLEAN", signature: "Field.BOOLEAN()", description: "Boolean type" },
-  { name: "TINYINT", signature: "Field.TINYINT()", description: "8-bit integer" },
-  { name: "SMALLINT", signature: "Field.SMALLINT()", description: "16-bit integer" },
+  {
+    name: "BOOLEAN",
+    signature: "Field.BOOLEAN()",
+    description: "Boolean type",
+  },
+  {
+    name: "TINYINT",
+    signature: "Field.TINYINT()",
+    description: "8-bit integer",
+  },
+  {
+    name: "SMALLINT",
+    signature: "Field.SMALLINT()",
+    description: "16-bit integer",
+  },
   { name: "INT", signature: "Field.INT()", description: "32-bit integer" },
-  { name: "BIGINT", signature: "Field.BIGINT()", description: "64-bit integer" },
-  { name: "FLOAT", signature: "Field.FLOAT()", description: "32-bit floating point" },
-  { name: "DOUBLE", signature: "Field.DOUBLE()", description: "64-bit floating point" },
-  { name: "STRING", signature: "Field.STRING()", description: "Variable-length string" },
+  {
+    name: "BIGINT",
+    signature: "Field.BIGINT()",
+    description: "64-bit integer",
+  },
+  {
+    name: "FLOAT",
+    signature: "Field.FLOAT()",
+    description: "32-bit floating point",
+  },
+  {
+    name: "DOUBLE",
+    signature: "Field.DOUBLE()",
+    description: "64-bit floating point",
+  },
+  {
+    name: "STRING",
+    signature: "Field.STRING()",
+    description: "Variable-length string",
+  },
   { name: "DATE", signature: "Field.DATE()", description: "Date without time" },
   { name: "TIME", signature: "Field.TIME()", description: "Time without date" },
   { name: "BYTES", signature: "Field.BYTES()", description: "Byte array" },
   // Parameterized types
-  { name: "DECIMAL", signature: "Field.DECIMAL(precision, scale)", description: "Fixed-point decimal" },
-  { name: "TIMESTAMP", signature: "Field.TIMESTAMP(precision?)", description: "Timestamp without timezone" },
-  { name: "TIMESTAMP_LTZ", signature: "Field.TIMESTAMP_LTZ(precision?)", description: "Timestamp with local timezone" },
-  { name: "VARCHAR", signature: "Field.VARCHAR(length)", description: "Variable-length string with max length" },
-  { name: "CHAR", signature: "Field.CHAR(length)", description: "Fixed-length string" },
-  { name: "BINARY", signature: "Field.BINARY(length)", description: "Fixed-length byte array" },
-  { name: "VARBINARY", signature: "Field.VARBINARY(length)", description: "Variable-length byte array" },
+  {
+    name: "DECIMAL",
+    signature: "Field.DECIMAL(precision, scale)",
+    description: "Fixed-point decimal",
+  },
+  {
+    name: "TIMESTAMP",
+    signature: "Field.TIMESTAMP(precision?)",
+    description: "Timestamp without timezone",
+  },
+  {
+    name: "TIMESTAMP_LTZ",
+    signature: "Field.TIMESTAMP_LTZ(precision?)",
+    description: "Timestamp with local timezone",
+  },
+  {
+    name: "VARCHAR",
+    signature: "Field.VARCHAR(length)",
+    description: "Variable-length string with max length",
+  },
+  {
+    name: "CHAR",
+    signature: "Field.CHAR(length)",
+    description: "Fixed-length string",
+  },
+  {
+    name: "BINARY",
+    signature: "Field.BINARY(length)",
+    description: "Fixed-length byte array",
+  },
+  {
+    name: "VARBINARY",
+    signature: "Field.VARBINARY(length)",
+    description: "Variable-length byte array",
+  },
   // Composite types
-  { name: "ARRAY", signature: "Field.ARRAY(elementType)", description: "Array of elements" },
-  { name: "MAP", signature: "Field.MAP(keyType, valueType)", description: "Key-value map" },
-  { name: "ROW", signature: "Field.ROW(fields)", description: "Structured row type" },
+  {
+    name: "ARRAY",
+    signature: "Field.ARRAY(elementType)",
+    description: "Array of elements",
+  },
+  {
+    name: "MAP",
+    signature: "Field.MAP(keyType, valueType)",
+    description: "Key-value map",
+  },
+  {
+    name: "ROW",
+    signature: "Field.ROW(fields)",
+    description: "Structured row type",
+  },
 ]
 
 // ---------------------------------------------------------------------------

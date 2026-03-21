@@ -1,13 +1,17 @@
-import type { CompletionContext, CompletionResult, Completion } from "@codemirror/autocomplete"
+import type {
+  Completion,
+  CompletionContext,
+  CompletionResult,
+} from "@codemirror/autocomplete"
 import { syntaxTree } from "@codemirror/language"
 import {
+  type ComponentEntry,
   components,
-  subComponents,
   fieldMethods,
   getComponent,
   getSubComponents,
-  type ComponentEntry,
   type PropEntry,
+  subComponents,
 } from "./dsl-completions.generated"
 
 // ---------------------------------------------------------------------------
@@ -56,14 +60,22 @@ function getExistingAttributes(tagNode: SyntaxNode, doc: string): Set<string> {
 /** Convert a ComponentEntry category to a CM6 completion type label. */
 function categoryToType(category: ComponentEntry["category"]): string {
   switch (category) {
-    case "source": return "class"
-    case "sink": return "class"
-    case "transform": return "function"
-    case "join": return "function"
-    case "window": return "function"
-    case "container": return "class"
-    case "catalog": return "class"
-    case "utility": return "function"
+    case "source":
+      return "class"
+    case "sink":
+      return "class"
+    case "transform":
+      return "function"
+    case "join":
+      return "function"
+    case "window":
+      return "function"
+    case "container":
+      return "class"
+    case "catalog":
+      return "class"
+    case "utility":
+      return "function"
   }
 }
 
@@ -75,13 +87,15 @@ function buildComponentCompletions(prefix: string): Completion[] {
   const results: Completion[] = []
 
   for (const comp of components) {
-    if (prefix && !comp.name.toLowerCase().startsWith(prefix.toLowerCase())) continue
+    if (prefix && !comp.name.toLowerCase().startsWith(prefix.toLowerCase()))
+      continue
     results.push({
       label: comp.name,
       type: categoryToType(comp.category),
       detail: comp.category,
       info: comp.description,
-      boost: comp.category === "source" || comp.category === "container" ? 2 : 0,
+      boost:
+        comp.category === "source" || comp.category === "container" ? 2 : 0,
     })
   }
 
@@ -98,7 +112,10 @@ function buildSubComponentCompletions(parent: string): Completion[] {
   }))
 }
 
-function buildPropCompletions(componentName: string, existingAttrs: Set<string>): Completion[] {
+function buildPropCompletions(
+  componentName: string,
+  existingAttrs: Set<string>,
+): Completion[] {
   // Try direct component first
   let props: readonly PropEntry[] = []
 
@@ -129,7 +146,10 @@ function buildPropCompletions(componentName: string, existingAttrs: Set<string>)
     }))
 }
 
-function buildPropValueCompletions(componentName: string, propName: string): Completion[] {
+function buildPropValueCompletions(
+  componentName: string,
+  propName: string,
+): Completion[] {
   let props: readonly PropEntry[] = []
 
   const comp = getComponent(componentName)
@@ -173,7 +193,12 @@ function buildFieldMethodCompletions(): Completion[] {
 type CompletionKind =
   | { type: "tag"; prefix: string; from: number }
   | { type: "subComponent"; parent: string; from: number }
-  | { type: "prop"; componentName: string; existingAttrs: Set<string>; from: number }
+  | {
+      type: "prop"
+      componentName: string
+      existingAttrs: Set<string>
+      from: number
+    }
   | { type: "propValue"; componentName: string; propName: string; from: number }
   | { type: "fieldMethod"; from: number }
   | null
@@ -186,7 +211,8 @@ type CompletionKind =
 function findTagNode(node: SyntaxNode): SyntaxNode | null {
   let cur: SyntaxNode | null = node
   while (cur) {
-    if (cur.name === "JSXOpenTag" || cur.name === "JSXSelfClosingTag") return cur
+    if (cur.name === "JSXOpenTag" || cur.name === "JSXSelfClosingTag")
+      return cur
     cur = cur.parent
   }
   return null
@@ -297,11 +323,18 @@ function detectContext(ctx: CompletionContext): CompletionKind {
     // JSXMemberExpression like `Query.Select|`
     if (parent?.name === "JSXMemberExpression") {
       const grandParent = parent.parent
-      if (grandParent?.name === "JSXOpenTag" || grandParent?.name === "JSXSelfClosingTag") {
+      if (
+        grandParent?.name === "JSXOpenTag" ||
+        grandParent?.name === "JSXSelfClosingTag"
+      ) {
         const firstIdent = parent.getChild("JSXIdentifier")
         if (firstIdent && firstIdent !== nodeBefore) {
           const parentName = doc.slice(firstIdent.from, firstIdent.to)
-          return { type: "subComponent", parent: parentName, from: nodeBefore.from }
+          return {
+            type: "subComponent",
+            parent: parentName,
+            from: nodeBefore.from,
+          }
         }
       }
     }
@@ -312,7 +345,10 @@ function detectContext(ctx: CompletionContext): CompletionKind {
     const parent = nodeBefore.parent
     if (parent?.name === "JSXMemberExpression") {
       const grandParent = parent.parent
-      if (grandParent?.name === "JSXOpenTag" || grandParent?.name === "JSXSelfClosingTag") {
+      if (
+        grandParent?.name === "JSXOpenTag" ||
+        grandParent?.name === "JSXSelfClosingTag"
+      ) {
         const firstIdent = parent.getChild("JSXIdentifier")
         if (firstIdent) {
           const parentName = doc.slice(firstIdent.from, firstIdent.to)
@@ -339,25 +375,40 @@ function detectContext(ctx: CompletionContext): CompletionKind {
           const propName = doc.slice(propNameNode.from, propNameNode.to)
           const valueText = doc.slice(valueNode.from, valueNode.to)
           if (valueText.startsWith('"') || valueText.startsWith("'")) {
-            return { type: "propValue", componentName, propName, from: valueNode.from + 1 }
+            return {
+              type: "propValue",
+              componentName,
+              propName,
+              from: valueNode.from + 1,
+            }
           }
         }
       }
 
       // Typing an attribute name: nodeBefore is JSXIdentifier inside JSXAttribute
-      if (nodeBefore.name === "JSXIdentifier" && nodeBefore.parent === attrNode) {
+      if (
+        nodeBefore.name === "JSXIdentifier" &&
+        nodeBefore.parent === attrNode
+      ) {
         // Make sure this isn't the tag name itself
         const startTag = tagNode.getChild("JSXStartTag")
         if (!startTag || nodeBefore.from !== startTag.to) {
           const existingAttrs = getExistingAttributes(tagNode, doc)
-          return { type: "prop", componentName, existingAttrs, from: nodeBefore.from }
+          return {
+            type: "prop",
+            componentName,
+            existingAttrs,
+            from: nodeBefore.from,
+          }
         }
       }
     }
 
     // Cursor is inside the tag but not in an attribute — offer props
     // This handles: after tag name + space, after completed attr, error nodes, etc.
-    const nameNode = tagNode.getChild("JSXIdentifier") ?? tagNode.getChild("JSXMemberExpression")
+    const nameNode =
+      tagNode.getChild("JSXIdentifier") ??
+      tagNode.getChild("JSXMemberExpression")
     if (nameNode && pos > nameNode.to) {
       const existingAttrs = getExistingAttributes(tagNode, doc)
       // Check if we're typing a partial word (for filtering)
@@ -389,7 +440,9 @@ function detectContext(ctx: CompletionContext): CompletionKind {
 // CompletionSource
 // ---------------------------------------------------------------------------
 
-export function dslCompletionSource(ctx: CompletionContext): CompletionResult | null {
+export function dslCompletionSource(
+  ctx: CompletionContext,
+): CompletionResult | null {
   const kind = detectContext(ctx)
   if (!kind) {
     // Fallback for explicit activation (Ctrl+Space): try tag completions

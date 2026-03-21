@@ -5,7 +5,7 @@ import {
   Hash,
   TriangleAlert,
 } from "lucide-react"
-import { MetricCard } from "@/components/shared/metric-card"
+import { MetricCard } from "@flink-reactor/ui"
 import { useCheckpointAnalyticsStore } from "@/stores/checkpoint-analytics-store"
 import { useClusterStore } from "@/stores/cluster-store"
 import { CheckpointJobTable } from "./checkpoint-job-table"

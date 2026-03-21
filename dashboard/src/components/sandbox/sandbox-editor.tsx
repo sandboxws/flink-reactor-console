@@ -254,10 +254,10 @@ interface SandboxEditorProps {
 const themeCompartment = new Compartment()
 
 function getActiveTheme() {
-  if (typeof document === "undefined") return tokyoNightCmTheme
-  return document.documentElement.dataset.palette === "gruvpuccin"
-    ? gruvpuccinCmTheme
-    : tokyoNightCmTheme
+  if (typeof document === "undefined") return gruvpuccinCmTheme
+  return document.documentElement.dataset.palette === "tokyo-night"
+    ? tokyoNightCmTheme
+    : gruvpuccinCmTheme
 }
 
 export function SandboxEditor({

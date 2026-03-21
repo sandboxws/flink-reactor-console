@@ -41,6 +41,11 @@ func NewClient(opts ...ClientOption) *Client {
 	return c
 }
 
+// BaseURL returns the configured Flink REST API base URL.
+func (c *Client) BaseURL() string {
+	return c.baseURL
+}
+
 // GetJSON sends a GET request and unmarshals the JSON response into result.
 // Uses a 10-second timeout.
 func (c *Client) GetJSON(ctx context.Context, path string, result any) error {

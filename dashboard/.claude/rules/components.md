@@ -26,7 +26,7 @@ Domain-specific subdirectories mirror routes:
 - `logs/` — LogExplorer, LogList, LogToolbar, LogDetailPanel, LogHistogram
 - `errors/` — ErrorExplorer, ErrorGroupList, StackTrace
 - `shared/` — Reusable: MetricCard, EmptyState, SearchInput, TextViewer, ThreadDumpViewer, SeverityBadge, SourceBadge
-- `ui/` — Shadcn primitives only. **Never** create custom components in `ui/`.
+- UI primitives — imported from `@flink-reactor/ui` (local `ui/` directory removed)
 
 ## Styling Rules
 

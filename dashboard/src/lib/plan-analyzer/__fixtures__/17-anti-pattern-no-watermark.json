@@ -1,0 +1,36 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[events], properties=[bootstrap.servers=kafka:9092])",
+      "parallelism": 8
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[event_id, user_id, event_type, event_time])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "WindowAggregate",
+      "pact": "Operator",
+      "contents": "WindowAggregate(window=[TUMBLE(event_time, INTERVAL '5' MINUTE)], groupBy=[user_id], select=[user_id, COUNT(*) AS event_count, window_start, window_end])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 4,
+      "type": "Sink: PrintSink",
+      "pact": "Data Sink",
+      "contents": "Sink: Print to Std. Out",
+      "parallelism": 1,
+      "predecessors": [{ "id": 3, "ship_strategy": "GLOBAL" }]
+    }
+  ],
+  "_comment": "ANTI-PATTERN: Event-time windowing without watermark definition - windows may never fire or fire very late"
+}

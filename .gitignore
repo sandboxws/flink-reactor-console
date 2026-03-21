@@ -389,6 +389,9 @@ openspec/
 dashboard/.env.production
 dashboard/.env.staging
 
+### Local registry config ###
+.npmrc
+
 ### Go ###
 bin/
 *.exe

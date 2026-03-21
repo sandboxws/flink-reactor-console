@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "@flink-reactor/ui/styles/tokens";
+@import "@flink-reactor/ui/styles/components";
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+@source "../../../packages/ui/dist/**/*.js";

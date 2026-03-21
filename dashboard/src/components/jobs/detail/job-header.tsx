@@ -1,3 +1,4 @@
+import { Badge } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
 import {
@@ -10,10 +11,10 @@ import {
   Radio,
   RefreshCw,
   Save,
+  Square,
   XCircle,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Badge } from "@/components/ui/badge"
 import type { FlinkJob } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -39,7 +40,7 @@ const statusColor: Record<string, string> = {
 // Tap job detection
 // ---------------------------------------------------------------------------
 
-const TAP_JOB_PREFIX = "flink-reactor-tap-"
+const TAP_JOB_PREFIX = "fr-tap-"
 
 function isTapJob(name: string): boolean {
   return name.startsWith(TAP_JOB_PREFIX)
@@ -209,12 +210,14 @@ export function JobHeader({
   job,
   onCancelJob,
   onCreateSavepoint,
+  onStopWithSavepoint,
   onRefresh,
   isRefreshing,
 }: {
   job: FlinkJob
   onCancelJob?: () => void
   onCreateSavepoint?: () => void
+  onStopWithSavepoint?: () => void
   onRefresh?: () => void
   isRefreshing?: boolean
 }) {
@@ -315,6 +318,14 @@ export function JobHeader({
                   Cancel
                 </button>
               )}
+              <button
+                type="button"
+                onClick={onStopWithSavepoint}
+                className="flex items-center gap-1.5 rounded-md bg-fr-amber/10 px-3 py-1.5 text-xs font-medium text-fr-amber transition-colors hover:bg-fr-amber/20"
+              >
+                <Square className="size-3.5" />
+                Stop
+              </button>
               <button
                 type="button"
                 onClick={onCreateSavepoint}

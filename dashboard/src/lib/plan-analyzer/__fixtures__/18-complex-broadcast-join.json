@@ -1,0 +1,53 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[user_events], properties=[bootstrap.servers=kafka:9092])",
+      "parallelism": 32
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[event_id, user_id, event_type, product_id, event_time])",
+      "parallelism": 32,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Source: JdbcSource",
+      "pact": "Data Source",
+      "contents": "Source: JdbcSource(table=[blacklisted_users], query=[SELECT user_id, reason, blocked_until FROM blacklist WHERE blocked_until > NOW()])",
+      "parallelism": 1
+    },
+    {
+      "id": 4,
+      "type": "Exchange",
+      "pact": "Operator",
+      "contents": "Exchange(distribution=[broadcast])",
+      "parallelism": 32,
+      "predecessors": [{ "id": 3, "ship_strategy": "BROADCAST" }]
+    },
+    {
+      "id": 5,
+      "type": "Join",
+      "pact": "Operator",
+      "contents": "Join(joinType=[LeftAntiJoin], where=[user_id = blacklisted_user_id], select=[event_id, user_id, event_type, product_id, event_time])",
+      "parallelism": 32,
+      "predecessors": [
+        { "id": 2, "ship_strategy": "FORWARD", "side": "first" },
+        { "id": 4, "ship_strategy": "FORWARD", "side": "second" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[valid_events])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 5, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

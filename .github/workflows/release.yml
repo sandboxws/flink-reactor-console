@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   release:
-    if: false # Temporarily disabled
     runs-on: ubuntu-latest
 
     steps:
@@ -33,11 +32,8 @@ jobs:
 
       - name: Build packages
         run: |
-          pnpm build
           pnpm --filter @flink-reactor/ui build
-          pnpm --filter @flink-reactor/create-app build
-          pnpm --filter @flink-reactor/ts-plugin build
-          pnpm --filter @flink-reactor/dashboard build:package
+          pnpm --filter @flink-reactor/dashboard build
 
       - name: Create release PR or publish
         uses: changesets/action@v1

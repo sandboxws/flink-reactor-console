@@ -1,6 +1,14 @@
+import {
+  AlertCircle,
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react"
 import { useState } from "react"
-import { ChevronDown, ChevronRight, AlertCircle, AlertTriangle } from "lucide-react"
-import { useSandboxStore, type ValidationDiagnostic } from "@/stores/sandbox-store"
+import {
+  useSandboxStore,
+  type ValidationDiagnostic,
+} from "@/stores/sandbox-store"
 
 // ---------------------------------------------------------------------------
 // Category display config
@@ -15,7 +23,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   sql: "SQL",
 }
 
-const CATEGORY_ORDER = ["schema", "expression", "connector", "changelog", "structure", "sql"]
+const CATEGORY_ORDER = [
+  "schema",
+  "expression",
+  "connector",
+  "changelog",
+  "structure",
+  "sql",
+]
 
 function groupByCategory(diagnostics: ValidationDiagnostic[]) {
   const groups = new Map<string, ValidationDiagnostic[]>()
@@ -29,9 +44,11 @@ function groupByCategory(diagnostics: ValidationDiagnostic[]) {
     }
   }
   // Sort by canonical order
-  return CATEGORY_ORDER
-    .filter((c) => groups.has(c))
-    .map((c) => ({ category: c, label: CATEGORY_LABELS[c] ?? c, items: groups.get(c)! }))
+  return CATEGORY_ORDER.filter((c) => groups.has(c)).map((c) => ({
+    category: c,
+    label: CATEGORY_LABELS[c] ?? c,
+    items: groups.get(c)!,
+  }))
 }
 
 // ---------------------------------------------------------------------------
@@ -75,17 +92,21 @@ function DiagnosticRow({ d }: { d: ValidationDiagnostic }) {
         <div className="px-8 pb-2 text-[11px] text-zinc-400">
           {d.details?.referencedColumn && (
             <p>
-              Referenced column: <code className="text-zinc-300">{d.details.referencedColumn}</code>
-            </p>
-          )}
-          {d.details?.availableColumns && d.details.availableColumns.length > 0 && (
-            <p>
-              Available columns:{" "}
+              Referenced column:{" "}
               <code className="text-zinc-300">
-                {d.details.availableColumns.join(", ")}
+                {d.details.referencedColumn}
               </code>
             </p>
           )}
+          {d.details?.availableColumns &&
+            d.details.availableColumns.length > 0 && (
+              <p>
+                Available columns:{" "}
+                <code className="text-zinc-300">
+                  {d.details.availableColumns.join(", ")}
+                </code>
+              </p>
+            )}
           {d.details?.missingProps && d.details.missingProps.length > 0 && (
             <p>
               Missing properties:{" "}
@@ -169,7 +190,9 @@ export function ValidationPanel() {
 
   const groups = groupByCategory(diagnostics)
   const totalErrors = diagnostics.filter((d) => d.severity === "error").length
-  const totalWarnings = diagnostics.filter((d) => d.severity === "warning").length
+  const totalWarnings = diagnostics.filter(
+    (d) => d.severity === "warning",
+  ).length
 
   return (
     <div className="border-t border-dash-border">

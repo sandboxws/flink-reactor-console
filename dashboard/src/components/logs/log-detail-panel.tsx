@@ -1,10 +1,15 @@
+import {
+  SeverityBadge,
+  SourceBadge,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@flink-reactor/ui"
 import { format } from "date-fns"
 import { Copy, X } from "lucide-react"
 import { useMemo, useState } from "react"
 import { StackTrace } from "@/components/errors/stack-trace"
-import { SeverityBadge } from "@/components/shared/severity-badge"
-import { SourceBadge } from "@/components/shared/source-badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/cn"
 import { useLogStore } from "@/stores/log-store"
 import { useUiStore } from "@/stores/ui-store"

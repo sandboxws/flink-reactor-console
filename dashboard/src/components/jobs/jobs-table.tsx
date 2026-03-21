@@ -1,3 +1,15 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@flink-reactor/ui"
 import { useNavigate } from "@tanstack/react-router"
 import { format } from "date-fns"
 import {
@@ -10,20 +22,6 @@ import {
   XCircle,
 } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import type { FlinkJob } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -35,7 +33,7 @@ import { TaskCountsBar } from "./task-counts-bar"
 // Tap job detection
 // ---------------------------------------------------------------------------
 
-const TAP_JOB_PREFIX = "flink-reactor-tap-"
+const TAP_JOB_PREFIX = "fr-tap-"
 
 function isTapJob(name: string): boolean {
   return name.startsWith(TAP_JOB_PREFIX)

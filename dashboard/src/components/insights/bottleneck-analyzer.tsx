@@ -1,5 +1,5 @@
 import { AlertTriangle, BarChart3, Layers, Search } from "lucide-react"
-import { MetricCard } from "@/components/shared/metric-card"
+import { MetricCard } from "@flink-reactor/ui"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useInsightsStore } from "@/stores/insights-store"
 import { BottleneckDAG } from "./bottleneck-dag"

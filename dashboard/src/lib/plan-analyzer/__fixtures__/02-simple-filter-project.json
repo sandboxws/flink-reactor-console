@@ -1,0 +1,27 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: TableSourceScan",
+      "pact": "Data Source",
+      "contents": "TableSourceScan(table=[[default_catalog, default_database, orders]], fields=[order_id, user_id, product_id, amount, order_time])",
+      "parallelism": 8
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, user_id, amount, order_time], where=[amount > 100])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Sink: PrintSink",
+      "pact": "Data Sink",
+      "contents": "Sink: Print to Std. Out",
+      "parallelism": 8,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    }
+  ]
+}

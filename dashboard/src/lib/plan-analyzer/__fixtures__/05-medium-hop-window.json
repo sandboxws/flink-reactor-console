@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[sensor_readings], properties=[bootstrap.servers=kafka:9092], watermark=[reading_time - INTERVAL '30' SECOND])",
+      "parallelism": 16
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[sensor_id, temperature, humidity, reading_time])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "WindowAggregate",
+      "pact": "Operator",
+      "contents": "WindowAggregate(window=[HOP(reading_time, INTERVAL '1' MINUTE, INTERVAL '5' MINUTE)], groupBy=[sensor_id], select=[sensor_id, AVG(temperature) AS avg_temp, MAX(temperature) AS max_temp, MIN(temperature) AS min_temp, AVG(humidity) AS avg_humidity, window_start, window_end])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 4,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[sensor_id, avg_temp, max_temp, min_temp, avg_humidity, window_start, window_end, (max_temp - min_temp) AS temp_variance])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: JdbcSink",
+      "pact": "Data Sink",
+      "contents": "Sink: JdbcSink(table=[sensor_metrics], driver=[org.postgresql.Driver])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

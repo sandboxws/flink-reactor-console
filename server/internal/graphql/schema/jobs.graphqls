@@ -287,7 +287,24 @@ extend type Query {
   checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointHistoryEntry!
 }
 
+type SavepointTriggerResult {
+  requestId: String!
+}
+
+type RescaleResult {
+  requestId: String!
+}
+
 extend type Mutation {
   """Cancel a running job"""
   cancelJob(id: ID!, cluster: String): CancelJobResult!
+
+  """Trigger a savepoint for a running job"""
+  triggerSavepoint(jobId: ID!, targetDirectory: String, cluster: String): SavepointTriggerResult!
+
+  """Stop a running job with a savepoint (graceful shutdown)"""
+  stopJobWithSavepoint(jobId: ID!, targetDirectory: String, cluster: String): SavepointTriggerResult!
+
+  """Rescale a running job to a new parallelism"""
+  rescaleJob(jobId: ID!, newParallelism: Int!, cluster: String): RescaleResult!
 }

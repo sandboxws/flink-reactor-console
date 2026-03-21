@@ -3,7 +3,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@flink-reactor/ui"
 import type { TaskCounts, TaskStatus } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 

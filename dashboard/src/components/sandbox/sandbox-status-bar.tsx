@@ -12,7 +12,9 @@ export function SandboxStatusBar() {
   const example = activeExample ? findExample(activeExample) : null
   const template = activeTemplate ? findTemplate(activeTemplate) : null
   const errorCount = diagnostics.filter((d) => d.severity === "error").length
-  const warningCount = diagnostics.filter((d) => d.severity === "warning").length
+  const warningCount = diagnostics.filter(
+    (d) => d.severity === "warning",
+  ).length
 
   const statusText = () => {
     switch (status) {
@@ -42,11 +44,7 @@ export function SandboxStatusBar() {
                   : "bg-zinc-600"
           }`}
         />
-        <span
-          className={
-            status === "error" ? "text-red-400" : "text-zinc-500"
-          }
-        >
+        <span className={status === "error" ? "text-red-400" : "text-zinc-500"}>
           {statusText()}
         </span>
       </div>
@@ -72,9 +70,7 @@ export function SandboxStatusBar() {
 
       {/* Active example/template name */}
       {(example || template) && (
-        <span className="text-zinc-600">
-          {example?.name ?? template?.name}
-        </span>
+        <span className="text-zinc-600">{example?.name ?? template?.name}</span>
       )}
     </div>
   )

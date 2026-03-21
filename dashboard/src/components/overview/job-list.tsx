@@ -1,3 +1,12 @@
+import {
+  Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@flink-reactor/ui"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import {
@@ -8,15 +17,6 @@ import {
   Radio,
 } from "lucide-react"
 import { useMemo, useState } from "react"
-import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import type { FlinkJob, JobStatus } from "@/data/cluster-types"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -25,7 +25,7 @@ import { useClusterStore } from "@/stores/cluster-store"
 // Tap job detection (shared with jobs-table.tsx)
 // ---------------------------------------------------------------------------
 
-const TAP_JOB_PREFIX = "flink-reactor-tap-"
+const TAP_JOB_PREFIX = "fr-tap-"
 
 function isTapJob(name: string): boolean {
   return name.startsWith(TAP_JOB_PREFIX)

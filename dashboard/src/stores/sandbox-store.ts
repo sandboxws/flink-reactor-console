@@ -1,19 +1,19 @@
 import { create } from "zustand"
 import {
-  synthesize as runSynthesis,
-  isDslLoaded,
-  type SynthesisResult,
-  type PipelineOutput,
-} from "@/lib/sandbox-synthesizer"
-import {
-  findExample,
   DEFAULT_EXAMPLE_ID,
+  findExample,
 } from "@/components/sandbox/sandbox-examples"
 import {
-  findTemplate,
   DEFAULT_TEMPLATE_ID,
+  findTemplate,
   type TemplateId,
 } from "@/components/sandbox/templates"
+import {
+  isDslLoaded,
+  type PipelineOutput,
+  synthesize as runSynthesis,
+  type SynthesisResult,
+} from "@/lib/sandbox-synthesizer"
 
 // ---------------------------------------------------------------------------
 // Sandbox store — editor state, synthesis status, output tabs
@@ -28,7 +28,13 @@ export interface ValidationDiagnostic {
   message: string
   componentName?: string
   nodeId?: string
-  category?: "schema" | "expression" | "connector" | "changelog" | "structure" | "sql"
+  category?:
+    | "schema"
+    | "expression"
+    | "connector"
+    | "changelog"
+    | "structure"
+    | "sql"
   details?: {
     readonly availableColumns?: readonly string[]
     readonly referencedColumn?: string
@@ -47,7 +53,9 @@ const LS_TEMPLATE_KEY = "fr-sandbox-template"
 function loadPersistedState(): { code: string; templateId: TemplateId | null } {
   try {
     const code = localStorage.getItem(LS_CODE_KEY)
-    const templateId = localStorage.getItem(LS_TEMPLATE_KEY) as TemplateId | null
+    const templateId = localStorage.getItem(
+      LS_TEMPLATE_KEY,
+    ) as TemplateId | null
     if (code !== null) {
       return { code, templateId }
     }
@@ -95,7 +103,7 @@ interface SandboxState {
   synthErrorLine: number | undefined
   synthErrorColumn: number | undefined
   synthTimeMs: number | null
-  activeOutputTab: "sql" | "crd"
+  activeOutputTab: "sql" | "crd" | "explain"
   dslLoading: boolean
 }
 
@@ -103,7 +111,7 @@ interface SandboxActions {
   setCode: (code: string) => void
   loadExample: (id: string) => void
   setTemplate: (id: TemplateId) => void
-  setActiveOutputTab: (tab: "sql" | "crd") => void
+  setActiveOutputTab: (tab: "sql" | "crd" | "explain") => void
   synthesize: () => Promise<void>
 }
 
@@ -172,7 +180,8 @@ export const useSandboxStore = create<SandboxStore>((set, get) => ({
     setTimeout(() => get().synthesize(), 0)
   },
 
-  setActiveOutputTab: (tab: "sql" | "crd") => set({ activeOutputTab: tab }),
+  setActiveOutputTab: (tab: "sql" | "crd" | "explain") =>
+    set({ activeOutputTab: tab }),
 
   synthesize: async () => {
     const code = get().code

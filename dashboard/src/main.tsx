@@ -1,5 +1,5 @@
-import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { initInstrumentsUI } from "@flink-reactor/instruments-ui"
+import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { graphqlClient } from "./lib/graphql-client"

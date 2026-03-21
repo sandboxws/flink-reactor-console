@@ -9,7 +9,7 @@
     <link rel="preload" href="/fonts/GeistMonoVF.woff2" as="font" type="font/woff2" crossorigin />
     <script>
       // Apply saved theme/palette before first paint to prevent flash
-      ;(function () {
+      ;(() => {
         try {
           var t = localStorage.getItem("fr-theme")
           if (t === "light" || t === "dark") {
@@ -17,7 +17,7 @@
             document.documentElement.classList.add(t)
           }
           var p = localStorage.getItem("fr-palette")
-          if (p === "tokyo-night" || p === "gruvpuccin") {
+          if (p === "tokyo-night") {
             document.documentElement.dataset.palette = p
           }
         } catch (e) {}

@@ -185,7 +185,7 @@ export const useSqlGatewayStore = create<SqlGatewayState>((set, get) => ({
       const { sessionHandle } = await apiRequest<{ sessionHandle: string }>(
         "v1/sessions",
         "POST",
-        { properties: { "pipeline.name": `flink-reactor-tap-${tapName}` } },
+        { properties: { "pipeline.name": `fr-tap-${tapName}` } },
       )
 
       // Split observation SQL into individual statements (CREATE TABLE + SELECT).

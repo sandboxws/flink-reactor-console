@@ -31,6 +31,18 @@
         "default": "./dist/index.js"
       }
     },
+    "./fixtures": {
+      "import": {
+        "types": "./dist/fixtures/index.d.ts",
+        "default": "./dist/fixtures/index.js"
+      }
+    },
+    "./templates/*": {
+      "import": {
+        "types": "./dist/templates/*/index.d.ts",
+        "default": "./dist/templates/*/index.js"
+      }
+    },
     "./styles": "./src/styles/index.css",
     "./styles/tokens": "./src/styles/tokens.css",
     "./styles/components": "./src/styles/components.css",
@@ -47,7 +59,19 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "recharts": "^2.0.0",
+    "date-fns": "^3.0.0 || ^4.0.0",
+    "@tanstack/react-virtual": "^3.0.0",
+    "@xyflow/react": "^12.0.0",
+    "react-icons": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "recharts": { "optional": true },
+    "date-fns": { "optional": true },
+    "@tanstack/react-virtual": { "optional": true },
+    "@xyflow/react": { "optional": true },
+    "react-icons": { "optional": true }
   },
   "dependencies": {
     "@radix-ui/react-collapsible": "^1.1.12",
@@ -59,6 +83,7 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
     "class-variance-authority": "^0.7.1",
@@ -68,8 +93,14 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@tanstack/react-virtual": "^3.13.22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/recharts": "^2.0.1",
+    "@xyflow/react": "^12.6.0",
+    "date-fns": "^4.1.0",
+    "react-icons": "^5.5.0",
+    "recharts": "^2.15.4",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   }

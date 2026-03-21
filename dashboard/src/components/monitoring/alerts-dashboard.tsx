@@ -7,7 +7,7 @@ import {
   Shield,
 } from "lucide-react"
 import { useState } from "react"
-import { MetricCard } from "@/components/shared/metric-card"
+import { MetricCard } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useAlertsStore } from "@/stores/alerts-store"
 import { AlertCard } from "./alert-card"

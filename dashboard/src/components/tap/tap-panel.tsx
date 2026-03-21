@@ -1,6 +1,6 @@
 import { AlertTriangle, Loader2, Plus, Radio, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { EmptyState } from "@/components/shared/empty-state"
+import { EmptyState } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { buildRuntimeObservationSql } from "@/lib/tap-manifest"
 import { useSqlGatewayStore } from "@/stores/sql-gateway-store"

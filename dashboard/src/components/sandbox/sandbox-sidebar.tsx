@@ -1,17 +1,17 @@
-import { useState } from "react"
 import {
+  BookOpen,
   ChevronDown,
   ChevronRight,
-  Play,
-  Zap,
   Clock,
   GitFork,
+  Play,
   Split,
-  BookOpen,
+  Zap,
 } from "lucide-react"
+import { useState } from "react"
 import { cn } from "@/lib/cn"
-import { SANDBOX_CATEGORIES, type SandboxCategory } from "./sandbox-examples"
 import { useSandboxStore } from "@/stores/sandbox-store"
+import { SANDBOX_CATEGORIES, type SandboxCategory } from "./sandbox-examples"
 
 const CATEGORY_ICONS: Record<string, typeof Play> = {
   "getting-started": BookOpen,

@@ -85,7 +85,8 @@ export const useJobHistoryStore = create<JobHistoryState>((set, get) => ({
         },
         pagination: {
           first: state.pageSize,
-          after: state.currentPage > 0 ? state.endCursor ?? undefined : undefined,
+          after:
+            state.currentPage > 0 ? (state.endCursor ?? undefined) : undefined,
         },
         orderBy: {
           field: state.orderField,
@@ -101,7 +102,8 @@ export const useJobHistoryStore = create<JobHistoryState>((set, get) => ({
       })
     } catch (err) {
       set({
-        error: err instanceof Error ? err.message : "Failed to fetch job history",
+        error:
+          err instanceof Error ? err.message : "Failed to fetch job history",
         isLoading: false,
       })
     }
@@ -182,7 +184,8 @@ export const useJobHistoryStore = create<JobHistoryState>((set, get) => ({
     if (state.currentPage <= 0) return
     const newCursors = [...state.cursors]
     newCursors.pop() // remove current page's cursor
-    const prevCursor = newCursors.length > 0 ? newCursors[newCursors.length - 1] : undefined
+    const prevCursor =
+      newCursors.length > 0 ? newCursors[newCursors.length - 1] : undefined
     set({ currentPage: state.currentPage - 1, cursors: newCursors })
     const result = await fetchJobHistory({
       filter: {

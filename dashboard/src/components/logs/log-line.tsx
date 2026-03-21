@@ -1,9 +1,11 @@
+import {
+  CollapsibleTrigger,
+  SeverityBadge,
+  SourceBadge,
+} from "@flink-reactor/ui"
 import { format } from "date-fns"
 import { ChevronRight } from "lucide-react"
 import { memo, useMemo } from "react"
-import { SeverityBadge } from "@/components/shared/severity-badge"
-import { SourceBadge } from "@/components/shared/source-badge"
-import { CollapsibleTrigger } from "@/components/ui/collapsible"
 import type { LogEntry } from "@/data/types"
 import { cn } from "@/lib/cn"
 import { TIMESTAMP_FORMATS } from "@/lib/constants"

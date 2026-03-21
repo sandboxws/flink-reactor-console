@@ -3,9 +3,166 @@ package graphql
 import (
 	"fmt"
 
+	"github.com/sandboxws/flink-reactor/apps/server/internal/connector"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
+
+// mapJobDetailAggregate converts a full Flink JobDetailAggregate to a GraphQL JobDetail.
+// This is the single shared mapper used by both the live Flink path and the DB snapshot path.
+func mapJobDetailAggregate(agg *flink.JobDetailAggregate) *model.JobDetail {
+	job := agg.Job
+
+	// Map vertices.
+	vertices := make([]*model.JobVertex, len(job.Vertices))
+	for i, v := range job.Vertices {
+		vertices[i] = mapVertex(&v)
+	}
+
+	// Map plan nodes.
+	planNodes := make([]*model.PlanNode, len(job.Plan.Nodes))
+	for i, n := range job.Plan.Nodes {
+		var inputs []*model.PlanNodeInput
+		for _, inp := range n.Inputs {
+			inputs = append(inputs, &model.PlanNodeInput{
+				Num:          inp.Num,
+				ID:           inp.ID,
+				ShipStrategy: inp.ShipStrategy,
+				Exchange:     inp.Exchange,
+			})
+		}
+		planNodes[i] = &model.PlanNode{
+			ID:               n.ID,
+			Parallelism:      n.Parallelism,
+			Operator:         n.Operator,
+			OperatorStrategy: n.OperatorStrategy,
+			Description:      n.Description,
+			Inputs:           inputs,
+		}
+	}
+
+	// Map exceptions.
+	var exceptions []*model.ExceptionEntry
+	if agg.Exceptions != nil {
+		for _, e := range agg.Exceptions.ExceptionHistory.Entries {
+			exceptions = append(exceptions, &model.ExceptionEntry{
+				ExceptionName: e.ExceptionName,
+				Stacktrace:    e.Stacktrace,
+				Timestamp:     i64(e.Timestamp),
+				TaskName:      e.TaskName,
+				Endpoint:      e.Endpoint,
+				TaskManagerID: e.TaskManagerID,
+			})
+		}
+	}
+
+	// Map checkpoints.
+	var checkpoints *model.CheckpointStats
+	if agg.Checkpoints != nil {
+		checkpoints = mapCheckpointStats(agg.Checkpoints)
+	}
+
+	// Map checkpoint config.
+	var cpConfig *model.CheckpointConfig
+	if agg.CheckpointConfig != nil {
+		cc := agg.CheckpointConfig
+		cpConfig = &model.CheckpointConfig{
+			Mode:                             cc.Mode,
+			Interval:                         i64(cc.Interval),
+			Timeout:                          i64(cc.Timeout),
+			MinPause:                         i64(cc.MinPause),
+			MaxConcurrent:                    cc.MaxConcurrent,
+			ExternalizedEnabled:              cc.Externalization.Enabled,
+			ExternalizedDeleteOnCancellation: cc.Externalization.DeleteOnCancellation,
+			UnalignedCheckpoints:             cc.UnalignedCheckpoints,
+		}
+	}
+
+	// Map vertex details.
+	var vertexDetails []*model.VertexDetail
+	for vid, vd := range agg.VertexDetails {
+		vertexDetails = append(vertexDetails, mapVertexDetail(vid, vd))
+	}
+
+	// Map watermarks.
+	var watermarks []*model.VertexWatermarks
+	for vid, wms := range agg.Watermarks {
+		entries := make([]*model.WatermarkEntry, len(wms))
+		for i, w := range wms {
+			entries[i] = &model.WatermarkEntry{ID: w.ID, Value: w.Value}
+		}
+		watermarks = append(watermarks, &model.VertexWatermarks{
+			VertexID:   vid,
+			Watermarks: entries,
+		})
+	}
+
+	// Map backpressure.
+	var backPressure []*model.VertexBackPressure
+	for vid, bp := range agg.BackPressure {
+		subtasks := make([]*model.SubtaskBackPressure, len(bp.Subtasks))
+		for i, s := range bp.Subtasks {
+			subtasks[i] = &model.SubtaskBackPressure{
+				Subtask:           s.Subtask,
+				AttemptNumber:     s.AttemptNumber,
+				BackpressureLevel: s.BackpressureLevel,
+				Ratio:             s.Ratio,
+				BusyRatio:         s.BusyRatio,
+				IdleRatio:         s.IdleRatio,
+			}
+		}
+		backPressure = append(backPressure, &model.VertexBackPressure{
+			VertexID: vid,
+			BackPressure: &model.BackPressureInfo{
+				Status:            bp.Status,
+				BackpressureLevel: bp.BackpressureLevel,
+				EndTimestamp:      i64(bp.EndTimestamp),
+				Subtasks:          subtasks,
+			},
+		})
+	}
+
+	// Map accumulators.
+	var accumulators []*model.VertexAccumulators
+	for vid, acc := range agg.Accumulators {
+		entries := make([]*model.UserAccumulator, len(acc.UserAccumulators))
+		for i, a := range acc.UserAccumulators {
+			entries[i] = &model.UserAccumulator{
+				Name:  a.Name,
+				Type:  a.Type,
+				Value: a.Value,
+			}
+		}
+		accumulators = append(accumulators, &model.VertexAccumulators{
+			VertexID:     vid,
+			Accumulators: entries,
+		})
+	}
+
+	return &model.JobDetail{
+		ID:        job.JID,
+		Name:      job.Name,
+		State:     job.State,
+		StartTime: i64(job.StartTime),
+		EndTime:   i64(job.EndTime),
+		Duration:  i64(job.Duration),
+		Now:       i64(job.Now),
+		Vertices:  vertices,
+		Plan: &model.JobPlan{
+			Jid:   job.Plan.JID,
+			Name:  job.Plan.Name,
+			Type:  job.Plan.Type,
+			Nodes: planNodes,
+		},
+		Exceptions:       exceptions,
+		Checkpoints:      checkpoints,
+		CheckpointConfig: cpConfig,
+		VertexDetails:    vertexDetails,
+		Watermarks:       watermarks,
+		BackPressure:     backPressure,
+		Accumulators:     accumulators,
+	}
+}
 
 // mapVertex converts a Flink Vertex to a GraphQL JobVertex.
 func mapVertex(v *flink.Vertex) *model.JobVertex {
@@ -238,6 +395,48 @@ func mapSQLRow(row *flink.SQLGatewayRow) []*string {
 	for i, f := range row.Fields {
 		s := fmt.Sprintf("%v", f)
 		result[i] = &s
+	}
+	return result
+}
+
+// mapConnectorRefs converts detected ConnectorRefs to GraphQL JobConnector models.
+// It also attaches per-vertex I/O metrics when available.
+func mapConnectorRefs(refs []connector.ConnectorRef, agg *flink.JobDetailAggregate) []*model.JobConnector {
+	if len(refs) == 0 {
+		return []*model.JobConnector{}
+	}
+
+	// Build vertex metrics index.
+	vertexMetrics := make(map[string]*flink.VertexMetrics)
+	if agg != nil && agg.Job != nil {
+		for i := range agg.Job.Vertices {
+			v := &agg.Job.Vertices[i]
+			vertexMetrics[v.ID] = &v.Metrics
+		}
+	}
+
+	result := make([]*model.JobConnector, len(refs))
+	for i, ref := range refs {
+		jc := &model.JobConnector{
+			VertexID:        ref.VertexID,
+			VertexName:      ref.VertexName,
+			ConnectorType:   string(ref.Type),
+			Role:            string(ref.Role),
+			Resource:        ref.Resource,
+			Confidence:      ref.Confidence,
+			DetectionMethod: string(ref.Method),
+		}
+
+		if m, ok := vertexMetrics[ref.VertexID]; ok {
+			jc.Metrics = &model.ConnectorMetrics{
+				RecordsRead:    f64(m.ReadRecords),
+				RecordsWritten: f64(m.WriteRecords),
+				BytesRead:      f64(m.ReadBytes),
+				BytesWritten:   f64(m.WriteBytes),
+			}
+		}
+
+		result[i] = jc
 	}
 	return result
 }

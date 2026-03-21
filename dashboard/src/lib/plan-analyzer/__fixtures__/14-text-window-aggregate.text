@@ -1,0 +1,19 @@
+== Physical Execution Plan ==
+Stage 1 : Data Source
+	content : Source: KafkaSource(topic=[trades], watermark=[trade_time - INTERVAL '10' SECOND])
+
+	Stage 2 : Operator
+		content : Calc(select=[symbol, price, volume, trade_time])
+		ship_strategy : FORWARD
+
+		Stage 3 : Operator
+			content : WindowAggregate(window=[TUMBLE(trade_time, INTERVAL '1' MINUTE)], groupBy=[symbol], select=[symbol, FIRST_VALUE(price) AS open_price, MAX(price) AS high_price, MIN(price) AS low_price, LAST_VALUE(price) AS close_price, SUM(volume) AS total_volume, window_end])
+			ship_strategy : HASH
+
+			Stage 4 : Operator
+				content : Calc(select=[symbol, open_price, high_price, low_price, close_price, total_volume, window_end])
+				ship_strategy : FORWARD
+
+				Stage 5 : Data Sink
+					content : Sink: KafkaSink(topic=[ohlcv_1min])
+					ship_strategy : REBALANCE

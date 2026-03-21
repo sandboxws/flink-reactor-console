@@ -1,8 +1,16 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import { TapPanel } from "@/components/tap/tap-panel"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlinkJob } from "@/data/cluster-types"
 import type { TapMetadata } from "@/data/tap-types"
+import { hasTapManifest } from "@/lib/tap-manifest"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useSqlGatewayStore } from "@/stores/sql-gateway-store"
 import { useTapStore } from "@/stores/tap-store"
@@ -11,6 +19,7 @@ import { ConfigurationTab } from "./detail/configuration-tab"
 import { DataSkewTab } from "./detail/data-skew-tab"
 import { ExceptionsTab } from "./detail/exceptions-tab"
 import { JobHeader } from "./detail/job-header"
+import { SourcesSinksTab } from "./detail/sources-sinks-tab"
 import { TimelineTab } from "./detail/timeline-tab"
 import { VerticesTab } from "./detail/vertices-tab"
 
@@ -47,14 +56,46 @@ export function JobDetail({
     setActiveTab("vertices")
   }
 
-  const handleSavepoint = () => {
+  const triggerSavepoint = useClusterStore((s) => s.triggerSavepoint)
+  const stopWithSavepoint = useClusterStore((s) => s.stopWithSavepoint)
+
+  const handleStopWithSavepoint = async () => {
+    await stopWithSavepoint(job.id)
+  }
+
+  const handleSavepoint = async () => {
     setSavepointFeedback(true)
     setTimeout(() => setSavepointFeedback(false), 2000)
+    await triggerSavepoint(job.id)
     onCreateSavepoint?.()
   }
 
   // Job name — used as the pipeline name for tap manifest
   const jobName = job.name
+
+  // Tap tab visibility: only for running jobs with a manifest
+  const isRunning = [
+    "RUNNING",
+    "CREATED",
+    "RESTARTING",
+    "RECONCILING",
+  ].includes(job.status)
+  const isTapEligible = isRunning && !job.name.startsWith("fr-tap-")
+  const [tapAvailable, setTapAvailable] = useState(false)
+
+  useEffect(() => {
+    if (!isTapEligible) {
+      setTapAvailable(false)
+      return
+    }
+    let cancelled = false
+    hasTapManifest(jobName).then((exists) => {
+      if (!cancelled) setTapAvailable(exists)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [jobName, isTapEligible])
 
   // Build vertex ID → operator name map for checkpoint detail
   const vertexNames = useMemo(() => {
@@ -111,6 +152,7 @@ export function JobDetail({
         job={job}
         onCancelJob={onCancelJob}
         onCreateSavepoint={handleSavepoint}
+        onStopWithSavepoint={handleStopWithSavepoint}
         onRefresh={() => fetchJobDetail(job.id)}
         isRefreshing={jobDetailLoading}
       />
@@ -150,10 +192,18 @@ export function JobDetail({
           <TabsTrigger value="checkpoints" className="detail-tab">
             Checkpoints
           </TabsTrigger>
+          <TabsTrigger value="sources-sinks" className="detail-tab">
+            Sources &amp; Sinks
+            {job.sourcesAndSinks.length > 0 && (
+              <span className="ml-1.5 inline-flex size-4 items-center justify-center rounded-full bg-blue-500/20 text-[10px] text-blue-400">
+                {job.sourcesAndSinks.length}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="configuration" className="detail-tab">
             Configuration
           </TabsTrigger>
-          {!job.name.startsWith("flink-reactor-tap-") && (
+          {tapAvailable && (
             <TabsTrigger value="tap" className="detail-tab">
               Tap
             </TabsTrigger>
@@ -216,13 +266,20 @@ export function JobDetail({
         </TabsContent>
 
         <TabsContent
+          value="sources-sinks"
+          className="mt-4 flex-1 overflow-auto"
+        >
+          <SourcesSinksTab sourcesAndSinks={job.sourcesAndSinks} />
+        </TabsContent>
+
+        <TabsContent
           value="configuration"
           className="mt-4 flex-1 overflow-auto"
         >
           <ConfigurationTab configuration={job.configuration} />
         </TabsContent>
 
-        {!job.name.startsWith("flink-reactor-tap-") && (
+        {tapAvailable && (
           <TabsContent
             value="tap"
             className="mt-4 flex-1 overflow-auto data-[state=inactive]:hidden"

@@ -1,0 +1,73 @@
+# Simulation & Benchmarking — chaos engineering scenarios for Flink pipelines
+
+enum SimulationStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+type SimulationRun {
+  id: ID!
+  scenario: String!
+  status: SimulationStatus!
+  startedAt: String!
+  stoppedAt: String
+  parameters: JSON!
+  observations: [SimulationObservation!]!
+}
+
+type SimulationObservation {
+  timestamp: String!
+  metric: String!
+  value: Float!
+  annotation: String
+}
+
+type SimulationPreset {
+  name: String!
+  description: String!
+  scenario: String!
+  defaultParameters: JSON!
+  category: String!
+}
+
+input SimulationInput {
+  scenario: String!
+  targetJobs: [ID!]
+  parameters: JSON!
+  cluster: String
+}
+
+"""Result of a single pre-flight check for simulation readiness."""
+type PreflightCheck {
+  id: String!
+  label: String!
+  status: String!
+  detail: String
+  fix: String
+  required: Boolean!
+}
+
+extend type Query {
+  """Run pre-flight checks verifying minikube infrastructure is ready for simulations."""
+  simulationPreflight: [PreflightCheck!]!
+
+  """List all simulation runs (most recent first)"""
+  simulationRuns: [SimulationRun!]!
+
+  """Get a specific simulation run by ID"""
+  simulationRun(id: ID!): SimulationRun
+
+  """List available simulation presets"""
+  simulationPresets: [SimulationPreset!]!
+}
+
+extend type Mutation {
+  """Run a simulation scenario"""
+  runSimulation(input: SimulationInput!): SimulationRun!
+
+  """Stop a running simulation"""
+  stopSimulation(runId: ID!): SimulationRun!
+}

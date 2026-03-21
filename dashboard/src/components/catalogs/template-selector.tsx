@@ -1,14 +1,14 @@
-import { FileCode2 } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
-import { Button } from "@/components/ui/button"
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@flink-reactor/ui"
+import { FileCode2 } from "lucide-react"
+import { useCallback, useMemo, useState } from "react"
 import {
   EXPLORE_TEMPLATES,
   type ExploreTemplate,

@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[user_activity], properties=[bootstrap.servers=kafka:9092], watermark=[activity_time - INTERVAL '1' MINUTE])",
+      "parallelism": 12
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, activity_type, page_url, activity_time, device_info])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "WindowAggregate",
+      "pact": "Operator",
+      "contents": "WindowAggregate(window=[SESSION(activity_time, INTERVAL '30' MINUTE)], groupBy=[user_id], select=[user_id, COUNT(*) AS total_activities, COUNT(DISTINCT page_url) AS unique_pages, MIN(activity_time) AS session_start, MAX(activity_time) AS session_end, LISTAGG(activity_type) AS activity_sequence])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 2, "ship_strategy": "HASH" }]
+    },
+    {
+      "id": 4,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[user_id, total_activities, unique_pages, session_start, session_end, (session_end - session_start) AS session_duration, activity_sequence])",
+      "parallelism": 12,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: JdbcSink",
+      "pact": "Data Sink",
+      "contents": "Sink: JdbcSink(table=[user_sessions], driver=[org.postgresql.Driver])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

@@ -1,7 +1,6 @@
 import {
   ChevronDown,
   ChevronRight,
-  Columns3,
   Database,
   Folder,
   Loader2,
@@ -9,6 +8,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import { useCatalogStore } from "@/stores/catalog-store"
+import { ColumnsTable } from "./columns-table"
 
 export function CatalogTree() {
   const catalogs = useCatalogStore((s) => s.catalogs)
@@ -115,20 +115,7 @@ export function CatalogTree() {
                                             No columns
                                           </div>
                                         ) : (
-                                          tableCols.map((col) => (
-                                            <div
-                                              key={col.name}
-                                              className="flex items-center gap-2 py-0.5 pl-[5.5rem] text-xs text-zinc-400"
-                                            >
-                                              <Columns3 className="size-3 shrink-0 text-zinc-600" />
-                                              <span className="truncate font-mono text-[10px]">
-                                                {col.name}
-                                              </span>
-                                              <span className="shrink-0 font-mono text-[10px] text-zinc-600">
-                                                {col.type}
-                                              </span>
-                                            </div>
-                                          ))
+                                          <ColumnsTable columns={tableCols} />
                                         )}
                                       </div>
                                     )}

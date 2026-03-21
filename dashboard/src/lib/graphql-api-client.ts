@@ -13,8 +13,12 @@ import type {
   CheckpointCounts,
   CheckpointLatest,
   ClusterOverview,
+  ConnectorMetrics,
+  ConnectorRole,
+  ConnectorType,
   FlinkFeatureFlags,
   FlinkJob,
+  JobConnector,
   JobEdge,
   JobException,
   JobManagerConfig,
@@ -166,6 +170,10 @@ const JOB_DETAIL_QUERY = gql`
         }
       }
       accumulators { vertexId accumulators { name type value } }
+      sourcesAndSinks {
+        vertexId vertexName connectorType role resource confidence detectionMethod
+        metrics { recordsRead recordsWritten bytesRead bytesWritten }
+      }
     }
   }
 `
@@ -235,6 +243,24 @@ const CANCEL_JOB_MUTATION = gql`
   }
 `
 
+const TRIGGER_SAVEPOINT_MUTATION = gql`
+  mutation TriggerSavepoint($jobId: ID!, $targetDirectory: String, $cluster: String) {
+    triggerSavepoint(jobId: $jobId, targetDirectory: $targetDirectory, cluster: $cluster) { requestId }
+  }
+`
+
+const STOP_JOB_WITH_SAVEPOINT_MUTATION = gql`
+  mutation StopJobWithSavepoint($jobId: ID!, $targetDirectory: String, $cluster: String) {
+    stopJobWithSavepoint(jobId: $jobId, targetDirectory: $targetDirectory, cluster: $cluster) { requestId }
+  }
+`
+
+const RESCALE_JOB_MUTATION = gql`
+  mutation RescaleJob($jobId: ID!, $newParallelism: Int!, $cluster: String) {
+    rescaleJob(jobId: $jobId, newParallelism: $newParallelism, cluster: $cluster) { requestId }
+  }
+`
+
 const DELETE_JAR_MUTATION = gql`
   mutation DeleteJar($id: ID!, $cluster: String) {
     deleteJar(id: $id, cluster: $cluster) { success }
@@ -282,6 +308,15 @@ const FETCH_SQL_RESULTS = gql`
       rows
       hasMore
       nextToken
+    }
+  }
+`
+
+const EXPLAIN_STATEMENT = gql`
+  mutation ExplainStatement($sessionHandle: String!, $statement: String!, $cluster: String) {
+    explainStatement(sessionHandle: $sessionHandle, statement: $statement, cluster: $cluster) {
+      planText
+      format
     }
   }
 `
@@ -377,6 +412,7 @@ function mapJobOverview(j: any): FlinkJob {
     watermarks: {},
     backpressure: {},
     accumulators: {},
+    sourcesAndSinks: [],
   }
 }
 
@@ -485,7 +521,7 @@ function mapTMOverview(tm: any): TaskManager {
     path: tm.path,
     dataPort: tm.dataPort,
     jmxPort: tm.jmxPort,
-    lastHeartbeat: new Date(Date.now() - parseI64(tm.timeSinceLastHeartbeat)),
+    lastHeartbeat: new Date(parseI64(tm.timeSinceLastHeartbeat)),
     slotsTotal: tm.slotsNumber,
     slotsFree: tm.freeSlots,
     cpuCores: tm.hardware.cpuCores,
@@ -930,12 +966,67 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
     watermarks,
     backpressure,
     accumulators,
+    sourcesAndSinks: (j.sourcesAndSinks ?? []).map(
+      (c: any): JobConnector => ({
+        vertexId: c.vertexId,
+        vertexName: c.vertexName,
+        connectorType: c.connectorType as ConnectorType,
+        role: c.role as ConnectorRole,
+        resource: c.resource,
+        confidence: c.confidence,
+        detectionMethod: c.detectionMethod,
+        metrics: c.metrics
+          ? {
+              recordsRead: parseI64(c.metrics.recordsRead),
+              recordsWritten: parseI64(c.metrics.recordsWritten),
+              bytesRead: parseI64(c.metrics.bytesRead),
+              bytesWritten: parseI64(c.metrics.bytesWritten),
+            }
+          : null,
+      }),
+    ),
   }
 }
 
 /** Cancel a job */
 export async function cancelJob(jobId: string): Promise<void> {
   await mutate(CANCEL_JOB_MUTATION, { id: jobId })
+}
+
+/** Trigger a savepoint for a running job */
+export async function triggerSavepoint(
+  jobId: string,
+  targetDirectory?: string,
+): Promise<string> {
+  const data = await mutate<any>(TRIGGER_SAVEPOINT_MUTATION, {
+    jobId,
+    targetDirectory,
+  })
+  return data.triggerSavepoint.requestId
+}
+
+/** Stop a job with a savepoint (graceful shutdown) */
+export async function stopJobWithSavepoint(
+  jobId: string,
+  targetDirectory?: string,
+): Promise<string> {
+  const data = await mutate<any>(STOP_JOB_WITH_SAVEPOINT_MUTATION, {
+    jobId,
+    targetDirectory,
+  })
+  return data.stopJobWithSavepoint.requestId
+}
+
+/** Rescale a running job to a new parallelism */
+export async function rescaleJob(
+  jobId: string,
+  newParallelism: number,
+): Promise<string> {
+  const data = await mutate<any>(RESCALE_JOB_MUTATION, {
+    jobId,
+    newParallelism,
+  })
+  return data.rescaleJob.requestId
 }
 
 /** Run a JAR */
@@ -1024,6 +1115,17 @@ export async function submitSQLStatement(
 ): Promise<string> {
   const data = await mutate<any>(SUBMIT_STATEMENT, { sessionHandle, statement })
   return data.submitStatement.operationHandle
+}
+
+export async function explainStatement(
+  sessionHandle: string,
+  statement: string,
+): Promise<{ planText: string; format: string }> {
+  const data = await mutate<any>(EXPLAIN_STATEMENT, {
+    sessionHandle,
+    statement,
+  })
+  return data.explainStatement
 }
 
 export async function fetchSQLResults(
@@ -1611,4 +1713,149 @@ export async function fetchMetricSeries(params: {
     .toPromise()
   if (result.error) throw result.error
   return (result.data?.metricSeries ?? []) as MetricTimeSeries[]
+}
+
+// ---------------------------------------------------------------------------
+// Simulations
+// ---------------------------------------------------------------------------
+
+export type SimulationStatus =
+  | "PENDING"
+  | "RUNNING"
+  | "COMPLETED"
+  | "FAILED"
+  | "CANCELLED"
+
+export type SimulationObservation = {
+  timestamp: string
+  metric: string
+  value: number
+  annotation: string | null
+}
+
+export type SimulationRun = {
+  id: string
+  scenario: string
+  status: SimulationStatus
+  startedAt: string
+  stoppedAt: string | null
+  parameters: Record<string, unknown>
+  observations: SimulationObservation[]
+}
+
+export type SimulationPreset = {
+  name: string
+  description: string
+  scenario: string
+  defaultParameters: Record<string, unknown>
+  category: string
+}
+
+export type SimulationInputParams = {
+  scenario: string
+  targetJobs?: string[]
+  parameters: Record<string, unknown>
+  cluster?: string
+}
+
+const SIMULATION_PREFLIGHT_QUERY = gql`
+  query SimulationPreflight {
+    simulationPreflight { id label status detail fix required }
+  }
+`
+
+export type PreflightCheckResult = {
+  id: string
+  label: string
+  status: "pass" | "fail" | "warn"
+  detail: string | null
+  fix: string | null
+  required: boolean
+}
+
+export async function checkSimulationPreflight(): Promise<
+  PreflightCheckResult[]
+> {
+  try {
+    const data = await query<any>(
+      SIMULATION_PREFLIGHT_QUERY,
+      {},
+      "network-only",
+    )
+    return (data.simulationPreflight ?? []) as PreflightCheckResult[]
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return [
+      {
+        id: "preflight-error",
+        label: "Pre-flight check failed",
+        status: "fail",
+        detail: message,
+        fix: null,
+        required: true,
+      },
+    ]
+  }
+}
+
+const SIMULATION_PRESETS_QUERY = gql`
+  query SimulationPresets {
+    simulationPresets { name description scenario defaultParameters category }
+  }
+`
+
+const SIMULATION_RUNS_QUERY = gql`
+  query SimulationRuns {
+    simulationRuns { id scenario status startedAt stoppedAt parameters }
+  }
+`
+
+const SIMULATION_RUN_QUERY = gql`
+  query SimulationRun($id: ID!) {
+    simulationRun(id: $id) {
+      id scenario status startedAt stoppedAt parameters
+      observations { timestamp metric value annotation }
+    }
+  }
+`
+
+const RUN_SIMULATION_MUTATION = gql`
+  mutation RunSimulation($input: SimulationInput!) {
+    runSimulation(input: $input) { id scenario status startedAt parameters observations { timestamp metric value annotation } }
+  }
+`
+
+const STOP_SIMULATION_MUTATION = gql`
+  mutation StopSimulation($runId: ID!) {
+    stopSimulation(runId: $runId) { id scenario status stoppedAt }
+  }
+`
+
+export async function fetchSimulationPresets(): Promise<SimulationPreset[]> {
+  const data = await query<any>(SIMULATION_PRESETS_QUERY)
+  return data.simulationPresets ?? []
+}
+
+export async function fetchSimulationRuns(): Promise<SimulationRun[]> {
+  const data = await query<any>(SIMULATION_RUNS_QUERY, {}, "network-only")
+  return data.simulationRuns ?? []
+}
+
+export async function fetchSimulationRun(
+  id: string,
+): Promise<SimulationRun | null> {
+  const data = await query<any>(SIMULATION_RUN_QUERY, { id }, "network-only")
+  return data.simulationRun ?? null
+}
+
+export async function runSimulation(
+  input: SimulationInputParams,
+): Promise<SimulationRun> {
+  const data = await mutate<any>(RUN_SIMULATION_MUTATION, { input })
+  return data.runSimulation
+}
+
+export async function stopSimulation(runId: string): Promise<SimulationRun> {
+  const data = await mutate<any>(STOP_SIMULATION_MUTATION, { runId })
+  return data.stopSimulation
 }

@@ -1,10 +1,6 @@
+import { Popover, PopoverContent, PopoverTrigger } from "@flink-reactor/ui"
 import { useLocation } from "@tanstack/react-router"
 import { Check, Moon, Paintbrush, RefreshCw, Sun } from "lucide-react"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { cn } from "@/lib/cn"
 import { TIMESTAMP_FORMATS } from "@/lib/constants"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -133,14 +129,14 @@ const PALETTES: {
   swatches: string[]
 }[] = [
   {
-    id: "tokyo-night",
-    label: "Tokyo Night",
-    swatches: ["#d97085", "#9b6bbf", "#7aa2f7", "#73daca"],
-  },
-  {
     id: "gruvpuccin",
     label: "Gruvpuccin",
     swatches: ["#e78a4e", "#a9b665", "#7daea3", "#d8a657"],
+  },
+  {
+    id: "tokyo-night",
+    label: "Tokyo Night",
+    swatches: ["#d97085", "#9b6bbf", "#7aa2f7", "#73daca"],
   },
 ]
 

@@ -1,0 +1,107 @@
+{
+  "type": "BATCH",
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: FileSource",
+      "pact": "Data Source",
+      "contents": "Source: FileSource(path=[s3://data-warehouse/sales/2024/], format=[parquet])",
+      "parallelism": 32
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[sale_id, store_id, product_id, customer_id, quantity, amount, sale_date, sale_timestamp])",
+      "parallelism": 32,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "Source: JdbcSource",
+      "pact": "Data Source",
+      "contents": "Source: JdbcSource(table=[dim_products], query=[SELECT product_id, product_name, category, subcategory, brand FROM products])",
+      "parallelism": 4
+    },
+    {
+      "id": 4,
+      "type": "Exchange",
+      "pact": "Operator",
+      "contents": "Exchange(distribution=[broadcast])",
+      "parallelism": 32,
+      "predecessors": [
+        { "id": 3, "ship_strategy": "BROADCAST", "exchange": "batch" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "Join",
+      "pact": "Operator",
+      "contents": "Join(joinType=[InnerJoin], where=[product_id = dim_product_id], select=[sale_id, store_id, customer_id, quantity, amount, sale_date, product_name, category, subcategory, brand])",
+      "parallelism": 32,
+      "predecessors": [
+        {
+          "id": 2,
+          "ship_strategy": "FORWARD",
+          "side": "first",
+          "exchange": "pipelined_bounded"
+        },
+        {
+          "id": 4,
+          "ship_strategy": "FORWARD",
+          "side": "second",
+          "exchange": "batch"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "HashAggregate",
+      "pact": "Operator",
+      "contents": "HashAggregate(groupBy=[category, subcategory, sale_date], select=[category, subcategory, sale_date, SUM(amount) AS total_revenue, SUM(quantity) AS total_units, COUNT(DISTINCT customer_id) AS unique_customers])",
+      "parallelism": 32,
+      "predecessors": [
+        { "id": 5, "ship_strategy": "HASH", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "Sink: FileSystemSink",
+      "pact": "Data Sink",
+      "contents": "Sink: FileSystemSink(path=[s3://data-warehouse/aggregates/daily_category_sales/], format=[parquet], partitionBy=[sale_date])",
+      "parallelism": 8,
+      "predecessors": [
+        {
+          "id": 6,
+          "ship_strategy": "REBALANCE",
+          "exchange": "pipelined_bounded"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "HashAggregate",
+      "pact": "Operator",
+      "contents": "HashAggregate(groupBy=[brand, sale_date], select=[brand, sale_date, SUM(amount) AS brand_revenue, COUNT(*) AS transaction_count])",
+      "parallelism": 32,
+      "predecessors": [
+        { "id": 5, "ship_strategy": "HASH", "exchange": "pipelined_bounded" }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "Sink: JdbcSink",
+      "pact": "Data Sink",
+      "contents": "Sink: JdbcSink(table=[daily_brand_performance], driver=[org.postgresql.Driver], batchSize=[5000])",
+      "parallelism": 4,
+      "predecessors": [
+        {
+          "id": 8,
+          "ship_strategy": "REBALANCE",
+          "exchange": "pipelined_bounded"
+        }
+      ]
+    }
+  ],
+  "_comment": "BOUNDED BATCH: Historical sales data ETL with dimension join, branching to Parquet + JDBC sinks"
+}

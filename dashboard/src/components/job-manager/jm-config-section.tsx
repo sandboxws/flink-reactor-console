@@ -1,6 +1,6 @@
 import { Search, Settings } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { EmptyState } from "@/components/shared/empty-state"
+import { EmptyState } from "@flink-reactor/ui"
 import type { JobManagerConfig } from "@/data/cluster-types"
 import { classifyConfigKey, TagBadge, TagChip } from "./tag-filter"
 

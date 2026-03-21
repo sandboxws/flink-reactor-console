@@ -1,0 +1,35 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[orders], properties=[bootstrap.servers=kafka:9092])",
+      "parallelism": 4
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[order_id, product_id, quantity, order_time])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "LookupJoin",
+      "pact": "Operator",
+      "contents": "LookupJoin(table=[product_catalog], lookup=[product_id], select=[order_id, product_id, quantity, order_time, product_name, price])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 4,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[enriched_orders])",
+      "parallelism": 4,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    }
+  ]
+}

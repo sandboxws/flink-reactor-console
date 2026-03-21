@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Source: KafkaSource",
+      "pact": "Data Source",
+      "contents": "Source: KafkaSource(topic=[user_actions], properties=[bootstrap.servers=kafka:9092])",
+      "parallelism": 16
+    },
+    {
+      "id": 2,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[action_id, user_id, action_type, action_time, metadata])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 1, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 3,
+      "type": "LookupJoin",
+      "pact": "Operator",
+      "contents": "LookupJoin(table=[user_profiles], async=[true], asyncCapacity=[100], asyncTimeout=[30000], cache=[LRU(size=10000, ttl=60000)], lookup=[user_id], select=[action_id, user_id, action_type, action_time, user_name, user_tier, user_region])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 2, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 4,
+      "type": "Calc",
+      "pact": "Operator",
+      "contents": "Calc(select=[action_id, user_id, action_type, action_time, user_name, user_tier, user_region], where=[user_tier IN ('premium', 'enterprise')])",
+      "parallelism": 16,
+      "predecessors": [{ "id": 3, "ship_strategy": "FORWARD" }]
+    },
+    {
+      "id": 5,
+      "type": "Sink: KafkaSink",
+      "pact": "Data Sink",
+      "contents": "Sink: KafkaSink(topic=[premium_user_actions])",
+      "parallelism": 8,
+      "predecessors": [{ "id": 4, "ship_strategy": "REBALANCE" }]
+    }
+  ]
+}

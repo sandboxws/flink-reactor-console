@@ -1,10 +1,10 @@
-import { ChevronDown, ChevronRight, Settings } from "lucide-react"
-import { useState } from "react"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@flink-reactor/ui"
+import { ChevronDown, ChevronRight, Settings } from "lucide-react"
+import { useState } from "react"
 import { cn } from "@/lib/cn"
 import type { TapTab } from "@/stores/tap-store"
 

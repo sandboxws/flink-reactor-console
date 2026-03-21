@@ -37,6 +37,9 @@ import { Route as DeploymentsNameRouteImport } from './routes/deployments/$name'
 import { Route as CatalogsExploreRouteImport } from './routes/catalogs/explore'
 import { Route as CatalogsAvailableRouteImport } from './routes/catalogs/available'
 import { Route as InstrumentsInstrumentNameIndexRouteImport } from './routes/instruments/$instrumentName/index'
+import { Route as AdminSimulationsIndexRouteImport } from './routes/admin/simulations/index'
+import { Route as AdminBenchmarksIndexRouteImport } from './routes/admin/benchmarks/index'
+import { Route as AdminSimulationsRunIdRouteImport } from './routes/admin/simulations/$runId'
 import { Route as InstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/instruments/$instrumentName/database/index'
 import { Route as InstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/instruments/$instrumentName/database/table'
 import { Route as InstrumentsInstrumentNameDatabaseQueryRouteImport } from './routes/instruments/$instrumentName/database/query'
@@ -183,6 +186,21 @@ const InstrumentsInstrumentNameIndexRoute =
     path: '/',
     getParentRoute: () => InstrumentsInstrumentNameRoute,
   } as any)
+const AdminSimulationsIndexRoute = AdminSimulationsIndexRouteImport.update({
+  id: '/admin/simulations/',
+  path: '/admin/simulations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBenchmarksIndexRoute = AdminBenchmarksIndexRouteImport.update({
+  id: '/admin/benchmarks/',
+  path: '/admin/benchmarks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSimulationsRunIdRoute = AdminSimulationsRunIdRouteImport.update({
+  id: '/admin/simulations/$runId',
+  path: '/admin/simulations/$runId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InstrumentsInstrumentNameDatabaseIndexRoute =
   InstrumentsInstrumentNameDatabaseIndexRouteImport.update({
     id: '/database/',
@@ -230,6 +248,9 @@ export interface FileRoutesByFullPath {
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
+  '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
+  '/admin/benchmarks/': typeof AdminBenchmarksIndexRoute
+  '/admin/simulations/': typeof AdminSimulationsIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
@@ -262,6 +283,9 @@ export interface FileRoutesByTo {
   '/materialized-tables': typeof MaterializedTablesIndexRoute
   '/sandbox': typeof SandboxIndexRoute
   '/task-managers': typeof TaskManagersIndexRoute
+  '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
+  '/admin/benchmarks': typeof AdminBenchmarksIndexRoute
+  '/admin/simulations': typeof AdminSimulationsIndexRoute
   '/instruments/$instrumentName': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
@@ -296,6 +320,9 @@ export interface FileRoutesById {
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
+  '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
+  '/admin/benchmarks/': typeof AdminBenchmarksIndexRoute
+  '/admin/simulations/': typeof AdminSimulationsIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
@@ -331,6 +358,9 @@ export interface FileRouteTypes {
     | '/materialized-tables/'
     | '/sandbox/'
     | '/task-managers/'
+    | '/admin/simulations/$runId'
+    | '/admin/benchmarks/'
+    | '/admin/simulations/'
     | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
@@ -363,6 +393,9 @@ export interface FileRouteTypes {
     | '/materialized-tables'
     | '/sandbox'
     | '/task-managers'
+    | '/admin/simulations/$runId'
+    | '/admin/benchmarks'
+    | '/admin/simulations'
     | '/instruments/$instrumentName'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
@@ -396,6 +429,9 @@ export interface FileRouteTypes {
     | '/materialized-tables/'
     | '/sandbox/'
     | '/task-managers/'
+    | '/admin/simulations/$runId'
+    | '/admin/benchmarks/'
+    | '/admin/simulations/'
     | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
@@ -430,6 +466,9 @@ export interface RootRouteChildren {
   MaterializedTablesIndexRoute: typeof MaterializedTablesIndexRoute
   SandboxIndexRoute: typeof SandboxIndexRoute
   TaskManagersIndexRoute: typeof TaskManagersIndexRoute
+  AdminSimulationsRunIdRoute: typeof AdminSimulationsRunIdRoute
+  AdminBenchmarksIndexRoute: typeof AdminBenchmarksIndexRoute
+  AdminSimulationsIndexRoute: typeof AdminSimulationsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -630,6 +669,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstrumentsInstrumentNameIndexRouteImport
       parentRoute: typeof InstrumentsInstrumentNameRoute
     }
+    '/admin/simulations/': {
+      id: '/admin/simulations/'
+      path: '/admin/simulations'
+      fullPath: '/admin/simulations/'
+      preLoaderRoute: typeof AdminSimulationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/benchmarks/': {
+      id: '/admin/benchmarks/'
+      path: '/admin/benchmarks'
+      fullPath: '/admin/benchmarks/'
+      preLoaderRoute: typeof AdminBenchmarksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/simulations/$runId': {
+      id: '/admin/simulations/$runId'
+      path: '/admin/simulations/$runId'
+      fullPath: '/admin/simulations/$runId'
+      preLoaderRoute: typeof AdminSimulationsRunIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/instruments/$instrumentName/database/': {
       id: '/instruments/$instrumentName/database/'
       path: '/database'
@@ -705,6 +765,9 @@ const rootRouteChildren: RootRouteChildren = {
   MaterializedTablesIndexRoute: MaterializedTablesIndexRoute,
   SandboxIndexRoute: SandboxIndexRoute,
   TaskManagersIndexRoute: TaskManagersIndexRoute,
+  AdminSimulationsRunIdRoute: AdminSimulationsRunIdRoute,
+  AdminBenchmarksIndexRoute: AdminBenchmarksIndexRoute,
+  AdminSimulationsIndexRoute: AdminSimulationsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
