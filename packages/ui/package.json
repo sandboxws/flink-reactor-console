@@ -37,6 +37,12 @@
         "default": "./dist/fixtures/index.js"
       }
     },
+    "./templates/*": {
+      "import": {
+        "types": "./dist/templates/*/index.d.ts",
+        "default": "./dist/templates/*/index.js"
+      }
+    },
     "./styles": "./src/styles/index.css",
     "./styles/tokens": "./src/styles/tokens.css",
     "./styles/components": "./src/styles/components.css",

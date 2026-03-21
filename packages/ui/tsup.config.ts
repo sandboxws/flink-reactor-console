@@ -1,7 +1,22 @@
 import { defineConfig } from "tsup"
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/fixtures/index.ts"],
+  entry: [
+    "src/index.ts",
+    "src/fixtures/index.ts",
+    "src/templates/overview/index.ts",
+    "src/templates/jobs/index.ts",
+    "src/templates/logs/index.ts",
+    "src/templates/errors/index.ts",
+    "src/templates/monitoring/index.ts",
+    "src/templates/insights/index.ts",
+    "src/templates/task-managers/index.ts",
+    "src/templates/job-manager/index.ts",
+    "src/templates/deployments/index.ts",
+    "src/templates/plan-analyzer/index.ts",
+    "src/templates/catalogs/index.ts",
+    "src/templates/materialized-tables/index.ts",
+  ],
   format: ["esm"],
   target: "es2022",
   dts: true,
