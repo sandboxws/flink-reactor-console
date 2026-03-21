@@ -1,11 +1,16 @@
-import { Outlet, createRootRoute, Link, useLocation } from "@tanstack/react-router"
-import { Shell, Sidebar, Header, breadcrumbFromPath } from "@flink-reactor/ui"
+import { breadcrumbFromPath, Header, Shell, Sidebar } from "@flink-reactor/ui"
 import {
-  LayoutGrid,
-  Layers,
+  createRootRoute,
+  Link,
+  Outlet,
+  useLocation,
+} from "@tanstack/react-router"
+import {
   Blocks,
-  FileText,
   Clapperboard,
+  FileText,
+  Layers,
+  LayoutGrid,
 } from "lucide-react"
 
 /** Adapter: Sidebar passes href, but TanStack Router Link uses `to` */

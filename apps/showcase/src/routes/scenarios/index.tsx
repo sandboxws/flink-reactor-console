@@ -1,12 +1,27 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { Link } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 
 function ScenariosPage() {
   const scenarios = [
-    { name: "Healthy Cluster", path: "/scenarios/healthy", description: "3 TMs, 2 running jobs, health score 92" },
-    { name: "Degraded Cluster", path: "/scenarios/degraded", description: "Elevated backpressure, checkpoint delays" },
-    { name: "Failing Cluster", path: "/scenarios/failing", description: "OOM failure, high memory, health score 35" },
-    { name: "Empty Cluster", path: "/scenarios/empty", description: "Fresh cluster, no workload" },
+    {
+      name: "Healthy Cluster",
+      path: "/scenarios/healthy",
+      description: "3 TMs, 2 running jobs, health score 92",
+    },
+    {
+      name: "Degraded Cluster",
+      path: "/scenarios/degraded",
+      description: "Elevated backpressure, checkpoint delays",
+    },
+    {
+      name: "Failing Cluster",
+      path: "/scenarios/failing",
+      description: "OOM failure, high memory, health score 35",
+    },
+    {
+      name: "Empty Cluster",
+      path: "/scenarios/empty",
+      description: "Fresh cluster, no workload",
+    },
   ]
 
   return (
