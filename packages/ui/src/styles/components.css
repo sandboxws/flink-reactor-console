@@ -132,9 +132,7 @@ html.light[data-palette="tokyo-night"] .source-badge {
   border: 1px solid rgba(212, 190, 152, 0.06);
   border-radius: 0.75rem;
   backdrop-filter: blur(12px);
-  transition:
-    border-color 0.3s,
-    box-shadow 0.3s;
+  transition: box-shadow 0.3s;
 }
 
 .glass-card:hover {

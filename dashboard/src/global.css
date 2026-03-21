@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@source "../node_modules/@flink-reactor/ui/src/**/*.{ts,tsx}";
+@source "../node_modules/@flink-reactor/ui/dist/**/*.js";
 @source "../node_modules/@flink-reactor/instruments-ui/dist/**/*.js";
 
 /* ── Self-hosted Geist fonts ─────────────────────── */
@@ -923,9 +925,7 @@ button:not(:disabled),
   border: 1px solid rgba(212, 190, 152, 0.06);
   border-radius: 0.75rem;
   backdrop-filter: blur(12px);
-  transition:
-    border-color 0.3s,
-    box-shadow 0.3s;
+  transition: box-shadow 0.3s;
 }
 
 /* ── Collapsible panel ───────────────────────────── */
