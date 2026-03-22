@@ -59,7 +59,7 @@ function SheetContent({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm text-zinc-500 transition-colors hover:text-zinc-300 focus:outline-none">
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm text-zinc-500 transition-colors hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fr-purple focus-visible:ring-offset-2 focus-visible:ring-offset-dash-panel">
           <X className="size-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
