@@ -1,10 +1,16 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@flink-reactor/ui"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  SearchInput,
+  TimeRange,
+  type TimeRangeValue,
+} from "@flink-reactor/ui"
 import { Check, ChevronDown, Pause, Play } from "lucide-react"
-import { useMemo } from "react"
-import { SearchInput } from "@/components/shared/search-input"
-import { TimeRange } from "@/components/shared/time-range"
-import type { LogSource } from "@/data/types"
+import { useCallback, useMemo } from "react"
+import type { LogSource } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
+import { useSearchMatches } from "@/lib/hooks"
 import { useFilterStore } from "@/stores/filter-store"
 import { useLogStore } from "@/stores/log-store"
 import { SeverityFilter } from "./severity-filter"
@@ -12,6 +18,35 @@ import { SeverityFilter } from "./severity-filter"
 export function LogToolbar({ filteredCount }: { filteredCount: number }) {
   const toggleStreaming = useLogStore((s) => s.toggleStreaming)
   const isStreaming = useLogStore((s) => s.isStreaming)
+
+  const searchQuery = useFilterStore((s) => s.searchQuery)
+  const setSearchQuery = useFilterStore((s) => s.setSearchQuery)
+  const isRegex = useFilterStore((s) => s.isRegex)
+  const setIsRegex = useFilterStore((s) => s.setIsRegex)
+  const timeRange = useFilterStore((s) => s.timeRange)
+  const setTimeRange = useFilterStore((s) => s.setTimeRange)
+  const clearTimeRange = useFilterStore((s) => s.clearTimeRange)
+
+  const { matchCount, currentIndex, next, prev } = useSearchMatches()
+
+  const handleTimeRangeChange = useCallback(
+    (value: TimeRangeValue) => {
+      if (value.start && value.end) {
+        setTimeRange(value.start, value.end)
+      } else {
+        clearTimeRange()
+      }
+    },
+    [setTimeRange, clearTimeRange],
+  )
+
+  const timeRangeValue: TimeRangeValue = useMemo(
+    () => ({
+      start: timeRange.start ?? undefined,
+      end: timeRange.end ?? undefined,
+    }),
+    [timeRange],
+  )
 
   return (
     <div className="flex items-center gap-2 border-b border-dash-border bg-dash-panel px-3 py-1.5">
@@ -42,7 +77,17 @@ export function LogToolbar({ filteredCount }: { filteredCount: number }) {
 
       <div className="mx-1 h-4 w-px bg-dash-border" />
 
-      <SearchInput />
+      <SearchInput
+        value={searchQuery}
+        onChange={setSearchQuery}
+        isRegex={isRegex}
+        onRegexChange={setIsRegex}
+        matchCount={matchCount}
+        currentIndex={currentIndex}
+        onNext={next}
+        onPrev={prev}
+        placeholder="Search logs..."
+      />
 
       <div className="mx-1 h-4 w-px bg-dash-border" />
 
@@ -60,7 +105,7 @@ export function LogToolbar({ filteredCount }: { filteredCount: number }) {
         </span>
       )}
 
-      <TimeRange />
+      <TimeRange value={timeRangeValue} onChange={handleTimeRangeChange} />
     </div>
   )
 }

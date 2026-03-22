@@ -31,3 +31,5 @@ export {
   getChartColor,
   getUnitBadgeLabel,
 } from "./metric-chart"
+export { ThreadDumpViewer } from "./thread-dump-viewer"
+export { StaticLogExplorer } from "./static-log-explorer"

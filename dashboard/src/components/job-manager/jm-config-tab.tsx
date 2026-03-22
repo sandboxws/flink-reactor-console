@@ -2,7 +2,7 @@ import type {
   ClasspathEntry,
   JobManagerConfig,
   JvmInfo,
-} from "@/data/cluster-types"
+} from "@flink-reactor/ui"
 import { JmClasspathSection } from "./jm-classpath-section"
 import { JmConfigSection } from "./jm-config-section"
 import { JmJvmSection } from "./jm-jvm-section"

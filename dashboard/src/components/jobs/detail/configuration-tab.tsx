@@ -13,7 +13,7 @@ import {
   Settings,
 } from "lucide-react"
 import { useMemo, useState } from "react"
-import type { JobConfiguration } from "@/data/cluster-types"
+import type { JobConfiguration } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Copy-on-click value

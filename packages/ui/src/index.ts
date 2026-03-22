@@ -269,6 +269,8 @@ export {
   formatMetricValue,
   getChartColor,
   getUnitBadgeLabel,
+  ThreadDumpViewer,
+  StaticLogExplorer,
 } from "./shared"
 
 // ── Logs Components ────────────────────────────────────────────────────────

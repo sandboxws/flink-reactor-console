@@ -3,7 +3,7 @@
 // provides helpers for building runtime observation SQL.
 // ---------------------------------------------------------------------------
 
-import type { TapManifest, TapMetadata } from "@/data/tap-types"
+import type { TapManifest, TapMetadata } from "@flink-reactor/ui"
 
 /** Derive the backend base URL from the GraphQL endpoint (strips /graphql suffix). */
 const backendBaseUrl = (import.meta.env.VITE_GRAPHQL_URL ?? "").replace(

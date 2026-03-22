@@ -22,8 +22,8 @@ import type {
   JobVertex,
   JobVertexStatus,
   TaskStatus,
-} from "@/data/cluster-types"
-import type { TapMetadata } from "@/data/tap-types"
+} from "@flink-reactor/ui"
+import type { TapMetadata } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 

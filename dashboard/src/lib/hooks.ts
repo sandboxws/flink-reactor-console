@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import type { LogEntry } from "@/data/types"
+import type { LogEntry } from "@flink-reactor/ui"
 import { useFilterStore } from "@/stores/filter-store"
 import { useLogStore } from "@/stores/log-store"
 

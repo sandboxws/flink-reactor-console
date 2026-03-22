@@ -10,10 +10,10 @@ import {
   RefreshCw,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { StaticLogExplorer } from "@/components/shared/static-log-explorer"
-import type { LogFileEntry } from "@/data/cluster-types"
+import { StaticLogExplorer } from "@flink-reactor/ui"
+import type { LogFileEntry } from "@flink-reactor/ui"
 import { parseLogBlock } from "@/data/log-parser"
-import type { LogSource } from "@/data/types"
+import type { LogSource } from "@flink-reactor/ui"
 import { fetchJobManagerLogFile } from "@/lib/graphql-api-client"
 
 // ---------------------------------------------------------------------------

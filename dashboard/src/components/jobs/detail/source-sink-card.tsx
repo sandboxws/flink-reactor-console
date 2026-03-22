@@ -6,7 +6,7 @@ import {
   type LucideIcon,
   MessageSquare,
 } from "lucide-react"
-import type { ConnectorType, JobConnector } from "@/data/cluster-types"
+import type { ConnectorType, JobConnector } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 const connectorIcons: Record<ConnectorType, LucideIcon> = {

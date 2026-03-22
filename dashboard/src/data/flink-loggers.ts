@@ -1,4 +1,4 @@
-import type { LogSource } from "@/data/types"
+import type { LogSource } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Log sources — 1 JobManager + 3 TaskManagers

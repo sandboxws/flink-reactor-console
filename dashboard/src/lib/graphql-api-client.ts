@@ -40,7 +40,7 @@ import type {
   UserAccumulator,
   VertexBackPressure,
   VertexWatermark,
-} from "@/data/cluster-types"
+} from "@flink-reactor/ui"
 import { graphqlClient } from "./graphql-client"
 
 // ---------------------------------------------------------------------------

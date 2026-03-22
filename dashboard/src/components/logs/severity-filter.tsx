@@ -1,4 +1,4 @@
-import type { LogLevel } from "@/data/types"
+import type { LogLevel } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useFilterStore } from "@/stores/filter-store"
 

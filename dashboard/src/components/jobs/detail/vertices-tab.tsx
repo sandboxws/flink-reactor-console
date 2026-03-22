@@ -37,7 +37,7 @@ import type {
   UserAccumulator,
   VertexBackPressure,
   VertexWatermark,
-} from "@/data/cluster-types"
+} from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------

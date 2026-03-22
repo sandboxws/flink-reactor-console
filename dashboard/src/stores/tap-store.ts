@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { TapMetadata } from "@/data/tap-types"
+import type { TapMetadata } from "@flink-reactor/ui"
 import { getAvailableOperators, loadTapManifest } from "@/lib/tap-manifest"
 import type { ColumnInfo } from "./sql-gateway-store"
 

@@ -15,7 +15,7 @@ import type {
   JvmMetricSample,
   LogFileEntry,
   ThreadDumpInfo,
-} from "@/data/cluster-types"
+} from "@flink-reactor/ui"
 import {
   fetchJobManagerLog,
   fetchJobManagerLogs,

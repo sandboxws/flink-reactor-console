@@ -22,7 +22,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
-import type { FlinkJob } from "@/data/cluster-types"
+import type { FlinkJob } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
 import { DurationCell } from "./duration-cell"

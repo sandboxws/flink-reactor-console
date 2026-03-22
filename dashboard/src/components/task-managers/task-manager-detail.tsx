@@ -7,7 +7,7 @@ import type {
   LogFileEntry,
   TaskManager,
   ThreadDumpInfo,
-} from "@/data/cluster-types"
+} from "@flink-reactor/ui"
 import {
   fetchTaskManagerLog,
   fetchTaskManagerLogs,

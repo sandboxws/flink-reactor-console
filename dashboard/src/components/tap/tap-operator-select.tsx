@@ -1,5 +1,5 @@
 import { ArrowRight, Database, GitMerge, Radio, Shuffle } from "lucide-react"
-import type { TapMetadata } from "@/data/tap-types"
+import type { TapMetadata } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 interface TapOperatorSelectProps {

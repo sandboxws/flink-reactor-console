@@ -6,7 +6,7 @@ import {
 import { format } from "date-fns"
 import { ChevronRight } from "lucide-react"
 import { memo, useMemo } from "react"
-import type { LogEntry } from "@/data/types"
+import type { LogEntry } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { TIMESTAMP_FORMATS } from "@/lib/constants"
 import { useFilterStore } from "@/stores/filter-store"

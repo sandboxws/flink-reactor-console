@@ -21,7 +21,7 @@ import type {
   CheckpointLatest,
   CheckpointStatus,
   CheckpointSubtaskStats,
-} from "@/data/cluster-types"
+} from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import {
   fetchCheckpointDetail,

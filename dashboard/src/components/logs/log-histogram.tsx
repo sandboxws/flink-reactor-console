@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
-import type { LogEntry, LogLevel } from "@/data/types"
+import type { LogEntry, LogLevel } from "@flink-reactor/ui"
 import { SEVERITY_COLORS } from "@/lib/constants"
 import { useFilterStore } from "@/stores/filter-store"
 

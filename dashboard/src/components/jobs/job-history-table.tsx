@@ -15,7 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import type { JobStatus } from "@/data/cluster-types"
+import type { JobStatus } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import type { JobHistoryEntry } from "@/lib/graphql-api-client"
 import { JobStatusBadge } from "./job-status-badge"

@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { StackTrace } from "@/components/errors/stack-trace"
-import type { JobException } from "@/data/cluster-types"
+import type { JobException } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { LogLevel } from "@/data/types"
+import type { LogLevel } from "@flink-reactor/ui"
 import { DEFAULT_LEVEL_FILTER } from "@/lib/constants"
 
 // ---------------------------------------------------------------------------

@@ -1,8 +1,7 @@
 import { Cpu } from "lucide-react"
 import { useCallback, useMemo } from "react"
-import { EmptyState } from "@flink-reactor/ui"
-import { ThreadDumpViewer } from "@/components/shared/thread-dump-viewer"
-import type { ThreadDumpInfo } from "@/data/cluster-types"
+import { EmptyState, ThreadDumpViewer } from "@flink-reactor/ui"
+import type { ThreadDumpInfo } from "@flink-reactor/ui"
 import { parseThreadInfos } from "@/data/thread-dump-parser"
 
 export function JmThreadDumpTab({

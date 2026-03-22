@@ -3,7 +3,7 @@ import { ArrowDownWideNarrow, Clock } from "lucide-react"
 import { useMemo } from "react"
 import { Bar, BarChart } from "recharts"
 import { SourceBadge } from "@flink-reactor/ui"
-import type { ErrorGroup } from "@/data/types"
+import type { ErrorGroup } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useErrorStore } from "@/stores/error-store"
 

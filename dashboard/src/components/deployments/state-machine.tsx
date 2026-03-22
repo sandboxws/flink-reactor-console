@@ -7,7 +7,7 @@ import {
   ReactFlow,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import type { BlueGreenState } from "@/data/bg-deployment-types"
+import type { BlueGreenState } from "@flink-reactor/ui"
 import { getStateBadgeColor } from "@/data/bg-deployment-types"
 
 const STATE_NODES: Array<{

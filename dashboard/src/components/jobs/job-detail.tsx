@@ -8,8 +8,8 @@ import {
   useState,
 } from "react"
 import { TapPanel } from "@/components/tap/tap-panel"
-import type { FlinkJob } from "@/data/cluster-types"
-import type { TapMetadata } from "@/data/tap-types"
+import type { FlinkJob } from "@flink-reactor/ui"
+import type { TapMetadata } from "@flink-reactor/ui"
 import { hasTapManifest } from "@/lib/tap-manifest"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useSqlGatewayStore } from "@/stores/sql-gateway-store"

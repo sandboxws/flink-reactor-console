@@ -1,7 +1,7 @@
 import { useMemo } from "react"
-import { StaticLogExplorer } from "@/components/shared/static-log-explorer"
+import { StaticLogExplorer } from "@flink-reactor/ui"
 import { parseLogBlock } from "@/data/log-parser"
-import type { LogSource } from "@/data/types"
+import type { LogSource } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // TmLogsTab — renders TM logs using the unified log explorer

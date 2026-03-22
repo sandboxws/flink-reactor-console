@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Check,
   ChevronRight,
@@ -10,8 +12,8 @@ import {
   Search,
 } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
-import type { ThreadDumpEntry, ThreadState } from "@/data/cluster-types"
-import { cn } from "@/lib/cn"
+import type { ThreadDumpEntry, ThreadState } from "../types/cluster"
+import { cn } from "../lib/cn"
 
 // ---------------------------------------------------------------------------
 // Thread state → color mapping (Tokyo Night palette via CSS vars)

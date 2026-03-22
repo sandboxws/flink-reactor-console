@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import type { JobManagerMetrics, JvmMetricSample } from "@/data/cluster-types"
+import type { JobManagerMetrics, JvmMetricSample } from "@flink-reactor/ui"
 import { fetchJobManagerMetrics } from "@/lib/graphql-api-client"
 import { useConfigStore } from "@/stores/config-store"
 

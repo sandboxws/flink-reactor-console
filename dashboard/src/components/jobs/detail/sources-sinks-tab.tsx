@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Unplug } from "lucide-react"
-import type { JobConnector } from "@/data/cluster-types"
+import type { JobConnector } from "@flink-reactor/ui"
 import { SourceSinkCard } from "./source-sink-card"
 
 export function SourcesSinksTab({

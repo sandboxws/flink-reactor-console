@@ -10,7 +10,7 @@ import {
   Upload,
 } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
-import type { SubmitJobRequest, UploadedJar } from "@/data/cluster-types"
+import type { SubmitJobRequest, UploadedJar } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
 

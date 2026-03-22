@@ -11,8 +11,8 @@ import {
   useReactFlow,
 } from "@xyflow/react"
 import { useCallback, useEffect, useMemo } from "react"
-import type { JobPlan } from "@/data/cluster-types"
-import type { TapMetadata } from "@/data/tap-types"
+import type { JobPlan } from "@flink-reactor/ui"
+import type { TapMetadata } from "@flink-reactor/ui"
 import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 import { OperatorNode } from "./operator-node"
 import { StrategyEdge } from "./strategy-edge"

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import type { BlueGreenDeployment } from "@/data/bg-deployment-types"
+import type { BlueGreenDeployment } from "@flink-reactor/ui"
 import { StateBadge } from "./state-badge"
 
 interface DeploymentsTableProps {

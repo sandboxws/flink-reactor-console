@@ -1,4 +1,4 @@
-import type { TaskManager } from "@/data/cluster-types"
+import type { TaskManager } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Helpers

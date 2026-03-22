@@ -1,7 +1,7 @@
 import { gql } from "urql"
 import { create } from "zustand"
 import { mapBlueGreenDeployments } from "@/data/bg-deployment-mappers"
-import type { BlueGreenDeployment } from "@/data/bg-deployment-types"
+import type { BlueGreenDeployment } from "@flink-reactor/ui"
 import { graphqlClient } from "@/lib/graphql-client"
 
 // ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { FlinkJob } from "@/data/cluster-types"
+import type { FlinkJob } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
 

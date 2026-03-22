@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
 import { ExternalLink } from "lucide-react"
 import { SourceBadge } from "@flink-reactor/ui"
-import type { ErrorGroup } from "@/data/types"
+import type { ErrorGroup } from "@flink-reactor/ui"
 import { StackTrace } from "./stack-trace"
 
 // ---------------------------------------------------------------------------

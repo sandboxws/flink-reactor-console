@@ -4,7 +4,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@flink-reactor/ui"
-import type { TaskCounts, TaskStatus } from "@/data/cluster-types"
+import type { TaskCounts, TaskStatus } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 const segments: { key: TaskStatus; label: string; color: string }[] = [

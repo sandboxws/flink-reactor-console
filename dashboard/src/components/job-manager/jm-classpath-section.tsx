@@ -1,6 +1,6 @@
 import { FolderOpen, Search } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import type { ClasspathEntry } from "@/data/cluster-types"
+import type { ClasspathEntry } from "@flink-reactor/ui"
 import { TagBadge, TagChip } from "./tag-filter"
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import type { MaterializedTable } from "@/data/materialized-table-types"
+import type { MaterializedTable } from "@flink-reactor/ui"
 import { RefreshStatusBadge } from "./refresh-status-badge"
 
 interface MaterializedTablesTableProps {

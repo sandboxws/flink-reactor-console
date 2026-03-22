@@ -1,5 +1,5 @@
 import { Cpu, Database, Terminal } from "lucide-react"
-import type { JvmInfo } from "@/data/cluster-types"
+import type { JvmInfo } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Helpers

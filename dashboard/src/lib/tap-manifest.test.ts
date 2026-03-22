@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest"
 import { generateMockTapManifest } from "@/data/mock-tap-manifest"
-import type { TapManifest, TapMetadata } from "@/data/tap-types"
+import type { TapManifest, TapMetadata } from "@flink-reactor/ui"
 import {
   buildRuntimeObservationSql,
   getAvailableOperators,

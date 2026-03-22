@@ -1,7 +1,7 @@
+import type { MaterializedTableRefreshStatus } from "@flink-reactor/ui"
 import {
   getRefreshStatusColor,
   getRefreshStatusLabel,
-  type MaterializedTableRefreshStatus,
 } from "@/data/materialized-table-types"
 import { cn } from "@/lib/cn"
 

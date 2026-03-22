@@ -14,7 +14,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import { ArrowDown, ArrowUp, ArrowUpDown, Check, Copy } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import type { TaskManager } from "@/data/cluster-types"
+import type { TaskManager } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { MemoryBar } from "./memory-bar"
 

@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { parseLogBlock } from "@/data/log-parser"
-import type { LogEntry, LogSource } from "@/data/types"
+import type { LogEntry, LogSource } from "@flink-reactor/ui"
 import { LOG_BUFFER_LIMIT } from "@/lib/constants"
 import {
   fetchJobManagerLog,

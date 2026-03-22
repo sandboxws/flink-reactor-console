@@ -18,7 +18,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import type { JobVertex, SubtaskMetrics } from "@/data/cluster-types"
+import type { JobVertex, SubtaskMetrics } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------

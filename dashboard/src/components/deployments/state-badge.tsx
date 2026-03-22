@@ -1,8 +1,5 @@
-import {
-  type BlueGreenState,
-  getStateBadgeColor,
-  getStateLabel,
-} from "@/data/bg-deployment-types"
+import type { BlueGreenState } from "@flink-reactor/ui"
+import { getStateBadgeColor, getStateLabel } from "@/data/bg-deployment-types"
 import { cn } from "@/lib/cn"
 
 const colorClasses: Record<string, string> = {

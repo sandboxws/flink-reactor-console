@@ -1,4 +1,4 @@
-import type { LogLevel } from "@/data/types"
+import type { LogLevel } from "@flink-reactor/ui"
 
 /** Maps each log level to its CSS variable-based severity color. */
 export const SEVERITY_COLORS: Record<LogLevel, string> = {

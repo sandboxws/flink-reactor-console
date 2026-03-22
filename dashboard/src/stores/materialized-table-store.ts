@@ -1,7 +1,7 @@
 import { gql } from "urql"
 import { create } from "zustand"
 import { mapMaterializedTables } from "@/data/materialized-table-mappers"
-import type { MaterializedTable } from "@/data/materialized-table-types"
+import type { MaterializedTable } from "@flink-reactor/ui"
 import { graphqlClient } from "@/lib/graphql-client"
 
 // ---------------------------------------------------------------------------

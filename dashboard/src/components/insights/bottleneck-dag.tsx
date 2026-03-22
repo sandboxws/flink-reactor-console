@@ -14,7 +14,7 @@ import type {
   BottleneckScore,
   BottleneckSeverity,
 } from "@/data/bottleneck-analyzer"
-import type { JobEdge } from "@/data/cluster-types"
+import type { JobEdge } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import "@xyflow/react/dist/style.css"
 

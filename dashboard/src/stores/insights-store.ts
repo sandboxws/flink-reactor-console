@@ -8,7 +8,7 @@ import type {
   ClusterOverview,
   FlinkJob,
   TaskManager,
-} from "@/data/cluster-types"
+} from "@flink-reactor/ui"
 import { fetchJobDetail as fetchJobDetailApi } from "@/lib/graphql-api-client"
 import { useClusterStore } from "./cluster-store"
 import { useConfigStore } from "./config-store"

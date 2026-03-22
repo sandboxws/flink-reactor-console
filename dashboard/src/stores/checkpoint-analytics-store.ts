@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { Checkpoint, FlinkJob } from "@/data/cluster-types"
+import type { Checkpoint, FlinkJob } from "@flink-reactor/ui"
 import { fetchJobDetail as fetchJobDetailApi } from "@/lib/graphql-api-client"
 import { useClusterStore } from "./cluster-store"
 

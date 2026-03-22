@@ -1,5 +1,5 @@
 import { Badge } from "@flink-reactor/ui"
-import type { JobStatus } from "@/data/cluster-types"
+import type { JobStatus } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 const statusStyles: Record<JobStatus, string> = {

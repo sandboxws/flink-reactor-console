@@ -7,7 +7,7 @@ import type {
   SubmitJobRequest,
   TaskManager,
   UploadedJar,
-} from "@/data/cluster-types"
+} from "@flink-reactor/ui"
 import {
   cancelJob as cancelJobApi,
   deleteJar as deleteJarApi,

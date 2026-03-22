@@ -1,4 +1,4 @@
-import type { LogEntry, LogLevel, LogSource } from "@/data/types"
+import type { LogEntry, LogLevel, LogSource } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Flink log4j pattern:

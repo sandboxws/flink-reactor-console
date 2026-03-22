@@ -17,7 +17,7 @@ import {
   Radio,
 } from "lucide-react"
 import { useMemo, useState } from "react"
-import type { FlinkJob, JobStatus } from "@/data/cluster-types"
+import type { FlinkJob, JobStatus } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
 
