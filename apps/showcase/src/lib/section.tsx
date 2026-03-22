@@ -81,13 +81,13 @@ export function ShowcasePage({
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id)
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+    if (el) el.scrollIntoView({ behavior: "instant", block: "start" })
   }
 
   return (
     <div className="flex">
       {/* Secondary sidebar — sticky, self-start prevents flex stretch */}
-      <aside className="hidden lg:block sticky top-0 self-start w-48 shrink-0 max-h-screen overflow-y-auto p-3">
+      <aside className="hidden lg:block sticky top-0 w-48 shrink-0 h-[calc(100vh-2.75rem)] overflow-y-auto border-r border-dash-border p-3">
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
           Components
         </p>
@@ -111,7 +111,7 @@ export function ShowcasePage({
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 min-w-0 flex flex-col gap-8 p-6 lg:border-l lg:border-dash-border">
+      <div className="flex-1 min-w-0 flex flex-col gap-8 p-6">
         <div>
           <h1 className="text-2xl font-semibold text-fg">{title}</h1>
           {description && (

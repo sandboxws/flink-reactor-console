@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/ahmed/.claude/skills/**)",
+      "Read(//Users/ahmed/.claude/**)",
+      "Bash(find /Users/ahmed/Development/reactors/flink/flink-reactor-dsl -name *.tsx -not -path */node_modules/*)",
+      "Bash(python3 fetch-sources.py)",
+      "Bash(pip3 install:*)",
+      "Bash(python3 ~/Development/reactors/flink/fr-marketing/fetch-sources.py)",
+      "Skill(fr-marketing)",
+      "Bash(xargs cat:*)"
+    ]
+  }
+}

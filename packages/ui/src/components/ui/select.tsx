@@ -1,6 +1,6 @@
 "use client"
 
-import * as SelectPrimitive from "@radix-ui/react-select"
+import { Select as SelectPrimitive } from "radix-ui"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "../../lib/cn"
@@ -16,6 +16,7 @@ function SelectTrigger({
 }: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
   return (
     <SelectPrimitive.Trigger
+      data-slot="trigger"
       className={cn(
         "flex h-8 w-full items-center justify-between gap-2 rounded-md border border-dash-border bg-dash-surface px-3 py-1.5 text-sm text-zinc-200 transition-colors placeholder:text-zinc-500 focus:border-fr-purple focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
         className,
@@ -73,6 +74,7 @@ function SelectContent({
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
+        data-slot="content"
         className={cn(
           "relative z-50 max-h-72 min-w-[8rem] overflow-hidden rounded-md border border-dash-border bg-dash-panel shadow-md shadow-black/50",
           position === "popper" &&
@@ -117,6 +119,7 @@ function SelectItem({
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
   return (
     <SelectPrimitive.Item
+      data-slot="item"
       className={cn(
         "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-7 pr-2 text-sm text-zinc-300 outline-none focus:bg-white/[0.08] focus:text-white data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,

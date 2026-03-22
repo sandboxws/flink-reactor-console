@@ -4,9 +4,9 @@ function HomePage() {
   const sections = [
     {
       title: "Primitives",
-      description: "20 Radix-based UI primitives",
+      description: "30 UI primitives (Radix + composition)",
       href: "/primitives",
-      count: 20,
+      count: 30,
     },
     {
       title: "Shared",

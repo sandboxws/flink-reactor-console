@@ -1,6 +1,6 @@
 "use client"
 
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+import { Popover as PopoverPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
@@ -17,6 +17,7 @@ function PopoverContent({
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
+        data-slot="content"
         align={align}
         sideOffset={sideOffset}
         className={cn(

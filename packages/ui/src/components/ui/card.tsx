@@ -5,6 +5,7 @@ import { cn } from "../../lib/cn"
 function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
+      data-slot="card"
       className={cn(
         "rounded-lg border border-dash-border bg-dash-panel shadow-sm",
         className,
@@ -20,6 +21,7 @@ function CardHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
+      data-slot="header"
       className={cn("flex flex-col space-y-1.5 p-4", className)}
       {...props}
     />
@@ -32,6 +34,7 @@ function CardTitle({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
+      data-slot="title"
       className={cn(
         "text-sm font-semibold leading-none text-zinc-200",
         className,
@@ -45,14 +48,14 @@ function CardDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("text-xs text-zinc-500", className)} {...props} />
+  return <div data-slot="description" className={cn("text-xs text-zinc-500", className)} {...props} />
 }
 
 function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-4 pt-0", className)} {...props} />
+  return <div data-slot="content" className={cn("p-4 pt-0", className)} {...props} />
 }
 
 function CardFooter({
@@ -60,7 +63,7 @@ function CardFooter({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("flex items-center p-4 pt-0", className)} {...props} />
+    <div data-slot="footer" className={cn("flex items-center p-4 pt-0", className)} {...props} />
   )
 }
 

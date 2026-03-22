@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TemplatesRouteImport } from './routes/templates'
+import { Route as ScenariosRouteImport } from './routes/scenarios'
+import { Route as DomainRouteImport } from './routes/domain'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates/index'
 import { Route as SharedIndexRouteImport } from './routes/shared/index'
@@ -42,15 +45,30 @@ import { Route as DomainInsightsRouteImport } from './routes/domain/insights'
 import { Route as DomainErrorsRouteImport } from './routes/domain/errors'
 import { Route as DomainCatalogsRouteImport } from './routes/domain/catalogs'
 
+const TemplatesRoute = TemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScenariosRoute = ScenariosRouteImport.update({
+  id: '/scenarios',
+  path: '/scenarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DomainRoute = DomainRouteImport.update({
+  id: '/domain',
+  path: '/domain',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
-  id: '/templates/',
-  path: '/templates/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const SharedIndexRoute = SharedIndexRouteImport.update({
   id: '/shared/',
@@ -58,9 +76,9 @@ const SharedIndexRoute = SharedIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScenariosIndexRoute = ScenariosIndexRouteImport.update({
-  id: '/scenarios/',
-  path: '/scenarios/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ScenariosRoute,
 } as any)
 const PrimitivesIndexRoute = PrimitivesIndexRouteImport.update({
   id: '/primitives/',
@@ -68,145 +86,148 @@ const PrimitivesIndexRoute = PrimitivesIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DomainIndexRoute = DomainIndexRouteImport.update({
-  id: '/domain/',
-  path: '/domain/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => DomainRoute,
 } as any)
 const TemplatesTaskManagersRoute = TemplatesTaskManagersRouteImport.update({
-  id: '/templates/task-managers',
-  path: '/templates/task-managers',
-  getParentRoute: () => rootRouteImport,
+  id: '/task-managers',
+  path: '/task-managers',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesPlanAnalyzerRoute = TemplatesPlanAnalyzerRouteImport.update({
-  id: '/templates/plan-analyzer',
-  path: '/templates/plan-analyzer',
-  getParentRoute: () => rootRouteImport,
+  id: '/plan-analyzer',
+  path: '/plan-analyzer',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesOverviewRoute = TemplatesOverviewRouteImport.update({
-  id: '/templates/overview',
-  path: '/templates/overview',
-  getParentRoute: () => rootRouteImport,
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesMonitoringRoute = TemplatesMonitoringRouteImport.update({
-  id: '/templates/monitoring',
-  path: '/templates/monitoring',
-  getParentRoute: () => rootRouteImport,
+  id: '/monitoring',
+  path: '/monitoring',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesMaterializedTablesRoute =
   TemplatesMaterializedTablesRouteImport.update({
-    id: '/templates/materialized-tables',
-    path: '/templates/materialized-tables',
-    getParentRoute: () => rootRouteImport,
+    id: '/materialized-tables',
+    path: '/materialized-tables',
+    getParentRoute: () => TemplatesRoute,
   } as any)
 const TemplatesLogsRoute = TemplatesLogsRouteImport.update({
-  id: '/templates/logs',
-  path: '/templates/logs',
-  getParentRoute: () => rootRouteImport,
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesJobsRoute = TemplatesJobsRouteImport.update({
-  id: '/templates/jobs',
-  path: '/templates/jobs',
-  getParentRoute: () => rootRouteImport,
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesJobManagerRoute = TemplatesJobManagerRouteImport.update({
-  id: '/templates/job-manager',
-  path: '/templates/job-manager',
-  getParentRoute: () => rootRouteImport,
+  id: '/job-manager',
+  path: '/job-manager',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesInsightsRoute = TemplatesInsightsRouteImport.update({
-  id: '/templates/insights',
-  path: '/templates/insights',
-  getParentRoute: () => rootRouteImport,
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesErrorsRoute = TemplatesErrorsRouteImport.update({
-  id: '/templates/errors',
-  path: '/templates/errors',
-  getParentRoute: () => rootRouteImport,
+  id: '/errors',
+  path: '/errors',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesDeploymentsRoute = TemplatesDeploymentsRouteImport.update({
-  id: '/templates/deployments',
-  path: '/templates/deployments',
-  getParentRoute: () => rootRouteImport,
+  id: '/deployments',
+  path: '/deployments',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const TemplatesCatalogsRoute = TemplatesCatalogsRouteImport.update({
-  id: '/templates/catalogs',
-  path: '/templates/catalogs',
-  getParentRoute: () => rootRouteImport,
+  id: '/catalogs',
+  path: '/catalogs',
+  getParentRoute: () => TemplatesRoute,
 } as any)
 const ScenariosHealthyRoute = ScenariosHealthyRouteImport.update({
-  id: '/scenarios/healthy',
-  path: '/scenarios/healthy',
-  getParentRoute: () => rootRouteImport,
+  id: '/healthy',
+  path: '/healthy',
+  getParentRoute: () => ScenariosRoute,
 } as any)
 const ScenariosFailingRoute = ScenariosFailingRouteImport.update({
-  id: '/scenarios/failing',
-  path: '/scenarios/failing',
-  getParentRoute: () => rootRouteImport,
+  id: '/failing',
+  path: '/failing',
+  getParentRoute: () => ScenariosRoute,
 } as any)
 const ScenariosEmptyRoute = ScenariosEmptyRouteImport.update({
-  id: '/scenarios/empty',
-  path: '/scenarios/empty',
-  getParentRoute: () => rootRouteImport,
+  id: '/empty',
+  path: '/empty',
+  getParentRoute: () => ScenariosRoute,
 } as any)
 const ScenariosDegradedRoute = ScenariosDegradedRouteImport.update({
-  id: '/scenarios/degraded',
-  path: '/scenarios/degraded',
-  getParentRoute: () => rootRouteImport,
+  id: '/degraded',
+  path: '/degraded',
+  getParentRoute: () => ScenariosRoute,
 } as any)
 const DomainTapRoute = DomainTapRouteImport.update({
-  id: '/domain/tap',
-  path: '/domain/tap',
-  getParentRoute: () => rootRouteImport,
+  id: '/tap',
+  path: '/tap',
+  getParentRoute: () => DomainRoute,
 } as any)
 const DomainPlanAnalyzerRoute = DomainPlanAnalyzerRouteImport.update({
-  id: '/domain/plan-analyzer',
-  path: '/domain/plan-analyzer',
-  getParentRoute: () => rootRouteImport,
+  id: '/plan-analyzer',
+  path: '/plan-analyzer',
+  getParentRoute: () => DomainRoute,
 } as any)
 const DomainOverviewRoute = DomainOverviewRouteImport.update({
-  id: '/domain/overview',
-  path: '/domain/overview',
-  getParentRoute: () => rootRouteImport,
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => DomainRoute,
 } as any)
 const DomainMonitoringRoute = DomainMonitoringRouteImport.update({
-  id: '/domain/monitoring',
-  path: '/domain/monitoring',
-  getParentRoute: () => rootRouteImport,
+  id: '/monitoring',
+  path: '/monitoring',
+  getParentRoute: () => DomainRoute,
 } as any)
 const DomainMaterializedTablesRoute =
   DomainMaterializedTablesRouteImport.update({
-    id: '/domain/materialized-tables',
-    path: '/domain/materialized-tables',
-    getParentRoute: () => rootRouteImport,
+    id: '/materialized-tables',
+    path: '/materialized-tables',
+    getParentRoute: () => DomainRoute,
   } as any)
 const DomainLogsRoute = DomainLogsRouteImport.update({
-  id: '/domain/logs',
-  path: '/domain/logs',
-  getParentRoute: () => rootRouteImport,
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => DomainRoute,
 } as any)
 const DomainJobsRoute = DomainJobsRouteImport.update({
-  id: '/domain/jobs',
-  path: '/domain/jobs',
-  getParentRoute: () => rootRouteImport,
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => DomainRoute,
 } as any)
 const DomainInsightsRoute = DomainInsightsRouteImport.update({
-  id: '/domain/insights',
-  path: '/domain/insights',
-  getParentRoute: () => rootRouteImport,
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => DomainRoute,
 } as any)
 const DomainErrorsRoute = DomainErrorsRouteImport.update({
-  id: '/domain/errors',
-  path: '/domain/errors',
-  getParentRoute: () => rootRouteImport,
+  id: '/errors',
+  path: '/errors',
+  getParentRoute: () => DomainRoute,
 } as any)
 const DomainCatalogsRoute = DomainCatalogsRouteImport.update({
-  id: '/domain/catalogs',
-  path: '/domain/catalogs',
-  getParentRoute: () => rootRouteImport,
+  id: '/catalogs',
+  path: '/catalogs',
+  getParentRoute: () => DomainRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/domain': typeof DomainRouteWithChildren
+  '/scenarios': typeof ScenariosRouteWithChildren
+  '/templates': typeof TemplatesRouteWithChildren
   '/domain/catalogs': typeof DomainCatalogsRoute
   '/domain/errors': typeof DomainErrorsRoute
   '/domain/insights': typeof DomainInsightsRoute
@@ -276,6 +297,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/domain': typeof DomainRouteWithChildren
+  '/scenarios': typeof ScenariosRouteWithChildren
+  '/templates': typeof TemplatesRouteWithChildren
   '/domain/catalogs': typeof DomainCatalogsRoute
   '/domain/errors': typeof DomainErrorsRoute
   '/domain/insights': typeof DomainInsightsRoute
@@ -312,6 +336,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/domain'
+    | '/scenarios'
+    | '/templates'
     | '/domain/catalogs'
     | '/domain/errors'
     | '/domain/insights'
@@ -380,6 +407,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/domain'
+    | '/scenarios'
+    | '/templates'
     | '/domain/catalogs'
     | '/domain/errors'
     | '/domain/insights'
@@ -415,6 +445,264 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DomainRoute: typeof DomainRouteWithChildren
+  ScenariosRoute: typeof ScenariosRouteWithChildren
+  TemplatesRoute: typeof TemplatesRouteWithChildren
+  PrimitivesIndexRoute: typeof PrimitivesIndexRoute
+  SharedIndexRoute: typeof SharedIndexRoute
+}
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/templates': {
+      id: '/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof TemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scenarios': {
+      id: '/scenarios'
+      path: '/scenarios'
+      fullPath: '/scenarios'
+      preLoaderRoute: typeof ScenariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/domain': {
+      id: '/domain'
+      path: '/domain'
+      fullPath: '/domain'
+      preLoaderRoute: typeof DomainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates/': {
+      id: '/templates/'
+      path: '/'
+      fullPath: '/templates/'
+      preLoaderRoute: typeof TemplatesIndexRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/shared/': {
+      id: '/shared/'
+      path: '/shared'
+      fullPath: '/shared/'
+      preLoaderRoute: typeof SharedIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scenarios/': {
+      id: '/scenarios/'
+      path: '/'
+      fullPath: '/scenarios/'
+      preLoaderRoute: typeof ScenariosIndexRouteImport
+      parentRoute: typeof ScenariosRoute
+    }
+    '/primitives/': {
+      id: '/primitives/'
+      path: '/primitives'
+      fullPath: '/primitives/'
+      preLoaderRoute: typeof PrimitivesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/domain/': {
+      id: '/domain/'
+      path: '/'
+      fullPath: '/domain/'
+      preLoaderRoute: typeof DomainIndexRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/templates/task-managers': {
+      id: '/templates/task-managers'
+      path: '/task-managers'
+      fullPath: '/templates/task-managers'
+      preLoaderRoute: typeof TemplatesTaskManagersRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/plan-analyzer': {
+      id: '/templates/plan-analyzer'
+      path: '/plan-analyzer'
+      fullPath: '/templates/plan-analyzer'
+      preLoaderRoute: typeof TemplatesPlanAnalyzerRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/overview': {
+      id: '/templates/overview'
+      path: '/overview'
+      fullPath: '/templates/overview'
+      preLoaderRoute: typeof TemplatesOverviewRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/monitoring': {
+      id: '/templates/monitoring'
+      path: '/monitoring'
+      fullPath: '/templates/monitoring'
+      preLoaderRoute: typeof TemplatesMonitoringRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/materialized-tables': {
+      id: '/templates/materialized-tables'
+      path: '/materialized-tables'
+      fullPath: '/templates/materialized-tables'
+      preLoaderRoute: typeof TemplatesMaterializedTablesRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/logs': {
+      id: '/templates/logs'
+      path: '/logs'
+      fullPath: '/templates/logs'
+      preLoaderRoute: typeof TemplatesLogsRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/jobs': {
+      id: '/templates/jobs'
+      path: '/jobs'
+      fullPath: '/templates/jobs'
+      preLoaderRoute: typeof TemplatesJobsRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/job-manager': {
+      id: '/templates/job-manager'
+      path: '/job-manager'
+      fullPath: '/templates/job-manager'
+      preLoaderRoute: typeof TemplatesJobManagerRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/insights': {
+      id: '/templates/insights'
+      path: '/insights'
+      fullPath: '/templates/insights'
+      preLoaderRoute: typeof TemplatesInsightsRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/errors': {
+      id: '/templates/errors'
+      path: '/errors'
+      fullPath: '/templates/errors'
+      preLoaderRoute: typeof TemplatesErrorsRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/deployments': {
+      id: '/templates/deployments'
+      path: '/deployments'
+      fullPath: '/templates/deployments'
+      preLoaderRoute: typeof TemplatesDeploymentsRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/templates/catalogs': {
+      id: '/templates/catalogs'
+      path: '/catalogs'
+      fullPath: '/templates/catalogs'
+      preLoaderRoute: typeof TemplatesCatalogsRouteImport
+      parentRoute: typeof TemplatesRoute
+    }
+    '/scenarios/healthy': {
+      id: '/scenarios/healthy'
+      path: '/healthy'
+      fullPath: '/scenarios/healthy'
+      preLoaderRoute: typeof ScenariosHealthyRouteImport
+      parentRoute: typeof ScenariosRoute
+    }
+    '/scenarios/failing': {
+      id: '/scenarios/failing'
+      path: '/failing'
+      fullPath: '/scenarios/failing'
+      preLoaderRoute: typeof ScenariosFailingRouteImport
+      parentRoute: typeof ScenariosRoute
+    }
+    '/scenarios/empty': {
+      id: '/scenarios/empty'
+      path: '/empty'
+      fullPath: '/scenarios/empty'
+      preLoaderRoute: typeof ScenariosEmptyRouteImport
+      parentRoute: typeof ScenariosRoute
+    }
+    '/scenarios/degraded': {
+      id: '/scenarios/degraded'
+      path: '/degraded'
+      fullPath: '/scenarios/degraded'
+      preLoaderRoute: typeof ScenariosDegradedRouteImport
+      parentRoute: typeof ScenariosRoute
+    }
+    '/domain/tap': {
+      id: '/domain/tap'
+      path: '/tap'
+      fullPath: '/domain/tap'
+      preLoaderRoute: typeof DomainTapRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/plan-analyzer': {
+      id: '/domain/plan-analyzer'
+      path: '/plan-analyzer'
+      fullPath: '/domain/plan-analyzer'
+      preLoaderRoute: typeof DomainPlanAnalyzerRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/overview': {
+      id: '/domain/overview'
+      path: '/overview'
+      fullPath: '/domain/overview'
+      preLoaderRoute: typeof DomainOverviewRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/monitoring': {
+      id: '/domain/monitoring'
+      path: '/monitoring'
+      fullPath: '/domain/monitoring'
+      preLoaderRoute: typeof DomainMonitoringRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/materialized-tables': {
+      id: '/domain/materialized-tables'
+      path: '/materialized-tables'
+      fullPath: '/domain/materialized-tables'
+      preLoaderRoute: typeof DomainMaterializedTablesRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/logs': {
+      id: '/domain/logs'
+      path: '/logs'
+      fullPath: '/domain/logs'
+      preLoaderRoute: typeof DomainLogsRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/jobs': {
+      id: '/domain/jobs'
+      path: '/jobs'
+      fullPath: '/domain/jobs'
+      preLoaderRoute: typeof DomainJobsRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/insights': {
+      id: '/domain/insights'
+      path: '/insights'
+      fullPath: '/domain/insights'
+      preLoaderRoute: typeof DomainInsightsRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/errors': {
+      id: '/domain/errors'
+      path: '/errors'
+      fullPath: '/domain/errors'
+      preLoaderRoute: typeof DomainErrorsRouteImport
+      parentRoute: typeof DomainRoute
+    }
+    '/domain/catalogs': {
+      id: '/domain/catalogs'
+      path: '/catalogs'
+      fullPath: '/domain/catalogs'
+      preLoaderRoute: typeof DomainCatalogsRouteImport
+      parentRoute: typeof DomainRoute
+    }
+  }
+}
+
+interface DomainRouteChildren {
   DomainCatalogsRoute: typeof DomainCatalogsRoute
   DomainErrorsRoute: typeof DomainErrorsRoute
   DomainInsightsRoute: typeof DomainInsightsRoute
@@ -425,10 +713,47 @@ export interface RootRouteChildren {
   DomainOverviewRoute: typeof DomainOverviewRoute
   DomainPlanAnalyzerRoute: typeof DomainPlanAnalyzerRoute
   DomainTapRoute: typeof DomainTapRoute
+  DomainIndexRoute: typeof DomainIndexRoute
+}
+
+const DomainRouteChildren: DomainRouteChildren = {
+  DomainCatalogsRoute: DomainCatalogsRoute,
+  DomainErrorsRoute: DomainErrorsRoute,
+  DomainInsightsRoute: DomainInsightsRoute,
+  DomainJobsRoute: DomainJobsRoute,
+  DomainLogsRoute: DomainLogsRoute,
+  DomainMaterializedTablesRoute: DomainMaterializedTablesRoute,
+  DomainMonitoringRoute: DomainMonitoringRoute,
+  DomainOverviewRoute: DomainOverviewRoute,
+  DomainPlanAnalyzerRoute: DomainPlanAnalyzerRoute,
+  DomainTapRoute: DomainTapRoute,
+  DomainIndexRoute: DomainIndexRoute,
+}
+
+const DomainRouteWithChildren =
+  DomainRoute._addFileChildren(DomainRouteChildren)
+
+interface ScenariosRouteChildren {
   ScenariosDegradedRoute: typeof ScenariosDegradedRoute
   ScenariosEmptyRoute: typeof ScenariosEmptyRoute
   ScenariosFailingRoute: typeof ScenariosFailingRoute
   ScenariosHealthyRoute: typeof ScenariosHealthyRoute
+  ScenariosIndexRoute: typeof ScenariosIndexRoute
+}
+
+const ScenariosRouteChildren: ScenariosRouteChildren = {
+  ScenariosDegradedRoute: ScenariosDegradedRoute,
+  ScenariosEmptyRoute: ScenariosEmptyRoute,
+  ScenariosFailingRoute: ScenariosFailingRoute,
+  ScenariosHealthyRoute: ScenariosHealthyRoute,
+  ScenariosIndexRoute: ScenariosIndexRoute,
+}
+
+const ScenariosRouteWithChildren = ScenariosRoute._addFileChildren(
+  ScenariosRouteChildren,
+)
+
+interface TemplatesRouteChildren {
   TemplatesCatalogsRoute: typeof TemplatesCatalogsRoute
   TemplatesDeploymentsRoute: typeof TemplatesDeploymentsRoute
   TemplatesErrorsRoute: typeof TemplatesErrorsRoute
@@ -441,258 +766,10 @@ export interface RootRouteChildren {
   TemplatesOverviewRoute: typeof TemplatesOverviewRoute
   TemplatesPlanAnalyzerRoute: typeof TemplatesPlanAnalyzerRoute
   TemplatesTaskManagersRoute: typeof TemplatesTaskManagersRoute
-  DomainIndexRoute: typeof DomainIndexRoute
-  PrimitivesIndexRoute: typeof PrimitivesIndexRoute
-  ScenariosIndexRoute: typeof ScenariosIndexRoute
-  SharedIndexRoute: typeof SharedIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
 }
 
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/': {
-      id: '/templates/'
-      path: '/templates'
-      fullPath: '/templates/'
-      preLoaderRoute: typeof TemplatesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shared/': {
-      id: '/shared/'
-      path: '/shared'
-      fullPath: '/shared/'
-      preLoaderRoute: typeof SharedIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scenarios/': {
-      id: '/scenarios/'
-      path: '/scenarios'
-      fullPath: '/scenarios/'
-      preLoaderRoute: typeof ScenariosIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/primitives/': {
-      id: '/primitives/'
-      path: '/primitives'
-      fullPath: '/primitives/'
-      preLoaderRoute: typeof PrimitivesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/': {
-      id: '/domain/'
-      path: '/domain'
-      fullPath: '/domain/'
-      preLoaderRoute: typeof DomainIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/task-managers': {
-      id: '/templates/task-managers'
-      path: '/templates/task-managers'
-      fullPath: '/templates/task-managers'
-      preLoaderRoute: typeof TemplatesTaskManagersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/plan-analyzer': {
-      id: '/templates/plan-analyzer'
-      path: '/templates/plan-analyzer'
-      fullPath: '/templates/plan-analyzer'
-      preLoaderRoute: typeof TemplatesPlanAnalyzerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/overview': {
-      id: '/templates/overview'
-      path: '/templates/overview'
-      fullPath: '/templates/overview'
-      preLoaderRoute: typeof TemplatesOverviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/monitoring': {
-      id: '/templates/monitoring'
-      path: '/templates/monitoring'
-      fullPath: '/templates/monitoring'
-      preLoaderRoute: typeof TemplatesMonitoringRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/materialized-tables': {
-      id: '/templates/materialized-tables'
-      path: '/templates/materialized-tables'
-      fullPath: '/templates/materialized-tables'
-      preLoaderRoute: typeof TemplatesMaterializedTablesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/logs': {
-      id: '/templates/logs'
-      path: '/templates/logs'
-      fullPath: '/templates/logs'
-      preLoaderRoute: typeof TemplatesLogsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/jobs': {
-      id: '/templates/jobs'
-      path: '/templates/jobs'
-      fullPath: '/templates/jobs'
-      preLoaderRoute: typeof TemplatesJobsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/job-manager': {
-      id: '/templates/job-manager'
-      path: '/templates/job-manager'
-      fullPath: '/templates/job-manager'
-      preLoaderRoute: typeof TemplatesJobManagerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/insights': {
-      id: '/templates/insights'
-      path: '/templates/insights'
-      fullPath: '/templates/insights'
-      preLoaderRoute: typeof TemplatesInsightsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/errors': {
-      id: '/templates/errors'
-      path: '/templates/errors'
-      fullPath: '/templates/errors'
-      preLoaderRoute: typeof TemplatesErrorsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/deployments': {
-      id: '/templates/deployments'
-      path: '/templates/deployments'
-      fullPath: '/templates/deployments'
-      preLoaderRoute: typeof TemplatesDeploymentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/catalogs': {
-      id: '/templates/catalogs'
-      path: '/templates/catalogs'
-      fullPath: '/templates/catalogs'
-      preLoaderRoute: typeof TemplatesCatalogsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scenarios/healthy': {
-      id: '/scenarios/healthy'
-      path: '/scenarios/healthy'
-      fullPath: '/scenarios/healthy'
-      preLoaderRoute: typeof ScenariosHealthyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scenarios/failing': {
-      id: '/scenarios/failing'
-      path: '/scenarios/failing'
-      fullPath: '/scenarios/failing'
-      preLoaderRoute: typeof ScenariosFailingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scenarios/empty': {
-      id: '/scenarios/empty'
-      path: '/scenarios/empty'
-      fullPath: '/scenarios/empty'
-      preLoaderRoute: typeof ScenariosEmptyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scenarios/degraded': {
-      id: '/scenarios/degraded'
-      path: '/scenarios/degraded'
-      fullPath: '/scenarios/degraded'
-      preLoaderRoute: typeof ScenariosDegradedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/tap': {
-      id: '/domain/tap'
-      path: '/domain/tap'
-      fullPath: '/domain/tap'
-      preLoaderRoute: typeof DomainTapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/plan-analyzer': {
-      id: '/domain/plan-analyzer'
-      path: '/domain/plan-analyzer'
-      fullPath: '/domain/plan-analyzer'
-      preLoaderRoute: typeof DomainPlanAnalyzerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/overview': {
-      id: '/domain/overview'
-      path: '/domain/overview'
-      fullPath: '/domain/overview'
-      preLoaderRoute: typeof DomainOverviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/monitoring': {
-      id: '/domain/monitoring'
-      path: '/domain/monitoring'
-      fullPath: '/domain/monitoring'
-      preLoaderRoute: typeof DomainMonitoringRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/materialized-tables': {
-      id: '/domain/materialized-tables'
-      path: '/domain/materialized-tables'
-      fullPath: '/domain/materialized-tables'
-      preLoaderRoute: typeof DomainMaterializedTablesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/logs': {
-      id: '/domain/logs'
-      path: '/domain/logs'
-      fullPath: '/domain/logs'
-      preLoaderRoute: typeof DomainLogsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/jobs': {
-      id: '/domain/jobs'
-      path: '/domain/jobs'
-      fullPath: '/domain/jobs'
-      preLoaderRoute: typeof DomainJobsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/insights': {
-      id: '/domain/insights'
-      path: '/domain/insights'
-      fullPath: '/domain/insights'
-      preLoaderRoute: typeof DomainInsightsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/errors': {
-      id: '/domain/errors'
-      path: '/domain/errors'
-      fullPath: '/domain/errors'
-      preLoaderRoute: typeof DomainErrorsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/domain/catalogs': {
-      id: '/domain/catalogs'
-      path: '/domain/catalogs'
-      fullPath: '/domain/catalogs'
-      preLoaderRoute: typeof DomainCatalogsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
-}
-
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  DomainCatalogsRoute: DomainCatalogsRoute,
-  DomainErrorsRoute: DomainErrorsRoute,
-  DomainInsightsRoute: DomainInsightsRoute,
-  DomainJobsRoute: DomainJobsRoute,
-  DomainLogsRoute: DomainLogsRoute,
-  DomainMaterializedTablesRoute: DomainMaterializedTablesRoute,
-  DomainMonitoringRoute: DomainMonitoringRoute,
-  DomainOverviewRoute: DomainOverviewRoute,
-  DomainPlanAnalyzerRoute: DomainPlanAnalyzerRoute,
-  DomainTapRoute: DomainTapRoute,
-  ScenariosDegradedRoute: ScenariosDegradedRoute,
-  ScenariosEmptyRoute: ScenariosEmptyRoute,
-  ScenariosFailingRoute: ScenariosFailingRoute,
-  ScenariosHealthyRoute: ScenariosHealthyRoute,
+const TemplatesRouteChildren: TemplatesRouteChildren = {
   TemplatesCatalogsRoute: TemplatesCatalogsRoute,
   TemplatesDeploymentsRoute: TemplatesDeploymentsRoute,
   TemplatesErrorsRoute: TemplatesErrorsRoute,
@@ -705,11 +782,20 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesOverviewRoute: TemplatesOverviewRoute,
   TemplatesPlanAnalyzerRoute: TemplatesPlanAnalyzerRoute,
   TemplatesTaskManagersRoute: TemplatesTaskManagersRoute,
-  DomainIndexRoute: DomainIndexRoute,
-  PrimitivesIndexRoute: PrimitivesIndexRoute,
-  ScenariosIndexRoute: ScenariosIndexRoute,
-  SharedIndexRoute: SharedIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
+}
+
+const TemplatesRouteWithChildren = TemplatesRoute._addFileChildren(
+  TemplatesRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  DomainRoute: DomainRouteWithChildren,
+  ScenariosRoute: ScenariosRouteWithChildren,
+  TemplatesRoute: TemplatesRouteWithChildren,
+  PrimitivesIndexRoute: PrimitivesIndexRoute,
+  SharedIndexRoute: SharedIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

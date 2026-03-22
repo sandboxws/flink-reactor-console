@@ -6,7 +6,7 @@ Design system package for FlinkReactor applications. Gruvpuccin (default) + Toky
 
 ```
 packages/ui/src/
-├── components/ui/     # 18 Radix-based primitives (incl. Alert, Switch)
+├── components/ui/     # 30 UI primitives (Radix-based + composition components)
 ├── layout/            # 4 app layout components
 ├── shared/            # 7 domain-specific components
 ├── themes/            # CodeMirror editor themes (Gruvpuccin, Tokyo Night)
@@ -47,23 +47,36 @@ pnpm ui:benchmark                                # Re-run model comparison
 
 | Component | File | Key Props / Notes |
 |-----------|------|-------------------|
+| **Accordion** | `accordion.tsx` | Radix Accordion: Accordion, AccordionItem, AccordionTrigger, AccordionContent. `type`: single/multiple |
 | **Button** | `button.tsx` | `variant`: default/secondary/destructive/outline/ghost/link. `size`: default/sm/lg/icon |
+| **ButtonGroup** | `button-group.tsx` | Groups buttons with coordinated border-radius. `orientation`: horizontal/vertical |
 | **Badge** | `badge.tsx` | `variant`: default/secondary/destructive/outline |
 | **Card** | `card.tsx` | Compound: Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter |
+| **Checkbox** | `checkbox.tsx` | Radix Checkbox with check indicator |
+| **Combobox** | `combobox.tsx` | Searchable select with autocomplete, groups, built on cmdk |
+| **Collapsible** | `collapsible.tsx` | Radix Collapsible: Collapsible, CollapsibleTrigger, CollapsibleContent |
+| **Dialog** | `dialog.tsx` | Radix Dialog: Dialog, DialogTrigger, DialogContent, DialogHeader, etc. |
+| **DropdownMenu** | `dropdown-menu.tsx` | Radix DropdownMenu: DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, etc. |
+| **Field** | `field.tsx` | Form field composition: Field, FieldLabel, FieldContent, FieldDescription, FieldError, FieldSet |
+| **HoverCard** | `hover-card.tsx` | Radix HoverCard: HoverCard, HoverCardTrigger, HoverCardContent |
 | **Input** | `input.tsx` | Standard `<input>` with theme styling |
+| **InputGroup** | `input-group.tsx` | Wraps Input with leading/trailing addons (icons, buttons, text) |
+| **Item** | `item.tsx` | Versatile list/card container: Item, ItemMedia, ItemContent, ItemTitle, ItemDescription, ItemActions |
+| **Kbd** | `kbd.tsx` | Keyboard shortcut display: Kbd, KbdGroup |
 | **Label** | `label.tsx` | Radix Label primitive |
-| **Textarea** | `textarea.tsx` | Standard `<textarea>` with theme styling |
+| **Popover** | `popover.tsx` | Radix Popover: Popover, PopoverTrigger, PopoverContent |
+| **Progress** | `progress.tsx` | Radix Progress bar with gradient indicator |
+| **Resizable** | `resizable.tsx` | react-resizable-panels: ResizablePanelGroup, ResizablePanel, ResizableHandle |
+| **Select** | `select.tsx` | Radix Select: Select, SelectTrigger, SelectContent, SelectItem, etc. |
+| **Separator** | `separator.tsx` | Radix Separator (horizontal/vertical) |
+| **Sheet** | `sheet.tsx` | Side panel overlay: Sheet, SheetTrigger, SheetContent, SheetHeader, etc. `side`: top/right/bottom/left |
+| **Skeleton** | `skeleton.tsx` | Animated loading placeholder |
+| **Spinner** | `spinner.tsx` | Loading indicator: `size`: sm/default/lg. `role="status"` with aria-label |
+| **Switch** | `switch.tsx` | Radix Switch toggle |
 | **Table** | `table.tsx` | Compound: Table, TableHeader, TableBody, TableRow, TableHead, TableCell, etc. |
 | **Tabs** | `tabs.tsx` | Radix Tabs: Tabs, TabsList, TabsTrigger, TabsContent |
-| **Dialog** | `dialog.tsx` | Radix Dialog: Dialog, DialogTrigger, DialogContent, DialogHeader, etc. |
+| **Textarea** | `textarea.tsx` | Standard `<textarea>` with theme styling |
 | **Tooltip** | `tooltip.tsx` | Radix Tooltip: Tooltip, TooltipTrigger, TooltipContent, TooltipProvider |
-| **Collapsible** | `collapsible.tsx` | Radix Collapsible: Collapsible, CollapsibleTrigger, CollapsibleContent |
-| **Popover** | `popover.tsx` | Radix Popover: Popover, PopoverTrigger, PopoverContent |
-| **HoverCard** | `hover-card.tsx` | Radix HoverCard: HoverCard, HoverCardTrigger, HoverCardContent |
-| **Select** | `select.tsx` | Radix Select: Select, SelectTrigger, SelectContent, SelectItem, etc. |
-| **Progress** | `progress.tsx` | Radix Progress bar with gradient indicator |
-| **Separator** | `separator.tsx` | Radix Separator (horizontal/vertical) |
-| **Resizable** | `resizable.tsx` | react-resizable-panels: ResizablePanelGroup, ResizablePanel, ResizableHandle |
 
 ### Layout Components (`layout/`)
 
@@ -79,7 +92,7 @@ pnpm ui:benchmark                                # Re-run model comparison
 | Component | Props | Purpose |
 |-----------|-------|---------|
 | **MetricCard** | `icon`, `label`, `value`, `accent` | Glass-effect card for single metrics. Uses `.glass-card` CSS. |
-| **EmptyState** | `icon?`, `message?` | Centered placeholder for empty content areas. Default: Inbox icon + "No data to display". |
+| **EmptyState** | `icon?`, `message?`, `title?`, `description?`, `children?` | Centered placeholder for empty content areas. Supports simple (icon+message) or rich (title+description+action buttons) modes. |
 | **TextViewer** | `text`, `maxHeight`, `showLineNumbers`, `showCopyButton` | Readonly monospace text pane with line numbers and copy. |
 | **SearchInput** | `value`, `onChange`, `isRegex`, `onRegexChange`, `matchCount`, `currentIndex`, `onNext`, `onPrev` | Search box with regex toggle, match counter, prev/next navigation. |
 | **SeverityBadge** | `level: LogLevel` | Colored badge for TRACE/DEBUG/INFO/WARN/ERROR levels. |
@@ -111,7 +124,8 @@ pnpm ui:benchmark                                # Re-run model comparison
 3. **Icons from `lucide-react`** — passed as component props (`icon: LucideIcon`)
 4. **Router-agnostic links** — Layout components accept `LinkComponent` prop for Next.js Link / React Router / etc.
 5. **No default exports** — all components use named exports
-6. **Radix wrappers** — UI primitives are thin wrappers around Radix UI, re-styled for Tokyo Night
+6. **Unified Radix** — UI primitives use `import { X } from "radix-ui"` (unified package, not individual `@radix-ui/react-*`)
+7. **data-slot attributes** — Compound component sub-parts have `data-slot` attributes for CSS targeting
 
 ## When Working on This Package
 

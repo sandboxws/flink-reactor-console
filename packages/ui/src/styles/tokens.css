@@ -43,6 +43,10 @@
   /* Chart cursor overlays */
   --color-chart-cursor: rgba(212, 190, 152, 0.08);
   --color-chart-cursor-fill: rgba(212, 190, 152, 0.04);
+
+  /* Accordion animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
 }
 
 /* ── Tokyo Night palette overrides ──────────────── */

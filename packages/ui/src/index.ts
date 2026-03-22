@@ -4,6 +4,12 @@
 
 // ── UI Components ────────────────────────────────────────────────────────────
 export {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "./components/ui/accordion"
+export {
   Alert,
   AlertDescription,
   AlertTitle,
@@ -21,6 +27,11 @@ export {
   type ButtonVariant,
 } from "./components/ui/button"
 export {
+  ButtonGroup,
+  type ButtonGroupProps,
+  type ButtonGroupOrientation,
+} from "./components/ui/button-group"
+export {
   Card,
   CardContent,
   CardDescription,
@@ -28,6 +39,13 @@ export {
   CardHeader,
   CardTitle,
 } from "./components/ui/card"
+export { Checkbox } from "./components/ui/checkbox"
+export {
+  Combobox,
+  type ComboboxProps,
+  type ComboboxOption,
+  type ComboboxGroup,
+} from "./components/ui/combobox"
 export {
   Collapsible,
   CollapsibleContent,
@@ -46,12 +64,61 @@ export {
   DialogTrigger,
 } from "./components/ui/dialog"
 export {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+  type FieldProps,
+  type FieldSetProps,
+} from "./components/ui/field"
+export {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "./components/ui/dropdown-menu"
+export {
   HoverCard,
   HoverCardArrow,
   HoverCardContent,
   HoverCardTrigger,
 } from "./components/ui/hover-card"
 export { Input } from "./components/ui/input"
+export {
+  InputGroup,
+  InputGroupAddon,
+  type InputGroupProps,
+} from "./components/ui/input-group"
+export {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+  type ItemProps,
+  type ItemVariant,
+} from "./components/ui/item"
+export {
+  Kbd,
+  KbdGroup,
+  type KbdProps,
+  type KbdGroupProps,
+} from "./components/ui/kbd"
 export { Label } from "./components/ui/label"
 export {
   Popover,
@@ -77,7 +144,26 @@ export {
   SelectValue,
 } from "./components/ui/select"
 export { Separator } from "./components/ui/separator"
+export {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetOverlay,
+  SheetPortal,
+  SheetTitle,
+  SheetTrigger,
+  type SheetContentProps,
+  type SheetSide,
+} from "./components/ui/sheet"
 export { Skeleton } from "./components/ui/skeleton"
+export {
+  Spinner,
+  type SpinnerProps,
+  type SpinnerSize,
+} from "./components/ui/spinner"
 export { Switch } from "./components/ui/switch"
 export {
   Table,

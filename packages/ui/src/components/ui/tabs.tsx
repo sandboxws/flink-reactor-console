@@ -1,6 +1,6 @@
 "use client"
 
-import * as TabsPrimitive from "@radix-ui/react-tabs"
+import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
@@ -12,6 +12,7 @@ function TabsList({
 }: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (
     <TabsPrimitive.List
+      data-slot="list"
       className={cn("inline-flex items-center justify-center", className)}
       {...props}
     />
@@ -24,6 +25,7 @@ function TabsTrigger({
 }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
   return (
     <TabsPrimitive.Trigger
+      data-slot="trigger"
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
         className,
@@ -39,6 +41,7 @@ function TabsContent({
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
   return (
     <TabsPrimitive.Content
+      data-slot="content"
       className={cn("focus-visible:outline-none", className)}
       {...props}
     />

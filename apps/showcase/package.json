@@ -15,7 +15,10 @@
     "@tanstack/router-plugin": "^1.120.3",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.563.0",
+    "cmdk": "^1.1.1",
+    "radix-ui": "^1.4.3",
     "react": "^19.1.0",
+    "react-resizable-panels": "^4.7.3",
     "react-dom": "^19.1.0",
     "recharts": "^2.15.4",
     "@xyflow/react": "^12.6.0"

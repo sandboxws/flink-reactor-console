@@ -4,7 +4,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@flink-reactor/ui"
-import * as SelectPrimitive from "@radix-ui/react-select"
+import { Select as SelectPrimitive } from "radix-ui"
 import { Check } from "lucide-react"
 import { TEMPLATES, type TemplateId } from "./templates"
 

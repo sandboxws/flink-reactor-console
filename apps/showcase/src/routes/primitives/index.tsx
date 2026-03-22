@@ -62,9 +62,44 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  Spinner,
+  Kbd,
+  KbdGroup,
+  Checkbox,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Item,
+  ItemMedia,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+  ItemActions,
+  ButtonGroup,
+  InputGroup,
+  InputGroupAddon,
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  Combobox,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from "@flink-reactor/ui"
 import { createFileRoute } from "@tanstack/react-router"
-import { ChevronsUpDown } from "lucide-react"
+import { ChevronsUpDown, MoreHorizontal, Copy, Trash2, Pencil, Activity, AlertCircle, Server, Search, Mail } from "lucide-react"
 import { useState } from "react"
 import { ImportSnippet } from "@/lib/code-sample"
 import { type PropDef, PropsTable } from "@/lib/props-table"
@@ -91,6 +126,17 @@ const tocItems = [
   { id: "tabs", label: "Tabs" },
   { id: "tooltip", label: "Tooltip" },
   { id: "resizable", label: "Resizable" },
+  { id: "spinner", label: "Spinner" },
+  { id: "kbd", label: "Kbd" },
+  { id: "checkbox", label: "Checkbox" },
+  { id: "dropdown-menu", label: "DropdownMenu" },
+  { id: "item", label: "Item" },
+  { id: "button-group", label: "ButtonGroup" },
+  { id: "input-group", label: "InputGroup" },
+  { id: "field", label: "Field" },
+  { id: "combobox", label: "Combobox" },
+  { id: "sheet", label: "Sheet" },
+  { id: "accordion", label: "Accordion" },
 ]
 
 /* ─── Props definitions ───────────────────────────────────────────────────── */
@@ -566,6 +612,7 @@ function PrimitivesPage() {
   const [sortField, setSortField] = useState<SortField>("id")
   const [sortDir, setSortDir] = useState<SortDir>("asc")
   const [selectedTm, setSelectedTm] = useState<string | null>(null)
+  const [comboValue, setComboValue] = useState("")
 
   const sortedTms = sortRows(taskManagers, sortField, sortDir)
   const toggleSort = (field: SortField) => {
@@ -582,7 +629,7 @@ function PrimitivesPage() {
   return (
     <ShowcasePage
       title="Primitives"
-      description="All 20 Radix-based UI primitives from @flink-reactor/ui"
+      description="All 30 UI primitives from @flink-reactor/ui"
       items={tocItems}
     >
       {/* ── Button ─────────────────────────────────────────────────────────── */}
@@ -1312,6 +1359,533 @@ function PrimitivesPage() {
         />
         <div className="mt-4">
           <PropsTable props={resizableProps} />
+        </div>
+      </Section>
+      {/* ── Spinner ──────────────────────────────────────────────────────── */}
+      <Section
+        id="spinner"
+        title="Spinner"
+        description="Accessible loading indicator with standardized sizes."
+      >
+        <div className="flex items-center gap-6 mb-6">
+          <div className="flex flex-col items-center gap-2">
+            <Spinner size="sm" />
+            <span className="text-xs text-fg-muted">sm</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <Spinner size="default" />
+            <span className="text-xs text-fg-muted">default</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <Spinner size="lg" />
+            <span className="text-xs text-fg-muted">lg</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 mb-6">
+          <Button disabled>
+            <Spinner size="sm" className="mr-1" /> Saving…
+          </Button>
+        </div>
+        <ImportSnippet code={`import { Spinner } from "@flink-reactor/ui"`} />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "size",
+                type: '"sm" | "default" | "lg"',
+                default: '"default"',
+                description: "Spinner icon size",
+              },
+              {
+                name: "label",
+                type: "string",
+                default: '"Loading"',
+                description: "Accessible aria-label for screen readers",
+              },
+            ]}
+          />
+        </div>
+      </Section>
+
+      {/* ── Kbd ──────────────────────────────────────────────────────────── */}
+      <Section
+        id="kbd"
+        title="Kbd"
+        description="Keyboard shortcut display with styled key caps."
+      >
+        <div className="flex items-center gap-6 mb-6">
+          <KbdGroup>
+            <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd>
+          </KbdGroup>
+          <KbdGroup>
+            <Kbd>Ctrl</Kbd>
+            <Kbd>Shift</Kbd>
+            <Kbd>P</Kbd>
+          </KbdGroup>
+          <Kbd>Esc</Kbd>
+          <Kbd>Enter</Kbd>
+        </div>
+        <div className="flex items-center gap-2 mb-6 text-sm text-fg-muted">
+          <span>Open command palette</span>
+          <KbdGroup>
+            <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd>
+          </KbdGroup>
+        </div>
+        <ImportSnippet code={`import { Kbd, KbdGroup } from "@flink-reactor/ui"`} />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "children",
+                type: "ReactNode",
+                description: "Key label text",
+              },
+              {
+                name: "className",
+                type: "string",
+                description: "Additional CSS classes",
+              },
+            ]}
+          />
+        </div>
+      </Section>
+
+      {/* ── Checkbox ─────────────────────────────────────────────────────── */}
+      <Section
+        id="checkbox"
+        title="Checkbox"
+        description="Radix-based themed checkbox with check indicator."
+      >
+        <div className="flex flex-col gap-3 mb-6">
+          <div className="flex items-center gap-2">
+            <Checkbox id="terms" defaultChecked />
+            <label htmlFor="terms" className="text-sm text-zinc-300">Accept terms and conditions</label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox id="newsletter" />
+            <label htmlFor="newsletter" className="text-sm text-zinc-300">Subscribe to newsletter</label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox id="disabled" disabled />
+            <label htmlFor="disabled" className="text-sm text-fg-muted">Disabled option</label>
+          </div>
+        </div>
+        <ImportSnippet code={`import { Checkbox } from "@flink-reactor/ui"`} />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "checked",
+                type: "boolean",
+                description: "Controlled checked state",
+              },
+              {
+                name: "onCheckedChange",
+                type: "(checked: boolean) => void",
+                description: "Called when checked state changes",
+              },
+              {
+                name: "defaultChecked",
+                type: "boolean",
+                description: "Initial checked state (uncontrolled)",
+              },
+              {
+                name: "disabled",
+                type: "boolean",
+                default: "false",
+                description: "Disables the checkbox",
+              },
+            ]}
+          />
+        </div>
+      </Section>
+
+      {/* ── DropdownMenu ─────────────────────────────────────────────────── */}
+      <Section
+        id="dropdown-menu"
+        title="DropdownMenu"
+        description="Radix-based dropdown menu with items, checkboxes, labels, and separators."
+      >
+        <div className="flex gap-4 mb-6">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Pencil className="size-3.5" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Copy className="size-3.5" /> Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-400 focus:text-red-300">
+                <Trash2 className="size-3.5" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <ImportSnippet
+          code={`import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@flink-reactor/ui"`}
+        />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "align",
+                type: '"start" | "center" | "end"',
+                default: '"center"',
+                description: "Content alignment relative to trigger",
+              },
+              {
+                name: "sideOffset",
+                type: "number",
+                default: "4",
+                description: "Offset from trigger in pixels",
+              },
+              {
+                name: "inset",
+                type: "boolean",
+                default: "false",
+                description: "Add left padding for items without icons",
+              },
+            ]}
+          />
+        </div>
+      </Section>
+
+      {/* ── Item ─────────────────────────────────────────────────────────── */}
+      <Section
+        id="item"
+        title="Item"
+        description="Versatile list/card container with media, content, and action slots."
+      >
+        <div className="flex flex-col gap-3 max-w-md mb-6">
+          <Item variant="outline">
+            <ItemMedia>
+              <Server className="size-5 text-fr-coral" />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle>flink-worker-01.prod</ItemTitle>
+              <ItemDescription>4/4 slots • 2.1 GB heap • 42% CPU</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <Badge variant="outline">ALIVE</Badge>
+            </ItemActions>
+          </Item>
+          <Item variant="muted">
+            <ItemMedia>
+              <Activity className="size-5 text-fr-purple" />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle>Backpressure detected</ItemTitle>
+              <ItemDescription>Window aggregate vertex at 87% backpressure</ItemDescription>
+            </ItemContent>
+          </Item>
+          <Item>
+            <ItemMedia>
+              <AlertCircle className="size-5 text-red-400" />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle>NullPointerException</ItemTitle>
+              <ItemDescription>at com.example.Processor.process(Processor.java:42)</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <span className="text-xs text-fg-dim">3m ago</span>
+            </ItemActions>
+          </Item>
+        </div>
+        <ImportSnippet
+          code={`import { Item, ItemMedia, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@flink-reactor/ui"`}
+        />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "variant",
+                type: '"default" | "outline" | "muted"',
+                default: '"default"',
+                description: "Visual container style",
+              },
+              {
+                name: "className",
+                type: "string",
+                description: "Additional CSS classes",
+              },
+            ]}
+          />
+        </div>
+      </Section>
+
+      {/* ── ButtonGroup ──────────────────────────────────────────────────── */}
+      <Section
+        id="button-group"
+        title="ButtonGroup"
+        description="Groups related buttons with coordinated border-radius and orientation."
+      >
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-fg-muted w-20">Horizontal</span>
+            <ButtonGroup>
+              <Button variant="outline" size="sm">Left</Button>
+              <Button variant="outline" size="sm">Center</Button>
+              <Button variant="outline" size="sm">Right</Button>
+            </ButtonGroup>
+          </div>
+          <div className="flex items-start gap-4">
+            <span className="text-xs text-fg-muted w-20 pt-1">Vertical</span>
+            <ButtonGroup orientation="vertical">
+              <Button variant="outline" size="sm">Top</Button>
+              <Button variant="outline" size="sm">Middle</Button>
+              <Button variant="outline" size="sm">Bottom</Button>
+            </ButtonGroup>
+          </div>
+        </div>
+        <ImportSnippet code={`import { ButtonGroup } from "@flink-reactor/ui"`} />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "orientation",
+                type: '"horizontal" | "vertical"',
+                default: '"horizontal"',
+                description: "Stack direction of grouped buttons",
+              },
+            ]}
+          />
+        </div>
+      </Section>
+
+      {/* ── InputGroup ───────────────────────────────────────────────────── */}
+      <Section
+        id="input-group"
+        title="InputGroup"
+        description="Wraps an Input with leading/trailing addons (icons, text, buttons)."
+      >
+        <div className="flex flex-col gap-3 max-w-sm mb-6">
+          <InputGroup>
+            <InputGroupAddon><Search className="size-3.5" /></InputGroupAddon>
+            <Input placeholder="Search jobs…" className="border-0 bg-transparent focus:ring-0" />
+          </InputGroup>
+          <InputGroup>
+            <InputGroupAddon><Mail className="size-3.5" /></InputGroupAddon>
+            <Input placeholder="email@example.com" className="border-0 bg-transparent focus:ring-0" />
+            <InputGroupAddon className="border-l border-dash-border">
+              <Button variant="ghost" size="sm">Send</Button>
+            </InputGroupAddon>
+          </InputGroup>
+        </div>
+        <ImportSnippet code={`import { InputGroup, InputGroupAddon } from "@flink-reactor/ui"`} />
+      </Section>
+
+      {/* ── Field ────────────────────────────────────────────────────────── */}
+      <Section
+        id="field"
+        title="Field"
+        description="Form field composition: label + input + description + error message."
+      >
+        <div className="flex flex-col gap-4 max-w-sm mb-6">
+          <Field>
+            <FieldLabel htmlFor="job-name">Job Name</FieldLabel>
+            <Input id="job-name" placeholder="my-flink-job" />
+            <FieldDescription>Must be unique within the cluster.</FieldDescription>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="parallelism">Parallelism</FieldLabel>
+            <Input id="parallelism" type="number" defaultValue="4" />
+            <FieldError>Parallelism must be between 1 and 128.</FieldError>
+          </Field>
+        </div>
+        <ImportSnippet code={`import { Field, FieldLabel, FieldDescription, FieldError } from "@flink-reactor/ui"`} />
+      </Section>
+
+      {/* ── Combobox ─────────────────────────────────────────────────────── */}
+      <Section
+        id="combobox"
+        title="Combobox"
+        description="Searchable select with autocomplete, built on cmdk."
+      >
+        <div className="max-w-xs mb-6">
+          <Combobox
+            value={comboValue}
+            onValueChange={setComboValue}
+            placeholder="Select operator…"
+            options={[
+              { label: "Sources", options: [
+                { value: "kafka-source", label: "Kafka Source" },
+                { value: "file-source", label: "File Source" },
+              ]},
+              { label: "Transforms", options: [
+                { value: "map", label: "Map" },
+                { value: "filter", label: "Filter" },
+                { value: "window-agg", label: "Window Aggregate" },
+              ]},
+              { label: "Sinks", options: [
+                { value: "kafka-sink", label: "Kafka Sink" },
+                { value: "jdbc-sink", label: "JDBC Sink" },
+              ]},
+            ]}
+          />
+        </div>
+        <ImportSnippet code={`import { Combobox } from "@flink-reactor/ui"`} />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "options",
+                type: "(ComboboxOption | ComboboxGroup)[]",
+                description: "Flat options or grouped options to display",
+              },
+              {
+                name: "value",
+                type: "string",
+                description: "Currently selected value (controlled)",
+              },
+              {
+                name: "onValueChange",
+                type: "(value: string) => void",
+                description: "Called when selection changes",
+              },
+              {
+                name: "placeholder",
+                type: "string",
+                default: '"Select…"',
+                description: "Trigger placeholder text",
+              },
+              {
+                name: "searchPlaceholder",
+                type: "string",
+                default: '"Search…"',
+                description: "Search input placeholder",
+              },
+              {
+                name: "emptyMessage",
+                type: "string",
+                default: '"No results found."',
+                description: "Message when no options match search",
+              },
+            ]}
+          />
+        </div>
+      </Section>
+
+      {/* ── Sheet ────────────────────────────────────────────────────────── */}
+      <Section
+        id="sheet"
+        title="Sheet"
+        description="Side panel overlay that slides in from any edge."
+      >
+        <div className="flex gap-3 mb-6">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline">Open Right</Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <SheetHeader>
+                <SheetTitle>Job Configuration</SheetTitle>
+                <SheetDescription>View and edit the job settings.</SheetDescription>
+              </SheetHeader>
+              <div className="flex-1 py-4 text-sm text-fg-muted">Sheet content goes here.</div>
+            </SheetContent>
+          </Sheet>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline">Open Left</Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>Navigation</SheetTitle>
+                <SheetDescription>Mobile sidebar navigation.</SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline">Open Bottom</Button>
+            </SheetTrigger>
+            <SheetContent side="bottom">
+              <SheetHeader>
+                <SheetTitle>Quick Actions</SheetTitle>
+                <SheetDescription>Common operations for this view.</SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
+        </div>
+        <ImportSnippet
+          code={`import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@flink-reactor/ui"`}
+        />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "side",
+                type: '"top" | "right" | "bottom" | "left"',
+                default: '"right"',
+                description: "Edge from which the sheet slides in",
+              },
+            ]}
+          />
+        </div>
+      </Section>
+
+      {/* ── Accordion ────────────────────────────────────────────────────── */}
+      <Section
+        id="accordion"
+        title="Accordion"
+        description="Multi-item collapsible sections with single or multiple mode."
+      >
+        <div className="max-w-md mb-6">
+          <Accordion type="single" collapsible>
+            <AccordionItem value="checkpoints">
+              <AccordionTrigger>Checkpoint Configuration</AccordionTrigger>
+              <AccordionContent>
+                Mode: EXACTLY_ONCE, Interval: 30s, Timeout: 10m, Max Concurrent: 1
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="restart">
+              <AccordionTrigger>Restart Strategy</AccordionTrigger>
+              <AccordionContent>
+                Fixed-delay restart with 3 attempts, 10s between restarts.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="resources">
+              <AccordionTrigger>Resource Allocation</AccordionTrigger>
+              <AccordionContent>
+                Task Manager Memory: 4096 MB, Parallelism: 8, Task Slots: 4
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+        <ImportSnippet
+          code={`import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@flink-reactor/ui"`}
+        />
+        <div className="mt-4">
+          <PropsTable
+            props={[
+              {
+                name: "type",
+                type: '"single" | "multiple"',
+                description: "Allow one or multiple items open at once",
+              },
+              {
+                name: "collapsible",
+                type: "boolean",
+                default: "false",
+                description: "Allow closing all items (single mode only)",
+              },
+              {
+                name: "defaultValue",
+                type: "string | string[]",
+                description: "Initially opened item(s)",
+              },
+            ]}
+          />
         </div>
       </Section>
     </ShowcasePage>
