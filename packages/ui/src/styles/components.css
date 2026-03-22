@@ -132,12 +132,13 @@ html.light[data-palette="tokyo-night"] .source-badge {
   border: 1px solid rgba(212, 190, 152, 0.06);
   border-radius: 0.75rem;
   backdrop-filter: blur(12px);
-  transition: box-shadow 0.3s;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .glass-card:hover {
   border-color: rgba(231, 138, 78, 0.25);
   box-shadow: 0 0 24px rgba(231, 138, 78, 0.06);
+  transform: translateY(-1px);
 }
 
 html.light .glass-card {
@@ -149,6 +150,7 @@ html.light .glass-card {
 html.light .glass-card:hover {
   border-color: rgba(195, 92, 32, 0.35);
   box-shadow: 0 2px 12px rgba(195, 92, 32, 0.08);
+  transform: translateY(-1px);
 }
 
 /* Tokyo Night glass card */
@@ -160,6 +162,7 @@ html[data-palette="tokyo-night"] .glass-card {
 html[data-palette="tokyo-night"] .glass-card:hover {
   border-color: rgba(217, 112, 133, 0.25);
   box-shadow: 0 0 24px rgba(217, 112, 133, 0.06);
+  transform: translateY(-1px);
 }
 
 html.light[data-palette="tokyo-night"] .glass-card {
@@ -171,6 +174,7 @@ html.light[data-palette="tokyo-night"] .glass-card {
 html.light[data-palette="tokyo-night"] .glass-card:hover {
   border-color: rgba(130, 84, 163, 0.35);
   box-shadow: 0 2px 12px rgba(130, 84, 163, 0.08);
+  transform: translateY(-1px);
 }
 
 /* ── Collapsible panel ───────────────────────────── */

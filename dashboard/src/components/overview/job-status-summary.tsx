@@ -58,7 +58,7 @@ export function JobStatusSummary({
         {statuses.map((s) => (
           <div
             key={s.key}
-            className={`flex flex-col items-center gap-1 rounded-lg ${s.bg} px-3 py-2`}
+            className={`flex cursor-pointer flex-col items-center gap-1 rounded-lg ${s.bg} px-3 py-2`}
           >
             <s.icon className={`size-4 ${s.color}`} />
             <span className={`text-lg font-semibold ${s.color}`}>
