@@ -1,3 +1,4 @@
+import { Skeleton } from "@flink-reactor/ui"
 import { useInsightsStore } from "@/stores/insights-store"
 import { HealthScoreGauge } from "./health-score-gauge"
 import { HealthTrendChart } from "./health-trend-chart"
@@ -7,21 +8,21 @@ import { TopIssuesList } from "./top-issues-list"
 function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="h-8 w-48 animate-pulse rounded bg-zinc-800" />
+      <Skeleton className="h-8 w-48" />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="glass-card flex h-[260px] items-center justify-center">
-          <div className="size-[200px] animate-pulse rounded-full border-[12px] border-zinc-800" />
+          <Skeleton className="size-[200px] rounded-full" />
         </div>
-        <div className="glass-card h-[260px] animate-pulse" />
+        <Skeleton className="h-[260px] w-full rounded-lg" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {["slots", "backpressure", "checkpoints", "memory", "exceptions"].map(
           (name) => (
-            <div key={name} className="glass-card h-24 animate-pulse" />
+            <Skeleton key={name} className="h-24 w-full rounded-lg" />
           ),
         )}
       </div>
-      <div className="glass-card h-48 animate-pulse" />
+      <Skeleton className="h-48 w-full rounded-lg" />
     </div>
   )
 }

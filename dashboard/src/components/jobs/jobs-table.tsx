@@ -1,4 +1,5 @@
 import {
+  EmptyState,
   Table,
   TableBody,
   TableCell,
@@ -248,9 +249,9 @@ export function JobsTable({
 
   if (jobs.length === 0) {
     return (
-      <p className="py-12 text-center text-sm text-zinc-600">
-        {isRunning ? "No running jobs" : "No completed jobs"}
-      </p>
+      <EmptyState
+        message={isRunning ? "No running jobs" : "No matching jobs"}
+      />
     )
   }
 

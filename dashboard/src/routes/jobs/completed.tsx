@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect, useMemo } from "react"
-import { TimeRange, type TimeRangeValue, type TimeRangePreset } from "@flink-reactor/ui"
+import { Skeleton, TimeRange, type TimeRangeValue, type TimeRangePreset } from "@flink-reactor/ui"
 import { JobHistoryTable } from "@/components/jobs/job-history-table"
 import { useJobHistoryStore } from "@/stores/job-history-store"
 
@@ -86,9 +86,26 @@ function CompletedJobs() {
       </div>
       <div className="glass-card overflow-hidden">
         {isLoading && entries.length === 0 ? (
-          <p className="py-12 text-center text-sm text-zinc-600">
-            Loading job history...
-          </p>
+          <div className="w-full">
+            {/* Header row */}
+            <div className="flex gap-4 border-b border-dash-border px-4 py-3">
+              {[44, 10, 18, 18, 10].map((w, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
+                <Skeleton key={i} className="h-4" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+            {/* Body rows */}
+            {Array.from({ length: 5 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
+              <div key={i} className="flex gap-4 border-b border-dash-border/50 px-4 py-3">
+                <Skeleton className="h-4 w-[44%]" />
+                <Skeleton className="h-4 w-[10%]" />
+                <Skeleton className="h-4 w-[18%]" />
+                <Skeleton className="h-4 w-[18%]" />
+                <Skeleton className="h-4 w-[10%]" />
+              </div>
+            ))}
+          </div>
         ) : (
           <JobHistoryTable
             entries={entries}

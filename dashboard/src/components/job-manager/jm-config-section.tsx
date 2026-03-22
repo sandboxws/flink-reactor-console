@@ -163,9 +163,7 @@ export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <div className="px-4 py-8 text-center text-xs text-zinc-500">
-              No matching configuration entries
-            </div>
+            <EmptyState message="No configuration entries" />
           )}
         </div>
 

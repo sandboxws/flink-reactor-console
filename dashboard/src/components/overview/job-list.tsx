@@ -1,5 +1,6 @@
 import {
   Badge,
+  EmptyState,
   formatDuration,
   Table,
   TableBody,
@@ -12,6 +13,7 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import {
   ArrowRight,
+  Briefcase,
   Radio,
 } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -146,7 +148,7 @@ export function JobList({
       </div>
 
       {visible.length === 0 ? (
-        <p className="px-4 pb-4 text-xs text-zinc-600">No jobs</p>
+        <EmptyState icon={Briefcase} message="No jobs found" />
       ) : (
         <Table>
           <TableHeader>

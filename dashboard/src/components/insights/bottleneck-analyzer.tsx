@@ -1,5 +1,5 @@
 import { AlertTriangle, BarChart3, Layers, Search } from "lucide-react"
-import { MetricCard } from "@flink-reactor/ui"
+import { MetricCard, Skeleton } from "@flink-reactor/ui"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useInsightsStore } from "@/stores/insights-store"
 import { BottleneckDAG } from "./bottleneck-dag"
@@ -9,16 +9,16 @@ import { RecommendationsPanel } from "./recommendations-panel"
 function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="h-8 w-56 animate-pulse rounded bg-zinc-800" />
+      <Skeleton className="h-8 w-56" />
       <div className="grid gap-4 sm:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="glass-card h-24 animate-pulse" />
+          <Skeleton key={i} className="h-24 w-full rounded-lg" />
         ))}
       </div>
-      <div className="glass-card h-[400px] animate-pulse" />
+      <Skeleton className="h-[400px] w-full rounded-lg" />
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="glass-card h-[300px] animate-pulse" />
-        <div className="glass-card h-[300px] animate-pulse" />
+        <Skeleton className="h-[300px] w-full rounded-lg" />
+        <Skeleton className="h-[300px] w-full rounded-lg" />
       </div>
     </div>
   )

@@ -7,7 +7,7 @@ import {
   Shield,
 } from "lucide-react"
 import { useState } from "react"
-import { MetricCard } from "@flink-reactor/ui"
+import { MetricCard, Skeleton } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useAlertsStore } from "@/stores/alerts-store"
 import { AlertCard } from "./alert-card"
@@ -19,17 +19,17 @@ import { RuleList } from "./rule-list"
 function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="h-6 w-48 animate-pulse rounded bg-white/[0.05]" />
+      <Skeleton className="h-6 w-48" />
       <div className="grid gap-4 sm:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="glass-card p-4">
-            <div className="h-4 w-24 animate-pulse rounded bg-white/[0.05]" />
-            <div className="mt-2 h-8 w-16 animate-pulse rounded bg-white/[0.05]" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="mt-2 h-8 w-16" />
           </div>
         ))}
       </div>
-      <div className="h-48 animate-pulse rounded-lg bg-white/[0.03]" />
-      <div className="h-64 animate-pulse rounded-lg bg-white/[0.03]" />
+      <Skeleton className="h-48 w-full rounded-lg" />
+      <Skeleton className="h-64 w-full rounded-lg" />
     </div>
   )
 }
