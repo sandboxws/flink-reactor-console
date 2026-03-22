@@ -38,7 +38,7 @@ export function SandboxStatusBar() {
             status === "error"
               ? "bg-red-400"
               : status === "done"
-                ? "bg-emerald-400"
+                ? "bg-status-active"
                 : status === "synthesizing"
                   ? "bg-amber-400 animate-pulse"
                   : "bg-zinc-600"

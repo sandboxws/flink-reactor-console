@@ -1,5 +1,5 @@
-import { Button } from "@flink-reactor/ui"
-import { AlertTriangle, Database, Loader2, RefreshCw } from "lucide-react"
+import { Button, Spinner } from "@flink-reactor/ui"
+import { AlertTriangle, Database, RefreshCw } from "lucide-react"
 import { useEffect } from "react"
 import { useCatalogStore } from "@/stores/catalog-store"
 import { CatalogTree } from "./catalog-tree"
@@ -48,7 +48,7 @@ export function CatalogBrowserPage() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center p-8">
-          <Loader2 className="size-5 animate-spin text-zinc-500" />
+          <Spinner size="lg" />
         </div>
       )}
 

@@ -6,16 +6,9 @@ import {
   TableHeader,
   TableRow,
 } from "@flink-reactor/ui"
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  X,
-} from "lucide-react"
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import { useMemo, useState } from "react"
+import { SortIcon } from "@/components/shared/sort-icon"
 import { cn } from "@/lib/cn"
 import type { ColumnInfo } from "@/lib/graphql-api-client"
 
@@ -115,7 +108,12 @@ export function ColumnsTable({ columns }: { columns: ColumnInfo[] }) {
             >
               <span className="inline-flex items-center gap-1">
                 Column
-                <SortIcon field="name" active={sortField} dir={sortDir} />
+                <SortIcon
+                  column="name"
+                  active={sortField}
+                  direction={sortDir}
+                  className="size-2.5"
+                />
               </span>
             </TableHead>
             <TableHead
@@ -191,27 +189,5 @@ export function ColumnsTable({ columns }: { columns: ColumnInfo[] }) {
         </div>
       )}
     </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// SortIcon
-// ---------------------------------------------------------------------------
-
-function SortIcon({
-  field,
-  active,
-  dir,
-}: {
-  field: SortField
-  active: SortField
-  dir: SortDir
-}) {
-  if (field !== active)
-    return <ArrowUpDown className="size-2.5 opacity-0 group-hover:opacity-50" />
-  return dir === "asc" ? (
-    <ArrowUp className="size-2.5" />
-  ) : (
-    <ArrowDown className="size-2.5" />
   )
 }

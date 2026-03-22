@@ -1,14 +1,9 @@
+import { formatBytes } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
 // MemoryBar — inline progress bar with used/total labels and color thresholds
 // ---------------------------------------------------------------------------
-
-function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`
-  return `${(bytes / 1024).toFixed(0)} KB`
-}
 
 function utilizationColor(pct: number): string {
   if (pct > 85) return "var(--color-job-failed)"

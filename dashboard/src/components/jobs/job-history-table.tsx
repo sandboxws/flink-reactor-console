@@ -1,4 +1,5 @@
 import {
+  formatDuration,
   Table,
   TableBody,
   TableCell,
@@ -9,13 +10,11 @@ import {
 import { useNavigate } from "@tanstack/react-router"
 import { format } from "date-fns"
 import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
 import type { JobStatus } from "@flink-reactor/ui"
+import { SortIcon } from "@/components/shared/sort-icon"
 import { cn } from "@/lib/cn"
 import type { JobHistoryEntry } from "@/lib/graphql-api-client"
 import { JobStatusBadge } from "./job-status-badge"
@@ -46,18 +45,6 @@ const columns: ColumnDef[] = [
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatDuration(ms: number): string {
-  if (ms <= 0) return "—"
-  const sec = Math.floor(ms / 1000)
-  if (sec < 60) return `${sec}s`
-  const min = Math.floor(sec / 60)
-  const remSec = sec % 60
-  if (min < 60) return `${min}m ${remSec}s`
-  const hr = Math.floor(min / 60)
-  const remMin = min % 60
-  return `${hr}h ${remMin}m`
-}
-
 function formatTimestamp(ts: string | null): string {
   if (!ts) return "—"
   try {
@@ -65,28 +52,6 @@ function formatTimestamp(ts: string | null): string {
   } catch {
     return "—"
   }
-}
-
-// ---------------------------------------------------------------------------
-// Sort icon
-// ---------------------------------------------------------------------------
-
-function SortIcon({
-  column,
-  active,
-  dir,
-}: {
-  column: OrderField
-  active: OrderField
-  dir: OrderDirection
-}) {
-  if (column !== active)
-    return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />
-  return dir === "ASC" ? (
-    <ArrowUp className="size-3" />
-  ) : (
-    <ArrowDown className="size-3" />
-  )
 }
 
 // ---------------------------------------------------------------------------
@@ -191,13 +156,14 @@ export function JobHistoryTable({
                   col.width,
                 )}
                 onClick={() => onSort(col.key)}
+                aria-sort={orderField === col.key ? (orderDirection === "ASC" ? "ascending" : "descending") : "none"}
               >
                 <span className="inline-flex items-center gap-1">
                   {col.label}
                   <SortIcon
                     column={col.key}
                     active={orderField}
-                    dir={orderDirection}
+                    direction={orderDirection}
                   />
                 </span>
               </TableHead>

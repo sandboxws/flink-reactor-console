@@ -18,6 +18,8 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  formatBytes,
+  formatDuration,
 } from "@flink-reactor/ui"
 import { ChevronRight, Layers } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -49,23 +51,6 @@ function formatSI(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
   return String(n)
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
-  return `${bytes} B`
-}
-
-function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
-  if (totalSec < 60) return `${totalSec}s`
-  const min = Math.floor(totalSec / 60)
-  const sec = totalSec % 60
-  if (min < 60) return `${min}m ${sec}s`
-  const hr = Math.floor(min / 60)
-  return `${hr}h ${min % 60}m`
 }
 
 function formatTimestamp(epoch: number): string {

@@ -32,6 +32,7 @@
   --color-job-cancelled: #d8a657;
   --color-job-failed: #ea6962;
   --color-job-created: #5a524c;
+  --color-status-active: #a9b665;
 
   /* Semantic foreground tokens */
   --color-fg: #d4be98;
@@ -75,6 +76,7 @@ html[data-palette="tokyo-night"] {
   --color-job-cancelled: #e0af68;
   --color-job-failed: #f7768e;
   --color-job-created: #565f89;
+  --color-status-active: #73daca;
 
   --color-fg: #ffffff;
   --color-fg-secondary: #d4d4d8;
@@ -114,6 +116,7 @@ html.light {
   --color-job-cancelled: #b57614;
   --color-job-failed: #c14a4a;
   --color-job-created: #928374;
+  --color-status-active: #6c782e;
 
   --color-fg: #3c3836;
   --color-fg-secondary: #504945;
@@ -151,6 +154,7 @@ html.light[data-palette="tokyo-night"] {
   --color-job-cancelled: #b58105;
   --color-job-failed: #d93b48;
   --color-job-created: #8990ad;
+  --color-status-active: #1a9a7a;
 
   --color-fg: #1a1b2e;
   --color-fg-secondary: #343b58;

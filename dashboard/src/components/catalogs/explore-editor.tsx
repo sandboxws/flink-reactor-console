@@ -1,5 +1,5 @@
-import { Button } from "@flink-reactor/ui"
-import { Loader2, Play, Square } from "lucide-react"
+import { Button, Spinner } from "@flink-reactor/ui"
+import { Play, Square } from "lucide-react"
 import { useCallback } from "react"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
 
@@ -29,13 +29,13 @@ export function ExploreEditor() {
         <div className="flex items-center gap-2 text-xs text-zinc-500">
           {status === "submitting" && (
             <span className="flex items-center gap-1 text-fr-amber">
-              <Loader2 className="size-3 animate-spin" />
+              <Spinner size="sm" />
               Submitting...
             </span>
           )}
           {status === "running" && (
             <span className="flex items-center gap-1 text-job-running">
-              <Loader2 className="size-3 animate-spin" />
+              <Spinner size="sm" />
               Running
             </span>
           )}
@@ -69,11 +69,7 @@ export function ExploreEditor() {
             disabled={isRunning || !sql.trim()}
             className="h-7 gap-1.5 text-xs"
           >
-            {isRunning ? (
-              <Loader2 className="size-3 animate-spin" />
-            ) : (
-              <Play className="size-3" />
-            )}
+            {isRunning ? <Spinner size="sm" /> : <Play className="size-3" />}
             Run
           </Button>
         </div>

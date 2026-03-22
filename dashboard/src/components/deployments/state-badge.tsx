@@ -3,7 +3,7 @@ import { getStateBadgeColor, getStateLabel } from "@/data/bg-deployment-types"
 import { cn } from "@/lib/cn"
 
 const colorClasses: Record<string, string> = {
-  green: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  green: "bg-status-active/15 text-status-active border-status-active/30",
   amber: "bg-amber-500/15 text-amber-400 border-amber-500/30",
   blue: "bg-sky-500/15 text-sky-400 border-sky-500/30",
   gray: "bg-zinc-500/15 text-zinc-400 border-zinc-500/30",
@@ -28,7 +28,7 @@ export function StateBadge({ state, className }: StateBadgeProps) {
       <span
         className={cn(
           "size-1.5 rounded-full",
-          color === "green" && "bg-emerald-400 animate-pulse",
+          color === "green" && "bg-status-active animate-pulse",
           color === "amber" && "bg-amber-400 animate-pulse",
           color === "blue" && "bg-sky-400 animate-pulse",
           color === "gray" && "bg-zinc-400",

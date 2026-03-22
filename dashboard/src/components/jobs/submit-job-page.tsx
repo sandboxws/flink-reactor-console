@@ -1,9 +1,9 @@
+import { Spinner } from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
   AlertCircle,
   Check,
   FileCode,
-  Loader2,
   Package,
   Play,
   Trash2,
@@ -73,7 +73,7 @@ function JarListSection({
           className="flex items-center gap-2 rounded-md bg-fr-coral/10 px-3 py-1.5 text-xs font-medium text-fr-coral transition-colors hover:bg-fr-coral/20 disabled:opacity-50"
         >
           {uploading ? (
-            <Loader2 className="size-3.5 animate-spin" />
+            <Spinner size="sm" />
           ) : (
             <Upload className="size-3.5" />
           )}
@@ -276,7 +276,7 @@ function SubmitForm({
           className="flex w-fit items-center gap-2 rounded-md bg-job-running/15 px-4 py-2 text-xs font-medium text-job-running transition-colors hover:bg-job-running/25 disabled:opacity-50"
         >
           {submitting ? (
-            <Loader2 className="size-3.5 animate-spin" />
+            <Spinner size="sm" />
           ) : (
             <Play className="size-3.5" />
           )}

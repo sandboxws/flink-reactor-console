@@ -1,18 +1,10 @@
 import { Cpu, Database, Terminal } from "lucide-react"
+import { formatBytes } from "@flink-reactor/ui"
 import type { JvmInfo } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const GB = 1024 ** 3
-const MB = 1024 ** 2
-
-function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
-  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`
-  return `${(bytes / 1024).toFixed(0)} KB`
-}
 
 function pct(used: number, max: number): number {
   if (max === 0) return 0

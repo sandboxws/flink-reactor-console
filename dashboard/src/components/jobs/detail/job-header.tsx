@@ -1,4 +1,4 @@
-import { Badge } from "@flink-reactor/ui"
+import { Badge, formatDuration } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
 import {
@@ -68,15 +68,6 @@ function exploreDisplayName(name: string): string {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
-  if (totalSec < 60) return `${totalSec}s`
-  const min = Math.floor(totalSec / 60)
-  const sec = totalSec % 60
-  if (min < 60) return `${min}m ${sec}s`
-  const hr = Math.floor(min / 60)
-  return `${hr}h ${min % 60}m`
-}
 
 // ---------------------------------------------------------------------------
 // Live duration (per-cell timer pattern from DurationCell)

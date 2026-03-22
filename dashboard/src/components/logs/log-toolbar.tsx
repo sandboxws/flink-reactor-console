@@ -57,15 +57,15 @@ export function LogToolbar({ filteredCount }: { filteredCount: number }) {
         className={cn(
           "flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors",
           isStreaming
-            ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+            ? "bg-status-active/10 text-status-active hover:bg-status-active/20"
             : "bg-white/[0.06] text-zinc-400 hover:bg-white/[0.1]",
         )}
       >
         {isStreaming ? (
           <>
             <span className="relative mr-0.5 flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-status-active opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-status-active" />
             </span>
             <Pause className="size-3" />
           </>

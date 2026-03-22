@@ -1,10 +1,9 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
+import { formatBytes, Spinner, Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import {
   ArrowLeft,
   Cpu,
   Layers,
-  Loader2,
   MemoryStick,
   Settings,
   Timer,
@@ -33,15 +32,6 @@ import { JmThreadDumpTab } from "./jm-thread-dump-tab"
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const GB = 1024 ** 3
-const MB = 1024 ** 2
-
-function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
-  if (bytes >= MB) return `${Math.round(bytes / MB)} MB`
-  return `${Math.round(bytes / 1024)} KB`
-}
 
 function pct(used: number, max: number): number {
   if (max === 0) return 0
@@ -281,7 +271,7 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
         <TabsContent value="logs">
           {logs === null ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-5 animate-spin text-zinc-500" />
+              <Spinner size="lg" />
             </div>
           ) : (
             <JmLogsTab logs={logs} />
@@ -290,7 +280,7 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
         <TabsContent value="stdout">
           {stdout === null ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-5 animate-spin text-zinc-500" />
+              <Spinner size="lg" />
             </div>
           ) : (
             <JmStdoutTab stdout={stdout} />
@@ -299,7 +289,7 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
         <TabsContent value="log-list">
           {logFiles === null ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-5 animate-spin text-zinc-500" />
+              <Spinner size="lg" />
             </div>
           ) : (
             <JmLogListTab
@@ -312,7 +302,7 @@ export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
         <TabsContent value="thread-dump">
           {threadDump === null ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-5 animate-spin text-zinc-500" />
+              <Spinner size="lg" />
             </div>
           ) : (
             <JmThreadDumpTab threadDump={threadDump} />

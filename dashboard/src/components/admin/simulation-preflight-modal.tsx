@@ -4,14 +4,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Spinner,
 } from "@flink-reactor/ui"
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  Play,
-  XCircle,
-} from "lucide-react"
+import { AlertTriangle, CheckCircle2, Play, XCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/cn"
 import type {
@@ -69,7 +64,7 @@ export function SimulationPreflightModal({
         <div className="mt-2 space-y-1.5">
           {checks === null ? (
             <div className="flex items-center gap-2 px-3 py-4 text-xs text-zinc-500">
-              <Loader2 className="size-3.5 animate-spin" />
+              <Spinner size="sm" />
               Running infrastructure checks...
             </div>
           ) : (
@@ -135,7 +130,7 @@ export function SimulationPreflightModal({
               onClick={handleLaunch}
             >
               {launching ? (
-                <Loader2 className="mr-1.5 size-3 animate-spin" />
+                <Spinner size="sm" className="mr-1.5" />
               ) : (
                 <Play className="mr-1.5 size-3" />
               )}
@@ -161,8 +156,6 @@ function StatusIcon({ status }: { status: string }) {
         <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-fr-amber" />
       )
     default:
-      return (
-        <Loader2 className="mt-0.5 size-3.5 shrink-0 animate-spin text-zinc-500" />
-      )
+      return <Spinner size="sm" className="mt-0.5 shrink-0" />
   }
 }

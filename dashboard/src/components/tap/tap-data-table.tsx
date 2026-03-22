@@ -1,5 +1,6 @@
+import { Spinner } from "@flink-reactor/ui"
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { ArrowDown, ArrowUp, Loader2 } from "lucide-react"
+import { ArrowDown, ArrowUp } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { cn } from "@/lib/cn"
 import type { ColumnInfo } from "@/stores/sql-gateway-store"
@@ -94,7 +95,7 @@ export function TapDataTable({
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-zinc-500">
         {isStreaming ? (
           <>
-            <Loader2 className="size-6 animate-spin opacity-40" />
+            <Spinner size="lg" className="opacity-40" />
             <p className="text-xs">Waiting for data...</p>
           </>
         ) : (
@@ -150,7 +151,7 @@ export function TapDataTable({
       >
         {sortedRows.length === 0 && isStreaming ? (
           <div className="flex items-center justify-center py-8 text-xs text-zinc-500">
-            <Loader2 className="mr-2 size-3.5 animate-spin" />
+            <Spinner size="sm" className="mr-2" />
             Waiting for data...
           </div>
         ) : (

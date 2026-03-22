@@ -1,4 +1,5 @@
-import { Loader2, Plus, Search, X } from "lucide-react"
+import { Spinner } from "@flink-reactor/ui"
+import { Plus, Search, X } from "lucide-react"
 import { useMemo, useState } from "react"
 import { cn } from "@/lib/cn"
 import type { MetricCatalogEntry } from "@/lib/graphql-api-client"
@@ -189,7 +190,7 @@ export function MetricsBrowser({
         <div className="max-h-[360px] overflow-y-auto">
           {catalogLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="size-4 animate-spin text-zinc-500" />
+              <Spinner />
             </div>
           ) : filteredMetrics.length === 0 ? (
             <div className="py-4 text-center text-xs text-zinc-600">

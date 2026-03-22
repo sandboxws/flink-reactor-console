@@ -1,3 +1,4 @@
+import { formatBytes } from "@flink-reactor/ui"
 import {
   ANALYSIS_THRESHOLDS,
   OPERATOR_STATE_GROWTH,
@@ -207,14 +208,6 @@ function analyzeOperatorState(node: FlinkOperatorNode): {
   }
 
   return { forecast, antiPatterns }
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
 }
 
 function traverseOperators(

@@ -5,26 +5,12 @@ import {
   Hash,
   TriangleAlert,
 } from "lucide-react"
-import { MetricCard } from "@flink-reactor/ui"
+import { formatBytes, formatDuration, MetricCard } from "@flink-reactor/ui"
 import { useCheckpointAnalyticsStore } from "@/stores/checkpoint-analytics-store"
 import { useClusterStore } from "@/stores/cluster-store"
 import { CheckpointJobTable } from "./checkpoint-job-table"
 import { CheckpointTimelineChart } from "./checkpoint-timeline-chart"
 import { StateSizeChart } from "./state-size-chart"
-
-// Helpers
-
-function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
-  return `${bytes} B`
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`
-  return `${(ms / 1000).toFixed(1)}s`
-}
 
 // Loading skeleton
 

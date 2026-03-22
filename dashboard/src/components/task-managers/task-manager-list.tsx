@@ -12,9 +12,10 @@ import {
 } from "@flink-reactor/ui"
 import { useNavigate } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
-import { ArrowDown, ArrowUp, ArrowUpDown, Check, Copy } from "lucide-react"
+import { Check, Copy } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { TaskManager } from "@flink-reactor/ui"
+import { SortIcon } from "@/components/shared/sort-icon"
 import { cn } from "@/lib/cn"
 import { MemoryBar } from "./memory-bar"
 
@@ -74,28 +75,6 @@ function sortTms(
     }
   })
   return dir === "desc" ? sorted.reverse() : sorted
-}
-
-// ---------------------------------------------------------------------------
-// Sort icon
-// ---------------------------------------------------------------------------
-
-function SortIcon({
-  column,
-  active,
-  dir,
-}: {
-  column: string
-  active: string
-  dir: SortDir
-}) {
-  if (column !== active)
-    return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />
-  return dir === "asc" ? (
-    <ArrowUp className="size-3" />
-  ) : (
-    <ArrowDown className="size-3" />
-  )
 }
 
 // ---------------------------------------------------------------------------
@@ -229,7 +208,7 @@ export function TaskManagerList({
             >
               <span className="inline-flex items-center gap-1">
                 {col.label}
-                <SortIcon column={col.key} active={sortKey} dir={sortDir} />
+                <SortIcon column={col.key} active={sortKey} direction={sortDir} />
               </span>
             </TableHead>
           ))}

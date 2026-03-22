@@ -166,7 +166,7 @@ export function LogList({ entries }: { entries: LogEntry[] }) {
             "px-3 py-1.5 text-xs shadow-lg",
             "border transition-colors",
             newEntryCount > 0
-              ? "border-emerald-500/30 bg-dash-panel text-emerald-400 hover:bg-dash-elevated"
+              ? "border-status-active/30 bg-dash-panel text-status-active hover:bg-dash-elevated"
               : "border-dash-border bg-dash-panel text-zinc-400 hover:text-white",
           )}
         >

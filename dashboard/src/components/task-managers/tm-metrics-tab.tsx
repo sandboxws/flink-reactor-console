@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import { formatBytes } from "@flink-reactor/ui"
 import type { TaskManager, TaskManagerMetrics } from "@flink-reactor/ui"
 import { fetchTaskManagerMetrics } from "@/lib/graphql-api-client"
 import { useConfigStore } from "@/stores/config-store"
@@ -19,15 +20,7 @@ import { useConfigStore } from "@/stores/config-store"
 // Helpers
 // ---------------------------------------------------------------------------
 
-const GB = 1024 ** 3
-const MB = 1024 ** 2
 const MAX_SAMPLES = 30
-
-function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
-  if (bytes >= MB) return `${(bytes / MB).toFixed(0)} MB`
-  return `${(bytes / 1024).toFixed(0)} KB`
-}
 
 type DataPoint = { time: string; timestamp: number; value: number }
 

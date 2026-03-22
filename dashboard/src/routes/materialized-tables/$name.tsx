@@ -91,7 +91,7 @@ function MaterializedTableDetail() {
             <button
               type="button"
               onClick={() => resumeTable(decodedName, catalog)}
-              className="flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
+              className="flex items-center gap-1.5 rounded-md border border-status-active/30 bg-status-active/10 px-3 py-1.5 text-xs font-medium text-status-active transition-colors hover:bg-status-active/20"
             >
               <Play className="size-3" />
               Resume

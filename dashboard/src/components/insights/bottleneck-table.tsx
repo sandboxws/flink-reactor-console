@@ -6,8 +6,8 @@ import {
   TableHeader,
   TableRow,
 } from "@flink-reactor/ui"
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 import { useState } from "react"
+import { SortIcon } from "@/components/shared/sort-icon"
 import type { BottleneckScore } from "@/data/bottleneck-analyzer"
 import { cn } from "@/lib/cn"
 
@@ -80,15 +80,6 @@ export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
     }
   })
 
-  function SortIcon({ col }: { col: SortColumn }) {
-    if (sortCol !== col) return <ArrowUpDown className="size-3 text-zinc-600" />
-    return sortDir === "asc" ? (
-      <ArrowUp className="size-3 text-zinc-300" />
-    ) : (
-      <ArrowDown className="size-3 text-zinc-300" />
-    )
-  }
-
   if (scores.length === 0) {
     return (
       <div className="glass-card flex items-center justify-center py-12 text-sm text-zinc-500">
@@ -108,7 +99,12 @@ export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
                 onClick={() => handleSort("vertex")}
                 className="flex items-center gap-1 text-xs"
               >
-                Vertex <SortIcon col="vertex" />
+                Vertex{" "}
+                <SortIcon
+                  column="vertex"
+                  active={sortCol}
+                  direction={sortDir}
+                />
               </button>
             </TableHead>
             <TableHead>
@@ -117,7 +113,8 @@ export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
                 onClick={() => handleSort("job")}
                 className="flex items-center gap-1 text-xs"
               >
-                Job <SortIcon col="job" />
+                Job{" "}
+                <SortIcon column="job" active={sortCol} direction={sortDir} />
               </button>
             </TableHead>
             <TableHead className="text-right">
@@ -126,7 +123,12 @@ export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
                 onClick={() => handleSort("parallelism")}
                 className="ml-auto flex items-center gap-1 text-xs"
               >
-                P <SortIcon col="parallelism" />
+                P{" "}
+                <SortIcon
+                  column="parallelism"
+                  active={sortCol}
+                  direction={sortDir}
+                />
               </button>
             </TableHead>
             <TableHead>
@@ -135,7 +137,8 @@ export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
                 onClick={() => handleSort("bp")}
                 className="flex items-center gap-1 text-xs"
               >
-                BP Level <SortIcon col="bp" />
+                BP Level{" "}
+                <SortIcon column="bp" active={sortCol} direction={sortDir} />
               </button>
             </TableHead>
             <TableHead className="text-right">
@@ -144,7 +147,8 @@ export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
                 onClick={() => handleSort("busy")}
                 className="flex items-center gap-1 text-xs"
               >
-                Busy% <SortIcon col="busy" />
+                Busy%{" "}
+                <SortIcon column="busy" active={sortCol} direction={sortDir} />
               </button>
             </TableHead>
             <TableHead>
@@ -153,7 +157,8 @@ export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
                 onClick={() => handleSort("score")}
                 className="flex items-center gap-1 text-xs"
               >
-                Score <SortIcon col="score" />
+                Score{" "}
+                <SortIcon column="score" active={sortCol} direction={sortDir} />
               </button>
             </TableHead>
             <TableHead>Severity</TableHead>

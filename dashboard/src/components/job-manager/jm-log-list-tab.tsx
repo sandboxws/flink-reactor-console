@@ -1,10 +1,10 @@
+import { Spinner } from "@flink-reactor/ui"
 import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
   Download,
   FileText,
-  Loader2,
   Maximize,
   Minimize,
   RefreshCw,
@@ -221,7 +221,7 @@ function LogViewer({
       {/* Log content — unified explorer view */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="size-5 animate-spin text-zinc-500" />
+          <Spinner size="lg" />
         </div>
       ) : (
         <StaticLogExplorer

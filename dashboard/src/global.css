@@ -356,15 +356,6 @@ html.light[data-palette="tokyo-night"] {
   color: #181a1b;
 }
 
-/* Emerald → sage green */
-.bg-emerald-400 {
-  background-color: #a9b665;
-}
-
-.text-emerald-400 {
-  color: #a9b665;
-}
-
 /* Hover text variants */
 .hover\:text-white:hover {
   color: #d4be98;
@@ -495,15 +486,6 @@ html.light .hover\:text-zinc-300:hover {
 
 html.light .hover\:text-zinc-400:hover {
   color: #7c6f64;
-}
-
-/* Emerald → dark sage */
-html.light .bg-emerald-400 {
-  background-color: #6c782e;
-}
-
-html.light .text-emerald-400 {
-  color: #6c782e;
 }
 
 /* Placeholder text — warm */

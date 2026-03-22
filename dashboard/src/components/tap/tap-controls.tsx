@@ -1,4 +1,5 @@
-import { Loader2, Pause, Play, RotateCcw, Square, Trash2 } from "lucide-react"
+import { Spinner } from "@flink-reactor/ui"
+import { Pause, Play, RotateCcw, Square, Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 
@@ -59,7 +60,7 @@ export function TapControls({
         title="Start new observation"
       >
         {isConnecting ? (
-          <Loader2 className={cn(iconClass, "animate-spin")} />
+          <Spinner size="sm" />
         ) : (
           <Play className={iconClass} />
         )}
@@ -153,7 +154,7 @@ function StatusDot({
     )
   }
   if (status === "connecting") {
-    return <Loader2 className="size-3 animate-spin text-fr-purple" />
+    return <Spinner size="sm" className="text-fr-purple" />
   }
   if (status === "paused") {
     return <span className="inline-flex size-2 rounded-full bg-fr-amber" />

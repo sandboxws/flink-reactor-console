@@ -1,5 +1,6 @@
 import {
   Badge,
+  formatDuration,
   Table,
   TableBody,
   TableCell,
@@ -10,14 +11,12 @@ import {
 import { Link, useNavigate } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import {
-  ArrowDown,
   ArrowRight,
-  ArrowUp,
-  ArrowUpDown,
   Radio,
 } from "lucide-react"
 import { useMemo, useState } from "react"
 import type { FlinkJob, JobStatus } from "@flink-reactor/ui"
+import { SortIcon } from "@/components/shared/sort-icon"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
 
@@ -59,16 +58,6 @@ function StatusBadge({ status }: { status: JobStatus }) {
   )
 }
 
-function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
-  if (totalSec < 60) return `${totalSec}s`
-  const min = Math.floor(totalSec / 60)
-  const sec = totalSec % 60
-  if (min < 60) return `${min}m ${sec}s`
-  const hr = Math.floor(min / 60)
-  return `${hr}h ${min % 60}m`
-}
-
 type SortKey = "name" | "status" | "started" | "duration"
 type SortDir = "asc" | "desc"
 
@@ -96,23 +85,6 @@ function sortJobs(jobs: FlinkJob[], key: SortKey, dir: SortDir): FlinkJob[] {
   return dir === "desc" ? sorted.reverse() : sorted
 }
 
-function SortIcon({
-  column,
-  active,
-  dir,
-}: {
-  column: string
-  active: string
-  dir: SortDir
-}) {
-  if (column !== active)
-    return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />
-  return dir === "asc" ? (
-    <ArrowUp className="size-3" />
-  ) : (
-    <ArrowDown className="size-3" />
-  )
-}
 
 export function JobList({
   title,
@@ -184,10 +156,11 @@ export function JobList({
                   key={col.key}
                   className={cn("group cursor-pointer select-none", col.align)}
                   onClick={() => toggleSort(col.key)}
+                  aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
                 >
                   <span className="inline-flex items-center gap-1">
                     {col.label}
-                    <SortIcon column={col.key} active={sortKey} dir={sortDir} />
+                    <SortIcon column={col.key} active={sortKey} direction={sortDir} />
                   </span>
                 </TableHead>
               ))}

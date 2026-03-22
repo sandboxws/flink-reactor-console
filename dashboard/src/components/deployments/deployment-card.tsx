@@ -21,14 +21,14 @@ export function DeploymentCard({
       className={cn(
         "rounded-lg border p-4 transition-colors",
         isActive
-          ? "border-emerald-500/50 bg-emerald-500/5"
+          ? "border-status-active/50 bg-status-active/5"
           : "border-dash-border bg-dash-surface",
       )}
     >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-zinc-200">{label}</h3>
         {isActive && (
-          <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-400">
+          <span className="text-[10px] font-medium uppercase tracking-wider text-status-active">
             Active
           </span>
         )}

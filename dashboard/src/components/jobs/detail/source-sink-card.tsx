@@ -6,6 +6,7 @@ import {
   type LucideIcon,
   MessageSquare,
 } from "lucide-react"
+import { formatBytes } from "@flink-reactor/ui"
 import type { ConnectorType, JobConnector } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
@@ -30,17 +31,10 @@ const connectorLabels: Record<ConnectorType, string> = {
 const connectorColors: Record<ConnectorType, string> = {
   kafka: "text-fr-coral",
   iceberg: "text-blue-400",
-  paimon: "text-emerald-400",
+  paimon: "text-status-active",
   jdbc: "text-fr-purple",
   filesystem: "text-fr-amber",
   unknown: "text-zinc-400",
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B"
-  const units = ["B", "KB", "MB", "GB", "TB"]
-  const i = Math.floor(Math.log(bytes) / Math.log(1024))
-  return `${(bytes / 1024 ** i).toFixed(1)} ${units[i]}`
 }
 
 function formatCount(n: number): string {
@@ -76,7 +70,7 @@ export function SourceSinkCard({ connector }: { connector: JobConnector }) {
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase",
                   isSource
-                    ? "bg-emerald-500/10 text-emerald-400"
+                    ? "bg-status-active/10 text-status-active"
                     : "bg-blue-500/10 text-blue-400",
                 )}
               >

@@ -71,11 +71,11 @@ function LogHeaderRight() {
         <div
           className={cn(
             "size-1.5 rounded-full",
-            isStreaming ? "animate-pulse bg-emerald-400" : "bg-zinc-600",
+            isStreaming ? "animate-pulse bg-status-active" : "bg-zinc-600",
           )}
         />
         <span
-          className={cn(isStreaming ? "text-emerald-400" : "text-zinc-500")}
+          className={cn(isStreaming ? "text-status-active" : "text-zinc-500")}
         >
           {isStreaming ? "Live" : "Paused"}
         </span>
@@ -104,6 +104,7 @@ function ClusterHeaderRight() {
         onClick={refresh}
         className="rounded p-1 text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-300"
         title="Refresh"
+        aria-label="Refresh"
       >
         <RefreshCw className="size-3" />
       </button>
@@ -112,10 +113,10 @@ function ClusterHeaderRight() {
         <div
           className={cn(
             "size-1.5 rounded-full",
-            isPolling ? "animate-pulse bg-emerald-400" : "bg-zinc-600",
+            isPolling ? "animate-pulse bg-status-active" : "bg-zinc-600",
           )}
         />
-        <span className={cn(isPolling ? "text-emerald-400" : "text-zinc-500")}>
+        <span className={cn(isPolling ? "text-status-active" : "text-zinc-500")}>
           {isPolling ? "Polling" : "Paused"}
         </span>
       </div>
@@ -153,6 +154,7 @@ function ThemeSwitcher() {
           type="button"
           className="rounded p-1 text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-300"
           title="Theme"
+          aria-label="Theme"
         >
           <Paintbrush className="size-3.5" />
         </button>

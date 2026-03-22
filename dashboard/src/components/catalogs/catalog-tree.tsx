@@ -1,9 +1,9 @@
+import { Spinner } from "@flink-reactor/ui"
 import {
   ChevronDown,
   ChevronRight,
   Database,
   Folder,
-  Loader2,
   Table2,
 } from "lucide-react"
 import { cn } from "@/lib/cn"
@@ -166,7 +166,7 @@ function TreeButton({
       )}
     >
       {loading ? (
-        <Loader2 className="size-3 shrink-0 animate-spin text-zinc-500" />
+        <Spinner size="sm" className="shrink-0" />
       ) : expanded ? (
         <ChevronDown className="size-3 shrink-0 text-zinc-500" />
       ) : (

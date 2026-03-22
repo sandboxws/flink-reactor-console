@@ -1,4 +1,6 @@
 import {
+  formatBytes,
+  formatDuration,
   HoverCard,
   HoverCardArrow,
   HoverCardContent,
@@ -6,18 +8,18 @@ import {
 } from "@flink-reactor/ui"
 import type { NodeProps } from "@xyflow/react"
 import { Handle, Position } from "@xyflow/react"
-import { Radio } from "lucide-react"
-import type { IconType } from "react-icons"
 import {
-  PiArrowFatLinesDownBold,
-  PiArrowFatLinesUpBold,
-  PiCpuBold,
-  PiDownloadSimpleBold,
-  PiGaugeBold,
-  PiHeartbeatBold,
-  PiTimerBold,
-  PiUploadSimpleBold,
-} from "react-icons/pi"
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Cpu,
+  Download,
+  Gauge,
+  HeartPulse,
+  type LucideIcon,
+  Radio,
+  Timer,
+  Upload,
+} from "lucide-react"
 import type {
   JobVertex,
   JobVertexStatus,
@@ -38,23 +40,6 @@ function formatSI(n: number): string {
   return String(n)
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
-  return `${bytes} B`
-}
-
-function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
-  if (totalSec < 60) return `${totalSec}s`
-  const min = Math.floor(totalSec / 60)
-  const sec = totalSec % 60
-  if (min < 60) return `${min}m ${sec}s`
-  const hr = Math.floor(min / 60)
-  return `${hr}h ${min % 60}m`
-}
-
 // ---------------------------------------------------------------------------
 // Node type detection + color tokens
 // ---------------------------------------------------------------------------
@@ -69,15 +54,15 @@ function parseNodeType(name: string): { type: NodeType; displayName: string } {
   return { type: "operator", displayName: name }
 }
 
-const METRIC_ICONS: Record<string, IconType> = {
-  Status: PiHeartbeatBold,
-  Duration: PiTimerBold,
-  "Records In": PiArrowFatLinesDownBold,
-  "Records Out": PiArrowFatLinesUpBold,
-  "Bytes In": PiDownloadSimpleBold,
-  "Bytes Out": PiUploadSimpleBold,
-  "Busy Time": PiCpuBold,
-  Backpressure: PiGaugeBold,
+const METRIC_ICONS: Record<string, LucideIcon> = {
+  Status: HeartPulse,
+  Duration: Timer,
+  "Records In": ArrowDownToLine,
+  "Records Out": ArrowUpFromLine,
+  "Bytes In": Download,
+  "Bytes Out": Upload,
+  "Busy Time": Cpu,
+  Backpressure: Gauge,
 }
 
 const NODE_TYPE_COLORS = {

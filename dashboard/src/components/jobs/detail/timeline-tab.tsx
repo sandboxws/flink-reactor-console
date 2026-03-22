@@ -1,6 +1,6 @@
 import { Clock, Maximize2, ZoomIn, ZoomOut } from "lucide-react"
 import { useMemo, useState } from "react"
-import { EmptyState } from "@flink-reactor/ui"
+import { EmptyState, formatDuration } from "@flink-reactor/ui"
 import type { JobVertex } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
@@ -14,16 +14,6 @@ const STATUS_COLORS: Record<string, string> = {
   FAILED: "bg-job-failed",
   CANCELED: "bg-job-cancelled",
   CREATED: "bg-job-created",
-}
-
-function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
-  if (totalSec < 60) return `${totalSec}s`
-  const min = Math.floor(totalSec / 60)
-  const sec = totalSec % 60
-  if (min < 60) return `${min}m ${sec}s`
-  const hr = Math.floor(min / 60)
-  return `${hr}h ${min % 60}m`
 }
 
 function formatTimeOffset(ms: number): string {

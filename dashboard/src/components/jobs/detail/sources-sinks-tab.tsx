@@ -29,7 +29,7 @@ export function SourcesSinksTab({
       {sources.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
-            <ArrowDown className="size-3.5 text-emerald-400" />
+            <ArrowDown className="size-3.5 text-status-active" />
             <h3 className="text-xs font-medium uppercase tracking-wider text-zinc-400">
               Sources ({sources.length})
             </h3>

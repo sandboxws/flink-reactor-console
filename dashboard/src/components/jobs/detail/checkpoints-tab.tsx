@@ -1,4 +1,4 @@
-import { Badge, EmptyState } from "@flink-reactor/ui"
+import { Badge, EmptyState, formatBytes, formatDuration, Spinner } from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
   AlertTriangle,
@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ChevronRight,
   Database,
-  Loader2,
   RotateCcw,
   Save,
 } from "lucide-react"
@@ -31,18 +30,6 @@ import {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatBytes(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
-  return `${bytes} B`
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  return `${(ms / 1000).toFixed(1)}s`
-}
 
 function formatInterval(ms: number): string {
   if (ms >= 60_000) return `${ms / 60_000}min`
@@ -208,7 +195,7 @@ function ExpandableOperatorRow({
         <td className="px-3 py-2 text-zinc-300">
           <div className="flex items-center gap-1.5">
             {loading ? (
-              <Loader2 className="size-3 shrink-0 animate-spin text-zinc-500" />
+              <Spinner size="sm" className="shrink-0" />
             ) : expanded ? (
               <ChevronDown className="size-3 shrink-0 text-zinc-500" />
             ) : (
@@ -472,7 +459,7 @@ function CheckpointDetailView({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="size-5 animate-spin text-zinc-500" />
+        <Spinner size="lg" />
       </div>
     )
   }

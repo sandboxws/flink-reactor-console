@@ -1,7 +1,7 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
+import { formatBytes, Spinner, Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { format } from "date-fns"
-import { ArrowLeft, Clock, Cpu, HardDrive, Loader2, Server } from "lucide-react"
+import { ArrowLeft, Clock, Cpu, HardDrive, Server } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import type {
   LogFileEntry,
@@ -25,15 +25,6 @@ import { TmThreadDumpTab } from "./tm-thread-dump-tab"
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const GB = 1024 ** 3
-const MB = 1024 ** 2
-
-function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
-  if (bytes >= MB) return `${Math.round(bytes / MB)} MB`
-  return `${Math.round(bytes / 1024)} KB`
-}
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -237,7 +228,7 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
         <TabsContent value="logs">
           {logs === null ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-5 animate-spin text-zinc-500" />
+              <Spinner size="lg" />
             </div>
           ) : (
             <TmLogsTab logs={logs} />
@@ -246,7 +237,7 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
         <TabsContent value="stdout">
           {stdout === null ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-5 animate-spin text-zinc-500" />
+              <Spinner size="lg" />
             </div>
           ) : (
             <TmStdoutTab stdout={stdout} />
@@ -255,7 +246,7 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
         <TabsContent value="log-list">
           {logFiles === null ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-5 animate-spin text-zinc-500" />
+              <Spinner size="lg" />
             </div>
           ) : (
             <TmLogListTab
@@ -269,7 +260,7 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
         <TabsContent value="thread-dump">
           {threadDump === null ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-5 animate-spin text-zinc-500" />
+              <Spinner size="lg" />
             </div>
           ) : (
             <TmThreadDumpTab threadDump={threadDump} />

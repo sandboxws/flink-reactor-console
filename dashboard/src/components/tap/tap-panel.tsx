@@ -1,4 +1,5 @@
-import { AlertTriangle, Loader2, Plus, Radio, X } from "lucide-react"
+import { Spinner } from "@flink-reactor/ui"
+import { AlertTriangle, Plus, Radio, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { EmptyState } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
@@ -315,7 +316,7 @@ export function TapPanel({ jobName }: TapPanelProps) {
   if (manifestLoading) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-zinc-500">
-        <Loader2 className="size-6 animate-spin opacity-40" />
+        <Spinner size="lg" className="opacity-40" />
         <p className="text-xs">Loading tap manifest...</p>
       </div>
     )

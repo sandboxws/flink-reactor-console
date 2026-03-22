@@ -15,6 +15,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@flink-reactor/ui"
+import { Spinner } from "@flink-reactor/ui"
 import { ChevronDown, ChevronRight, Search } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { SiKubernetes } from "react-icons/si"
@@ -361,7 +362,7 @@ function SynthesisErrorDisplay() {
 function LoadingSkeleton() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3">
-      <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-fr-purple" />
+      <Spinner size="lg" className="text-fr-purple" />
       <span className="text-sm text-zinc-500">Loading DSL...</span>
     </div>
   )
@@ -557,7 +558,7 @@ function ExplainTabContent() {
   if (synthStatus === "synthesizing" || analyzerStatus === "analyzing") {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-fr-purple" />
+        <Spinner size="lg" className="text-fr-purple" />
         <span className="text-sm text-zinc-500">
           {synthStatus === "synthesizing"
             ? "Synthesizing..."

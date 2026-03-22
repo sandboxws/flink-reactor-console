@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Loader2, SearchX } from "lucide-react"
+import { SearchX } from "lucide-react"
 import { useEffect } from "react"
-import { EmptyState } from "@flink-reactor/ui"
+import { EmptyState, Spinner } from "@flink-reactor/ui"
 import { TaskManagerDetail } from "@/components/task-managers/task-manager-detail"
 import { useClusterStore } from "@/stores/cluster-store"
 
@@ -33,7 +33,7 @@ function TaskManagerPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="size-6 animate-spin text-zinc-500" />
+        <Spinner size="lg" />
       </div>
     )
   }

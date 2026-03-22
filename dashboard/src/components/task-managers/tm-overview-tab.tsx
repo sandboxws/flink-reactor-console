@@ -1,18 +1,11 @@
 import type { TaskManager } from "@flink-reactor/ui"
+import { formatBytes } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const GB = 1024 ** 3
 const MB = 1024 ** 2
-
-function formatBytes(bytes: number): string {
-  if (bytes >= GB) return `${(bytes / GB).toFixed(1)} GB`
-  if (bytes >= MB) return `${(bytes / MB).toFixed(1)} MB`
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
-  return `${bytes} B`
-}
 
 function formatBytesMB(bytes: number): string {
   return `${Math.round(bytes / MB)} MB`

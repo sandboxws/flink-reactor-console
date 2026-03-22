@@ -13,15 +13,13 @@ import {
 import { useNavigate } from "@tanstack/react-router"
 import { format } from "date-fns"
 import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
   Check,
   Copy,
   Radio,
   XCircle,
 } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
+import { SortIcon } from "@/components/shared/sort-icon"
 import type { FlinkJob } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -105,27 +103,6 @@ function sortJobs(jobs: FlinkJob[], key: SortKey, dir: SortDir): FlinkJob[] {
   return dir === "desc" ? sorted.reverse() : sorted
 }
 
-// ---------------------------------------------------------------------------
-// Sort icon
-// ---------------------------------------------------------------------------
-
-function SortIcon({
-  column,
-  active,
-  dir,
-}: {
-  column: string
-  active: string
-  dir: SortDir
-}) {
-  if (column !== active)
-    return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-50" />
-  return dir === "asc" ? (
-    <ArrowUp className="size-3" />
-  ) : (
-    <ArrowDown className="size-3" />
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Copy-on-click Job ID cell
@@ -286,10 +263,11 @@ export function JobsTable({
               key={col.key}
               className={cn("group cursor-pointer select-none", col.align)}
               onClick={() => toggleSort(col.key)}
+              aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
             >
               <span className="inline-flex items-center gap-1">
                 {col.label}
-                <SortIcon column={col.key} active={sortKey} dir={sortDir} />
+                <SortIcon column={col.key} active={sortKey} direction={sortDir} />
               </span>
             </TableHead>
           ))}
