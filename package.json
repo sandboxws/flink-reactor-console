@@ -12,7 +12,7 @@
     "dev": "pnpm --filter dashboard dev",
     "dev:live": "FLINK_REST_URL=http://localhost:8081 pnpm --filter dashboard dev",
     "build": "pnpm --filter @flink-reactor/ui build && pnpm --filter dashboard build",
-    "test": "pnpm --filter dashboard test",
+    "test": "pnpm --filter @flink-reactor/dashboard test",
     "typecheck": "pnpm --filter dashboard typecheck",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
