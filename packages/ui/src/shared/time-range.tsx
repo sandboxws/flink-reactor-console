@@ -21,6 +21,8 @@ export interface TimeRangeValue {
   end?: Date
 }
 
+export type TimeRangeVariant = "mini" | "full"
+
 export interface TimeRangeProps {
   /** Current time range value */
   value: TimeRangeValue
@@ -28,18 +30,42 @@ export interface TimeRangeProps {
   onChange: (value: TimeRangeValue) => void
   /** Custom presets (default: 5m, 15m, 1h, 6h, 24h, All) */
   presets?: TimeRangePreset[]
+  /** Visual variant — mini (compact toolbar widget) or full (standalone filter bar) */
+  variant?: TimeRangeVariant
   className?: string
+}
+
+const containerStyles: Record<TimeRangeVariant, string> = {
+  mini: "flex items-center gap-0.5 rounded-md border border-dash-border bg-dash-surface px-1 py-0.5",
+  full: "flex items-center gap-1",
+}
+
+const buttonBase: Record<TimeRangeVariant, string> = {
+  mini: "rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors",
+  full: "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+}
+
+const buttonActive: Record<TimeRangeVariant, string> = {
+  mini: "bg-white/[0.1] text-white",
+  full: "bg-fr-coral/20 text-fr-coral",
+}
+
+const buttonInactive: Record<TimeRangeVariant, string> = {
+  mini: "text-zinc-500 hover:text-zinc-300",
+  full: "text-zinc-500 hover:bg-dash-panel hover:text-zinc-300",
 }
 
 /**
  * TimeRange — preset time range selector.
  *
  * Provides quick selection of common time ranges for filtering logs/data.
+ * Two visual variants: `mini` (compact toolbar widget) and `full` (standalone filter bar).
  */
 export function TimeRange({
   value,
   onChange,
   presets = DEFAULT_PRESETS,
+  variant = "mini",
   className,
 }: TimeRangeProps) {
   const isAll = !value.start && !value.end
@@ -65,7 +91,7 @@ export function TimeRange({
   return (
     <div
       className={cn(
-        "flex items-center gap-0.5 rounded-md border border-dash-border bg-dash-surface px-1 py-0.5",
+        containerStyles[variant],
         className,
       )}
     >
@@ -75,10 +101,10 @@ export function TimeRange({
           type="button"
           onClick={() => selectPreset(preset.minutes)}
           className={cn(
-            "rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors",
+            buttonBase[variant],
             isPresetActive(preset.minutes)
-              ? "bg-white/[0.1] text-white"
-              : "text-zinc-500 hover:text-zinc-300",
+              ? buttonActive[variant]
+              : buttonInactive[variant],
           )}
         >
           {preset.label}

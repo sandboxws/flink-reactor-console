@@ -38,6 +38,8 @@ export {
   CardFooter,
   CardHeader,
   CardTitle,
+  type CardProps,
+  type CardSize,
 } from "./components/ui/card"
 export { Checkbox } from "./components/ui/checkbox"
 export {
@@ -158,7 +160,7 @@ export {
   type SheetContentProps,
   type SheetSide,
 } from "./components/ui/sheet"
-export { Skeleton } from "./components/ui/skeleton"
+export { Skeleton, type SkeletonVariant } from "./components/ui/skeleton"
 export {
   Spinner,
   type SpinnerProps,
@@ -257,6 +259,7 @@ export {
   type TimeRangePreset,
   type TimeRangeProps,
   type TimeRangeValue,
+  type TimeRangeVariant,
   QueryResults,
   type QueryResultsProps,
   StackTrace,

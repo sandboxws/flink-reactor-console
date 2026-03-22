@@ -550,9 +550,29 @@ function SharedPage() {
       <Section
         id="time-range"
         title="TimeRange"
-        description="Quick-select time range buttons for filtering logs and metrics data."
+        description="Quick-select time range buttons for filtering logs and metrics data. Two variants: mini (compact toolbar widget) and full (standalone filter bar with coral accent)."
       >
-        <TimeRange value={timeRange} onChange={setTimeRange} />
+        <div className="flex flex-col gap-4 mb-4">
+          <div>
+            <p className="mb-2 text-xs font-medium text-fg-dim">mini (default)</p>
+            <TimeRange value={timeRange} onChange={setTimeRange} />
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-medium text-fg-dim">full</p>
+            <TimeRange
+              value={timeRange}
+              onChange={setTimeRange}
+              variant="full"
+              presets={[
+                { label: "1 Hour", minutes: 60 },
+                { label: "2 Hours", minutes: 120 },
+                { label: "24 Hours", minutes: 1440 },
+                { label: "7 Days", minutes: 10080 },
+                { label: "30 Days", minutes: 43200 },
+              ]}
+            />
+          </div>
+        </div>
         <p className="mt-2 text-xs text-fg-muted">
           Range:{" "}
           <code className="text-fr-purple">
@@ -574,6 +594,13 @@ function SharedPage() {
                 name: "onChange",
                 type: "(value: TimeRangeValue) => void",
                 description: "Called when a preset is selected",
+              },
+              {
+                name: "variant",
+                type: '"mini" | "full"',
+                default: '"mini"',
+                description:
+                  "Visual variant — mini for compact toolbars, full for standalone filter bars",
               },
               {
                 name: "presets",

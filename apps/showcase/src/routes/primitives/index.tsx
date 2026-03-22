@@ -225,6 +225,12 @@ const progressProps: PropDef[] = [
 ]
 
 const cardProps: PropDef[] = [
+  {
+    name: "size",
+    type: '"compact" | "default" | "lg"',
+    default: '"default"',
+    description: "Size variant — cascades padding to sub-components",
+  },
   { name: "className", type: "string", description: "Additional CSS classes" },
   {
     name: "children",
@@ -272,6 +278,12 @@ const textareaProps: PropDef[] = [
 ]
 
 const skeletonProps: PropDef[] = [
+  {
+    name: "variant",
+    type: '"default" | "text" | "heading" | "avatar" | "card"',
+    default: '"default"',
+    description: "Shape preset — sets dimensions and border-radius",
+  },
   {
     name: "className",
     type: "string",
@@ -743,20 +755,50 @@ function PrimitivesPage() {
         title="Card"
         description="Container with header, content, description, and footer sub-components."
       >
-        <Card className="max-w-sm mb-6">
-          <CardHeader>
-            <CardTitle>Sample Card</CardTitle>
-            <CardDescription>A card with all compound parts.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-fg-muted">Card content goes here.</p>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" size="sm">
-              Action
-            </Button>
-          </CardFooter>
-        </Card>
+        <div className="flex flex-col gap-4 max-w-sm mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Default Card</CardTitle>
+              <CardDescription>Standard padding (p-4).</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-fg-muted">Card content goes here.</p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" size="sm">
+                Action
+              </Button>
+            </CardFooter>
+          </Card>
+          <Card size="compact">
+            <CardHeader>
+              <CardTitle>Compact Card</CardTitle>
+              <CardDescription>Tighter padding (p-3).</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-fg-muted">Card content goes here.</p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" size="sm">
+                Action
+              </Button>
+            </CardFooter>
+          </Card>
+          <Card size="lg">
+            <CardHeader>
+              <CardTitle>Large Card</CardTitle>
+              <CardDescription>Spacious padding (p-6).</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-fg-muted">Card content goes here.</p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" size="sm">
+                Action
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
         <ImportSnippet
           code={`import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@flink-reactor/ui"`}
         />
@@ -831,13 +873,18 @@ function PrimitivesPage() {
       >
         <div className="flex flex-col gap-3 max-w-sm mb-6">
           <div className="flex items-center gap-3">
-            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton variant="avatar" />
             <div className="flex flex-col gap-2 flex-1">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
+              <Skeleton variant="heading" />
+              <Skeleton variant="text" />
             </div>
           </div>
-          <Skeleton className="h-24 w-full" />
+          <Skeleton variant="card" />
+          <div className="flex items-center gap-4 text-xs text-fg-dim mt-2">
+            <span className="flex items-center gap-2"><Skeleton variant="avatar" className="size-4" /> avatar</span>
+            <span className="flex items-center gap-2"><Skeleton variant="text" className="w-12" /> text</span>
+            <span className="flex items-center gap-2"><Skeleton variant="heading" className="w-12" /> heading</span>
+          </div>
         </div>
         <ImportSnippet code={`import { Skeleton } from "@flink-reactor/ui"`} />
         <div className="mt-4">

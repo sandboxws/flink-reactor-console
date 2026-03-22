@@ -18,6 +18,7 @@ export {
   type TimeRangePreset,
   type TimeRangeProps,
   type TimeRangeValue,
+  type TimeRangeVariant,
 } from "./time-range"
 export { StackTrace } from "./stack-trace"
 export { JobStatusBadge } from "./job-status-badge"
