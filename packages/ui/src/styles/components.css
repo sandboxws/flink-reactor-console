@@ -144,7 +144,7 @@ html.light[data-palette="tokyo-night"] .source-badge {
 html.light .glass-card {
   background: rgba(250, 246, 238, 0.8);
   border-color: var(--color-dash-border);
-  box-shadow: 0 1px 3px rgba(60, 56, 54, 0.06);
+  box-shadow: 0 1px 4px rgba(60, 56, 54, 0.10), 0 0 1px rgba(60, 56, 54, 0.06);
 }
 
 html.light .glass-card:hover {

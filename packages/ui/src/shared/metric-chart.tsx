@@ -178,14 +178,14 @@ export function MetricChart({
               type="number"
               domain={["dataMin", "dataMax"]}
               tickFormatter={formatTime}
-              stroke="#3f3f46"
-              tick={{ fill: "#71717a", fontSize: 10 }}
+              stroke="var(--color-dash-border)"
+              tick={{ fill: "var(--color-fg-dim)", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              stroke="#3f3f46"
-              tick={{ fill: "#71717a", fontSize: 10 }}
+              stroke="var(--color-dash-border)"
+              tick={{ fill: "var(--color-fg-dim)", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               width={54}
@@ -193,10 +193,11 @@ export function MetricChart({
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#18181b",
-                border: "1px solid #27272a",
+                backgroundColor: "var(--color-dash-panel)",
+                border: "1px solid var(--color-dash-border)",
                 borderRadius: "6px",
                 fontSize: "12px",
+                color: "var(--color-fg)",
               }}
               labelFormatter={formatTime}
               formatter={(value: number) => [

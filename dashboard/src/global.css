@@ -502,7 +502,7 @@ html.light .placeholder\:text-zinc-600::placeholder {
 html.light .glass-card {
   background: rgba(250, 246, 238, 0.8);
   border-color: var(--color-dash-border);
-  box-shadow: 0 1px 3px rgba(60, 56, 54, 0.06);
+  box-shadow: 0 1px 4px rgba(60, 56, 54, 0.10), 0 0 1px rgba(60, 56, 54, 0.06);
 }
 
 html.light .glass-card:hover {
@@ -690,6 +690,14 @@ html.light .border-white\/5 {
   border-color: rgb(0 0 0 / 0.06);
 }
 
+html.light .border-white\/6 {
+  border-color: rgb(0 0 0 / 0.07);
+}
+
+html.light .border-white\/\[0\.04\] {
+  border-color: rgb(0 0 0 / 0.05);
+}
+
 html.light .border-white\/10 {
   border-color: rgb(0 0 0 / 0.08);
 }
@@ -697,6 +705,22 @@ html.light .border-white\/10 {
 /* Ring/outline overrides */
 html.light .ring-white\/10 {
   --tw-ring-color: rgb(0 0 0 / 0.08);
+}
+
+/* Floating surface shadow — soften heavy dark shadow for light backgrounds */
+html.light .shadow-black\/50 {
+  --tw-shadow-color: rgb(0 0 0 / 0.12);
+}
+
+/* Switch unchecked background — warm beige-gray instead of cool zinc */
+html.light .bg-zinc-700 {
+  background-color: #c5bfb5;
+}
+
+/* Switch checked background — deeper olive for better contrast on cream */
+html.light .bg-fr-purple {
+  background-color: #4d6620;
+  color: #ffffff;
 }
 
 /* Placeholder text */
