@@ -1,3 +1,10 @@
+/**
+ * @module shell
+ * Top-level dashboard layout that wraps every route. Handles initial data
+ * fetching, global keyboard shortcuts, and renders the sidebar/header chrome
+ * around page content.
+ */
+
 import { useInstrumentStore } from "@flink-reactor/instruments-ui"
 import { useEffect } from "react"
 import { useConfigStore } from "@/stores/config-store"
@@ -6,6 +13,17 @@ import { CommandPalette } from "./command-palette"
 import { Header } from "./header"
 import { Sidebar } from "./sidebar"
 
+/**
+ * Root layout shell rendered by the `__root` route.
+ *
+ * On mount, fetches runtime configuration from {@link useConfigStore} and
+ * instrument definitions from {@link useInstrumentStore}. Registers a global
+ * `Cmd+K` / `Ctrl+K` listener to toggle the {@link CommandPalette}.
+ *
+ * Displays a loading pulse while config is pending and an error message if
+ * config fetch fails. Otherwise renders the three-panel layout: sidebar,
+ * header + main content, and command palette overlay.
+ */
 export function Shell({ children }: { children: React.ReactNode }) {
   const toggleCommandPalette = useUiStore((s) => s.toggleCommandPalette)
   const fetchConfig = useConfigStore((s) => s.fetchConfig)

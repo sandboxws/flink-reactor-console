@@ -1,3 +1,13 @@
+/**
+ * @module validation-panel
+ *
+ * Collapsible validation results panel shown below the synthesis output.
+ * Groups {@link ValidationDiagnostic} entries by category (schema, expression,
+ * connector, changelog, structure, SQL) and renders expandable rows with
+ * severity icons and optional details (available columns, missing props,
+ * expression errors).
+ */
+
 import {
   AlertCircle,
   AlertTriangle,
@@ -14,6 +24,7 @@ import {
 // Category display config
 // ---------------------------------------------------------------------------
 
+/** Display labels for validation diagnostic categories. */
 const CATEGORY_LABELS: Record<string, string> = {
   schema: "Schema",
   expression: "Expression",
@@ -32,6 +43,7 @@ const CATEGORY_ORDER = [
   "sql",
 ]
 
+/** Groups diagnostics by category in canonical display order. */
 function groupByCategory(diagnostics: ValidationDiagnostic[]) {
   const groups = new Map<string, ValidationDiagnostic[]>()
   for (const d of diagnostics) {
@@ -55,6 +67,7 @@ function groupByCategory(diagnostics: ValidationDiagnostic[]) {
 // Diagnostic detail expander
 // ---------------------------------------------------------------------------
 
+/** Expandable row showing a single diagnostic with severity icon and optional detail section. */
 function DiagnosticRow({ d }: { d: ValidationDiagnostic }) {
   const [expanded, setExpanded] = useState(false)
   const hasDetails =
@@ -130,6 +143,7 @@ function DiagnosticRow({ d }: { d: ValidationDiagnostic }) {
 // Category group
 // ---------------------------------------------------------------------------
 
+/** Collapsible section grouping diagnostics under a category heading with error/warning counts. */
 function CategoryGroup({
   label,
   items,
@@ -182,6 +196,11 @@ function CategoryGroup({
 // Main panel
 // ---------------------------------------------------------------------------
 
+/**
+ * Collapsible validation panel showing grouped diagnostics from the
+ * DSL synthesizer. Hidden when there are no diagnostics. Displays
+ * total error and warning counts in the header.
+ */
 export function ValidationPanel() {
   const diagnostics = useSandboxStore((s) => s.diagnostics)
   const [collapsed, setCollapsed] = useState(false)

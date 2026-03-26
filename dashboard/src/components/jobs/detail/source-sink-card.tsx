@@ -1,3 +1,11 @@
+/**
+ * @module source-sink-card
+ *
+ * Detail card for a job's source or sink connector, showing the connector type
+ * icon, resource identifier, role badge, confidence indicator, and throughput
+ * metrics (records/bytes read or written). Used within the {@link SourcesSinksTab}.
+ */
+
 import {
   Database,
   FileText,
@@ -10,6 +18,7 @@ import { formatBytes } from "@flink-reactor/ui"
 import type { ConnectorType, JobConnector } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
+/** Maps connector types to their representative icons. */
 const connectorIcons: Record<ConnectorType, LucideIcon> = {
   kafka: MessageSquare,
   iceberg: Layers,
@@ -19,6 +28,7 @@ const connectorIcons: Record<ConnectorType, LucideIcon> = {
   unknown: Database,
 }
 
+/** Human-readable display names for each connector type. */
 const connectorLabels: Record<ConnectorType, string> = {
   kafka: "Kafka",
   iceberg: "Iceberg",
@@ -28,6 +38,7 @@ const connectorLabels: Record<ConnectorType, string> = {
   unknown: "Unknown",
 }
 
+/** Brand-consistent text color for each connector type. */
 const connectorColors: Record<ConnectorType, string> = {
   kafka: "text-fr-coral",
   iceberg: "text-blue-400",
@@ -37,12 +48,18 @@ const connectorColors: Record<ConnectorType, string> = {
   unknown: "text-zinc-400",
 }
 
+/** Formats large numbers with K/M suffixes for compact metric display. */
 function formatCount(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
   return n.toString()
 }
 
+/**
+ * Glass card displaying a {@link JobConnector}'s type, resource, role (source/sink),
+ * detection confidence, and throughput metrics. Shows a confidence badge when
+ * connector detection is less than 100% certain.
+ */
 export function SourceSinkCard({ connector }: { connector: JobConnector }) {
   const Icon = connectorIcons[connector.connectorType] ?? Database
   const label =

@@ -1,3 +1,13 @@
+/**
+ * @module log-explorer
+ *
+ * Top-level log explorer page implementing a resizable master-detail layout.
+ * The left panel contains the toolbar, histogram, and virtualized log list;
+ * the right panel shows the detail view for the currently selected entry.
+ * Panel visibility is driven by {@link useUiStore} so selection and
+ * deselection automatically expand/collapse the detail pane.
+ */
+
 import {
   ResizableHandle,
   ResizablePanel,
@@ -12,8 +22,17 @@ import { LogHistogram } from "./log-histogram"
 import { LogList } from "./log-list"
 import { LogToolbar } from "./log-toolbar"
 
+/** Default width in pixels for the detail panel when it opens. */
 const DETAIL_PANEL_DEFAULT_PX = 360
 
+/**
+ * Log explorer page with resizable master-detail layout.
+ *
+ * Subscribes to {@link useUiStore} for detail panel open/close state
+ * and uses `usePanelRef` to imperatively resize the detail panel.
+ * When the user drags the detail panel fully closed, it auto-deselects
+ * the active log entry to keep UI state consistent.
+ */
 export function LogExplorer() {
   const filteredLogs = useFilteredLogs()
   const detailPanelOpen = useUiStore((s) => s.detailPanelOpen)

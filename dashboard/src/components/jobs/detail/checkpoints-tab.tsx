@@ -1,3 +1,12 @@
+/**
+ * @module checkpoints-tab
+ *
+ * Checkpoint history and statistics tab for the job detail view. Displays checkpoint
+ * counts, configuration summary, latest completed/failed/savepoint entries, a sortable
+ * history table with drill-down to per-operator and per-subtask detail, and size/duration
+ * trend sparklines. Lazy-loads checkpoint and subtask detail via GraphQL on demand.
+ */
+
 import { Badge, EmptyState, formatBytes, formatDuration, Spinner } from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
@@ -31,11 +40,13 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Formats a millisecond interval as a human-readable string (e.g. "5s", "2min"). */
 function formatInterval(ms: number): string {
   if (ms >= 60_000) return `${ms / 60_000}min`
   return `${ms / 1000}s`
 }
 
+/** Tailwind classes mapping checkpoint status to badge colors. */
 const checkpointStatusStyles: Record<CheckpointStatus, string> = {
   COMPLETED: "bg-job-finished/15 text-job-finished",
   IN_PROGRESS: "bg-job-running/15 text-job-running",
@@ -56,6 +67,7 @@ type SortKey =
   | "processedData"
 type SortDir = "asc" | "desc"
 
+/** Compares two checkpoints by the given sort key and direction for table sorting. */
 function compareCheckpoints(
   a: Checkpoint,
   b: Checkpoint,
@@ -93,6 +105,7 @@ function compareCheckpoints(
 // Sparkline tooltip
 // ---------------------------------------------------------------------------
 
+/** Tooltip for checkpoint trend sparklines showing formatted bytes or duration. */
 function SparkTooltip({
   active,
   payload,
@@ -121,6 +134,11 @@ function SparkTooltip({
 // ExpandableOperatorRow — per-operator row with lazy subtask loading
 // ---------------------------------------------------------------------------
 
+/**
+ * Expandable table row for a single operator within a checkpoint detail view.
+ * Lazy-loads per-subtask stats on first expand via {@link fetchCheckpointSubtaskDetail},
+ * then shows min/avg/max summary and individual subtask rows.
+ */
 function ExpandableOperatorRow({
   vid,
   task,
@@ -424,6 +442,11 @@ function ExpandableOperatorRow({
 // CheckpointDetailView — drill-down for a single checkpoint
 // ---------------------------------------------------------------------------
 
+/**
+ * Drill-down view for a single checkpoint showing overall summary, metadata
+ * (type, external path, discarded status), and per-operator breakdown with
+ * expandable subtask rows. Fetches detail data lazily via {@link fetchCheckpointDetail}.
+ */
 function CheckpointDetailView({
   jobId,
   checkpointId,
@@ -661,6 +684,7 @@ function CheckpointDetailView({
 // Stat item for counts bar
 // ---------------------------------------------------------------------------
 
+/** Single statistic in the checkpoint counts summary bar. */
 function CountStat({
   label,
   value,
@@ -689,6 +713,12 @@ function CountStat({
 // CheckpointsTab
 // ---------------------------------------------------------------------------
 
+/**
+ * Full checkpoint tab showing counts bar, configuration summary, latest checkpoint
+ * entries (completed, failed, savepoint, restore), a sortable checkpoint history
+ * table with row-click drill-down, and size/duration trend sparklines. Clicking a
+ * checkpoint row navigates to the {@link CheckpointDetailView} for per-operator breakdown.
+ */
 export function CheckpointsTab({
   jobId,
   checkpoints,

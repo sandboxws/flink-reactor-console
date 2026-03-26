@@ -1,12 +1,25 @@
+/**
+ * @module log-histogram
+ *
+ * Stacked bar chart showing log volume over time, broken down by severity.
+ * Entries are bucketed into 60 time slots spanning from the oldest visible
+ * entry to now. Clicking a bar sets the time range filter in
+ * {@link useFilterStore} to zoom into that bucket's time window.
+ */
+
 import { useMemo } from "react"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import type { LogEntry, LogLevel } from "@flink-reactor/ui"
 import { SEVERITY_COLORS } from "@/lib/constants"
 import { useFilterStore } from "@/stores/filter-store"
 
+/** Severity levels rendered as stacked bars, ordered bottom-to-top. */
 const LEVELS: LogLevel[] = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]
+
+/** Number of time buckets the histogram is divided into. */
 const BUCKET_COUNT = 60
 
+/** Custom tooltip showing per-severity counts for the hovered histogram bucket. */
 function HistogramTooltip({
   active,
   payload,
@@ -41,16 +54,25 @@ function HistogramTooltip({
   )
 }
 
+/** A single time bucket aggregating log counts by severity level. */
 interface Bucket {
+  /** Epoch milliseconds for the start of this bucket. */
   time: number
+  /** Human-readable HH:mm label for the X axis. */
   label: string
+  /** Count of TRACE-level entries in this bucket. */
   TRACE: number
+  /** Count of DEBUG-level entries in this bucket. */
   DEBUG: number
+  /** Count of INFO-level entries in this bucket. */
   INFO: number
+  /** Count of WARN-level entries in this bucket. */
   WARN: number
+  /** Count of ERROR-level entries in this bucket. */
   ERROR: number
 }
 
+/** Distributes log entries into fixed-count time buckets with per-severity counts. */
 function bucketize(entries: LogEntry[]): Bucket[] {
   if (entries.length === 0) return []
 
@@ -86,6 +108,13 @@ function bucketize(entries: LogEntry[]): Bucket[] {
   return buckets
 }
 
+/**
+ * Log volume histogram showing entry distribution over time by severity.
+ *
+ * Renders a stacked bar chart with one bar per time bucket. Clicking a bar
+ * sets the time range filter in {@link useFilterStore} to the clicked
+ * bucket's time window, enabling quick drill-down into specific periods.
+ */
 export function LogHistogram({ entries }: { entries: LogEntry[] }) {
   const setTimeRange = useFilterStore((s) => s.setTimeRange)
   const data = useMemo(() => bucketize(entries), [entries])

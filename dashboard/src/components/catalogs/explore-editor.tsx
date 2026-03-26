@@ -1,8 +1,23 @@
+/**
+ * @module explore-editor
+ *
+ * SQL editor textarea with run/cancel controls for the catalog explore page.
+ * Reads SQL text and execution status from {@link useCatalogExploreStore}.
+ * Supports Cmd+Enter keyboard shortcut to execute queries.
+ */
+
 import { Button, Spinner } from "@flink-reactor/ui"
 import { Play, Square } from "lucide-react"
 import { useCallback } from "react"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
 
+/**
+ * SQL editor with status indicator, run button, and cancel button.
+ *
+ * Displays the current query status (idle, submitting, running, completed,
+ * failed, cancelled) in the toolbar. The textarea supports Cmd+Enter to
+ * execute and auto-disables controls while a query is in flight.
+ */
 export function ExploreEditor() {
   const sql = useCatalogExploreStore((s) => s.sql)
   const setSql = useCatalogExploreStore((s) => s.setSql)

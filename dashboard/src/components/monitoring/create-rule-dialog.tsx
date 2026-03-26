@@ -1,3 +1,9 @@
+/**
+ * @module create-rule-dialog
+ * Modal dialog for creating a new {@link AlertRule}. Presents a form with metric
+ * selection (grouped by source), comparison condition, threshold, consecutive-poll
+ * count, and severity level. Resets form state on successful creation.
+ */
 import {
   Button,
   Dialog,
@@ -24,12 +30,17 @@ import {
   METRIC_DEFINITIONS,
 } from "@/stores/alerts-store"
 
+/** Props for {@link CreateRuleDialog}. */
 type CreateRuleDialogProps = {
+  /** Whether the dialog is open. */
   open: boolean
+  /** Callback to toggle dialog visibility. */
   onOpenChange: (open: boolean) => void
+  /** Called with the new rule payload (ID and isPreset are assigned by the store). */
   onCreate: (rule: Omit<AlertRule, "id" | "isPreset">) => void
 }
 
+/** Comparison operators available for alert rule conditions. */
 const CONDITION_OPTIONS: { value: AlertCondition; label: string }[] = [
   { value: ">", label: "> (greater than)" },
   { value: "<", label: "< (less than)" },
@@ -39,13 +50,14 @@ const CONDITION_OPTIONS: { value: AlertCondition; label: string }[] = [
   { value: "<=", label: "<= (less or equal)" },
 ]
 
+/** Alert severity levels for user selection. */
 const SEVERITY_OPTIONS: { value: AlertSeverity; label: string }[] = [
   { value: "critical", label: "Critical" },
   { value: "warning", label: "Warning" },
   { value: "info", label: "Info" },
 ]
 
-// Group metrics by source
+/** Metrics grouped by their source category for the select dropdown. */
 const METRIC_GROUPS = METRIC_DEFINITIONS.reduce(
   (groups, m) => {
     if (!groups[m.group]) groups[m.group] = []
@@ -55,6 +67,11 @@ const METRIC_GROUPS = METRIC_DEFINITIONS.reduce(
   {} as Record<string, typeof METRIC_DEFINITIONS>,
 )
 
+/**
+ * Modal form for defining a new alert rule. Metrics are presented in grouped
+ * select menus sourced from {@link METRIC_DEFINITIONS}. The form validates that
+ * name, metric, and threshold are non-empty before enabling submission.
+ */
 export function CreateRuleDialog({
   open,
   onOpenChange,

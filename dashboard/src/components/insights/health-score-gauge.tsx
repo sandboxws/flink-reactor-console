@@ -1,9 +1,23 @@
+/**
+ * @module health-score-gauge
+ * SVG-based circular gauge that visualizes the overall cluster health score
+ * as a progress arc. Color transitions from green (healthy) through amber
+ * (warning) to red (critical) based on score thresholds.
+ */
+
+/** Returns a CSS color variable based on health score thresholds. */
 function scoreColor(score: number): string {
   if (score >= 80) return "var(--color-job-running)"
   if (score >= 50) return "var(--color-fr-amber)"
   return "var(--color-job-failed)"
 }
 
+/**
+ * Circular SVG gauge rendering the cluster health score as a proportional arc.
+ * The arc color reflects severity: green for >= 80, amber for >= 50, red below.
+ * Includes the numeric score and a "HEALTH SCORE" label centered in the ring.
+ * Supports configurable size and stroke width.
+ */
 export function HealthScoreGauge({
   score,
   size = 200,

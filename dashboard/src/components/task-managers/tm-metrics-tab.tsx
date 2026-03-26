@@ -1,3 +1,11 @@
+/**
+ * @module tm-metrics-tab
+ *
+ * Live-polling time-series metrics dashboard for a single task manager.
+ * Displays six charts (CPU, JVM heap, non-heap, threads, GC count, GC time)
+ * that accumulate samples over time via periodic GraphQL polling. Uses refs
+ * to hold sample history without triggering re-renders on every append.
+ */
 import { format } from "date-fns"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
@@ -20,10 +28,13 @@ import { useConfigStore } from "@/stores/config-store"
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Maximum number of data points retained per metric series. */
 const MAX_SAMPLES = 30
 
+/** Single data point in a time-series chart. */
 type DataPoint = { time: string; timestamp: number; value: number }
 
+/** Create a {@link DataPoint} timestamped to the current instant. */
 function metricToPoint(value: number): DataPoint {
   const now = Date.now()
   return {
@@ -33,22 +44,32 @@ function metricToPoint(value: number): DataPoint {
   }
 }
 
+/** Accumulated time-series data for all six TM metric charts. */
 type MetricSeries = {
+  /** CPU usage percentage samples. */
   cpu: DataPoint[]
+  /** JVM heap used bytes samples. */
   heap: DataPoint[]
+  /** JVM non-heap used bytes samples. */
   nonHeap: DataPoint[]
+  /** Active thread count samples. */
   threads: DataPoint[]
+  /** Cumulative GC invocation count samples. */
   gcCount: DataPoint[]
+  /** Cumulative GC time (ms) samples. */
   gcTime: DataPoint[]
+  /** Current heap max for the reference line. */
   heapMax: number
 }
 
+/** Append a data point to a series, trimming to {@link MAX_SAMPLES}. */
 function appendSample(series: DataPoint[], point: DataPoint): DataPoint[] {
   const next = [...series, point]
   if (next.length > MAX_SAMPLES) return next.slice(next.length - MAX_SAMPLES)
   return next
 }
 
+/** Seed a fresh {@link MetricSeries} from a snapshot of {@link TaskManagerMetrics}. */
 function metricsToSeries(m: TaskManagerMetrics): MetricSeries {
   const totalGcCount = m.garbageCollectors.reduce((s, gc) => s + gc.count, 0)
   const totalGcTime = m.garbageCollectors.reduce((s, gc) => s + gc.time, 0)
@@ -63,6 +84,7 @@ function metricsToSeries(m: TaskManagerMetrics): MetricSeries {
   }
 }
 
+/** Hook that returns a stable callback to trigger a re-render. */
 function useForceUpdate() {
   const [, setTick] = useState(0)
   return useCallback(() => setTick((n) => n + 1), [])
@@ -72,6 +94,7 @@ function useForceUpdate() {
 // Custom tooltip
 // ---------------------------------------------------------------------------
 
+/** Themed tooltip for Recharts that formats values based on unit type (bytes, pct, ms). */
 function ChartTooltip({
   active,
   payload,
@@ -116,6 +139,11 @@ function ChartTooltip({
 // Chart wrapper
 // ---------------------------------------------------------------------------
 
+/**
+ * Reusable time-series chart card. Renders as an area chart when `gradient` is
+ * true, otherwise a line chart. Supports an optional horizontal reference line
+ * (e.g. heap max) and unit-aware axis/tooltip formatting.
+ */
 function MetricChart({
   title,
   data,
@@ -246,6 +274,16 @@ function MetricChart({
 // TmMetricsTab — live-polling time-series charts for CPU, memory, GC, threads
 // ---------------------------------------------------------------------------
 
+/**
+ * Live metrics dashboard for a single {@link TaskManager}.
+ *
+ * Renders a 2-column grid of six time-series charts (CPU usage, JVM heap,
+ * JVM non-heap, thread count, GC count, GC time). On mount, seeds each chart
+ * with the initial metrics snapshot, then polls for fresh samples at the
+ * interval configured in {@link useConfigStore}. Sample history is stored in
+ * a ref to avoid re-renders during accumulation; a manual force-update is
+ * triggered after each successful poll.
+ */
 export function TmMetricsTab({ tm }: { tm: TaskManager }) {
   const seriesRef = useRef<MetricSeries>(metricsToSeries(tm.metrics))
   const pollIntervalMs = useConfigStore((s) => s.config?.pollIntervalMs ?? 5000)

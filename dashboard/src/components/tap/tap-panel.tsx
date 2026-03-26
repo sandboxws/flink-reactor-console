@@ -1,3 +1,15 @@
+/**
+ * @module tap-panel
+ *
+ * Main container for the TAP (live observation) feature. Orchestrates the
+ * lifecycle of SQL Gateway sessions: loading the tap manifest, opening
+ * per-operator tabs, starting/pausing/resuming/stopping streaming sessions,
+ * and polling for result pages. State is split between {@link useTapStore}
+ * (UI tabs, buffered rows) and {@link useSqlGatewayStore} (session handles,
+ * connection status). Cleans up sessions on pipeline change and throughput
+ * tracking on unmount.
+ */
+
 import { Spinner } from "@flink-reactor/ui"
 import { AlertTriangle, Plus, Radio, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -14,6 +26,7 @@ import { TapSourceConfig } from "./tap-source-config"
 import { TapStatusBar } from "./tap-status-bar"
 
 interface TapPanelProps {
+  /** Pipeline/job name used to load the tap manifest. */
   jobName: string
 }
 
@@ -433,8 +446,10 @@ export function TapPanel({ jobName }: TapPanelProps) {
   )
 }
 
-// ── Active tab content (extracted to avoid non-null assertions) ──────────────
-
+/**
+ * Content area for the currently active tap tab. Renders source config,
+ * playback controls, error panel, streaming data table, and status bar.
+ */
 function ActiveTabContent({
   activeTab,
   activeTabId,
@@ -511,8 +526,7 @@ function ActiveTabContent({
   )
 }
 
-// ── Inline add-tab dropdown ──────────────────────────────────────────────────
-
+/** Dropdown button for adding a new tap tab from available operators. */
 function AddTabDropdown({
   operators,
   disabledNodeIds,

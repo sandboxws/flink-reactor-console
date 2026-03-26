@@ -1,3 +1,11 @@
+/**
+ * @module tm-log-list-tab
+ *
+ * Two-level log file browser for a task manager. The top level shows a sortable
+ * table of available log files with name, timestamp, and size. Clicking a file
+ * drills down into a full {@link StaticLogExplorer} view with reload, download,
+ * and fullscreen capabilities.
+ */
 import { Spinner } from "@flink-reactor/ui"
 import {
   ArrowDown,
@@ -20,13 +28,17 @@ import { fetchTaskManagerLogFile } from "@/lib/graphql-api-client"
 // Types
 // ---------------------------------------------------------------------------
 
+/** Sortable column key for the log file table. */
 type SortField = "name" | "lastModified" | "size"
+
+/** Sort direction. */
 type SortDir = "asc" | "desc"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Format a Date as "yyyy-MM-dd HH:mm:ss.SSS" without pulling in date-fns. */
 function formatDateTime(date: Date): string {
   const yyyy = date.getFullYear()
   const MM = String(date.getMonth() + 1).padStart(2, "0")
@@ -38,6 +50,7 @@ function formatDateTime(date: Date): string {
   return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}.${ms}`
 }
 
+/** Build a comparator function for sorting {@link LogFileEntry} arrays. */
 function comparator(field: SortField, dir: SortDir) {
   const mul = dir === "asc" ? 1 : -1
   return (a: LogFileEntry, b: LogFileEntry): number => {
@@ -63,6 +76,7 @@ function sourceFromFileName(fileName: string): LogSource {
 // SortHeader — clickable column header with direction indicator
 // ---------------------------------------------------------------------------
 
+/** Clickable table column header that toggles sort direction and shows an arrow indicator. */
 function SortHeader({
   label,
   field,
@@ -103,6 +117,11 @@ function SortHeader({
 // LogViewer — detail view for a single log file using StaticLogExplorer
 // ---------------------------------------------------------------------------
 
+/**
+ * Detail view for a single log file, fetched on demand from the task manager.
+ * Provides reload, download (as .txt), and browser fullscreen toggle actions
+ * above the {@link StaticLogExplorer} component.
+ */
 function LogViewer({
   fileName,
   tmId,
@@ -239,6 +258,14 @@ function LogViewer({
 // TmLogListTab — file list table with drill-down log viewer
 // ---------------------------------------------------------------------------
 
+/**
+ * Two-level log file browser for a task manager.
+ *
+ * In list mode, renders a sortable table of available log files with name,
+ * last-modified timestamp, and size. Clicking a row transitions to the
+ * {@link LogViewer} drill-down for that file. The parent component controls
+ * the selected file state to allow resetting on tab switch.
+ */
 export function TmLogListTab({
   logFiles,
   selectedLog,

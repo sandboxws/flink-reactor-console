@@ -1,3 +1,9 @@
+/**
+ * @module sidebar
+ * Collapsible navigation sidebar with grouped route links and a dynamic
+ * instruments section. Collapse state is persisted via {@link useUiStore}.
+ */
+
 import { InstrumentSidebarSection } from "@flink-reactor/instruments-ui"
 import { Link, useLocation } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
@@ -24,17 +30,25 @@ import {
 import { cn } from "@/lib/cn"
 import { useUiStore } from "@/stores/ui-store"
 
+/** A single navigation link in the sidebar. */
 type NavItem = {
+  /** Route path passed to TanStack Router's {@link Link}. */
   href: string
+  /** Display label shown next to the icon when sidebar is expanded. */
   label: string
+  /** Lucide icon component rendered for this link. */
   icon: LucideIcon
 }
 
+/** A labeled group of related {@link NavItem} entries in the sidebar. */
 type NavGroup = {
+  /** Section heading displayed above the group's links. */
   label: string
+  /** Ordered list of navigation links within this group. */
   items: NavItem[]
 }
 
+/** Static navigation structure defining all sidebar groups and their routes. */
 const NAV_GROUPS: NavGroup[] = [
   {
     label: "Cluster",
@@ -142,6 +156,14 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
+/**
+ * Collapsible navigation sidebar.
+ *
+ * Renders grouped route links from {@link NAV_GROUPS} plus a dynamic
+ * {@link InstrumentSidebarSection} for instrument-contributed pages.
+ * Active link is determined by prefix-matching the current pathname.
+ * Collapse/expand state is read from and toggled via {@link useUiStore}.
+ */
 export function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggle = useUiStore((s) => s.toggleSidebar)

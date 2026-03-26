@@ -1,3 +1,11 @@
+/**
+ * @module configuration-tab
+ *
+ * Job runtime configuration tab displaying all key-value configuration entries
+ * grouped by their dotted prefix namespace. Includes a search filter and
+ * click-to-copy on values. Groups are collapsible and sorted alphabetically.
+ */
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,6 +27,7 @@ import type { JobConfiguration } from "@flink-reactor/ui"
 // Copy-on-click value
 // ---------------------------------------------------------------------------
 
+/** Clickable value that copies text to clipboard with visual confirmation. */
 function CopyableValue({ value }: { value: string }) {
   const [copied, setCopied] = useState(false)
 
@@ -50,6 +59,7 @@ function CopyableValue({ value }: { value: string }) {
 // Config group
 // ---------------------------------------------------------------------------
 
+/** Collapsible section grouping configuration entries that share a dotted-prefix namespace. */
 function ConfigGroup({
   prefix,
   entries,
@@ -101,6 +111,11 @@ function ConfigGroup({
 // ConfigurationTab
 // ---------------------------------------------------------------------------
 
+/**
+ * Searchable, grouped display of all job configuration key-value pairs.
+ * Groups entries by their first dotted prefix (e.g. "state", "execution")
+ * into collapsible sections. Each value is click-to-copy.
+ */
 export function ConfigurationTab({
   configuration,
 }: {

@@ -1,3 +1,12 @@
+/**
+ * @module tap-data-table
+ *
+ * Virtualized streaming data table for TAP live observation results.
+ * Uses `@tanstack/react-virtual` to efficiently render 10k+ rows with a
+ * fixed header, sortable columns, auto-scroll to latest, and type-aware
+ * cell formatting (numbers, booleans, timestamps, nulls).
+ */
+
 import { Spinner } from "@flink-reactor/ui"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { ArrowDown, ArrowUp } from "lucide-react"
@@ -6,9 +15,13 @@ import { cn } from "@/lib/cn"
 import type { ColumnInfo } from "@/stores/sql-gateway-store"
 
 interface TapDataTableProps {
+  /** Column definitions from the SQL Gateway result schema. */
   columns: ColumnInfo[]
+  /** Buffered result rows keyed by column name. */
   rows: Record<string, unknown>[]
+  /** Whether the session is actively streaming new rows. */
   isStreaming: boolean
+  /** Enable auto-scroll to the latest row (default: true). */
   autoScroll?: boolean
 }
 
@@ -216,6 +229,7 @@ export function TapDataTable({
   )
 }
 
+/** Type-aware cell renderer: null/undefined, number, boolean, ISO timestamp, or string. */
 function CellValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) {
     return <span className="text-zinc-600 italic">null</span>
@@ -245,6 +259,7 @@ function CellValue({ value }: { value: unknown }) {
   return <span className="text-zinc-300">{str}</span>
 }
 
+/** Generic comparator for sorting: handles null, number, and string values. */
 function compareValues(a: unknown, b: unknown): number {
   if (a === null || a === undefined) return -1
   if (b === null || b === undefined) return 1

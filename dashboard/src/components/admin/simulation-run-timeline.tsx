@@ -1,8 +1,17 @@
+/**
+ * @module simulation-run-timeline
+ *
+ * Timeline view for a single simulation run. Displays the scenario name,
+ * relative start time, status badge, and a chronological list of metric
+ * observations with timestamps, metric names, values, and annotations.
+ */
+
 import { Badge } from "@flink-reactor/ui"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/cn"
 import type { SimulationRun } from "@/lib/graphql-api-client"
 
+/** Color tokens for known simulation metric types. */
 const metricColors: Record<string, string> = {
   throughput: "text-job-running",
   checkpoint_duration: "text-fr-amber",
@@ -14,6 +23,7 @@ const metricColors: Record<string, string> = {
   elapsed_sec: "text-zinc-500",
 }
 
+/** Badge color tokens for simulation run statuses. */
 const statusColors: Record<string, string> = {
   PENDING: "bg-zinc-500/15 text-zinc-400",
   RUNNING: "bg-job-running/15 text-job-running",
@@ -22,6 +32,11 @@ const statusColors: Record<string, string> = {
   CANCELLED: "bg-job-cancelled/15 text-job-cancelled",
 }
 
+/**
+ * Timeline displaying a simulation run's header (scenario, start time,
+ * status badge) and a chronological list of metric observations with
+ * color-coded metric names, values, and optional annotations.
+ */
 export function SimulationRunTimeline({ run }: { run: SimulationRun }) {
   return (
     <div className="flex flex-col gap-3">

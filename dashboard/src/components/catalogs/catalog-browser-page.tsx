@@ -1,9 +1,22 @@
+/**
+ * @module catalog-browser-page
+ *
+ * Top-level page for browsing Flink SQL catalogs. Fetches the catalog list
+ * from the server on mount via {@link useCatalogStore} and renders a
+ * navigable tree of catalogs, databases, and tables.
+ */
+
 import { Button, Spinner } from "@flink-reactor/ui"
 import { AlertTriangle, Database, RefreshCw } from "lucide-react"
 import { useEffect } from "react"
 import { useCatalogStore } from "@/stores/catalog-store"
 import { CatalogTree } from "./catalog-tree"
 
+/**
+ * Catalog browser page with a refresh button, error display, and
+ * the collapsible {@link CatalogTree}. Triggers initial catalog
+ * fetch on mount.
+ */
 export function CatalogBrowserPage() {
   const loading = useCatalogStore((s) => s.loading)
   const error = useCatalogStore((s) => s.error)

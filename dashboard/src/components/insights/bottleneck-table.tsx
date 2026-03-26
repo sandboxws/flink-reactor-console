@@ -1,3 +1,9 @@
+/**
+ * @module bottleneck-table
+ * Sortable data table displaying per-vertex bottleneck metrics including
+ * backpressure level, busy percentage, composite score with a visual progress
+ * bar, and severity badge. Supports multi-column sorting.
+ */
 import {
   Table,
   TableBody,
@@ -11,21 +17,25 @@ import { SortIcon } from "@/components/shared/sort-icon"
 import type { BottleneckScore } from "@/data/bottleneck-analyzer"
 import { cn } from "@/lib/cn"
 
+/** Columns available for sorting. */
 type SortColumn = "score" | "vertex" | "job" | "parallelism" | "bp" | "busy"
 type SortDir = "asc" | "desc"
 
+/** @deprecated Unused backpressure color mapping. */
 const _bpColors: Record<string, string> = {
   low: "text-job-running",
   medium: "text-fr-amber",
   high: "text-job-failed",
 }
 
+/** Maps a backpressure factor (0-100) to a label and color class. */
 function bpLabel(factor: number): { label: string; color: string } {
   if (factor <= 25) return { label: "ok", color: "text-job-running" }
   if (factor <= 60) return { label: "low", color: "text-fr-amber" }
   return { label: "high", color: "text-job-failed" }
 }
 
+/** Badge styling for each severity tier. */
 const severityBadge: Record<string, { label: string; className: string }> = {
   low: {
     label: "Low",
@@ -41,12 +51,19 @@ const severityBadge: Record<string, { label: string; className: string }> = {
   },
 }
 
+/** Returns a Tailwind background class for the score progress bar based on severity thresholds. */
 function scoreBarColor(score: number): string {
   if (score <= 30) return "bg-job-running"
   if (score <= 60) return "bg-fr-amber"
   return "bg-job-failed"
 }
 
+/**
+ * Sortable table of bottleneck-scored vertices. Each row shows the vertex name,
+ * parent job, parallelism, backpressure level, busy percentage, a visual score
+ * bar, and a severity badge. Defaults to descending sort by score so the worst
+ * bottlenecks appear first.
+ */
 export function BottleneckTable({ scores }: { scores: BottleneckScore[] }) {
   const [sortCol, setSortCol] = useState<SortColumn>("score")
   const [sortDir, setSortDir] = useState<SortDir>("desc")

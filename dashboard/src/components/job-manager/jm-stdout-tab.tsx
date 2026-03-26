@@ -1,9 +1,13 @@
+/**
+ * @module jm-stdout-tab
+ *
+ * Job Manager stdout output tab. Delegates rendering to the shared
+ * {@link TextViewer} component which provides line numbers and copy support.
+ */
+
 import { TextViewer } from "@flink-reactor/ui"
 
-// ---------------------------------------------------------------------------
-// JmStdoutTab — renders JM stdout using the shared text-viewer
-// ---------------------------------------------------------------------------
-
+/** Renders Job Manager stdout content using the shared {@link TextViewer}. */
 export function JmStdoutTab({ stdout }: { stdout: string }) {
   return (
     <div className="pt-4">

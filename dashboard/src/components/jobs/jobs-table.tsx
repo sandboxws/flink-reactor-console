@@ -1,3 +1,12 @@
+/**
+ * @module jobs-table
+ *
+ * Sortable table for displaying Flink jobs in either "running" or "completed" mode.
+ * Detects special job types (tap observations, explore queries) and renders
+ * distinguishing badges. Rows navigate to the job detail page on click.
+ *
+ * Subscribes to {@link useClusterStore} for tappable pipeline detection.
+ */
 import {
   EmptyState,
   Table,
@@ -32,12 +41,15 @@ import { TaskCountsBar } from "./task-counts-bar"
 // Tap job detection
 // ---------------------------------------------------------------------------
 
+/** Prefix used by tap observation jobs submitted via the Tap subsystem. */
 const TAP_JOB_PREFIX = "fr-tap-"
 
+/** Check whether a job name belongs to a tap observation session. */
 function isTapJob(name: string): boolean {
   return name.startsWith(TAP_JOB_PREFIX)
 }
 
+/** Strip the tap prefix to produce a human-readable name. */
 function tapDisplayName(name: string): string {
   return name.slice(TAP_JOB_PREFIX.length)
 }
@@ -46,12 +58,15 @@ function tapDisplayName(name: string): string {
 // Explore job detection
 // ---------------------------------------------------------------------------
 
+/** Prefix used by ad-hoc explore query jobs. */
 const EXPLORE_JOB_PREFIX = "explore: "
 
+/** Check whether a job name belongs to an explore query session. */
 function isExploreJob(name: string): boolean {
   return name.startsWith(EXPLORE_JOB_PREFIX)
 }
 
+/** Strip the explore prefix to produce a human-readable name. */
 function exploreDisplayName(name: string): string {
   return name.slice(EXPLORE_JOB_PREFIX.length)
 }
@@ -60,6 +75,7 @@ function exploreDisplayName(name: string): string {
 // Sort logic
 // ---------------------------------------------------------------------------
 
+/** Sortable column identifiers for the jobs table. */
 type SortKey =
   | "name"
   | "id"
@@ -68,18 +84,23 @@ type SortKey =
   | "endTime"
   | "duration"
   | "tasks"
+
+/** Sort direction for column headers. */
 type SortDir = "asc" | "desc"
 
+/** Compute effective duration, using wall-clock time for running jobs. */
 function getDuration(job: FlinkJob): number {
   return job.status === "RUNNING"
     ? Date.now() - job.startTime.getTime()
     : job.duration
 }
 
+/** Sum all task status counts for a job (total parallelism). */
 function getTaskTotal(job: FlinkJob): number {
   return Object.values(job.tasks).reduce((a, b) => a + b, 0)
 }
 
+/** Sort a job array by the given column and direction. Returns a new array. */
 function sortJobs(jobs: FlinkJob[], key: SortKey, dir: SortDir): FlinkJob[] {
   const sorted = [...jobs].sort((a, b) => {
     switch (key) {
@@ -109,6 +130,7 @@ function sortJobs(jobs: FlinkJob[], key: SortKey, dir: SortDir): FlinkJob[] {
 // Copy-on-click Job ID cell
 // ---------------------------------------------------------------------------
 
+/** Truncated job ID with click-to-copy behavior and tooltip showing full ID. */
 function JobIdCell({ id }: { id: string }) {
   const [copied, setCopied] = useState(false)
 
@@ -149,6 +171,7 @@ function JobIdCell({ id }: { id: string }) {
 // Cancel button
 // ---------------------------------------------------------------------------
 
+/** Inline cancel button that stops event propagation to avoid triggering row navigation. */
 function CancelButton({
   jobId,
   onCancel,
@@ -186,12 +209,17 @@ function CancelButton({
 // Column definitions
 // ---------------------------------------------------------------------------
 
+/** Table column definition binding a {@link SortKey} to its display label. */
 type ColumnDef = {
+  /** Sort field this column maps to. */
   key: SortKey
+  /** Human-readable column header text. */
   label: string
+  /** Optional Tailwind text alignment class (e.g. "text-right"). */
   align?: string
 }
 
+/** Columns shown for running jobs (no end-time column). */
 const runningColumns: ColumnDef[] = [
   { key: "name", label: "Job Name" },
   { key: "id", label: "Job ID" },
@@ -201,6 +229,7 @@ const runningColumns: ColumnDef[] = [
   { key: "tasks", label: "Tasks", align: "text-right" },
 ]
 
+/** Columns shown for completed jobs (includes end-time column). */
 const completedColumns: ColumnDef[] = [
   { key: "name", label: "Job Name" },
   { key: "id", label: "Job ID" },
@@ -215,13 +244,24 @@ const completedColumns: ColumnDef[] = [
 // JobsTable
 // ---------------------------------------------------------------------------
 
+/**
+ * Sortable table of {@link FlinkJob} entries with client-side sorting.
+ *
+ * In "running" mode, an extra cancel-action column is rendered and the default
+ * sort is by start time. In "completed" mode, an end-time column is added and
+ * the default sort is by end time. Tap and explore jobs are visually tagged
+ * with colored badges; tappable pipelines show a radio icon.
+ */
 export function JobsTable({
   mode,
   jobs,
   onCancelJob,
 }: {
+  /** Whether to show running or completed column layout. */
   mode: "running" | "completed"
+  /** Job list to display. */
   jobs: FlinkJob[]
+  /** Cancel callback; when provided, running rows get a cancel button. */
   onCancelJob?: (jobId: string) => void
 }) {
   const navigate = useNavigate()

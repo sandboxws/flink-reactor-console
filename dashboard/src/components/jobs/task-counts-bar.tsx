@@ -1,3 +1,11 @@
+/**
+ * @module task-counts-bar
+ *
+ * Proportional progress bar visualizing task status distribution across a job's
+ * parallelism slots. Each segment (pending, running, finished, canceling, failed)
+ * is colored with the corresponding job-status token. A tooltip overlay shows
+ * per-status counts on hover.
+ */
 import {
   Tooltip,
   TooltipContent,
@@ -7,6 +15,7 @@ import {
 import type { TaskCounts, TaskStatus } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
+/** Ordered segment definitions mapping each {@link TaskStatus} to its display label and color class. */
 const segments: { key: TaskStatus; label: string; color: string }[] = [
   { key: "pending", label: "Pending", color: "bg-job-created" },
   { key: "running", label: "Running", color: "bg-job-running" },
@@ -15,6 +24,11 @@ const segments: { key: TaskStatus; label: string; color: string }[] = [
   { key: "failed", label: "Failed", color: "bg-job-failed" },
 ]
 
+/**
+ * Stacked progress bar showing the distribution of task statuses for a job.
+ * Segment widths are proportional to count. Hover tooltip lists non-zero statuses
+ * with their exact counts.
+ */
 export function TaskCountsBar({ tasks }: { tasks: TaskCounts }) {
   const total = Object.values(tasks).reduce((a, b) => a + b, 0)
   if (total === 0) return null

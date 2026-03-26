@@ -1,3 +1,11 @@
+/**
+ * @module simulation-preset-card
+ *
+ * Card component for a single simulation preset. Displays the preset name,
+ * category badge, and description. Expands to show editable parameters and
+ * a "Run" button that opens the preflight confirmation modal before launching.
+ */
+
 import { Badge, Button } from "@flink-reactor/ui"
 import { Play } from "lucide-react"
 import { useState } from "react"
@@ -8,6 +16,7 @@ import type {
 } from "@/lib/graphql-api-client"
 import { SimulationPreflightModal } from "./simulation-preflight-modal"
 
+/** Maps preset categories to their badge color tokens. */
 const categoryColors: Record<string, string> = {
   resource: "bg-fr-purple/15 text-fr-purple",
   checkpoint: "bg-fr-amber/15 text-fr-amber",
@@ -15,6 +24,13 @@ const categoryColors: Record<string, string> = {
   failure: "bg-job-failed/15 text-job-failed",
 }
 
+/**
+ * Simulation preset card with expandable parameter editing and run action.
+ *
+ * Shows the preset description and category badge in collapsed state.
+ * When expanded, renders input fields for each parameter from the preset's
+ * default values. Clicking "Run" opens a preflight modal for confirmation.
+ */
 export function SimulationPresetCard({
   preset,
   onRun,

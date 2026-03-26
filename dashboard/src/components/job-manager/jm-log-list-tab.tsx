@@ -1,3 +1,13 @@
+/**
+ * @module jm-log-list-tab
+ *
+ * Log file list tab for the Job Manager. Presents a sortable table of
+ * available log files with name, last-modified timestamp, and size.
+ * Clicking a row drills down into a {@link LogViewer} that fetches the
+ * file content and renders it via {@link StaticLogExplorer}. The viewer
+ * supports reload, download, and fullscreen actions.
+ */
+
 import { Spinner } from "@flink-reactor/ui"
 import {
   ArrowDown,
@@ -20,13 +30,17 @@ import { fetchJobManagerLogFile } from "@/lib/graphql-api-client"
 // Types
 // ---------------------------------------------------------------------------
 
+/** Sortable column identifiers for the log file table. */
 type SortField = "name" | "lastModified" | "size"
+
+/** Sort direction. */
 type SortDir = "asc" | "desc"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Format a Date to `YYYY-MM-DD HH:mm:ss.SSS` for the log file table. */
 function formatDateTime(date: Date): string {
   const yyyy = date.getFullYear()
   const MM = String(date.getMonth() + 1).padStart(2, "0")
@@ -38,6 +52,7 @@ function formatDateTime(date: Date): string {
   return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}.${ms}`
 }
 
+/** Build a comparator function for sorting {@link LogFileEntry} rows. */
 function comparator(field: SortField, dir: SortDir) {
   const mul = dir === "asc" ? 1 : -1
   return (a: LogFileEntry, b: LogFileEntry): number => {
@@ -59,10 +74,7 @@ function sourceFromFileName(fileName: string): LogSource {
   return { type: "jobmanager", id: "jm", label: "JobManager" }
 }
 
-// ---------------------------------------------------------------------------
-// SortHeader — clickable column header with direction indicator
-// ---------------------------------------------------------------------------
-
+/** Clickable column header that toggles sort direction and shows an arrow indicator. */
 function SortHeader({
   label,
   field,
@@ -99,10 +111,12 @@ function SortHeader({
   )
 }
 
-// ---------------------------------------------------------------------------
-// LogViewer — detail view for a single log file using StaticLogExplorer
-// ---------------------------------------------------------------------------
-
+/**
+ * Detail view for a single log file. Fetches content on mount via
+ * {@link fetchJobManagerLogFile}, parses it into structured entries,
+ * and renders via {@link StaticLogExplorer}. Provides reload, download,
+ * and fullscreen toolbar actions.
+ */
 function LogViewer({
   fileName,
   onBack,
@@ -233,10 +247,12 @@ function LogViewer({
   )
 }
 
-// ---------------------------------------------------------------------------
-// JmLogListTab — file list table with drill-down log viewer
-// ---------------------------------------------------------------------------
-
+/**
+ * Log file list with drill-down viewer. Shows a sortable table of
+ * {@link LogFileEntry} records; selecting a row transitions to a
+ * {@link LogViewer} for that file. Sort state defaults to most-recently
+ * modified first.
+ */
 export function JmLogListTab({
   logFiles,
   selectedLog,

@@ -1,3 +1,11 @@
+/**
+ * @module catalog-explore-page
+ *
+ * Interactive SQL exploration page for Flink catalogs. Provides a SQL editor
+ * with template selection, executes queries via {@link useCatalogExploreStore},
+ * and renders streaming or completed results using the QueryResults component.
+ */
+
 import { QueryResults } from "@flink-reactor/ui"
 import { AlertTriangle, FlaskConical } from "lucide-react"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
@@ -6,6 +14,13 @@ import { TemplateSelector } from "./template-selector"
 
 const MAX_ROWS = 10_000
 
+/**
+ * SQL exploration page with editor, template selector, and query results.
+ *
+ * Converts raw string rows from the store into the `{v: value}` format
+ * expected by the QueryResults component. Displays errors inline and
+ * shows a truncation warning when rows reach the {@link MAX_ROWS} limit.
+ */
 export function CatalogExplorePage() {
   const setSql = useCatalogExploreStore((s) => s.setSql)
   const status = useCatalogExploreStore((s) => s.status)

@@ -1,18 +1,29 @@
+/**
+ * @module error-timeline
+ *
+ * Bar chart visualizing error occurrence frequency over time for a single
+ * {@link ErrorGroup}. Occurrence timestamps are bucketed into 30 time slots
+ * spanning from the first to the last occurrence, providing a quick view
+ * of whether the error is steady, bursty, or trending.
+ */
+
 import { useMemo } from "react"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 
-// ---------------------------------------------------------------------------
-// Error timeline — occurrence count over time buckets
-// ---------------------------------------------------------------------------
-
+/** Number of time buckets in the timeline chart. */
 const BUCKET_COUNT = 30
 
+/** A single time bucket aggregating error occurrence counts. */
 interface Bucket {
+  /** Epoch milliseconds for the start of this bucket. */
   time: number
+  /** Human-readable HH:mm label for the X axis. */
   label: string
+  /** Number of error occurrences in this bucket. */
   count: number
 }
 
+/** Distributes occurrence timestamps into fixed-count time buckets. */
 function bucketize(occurrences: Date[]): Bucket[] {
   if (occurrences.length === 0) return []
 
@@ -44,6 +55,14 @@ function bucketize(occurrences: Date[]): Bucket[] {
   return buckets
 }
 
+/**
+ * Error occurrence timeline chart.
+ *
+ * Renders a Recharts bar chart showing how an error group's occurrences
+ * are distributed over time. The time range spans from the first to the
+ * last occurrence, divided into {@link BUCKET_COUNT} equal intervals.
+ * Returns `null` when there are no occurrences to display.
+ */
 export function ErrorTimeline({ occurrences }: { occurrences: Date[] }) {
   const data = useMemo(() => bucketize(occurrences), [occurrences])
 

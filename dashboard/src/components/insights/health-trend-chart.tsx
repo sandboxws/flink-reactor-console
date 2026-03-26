@@ -1,3 +1,9 @@
+/**
+ * @module health-trend-chart
+ * Area chart showing the cluster health score over time. The line and fill
+ * color adapt to the latest score's severity tier. Uses {@link HealthSnapshot}
+ * data from the insights store.
+ */
 import {
   Area,
   AreaChart,
@@ -8,12 +14,14 @@ import {
 } from "recharts"
 import type { HealthSnapshot } from "@/stores/insights-store"
 
+/** Returns a CSS color variable based on health score thresholds. */
 function scoreColor(score: number): string {
   if (score >= 80) return "var(--color-job-running)"
   if (score >= 50) return "var(--color-fr-amber)"
   return "var(--color-job-failed)"
 }
 
+/** Custom tooltip displaying the timestamp and numeric health score. */
 function ChartTooltip({
   active,
   payload,
@@ -38,6 +46,11 @@ function ChartTooltip({
   )
 }
 
+/**
+ * Area chart plotting health score snapshots over time on a 0-100 Y-axis.
+ * The gradient fill and stroke color reflect the most recent score's severity.
+ * Renders inside a glass card with a "Health Trend" header.
+ */
 export function HealthTrendChart({ history }: { history: HealthSnapshot[] }) {
   const data = history.map((s) => ({
     time: s.timestamp.toLocaleTimeString([], {

@@ -1,3 +1,12 @@
+/**
+ * @module log-line
+ *
+ * Single log entry line renderer used inside the virtualized {@link LogList}.
+ * Displays timestamp, severity badge, source badge, abbreviated logger name,
+ * and the log message with search-term highlighting. Memoized to avoid
+ * re-renders during rapid streaming updates.
+ */
+
 import {
   CollapsibleTrigger,
   SeverityBadge,
@@ -12,6 +21,12 @@ import { TIMESTAMP_FORMATS } from "@/lib/constants"
 import { useFilterStore } from "@/stores/filter-store"
 import { useUiStore } from "@/stores/ui-store"
 
+/**
+ * Highlights occurrences of the search query within text.
+ *
+ * Supports both plain text and regex patterns. Returns the original
+ * string unchanged when no query is active or the regex is invalid.
+ */
 function highlightText(
   text: string,
   query: string,
@@ -50,6 +65,13 @@ function highlightText(
   return result
 }
 
+/**
+ * Single log entry row displaying timestamp, severity, source, logger, and message.
+ *
+ * Memoized to prevent unnecessary re-renders during high-throughput streaming.
+ * The message text is highlighted when a search query is active. Entries with
+ * stack traces show a collapsible chevron toggle on the left edge.
+ */
 export const LogLine = memo(function LogLine({
   entry,
   isSelected,

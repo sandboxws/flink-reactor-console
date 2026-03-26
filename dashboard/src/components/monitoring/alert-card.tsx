@@ -1,14 +1,24 @@
+/**
+ * @module alert-card
+ * Displays a single active alert with severity indicator, threshold details,
+ * relative timestamp, and acknowledge/resolve action buttons.
+ */
 import { formatDistanceToNow } from "date-fns"
 import { AlertCircle, AlertTriangle, Check, Info, X } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { ActiveAlert } from "@/stores/alerts-store"
 
+/** Props for {@link AlertCard}. */
 type AlertCardProps = {
+  /** The active alert to render. */
   alert: ActiveAlert
+  /** Called when the user acknowledges the alert. */
   onAcknowledge: (id: string) => void
+  /** Called when the user resolves (dismisses) the alert. */
   onResolve: (id: string) => void
 }
 
+/** Per-severity visual configuration: icon, icon color, background, and border. */
 const SEVERITY_CONFIG = {
   critical: {
     icon: AlertCircle,
@@ -30,6 +40,11 @@ const SEVERITY_CONFIG = {
   },
 } as const
 
+/**
+ * Renders an active alert as a severity-colored card showing the rule name,
+ * current vs threshold values, and relative trigger time. Acknowledged alerts
+ * are visually dimmed. Supports acknowledge and resolve actions.
+ */
 export function AlertCard({ alert, onAcknowledge, onResolve }: AlertCardProps) {
   const config = SEVERITY_CONFIG[alert.severity]
   const Icon = config.icon

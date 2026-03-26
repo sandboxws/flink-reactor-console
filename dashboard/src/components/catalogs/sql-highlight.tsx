@@ -1,9 +1,19 @@
+/**
+ * @module sql-highlight
+ *
+ * Inline SQL syntax highlighting using Shiki. Lazy-loads the highlighter
+ * core, SQL language grammar, and the FlinkReactor Night theme on first
+ * render. Falls back to plain monospace text while loading.
+ */
+
 import type { HighlighterCore } from "@shikijs/core"
 import { useEffect, useState } from "react"
 import flinkrDark from "@/themes/flinkr-dark.json"
 
+/** Cached promise — the highlighter is initialized only once across all instances. */
 let highlighterPromise: Promise<HighlighterCore> | null = null
 
+/** Lazily initializes and caches the Shiki highlighter with SQL support. */
 function getHighlighter(): Promise<HighlighterCore> {
   if (!highlighterPromise) {
     highlighterPromise = Promise.all([
@@ -26,10 +36,16 @@ function getHighlighter(): Promise<HighlighterCore> {
 }
 
 interface SqlHighlightProps {
+  /** The SQL source code to highlight. */
   code: string
+  /** Optional CSS class applied to the outer container. */
   className?: string
 }
 
+/**
+ * Renders syntax-highlighted SQL using Shiki's FlinkReactor Night theme.
+ * Shows plain monospace text as a fallback while the highlighter loads.
+ */
 export function SqlHighlight({ code, className }: SqlHighlightProps) {
   const [html, setHtml] = useState("")
 

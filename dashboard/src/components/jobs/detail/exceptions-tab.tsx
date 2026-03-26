@@ -1,3 +1,12 @@
+/**
+ * @module exceptions-tab
+ *
+ * Job exception list tab showing the root cause exception (highlighted) followed
+ * by the exception history. Each exception card shows the name, message, timestamp,
+ * task location, and a collapsible stacktrace viewer using the shared
+ * {@link StackTrace} component.
+ */
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -20,6 +29,7 @@ import { cn } from "@/lib/cn"
 // Collapsible stacktrace wrapper (reuses shared StackTrace component)
 // ---------------------------------------------------------------------------
 
+/** Collapsible wrapper around the shared {@link StackTrace} component for inline stacktrace viewing. */
 function StacktraceViewer({
   exception,
   defaultOpen,
@@ -50,6 +60,7 @@ function StacktraceViewer({
 // Exception card
 // ---------------------------------------------------------------------------
 
+/** Card displaying exception name, message, timestamp, location, and collapsible stacktrace. */
 function ExceptionCard({
   exception,
   isRootCause,
@@ -99,6 +110,11 @@ function ExceptionCard({
 // ExceptionsTab
 // ---------------------------------------------------------------------------
 
+/**
+ * Exception list tab with the first exception highlighted as root cause (auto-expanded
+ * stacktrace) and remaining exceptions shown as history below. Renders an empty state
+ * when no exceptions are recorded.
+ */
 export function ExceptionsTab({ exceptions }: { exceptions: JobException[] }) {
   if (exceptions.length === 0) {
     return <EmptyState icon={CheckCircle} message="No exceptions recorded" />

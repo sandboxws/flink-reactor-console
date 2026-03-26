@@ -1,3 +1,12 @@
+/**
+ * @module error-group-list
+ *
+ * Sortable list of error group cards with inline sparkline charts.
+ * Each card displays the exception class, truncated message, occurrence count,
+ * last-seen time, a mini frequency sparkline, and affected source badges.
+ * Groups can be sorted by frequency or recency via {@link useErrorStore}.
+ */
+
 import { formatDistanceToNow } from "date-fns"
 import { ArrowDownWideNarrow, Clock } from "lucide-react"
 import { useMemo } from "react"
@@ -7,12 +16,10 @@ import type { ErrorGroup } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useErrorStore } from "@/stores/error-store"
 
-// ---------------------------------------------------------------------------
-// Mini sparkline — 12 buckets showing occurrence frequency
-// ---------------------------------------------------------------------------
-
+/** Number of time buckets in the mini sparkline chart. */
 const SPARK_BUCKETS = 12
 
+/** Distributes occurrence timestamps into fixed buckets for the sparkline. */
 function buildSparkData(occurrences: Date[]): { v: number }[] {
   if (occurrences.length < 2) {
     return Array.from({ length: SPARK_BUCKETS }, () => ({
@@ -36,6 +43,7 @@ function buildSparkData(occurrences: Date[]): { v: number }[] {
   return buckets
 }
 
+/** Tiny inline bar chart showing error occurrence frequency over time. */
 function MiniSparkline({ occurrences }: { occurrences: Date[] }) {
   const data = useMemo(() => buildSparkData(occurrences), [occurrences])
 
@@ -51,10 +59,12 @@ function MiniSparkline({ occurrences }: { occurrences: Date[] }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Group card
-// ---------------------------------------------------------------------------
-
+/**
+ * Card representing a single {@link ErrorGroup} in the list.
+ *
+ * Displays exception class, truncated message, occurrence count,
+ * relative last-seen time, a mini sparkline, and affected source badges.
+ */
 function ErrorGroupCard({
   group,
   isSelected,
@@ -110,10 +120,13 @@ function ErrorGroupCard({
   )
 }
 
-// ---------------------------------------------------------------------------
-// Group list
-// ---------------------------------------------------------------------------
-
+/**
+ * Sortable list of error group cards.
+ *
+ * Supports sorting by occurrence count (most frequent) or last-seen
+ * timestamp (most recent) via controls at the top. Selecting a card
+ * sets the active group in {@link useErrorStore}; re-selecting deselects.
+ */
 export function ErrorGroupList({ groups }: { groups: ErrorGroup[] }) {
   const selectedGroupId = useErrorStore((s) => s.selectedGroupId)
   const selectGroup = useErrorStore((s) => s.selectGroup)

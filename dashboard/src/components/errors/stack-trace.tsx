@@ -1,3 +1,13 @@
+/**
+ * @module stack-trace
+ *
+ * Java exception stack trace renderer with syntax-aware formatting.
+ * Parses raw stack trace text into structured sections (header, frames,
+ * caused-by chains) and renders them with visual differentiation between
+ * application frames (highlighted) and framework frames (dimmed).
+ * Caused-by sections are collapsible to reduce visual noise.
+ */
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -7,10 +17,7 @@ import { Check, ChevronRight, Copy } from "lucide-react"
 import { useMemo, useState } from "react"
 import { cn } from "@/lib/cn"
 
-// ---------------------------------------------------------------------------
-// Stack frame categorization
-// ---------------------------------------------------------------------------
-
+/** Package prefixes considered "framework" code, rendered with dimmed styling. */
 const FRAMEWORK_PREFIXES = [
   "org.apache.flink.",
   "java.",
@@ -23,41 +30,59 @@ const FRAMEWORK_PREFIXES = [
   "org.apache.kafka.common.",
 ]
 
+/** Checks whether a stack frame line belongs to a known framework package. */
 function isFrameworkFrame(frame: string): boolean {
   const match = frame.match(/^\s+at\s+([\w.$]+)/)
   if (!match) return false
   return FRAMEWORK_PREFIXES.some((prefix) => match[1].startsWith(prefix))
 }
 
-// ---------------------------------------------------------------------------
-// Stack trace parser — splits raw text into structured sections
-// ---------------------------------------------------------------------------
-
+/** A single stack frame line with framework classification. */
 interface StackFrame {
+  /** The raw "at com.example.Class.method(File.java:42)" text. */
   text: string
+  /** Whether this frame belongs to a framework package (dimmed in UI). */
   isFramework: boolean
 }
 
+/** Represents a "... N more" elision marker in a Java stack trace. */
 interface ElidedFrames {
+  /** Number of elided frames. */
   count: number
+  /** The original "... N more" text. */
   text: string
 }
 
+/** Discriminated union for items in a stack trace frame list. */
 type FrameItem =
   | { type: "frame"; frame: StackFrame }
   | { type: "elided"; elided: ElidedFrames }
 
+/** A "Caused by:" section containing its own header and frame list. */
 interface CausedBySection {
+  /** The "Caused by: ExceptionClass: message" header line. */
   header: string
+  /** Stack frames belonging to this caused-by section. */
   frames: FrameItem[]
 }
 
+/** Fully parsed Java stack trace with root frames and chained causes. */
 interface ParsedTrace {
+  /** The top-level exception line (e.g. "java.lang.RuntimeException: msg"). */
   header: string
+  /** Stack frames from the root exception. */
   frames: FrameItem[]
+  /** Chained "Caused by:" sections in order. */
   causedBy: CausedBySection[]
 }
 
+/**
+ * Parses a raw Java stack trace string into structured sections.
+ *
+ * Splits the trace into a header line, root frames, and zero or more
+ * "Caused by:" chains. Each frame is classified as framework or
+ * application code, and "... N more" elision markers are preserved.
+ */
 function parseStackTrace(raw: string): ParsedTrace {
   const lines = raw.split("\n")
   const header = lines[0] || ""
@@ -111,10 +136,7 @@ function parseStackTrace(raw: string): ParsedTrace {
   return { header, frames, causedBy }
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
+/** Renders a list of stack frames with visual distinction between application and framework code. */
 function FrameList({ items }: { items: FrameItem[] }) {
   return (
     <>
@@ -143,6 +165,7 @@ function FrameList({ items }: { items: FrameItem[] }) {
   )
 }
 
+/** Collapsible "Caused by:" section showing the chained exception and its frames. */
 function CausedByChain({ section }: { section: CausedBySection }) {
   const [open, setOpen] = useState(false)
 
@@ -161,10 +184,14 @@ function CausedByChain({ section }: { section: CausedBySection }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
-
+/**
+ * Java exception stack trace renderer with syntax-aware formatting.
+ *
+ * Parses the raw trace text into structured sections, highlights application
+ * frames over framework frames, and renders "Caused by:" chains as collapsible
+ * sections to reduce visual noise. Includes a hover-visible copy button for
+ * copying the full raw trace to the clipboard.
+ */
 export function StackTrace({ raw }: { raw: string }) {
   const parsed = useMemo(() => parseStackTrace(raw), [raw])
   const [copied, setCopied] = useState(false)

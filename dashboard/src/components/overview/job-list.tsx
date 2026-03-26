@@ -1,3 +1,12 @@
+/**
+ * @module job-list
+ *
+ * Sortable, truncated job list used on the overview page. Shows the most
+ * recent jobs (default 5) with client-side column sorting and inline tap-job
+ * badge detection. Links through to the full jobs table and individual job
+ * detail pages.
+ */
+
 import {
   Badge,
   EmptyState,
@@ -26,16 +35,20 @@ import { useClusterStore } from "@/stores/cluster-store"
 // Tap job detection (shared with jobs-table.tsx)
 // ---------------------------------------------------------------------------
 
+/** Name prefix used by FlinkReactor tap jobs. */
 const TAP_JOB_PREFIX = "fr-tap-"
 
+/** Returns true if the job name identifies a FlinkReactor tap job. */
 function isTapJob(name: string): boolean {
   return name.startsWith(TAP_JOB_PREFIX)
 }
 
+/** Strips the tap prefix to produce a human-readable pipeline name. */
 function tapDisplayName(name: string): string {
   return name.slice(TAP_JOB_PREFIX.length)
 }
 
+/** Maps each {@link JobStatus} value to background and text color classes. */
 const statusColor: Record<string, string> = {
   RUNNING: "bg-job-running/15 text-job-running",
   FINISHED: "bg-job-finished/15 text-job-finished",
@@ -49,6 +62,7 @@ const statusColor: Record<string, string> = {
   RECONCILING: "bg-job-created/15 text-job-created",
 }
 
+/** Renders a color-coded badge for a Flink {@link JobStatus}. */
 function StatusBadge({ status }: { status: JobStatus }) {
   return (
     <Badge
@@ -60,15 +74,20 @@ function StatusBadge({ status }: { status: JobStatus }) {
   )
 }
 
+/** Column keys available for sorting the job list. */
 type SortKey = "name" | "status" | "started" | "duration"
+
+/** Sort direction for column-header toggles. */
 type SortDir = "asc" | "desc"
 
+/** Computes effective duration, using wall-clock time for running jobs. */
 function getDuration(job: FlinkJob): number {
   return job.status === "RUNNING"
     ? Date.now() - job.startTime.getTime()
     : job.duration
 }
 
+/** Returns a new sorted array of jobs by the given column and direction. */
 function sortJobs(jobs: FlinkJob[], key: SortKey, dir: SortDir): FlinkJob[] {
   const sorted = [...jobs].sort((a, b) => {
     switch (key) {
@@ -88,6 +107,14 @@ function sortJobs(jobs: FlinkJob[], key: SortKey, dir: SortDir): FlinkJob[] {
 }
 
 
+/**
+ * Sortable, truncated job table for the overview page.
+ *
+ * Displays up to {@link limit} jobs with client-side column sorting. Tap jobs
+ * are visually distinguished with a "TAP" badge and stripped prefix. Rows
+ * navigate to the job detail page on click. A "View all" link and overflow
+ * footer link through to the full jobs table.
+ */
 export function JobList({
   title,
   href,
@@ -96,11 +123,17 @@ export function JobList({
   accent,
   limit = 5,
 }: {
+  /** Section heading (e.g., "Running Jobs"). */
   title: string
+  /** Route path for the "View all" link. */
   href: string
+  /** Icon rendered beside the title. */
   icon: React.ComponentType<{ className?: string }>
+  /** Full list of jobs to display (truncated to {@link limit}). */
   jobs: FlinkJob[]
+  /** Tailwind text-color class for the title icon. */
   accent?: string
+  /** Maximum number of rows to display before showing an overflow link. */
   limit?: number
 }) {
   const navigate = useNavigate()

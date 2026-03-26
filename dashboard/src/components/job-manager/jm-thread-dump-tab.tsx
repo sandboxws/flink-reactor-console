@@ -1,9 +1,23 @@
+/**
+ * @module jm-thread-dump-tab
+ *
+ * Job Manager thread dump viewer tab. Parses raw {@link ThreadDumpInfo}
+ * into structured thread records and renders them via the shared
+ * {@link ThreadDumpViewer} component. Provides a "copy all" action
+ * that writes the full dump text to the clipboard.
+ */
+
 import { Cpu } from "lucide-react"
 import { useCallback, useMemo } from "react"
 import { EmptyState, ThreadDumpViewer } from "@flink-reactor/ui"
 import type { ThreadDumpInfo } from "@flink-reactor/ui"
 import { parseThreadInfos } from "@/data/thread-dump-parser"
 
+/**
+ * Thread dump viewer that parses raw thread infos via {@link parseThreadInfos}
+ * and delegates rendering to {@link ThreadDumpViewer}. Shows an empty state
+ * when no threads are available.
+ */
 export function JmThreadDumpTab({
   threadDump,
 }: {

@@ -1,3 +1,12 @@
+/**
+ * @module overview-page
+ *
+ * Cluster overview dashboard page. Composes stat cards, slot utilization,
+ * job status summary, and running/completed job lists into the primary
+ * landing view. Subscribes to {@link useClusterStore} for all cluster
+ * state and exposes a "Stop All Jobs" bulk action.
+ */
+
 import {
   Alert,
   AlertDescription,
@@ -23,6 +32,7 @@ import { JobStatusSummary } from "./job-status-summary"
 import { SlotUtilization } from "./slot-utilization"
 import { StatCard } from "./stat-card"
 
+/** Placeholder skeleton shown during the initial cluster data fetch. */
 function OverviewSkeleton() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -49,6 +59,7 @@ function OverviewSkeleton() {
   )
 }
 
+/** Full-page error state shown when the initial cluster fetch fails with no cached data. */
 function OverviewError({
   message,
   onRetry,
@@ -77,6 +88,15 @@ function OverviewError({
   )
 }
 
+/**
+ * Main cluster overview page.
+ *
+ * Renders three states in priority order:
+ * 1. {@link OverviewSkeleton} while the first fetch is in flight.
+ * 2. {@link OverviewError} when the first fetch fails with no cached data.
+ * 3. The full dashboard (stats, charts, job lists) once data is available —
+ *    subsequent fetch errors display as an inline banner without clearing stale data.
+ */
 export function OverviewPage() {
   const overview = useClusterStore((s) => s.overview)
   const runningJobs = useClusterStore((s) => s.runningJobs)

@@ -1,5 +1,14 @@
+/**
+ * @module job-status-summary
+ *
+ * Displays aggregate job counts broken down by status (running, finished,
+ * cancelled, failed) in a four-cell grid with color-coded icons. Used on
+ * the cluster overview page alongside {@link SlotUtilization}.
+ */
+
 import { AlertTriangle, Ban, CheckCircle2, Play } from "lucide-react"
 
+/** Status definitions including display label, color tokens, and icon. */
 const statuses = [
   {
     key: "running",
@@ -31,15 +40,20 @@ const statuses = [
   },
 ] as const
 
+/** Four-cell grid summarizing job counts by status with color-coded icons. */
 export function JobStatusSummary({
   running,
   finished,
   cancelled,
   failed,
 }: {
+  /** Number of currently running jobs. */
   running: number
+  /** Number of successfully finished jobs. */
   finished: number
+  /** Number of cancelled jobs. */
   cancelled: number
+  /** Number of failed jobs. */
   failed: number
 }) {
   const counts: Record<string, number> = {

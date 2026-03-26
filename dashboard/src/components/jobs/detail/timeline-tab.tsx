@@ -1,3 +1,11 @@
+/**
+ * @module timeline-tab
+ *
+ * Gantt-chart style timeline visualization of vertex execution within a Flink job.
+ * Each vertex is rendered as a horizontal bar positioned proportionally by start time
+ * and duration, with zoom controls and hover tooltips. Bars are colored by vertex status.
+ */
+
 import { Clock, Maximize2, ZoomIn, ZoomOut } from "lucide-react"
 import { useMemo, useState } from "react"
 import { EmptyState, formatDuration } from "@flink-reactor/ui"
@@ -8,6 +16,7 @@ import { cn } from "@/lib/cn"
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Maps vertex status to Tailwind background color classes for Gantt bars. */
 const STATUS_COLORS: Record<string, string> = {
   RUNNING: "bg-job-running",
   FINISHED: "bg-job-finished",
@@ -16,6 +25,7 @@ const STATUS_COLORS: Record<string, string> = {
   CREATED: "bg-job-created",
 }
 
+/** Formats a millisecond offset as a compact "Xm Ys" or "Xs" string for the time axis. */
 function formatTimeOffset(ms: number): string {
   const totalSec = Math.floor(ms / 1000)
   const min = Math.floor(totalSec / 60)
@@ -28,6 +38,7 @@ function formatTimeOffset(ms: number): string {
 // Tooltip
 // ---------------------------------------------------------------------------
 
+/** Tooltip showing vertex name, start offset, duration, and status on bar hover. */
 function GanttTooltip({
   vertex,
   jobStartMs,
@@ -56,6 +67,11 @@ function GanttTooltip({
 // TimelineTab
 // ---------------------------------------------------------------------------
 
+/**
+ * Gantt-chart timeline of vertex execution with zoomable horizontal axis, status-colored
+ * bars, duration labels, and a status legend. Vertices are sorted by start time and
+ * positioned proportionally relative to the total job duration.
+ */
 export function TimelineTab({
   vertices,
   jobStartTime,

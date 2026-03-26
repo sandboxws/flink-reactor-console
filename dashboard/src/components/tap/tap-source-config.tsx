@@ -1,3 +1,12 @@
+/**
+ * @module tap-source-config
+ *
+ * Collapsible configuration form for TAP source parameters. Allows the
+ * user to select offset mode (latest/earliest/timestamp), set a start
+ * timestamp for timestamp-based consumption, and configure the client-side
+ * row buffer size. The consumer group ID is shown read-only.
+ */
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -9,8 +18,11 @@ import { cn } from "@/lib/cn"
 import type { TapTab } from "@/stores/tap-store"
 
 interface TapSourceConfigProps {
+  /** Current source configuration from the tap tab. */
   config: TapTab["config"]
+  /** Kafka consumer group ID (auto-generated or from manifest). */
   consumerGroupId: string
+  /** Callback to update individual config fields. */
   onConfigChange: (config: Partial<TapTab["config"]>) => void
 }
 
@@ -20,6 +32,11 @@ const OFFSET_MODES = [
   { value: "timestamp" as const, label: "Timestamp" },
 ]
 
+/**
+ * Collapsible source configuration panel with offset mode selector,
+ * optional timestamp picker, buffer size input, and read-only consumer
+ * group ID display.
+ */
 export function TapSourceConfig({
   config,
   consumerGroupId,

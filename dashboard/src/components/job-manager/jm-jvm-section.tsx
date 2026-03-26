@@ -1,3 +1,12 @@
+/**
+ * @module jm-jvm-section
+ *
+ * JVM details section for the Job Manager configuration tab. Renders
+ * three sub-panels: syntax-highlighted JVM arguments, system properties
+ * key-value table, and memory configuration progress bars (heap,
+ * non-heap, metaspace, direct).
+ */
+
 import { Cpu, Database, Terminal } from "lucide-react"
 import { formatBytes } from "@flink-reactor/ui"
 import type { JvmInfo } from "@flink-reactor/ui"
@@ -6,12 +15,16 @@ import type { JvmInfo } from "@flink-reactor/ui"
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Compute a clamped integer percentage, returning 0 when max is zero. */
 function pct(used: number, max: number): number {
   if (max === 0) return 0
   return Math.min(100, Math.round((used / max) * 100))
 }
 
-// Syntax-highlight JVM argument prefixes
+/**
+ * Syntax-highlight a single JVM argument by colouring known prefixes:
+ * `-XX:` (purple), `-Xm`/`-Xss` (coral), `-D` system properties (blue).
+ */
 function JvmArg({ arg }: { arg: string }) {
   if (arg.startsWith("-XX:")) {
     return (
@@ -51,7 +64,7 @@ function JvmArg({ arg }: { arg: string }) {
   return <span className="text-zinc-300">{arg}</span>
 }
 
-// Memory stat bar
+/** Labelled progress bar showing used vs max memory with percentage. */
 function MemoryStat({
   label,
   used,
@@ -88,10 +101,10 @@ function MemoryStat({
   )
 }
 
-// ---------------------------------------------------------------------------
-// JmJvmSection — JVM arguments, system properties, memory config
-// ---------------------------------------------------------------------------
-
+/**
+ * JVM details section displaying arguments, system properties, and
+ * memory configuration bars from the {@link JvmInfo} payload.
+ */
 export function JmJvmSection({ jvm }: { jvm: JvmInfo }) {
   const mem = jvm.memoryConfig
 

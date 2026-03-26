@@ -1,3 +1,8 @@
+/**
+ * @module rule-list
+ * Tabular list of configured {@link AlertRule} entries with inline toggle,
+ * severity badge, and delete action. Preset rules cannot be deleted.
+ */
 import {
   Switch,
   Tooltip,
@@ -9,18 +14,24 @@ import { Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { AlertRule } from "@/stores/alerts-store"
 
+/** Props for {@link RuleList}. */
 type RuleListProps = {
+  /** Alert rules to display. */
   rules: AlertRule[]
+  /** Callback to enable/disable a rule by ID. */
   onToggle: (id: string) => void
+  /** Callback to delete a user-created rule by ID. */
   onDelete: (id: string) => void
 }
 
+/** Severity-to-color class mapping for inline badges. */
 const SEVERITY_BADGE = {
   critical: "text-job-failed bg-job-failed/10",
   warning: "text-fr-amber bg-fr-amber/10",
   info: "text-fr-purple bg-fr-purple/10",
 } as const
 
+/** Human-readable labels for comparison operators. */
 const CONDITION_LABELS: Record<string, string> = {
   ">": ">",
   "<": "<",
@@ -30,6 +41,12 @@ const CONDITION_LABELS: Record<string, string> = {
   "<=": "<=",
 }
 
+/**
+ * Renders all alert rules in a sortable table. Each row shows the rule name,
+ * metric, condition, threshold, required consecutive polls, severity badge, and
+ * an enable/disable toggle. Preset rules show a disabled delete button with a
+ * tooltip explaining the restriction.
+ */
 export function RuleList({ rules, onToggle, onDelete }: RuleListProps) {
   if (rules.length === 0) {
     return (

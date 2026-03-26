@@ -1,7 +1,20 @@
+/**
+ * @module sources-sinks-tab
+ *
+ * Overview tab listing all detected sources and sinks for a Flink job.
+ * Splits connectors by role into separate sections and renders each as a
+ * {@link SourceSinkCard}. Shows a prompt to use FlinkReactor DSL when no
+ * connectors are detected.
+ */
+
 import { ArrowDown, ArrowUp, Unplug } from "lucide-react"
 import type { JobConnector } from "@flink-reactor/ui"
 import { SourceSinkCard } from "./source-sink-card"
 
+/**
+ * Sources and sinks overview tab partitioning connectors into "Sources" and "Sinks"
+ * sections rendered as a grid of {@link SourceSinkCard} components.
+ */
 export function SourcesSinksTab({
   sourcesAndSinks,
 }: {

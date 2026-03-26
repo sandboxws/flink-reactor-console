@@ -1,3 +1,13 @@
+/**
+ * @module sandbox-editor
+ *
+ * CodeMirror 6 editor for the DSL sandbox. Configures TypeScript/JSX syntax,
+ * DSL-specific autocompletion, diagnostic gutter markers with hover tooltips,
+ * connector icon gutter, and focus line highlighting. Theme swaps between
+ * Gruvpuccin and Tokyo Night via a MutationObserver on `data-palette`.
+ * Supports Cmd+Enter to trigger synthesis.
+ */
+
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete"
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
 import { javascript } from "@codemirror/lang-javascript"
@@ -38,6 +48,7 @@ import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
 // Gutter marker classes — each instance carries its diagnostic message
 // ---------------------------------------------------------------------------
 
+/** Custom gutter marker rendering a colored dot (error) or triangle (warning). */
 class DiagnosticGutterMarker extends GutterMarker {
   constructor(
     readonly severity: "error" | "warning",
@@ -76,6 +87,7 @@ class DiagnosticGutterMarker extends GutterMarker {
 
 let tooltipEl: HTMLDivElement | null = null
 
+/** Creates a fixed-position tooltip element near a gutter marker with diagnostic messages. */
 function showTooltip(
   messages: string[],
   severity: "error" | "warning",
@@ -119,6 +131,7 @@ function showTooltip(
   tooltipEl.style.top = `${rect.top - 4}px`
 }
 
+/** Removes the active diagnostic tooltip from the DOM. */
 function hideTooltip() {
   if (tooltipEl) {
     tooltipEl.remove()
@@ -193,6 +206,10 @@ interface LineDiagnostic {
   messages: string[]
 }
 
+/**
+ * Maps validation diagnostics to source line offsets by matching component
+ * names against JSX tags and function calls in the document.
+ */
 function mapDiagnosticsToLines(
   doc: string,
   diagnostics: ValidationDiagnostic[],
@@ -244,10 +261,15 @@ function mapDiagnosticsToLines(
 // ---------------------------------------------------------------------------
 
 interface SandboxEditorProps {
+  /** Current DSL source code. */
   value: string
+  /** Callback on code change (debounced synthesis follows). */
   onChange: (value: string) => void
+  /** Trigger immediate synthesis (e.g. Cmd+Enter). */
   onSynthesize: () => void
+  /** Validation diagnostics to render as gutter markers. */
   diagnostics?: ValidationDiagnostic[]
+  /** Component names to highlight (focus mode for transform examples). */
   focusComponents?: string[] | null
 }
 
@@ -260,6 +282,12 @@ function getActiveTheme() {
     : gruvpuccinCmTheme
 }
 
+/**
+ * CodeMirror editor with TSX/JSX support, DSL autocompletion, diagnostic
+ * gutter, and focus highlighting. Creates the editor view once on mount
+ * and syncs external value changes, diagnostics, focus lines, and theme
+ * swaps via effects.
+ */
 export function SandboxEditor({
   value,
   onChange,

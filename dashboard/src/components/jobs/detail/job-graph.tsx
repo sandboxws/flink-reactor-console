@@ -1,3 +1,12 @@
+/**
+ * @module job-graph
+ *
+ * Interactive DAG visualization of a Flink job's execution plan using ReactFlow.
+ * Converts {@link JobPlan} vertices and edges into a topologically-layered graph
+ * with custom {@link OperatorNode} and {@link StrategyEdge} renderers. Supports
+ * live tap session status overlays on operator nodes.
+ */
+
 import type { Edge, Node } from "@xyflow/react"
 import {
   Background,
@@ -27,6 +36,11 @@ const NODE_HEIGHT = 170
 const COL_GAP = 80
 const ROW_GAP = 50
 
+/**
+ * Assigns topological layers via Kahn's algorithm (BFS) then positions nodes
+ * left-to-right by column, centered vertically within each column. Replaces
+ * dagre for the simple linear DAG structures Flink produces.
+ */
 function layoutElements(
   nodes: Node[],
   edges: Edge[],
@@ -106,6 +120,7 @@ const edgeTypes = { strategy: StrategyEdge }
 // Inner component (needs ReactFlow context)
 // ---------------------------------------------------------------------------
 
+/** Inner component that requires ReactFlow context for viewport control (fitView). */
 function JobGraphInner({
   plan,
   onSelectVertex,
@@ -217,6 +232,12 @@ function JobGraphInner({
 // Exported wrapper with provider
 // ---------------------------------------------------------------------------
 
+/**
+ * Interactive job execution DAG wrapped in a ReactFlowProvider.
+ * Renders the plan's vertices as {@link OperatorNode} cards connected
+ * by {@link StrategyEdge} lines, with a minimap shown for graphs with
+ * five or more vertices. Tap session status is overlaid on nodes when available.
+ */
 export function JobGraph({
   plan,
   className,

@@ -1,3 +1,15 @@
+/**
+ * @module submit-job-page
+ *
+ * Two-panel page for submitting Flink jobs from uploaded JARs. The left panel
+ * manages JAR uploads and selection; the right panel exposes submission parameters
+ * (entry class, parallelism, program args, savepoint restore) for the selected JAR.
+ *
+ * Respects the `web.submit.enable` feature flag — when disabled, the form
+ * renders a warning banner and the submit button is inactive.
+ *
+ * Subscribes to {@link useClusterStore} for JAR CRUD and job submission actions.
+ */
 import { Spinner } from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
@@ -18,6 +30,11 @@ import { useClusterStore } from "@/stores/cluster-store"
 // JarListSection — uploaded JARs with upload + delete
 // ---------------------------------------------------------------------------
 
+/**
+ * Left panel listing uploaded JARs with upload and delete actions.
+ * Selecting a JAR highlights it and triggers the submission form
+ * in the adjacent panel.
+ */
 function JarListSection({
   jars,
   selectedJarId,
@@ -26,11 +43,17 @@ function JarListSection({
   onDelete,
   uploading,
 }: {
+  /** Available {@link UploadedJar} entries from the cluster. */
   jars: UploadedJar[]
+  /** Currently selected JAR ID, or null if none. */
   selectedJarId: string | null
+  /** Called when a JAR row is clicked. */
   onSelect: (id: string) => void
+  /** Called with the chosen file when the upload button is used. */
   onUpload: (file: File) => void
+  /** Called when a JAR's delete button is clicked. */
   onDelete: (id: string) => void
+  /** Whether a JAR upload is currently in progress. */
   uploading: boolean
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
@@ -142,13 +165,22 @@ function JarListSection({
 // SubmitForm — job submission parameters
 // ---------------------------------------------------------------------------
 
+/**
+ * Right panel form for configuring and submitting a job from the selected JAR.
+ * Exposes entry class selection (dropdown when multiple exist), parallelism,
+ * program arguments, optional savepoint restore path, and the
+ * allow-non-restored-state toggle.
+ */
 function SubmitForm({
   jar,
   onSubmit,
   submitting,
 }: {
+  /** The selected {@link UploadedJar} whose entry classes populate the form. */
   jar: UploadedJar
+  /** Called with the assembled {@link SubmitJobRequest} on form submission. */
   onSubmit: (request: SubmitJobRequest) => void
+  /** Disables the submit button while a submission is in flight. */
   submitting: boolean
 }) {
   const [entryClass, setEntryClass] = useState(jar.entryClasses[0] ?? "")
@@ -291,6 +323,14 @@ function SubmitForm({
 // SubmitJobPage — main page component
 // ---------------------------------------------------------------------------
 
+/**
+ * Top-level page component for the "Submit New Job" route.
+ *
+ * Orchestrates JAR management (upload, select, delete) and job submission.
+ * Displays feedback banners for success, errors, and the feature-flag
+ * disabled state. Layout is a responsive two-column grid: JAR list on the
+ * left, submission form on the right.
+ */
 export function SubmitJobPage() {
   const uploadedJars = useClusterStore((s) => s.uploadedJars)
   const uploadJar = useClusterStore((s) => s.uploadJar)

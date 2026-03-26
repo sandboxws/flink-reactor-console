@@ -1,3 +1,11 @@
+/**
+ * @module template-picker
+ *
+ * Select dropdown for choosing a DSL template in the sandbox editor.
+ * Templates define the initial boilerplate code (e.g., pipeline, source,
+ * sink) that the editor is populated with when a template is selected.
+ */
+
 import {
   Select,
   SelectContent,
@@ -9,10 +17,13 @@ import { Check } from "lucide-react"
 import { TEMPLATES, type TemplateId } from "./templates"
 
 interface TemplatePickerProps {
+  /** Currently selected template ID, or null for no selection. */
   value: TemplateId | null
+  /** Callback invoked when a template is selected from the dropdown. */
   onSelect: (id: TemplateId) => void
 }
 
+/** Select dropdown for choosing a DSL boilerplate template with name and description. */
 export function TemplatePicker({ value, onSelect }: TemplatePickerProps) {
   return (
     <Select

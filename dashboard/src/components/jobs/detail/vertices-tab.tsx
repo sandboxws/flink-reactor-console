@@ -1,3 +1,13 @@
+/**
+ * @module vertices-tab
+ *
+ * Comprehensive vertex/operator detail tab with a vertex selector dropdown and
+ * seven sub-tabs: Detail (overview + task breakdown), SubTasks (sortable table),
+ * TaskManagers (grouped by TM), Watermarks, BackPressure, Accumulators, and
+ * Metrics (bar chart with metric selector). Provides the deepest level of
+ * per-operator introspection in the job detail view.
+ */
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -46,6 +56,7 @@ import { cn } from "@/lib/cn"
 // Format helpers
 // ---------------------------------------------------------------------------
 
+/** Formats a number with SI suffixes (K, M, B) for compact display. */
 function formatSI(n: number): string {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -53,6 +64,7 @@ function formatSI(n: number): string {
   return String(n)
 }
 
+/** Formats an epoch-ms watermark as a locale time string, or "No Watermark" if invalid. */
 function formatTimestamp(epoch: number): string {
   if (!Number.isFinite(epoch) || epoch <= 0) return "No Watermark"
   return new Date(epoch).toLocaleTimeString()
@@ -65,6 +77,7 @@ function formatTimestamp(epoch: number): string {
 type SortDir = "asc" | "desc"
 type SortKey = keyof SubtaskMetrics
 
+/** Returns a copy of the subtasks array sorted by the given key and direction. */
 function sortedSubtasks(
   subtasks: SubtaskMetrics[],
   key: SortKey,
@@ -86,6 +99,7 @@ function sortedSubtasks(
 // SortHeader — clickable column header
 // ---------------------------------------------------------------------------
 
+/** Clickable column header that toggles sort direction and shows an active indicator. */
 function SortHeader({
   label,
   sortKey,
@@ -133,6 +147,7 @@ const BP_COLORS = {
   high: "bg-job-failed/20 text-job-failed",
 } as const
 
+/** Color-coded badge showing a backpressure level (ok, low, high). */
 function BpBadge({ level }: { level: "ok" | "low" | "high" }) {
   return (
     <span
@@ -150,6 +165,7 @@ function BpBadge({ level }: { level: "ok" | "low" | "high" }) {
 // Detail sub-tab
 // ---------------------------------------------------------------------------
 
+/** Vertex overview sub-tab showing key metrics and a proportional task-status breakdown bar. */
 function DetailSection({
   vertex,
   // biome-ignore lint/correctness/noUnusedFunctionParameters: reserved for future per-subtask metrics display
@@ -243,6 +259,7 @@ function DetailSection({
 // SubTasks sub-tab
 // ---------------------------------------------------------------------------
 
+/** Sortable table of individual subtask metrics including status, host, records, and busy time. */
 function SubTasksSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("subtaskIndex")
   const [sortDir, setSortDir] = useState<SortDir>("asc")
@@ -349,6 +366,7 @@ function SubTasksSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
 // TaskManagers sub-tab
 // ---------------------------------------------------------------------------
 
+/** Subtasks grouped by TaskManager ID, each in a collapsible section with a summary table. */
 function TaskManagersSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
   const grouped = useMemo(() => {
     const map = new Map<string, SubtaskMetrics[]>()
@@ -423,6 +441,7 @@ function TaskManagersSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
 // Watermarks sub-tab
 // ---------------------------------------------------------------------------
 
+/** Per-subtask watermark table with min/max summary cards at the top. */
 function WatermarksSection({ watermarks }: { watermarks: VertexWatermark[] }) {
   if (watermarks.length === 0) {
     return <EmptyState icon={Layers} message="No watermark data available" />
@@ -488,6 +507,7 @@ function WatermarksSection({ watermarks }: { watermarks: VertexWatermark[] }) {
 // BackPressure sub-tab
 // ---------------------------------------------------------------------------
 
+/** Backpressure sub-tab showing the overall level badge and a per-subtask ratio table. */
 function BackPressureSection({ bp }: { bp: VertexBackPressure | undefined }) {
   if (!bp || bp.subtasks.length === 0) {
     return <EmptyState icon={Layers} message="No backpressure data available" />
@@ -544,6 +564,7 @@ function BackPressureSection({ bp }: { bp: VertexBackPressure | undefined }) {
 // Accumulators sub-tab
 // ---------------------------------------------------------------------------
 
+/** Table of user-defined accumulators (name, type, value) for the selected vertex. */
 function AccumulatorsSection({
   accumulators,
 }: {
@@ -585,6 +606,7 @@ function AccumulatorsSection({
 // Metrics sub-tab — bar chart comparing subtask values
 // ---------------------------------------------------------------------------
 
+/** Available metric keys for the subtask metrics bar chart. */
 type MetricChoice =
   | "recordsIn"
   | "recordsOut"
@@ -601,6 +623,7 @@ const METRIC_OPTIONS: { key: MetricChoice; label: string }[] = [
   { key: "backPressuredTimeMsPerSecond", label: "Backpressure" },
 ]
 
+/** Recharts tooltip for the per-subtask metrics bar chart. */
 function MetricsChartTooltip({
   active,
   payload,
@@ -624,6 +647,7 @@ function MetricsChartTooltip({
   )
 }
 
+/** Bar chart comparing a selectable metric across subtasks with summary stats. */
 function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
   const [metric, setMetric] = useState<MetricChoice>("recordsIn")
 
@@ -741,6 +765,11 @@ function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
 // VerticesTab — main component
 // ---------------------------------------------------------------------------
 
+/**
+ * Main vertex detail tab with a dropdown vertex selector and seven sub-tabs:
+ * Detail, SubTasks, TaskManagers, Watermarks, BackPressure, Accumulators, and Metrics.
+ * Syncs the selected vertex when an external selection changes (e.g. from DAG node click).
+ */
 export function VerticesTab({
   job,
   selectedVertexId,

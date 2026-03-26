@@ -1,3 +1,12 @@
+/**
+ * @module jm-classpath-section
+ *
+ * Filterable table of JVM classpath entries (JARs and directories) for the
+ * Job Manager. Each entry carries a pre-assigned tag from the server
+ * (e.g. "flink-core", "connector", "hadoop"). Supports tag chip filtering
+ * and text search with a scroll indicator overlay.
+ */
+
 import { FolderOpen, Search } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { ClasspathEntry } from "@flink-reactor/ui"
@@ -10,16 +19,20 @@ import { TagBadge, TagChip } from "./tag-filter"
 const MB = 1024 ** 2
 const KB = 1024
 
+/** Format a byte count to a human-readable size string (B / KB / MB). */
 function formatSize(bytes: number): string {
   if (bytes >= MB) return `${(bytes / MB).toFixed(1)} MB`
   if (bytes >= KB) return `${(bytes / KB).toFixed(0)} KB`
   return `${bytes} B`
 }
 
-// ---------------------------------------------------------------------------
-// JmClasspathSection — classpath table with tag and text filtering
-// ---------------------------------------------------------------------------
-
+/**
+ * Classpath entries table with tag chip and text search filtering.
+ *
+ * Displays filename, full path (hidden on small screens), file size, and
+ * tag for each {@link ClasspathEntry}. Tag and text filters combine with
+ * AND logic. A gradient overlay at the scroll fold reports remaining rows.
+ */
 export function JmClasspathSection({
   classpath,
 }: {

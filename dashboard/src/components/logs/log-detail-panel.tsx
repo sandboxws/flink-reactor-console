@@ -1,3 +1,13 @@
+/**
+ * @module log-detail-panel
+ *
+ * Side panel displaying full detail for a selected log entry. Provides
+ * four tabs: Details (metadata fields), Trace (stack trace if present),
+ * Context (surrounding log lines), and Raw (unformatted log text).
+ * The panel reads the selected entry ID from {@link useUiStore} and
+ * resolves the full entry from {@link useLogStore}.
+ */
+
 import {
   SeverityBadge,
   SourceBadge,
@@ -14,10 +24,7 @@ import { cn } from "@/lib/cn"
 import { useLogStore } from "@/stores/log-store"
 import { useUiStore } from "@/stores/ui-store"
 
-// ---------------------------------------------------------------------------
-// Detail field — flex row with label/value (mirrors error-detail pattern)
-// ---------------------------------------------------------------------------
-
+/** Label-value pair rendered as a flex row, used for metadata fields in the Details tab. */
 function DetailField({
   label,
   children,
@@ -37,10 +44,17 @@ function DetailField({
   )
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
+/**
+ * Expanded log entry detail panel with tabbed views.
+ *
+ * Renders four tabs for the selected log entry:
+ * - **Details** -- severity, source, message, timestamp, logger, thread.
+ * - **Trace** -- rendered {@link StackTrace} (only when entry has a stack trace).
+ * - **Context** -- the 5 surrounding entries before and after the selection.
+ * - **Raw** -- the original unformatted log text with a copy button.
+ *
+ * Returns `null` when no entry is selected so the panel collapses cleanly.
+ */
 export function LogDetailPanel() {
   const selectedEntryId = useUiStore((s) => s.selectedEntryId)
   const setSelectedEntryId = useUiStore((s) => s.setSelectedEntryId)

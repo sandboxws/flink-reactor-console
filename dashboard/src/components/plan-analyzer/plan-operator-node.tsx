@@ -1,3 +1,12 @@
+/**
+ * @module plan-operator-node
+ *
+ * Custom ReactFlow node for a single Flink plan operator.
+ * Displays operator category, type, parallelism, group-by keys, join/window
+ * info, and state forecast. Anti-pattern severity badges provide at-a-glance
+ * issue counts, with a hover card showing full details.
+ */
+
 import {
   formatBytes,
   HoverCard,
@@ -20,6 +29,7 @@ import type {
 // Category → color mapping (matches console job graph palette)
 // ---------------------------------------------------------------------------
 
+/** Maps operator categories to their color tokens for header background, text, and top border. */
 const CATEGORY_COLORS: Record<
   FlinkOperatorCategory,
   { bg: string; text: string; border: string }
@@ -80,6 +90,7 @@ const CATEGORY_COLORS: Record<
 // Severity badge
 // ---------------------------------------------------------------------------
 
+/** Compact pill showing issue count by severity with a color-coded icon. */
 function SeverityBadge({
   count,
   severity,
@@ -120,14 +131,27 @@ function SeverityBadge({
 // Plan operator node
 // ---------------------------------------------------------------------------
 
+/** Data payload attached to each plan operator ReactFlow node. */
 export type PlanOperatorNodeData = {
+  /** The parsed operator from the Flink execution plan. */
   node: FlinkOperatorNode
+  /** Anti-patterns detected for this operator. */
   antiPatterns: FlinkAntiPattern[]
+  /** State growth forecasts associated with this operator. */
   stateForecasts: StateGrowthForecast[]
+  /** Whether this node is currently selected in the store. */
   isSelected: boolean
+  /** Callback to select this node (navigates to the analysis tab). */
   onSelect?: (nodeId: string) => void
 }
 
+/**
+ * Custom ReactFlow node rendering a single Flink execution plan operator.
+ *
+ * Shows a card with category badge, display name, parallelism, and optional
+ * join/window/state details. Anti-pattern severity badges appear in the header.
+ * When anti-patterns exist, wrapping in a hover card reveals the full issue list.
+ */
 export function PlanOperatorNode({
   data,
 }: NodeProps & { data: PlanOperatorNodeData }) {

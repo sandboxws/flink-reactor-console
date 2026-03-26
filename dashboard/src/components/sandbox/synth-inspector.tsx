@@ -1,7 +1,11 @@
-// ── Synth Inspector ──────────────────────────────────────────────────
-// Debug panel showing raw synthesizer output: statements array and
-// statementOrigins map as a collapsible, syntax-highlighted JSON tree.
-// Used under the SQL tab to help diagnose focus-highlighting behavior.
+/**
+ * @module synth-inspector
+ *
+ * Debug panel showing raw synthesizer output: the statements array,
+ * statementOrigins map, and statementContributors map rendered as a
+ * collapsible, syntax-highlighted JSON tree. Used under the SQL tab
+ * to help diagnose focus-highlighting behavior.
+ */
 
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { useCallback, useState } from "react"
@@ -11,6 +15,7 @@ import type { SqlFragment, StatementOrigin } from "@/lib/sandbox-synthesizer"
 // Serialise statementOrigins (ReadonlyMap) to a plain object for display
 // ---------------------------------------------------------------------------
 
+/** Converts a ReadonlyMap of statement origins to a plain object for JSON display. */
 function originsToObject(
   origins: ReadonlyMap<number, StatementOrigin>,
 ): Record<string, StatementOrigin> {
@@ -21,6 +26,7 @@ function originsToObject(
   return obj
 }
 
+/** Converts a ReadonlyMap of SQL fragment contributors to a plain object for JSON display. */
 function contributorsToObject(
   contributors: ReadonlyMap<number, readonly SqlFragment[]>,
 ): Record<string, readonly SqlFragment[]> {
@@ -36,12 +42,17 @@ function contributorsToObject(
 // ---------------------------------------------------------------------------
 
 interface JsonNodeProps {
+  /** Property key or array index label. */
   label?: string
+  /** The value to render (primitive, array, or object). */
   value: unknown
+  /** Current nesting depth for indentation. */
   depth: number
+  /** Whether object/array nodes start expanded. */
   defaultOpen?: boolean
 }
 
+/** Recursive collapsible JSON tree node with type-aware syntax coloring. */
 function JsonNode({ label, value, depth, defaultOpen = false }: JsonNodeProps) {
   const [open, setOpen] = useState(defaultOpen)
   const toggle = useCallback(() => setOpen((o) => !o), [])
@@ -136,6 +147,7 @@ function JsonNode({ label, value, depth, defaultOpen = false }: JsonNodeProps) {
   )
 }
 
+/** Returns the CSS class for a primitive value based on its type. */
 function primitiveClass(value: unknown): string {
   if (value === null || value === undefined) return "text-zinc-500 italic"
   if (typeof value === "string") return "text-[--color-job-running]"
@@ -144,6 +156,7 @@ function primitiveClass(value: unknown): string {
   return "text-zinc-300"
 }
 
+/** Formats a primitive value as a JSON-like string for display. */
 function formatPrimitive(value: unknown): string {
   if (value === null) return "null"
   if (value === undefined) return "undefined"
@@ -156,11 +169,18 @@ function formatPrimitive(value: unknown): string {
 // ---------------------------------------------------------------------------
 
 interface SynthInspectorProps {
+  /** Generated SQL statements from the synthesizer. */
   statements: readonly string[]
+  /** Maps statement indices to their origin DSL component. */
   statementOrigins: ReadonlyMap<number, StatementOrigin>
+  /** Maps statement indices to the SQL fragments that contributed to them. */
   statementContributors: ReadonlyMap<number, readonly SqlFragment[]>
 }
 
+/**
+ * Debug inspector rendering synthesizer output (statements, origins,
+ * contributors) as a collapsible JSON tree.
+ */
 export function SynthInspector({
   statements,
   statementOrigins,

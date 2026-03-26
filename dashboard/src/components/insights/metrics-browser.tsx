@@ -1,3 +1,11 @@
+/**
+ * @module metrics-browser
+ * Three-tab metric namespace browser for selecting metrics from Job Manager,
+ * Task Manager, or Vertex sources. Groups the {@link MetricCatalogEntry} catalog
+ * by source type, provides per-source ID selection (for TM/Vertex), and offers
+ * a search filter over available metric IDs. Toggles individual metrics on/off
+ * for the parent {@link MetricsExplorer}.
+ */
 import { Spinner } from "@flink-reactor/ui"
 import { Plus, Search, X } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -5,14 +13,17 @@ import { cn } from "@/lib/cn"
 import type { MetricCatalogEntry } from "@/lib/graphql-api-client"
 import type { SelectedMetric } from "@/stores/metrics-explorer-store"
 
+/** Source type tab identifiers. */
 type SourceTab = "job_manager" | "task_manager" | "vertex"
 
+/** Tab definitions for the source type selector. */
 const SOURCE_TABS: { type: SourceTab; label: string }[] = [
   { type: "job_manager", label: "JM" },
   { type: "task_manager", label: "TM" },
   { type: "vertex", label: "Vertex" },
 ]
 
+/** Builds a unique composite key for a metric series from its source and ID. */
 function seriesKey(m: {
   sourceType: string
   sourceID: string
@@ -21,19 +32,31 @@ function seriesKey(m: {
   return `${m.sourceType}:${m.sourceID}:${m.metricID}`
 }
 
+/** Props for {@link MetricsBrowser}. */
 type MetricsBrowserProps = {
+  /** Available metric catalog entries from the GraphQL API. */
   catalog: MetricCatalogEntry[]
+  /** Whether the catalog is currently loading. */
   catalogLoading: boolean
+  /** Currently selected metric series. */
   selectedSeries: SelectedMetric[]
+  /** Callback to add a metric to the active series. */
   onAddMetric: (
     sourceType: string,
     sourceID: string,
     metricID: string,
     label: string,
   ) => void
+  /** Callback to remove a metric series by its composite key. */
   onRemoveMetric: (key: string) => void
 }
 
+/**
+ * Tabbed metric browser panel. The JM tab auto-selects its single source; TM
+ * and Vertex tabs require the user to choose a source ID first. Metrics are
+ * searchable and can be toggled on/off with a click. Active metrics show an
+ * X icon; inactive ones show a Plus icon.
+ */
 export function MetricsBrowser({
   catalog,
   catalogLoading,

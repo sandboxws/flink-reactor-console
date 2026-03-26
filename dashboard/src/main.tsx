@@ -1,3 +1,10 @@
+/**
+ * @module main
+ * Application entry point. Initializes the instruments UI package, creates the
+ * TanStack Router instance from the auto-generated route tree, and mounts the
+ * React root with strict mode enabled.
+ */
+
 import { initInstrumentsUI } from "@flink-reactor/instruments-ui"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { StrictMode } from "react"
@@ -8,8 +15,13 @@ import { routeTree } from "./routeTree.gen"
 // Initialize the instruments UI package with the shared GraphQL client.
 initInstrumentsUI({ graphqlClient })
 
+/** Router instance created from the file-based {@link routeTree}. */
 const router = createRouter({ routeTree })
 
+/**
+ * TanStack Router module augmentation for type-safe route navigation
+ * throughout the application.
+ */
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router

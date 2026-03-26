@@ -1,3 +1,12 @@
+/**
+ * @module catalog-tree
+ *
+ * Three-level tree view for navigating Flink SQL catalogs. Lazy-loads
+ * databases when a catalog is expanded, tables when a database is expanded,
+ * and column schemas when a table is expanded. Expansion state and loading
+ * indicators are managed by {@link useCatalogStore}.
+ */
+
 import { Spinner } from "@flink-reactor/ui"
 import {
   ChevronDown,
@@ -10,6 +19,12 @@ import { cn } from "@/lib/cn"
 import { useCatalogStore } from "@/stores/catalog-store"
 import { ColumnsTable } from "./columns-table"
 
+/**
+ * Collapsible tree of catalogs > databases > tables > columns.
+ *
+ * Each level lazy-loads its children via the catalog store when expanded.
+ * Leaf table nodes display a {@link ColumnsTable} showing column schemas.
+ */
 export function CatalogTree() {
   const catalogs = useCatalogStore((s) => s.catalogs)
   const expandedNodes = useCatalogStore((s) => s.expandedNodes)
@@ -138,6 +153,7 @@ export function CatalogTree() {
   )
 }
 
+/** Indented tree row button with expand/collapse chevron, icon, label, and optional badge. */
 function TreeButton({
   icon: Icon,
   label,

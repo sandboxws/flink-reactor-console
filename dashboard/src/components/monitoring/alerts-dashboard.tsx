@@ -1,3 +1,9 @@
+/**
+ * @module alerts-dashboard
+ * Alert rules management dashboard showing active alerts, severity summaries,
+ * and a configurable rule list. Subscribes to {@link useAlertsStore} for all
+ * alert and rule state.
+ */
 import {
   AlertCircle,
   AlertTriangle,
@@ -14,8 +20,7 @@ import { AlertCard } from "./alert-card"
 import { CreateRuleDialog } from "./create-rule-dialog"
 import { RuleList } from "./rule-list"
 
-// Loading skeleton
-
+/** Placeholder skeleton shown while the alerts store hydrates. */
 function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -34,16 +39,18 @@ function LoadingSkeleton() {
   )
 }
 
-// Severity icon helper
-
+/** Maps each {@link AlertSeverity} to its icon component and color class. */
 const SEVERITY_ICON = {
   critical: { icon: AlertCircle, color: "text-job-failed" },
   warning: { icon: AlertTriangle, color: "text-fr-amber" },
   info: { icon: Info, color: "text-fr-purple" },
 } as const
 
-// Main component
-
+/**
+ * Top-level alerts page combining severity summary cards, a sorted active-alerts
+ * feed, a toggleable rule list, and a creation dialog. Rules are read from
+ * {@link useAlertsStore}; the component shows a skeleton until the store hydrates.
+ */
 export function AlertsDashboard() {
   const rules = useAlertsStore((s) => s.rules)
   const activeAlerts = useAlertsStore((s) => s.activeAlerts)

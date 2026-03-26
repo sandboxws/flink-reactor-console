@@ -1,3 +1,12 @@
+/**
+ * @module template-selector
+ *
+ * Dialog-based SQL template picker for the catalog explore page. Templates
+ * are grouped by category and displayed with a live SQL preview that
+ * resolves placeholder tokens (catalog/database/table) as the user fills
+ * in the input fields. Pre-filled sample queries skip the input step.
+ */
+
 import {
   Button,
   Dialog,
@@ -18,9 +27,11 @@ import {
 import { SqlHighlight } from "./sql-highlight"
 
 interface TemplateSelectorProps {
+  /** Callback invoked with the resolved SQL when the user confirms a template. */
   onSelect: (sql: string) => void
 }
 
+/** Groups templates by their category field for sectioned display. */
 function groupByCategory(
   templates: ExploreTemplate[],
 ): Map<string, ExploreTemplate[]> {
@@ -37,6 +48,13 @@ function groupByCategory(
   return groups
 }
 
+/**
+ * SQL template picker dialog with categorized template list and live preview.
+ *
+ * Generic templates require catalog/database/table inputs to resolve
+ * placeholders before applying. Pre-filled sample queries can be applied
+ * directly. State resets when the dialog closes.
+ */
 export function TemplateSelector({ onSelect }: TemplateSelectorProps) {
   const [open, setOpen] = useState(false)
   const [catalog, setCatalog] = useState("")

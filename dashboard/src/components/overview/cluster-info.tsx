@@ -1,12 +1,28 @@
+/**
+ * @module cluster-info
+ *
+ * Displays the Flink cluster version, truncated commit hash, and optional
+ * capability badges in a compact info bar at the top of the overview page.
+ */
+
 import { Info } from "lucide-react"
 
+/**
+ * Horizontal info bar showing Flink version metadata and cluster capabilities.
+ *
+ * The commit ID is truncated to the first 7 characters. Capabilities (e.g.,
+ * "SQL", "STREAMING") render as individually-badged tags when present.
+ */
 export function ClusterInfo({
   version,
   commitId,
   capabilities,
 }: {
+  /** Flink version string (e.g., "1.20.0"). */
   version: string
+  /** Full Git commit hash of the Flink build. */
   commitId: string
+  /** Optional list of cluster capability names rendered as badges. */
   capabilities?: string[]
 }) {
   return (

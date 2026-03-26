@@ -1,13 +1,25 @@
+/**
+ * @module tap-operator-select
+ *
+ * Full-panel operator selector for TAP. Groups tapped operators by component
+ * type (source, transform, join, window, sink) and renders them in a card
+ * layout. Operators with open tabs are disabled to prevent duplicates.
+ */
+
 import { ArrowRight, Database, GitMerge, Radio, Shuffle } from "lucide-react"
 import type { TapMetadata } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 interface TapOperatorSelectProps {
+  /** Available tapped operators from the manifest. */
   operators: TapMetadata[]
+  /** Callback invoked when an operator is selected to open a new tab. */
   onSelect: (nodeId: string) => void
+  /** Node IDs that already have open tabs (shown as disabled). */
   disabledNodeIds?: string[]
 }
 
+/** Maps component types to their display icons. */
 const TYPE_ICONS: Record<
   string,
   React.ComponentType<{ className?: string }>
@@ -19,6 +31,7 @@ const TYPE_ICONS: Record<
   sink: Radio,
 }
 
+/** Maps component types to their section heading labels. */
 const TYPE_LABELS: Record<string, string> = {
   source: "Sources",
   transform: "Transforms",

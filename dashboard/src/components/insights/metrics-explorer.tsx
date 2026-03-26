@@ -1,3 +1,11 @@
+/**
+ * @module metrics-explorer
+ * Multi-metric explorer page with a two-panel layout: a left sidebar containing
+ * the {@link MetricsBrowser} and {@link PresetSelector}, and a right panel
+ * rendering a grid of {@link MetricChart} cards. Supports configurable time
+ * range, refresh interval, and pause/resume of polling. All state is managed
+ * by {@link useMetricsExplorerStore}.
+ */
 import { LineChart, Pause, Play, Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type {
@@ -9,6 +17,7 @@ import { getChartColor, MetricChart } from "./metric-chart"
 import { MetricsBrowser } from "./metrics-browser"
 import { PresetSelector } from "./preset-selector"
 
+/** Available polling interval options in milliseconds. */
 const INTERVAL_OPTIONS: { value: RefreshInterval; label: string }[] = [
   { value: 5000, label: "5s" },
   { value: 10000, label: "10s" },
@@ -16,6 +25,7 @@ const INTERVAL_OPTIONS: { value: RefreshInterval; label: string }[] = [
   { value: 60000, label: "1m" },
 ]
 
+/** Available time range window options for the chart X-axis. */
 const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
   { value: "5m", label: "5m" },
   { value: "15m", label: "15m" },
@@ -24,6 +34,7 @@ const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
   { value: "24h", label: "24h" },
 ]
 
+/** Builds a unique composite key for a metric series from its source and ID. */
 function seriesKey(m: {
   sourceType: string
   sourceID: string
@@ -32,6 +43,7 @@ function seriesKey(m: {
   return `${m.sourceType}:${m.sourceID}:${m.metricID}`
 }
 
+/** Maps a source type to a short display label for chart badges. */
 function sourceBadge(sourceType: string): string {
   switch (sourceType) {
     case "job_manager":
@@ -45,6 +57,13 @@ function sourceBadge(sourceType: string): string {
   }
 }
 
+/**
+ * Full-page metrics explorer with a two-panel layout. The top toolbar provides
+ * time range, refresh interval, pause/resume, and clear-all controls. The left
+ * sidebar houses the metric browser (with source tabs and search) and preset
+ * quick-select buttons. The right panel renders a responsive grid of
+ * {@link MetricChart} cards, one per selected series.
+ */
 export function MetricsExplorer() {
   const catalog = useMetricsExplorerStore((s) => s.catalog)
   const catalogLoading = useMetricsExplorerStore((s) => s.catalogLoading)

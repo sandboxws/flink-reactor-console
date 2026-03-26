@@ -1,9 +1,17 @@
-// ---------------------------------------------------------------------------
-// Shared tag badge + filter chip components for config & classpath sections
-// ---------------------------------------------------------------------------
+/**
+ * @module tag-filter
+ *
+ * Shared tag badge, filter chip, and config-key classifier used by the
+ * Job Manager configuration and classpath sections. Colors are derived
+ * from CSS custom properties via `color-mix()` so they adapt to both
+ * light and dark themes automatically.
+ */
 
-// Tag color map — uses CSS custom properties so colors adapt to light/dark theme.
-// bg and border are derived via color-mix() at render time.
+/**
+ * Tag-to-CSS-variable color map. Each tag resolves to a CSS custom property
+ * so that `color-mix()` can derive background, text, and border shades at
+ * render time.
+ */
 const TAG_COLORS: Record<string, string> = {
   // Classpath tags
   "flink-core": "var(--color-log-debug)",
@@ -30,10 +38,12 @@ const TAG_COLORS: Record<string, string> = {
   other: "var(--color-log-trace)",
 }
 
+/** Resolve a tag name to its CSS color variable, falling back to "other". */
 function getTagColor(tag: string): string {
   return TAG_COLORS[tag] ?? TAG_COLORS.other
 }
 
+/** Derive background, text, and border colors from a base CSS color using `color-mix()`. */
 function tagStyle(color: string) {
   return {
     bg: `color-mix(in srgb, ${color} 12%, transparent)`,
@@ -42,6 +52,7 @@ function tagStyle(color: string) {
   }
 }
 
+/** Read-only tag label rendered as a colored pill badge. */
 export function TagBadge({ tag }: { tag: string }) {
   const color = getTagColor(tag)
   const s = tagStyle(color)
@@ -60,6 +71,10 @@ export function TagBadge({ tag }: { tag: string }) {
   )
 }
 
+/**
+ * Interactive filter chip that toggles a tag filter on click. Shows the
+ * tag name and entry count; dims to 55% opacity when inactive.
+ */
 export function TagChip({
   tag,
   count,
@@ -99,10 +114,10 @@ export function TagChip({
   )
 }
 
-// ---------------------------------------------------------------------------
-// Config key → tag classifier
-// ---------------------------------------------------------------------------
-
+/**
+ * Maps the first dotted segment of a Flink config key to a display tag.
+ * Used by {@link classifyConfigKey} to categorise configuration entries.
+ */
 const CONFIG_TAG_MAP: Record<string, string> = {
   jobmanager: "jobmanager",
   taskmanager: "taskmanager",
@@ -123,6 +138,11 @@ const CONFIG_TAG_MAP: Record<string, string> = {
   table: "table",
 }
 
+/**
+ * Classify a Flink config key (e.g. `"jobmanager.memory.heap.size"`) into
+ * a human-readable tag by matching the first dotted or hyphenated segment
+ * against {@link CONFIG_TAG_MAP}. Returns `"other"` for unrecognised keys.
+ */
 export function classifyConfigKey(key: string): string {
   // Try the first dotted segment, then check for hyphenated prefixes
   const firstDot = key.indexOf(".")

@@ -1,3 +1,13 @@
+/**
+ * @module job-history-table
+ *
+ * Server-paginated, sortable table of historical {@link JobHistoryEntry} records
+ * fetched via GraphQL. Sorting and pagination are controlled by the parent
+ * (typically the completed-jobs route) through callback props, keeping this
+ * component stateless with respect to data fetching.
+ *
+ * Rows navigate to the job detail page on click.
+ */
 import {
   formatDuration,
   Table,
@@ -23,16 +33,25 @@ import { JobStatusBadge } from "./job-status-badge"
 // Types
 // ---------------------------------------------------------------------------
 
+/** Server-side sort field matching the GraphQL `JobHistoryOrderField` enum. */
 type OrderField = "START_TIME" | "END_TIME" | "DURATION" | "NAME" | "STATE"
+
+/** Server-side sort direction matching the GraphQL ordering convention. */
 type OrderDirection = "ASC" | "DESC"
 
+/** Column definition for the history table, including optional fixed width. */
 type ColumnDef = {
+  /** GraphQL order field this column maps to. */
   key: OrderField
+  /** Human-readable column header. */
   label: string
+  /** Optional Tailwind text alignment class. */
   align?: string
+  /** Optional Tailwind width class for fixed-layout columns. */
   width?: string
 }
 
+/** Fixed column layout for the job history table. */
 const columns: ColumnDef[] = [
   { key: "NAME", label: "Name", width: "w-[44%]" },
   { key: "STATE", label: "Status", width: "w-[10%]" },
@@ -45,6 +64,7 @@ const columns: ColumnDef[] = [
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Format an ISO timestamp string for display, returning a dash for null/invalid values. */
 function formatTimestamp(ts: string | null): string {
   if (!ts) return "—"
   try {
@@ -58,6 +78,7 @@ function formatTimestamp(ts: string | null): string {
 // Pagination controls
 // ---------------------------------------------------------------------------
 
+/** Previous/Next pagination footer with "Showing X-Y of Z" label. */
 function PaginationControls({
   currentPage,
   pageSize,
@@ -109,6 +130,13 @@ function PaginationControls({
 // JobHistoryTable
 // ---------------------------------------------------------------------------
 
+/**
+ * Paginated table of historical job runs with server-side sorting.
+ *
+ * All data fetching, sorting, and pagination state is owned by the parent;
+ * this component is a controlled presentation layer that fires callbacks
+ * for sort toggling and page navigation.
+ */
 export function JobHistoryTable({
   entries,
   totalCount,
@@ -121,15 +149,25 @@ export function JobHistoryTable({
   onNextPage,
   onPrevPage,
 }: {
+  /** Current page of {@link JobHistoryEntry} records from the server. */
   entries: JobHistoryEntry[]
+  /** Total matching records across all pages. */
   totalCount: number
+  /** Whether the server has more records after the current page. */
   hasNextPage: boolean
+  /** Zero-based current page index. */
   currentPage: number
+  /** Number of records per page. */
   pageSize: number
+  /** Currently active sort field. */
   orderField: OrderField
+  /** Current sort direction. */
   orderDirection: OrderDirection
+  /** Called when a column header is clicked to toggle sort. */
   onSort: (field: OrderField) => void
+  /** Navigate to the next page. */
   onNextPage: () => void
+  /** Navigate to the previous page. */
   onPrevPage: () => void
 }) {
   const navigate = useNavigate()

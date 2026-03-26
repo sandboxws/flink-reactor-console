@@ -1,3 +1,11 @@
+/**
+ * @module plan-analysis-panel
+ *
+ * Tabbed panel for viewing an {@link AnalyzedFlinkPlan} — DAG visualization,
+ * detected anti-patterns, optimization recommendations, and state growth
+ * forecasts. Active tab is managed by {@link usePlanAnalyzerStore}.
+ */
+
 import { AlertTriangle, Database, GitGraph, Lightbulb } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { AnalyzedFlinkPlan } from "@/lib/plan-analyzer/types"
@@ -6,6 +14,7 @@ import { PlanAntiPatternCard } from "./plan-anti-pattern-card"
 import { PlanDAG } from "./plan-dag"
 import { PlanStateForecast } from "./plan-state-forecast"
 
+/** Available panel tabs. */
 type Tab = "dag" | "analysis" | "recommendations" | "state"
 
 const TABS: { id: Tab; label: string; icon: typeof GitGraph }[] = [
@@ -15,6 +24,13 @@ const TABS: { id: Tab; label: string; icon: typeof GitGraph }[] = [
   { id: "state", label: "State", icon: Database },
 ]
 
+/**
+ * Four-tab panel for plan analysis results.
+ *
+ * Tabs show the execution DAG, detected anti-patterns, actionable
+ * recommendations, and per-operator state growth forecasts.
+ * Badge counts on each tab summarize the number of findings.
+ */
 export function PlanAnalysisPanel({ plan }: { plan: AnalyzedFlinkPlan }) {
   const activeTab = usePlanAnalyzerStore((s) => s.activeTab)
   const setActiveTab = usePlanAnalyzerStore((s) => s.setActiveTab)

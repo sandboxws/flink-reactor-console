@@ -1,3 +1,8 @@
+/**
+ * @module checkpoint-timeline-chart
+ * Stacked bar chart showing checkpoint successes and failures over time.
+ * Each bar represents a time-bucketed entry from the checkpoint analytics store.
+ */
 import {
   Bar,
   BarChart,
@@ -8,10 +13,12 @@ import {
 } from "recharts"
 import type { CheckpointTimelineEntry } from "@/stores/checkpoint-analytics-store"
 
+/** Formats a Date to locale "HH:MM" time string. */
 function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
+/** Custom tooltip for the timeline bar chart showing success and failure counts. */
 function TimelineTooltip({
   active,
   payload,
@@ -40,6 +47,11 @@ function TimelineTooltip({
   )
 }
 
+/**
+ * Stacked bar chart visualizing checkpoint outcomes over time. Green bars
+ * represent successful checkpoints and red bars represent failures, stacked
+ * per time bucket. Shows a placeholder message while data is being collected.
+ */
 export function CheckpointTimelineChart({
   timeline,
 }: {

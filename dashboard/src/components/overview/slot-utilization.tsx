@@ -1,12 +1,29 @@
+/**
+ * @module slot-utilization
+ *
+ * Task slot availability gauge for the cluster overview. Shows available
+ * vs total slots with a progress bar that changes color based on
+ * availability thresholds (green > 50%, amber >= 10%, red < 10%).
+ */
+
 import { Progress } from "@flink-reactor/ui"
 import { Layers } from "lucide-react"
 import { cn } from "@/lib/cn"
 
+/**
+ * Displays task slot availability as a fraction, percentage, and progress bar.
+ *
+ * The color shifts from green (healthy) to amber (low) to red (critical) as
+ * the percentage of free slots decreases, providing an at-a-glance health
+ * indicator for cluster capacity.
+ */
 export function SlotUtilization({
   available,
   total,
 }: {
+  /** Number of currently unoccupied task slots. */
   available: number
+  /** Total number of task slots across all task managers. */
   total: number
 }) {
   const pct = total > 0 ? Math.round((available / total) * 100) : 0

@@ -1,15 +1,33 @@
+/**
+ * @module tap-status-bar
+ *
+ * Bottom status bar for TAP observation tabs. Displays real-time metrics:
+ * total rows received, current throughput (rows/sec), buffer usage as a
+ * fraction of the configured limit, and the Kafka consumer group ID.
+ */
+
 import { Activity, Database, Radio, Users } from "lucide-react"
 import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 
 interface TapStatusBarProps {
+  /** Total number of rows received since session start. */
   totalRowCount: number
+  /** Approximate throughput in rows per second. */
   rowsPerSecond: number
+  /** Maximum configured row buffer size. */
   bufferSize: number
+  /** Current number of rows in the buffer. */
   currentBufferCount: number
+  /** Current session status or "idle". */
   status: ActiveTapSession["status"] | "idle"
+  /** Kafka consumer group ID for this tap session. */
   consumerGroupId: string
 }
 
+/**
+ * Compact status bar showing row count, throughput, buffer usage percentage,
+ * consumer group ID, and an error indicator when the session has failed.
+ */
 export function TapStatusBar({
   totalRowCount,
   rowsPerSecond,

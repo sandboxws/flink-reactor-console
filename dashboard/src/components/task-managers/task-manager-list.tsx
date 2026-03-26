@@ -1,3 +1,10 @@
+/**
+ * @module task-manager-list
+ *
+ * Sortable table of all registered task managers with inline memory bars,
+ * slot counts, and a live heartbeat indicator. Clicking a row navigates
+ * to the {@link TaskManagerDetail} page.
+ */
 import {
   Table,
   TableBody,
@@ -23,6 +30,7 @@ import { MemoryBar } from "./memory-bar"
 // Sort logic
 // ---------------------------------------------------------------------------
 
+/** Column key used for table sort state. */
 type SortKey =
   | "id"
   | "dataPort"
@@ -34,8 +42,10 @@ type SortKey =
   | "managedMemory"
   | "networkMemory"
 
+/** Sort direction. */
 type SortDir = "asc" | "desc"
 
+/** Sort an array of {@link TaskManager} entries by the given key and direction. */
 function sortTms(
   tms: TaskManager[],
   key: SortKey,
@@ -81,6 +91,7 @@ function sortTms(
 // ID cell with copy and truncation
 // ---------------------------------------------------------------------------
 
+/** Truncated task manager ID with click-to-copy and tooltip showing the full value. */
 function TmIdCell({ id }: { id: string }) {
   const [copied, setCopied] = useState(false)
   const truncated = id.length > 12 ? `${id.slice(0, 12)}\u2026` : id
@@ -122,6 +133,7 @@ function TmIdCell({ id }: { id: string }) {
 // Heartbeat cell with live update
 // ---------------------------------------------------------------------------
 
+/** Relative-time cell that re-renders every second to keep "X ago" labels fresh. */
 function HeartbeatCell({ date }: { date: Date }) {
   const [, setTick] = useState(0)
 
@@ -141,9 +153,13 @@ function HeartbeatCell({ date }: { date: Date }) {
 // Column definitions
 // ---------------------------------------------------------------------------
 
+/** Metadata for a single table column header. */
 type ColumnDef = {
+  /** Sort key this column maps to. */
   key: SortKey
+  /** Display label shown in the header. */
   label: string
+  /** Optional Tailwind text-alignment class (e.g. "text-right"). */
   align?: string
 }
 
@@ -163,6 +179,14 @@ const columns: ColumnDef[] = [
 // TaskManagerList
 // ---------------------------------------------------------------------------
 
+/**
+ * Sortable table listing all task managers in the cluster.
+ *
+ * Each row shows the TM identifier, data port, last heartbeat, slot usage,
+ * CPU cores, and inline {@link MemoryBar} visualizations for physical memory,
+ * JVM heap, managed memory, and network memory. Rows are clickable and navigate
+ * to the individual task manager detail page.
+ */
 export function TaskManagerList({
   taskManagers,
   selectedId,

@@ -1,6 +1,13 @@
+/**
+ * @module top-issues-list
+ * Ranked list of active health issues sorted by severity. Each issue shows a
+ * severity icon, descriptive message, source badge, and relative timestamp.
+ * Supports a configurable max-items cap with a "and N more..." overflow hint.
+ */
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react"
 import type { HealthIssue } from "@/stores/insights-store"
 
+/** Per-severity icon and color class configuration. */
 const SEVERITY_CONFIG = {
   critical: {
     icon: AlertCircle,
@@ -16,6 +23,7 @@ const SEVERITY_CONFIG = {
   },
 } as const
 
+/** Formats a Date as a short relative time string (e.g. "45s ago", "3m ago"). */
 function formatRelativeTime(date: Date): string {
   const seconds = Math.round((Date.now() - date.getTime()) / 1000)
   if (seconds < 60) return `${seconds}s ago`
@@ -23,6 +31,13 @@ function formatRelativeTime(date: Date): string {
   return `${minutes}m ago`
 }
 
+/**
+ * Renders a capped list of active health issues inside a glass card. Each row
+ * shows a severity icon, the issue message, a source badge, and a relative
+ * timestamp. Displays a "No issues detected" message with a green check when
+ * the issues array is empty. Excess items beyond maxItems are summarized with
+ * an overflow count.
+ */
 export function TopIssuesList({
   issues,
   maxItems = 10,

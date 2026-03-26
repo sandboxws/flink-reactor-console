@@ -1,3 +1,12 @@
+/**
+ * @module plan-dag
+ *
+ * Interactive DAG visualization of a Flink execution plan using ReactFlow.
+ * Flattens the {@link AnalyzedFlinkPlan} operator tree into positioned nodes
+ * and edges using Kahn's topological sort, then renders them with custom
+ * {@link PlanOperatorNode} and {@link PlanStrategyEdge} components.
+ */
+
 import type { Edge, Node } from "@xyflow/react"
 import {
   Background,
@@ -31,6 +40,11 @@ const NODE_HEIGHT = 170
 const COL_GAP = 80
 const ROW_GAP = 50
 
+/**
+ * Assigns x/y positions to nodes using Kahn's topological sort.
+ * Sources are placed in column 0, downstream operators in successive columns.
+ * Nodes within a column are vertically centered.
+ */
 function layoutElements(
   nodes: Node[],
   edges: Edge[],
@@ -100,6 +114,11 @@ function layoutElements(
 // Flatten plan tree into nodes + edges
 // ---------------------------------------------------------------------------
 
+/**
+ * Recursively traverses the plan operator tree and produces flat arrays of
+ * ReactFlow nodes and edges. Anti-patterns and state forecasts are indexed
+ * by operator ID and attached to each node's data payload.
+ */
 function flattenPlan(
   plan: AnalyzedFlinkPlan,
   selectedNodeId: string | null,
@@ -183,6 +202,7 @@ const edgeTypes = { planStrategy: PlanStrategyEdge }
 // Inner component (needs ReactFlow context)
 // ---------------------------------------------------------------------------
 
+/** Inner component that requires ReactFlow context for `fitView`. */
 function PlanDAGInner({
   plan,
   selectedNodeId,
@@ -257,6 +277,12 @@ function PlanDAGInner({
 // Exported wrapper with provider
 // ---------------------------------------------------------------------------
 
+/**
+ * Execution plan DAG visualization with zoom controls and minimap.
+ *
+ * Wraps ReactFlow in a provider and delegates layout/rendering to
+ * {@link PlanDAGInner}. The minimap is shown when the graph has 5+ nodes.
+ */
 export function PlanDAG({
   plan,
   selectedNodeId,

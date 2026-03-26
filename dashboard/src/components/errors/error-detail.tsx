@@ -1,3 +1,11 @@
+/**
+ * @module error-detail
+ *
+ * Detail panel for a selected {@link ErrorGroup}, showing the exception class,
+ * message, occurrence count, first/last seen timestamps, affected sources,
+ * the sample stack trace, and a link to view related log entries.
+ */
+
 import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
 import { ExternalLink } from "lucide-react"
@@ -5,10 +13,7 @@ import { SourceBadge } from "@flink-reactor/ui"
 import type { ErrorGroup } from "@flink-reactor/ui"
 import { StackTrace } from "./stack-trace"
 
-// ---------------------------------------------------------------------------
-// Field helper (mirrors log-detail-panel pattern)
-// ---------------------------------------------------------------------------
-
+/** Label-value pair rendered as a flex row, shared layout pattern with log-detail-panel. */
 function Field({
   label,
   children,
@@ -24,10 +29,14 @@ function Field({
   )
 }
 
-// ---------------------------------------------------------------------------
-// Error detail
-// ---------------------------------------------------------------------------
-
+/**
+ * Error detail panel showing full information for a selected {@link ErrorGroup}.
+ *
+ * Displays the exception class header, message, metadata fields (occurrence
+ * count, first/last seen, affected sources), a rendered {@link StackTrace}
+ * from the sample entry, and a deep link to the log explorer filtered to
+ * the error's time window.
+ */
 export function ErrorDetail({ group }: { group: ErrorGroup }) {
   return (
     <div className="flex flex-col gap-4 overflow-auto p-4">

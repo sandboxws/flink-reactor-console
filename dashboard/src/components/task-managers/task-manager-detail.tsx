@@ -1,3 +1,10 @@
+/**
+ * @module task-manager-detail
+ *
+ * Tabbed detail view for a single task manager, showing resource overview,
+ * live metrics, logs, stdout, log file list, thread dump, and profiler tabs.
+ * Tab data is lazy-loaded on first activation to avoid unnecessary API calls.
+ */
 import { formatBytes, Spinner, Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { format } from "date-fns"
@@ -26,6 +33,7 @@ import { TmThreadDumpTab } from "./tm-thread-dump-tab"
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Label + value pair used in the task manager info panel header. */
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
@@ -41,6 +49,14 @@ function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
 // TaskManagerDetail — tabbed detail view for a single TM
 // ---------------------------------------------------------------------------
 
+/**
+ * Full-page detail view for a single {@link TaskManager}.
+ *
+ * Renders a header with key TM metadata (path, slots, heartbeat, CPU, memory)
+ * and a seven-tab interface for deep inspection. Tab content is lazy-loaded:
+ * logs, stdout, log list, and thread dump data are fetched only when their
+ * respective tab is first activated, keeping the initial render fast.
+ */
 export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null)

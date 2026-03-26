@@ -1,3 +1,12 @@
+/**
+ * @module data-skew-tab
+ *
+ * Data skew analysis tab showing per-subtask record distribution for a selected
+ * vertex. Renders a bar chart with a 2x-median reference line to highlight skewed
+ * subtasks, plus summary statistics (total, min, max, median, avg, skew ratio).
+ * Supports toggling between records-in and records-out metrics.
+ */
+
 import {
   EmptyState,
   Select,
@@ -25,6 +34,7 @@ import { cn } from "@/lib/cn"
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Formats a number with SI suffixes (K, M, B) for compact chart labels. */
 function formatSI(n: number): string {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -32,6 +42,7 @@ function formatSI(n: number): string {
   return String(n)
 }
 
+/** Computes the statistical median of a numeric array. */
 function median(values: number[]): number {
   if (values.length === 0) return 0
   const sorted = [...values].sort((a, b) => a - b)
@@ -45,6 +56,7 @@ function median(values: number[]): number {
 // Custom tooltip
 // ---------------------------------------------------------------------------
 
+/** Recharts tooltip showing subtask index, record count, and skew indicator. */
 function SkewTooltip({
   active,
   payload,
@@ -76,6 +88,11 @@ function SkewTooltip({
 // DataSkewTab
 // ---------------------------------------------------------------------------
 
+/**
+ * Data skew analysis view with vertex selector, records-in/out toggle, a bar chart
+ * highlighting subtasks exceeding 2x the median (colored red), and a summary stats
+ * grid. Skew ratio above 2.0x is visually flagged to draw attention to imbalances.
+ */
 export function DataSkewTab({
   subtaskMetrics,
   vertices,

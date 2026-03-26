@@ -1,3 +1,11 @@
+/**
+ * @module checkpoint-analytics
+ * Checkpoint analytics dashboard aggregating cross-job checkpoint statistics.
+ * Subscribes to {@link useCheckpointAnalyticsStore} for per-job summaries,
+ * timeline data, and aggregates, and to {@link useClusterStore} for running-job
+ * awareness. Shows appropriate empty states when no jobs run or checkpointing
+ * is not configured.
+ */
 import {
   CheckCircle2,
   Clock,
@@ -12,8 +20,7 @@ import { CheckpointJobTable } from "./checkpoint-job-table"
 import { CheckpointTimelineChart } from "./checkpoint-timeline-chart"
 import { StateSizeChart } from "./state-size-chart"
 
-// Loading skeleton
-
+/** Placeholder skeleton shown while checkpoint data is loading. */
 function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -35,8 +42,7 @@ function LoadingSkeleton() {
   )
 }
 
-// Empty state — no running jobs at all
-
+/** Empty state shown when no running jobs exist in the cluster. */
 function EmptyState() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -55,8 +61,7 @@ function EmptyState() {
   )
 }
 
-// Empty state — jobs exist but checkpointing is not configured
-
+/** Empty state shown when running jobs exist but none have checkpointing enabled. */
 function NotConfiguredState() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -79,8 +84,12 @@ function NotConfiguredState() {
   )
 }
 
-// Main component
-
+/**
+ * Top-level checkpoint analytics page. Displays summary metric cards (total
+ * checkpoints, success rate, average duration, total state size), a per-job
+ * statistics table, a checkpoint success/failure timeline bar chart, and a
+ * state-size/duration trend chart. Delegates to empty states when appropriate.
+ */
 export function CheckpointAnalytics() {
   const loading = useCheckpointAnalyticsStore((s) => s.loading)
   const summaries = useCheckpointAnalyticsStore((s) => s.summaries)

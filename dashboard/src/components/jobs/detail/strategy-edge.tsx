@@ -1,8 +1,21 @@
+/**
+ * @module strategy-edge
+ *
+ * Custom ReactFlow edge that renders a smooth-step path between operator nodes
+ * with an inline label showing the Flink ship/partitioning strategy
+ * (e.g. FORWARD, HASH, REBALANCE).
+ */
+
 import type { EdgeProps } from "@xyflow/react"
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from "@xyflow/react"
 
+/** Edge data carrying the Flink partitioning strategy label. */
 type StrategyEdgeData = { shipStrategy: string }
 
+/**
+ * Custom ReactFlow edge rendering a smooth-step path with an optional
+ * ship strategy label (FORWARD, HASH, REBALANCE, etc.) positioned at the midpoint.
+ */
 export function StrategyEdge({
   id,
   sourceX,

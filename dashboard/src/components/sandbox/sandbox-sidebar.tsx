@@ -1,3 +1,12 @@
+/**
+ * @module sandbox-sidebar
+ *
+ * Sidebar navigation for the DSL sandbox examples. Groups examples into
+ * collapsible categories (getting started, transforms, windows, joins,
+ * routing) and highlights the currently active example. Selecting an
+ * example loads its code into the editor via {@link useSandboxStore}.
+ */
+
 import {
   BookOpen,
   ChevronDown,
@@ -13,6 +22,7 @@ import { cn } from "@/lib/cn"
 import { useSandboxStore } from "@/stores/sandbox-store"
 import { SANDBOX_CATEGORIES, type SandboxCategory } from "./sandbox-examples"
 
+/** Maps category IDs to their sidebar icons. */
 const CATEGORY_ICONS: Record<string, typeof Play> = {
   "getting-started": BookOpen,
   transforms: Zap,
@@ -21,6 +31,11 @@ const CATEGORY_ICONS: Record<string, typeof Play> = {
   routing: Split,
 }
 
+/**
+ * Scrollable sidebar listing sandbox example categories with collapsible
+ * sections. All categories start expanded. The active example is highlighted
+ * with a purple left border.
+ */
 export function SandboxSidebar() {
   const activeExample = useSandboxStore((s) => s.activeExample)
   const loadExample = useSandboxStore((s) => s.loadExample)
@@ -63,6 +78,7 @@ export function SandboxSidebar() {
   )
 }
 
+/** Collapsible category section with icon header and list of example buttons. */
 function CategoryGroup({
   category,
   isExpanded,

@@ -1,3 +1,12 @@
+/**
+ * @module job-header
+ *
+ * Job detail header displaying the job name, status badge, live/static duration,
+ * progress ring, and action buttons (cancel, stop-with-savepoint, create savepoint).
+ * Detects tap and explore jobs by name prefix to show specialized badges.
+ * Reads {@link useClusterStore} for feature flags and tappable pipeline status.
+ */
+
 import { Badge, formatDuration } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
@@ -23,6 +32,7 @@ import { useClusterStore } from "@/stores/cluster-store"
 // Status colors
 // ---------------------------------------------------------------------------
 
+/** Maps Flink job status strings to Tailwind background/text color classes. */
 const statusColor: Record<string, string> = {
   RUNNING: "bg-job-running/15 text-job-running",
   FINISHED: "bg-job-finished/15 text-job-finished",
@@ -42,10 +52,12 @@ const statusColor: Record<string, string> = {
 
 const TAP_JOB_PREFIX = "fr-tap-"
 
+/** Returns true if the job name indicates a FlinkReactor tap session. */
 function isTapJob(name: string): boolean {
   return name.startsWith(TAP_JOB_PREFIX)
 }
 
+/** Strips the tap prefix to produce a human-readable job name. */
 function tapDisplayName(name: string): string {
   return name.slice(TAP_JOB_PREFIX.length)
 }
@@ -56,10 +68,12 @@ function tapDisplayName(name: string): string {
 
 const EXPLORE_JOB_PREFIX = "explore: "
 
+/** Returns true if the job name indicates a FlinkReactor explore query. */
 function isExploreJob(name: string): boolean {
   return name.startsWith(EXPLORE_JOB_PREFIX)
 }
 
+/** Strips the explore prefix to produce a human-readable job name. */
 function exploreDisplayName(name: string): string {
   return name.slice(EXPLORE_JOB_PREFIX.length)
 }
@@ -73,6 +87,7 @@ function exploreDisplayName(name: string): string {
 // Live duration (per-cell timer pattern from DurationCell)
 // ---------------------------------------------------------------------------
 
+/** Ticking duration counter that re-renders every second for running jobs. */
 function LiveDuration({ startTime }: { startTime: Date }) {
   const [now, setNow] = useState(() => Date.now())
 
@@ -92,6 +107,7 @@ function LiveDuration({ startTime }: { startTime: Date }) {
 // Copy-on-click job ID (pattern from JobIdCell)
 // ---------------------------------------------------------------------------
 
+/** Clickable job ID that copies the full ID to the clipboard with visual feedback. */
 function CopyableJobId({ id }: { id: string }) {
   const [copied, setCopied] = useState(false)
 
@@ -122,6 +138,7 @@ function CopyableJobId({ id }: { id: string }) {
 // SVG progress ring
 // ---------------------------------------------------------------------------
 
+/** SVG circular progress indicator showing task completion percentage. */
 function ProgressRing({
   percentage,
   size = 48,
@@ -173,6 +190,7 @@ function ProgressRing({
 // Stat card
 // ---------------------------------------------------------------------------
 
+/** Small glass card showing a labeled metric value with an icon. */
 function StatCard({
   label,
   icon: Icon,
@@ -197,6 +215,12 @@ function StatCard({
 // JobHeader
 // ---------------------------------------------------------------------------
 
+/**
+ * Job detail page header showing the job name (with tap/explore/tappable badges),
+ * status, copyable ID, live or static duration, task completion ring, and action
+ * buttons for cancel, stop-with-savepoint, and create-savepoint operations.
+ * Reads feature flags from {@link useClusterStore} to conditionally show the cancel button.
+ */
 export function JobHeader({
   job,
   onCancelJob,

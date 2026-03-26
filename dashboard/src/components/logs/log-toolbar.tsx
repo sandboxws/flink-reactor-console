@@ -1,3 +1,12 @@
+/**
+ * @module log-toolbar
+ *
+ * Toolbar for the log explorer providing stream play/pause, full-text search
+ * with regex support, severity level toggles, log source filtering, entry
+ * count display, and a time range picker. All filter state is managed by
+ * {@link useFilterStore}; streaming state by {@link useLogStore}.
+ */
+
 import {
   Popover,
   PopoverContent,
@@ -15,6 +24,13 @@ import { useFilterStore } from "@/stores/filter-store"
 import { useLogStore } from "@/stores/log-store"
 import { SeverityFilter } from "./severity-filter"
 
+/**
+ * Log filter controls toolbar.
+ *
+ * Composes stream toggle, search input, severity filter, source dropdown,
+ * filtered entry count, and time range picker into a horizontal bar.
+ * Reads and writes to {@link useFilterStore} and {@link useLogStore}.
+ */
 export function LogToolbar({ filteredCount }: { filteredCount: number }) {
   const toggleStreaming = useLogStore((s) => s.toggleStreaming)
   const isStreaming = useLogStore((s) => s.isStreaming)
@@ -110,10 +126,13 @@ export function LogToolbar({ filteredCount }: { filteredCount: number }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Source dropdown (Shadcn Popover)
-// ---------------------------------------------------------------------------
-
+/**
+ * Popover dropdown for filtering logs by source (jobmanager, taskmanager, etc.).
+ *
+ * Derives available sources from the current log entries so it automatically
+ * reflects whatever sources are present in the stream. Sources are sorted by
+ * type priority: jobmanager, sqlgateway, taskmanager, client.
+ */
 function SourceDropdown() {
   const entries = useLogStore((s) => s.entries)
   const selectedSources = useFilterStore((s) => s.selectedSources)

@@ -1,3 +1,10 @@
+/**
+ * @module metric-chart
+ * Self-contained time-series line chart for a single metric. Handles
+ * unit-aware formatting (bytes, ms, ratio, records), displays current/min/max
+ * values, and supports removal via a close button. Used by {@link MetricsExplorer}
+ * to render each selected metric series.
+ */
 import { X } from "lucide-react"
 import { useMemo } from "react"
 import {
@@ -14,7 +21,7 @@ import type {
   MetricMeta,
 } from "@/stores/metrics-explorer-store"
 
-// Rotating color palette for chart lines
+/** Rotating color palette for chart line strokes. */
 const CHART_COLORS = [
   "#7aa2f7", // blue
   "#9ece6a", // green
@@ -23,10 +30,12 @@ const CHART_COLORS = [
   "#bb9af7", // purple
 ]
 
+/** Returns a chart color from the rotating palette by index. */
 export function getChartColor(index: number): string {
   return CHART_COLORS[index % CHART_COLORS.length]
 }
 
+/** Formats a Unix timestamp to a 24-hour HH:MM:SS locale string. */
 function formatTime(timestamp: number): string {
   const d = new Date(timestamp)
   return d.toLocaleTimeString("en-US", {
@@ -37,6 +46,11 @@ function formatTime(timestamp: number): string {
   })
 }
 
+/**
+ * Formats a metric value for display, applying unit-appropriate scaling and
+ * suffixes (e.g. KB/MB/GB for bytes, ms/s for time, K/M for records).
+ * Counter-type metrics are shown as per-second rates.
+ */
 export function formatMetricValue(
   value: number | null,
   meta: MetricMeta,
@@ -81,21 +95,34 @@ export function formatMetricValue(
   }
 }
 
+/** Returns a short human-readable unit label for the metric badge (e.g. "rate * bytes/s", "%"). */
 export function getUnitBadgeLabel(meta: MetricMeta): string {
   if (meta.type === "counter") return `rate \u00b7 ${meta.unit}/s`
   if (meta.unit === "ratio") return "%"
   return meta.unit
 }
 
+/** Props for {@link MetricChart}. */
 type MetricChartProps = {
+  /** Time-series data points to plot. */
   data: MetricDataPoint[]
+  /** Metric metadata for formatting and unit display. */
   meta: MetricMeta
+  /** Full metric identifier used for display and tooltip. */
   label: string
+  /** Short source label (e.g. "JM", "TM", "Vertex"). */
   sourceBadge: string
+  /** Line stroke color. */
   color: string
+  /** Callback to remove this metric from the explorer. */
   onRemove: () => void
 }
 
+/**
+ * Self-contained metric chart card with a header (short name, source badge,
+ * unit badge, current value), a Recharts line chart, and a footer showing
+ * min/max values. The chart uses unit-aware Y-axis formatting and tooltips.
+ */
 export function MetricChart({
   data,
   meta,

@@ -1,14 +1,31 @@
+/**
+ * @module plan-state-forecast
+ *
+ * Renders state growth forecast cards for stateful operators in a Flink
+ * execution plan. Each card shows estimated state size at 1h, 24h, and 7d
+ * intervals, colored by growth pattern (bounded/linear/unbounded), along
+ * with state type and TTL configuration status.
+ */
+
 import { formatBytes } from "@flink-reactor/ui"
 import { Database } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { StateGrowthForecast } from "@/lib/plan-analyzer/types"
 
+/** Growth pattern color and label mapping. */
 const GROWTH_STYLES = {
   bounded: { color: "text-job-running", label: "Bounded" },
   linear: { color: "text-fr-amber", label: "Linear" },
   unbounded: { color: "text-job-failed", label: "Unbounded" },
 } as const
 
+/**
+ * List of state growth forecast cards for stateful operators.
+ *
+ * Shows estimated sizes at 1h/24h/7d horizons with color-coded growth
+ * pattern badges. Unbounded growth is highlighted in red as a warning.
+ * Falls back to an empty state when no stateful operators exist.
+ */
 export function PlanStateForecast({
   forecasts,
 }: {

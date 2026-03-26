@@ -1,8 +1,17 @@
+/**
+ * @module plan-anti-pattern-card
+ *
+ * Card component for displaying a single {@link FlinkAntiPattern} detected in
+ * the execution plan. Shows severity badge, description, actionable suggestion,
+ * and optional code blocks for configuration fixes, DDL changes, or SQL rewrites.
+ */
+
 import { AlertTriangle, Copy, Info, OctagonAlert } from "lucide-react"
 import { useCallback } from "react"
 import { cn } from "@/lib/cn"
 import type { FlinkAntiPattern } from "@/lib/plan-analyzer/types"
 
+/** Severity-specific styling: border color, icon component, badge colors, and label text. */
 const SEVERITY_STYLES = {
   critical: {
     border: "border-l-job-failed",
@@ -24,6 +33,11 @@ const SEVERITY_STYLES = {
   },
 } as const
 
+/**
+ * Displays a detected anti-pattern with severity indicator, description,
+ * suggestion, and optional code blocks (config, DDL fix, SQL rewrite)
+ * that can be copied to clipboard.
+ */
 export function PlanAntiPatternCard({
   antiPattern,
 }: {
@@ -103,6 +117,7 @@ export function PlanAntiPatternCard({
   )
 }
 
+/** Labeled code snippet with a copy-to-clipboard button. */
 function CodeBlock({
   label,
   code,

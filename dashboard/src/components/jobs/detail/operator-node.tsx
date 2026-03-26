@@ -1,3 +1,13 @@
+/**
+ * @module operator-node
+ *
+ * Custom ReactFlow node for DAG operator visualization. Renders a compact card
+ * showing the vertex name, status dot, key metrics (records, bytes, backpressure),
+ * a mini task-status bar, and optional tap session indicator. A hover card reveals
+ * full metric details and task breakdown. Nodes are color-coded by type:
+ * source (coral), sink (amber), operator (purple).
+ */
+
 import {
   formatBytes,
   formatDuration,
@@ -33,6 +43,7 @@ import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 // Format helpers
 // ---------------------------------------------------------------------------
 
+/** Formats a number with SI suffixes (K, M, B) for compact display. */
 function formatSI(n: number): string {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -44,8 +55,10 @@ function formatSI(n: number): string {
 // Node type detection + color tokens
 // ---------------------------------------------------------------------------
 
+/** Semantic classification of a DAG node based on its vertex name prefix. */
 type NodeType = "source" | "sink" | "operator"
 
+/** Parses "Source: " or "Sink: " prefixes to determine node type and display name. */
 function parseNodeType(name: string): { type: NodeType; displayName: string } {
   if (name.startsWith("Source: "))
     return { type: "source", displayName: name.slice(8) }
@@ -54,6 +67,7 @@ function parseNodeType(name: string): { type: NodeType; displayName: string } {
   return { type: "operator", displayName: name }
 }
 
+/** Icon mapping for hover card metric rows. */
 const METRIC_ICONS: Record<string, LucideIcon> = {
   Status: HeartPulse,
   Duration: Timer,
@@ -65,6 +79,7 @@ const METRIC_ICONS: Record<string, LucideIcon> = {
   Backpressure: Gauge,
 }
 
+/** Tailwind color tokens per node type for background, text, and top border. */
 const NODE_TYPE_COLORS = {
   source: {
     bg: "bg-fr-coral/10",
@@ -95,6 +110,7 @@ const segments: { key: TaskStatus; color: string }[] = [
   { key: "failed", color: "bg-job-failed" },
 ]
 
+/** Thin horizontal bar showing proportional task status segments (pending, running, finished, etc.). */
 function MiniTaskBar({ vertex }: { vertex: JobVertex }) {
   const total = Object.values(vertex.tasks).reduce((a, b) => a + b, 0)
   if (total === 0) return null
@@ -119,6 +135,7 @@ function MiniTaskBar({ vertex }: { vertex: JobVertex }) {
 // Back-pressure indicator color (for left border)
 // ---------------------------------------------------------------------------
 
+/** Returns a left-border color class based on busy time: green (<30%), amber (<60%), red (>=60%). */
 function bpColor(busyTimeMsPerSecond: number): string {
   const pct = busyTimeMsPerSecond / 10 // ms/s → percentage (0-100)
   if (pct < 30) return "border-l-job-running" // green
@@ -130,6 +147,7 @@ function bpColor(busyTimeMsPerSecond: number): string {
 // Back-pressure text color (for metric value)
 // ---------------------------------------------------------------------------
 
+/** Returns a text color class for backpressure values: green (<300), amber (<600), red (>=600). */
 function bpTextColor(backPressuredMsPerSecond: number): string {
   if (backPressuredMsPerSecond < 300) return "text-job-running"
   if (backPressuredMsPerSecond < 600) return "text-fr-amber"
@@ -148,6 +166,7 @@ const STATUS_DOT_COLORS: Record<JobVertexStatus, string> = {
   CREATED: "bg-job-created",
 }
 
+/** Small colored circle indicating vertex execution status. */
 function StatusDot({ status }: { status: JobVertexStatus }) {
   return (
     <span
@@ -163,15 +182,27 @@ function StatusDot({ status }: { status: JobVertexStatus }) {
 // OperatorNode
 // ---------------------------------------------------------------------------
 
+/** Data payload passed to each operator node in the ReactFlow graph. */
 type OperatorNodeData = {
+  /** The Flink vertex this node represents. */
   vertex: JobVertex
+  /** Callback to navigate to vertex detail view. */
   onSelectVertex?: (vertexId: string) => void
+  /** Tap metadata if this vertex belongs to a tappable pipeline. */
   tapMetadata?: TapMetadata
+  /** Current tap session status (streaming, paused, etc.). */
   tapSessionStatus?: ActiveTapSession["status"]
+  /** Callback to initiate a tap session on this vertex. */
   onTapInto?: (vertexId: string) => void
+  /** Callback to stop an active tap session on this vertex. */
   onStopTap?: (vertexId: string) => void
 }
 
+/**
+ * Custom ReactFlow node rendering a Flink operator as a compact card with
+ * metrics grid, task-status bar, and a hover card showing full metric details,
+ * task breakdown, and tap controls. Color-coded header by node type (source/sink/operator).
+ */
 export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
   const { vertex } = data
   const { metrics } = vertex

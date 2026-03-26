@@ -1,3 +1,13 @@
+/**
+ * @module error-explorer
+ *
+ * Top-level error explorer page implementing a master-detail layout.
+ * The left column displays the grouped error list with sort controls;
+ * the right column shows an occurrence timeline and full error detail
+ * for the selected group. Errors are automatically grouped by exception
+ * class in {@link useErrorStore} as they are detected in the log stream.
+ */
+
 import { AlertTriangle } from "lucide-react"
 import { useMemo } from "react"
 import { EmptyState } from "@flink-reactor/ui"
@@ -6,10 +16,13 @@ import { ErrorDetail } from "./error-detail"
 import { ErrorGroupList } from "./error-group-list"
 import { ErrorTimeline } from "./error-timeline"
 
-// ---------------------------------------------------------------------------
-// Error Explorer — master-detail layout
-// ---------------------------------------------------------------------------
-
+/**
+ * Error explorer page with master-detail layout.
+ *
+ * Left column: scrollable list of {@link ErrorGroup} cards with sort controls.
+ * Right column: occurrence timeline chart and full error detail panel for the
+ * selected group. Shows an empty state when no exceptions have been recorded.
+ */
 export function ErrorExplorer() {
   const groupsMap = useErrorStore((s) => s.groups)
   const selectedGroupId = useErrorStore((s) => s.selectedGroupId)

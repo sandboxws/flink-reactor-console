@@ -1,3 +1,13 @@
+/**
+ * @module job-manager-page
+ *
+ * Tabbed detail page for the Flink Job Manager. Displays a summary panel
+ * with JVM memory, thread, and GC statistics, then delegates to child tab
+ * components for configuration, metrics, logs, stdout, log list, thread
+ * dump, and profiler views. Tab data is lazy-loaded on first activation
+ * to avoid unnecessary network requests.
+ */
+
 import { formatBytes, Spinner, Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import {
@@ -33,16 +43,19 @@ import { JmThreadDumpTab } from "./jm-thread-dump-tab"
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Compute a clamped integer percentage, returning 0 when max is zero. */
 function pct(used: number, max: number): number {
   if (max === 0) return 0
   return Math.min(100, Math.round((used / max) * 100))
 }
 
+/** Extract the most recent value from a {@link JvmMetricSample} time series, defaulting to 0. */
 function latest(samples: JvmMetricSample[]): number {
   if (samples.length === 0) return 0
   return samples[samples.length - 1].value
 }
 
+/** Compact label/value pair used in the summary panel grid. */
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
@@ -58,6 +71,13 @@ function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
 // JobManagerPage — tabbed detail view for the Job Manager
 // ---------------------------------------------------------------------------
 
+/**
+ * Job Manager detail page with a summary header and seven lazy-loaded tabs.
+ *
+ * Logs, stdout, log list, and thread dump content are fetched on-demand
+ * when their respective tab is first selected. Configuration and metrics
+ * are available immediately from the initial {@link JobManagerInfo} payload.
+ */
 export function JobManagerPage({ jm }: { jm: JobManagerInfo }) {
   const [activeTab, setActiveTab] = useState("configuration")
   const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null)

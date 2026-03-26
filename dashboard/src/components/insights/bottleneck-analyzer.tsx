@@ -1,3 +1,10 @@
+/**
+ * @module bottleneck-analyzer
+ * Bottleneck analysis page combining a DAG visualization, a scored vertex table,
+ * and an optimization recommendations panel. Subscribes to {@link useInsightsStore}
+ * for bottleneck scores and recommendations, and to {@link useClusterStore} for
+ * running-job awareness and plan edge data.
+ */
 import { AlertTriangle, BarChart3, Layers, Search } from "lucide-react"
 import { MetricCard, Skeleton } from "@flink-reactor/ui"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -6,6 +13,7 @@ import { BottleneckDAG } from "./bottleneck-dag"
 import { BottleneckTable } from "./bottleneck-table"
 import { RecommendationsPanel } from "./recommendations-panel"
 
+/** Placeholder skeleton shown while bottleneck analysis is loading. */
 function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -24,6 +32,7 @@ function LoadingSkeleton() {
   )
 }
 
+/** Empty state shown when no running jobs are available for analysis. */
 function EmptyState() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -41,6 +50,12 @@ function EmptyState() {
   )
 }
 
+/**
+ * Full bottleneck analysis page with a job selector, summary metric cards (worst
+ * score, jobs with issues, vertices analyzed), a DAG visualization colored by
+ * severity, a sortable metrics table, and an actionable recommendations panel.
+ * Supports filtering to a single job or viewing all jobs simultaneously.
+ */
 export function BottleneckAnalyzerPage() {
   const runningJobs = useClusterStore((s) => s.runningJobs)
   const bottleneckScores = useInsightsStore((s) => s.bottleneckScores)

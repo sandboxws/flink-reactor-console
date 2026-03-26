@@ -1,9 +1,20 @@
+/**
+ * @module tap-error-panel
+ *
+ * Error display panel for TAP SQL Gateway errors. Parses Java exception
+ * strings into structured sections (class, message, stack frames, "Caused by"
+ * chains) with syntax-aware formatting. Framework stack frames are dimmed
+ * while user code frames are highlighted. Supports copy-to-clipboard and retry.
+ */
+
 import { AlertTriangle, Check, Copy, RotateCcw } from "lucide-react"
 import { useMemo, useState } from "react"
 import { cn } from "@/lib/cn"
 
 interface TapErrorPanelProps {
+  /** Raw error message string, potentially a Java exception with stack trace. */
   error: string
+  /** Callback to retry the failed observation. */
   onRetry: () => void
 }
 
@@ -52,12 +63,14 @@ function parseException(raw: string): {
   return { className, message, hasStackTrace, lines: parsed }
 }
 
+/** Discriminated union for parsed lines in a Java stack trace. */
 type ParsedLine =
   | { type: "frame"; text: string; isFramework: boolean }
   | { type: "caused-by"; text: string }
   | { type: "elided"; text: string }
   | { type: "text"; text: string }
 
+/** Package prefixes considered framework code (dimmed in stack traces). */
 const FRAMEWORK_PREFIXES = [
   "org.apache.flink.",
   "java.",
@@ -70,12 +83,17 @@ const FRAMEWORK_PREFIXES = [
   "org.apache.kafka.common.",
 ]
 
+/** Returns true if the stack frame belongs to a known framework package. */
 function isFrameworkFrame(frame: string): boolean {
   const match = frame.match(/^\s+at\s+([\w.$]+)/)
   if (!match) return false
   return FRAMEWORK_PREFIXES.some((prefix) => match[1].startsWith(prefix))
 }
 
+/**
+ * Error display with parsed exception header, collapsible stack trace,
+ * copy-to-clipboard, and retry button.
+ */
 export function TapErrorPanel({ error, onRetry }: TapErrorPanelProps) {
   const [copied, setCopied] = useState(false)
   const [expanded, setExpanded] = useState(false)

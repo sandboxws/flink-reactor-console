@@ -1,10 +1,23 @@
+/**
+ * @module preset-selector
+ * Quick-select dropdown for applying predefined metric presets from
+ * {@link PRESETS}. Each button replaces the current metric selection
+ * with a curated set of metrics for a specific monitoring scenario.
+ */
 import { Zap } from "lucide-react"
 import { PRESETS } from "@/stores/metrics-explorer-store"
 
+/** Props for {@link PresetSelector}. */
 type PresetSelectorProps = {
+  /** Callback invoked with the preset name when a preset button is clicked. */
   onApply: (presetName: string) => void
 }
 
+/**
+ * Renders a row of preset buttons sourced from the {@link PRESETS} registry.
+ * Clicking a button applies the corresponding metric preset via the parent
+ * callback, replacing the current metric selection.
+ */
 export function PresetSelector({ onApply }: PresetSelectorProps) {
   return (
     <div className="mt-3">

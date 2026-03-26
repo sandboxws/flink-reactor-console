@@ -1,3 +1,11 @@
+/**
+ * @module jm-config-tab
+ *
+ * Composition root for the Job Manager "Configuration" tab. Stacks
+ * three sections vertically: key-value configuration, JVM details,
+ * and classpath entries.
+ */
+
 import type {
   ClasspathEntry,
   JobManagerConfig,
@@ -7,10 +15,10 @@ import { JmClasspathSection } from "./jm-classpath-section"
 import { JmConfigSection } from "./jm-config-section"
 import { JmJvmSection } from "./jm-jvm-section"
 
-// ---------------------------------------------------------------------------
-// JmConfigTab — composes three sections: Configurations, JVM, Classpath
-// ---------------------------------------------------------------------------
-
+/**
+ * Configuration tab layout composing {@link JmConfigSection},
+ * {@link JmJvmSection}, and {@link JmClasspathSection} in a vertical stack.
+ */
 export function JmConfigTab({
   config,
   jvm,

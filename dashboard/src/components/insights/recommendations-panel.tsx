@@ -1,3 +1,9 @@
+/**
+ * @module recommendations-panel
+ * Actionable recommendations panel generated from bottleneck analysis. Each
+ * recommendation is categorized by {@link RecommendationType} and displayed
+ * with a type-specific icon, message, detail text, and originating job/score.
+ */
 import {
   AlertTriangle,
   ArrowUpCircle,
@@ -11,6 +17,7 @@ import type {
 } from "@/data/bottleneck-analyzer"
 import { cn } from "@/lib/cn"
 
+/** Per-recommendation-type icon, color, and background configuration. */
 const typeConfig: Record<
   RecommendationType,
   {
@@ -41,6 +48,12 @@ const typeConfig: Record<
   },
 }
 
+/**
+ * Renders a list of optimization recommendations from the bottleneck analyzer.
+ * Each card shows the recommendation type icon, message, detail explanation,
+ * and the originating job name with its bottleneck score. Displays a
+ * "No bottlenecks detected" empty state when no recommendations exist.
+ */
 export function RecommendationsPanel({
   recommendations,
 }: {

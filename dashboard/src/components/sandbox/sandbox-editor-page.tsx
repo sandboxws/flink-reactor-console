@@ -1,3 +1,13 @@
+/**
+ * @module sandbox-editor-page
+ *
+ * Top-level layout for the DSL sandbox. Composed of three panels: a
+ * resizable examples sidebar on the left, a CodeMirror editor in the
+ * center, and the synthesis output + validation results on the right.
+ * Template selection and synthesize actions are wired through
+ * {@link useSandboxStore}.
+ */
+
 import {
   Button,
   ResizableHandle,
@@ -25,6 +35,10 @@ const SIDEBAR_MIN = 180
 const SIDEBAR_MAX = 380
 const SIDEBAR_DEFAULT = 240
 
+/**
+ * Resizable secondary sidebar using vanilla mouse events (no library).
+ * Width is constrained between {@link SIDEBAR_MIN} and {@link SIDEBAR_MAX}.
+ */
 function SecondarySidebar({ children }: { children: React.ReactNode }) {
   const [width, setWidth] = useState(SIDEBAR_DEFAULT)
   const isResizing = useRef(false)
@@ -80,6 +94,11 @@ function SecondarySidebar({ children }: { children: React.ReactNode }) {
 // Main layout
 // ---------------------------------------------------------------------------
 
+/**
+ * DSL sandbox page with examples sidebar, code editor, synthesis output,
+ * and validation panel. Focus highlighting is applied when a transform
+ * example is loaded and the code has not been edited.
+ */
 export function SandboxEditorPage() {
   const code = useSandboxStore((s) => s.code)
   const setCode = useSandboxStore((s) => s.setCode)

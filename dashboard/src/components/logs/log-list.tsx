@@ -1,3 +1,14 @@
+/**
+ * @module log-list
+ *
+ * Virtualized log entry list with auto-scroll, search-match navigation,
+ * and inline stack trace expansion. Uses TanStack Virtual to efficiently
+ * render large log buffers (up to 100k entries) without DOM overhead.
+ * Auto-scroll keeps the view pinned to the bottom during live streaming
+ * but pauses when the user selects an entry or scrolls away, showing a
+ * "jump to bottom" badge with a count of new entries received while away.
+ */
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,8 +24,17 @@ import { useAutoScroll, useSearchMatches } from "@/lib/hooks"
 import { useUiStore } from "@/stores/ui-store"
 import { LogLine } from "./log-line"
 
+/** Estimated height in pixels for each log row (used by the virtualizer). */
 const ROW_HEIGHT = 24
 
+/**
+ * Virtualized log entry list with auto-scroll and inline stack trace expansion.
+ *
+ * Renders {@link LogLine} for each entry inside a TanStack Virtual scroller.
+ * Entries with stack traces are wrapped in a {@link Collapsible} so the user
+ * can expand them in-place. Subscribes to {@link useUiStore} for entry
+ * selection and {@link useSearchMatches} for search result navigation.
+ */
 export function LogList({ entries }: { entries: LogEntry[] }) {
   const selectedEntryId = useUiStore((s) => s.selectedEntryId)
   const setSelectedEntryId = useUiStore((s) => s.setSelectedEntryId)

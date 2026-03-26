@@ -1,3 +1,17 @@
+/**
+ * @module job-detail
+ *
+ * Full-page container for a single Flink job, rendered when navigating to
+ * `/jobs/:id`. Provides a tabbed interface (overview DAG, vertices, exceptions,
+ * data skew, timeline, checkpoints, sources/sinks, configuration) with an
+ * optional Tap tab for live observation of running pipelines.
+ *
+ * The overview tab lazy-loads {@link JobGraph} (which depends on dagre/CJS)
+ * to keep the initial bundle small.
+ *
+ * Subscribes to {@link useClusterStore}, {@link useTapStore}, and
+ * {@link useSqlGatewayStore} for job actions and tap session state.
+ */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
 import {
   lazy,
@@ -23,11 +37,15 @@ import { SourcesSinksTab } from "./detail/sources-sinks-tab"
 import { TimelineTab } from "./detail/timeline-tab"
 import { VerticesTab } from "./detail/vertices-tab"
 
-// Lazy import for ReactFlow component (dagre uses CJS)
+/**
+ * Lazy-loaded DAG visualization. Deferred because dagre ships as CJS and
+ * would otherwise block the initial chunk.
+ */
 const JobGraph = lazy(() =>
   import("./detail/job-graph").then((m) => ({ default: m.JobGraph })),
 )
 
+/** Placeholder shown while the lazy-loaded {@link JobGraph} chunk is fetched. */
 function JobGraphFallback() {
   return (
     <div className="glass-card flex min-h-0 flex-1 items-center justify-center py-16 text-xs text-zinc-500">
@@ -36,13 +54,24 @@ function JobGraphFallback() {
   )
 }
 
+/**
+ * Full job detail page with header actions and a multi-tab content area.
+ *
+ * Manages tab state locally. The Tap tab is conditionally shown only for
+ * running pipelines that have a tap manifest. Clicking a DAG node in the
+ * overview tab programmatically switches to the vertices tab with that
+ * vertex pre-selected.
+ */
 export function JobDetail({
   job,
   onCancelJob,
   onCreateSavepoint,
 }: {
+  /** Fully-hydrated job including plan, vertices, checkpoints, and exceptions. */
   job: FlinkJob
+  /** Callback invoked when the user cancels the job via the header. */
   onCancelJob?: () => void
+  /** Callback invoked after a savepoint trigger is sent. */
   onCreateSavepoint?: () => void
 }) {
   const fetchJobDetail = useClusterStore((s) => s.fetchJobDetail)

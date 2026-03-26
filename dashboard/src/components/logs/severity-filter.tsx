@@ -1,9 +1,19 @@
+/**
+ * @module severity-filter
+ *
+ * Row of toggle buttons for filtering log entries by severity level.
+ * Each button corresponds to one {@link LogLevel} and toggles its
+ * visibility in the log list via {@link useFilterStore}.
+ */
+
 import type { LogLevel } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import { useFilterStore } from "@/stores/filter-store"
 
+/** All severity levels in ascending order. */
 const LEVELS: LogLevel[] = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]
 
+/** Tailwind class pairs for the active (enabled) and inactive (disabled) states of each level button. */
 const LEVEL_STYLES: Record<LogLevel, { active: string; inactive: string }> = {
   TRACE: {
     active: "bg-log-trace/20 text-log-trace border-log-trace/40",
@@ -27,6 +37,13 @@ const LEVEL_STYLES: Record<LogLevel, { active: string; inactive: string }> = {
   },
 }
 
+/**
+ * Log severity level toggle filter.
+ *
+ * Renders a horizontal row of color-coded buttons, one per {@link LogLevel}.
+ * Clicking a button toggles that severity on/off in {@link useFilterStore},
+ * which in turn filters the visible log entries throughout the log explorer.
+ */
 export function SeverityFilter() {
   const enabledLevels = useFilterStore((s) => s.enabledLevels)
   const toggleLevel = useFilterStore((s) => s.toggleLevel)

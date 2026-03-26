@@ -1,14 +1,28 @@
+/**
+ * @module tap-controls
+ *
+ * Playback control bar for TAP observation sessions. Provides Play, Resume,
+ * Pause, Stop, and Clear buttons whose enabled state follows a strict state
+ * matrix based on the current {@link ActiveTapSession} status.
+ */
+
 import { Spinner } from "@flink-reactor/ui"
 import { Pause, Play, RotateCcw, Square, Trash2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import type { ActiveTapSession } from "@/stores/sql-gateway-store"
 
 interface TapControlsProps {
+  /** Current session status or "idle" when no session exists. */
   status: ActiveTapSession["status"] | "idle"
+  /** Start a new observation session. */
   onPlay: () => void
+  /** Resume a paused session. */
   onResume: () => void
+  /** Pause result consumption (session stays open). */
   onPause: () => void
+  /** Stop the session and close the SQL Gateway connection. */
   onStop: () => void
+  /** Clear the buffered row data. */
   onClear: () => void
 }
 
@@ -140,6 +154,7 @@ export function TapControls({
   )
 }
 
+/** Animated status indicator dot — pulsing green for streaming, spinner for connecting. */
 function StatusDot({
   status,
 }: {
@@ -165,6 +180,7 @@ function StatusDot({
   return <span className="inline-flex size-2 rounded-full bg-zinc-600" />
 }
 
+/** Maps session status to a human-readable label for the status indicator. */
 function statusLabel(status: ActiveTapSession["status"] | "idle"): string {
   switch (status) {
     case "connecting":

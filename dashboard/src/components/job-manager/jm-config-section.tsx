@@ -1,13 +1,27 @@
+/**
+ * @module jm-config-section
+ *
+ * Searchable, tag-filterable table of Flink Job Manager configuration
+ * key-value pairs. Each config key is classified into a tag category
+ * (e.g. "jobmanager", "state", "checkpoint") using {@link classifyConfigKey},
+ * and users can narrow results with tag chips and a text search input.
+ * A scroll indicator shows how many rows remain below the visible fold.
+ */
+
 import { Search, Settings } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { EmptyState } from "@flink-reactor/ui"
 import type { JobManagerConfig } from "@flink-reactor/ui"
 import { classifyConfigKey, TagBadge, TagChip } from "./tag-filter"
 
-// ---------------------------------------------------------------------------
-// JmConfigSection — searchable key-value table with tag filtering
-// ---------------------------------------------------------------------------
-
+/**
+ * Searchable configuration table with tag-based filtering.
+ *
+ * Applies tag classification to each {@link JobManagerConfig} entry, computes
+ * per-tag counts for the filter chip bar, and combines tag + text search
+ * with AND logic. The fixed-height scrollable area includes a gradient
+ * overlay that reports remaining row count.
+ */
 export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
   const [search, setSearch] = useState("")
   const [activeTag, setActiveTag] = useState<string | null>(null)

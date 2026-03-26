@@ -1,3 +1,9 @@
+/**
+ * @module checkpoint-job-table
+ * Sortable table of per-job checkpoint statistics including success rate,
+ * average duration, state size, and trend indicators. Supports column sorting
+ * by all numeric and trend fields.
+ */
 import {
   ArrowDown,
   ArrowRight,
@@ -13,13 +19,13 @@ import type {
   TrendDirection,
 } from "@/stores/checkpoint-analytics-store"
 
-// Helpers
-
+/** Formats a millisecond interval as a human-readable string (e.g. "5min", "30s"). */
 function formatInterval(ms: number): string {
   if (ms >= 60_000) return `${ms / 60_000}min`
   return `${ms / 1000}s`
 }
 
+/** Formats a date as a locale time string, returning "---" for null. */
 function formatTime(date: Date | null): string {
   if (!date) return "—"
   return date.toLocaleTimeString([], {
@@ -29,8 +35,7 @@ function formatTime(date: Date | null): string {
   })
 }
 
-// Trend indicator
-
+/** Renders a colored directional arrow indicating an increasing, decreasing, or stable trend. */
 function TrendIndicator({ trend }: { trend: TrendDirection }) {
   if (trend === "increasing") {
     return <ArrowUp className="size-3.5 text-job-failed" />
@@ -41,8 +46,7 @@ function TrendIndicator({ trend }: { trend: TrendDirection }) {
   return <ArrowRight className="size-3.5 text-zinc-500" />
 }
 
-// Sort
-
+/** Columns available for sorting in the checkpoint job table. */
 type SortKey =
   | "jobName"
   | "lastSuccessTime"
@@ -55,12 +59,14 @@ type SortKey =
 
 type SortDir = "asc" | "desc"
 
+/** Numeric ordering for trend comparisons (decreasing < stable < increasing). */
 const TREND_ORDER: Record<TrendDirection, number> = {
   increasing: 2,
   stable: 1,
   decreasing: 0,
 }
 
+/** Sorts an array of job checkpoint summaries by the given column and direction. */
 function sortSummaries(
   summaries: JobCheckpointSummary[],
   key: SortKey,
@@ -100,8 +106,7 @@ function sortSummaries(
   })
 }
 
-// Column header
-
+/** Clickable column header that shows a sort direction chevron when active. */
 function SortHeader({
   label,
   sortKey,
@@ -138,8 +143,12 @@ function SortHeader({
   )
 }
 
-// Table
-
+/**
+ * Sortable table showing per-job checkpoint metrics: last success time,
+ * checkpoint interval, average duration, state size, success rate, and
+ * trend arrows for duration and state size. Defaults to ascending sort
+ * by success rate to surface struggling jobs first.
+ */
 export function CheckpointJobTable({
   summaries,
 }: {

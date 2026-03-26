@@ -1,3 +1,10 @@
+/**
+ * @module bottleneck-dag
+ * Interactive DAG visualization of operator bottleneck scores using ReactFlow.
+ * Each node is color-coded by {@link BottleneckSeverity} and shows the vertex
+ * name, parallelism, and composite bottleneck score. Layout is computed via
+ * Kahn's topological sort algorithm, matching the pattern from the job-graph.
+ */
 import type { Edge, Node, NodeProps } from "@xyflow/react"
 import {
   Background,
@@ -18,19 +25,17 @@ import type { JobEdge } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import "@xyflow/react/dist/style.css"
 
-// ---------------------------------------------------------------------------
-// Layout constants
-// ---------------------------------------------------------------------------
-
+/** Width of each DAG node in pixels. */
 const NODE_WIDTH = 200
 const NODE_HEIGHT = 72
 const COL_GAP = 60
 const ROW_GAP = 32
 
-// ---------------------------------------------------------------------------
-// Simple topological layout (reuses job-graph.tsx pattern)
-// ---------------------------------------------------------------------------
-
+/**
+ * Computes a left-to-right topological layout using Kahn's algorithm.
+ * Nodes are arranged in columns by topological depth, vertically centered.
+ * Disconnected nodes are placed in column 0 as a fallback.
+ */
 function layoutElements(
   nodes: Node[],
   edges: Edge[],
@@ -110,10 +115,7 @@ function layoutElements(
   return { nodes: layoutedNodes, edges }
 }
 
-// ---------------------------------------------------------------------------
-// Severity color mapping
-// ---------------------------------------------------------------------------
-
+/** Background, border, and text color classes keyed by bottleneck severity. */
 const severityStyles: Record<
   BottleneckSeverity,
   { bg: string; border: string; text: string }
@@ -135,17 +137,19 @@ const severityStyles: Record<
   },
 }
 
-// ---------------------------------------------------------------------------
-// Custom bottleneck node
-// ---------------------------------------------------------------------------
-
+/** Data payload attached to each ReactFlow bottleneck node. */
 type BottleneckNodeData = {
+  /** Operator/vertex display name. */
   label: string
+  /** Configured parallelism for the vertex. */
   parallelism: number
+  /** Composite bottleneck score (0-100). */
   score: number
+  /** Severity tier derived from the score. */
   severity: BottleneckSeverity
 }
 
+/** Custom ReactFlow node rendering a severity-colored card with score. */
 function BottleneckNode({ data }: NodeProps & { data: BottleneckNodeData }) {
   const style = severityStyles[data.severity]
 
@@ -171,12 +175,14 @@ function BottleneckNode({ data }: NodeProps & { data: BottleneckNodeData }) {
   )
 }
 
+/** Registry of custom node types for ReactFlow. */
 const nodeTypes = { bottleneck: BottleneckNode }
 
-// ---------------------------------------------------------------------------
-// Inner component (needs ReactFlow context)
-// ---------------------------------------------------------------------------
-
+/**
+ * Inner DAG component that requires ReactFlow context. Converts bottleneck
+ * scores into positioned nodes and edges, re-layouts on data change, and
+ * auto-fits the viewport.
+ */
 function BottleneckDAGInner({
   scores,
   edges,
@@ -258,10 +264,11 @@ function BottleneckDAGInner({
   )
 }
 
-// ---------------------------------------------------------------------------
-// Exported wrapper
-// ---------------------------------------------------------------------------
-
+/**
+ * Exported wrapper that provides the {@link ReactFlowProvider} context and
+ * renders a fixed-height container. Shows an empty-state message when no
+ * vertices are available.
+ */
 export function BottleneckDAG({
   scores,
   edges,

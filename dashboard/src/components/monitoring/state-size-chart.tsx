@@ -1,3 +1,9 @@
+/**
+ * @module state-size-chart
+ * Dual-mode chart showing per-job state backend size as a stacked area chart
+ * or checkpoint duration trends as a multi-line chart. Aggregates recent
+ * checkpoint data from {@link JobCheckpointSummary} into 1-minute buckets.
+ */
 import { formatBytes, formatDuration } from "@flink-reactor/ui"
 import { useState } from "react"
 import {
@@ -13,7 +19,7 @@ import {
 import { cn } from "@/lib/cn"
 import type { JobCheckpointSummary } from "@/stores/checkpoint-analytics-store"
 
-// Rotating palette for per-job colors
+/** Rotating color palette for per-job chart series. */
 const JOB_COLORS = [
   "var(--color-fr-coral)",
   "var(--color-fr-purple)",
@@ -25,13 +31,19 @@ const JOB_COLORS = [
   "#a3e635", // lime
 ]
 
+/** Formats a Date to locale "HH:MM" time string. */
 function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
 type ViewMode = "stateSize" | "duration"
 
-// Build chart data: each checkpoint becomes a data point with per-job values
+/**
+ * Transforms per-job checkpoint summaries into Recharts-compatible data points.
+ * Groups completed checkpoints into 1-minute time buckets and averages values
+ * per job within each bucket. Returns both the data array and an ordered list
+ * of job names for series rendering.
+ */
 function buildChartData(
   summaries: JobCheckpointSummary[],
   mode: ViewMode,
@@ -93,6 +105,7 @@ function buildChartData(
   return { data, jobNames }
 }
 
+/** Custom tooltip that formats values as bytes or duration depending on mode. */
 function ChartTooltip({
   active,
   payload,
@@ -128,6 +141,11 @@ function ChartTooltip({
   )
 }
 
+/**
+ * Toggleable chart showing either stacked state-size area trends or
+ * multi-job checkpoint duration line trends. Checkpoint data is bucketed into
+ * 1-minute intervals. Uses a rotating color palette for per-job series.
+ */
 export function StateSizeChart({
   summaries,
 }: {

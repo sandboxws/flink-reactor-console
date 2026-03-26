@@ -1,3 +1,10 @@
+/**
+ * @module tm-overview-tab
+ *
+ * Resource overview tab for a single task manager, displaying the Flink memory
+ * model breakdown, advanced JVM heap/non-heap/GC metrics, netty shuffle buffers,
+ * free resource bars, and currently allocated slots.
+ */
 import type { TaskManager } from "@flink-reactor/ui"
 import { formatBytes } from "@flink-reactor/ui"
 
@@ -7,10 +14,12 @@ import { formatBytes } from "@flink-reactor/ui"
 
 const MB = 1024 ** 2
 
+/** Format byte count as a rounded megabyte string (e.g. "512 MB"). */
 function formatBytesMB(bytes: number): string {
   return `${Math.round(bytes / MB)} MB`
 }
 
+/** Compute utilization percentage, clamped to 0-100. */
 function pct(used: number, max: number): number {
   if (max === 0) return 0
   return Math.min(100, Math.round((used / max) * 100))
@@ -20,6 +29,11 @@ function pct(used: number, max: number): number {
 // Memory model progress bar row
 // ---------------------------------------------------------------------------
 
+/**
+ * Single row in the Flink memory model table showing configured size and
+ * optional live metric usage bar. Rows without runtime metrics (e.g. framework
+ * heap) display a dash placeholder instead of a progress bar.
+ */
 function MemoryModelRow({
   label,
   configuredBytes,
@@ -73,6 +87,7 @@ function MemoryModelRow({
 // Section header
 // ---------------------------------------------------------------------------
 
+/** Uppercase section heading used to group overview panels. */
 function SectionHeader({ title }: { title: string }) {
   return (
     <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
@@ -85,6 +100,10 @@ function SectionHeader({ title }: { title: string }) {
 // Resource utilization bar
 // ---------------------------------------------------------------------------
 
+/**
+ * Horizontal progress bar for a single resource dimension (CPU, heap, managed,
+ * network). Color shifts from blue to amber to red as utilization climbs.
+ */
 function ResourceBar({
   label,
   used,
@@ -129,6 +148,17 @@ function ResourceBar({
 // TmOverviewTab — Memory model, Advanced JVM, Resources
 // ---------------------------------------------------------------------------
 
+/**
+ * Overview tab for a single {@link TaskManager} showing three sections:
+ *
+ * 1. **Memory** - Full Flink memory model breakdown (framework heap, task heap,
+ *    managed, off-heap, network, JVM metaspace, overhead) with configured vs
+ *    actual usage.
+ * 2. **Advanced** - JVM heap/non-heap committed/used/max, outside-JVM direct and
+ *    mapped memory, netty shuffle buffer counts, and garbage collection stats.
+ * 3. **Resources** - Free resource utilization bars and allocated slot table
+ *    showing per-slot CPU, heap, managed, and network allocation.
+ */
 export function TmOverviewTab({ tm }: { tm: TaskManager }) {
   const m = tm.metrics
   const mc = tm.memoryConfiguration

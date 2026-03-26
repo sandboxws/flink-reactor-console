@@ -1,3 +1,9 @@
+/**
+ * @module health-dashboard
+ * Cluster health dashboard page composing a circular score gauge, a trend chart,
+ * a sub-category score grid, and a ranked issues list. Subscribes to
+ * {@link useInsightsStore} for current health, history, and active issues.
+ */
 import { Skeleton } from "@flink-reactor/ui"
 import { useInsightsStore } from "@/stores/insights-store"
 import { HealthScoreGauge } from "./health-score-gauge"
@@ -5,6 +11,7 @@ import { HealthTrendChart } from "./health-trend-chart"
 import { SubScoreGrid } from "./sub-score-grid"
 import { TopIssuesList } from "./top-issues-list"
 
+/** Placeholder skeleton shown while health data is loading. */
 function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -27,6 +34,11 @@ function LoadingSkeleton() {
   )
 }
 
+/**
+ * Top-level cluster health page. Lays out a gauge (current score), a trend
+ * chart (score over time), a grid of sub-category scores (slots, backpressure,
+ * checkpoints, memory, exceptions), and a ranked list of active issues.
+ */
 export function HealthDashboard() {
   const currentHealth = useInsightsStore((s) => s.currentHealth)
   const healthHistory = useInsightsStore((s) => s.healthHistory)

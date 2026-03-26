@@ -1,3 +1,11 @@
+/**
+ * @module columns-table
+ *
+ * Sortable, filterable, paginated table showing column schemas for a Flink
+ * catalog table. Displays column name and SQL type, with search filtering
+ * and client-side pagination at 20 rows per page.
+ */
+
 import {
   Table,
   TableBody,
@@ -25,6 +33,12 @@ const PAGE_SIZE = 20
 // ColumnsTable
 // ---------------------------------------------------------------------------
 
+/**
+ * Paginated column schema table with search and sortable headers.
+ *
+ * Filters by column name or type, sorts by either field, and paginates
+ * at {@link PAGE_SIZE} rows. Search resets the page to 0.
+ */
 export function ColumnsTable({ columns }: { columns: ColumnInfo[] }) {
   const [search, setSearch] = useState("")
   const [sortField, setSortField] = useState<SortField>("name")
