@@ -13,29 +13,58 @@ import { fetchJobDetail as fetchJobDetailApi } from "@/lib/graphql-api-client"
 import { useClusterStore } from "./cluster-store"
 import { useConfigStore } from "./config-store"
 
+/**
+ * Insights store — cluster health scoring, issue detection, and bottleneck analysis.
+ *
+ * Computes a composite health score from five weighted sub-scores (slot utilization,
+ * backpressure, checkpoint health, memory pressure, exception rate). Subscribes to
+ * cluster-store for real-time reactivity and uses staggered job detail fetching
+ * to populate vertex-level data for bottleneck analysis.
+ *
+ * Health history is kept in a ring buffer (last 60 snapshots) for trend visualization.
+ *
+ * @module insights-store
+ */
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+/** A single health dimension with score, weight, and status classification. */
 export type HealthSubScore = {
+  /** Human-readable dimension name (e.g. "Slot Utilization"). */
   name: string
+  /** Score from 0 (critical) to 100 (healthy). */
   score: number
+  /** Weight in the composite score (all weights sum to 1.0). */
   weight: number
+  /** Status classification derived from score thresholds. */
   status: "healthy" | "warning" | "critical"
+  /** Human-readable detail string explaining the score. */
   detail: string
 }
 
+/** A detected health issue with severity and source attribution. */
 export type HealthIssue = {
+  /** Unique issue identifier. */
   id: string
+  /** Issue severity. */
   severity: "critical" | "warning" | "info"
+  /** Human-readable issue description. */
   message: string
+  /** Issue source category (e.g. "memory", "backpressure", "checkpoint"). */
   source: string
+  /** When this issue was detected. */
   timestamp: Date
 }
 
+/** A point-in-time health assessment with composite score and breakdowns. */
 export type HealthSnapshot = {
+  /** When this snapshot was computed. */
   timestamp: Date
+  /** Composite weighted health score (0–100). */
   score: number
+  /** Individual sub-score breakdowns. */
   subScores: HealthSubScore[]
 }
 
@@ -43,6 +72,7 @@ export type HealthSnapshot = {
 // Ring buffer — O(1) push, no reallocation
 // ---------------------------------------------------------------------------
 
+/** Fixed-capacity ring buffer with O(1) push and no reallocation. */
 class RingBuffer<T> {
   private buffer: (T | undefined)[]
   private writePtr = 0
@@ -87,6 +117,7 @@ const WEIGHTS = {
 // Score → status helper
 // ---------------------------------------------------------------------------
 
+/** Map a numeric score to a status classification: >=80 healthy, >=50 warning, else critical. */
 function scoreToStatus(score: number): "healthy" | "warning" | "critical" {
   if (score >= 80) return "healthy"
   if (score >= 50) return "warning"
@@ -97,6 +128,7 @@ function scoreToStatus(score: number): "healthy" | "warning" | "critical" {
 // Sub-score computation functions
 // ---------------------------------------------------------------------------
 
+/** Compute the slot utilization sub-score based on available vs total task slots. */
 export function computeSlotUtilizationScore(
   overview: ClusterOverview | null,
 ): HealthSubScore {
@@ -123,6 +155,7 @@ export function computeSlotUtilizationScore(
   }
 }
 
+/** Compute the backpressure sub-score by averaging vertex backpressure levels across running jobs. */
 export function computeBackpressureScore(jobs: FlinkJob[]): HealthSubScore {
   const runningJobs = jobs.filter((j) => j.status === "RUNNING")
   if (runningJobs.length === 0) {
@@ -170,6 +203,7 @@ export function computeBackpressureScore(jobs: FlinkJob[]): HealthSubScore {
   }
 }
 
+/** Compute the checkpoint health sub-score from the success rate of recent checkpoints. */
 export function computeCheckpointHealthScore(jobs: FlinkJob[]): HealthSubScore {
   const runningJobs = jobs.filter((j) => j.status === "RUNNING")
   if (runningJobs.length === 0) {
@@ -215,6 +249,7 @@ export function computeCheckpointHealthScore(jobs: FlinkJob[]): HealthSubScore {
   }
 }
 
+/** Compute the memory pressure sub-score from the worst-case TM heap utilization. */
 export function computeMemoryPressureScore(
   taskManagers: TaskManager[],
 ): HealthSubScore {
@@ -251,6 +286,7 @@ export function computeMemoryPressureScore(
   }
 }
 
+/** Compute the exception rate sub-score by counting exceptions in the last 5 minutes. */
 export function computeExceptionRateScore(jobs: FlinkJob[]): HealthSubScore {
   const fiveMinAgo = Date.now() - 5 * 60 * 1000
   let totalExceptions = 0
@@ -281,6 +317,7 @@ export function computeExceptionRateScore(jobs: FlinkJob[]): HealthSubScore {
 // Composite health snapshot
 // ---------------------------------------------------------------------------
 
+/** Compute a full health snapshot with composite score from all five sub-scores. */
 export function computeHealthSnapshot(
   overview: ClusterOverview | null,
   jobs: FlinkJob[],
@@ -309,6 +346,7 @@ export function computeHealthSnapshot(
 // Issue detection
 // ---------------------------------------------------------------------------
 
+/** Detect active health issues (memory pressure, backpressure, checkpoint failures, low slots). */
 export function detectIssues(
   overview: ClusterOverview | null,
   jobs: FlinkJob[],
@@ -394,21 +432,33 @@ export function detectIssues(
 // ---------------------------------------------------------------------------
 
 interface InsightsState {
+  /** Most recent health snapshot, or null before first computation. */
   currentHealth: HealthSnapshot | null
+  /** Ring buffer of recent health snapshots for trend visualization. */
   healthHistory: HealthSnapshot[]
+  /** Currently detected health issues sorted by severity. */
   issues: HealthIssue[]
+  /** True during the initial health computation. */
   healthLoading: boolean
 
-  // Bottleneck analysis
+  /** Per-vertex bottleneck scores from the bottleneck analyzer. */
   bottleneckScores: BottleneckScore[]
+  /** Optimization recommendations sorted by score descending. */
   recommendations: Recommendation[]
+  /** Filter bottleneck analysis to a specific job, or null for all jobs. */
   selectedBottleneckJobId: string | null
+  /** True during the initial bottleneck analysis computation. */
   bottleneckLoading: boolean
 
+  /** Subscribe to cluster-store and compute initial snapshot (guarded — runs once). */
   initialize: () => void
+  /** Start the staggered job detail polling interval for bottleneck data. */
   startPolling: () => void
+  /** Stop polling, unsubscribe from cluster-store, and clear caches. */
   stopPolling: () => void
+  /** Set the job filter for bottleneck analysis and re-run analysis. */
   setSelectedBottleneckJob: (jobId: string | null) => void
+  /** Force a bottleneck analysis refresh with the current selection. */
   refreshBottleneckAnalysis: () => void
 }
 
@@ -429,6 +479,7 @@ const healthRingBuffer = new RingBuffer<HealthSnapshot>(RING_BUFFER_SIZE)
 // the vertex-level data it needs.
 const jobDetailsCache = new Map<string, FlinkJob>()
 
+/** Run bottleneck analysis on cached job details, optionally filtered to a single job. */
 function computeBottleneckState(selectedJobId: string | null): {
   bottleneckScores: BottleneckScore[]
   recommendations: Recommendation[]
@@ -456,6 +507,7 @@ function computeBottleneckState(selectedJobId: string | null): {
   return { bottleneckScores: allScores, recommendations: allRecommendations }
 }
 
+/** Recompute health snapshot, issues, and bottleneck analysis from current cluster-store state. */
 function computeAndSet(set: (partial: Partial<InsightsState>) => void) {
   const { overview, runningJobs, completedJobs, taskManagers } =
     useClusterStore.getState()
@@ -482,6 +534,7 @@ function computeAndSet(set: (partial: Partial<InsightsState>) => void) {
   })
 }
 
+/** Fetch detail for up to 2 running jobs per tick and cache for bottleneck analysis. */
 async function staggeredFetchJobDetails() {
   const { runningJobs } = useClusterStore.getState()
   const runningIds = runningJobs.map((j) => j.id)

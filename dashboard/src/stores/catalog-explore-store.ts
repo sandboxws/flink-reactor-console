@@ -1,3 +1,13 @@
+/**
+ * Catalog explore store — SQL editor state for ad-hoc catalog queries.
+ *
+ * Manages a SQL Gateway session, submits user SQL, and streams result rows
+ * with paginated polling. Rows are accumulated up to {@link MAX_ROWS}. Supports
+ * session recovery on expiration and cooperative cancellation.
+ *
+ * @module catalog-explore-store
+ */
+
 import { create } from "zustand"
 import {
   createSQLSession,
@@ -5,8 +15,10 @@ import {
   submitSQLStatement,
 } from "@/lib/graphql-api-client"
 
+/** Maximum rows accumulated before the query is auto-stopped. */
 const MAX_ROWS = 10_000
 
+/** Lifecycle status of a catalog explore query. */
 type ExploreStatus =
   | "idle"
   | "submitting"
@@ -16,20 +28,32 @@ type ExploreStatus =
   | "cancelled"
 
 interface ExploreState {
+  /** Active SQL Gateway session handle, or null if no session. */
   sessionHandle: string | null
+  /** Current SQL text in the editor. */
   sql: string
+  /** Lifecycle status of the current query. */
   status: ExploreStatus
+  /** Column metadata from the first result batch. */
   columns: Array<{ name: string; dataType: string }>
+  /** Accumulated result rows (up to MAX_ROWS). */
   rows: Array<Array<string | null>>
+  /** True while result polling is active. */
   streaming: boolean
+  /** Error message from the most recent failed query. */
   error: string | null
+  /** Cooperative cancellation flag checked between poll iterations. */
   cancelled: boolean
 }
 
 interface ExploreActions {
+  /** Update the SQL text in the editor. */
   setSql: (sql: string) => void
+  /** Submit the current SQL for execution and begin streaming results. */
   executeQuery: () => Promise<void>
+  /** Signal cooperative cancellation of the running query. */
   cancelQuery: () => void
+  /** Clear all results and reset to idle state. */
   clearResults: () => void
 }
 

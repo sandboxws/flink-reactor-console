@@ -12,23 +12,47 @@ import {
   stopSimulation as stopSimulationApi,
 } from "@/lib/graphql-api-client"
 
+/**
+ * Simulation store — manages simulation runner state and execution history.
+ *
+ * Fetches presets and past runs from the Go GraphQL backend, supports starting
+ * and stopping simulations, and polls the active run for status updates until
+ * it reaches a terminal state (COMPLETED, FAILED, CANCELLED).
+ *
+ * @module simulation-store
+ */
+
 interface SimulationState {
+  /** Available simulation preset configurations. */
   presets: SimulationPreset[]
+  /** History of all simulation runs. */
   runs: SimulationRun[]
+  /** Currently active (or most recently viewed) simulation run. */
   activeRun: SimulationRun | null
+  /** Whether the initial data load is in progress. */
   isLoading: boolean
+  /** Error from the most recent failed operation. */
   error: string | null
 }
 
 interface SimulationActions {
+  /** Load presets and runs in parallel (guarded — runs once). */
   initialize: () => Promise<void>
+  /** Re-fetch simulation presets. */
   fetchPresets: () => Promise<void>
+  /** Re-fetch the simulation run history. */
   fetchRuns: () => Promise<void>
+  /** Fetch detail for a specific simulation run. */
   fetchRun: (runId: string) => Promise<void>
+  /** Start a new simulation and begin polling for updates. */
   runSimulation: (input: SimulationInputParams) => Promise<void>
+  /** Stop a running simulation and refresh state. */
   stopSimulation: (runId: string) => Promise<void>
+  /** Start polling the active run for status updates (3s interval). */
   startActivePolling: (runId: string) => void
+  /** Stop the active run polling interval. */
   stopActivePolling: () => void
+  /** Clear the active run and stop polling. */
   clearActiveRun: () => void
 }
 

@@ -1,3 +1,15 @@
+/**
+ * JSON execution plan parser.
+ *
+ * Parses Flink execution plans in the JSON format emitted by `EXPLAIN PLAN
+ * FOR ... AS JSON` or the Flink REST API's `/jobs/:jid` plan field.
+ * Resolves DAG structure from predecessor references, extracts operator
+ * metadata (join info, shuffle strategy, state annotations), and produces
+ * a {@link NormalizedFlinkPlan} with a virtual root when multiple sinks exist.
+ *
+ * @module plan-analyzer/parser/json-parser
+ */
+
 import {
   OPERATOR_CATEGORIES,
   OPERATOR_PATTERNS,
@@ -13,6 +25,7 @@ import type {
   ShuffleStrategy,
 } from "../types"
 
+/** Raw JSON plan node from Flink's execution plan output. */
 interface JsonPlanNode {
   id: number | string
   type: string
@@ -29,6 +42,7 @@ interface JsonPlanNode {
   optimizer_properties?: Record<string, unknown>
 }
 
+/** Top-level JSON execution plan envelope containing the nodes array. */
 interface JsonExecutionPlan {
   nodes: JsonPlanNode[]
   jid?: string
@@ -369,6 +383,13 @@ function calculateMaxDepth(node: FlinkOperatorNode, currentDepth = 0): number {
   )
 }
 
+/**
+ * Parse a JSON execution plan string into a {@link NormalizedFlinkPlan}.
+ *
+ * Accepts wrapped (`{ nodes: [...] }`), nested (`{ plan: { nodes: [...] } }`),
+ * or bare array formats. Resolves predecessor references into a DAG,
+ * creating a virtual root when multiple sinks exist.
+ */
 export function parseJsonPlan(input: string): NormalizedFlinkPlan {
   nodeIdCounter = 0
 

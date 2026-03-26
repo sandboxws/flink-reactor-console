@@ -1,3 +1,12 @@
+/**
+ * Flink log4j log parser.
+ *
+ * Parses raw Flink log text (log4j pattern `%d %-5p %-60c %x - %m%n`) into
+ * structured {@link LogEntry} objects. Handles multi-line messages, stack traces,
+ * "Caused by" chains, and orphan continuation lines.
+ *
+ * @module
+ */
 import type { LogEntry, LogLevel, LogSource } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
@@ -17,6 +26,7 @@ const MORE_RE = /^\s+\.\.\.\s\d+\s+more$/
 
 let entryCounter = 0
 
+/** Generate a monotonically-increasing unique ID for a log entry. */
 function nextId(): string {
   return `log-${++entryCounter}`
 }
@@ -38,7 +48,9 @@ function isStackTraceLine(line: string): boolean {
   return AT_FRAME_RE.test(line) || CAUSED_BY_RE.test(line) || MORE_RE.test(line)
 }
 
+/** Result of parsing a block of Flink log text. */
 export interface ParseResult {
+  /** Successfully parsed log entries. */
   entries: LogEntry[]
   /** Lines that couldn't be attached to any log entry. */
   orphanLines: string[]

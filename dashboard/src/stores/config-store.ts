@@ -1,9 +1,16 @@
 import { create } from "zustand"
 import { fetchDashboardConfig } from "@/lib/graphql-api-client"
 
-// ---------------------------------------------------------------------------
-// Config store — runtime configuration fetched from GraphQL dashboardConfig
-// ---------------------------------------------------------------------------
+/**
+ * Config store — runtime dashboard configuration fetched once from the Go
+ * server's GraphQL `dashboardConfig` query.
+ *
+ * The config is fetched on app boot and cached — subsequent calls are no-ops.
+ * Other stores (e.g. cluster-store) read `pollIntervalMs` from here to
+ * configure their refresh intervals.
+ *
+ * @module config-store
+ */
 
 /**
  * Browser-safe config subset sourced from the Go server's GraphQL
@@ -11,23 +18,35 @@ import { fetchDashboardConfig } from "@/lib/graphql-api-client"
  * defaults for the remaining fields.
  */
 export interface PublicDashboardConfig {
+  /** Cluster polling interval in milliseconds (default: 5000). */
   pollIntervalMs: number
+  /** Maximum number of log entries kept in the ring buffer (default: 100,000). */
   logBufferSize: number
+  /** Human-readable display name for the cluster. */
   clusterDisplayName: string
+  /** Server-side log level override, or null for default. */
   logLevel: string | null
+  /** List of cluster endpoint names available to the dashboard. */
   clusters: string[]
+  /** Whether role-based access control is enabled on the server. */
   rbacEnabled: boolean
+  /** Whether Prometheus metric scraping is enabled. */
   prometheusEnabled: boolean
+  /** Whether the alert webhook endpoint is configured. */
   alertWebhookEnabled: boolean
 }
 
 interface ConfigState {
+  /** Resolved config, or null if not yet fetched. */
   config: PublicDashboardConfig | null
+  /** Whether the config fetch is in progress. */
   loading: boolean
+  /** Error message from the most recent failed fetch. */
   error: string | null
 }
 
 interface ConfigActions {
+  /** Fetch config from GraphQL (guarded — subsequent calls are no-ops once loaded). */
   fetchConfig: () => Promise<void>
 }
 

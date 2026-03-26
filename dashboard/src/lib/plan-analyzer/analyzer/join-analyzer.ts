@@ -1,5 +1,18 @@
+/**
+ * Join strategy analyzer for Flink execution plans.
+ *
+ * Examines join operators and detects anti-patterns: regular joins with
+ * unbounded state (NoUniqueKey on both sides), synchronous lookup joins,
+ * lookup joins without caching, and temporal joins missing primary keys.
+ * Suggests alternative join strategies (interval, temporal, lookup) where
+ * applicable.
+ *
+ * @module plan-analyzer/analyzer/join-analyzer
+ */
+
 import type { FlinkAntiPattern, FlinkOperatorNode } from "../types"
 
+/** Result of join analysis containing detected anti-patterns. */
 interface JoinAnalysisResult {
   antiPatterns: FlinkAntiPattern[]
 }
@@ -143,6 +156,7 @@ function traverseOperators(
   }
 }
 
+/** Analyze all join operators in the plan tree for strategy anti-patterns. */
 export function analyzeJoins(root: FlinkOperatorNode): JoinAnalysisResult {
   const antiPatterns: FlinkAntiPattern[] = []
 

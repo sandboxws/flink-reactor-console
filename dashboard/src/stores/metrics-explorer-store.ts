@@ -6,16 +6,33 @@ import {
   type MetricCatalogEntry,
 } from "@/lib/graphql-api-client"
 
+/**
+ * Metrics explorer store — time-series metric visualization with catalog,
+ * presets, and counter-to-rate conversion.
+ *
+ * Fetches metric catalog and series data from the Go GraphQL backend. Supports
+ * multiple selected series with configurable time range and refresh interval.
+ * Counter metrics are automatically converted to per-second rates. Selected
+ * series and preferences are persisted to localStorage via Zustand persist.
+ *
+ * @module metrics-explorer-store
+ */
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+/** A single data point in a metric time series. */
 export type MetricDataPoint = {
+  /** Unix timestamp in milliseconds. */
   timestamp: number
+  /** Metric value at this point. */
   value: number
 }
 
+/** Flink metric type classification. */
 export type MetricType = "gauge" | "counter" | "meter"
+/** Unit of measurement for a metric. */
 export type MetricUnit =
   | "bytes"
   | "ms"
@@ -25,12 +42,14 @@ export type MetricUnit =
   | "records/s"
   | "bytes/s"
   | "segments"
+/** Type and unit metadata for a metric, determined by pattern matching. */
 export type MetricMeta = { type: MetricType; unit: MetricUnit }
 
 // ---------------------------------------------------------------------------
 // Metric metadata registry — pattern-matched, based on Flink docs
 // ---------------------------------------------------------------------------
 
+/** Pattern-matched metric metadata registry based on Flink metric naming conventions. */
 const METRIC_PATTERNS: [RegExp, MetricMeta][] = [
   // JVM Memory (bytes)
   [
@@ -79,6 +98,7 @@ const METRIC_PATTERNS: [RegExp, MetricMeta][] = [
 
 const DEFAULT_META: MetricMeta = { type: "gauge", unit: "count" }
 
+/** Look up type and unit metadata for a metric name by matching against known patterns. */
 export function getMetricMeta(metricName: string): MetricMeta {
   for (const [pattern, meta] of METRIC_PATTERNS) {
     if (pattern.test(metricName)) return meta
@@ -105,14 +125,21 @@ const TIME_RANGE_MS: Record<TimeRange, number> = {
 // Selected metric type
 // ---------------------------------------------------------------------------
 
+/** A user-selected metric series with source identification and display metadata. */
 export type SelectedMetric = {
+  /** Source type (e.g. "job_manager", "task_manager"). */
   sourceType: string
+  /** Source instance ID. */
   sourceID: string
+  /** Metric identifier within the source. */
   metricID: string
+  /** Human-readable label for chart legends. */
   label: string
+  /** Type and unit metadata for rendering and conversion. */
   meta: MetricMeta
 }
 
+/** Build a unique key for a series from its source type, ID, and metric ID. */
 function seriesKey(m: {
   sourceType: string
   sourceID: string
@@ -161,6 +188,7 @@ export { PRESETS }
 // Counter rate conversion
 // ---------------------------------------------------------------------------
 
+/** Convert cumulative counter values to per-second rates (skips negative deltas from resets). */
 function computeCounterRate(points: MetricDataPoint[]): MetricDataPoint[] {
   if (points.length < 2) return []
   const result: MetricDataPoint[] = []
@@ -183,39 +211,54 @@ function computeCounterRate(points: MetricDataPoint[]): MetricDataPoint[] {
 // ---------------------------------------------------------------------------
 
 interface MetricsExplorerState {
-  // Catalog (from DB)
+  /** Available metrics from the catalog query. */
   catalog: MetricCatalogEntry[]
+  /** Whether the catalog is loading. */
   catalogLoading: boolean
 
-  // Selected series
+  /** User-selected metric series to display on the chart. */
   selectedSeries: SelectedMetric[]
 
-  // Time-series data (fetched, processed)
-  seriesData: Record<string, MetricDataPoint[]> // key = "sourceType:sourceID:metricID"
+  /** Fetched + processed time-series data keyed by "sourceType:sourceID:metricID". */
+  seriesData: Record<string, MetricDataPoint[]>
+  /** Whether a data fetch is in progress. */
   dataLoading: boolean
 
-  // Time range + refresh
+  /** Active time range window for data queries. */
   timeRange: TimeRange
+  /** Polling interval in milliseconds. */
   refreshInterval: RefreshInterval
+  /** Whether data fetching is paused (polling continues but skips fetches). */
   isPaused: boolean
+  /** Whether the polling interval is active. */
   isPolling: boolean
 
-  // Actions
+  /** Fetch the metric catalog from the backend. */
   fetchCatalog: () => Promise<void>
+  /** Add a metric series to the chart. */
   addMetric: (
     sourceType: string,
     sourceID: string,
     metricID: string,
     label: string,
   ) => void
+  /** Remove a metric series by its composite key. */
   removeMetric: (key: string) => void
+  /** Remove all selected metric series and their data. */
   clearAllMetrics: () => void
+  /** Replace selected series with a named preset configuration. */
   applyPreset: (presetName: string) => void
+  /** Change the time range and re-fetch data. */
   setTimeRange: (range: TimeRange) => void
+  /** Change the refresh interval (restarts the polling timer). */
   setRefreshInterval: (interval: RefreshInterval) => void
+  /** Toggle the pause state for data fetching. */
   togglePause: () => void
+  /** Start the polling interval and fetch catalog + initial data. */
   startPolling: () => void
+  /** Stop the polling interval. */
   stopPolling: () => void
+  /** Fetch time-series data for all selected metrics within the time range. */
   fetchData: () => Promise<void>
 }
 

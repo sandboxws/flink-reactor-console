@@ -1,3 +1,15 @@
+/**
+ * State backend analyzer for Flink execution plans.
+ *
+ * Estimates state size growth for each stateful operator based on operator
+ * type, key cardinality heuristics, and growth pattern classification
+ * (bounded, linear, superlinear). Projects 24h and 7d state sizes, detects
+ * unbounded state risks (joins and aggregations without TTL), and suggests
+ * state TTL and checkpoint configuration.
+ *
+ * @module plan-analyzer/analyzer/state-analyzer
+ */
+
 import { formatBytes } from "@flink-reactor/ui"
 import {
   ANALYSIS_THRESHOLDS,
@@ -13,6 +25,7 @@ import type {
   StateGrowthPattern,
 } from "../types"
 
+/** Result of state analysis with forecasts, anti-patterns, and projected state sizes. */
 interface StateAnalysisResult {
   forecasts: StateGrowthForecast[]
   antiPatterns: FlinkAntiPattern[]
@@ -220,6 +233,7 @@ function traverseOperators(
   }
 }
 
+/** Analyze all stateful operators for state growth risks and generate 24h/7d forecasts. */
 export function analyzeState(root: FlinkOperatorNode): StateAnalysisResult {
   const forecasts: StateGrowthForecast[] = []
   const antiPatterns: FlinkAntiPattern[] = []

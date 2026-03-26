@@ -1,27 +1,40 @@
+/**
+ * Flink logger definitions and log message templates for mock data generation.
+ *
+ * Defines simulated JobManager and TaskManager log sources, thread name pools,
+ * logger/message template pairs, checkpoint sequence templates, and placeholder
+ * value pools used to produce realistic Flink log output.
+ *
+ * @module
+ */
 import type { LogSource } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Log sources — 1 JobManager + 3 TaskManagers
 // ---------------------------------------------------------------------------
 
+/** Simulated JobManager log source. */
 export const JOB_MANAGER: LogSource = {
   type: "jobmanager",
   id: "jm-001",
   label: "JobManager",
 }
 
+/** Simulated TaskManager log sources (three instances). */
 export const TASK_MANAGERS: LogSource[] = [
   { type: "taskmanager", id: "tm-001", label: "TaskManager 1" },
   { type: "taskmanager", id: "tm-002", label: "TaskManager 2" },
   { type: "taskmanager", id: "tm-003", label: "TaskManager 3" },
 ]
 
+/** All simulated log sources (JobManager + TaskManagers). */
 export const ALL_SOURCES: LogSource[] = [JOB_MANAGER, ...TASK_MANAGERS]
 
 // ---------------------------------------------------------------------------
 // Thread name patterns
 // ---------------------------------------------------------------------------
 
+/** Typical JobManager thread names used in simulated log entries. */
 export const JM_THREADS = [
   "flink-akka.actor.default-dispatcher-2",
   "flink-akka.actor.default-dispatcher-4",
@@ -31,6 +44,7 @@ export const JM_THREADS = [
   "flink-rest-server-netty-worker-0",
 ]
 
+/** Typical TaskManager thread names used in simulated log entries. */
 export const TM_THREADS = [
   "flink-akka.actor.default-dispatcher-3",
   "Source: KafkaSource -> Map (1/4)#0",
@@ -46,11 +60,15 @@ export const TM_THREADS = [
 // JobManager logger names and message templates
 // ---------------------------------------------------------------------------
 
+/** A logger class paired with its pool of message templates containing `%PLACEHOLDER%` tokens. */
 export interface LoggerTemplate {
+  /** Fully-qualified Java logger class name. */
   logger: string
+  /** Message templates with `%PLACEHOLDER%` tokens to be filled at generation time. */
   messages: string[]
 }
 
+/** JobManager logger/message template pool (Dispatcher, CheckpointCoordinator, JobMaster, ResourceManager). */
 export const JM_LOGGERS: LoggerTemplate[] = [
   {
     logger: "org.apache.flink.runtime.dispatcher.StandaloneDispatcher",
@@ -99,6 +117,7 @@ export const JM_LOGGERS: LoggerTemplate[] = [
 // TaskManager logger names and message templates
 // ---------------------------------------------------------------------------
 
+/** TaskManager logger/message template pool (TaskExecutor, Task, StreamTask, KafkaSourceReader, KafkaWriter). */
 export const TM_LOGGERS: LoggerTemplate[] = [
   {
     logger: "org.apache.flink.runtime.taskexecutor.TaskExecutor",
@@ -153,6 +172,7 @@ export const TM_LOGGERS: LoggerTemplate[] = [
 // Checkpoint sequence templates (emitted as a correlated group)
 // ---------------------------------------------------------------------------
 
+/** Ordered checkpoint lifecycle templates emitted as a correlated group (trigger -> ack -> complete/expire). */
 export const CHECKPOINT_SEQUENCE = {
   trigger: {
     logger: "org.apache.flink.runtime.checkpoint.CheckpointCoordinator",
@@ -184,6 +204,7 @@ export const CHECKPOINT_SEQUENCE = {
 // Placeholder fill values
 // ---------------------------------------------------------------------------
 
+/** Pool of realistic replacement values for each `%PLACEHOLDER%` token in log message templates. */
 export const PLACEHOLDER_VALUES: Record<string, string[]> = {
   JOB_NAME: [
     "ClickCountJob",

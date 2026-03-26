@@ -1,3 +1,12 @@
+/**
+ * Catalog store — tree browser for Flink SQL catalogs, databases, tables, and columns.
+ *
+ * Lazy-loads children on node expansion: catalogs → databases → tables → columns.
+ * Tracks expanded/loading state per tree node using composite key strings.
+ *
+ * @module catalog-store
+ */
+
 import { create } from "zustand"
 import {
   type CatalogDatabase,
@@ -11,20 +20,29 @@ import {
 } from "@/lib/graphql-api-client"
 
 interface CatalogState {
+  /** Top-level catalogs returned by the GraphQL API. */
   catalogs: CatalogInfo[]
+  /** Whether the catalog list is loading. */
   loading: boolean
+  /** Error from the most recent catalog operation. */
   error: string | null
 
-  // Per-node expanded state and children
+  /** Set of expanded tree node keys. */
   expandedNodes: Set<string>
+  /** Databases per catalog node key. */
   databases: Record<string, CatalogDatabase[]>
+  /** Tables per database node key. */
   tables: Record<string, CatalogTable[]>
+  /** Columns per table node key. */
   columns: Record<string, ColumnInfo[]>
+  /** Set of node keys currently being fetched. */
   loadingNodes: Set<string>
 }
 
 interface CatalogActions {
+  /** Fetch the top-level catalog list. */
   fetchCatalogs: () => Promise<void>
+  /** Toggle a tree node: collapse if expanded, or expand and lazy-load children. */
   toggleNode: (
     nodeKey: string,
     catalog: string,

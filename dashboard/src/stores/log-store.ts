@@ -13,10 +13,16 @@ import { useErrorStore } from "./error-store"
 
 const log = createClientLogger().getSubLogger({ name: "store:log" })
 
-// ---------------------------------------------------------------------------
-// Log store — buffered log entries with FIFO eviction and streaming controls
-// Polls JM + TM log endpoints from the Go backend.
-// ---------------------------------------------------------------------------
+/**
+ * Log store — buffered log entries with FIFO eviction and streaming controls.
+ *
+ * Polls JM, TM, and SQL Gateway log endpoints from the Go backend using
+ * byte-offset delta tracking (only new content is parsed each tick). Entries
+ * exceeding {@link LOG_BUFFER_LIMIT} are evicted oldest-first. Exception
+ * entries are cross-posted to the error-store for automatic grouping.
+ *
+ * @module log-store
+ */
 
 /** Speed multiplier → polling interval in ms. Lower speed = longer interval. */
 function speedToIntervalMs(speed: number): number {
@@ -28,17 +34,26 @@ function speedToIntervalMs(speed: number): number {
 const TM_CONCURRENCY_CAP = 5
 
 interface LogState {
+  /** Ring buffer of parsed log entries (capped at LOG_BUFFER_LIMIT). */
   entries: LogEntry[]
+  /** Whether the log polling loop is currently active. */
   isStreaming: boolean
+  /** Speed multiplier controlling the polling interval (1 = 3s, 2 = 1.5s, etc.). */
   streamSpeed: number
 }
 
 interface LogActions {
+  /** Append new entries to the buffer with FIFO eviction beyond the cap. */
   appendEntries: (newEntries: LogEntry[]) => void
+  /** Clear all buffered log entries. */
   clear: () => void
+  /** Toggle streaming on/off. */
   toggleStreaming: () => void
+  /** Change the polling speed multiplier (restarts the interval if streaming). */
   setStreamSpeed: (speed: number) => void
+  /** Start the log polling loop (resets byte offsets for a fresh stream). */
   startStreaming: () => void
+  /** Stop the log polling loop. */
   stopStreaming: () => void
 }
 

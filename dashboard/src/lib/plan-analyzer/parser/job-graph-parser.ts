@@ -1,3 +1,14 @@
+/**
+ * Flink job graph REST response parser.
+ *
+ * Parses the JSON response from `/jobs/:jid` which contains a `plan.nodes`
+ * array with vertex-level operator descriptions and optional runtime metrics
+ * from the `vertices` array. Resolves input references into a DAG and
+ * enriches nodes with live record counts when available.
+ *
+ * @module plan-analyzer/parser/job-graph-parser
+ */
+
 import {
   OPERATOR_CATEGORIES,
   OPERATOR_PATTERNS,
@@ -13,6 +24,7 @@ import type {
   ShuffleStrategy,
 } from "../types"
 
+/** Runtime vertex data from the Flink REST `/jobs/:jid` response. */
 interface JobGraphVertex {
   id: string
   name: string
@@ -29,6 +41,7 @@ interface JobGraphVertex {
   }
 }
 
+/** Operator node from the Flink job graph plan. */
 interface JobGraphNode {
   id: string
   parallelism: number
@@ -44,6 +57,7 @@ interface JobGraphNode {
   optimizer_properties?: Record<string, unknown>
 }
 
+/** The plan section of a Flink job graph response. */
 interface JobGraphPlan {
   jid: string
   name: string
@@ -51,6 +65,7 @@ interface JobGraphPlan {
   nodes: JobGraphNode[]
 }
 
+/** Top-level Flink REST `/jobs/:jid` response envelope. */
 interface JobGraphResponse {
   jid: string
   name: string
@@ -389,6 +404,12 @@ function calculateMaxDepth(node: FlinkOperatorNode, currentDepth = 0): number {
   )
 }
 
+/**
+ * Parse a Flink job graph REST response into a {@link NormalizedFlinkPlan}.
+ *
+ * Extracts operator nodes from `plan.nodes`, enriches them with runtime
+ * vertex metrics when available, and resolves input references into a DAG.
+ */
 export function parseJobGraphPlan(input: string): NormalizedFlinkPlan {
   nodeIdCounter = 0
 

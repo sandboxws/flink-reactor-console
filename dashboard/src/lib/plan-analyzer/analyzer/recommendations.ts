@@ -1,3 +1,14 @@
+/**
+ * Recommendation generator for Flink execution plan analysis.
+ *
+ * Converts detected anti-patterns into prioritized, actionable recommendations
+ * with SQL config snippets and DDL fixes. Adds cross-cutting recommendations
+ * for global state TTL, mini-batch processing, watermark configuration, and
+ * checkpoint optimization based on aggregated analysis results.
+ *
+ * @module plan-analyzer/analyzer/recommendations
+ */
+
 import { formatBytes } from "@flink-reactor/ui"
 import type {
   FlinkAntiPattern,
@@ -7,6 +18,7 @@ import type {
   WatermarkHealth,
 } from "../types"
 
+/** Aggregated analysis inputs used to generate cross-cutting recommendations. */
 interface RecommendationInput {
   antiPatterns: FlinkAntiPattern[]
   bottlenecks: FlinkBottleneck[]
@@ -15,6 +27,13 @@ interface RecommendationInput {
   totalEstimatedState24h: number
 }
 
+/**
+ * Generate prioritized recommendations from anti-patterns and analysis results.
+ *
+ * Converts each anti-pattern into a recommendation, then adds cross-cutting
+ * global recommendations (state TTL, mini-batch, checkpoint config) based on
+ * aggregated thresholds. Results are sorted by severity and deduplicated.
+ */
 export function generateRecommendations(
   input: RecommendationInput,
 ): FlinkRecommendation[] {

@@ -1,9 +1,14 @@
-// ---------------------------------------------------------------------------
-// Bottleneck Analyzer — pure scoring and recommendation functions
-//
-// All functions are pure: no store access, no side effects.
-// Follows the flink-api-mappers.ts pattern for testability.
-// ---------------------------------------------------------------------------
+/**
+ * Bottleneck analyzer -- pure scoring and recommendation engine.
+ *
+ * Computes composite bottleneck scores for Flink job vertices using
+ * backpressure, busy-time, throughput-ratio, and skew factors, then generates
+ * actionable recommendations (increase parallelism, fix data skew, etc.).
+ *
+ * All functions are pure: no store access, no side effects.
+ *
+ * @module
+ */
 
 import type {
   FlinkJob,
@@ -17,8 +22,10 @@ import type {
 // Types
 // ---------------------------------------------------------------------------
 
+/** Severity classification derived from the composite bottleneck score. */
 export type BottleneckSeverity = "low" | "medium" | "high"
 
+/** Composite bottleneck score for a single job vertex. */
 export type BottleneckScore = {
   vertexId: string
   vertexName: string
@@ -35,12 +42,14 @@ export type BottleneckScore = {
   }
 }
 
+/** Category of actionable recommendation produced by the analyzer. */
 export type RecommendationType =
   | "increase-parallelism"
   | "data-skew"
   | "slow-operator"
   | "backpressure-cascade"
 
+/** An actionable recommendation for resolving a detected bottleneck. */
 export type Recommendation = {
   type: RecommendationType
   vertexId: string
@@ -56,6 +65,7 @@ export type Recommendation = {
 // Scoring weights
 // ---------------------------------------------------------------------------
 
+/** Relative weights for each factor in the composite bottleneck score (must sum to 1.0). */
 const WEIGHTS = {
   backpressure: 0.4,
   busyTime: 0.3,
@@ -67,6 +77,7 @@ const WEIGHTS = {
 // Severity thresholds
 // ---------------------------------------------------------------------------
 
+/** Map a numeric bottleneck score (0-100) to a severity label. */
 function scoreSeverity(score: number): BottleneckSeverity {
   if (score <= 30) return "low"
   if (score <= 60) return "medium"
@@ -77,6 +88,7 @@ function scoreSeverity(score: number): BottleneckSeverity {
 // Factor computation helpers
 // ---------------------------------------------------------------------------
 
+/** Derive a 0-100 backpressure factor from per-subtask ratios or the vertex-level label. */
 function computeBackpressureFactor(bp: VertexBackPressure | undefined): number {
   if (!bp) return 0
 
@@ -100,11 +112,13 @@ function computeBackpressureFactor(bp: VertexBackPressure | undefined): number {
   }
 }
 
+/** Convert busy-time (ms per second) to a 0-100 utilization factor. */
 function computeBusyTimeFactor(busyTimeMsPerSecond: number): number {
   // 1000ms/s means fully busy = 100
   return Math.min(100, Math.round((busyTimeMsPerSecond / 1000) * 100))
 }
 
+/** Compute a 0-100 throughput drop factor from input/output record counts. */
 function computeThroughputRatioFactor(
   recordsIn: number,
   recordsOut: number,

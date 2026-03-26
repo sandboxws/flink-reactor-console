@@ -1,3 +1,13 @@
+/**
+ * Plan analyzer constants — operator classification, state metadata,
+ * shuffle risk levels, regex patterns, and analysis thresholds.
+ *
+ * These constants drive the heuristic analysis across all analyzer modules.
+ * Operator patterns use regex matching against plan text for classification.
+ *
+ * @module plan-analyzer/constants
+ */
+
 import type {
   FlinkOperatorCategory,
   FlinkOperatorType,
@@ -6,7 +16,7 @@ import type {
   StateGrowthPattern,
 } from "./types"
 
-// Map operator types to categories
+/** Maps each Flink operator type to its high-level category (source, sink, join, etc.). */
 export const OPERATOR_CATEGORIES: Record<
   FlinkOperatorType,
   FlinkOperatorCategory
@@ -69,7 +79,7 @@ export const OPERATOR_CATEGORIES: Record<
   Unknown: "unknown",
 }
 
-// Operators that maintain state
+/** Set of operator types that maintain Flink state (joins, aggregations, deduplication, CEP). */
 export const STATEFUL_OPERATORS: Set<FlinkOperatorType> = new Set([
   "Join",
   "IntervalJoin",
@@ -86,7 +96,7 @@ export const STATEFUL_OPERATORS: Set<FlinkOperatorType> = new Set([
   "Match",
 ])
 
-// Default state type per operator
+/** Default Flink state type for each stateful operator (ValueState, MapState, ListState, etc.). */
 export const OPERATOR_STATE_TYPES: Partial<
   Record<FlinkOperatorType, FlinkStateType>
 > = {
@@ -105,7 +115,7 @@ export const OPERATOR_STATE_TYPES: Partial<
   Match: "ListState",
 }
 
-// State growth patterns per operator type
+/** State growth pattern for each stateful operator (bounded, linear, unbounded). */
 export const OPERATOR_STATE_GROWTH: Partial<
   Record<FlinkOperatorType, StateGrowthPattern>
 > = {
@@ -123,7 +133,7 @@ export const OPERATOR_STATE_GROWTH: Partial<
   Match: "unbounded",
 }
 
-// Shuffle strategy risk levels (for skew)
+/** Data skew risk level for each shuffle strategy (HASH and GLOBAL are high risk). */
 export const SHUFFLE_RISK_LEVELS: Record<
   ShuffleStrategy,
   "none" | "low" | "medium" | "high"
@@ -138,7 +148,7 @@ export const SHUFFLE_RISK_LEVELS: Record<
   UNKNOWN: "low",
 }
 
-// Operator category colors for visualization (mapped to console fr-* palette)
+/** Operator category → CSS color token for DAG visualization. */
 export const CATEGORY_COLORS: Record<FlinkOperatorCategory, string> = {
   source: "fr-coral",
   sink: "fr-amber",
@@ -152,7 +162,7 @@ export const CATEGORY_COLORS: Record<FlinkOperatorCategory, string> = {
   unknown: "zinc-500",
 }
 
-// Operator type patterns for text parsing
+/** Regex patterns for classifying operator type from plan text descriptions. */
 export const OPERATOR_PATTERNS: Array<{
   pattern: RegExp
   type: FlinkOperatorType
@@ -210,7 +220,7 @@ export const OPERATOR_PATTERNS: Array<{
   { pattern: /^Sink:/i, type: "Sink" },
 ]
 
-// Thresholds for analysis
+/** Numeric thresholds for state size warnings, window size limits, skew detection, and state estimation. */
 export const ANALYSIS_THRESHOLDS = {
   // State size warnings
   STATE_SIZE_WARNING_MB: 1024, // 1GB
@@ -240,7 +250,7 @@ export const ANALYSIS_THRESHOLDS = {
   ESTIMATED_BYTES_PER_WINDOW_ENTRY: 128,
 }
 
-// Common low-cardinality field patterns
+/** Regex patterns matching field names likely to have low cardinality (country, status, boolean flags, etc.). */
 export const LOW_CARDINALITY_PATTERNS = [
   /^country/i,
   /^status/i,
@@ -256,7 +266,7 @@ export const LOW_CARDINALITY_PATTERNS = [
   /^has_\w+/i, // boolean fields
 ]
 
-// Shuffle strategy labels for display
+/** Human-readable labels for each shuffle strategy (used in DAG edge tooltips). */
 export const SHUFFLE_STRATEGY_LABELS: Record<ShuffleStrategy, string> = {
   FORWARD: "Forward (1:1)",
   HASH: "Hash Partition",

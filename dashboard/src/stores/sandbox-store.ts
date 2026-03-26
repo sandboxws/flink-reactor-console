@@ -15,19 +15,33 @@ import {
   type SynthesisResult,
 } from "@/lib/sandbox-synthesizer"
 
-// ---------------------------------------------------------------------------
-// Sandbox store — editor state, synthesis status, output tabs
-// ---------------------------------------------------------------------------
+/**
+ * Sandbox store — DSL editor state, synthesis execution, and output tabs.
+ *
+ * Manages the FlinkReactor DSL code editor with template/example switching,
+ * runs client-side synthesis (transpile DSL → SQL + CRD), and stores the
+ * output pipelines and validation diagnostics. Editor content and active
+ * template are persisted to localStorage.
+ *
+ * @module sandbox-store
+ */
 
+/** Lifecycle status of the DSL synthesis process. */
 export type SynthStatus = "idle" | "synthesizing" | "done" | "error"
 
 export type { SynthesisResult }
 
+/** A diagnostic produced during DSL validation (pre-synthesis). */
 export interface ValidationDiagnostic {
+  /** Diagnostic severity. */
   severity: "error" | "warning"
+  /** Human-readable diagnostic message. */
   message: string
+  /** Name of the DSL component that produced this diagnostic. */
   componentName?: string
+  /** Node ID in the pipeline graph, if applicable. */
   nodeId?: string
+  /** Diagnostic category for grouping/filtering. */
   category?:
     | "schema"
     | "expression"
@@ -35,6 +49,7 @@ export interface ValidationDiagnostic {
     | "changelog"
     | "structure"
     | "sql"
+  /** Structured detail for IDE-like suggestions. */
   details?: {
     readonly availableColumns?: readonly string[]
     readonly referencedColumn?: string
@@ -92,26 +107,44 @@ function persistTemplate(id: TemplateId | null) {
 // ---------------------------------------------------------------------------
 
 interface SandboxState {
+  /** Current DSL source code in the editor. */
   code: string
+  /** ID of the currently loaded example, or null. */
   activeExample: string | null
+  /** ID of the currently loaded template, or null. */
   activeTemplate: TemplateId | null
+  /** Current synthesis lifecycle status. */
   status: SynthStatus
+  /** Output pipelines from the last successful synthesis. */
   pipelines: PipelineOutput[]
+  /** Validation diagnostics from the last synthesis. */
   diagnostics: ValidationDiagnostic[]
+  /** Error message from the last failed synthesis. */
   synthError: string | null
+  /** Category of the synthesis error (transpile, synthesis, or unexpected). */
   synthErrorKind: "transpile" | "synthesis" | "unexpected" | null
+  /** Line number of the synthesis error, if available. */
   synthErrorLine: number | undefined
+  /** Column number of the synthesis error, if available. */
   synthErrorColumn: number | undefined
+  /** Time taken for the last synthesis in milliseconds. */
   synthTimeMs: number | null
+  /** Currently active output tab (SQL, CRD, or Explain). */
   activeOutputTab: "sql" | "crd" | "explain"
+  /** True during the first synthesis when the DSL WASM module is loading. */
   dslLoading: boolean
 }
 
 interface SandboxActions {
+  /** Update the editor code and persist to localStorage. */
   setCode: (code: string) => void
+  /** Load a built-in example by ID and auto-synthesize. */
   loadExample: (id: string) => void
+  /** Load a template by ID and auto-synthesize. */
   setTemplate: (id: TemplateId) => void
+  /** Switch the active output tab. */
   setActiveOutputTab: (tab: "sql" | "crd" | "explain") => void
+  /** Run DSL synthesis on the current editor code. */
   synthesize: () => Promise<void>
 }
 

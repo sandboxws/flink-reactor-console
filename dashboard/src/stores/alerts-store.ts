@@ -3,34 +3,68 @@ import { useCheckpointAnalyticsStore } from "./checkpoint-analytics-store"
 import { useClusterStore } from "./cluster-store"
 import { useInsightsStore } from "./insights-store"
 
+/**
+ * Alerts store — rule-based alerting evaluated against live cluster metrics.
+ *
+ * Subscribes to cluster-store changes and evaluates user-defined + preset alert
+ * rules on each update. Rules require N consecutive violations before firing.
+ * Alerts auto-resolve when conditions clear. Rules and active alerts are
+ * persisted to localStorage.
+ *
+ * @module alerts-store
+ */
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+/** Comparison operator for alert rule conditions. */
 export type AlertCondition = ">" | "<" | "==" | "!=" | ">=" | "<="
+
+/** Alert severity level. */
 export type AlertSeverity = "info" | "warning" | "critical"
 
+/** A configured alert rule that evaluates a metric against a threshold. */
 export type AlertRule = {
+  /** Unique rule identifier. */
   id: string
+  /** Human-readable rule name (e.g. "Slot Exhaustion"). */
   name: string
+  /** Metric ID to evaluate (e.g. "slots.freePercent"). */
   metric: string
+  /** Comparison operator. */
   condition: AlertCondition
+  /** Threshold value for the comparison. */
   threshold: number
+  /** Number of consecutive violations required before firing. */
   requiredConsecutive: number
+  /** Severity assigned to alerts fired by this rule. */
   severity: AlertSeverity
+  /** Whether this rule is actively evaluated. */
   enabled: boolean
+  /** True for built-in preset rules (cannot be deleted). */
   isPreset: boolean
 }
 
+/** An active alert fired when a rule's condition is met. */
 export type ActiveAlert = {
+  /** Unique alert instance identifier. */
   id: string
+  /** ID of the rule that fired this alert. */
   ruleId: string
+  /** Name of the rule that fired this alert. */
   ruleName: string
+  /** Severity inherited from the rule. */
   severity: AlertSeverity
+  /** Human-readable alert message with current value and threshold. */
   message: string
+  /** Current metric value at the time of evaluation. */
   currentValue: number
+  /** Threshold from the rule configuration. */
   threshold: number
+  /** When this alert was first triggered. */
   triggeredAt: Date
+  /** Whether the user has acknowledged this alert. */
   acknowledged: boolean
 }
 
@@ -38,9 +72,13 @@ export type ActiveAlert = {
 // Metric definitions — available metrics grouped by source
 // ---------------------------------------------------------------------------
 
+/** Definition of an alertable metric with display label and category group. */
 export type MetricDefinition = {
+  /** Metric identifier used in alert rules (e.g. "slots.freePercent"). */
   id: string
+  /** Human-readable label shown in the UI. */
   label: string
+  /** Category group for organizing metrics in the picker. */
   group: string
 }
 
@@ -108,6 +146,7 @@ export const METRIC_DEFINITIONS: MetricDefinition[] = [
 // Metric value extractors
 // ---------------------------------------------------------------------------
 
+/** Extract the current value of a metric by reading from the relevant store(s). Returns null if unavailable. */
 function getMetricValue(metricId: string): number | null {
   const cluster = useClusterStore.getState()
   const insights = useInsightsStore.getState()
@@ -197,6 +236,7 @@ function getMetricValue(metricId: string): number | null {
 // Condition evaluation
 // ---------------------------------------------------------------------------
 
+/** Evaluate a comparison condition (e.g. value > threshold). */
 function evaluateCondition(
   value: number,
   condition: AlertCondition,
@@ -339,25 +379,39 @@ function createPresetRules(): AlertRule[] {
 // ---------------------------------------------------------------------------
 
 interface AlertsState {
+  /** All configured alert rules (user-created + presets). */
   rules: AlertRule[]
+  /** Currently active (fired) alerts. */
   activeAlerts: ActiveAlert[]
+  /** Consecutive violation count per rule ID (for requiredConsecutive logic). */
   consecutiveViolations: Record<string, number>
 
+  /** Load rules from localStorage, install presets if needed, subscribe to cluster-store. */
   initialize: () => void
+  /** Unsubscribe from cluster-store and reset initialization guard. */
   stopListening: () => void
+  /** Create a new custom alert rule. */
   createRule: (rule: Omit<AlertRule, "id" | "isPreset">) => void
+  /** Update fields on an existing rule. */
   updateRule: (id: string, updates: Partial<AlertRule>) => void
+  /** Delete a custom rule (preset rules cannot be deleted). */
   deleteRule: (id: string) => void
+  /** Toggle a rule's enabled state (disabling auto-resolves its active alert). */
   toggleRule: (id: string) => void
+  /** Mark an active alert as acknowledged by the user. */
   acknowledgeAlert: (alertId: string) => void
+  /** Manually resolve (dismiss) an active alert. */
   resolveAlert: (alertId: string) => void
+  /** Resolve all active alerts at once. */
   resolveAllAlerts: () => void
+  /** Install the default preset rules (slot exhaustion, backpressure, etc.). */
   installPresets: () => void
 }
 
 let alertsInitialized = false
 let unsubCluster: (() => void) | null = null
 
+/** Evaluate all enabled rules against current metric values, firing/resolving alerts as needed. */
 function evaluateRules(
   set: (
     partial:
@@ -438,6 +492,7 @@ function evaluateRules(
   }
 }
 
+/** Format a human-readable alert message from a rule and its current metric value. */
 function formatAlertMessage(rule: AlertRule, currentValue: number): string {
   const metricDef = METRIC_DEFINITIONS.find((m) => m.id === rule.metric)
   const label = metricDef?.label ?? rule.metric

@@ -1,3 +1,12 @@
+/**
+ * @module text-parser
+ *
+ * Parses Flink execution plans in indented text format (the default output of
+ * `EXPLAIN PLAN FOR ...`). Supports both the tree-indented format using `+- / :-`
+ * prefixes and the staged format (`Stage N : ...` with `content:` / `ship_strategy:` lines).
+ * Produces a {@link NormalizedFlinkPlan} with a nested operator tree.
+ */
+
 import {
   OPERATOR_CATEGORIES,
   OPERATOR_PATTERNS,
@@ -12,6 +21,7 @@ import type {
   ShuffleStrategy,
 } from "../types"
 
+/** A single parsed line from the text plan, carrying indentation depth and operator classification. */
 interface TextLine {
   indent: number
   content: string
@@ -21,10 +31,21 @@ interface TextLine {
 
 let nodeIdCounter = 0
 
+/** Generate a unique sequential node ID (e.g., `flink-node-1`). */
 function generateNodeId(): string {
   return `flink-node-${++nodeIdCounter}`
 }
 
+/**
+ * Split raw plan text into structured {@link TextLine} entries.
+ *
+ * Detects whether the input uses the staged format (`Stage N : ...`) and
+ * delegates to {@link parseStagedLines} if so. Otherwise parses tree-indented
+ * lines, stripping `+- / :-` prefixes and computing indentation depth.
+ *
+ * @param input - Raw text plan string.
+ * @returns Array of parsed lines with indentation, content, and operator flags.
+ */
 function parseLines(input: string): TextLine[] {
   const lines = input.split("\n")
   const result: TextLine[] = []
@@ -124,6 +145,7 @@ function parseStagedLines(lines: string[]): TextLine[] {
   return result
 }
 
+/** Test whether a line's content represents a Flink operator (matches known patterns or function-call syntax). */
 function isOperatorLine(content: string): boolean {
   for (const { pattern } of OPERATOR_PATTERNS) {
     if (pattern.test(content)) {
@@ -138,6 +160,7 @@ function isOperatorLine(content: string): boolean {
   return false
 }
 
+/** Match operator text against known patterns and return the corresponding {@link FlinkOperatorType}, or `"Unknown"`. */
 function parseOperatorType(content: string): FlinkOperatorType {
   for (const { pattern, type } of OPERATOR_PATTERNS) {
     if (pattern.test(content)) {

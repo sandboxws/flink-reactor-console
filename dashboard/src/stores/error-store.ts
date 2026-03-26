@@ -7,26 +7,41 @@ import { useClusterStore } from "./cluster-store"
 
 const log = createClientLogger().getSubLogger({ name: "store:error" })
 
-// ---------------------------------------------------------------------------
-// Error store — auto-groups exceptions by class + message prefix
-// Supports mock-derived entries (from log-store) and live exceptions (from
-// Flink job detail exception history).
-// ---------------------------------------------------------------------------
+/**
+ * Error store — auto-groups exceptions by class + message prefix.
+ *
+ * Ingests log entries from the log-store (streamed JM/TM logs) and live
+ * exceptions polled from Flink job detail exception history. Entries are
+ * grouped by exception class + first 100 characters of the message, with
+ * deduplication across polls to prevent double-counting.
+ *
+ * @module error-store
+ */
 
+/** Sort order for the error group list. */
 type SortBy = "lastSeen" | "count" | "firstSeen"
 
 interface ErrorState {
+  /** Exception groups keyed by `exceptionClass|messagePrefix`. */
   groups: Map<string, ErrorGroup>
+  /** Currently selected group ID in the error explorer UI. */
   selectedGroupId: string | null
+  /** Current sort order for the group list. */
   sortBy: SortBy
 }
 
 interface ErrorActions {
+  /** Ingest a log entry — creates or updates an exception group if applicable. */
   processEntry: (entry: LogEntry) => void
+  /** Start polling Flink job detail endpoints for live exceptions (10s interval, 2 jobs/tick). */
   startLiveExceptionPolling: () => void
+  /** Stop the live exception polling interval. */
   stopLiveExceptionPolling: () => void
+  /** Select an error group for detail view. */
   selectGroup: (groupId: string | null) => void
+  /** Change the sort order of the group list. */
   setSortBy: (sortBy: SortBy) => void
+  /** Clear all groups and reset the deduplication set. */
   clear: () => void
 }
 
@@ -47,6 +62,7 @@ function buildGroupKey(entry: LogEntry): string | null {
   return `${exceptionClass}|${message.substring(0, 100)}`
 }
 
+/** Extract the exception class name and message from a log entry's stack trace. */
 function extractExceptionInfo(entry: LogEntry): {
   exceptionClass: string
   message: string
@@ -63,6 +79,7 @@ function extractExceptionInfo(entry: LogEntry): {
   return { exceptionClass, message }
 }
 
+/** Append a log source to the list if its ID is not already present. */
 function addSourceIfNew(existing: LogSource[], source: LogSource): LogSource[] {
   if (existing.some((s) => s.id === source.id)) return existing
   return [...existing, source]

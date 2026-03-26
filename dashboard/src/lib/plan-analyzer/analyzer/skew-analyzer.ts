@@ -1,3 +1,14 @@
+/**
+ * Data skew analyzer for Flink execution plans.
+ *
+ * Detects potential data skew risks by analyzing key field cardinality,
+ * NULL key concentration, hash partition strategies, and parallelism vs
+ * key cardinality mismatches. Suggests mitigations like local-global
+ * aggregation with mini-batch processing.
+ *
+ * @module plan-analyzer/analyzer/skew-analyzer
+ */
+
 import {
   ANALYSIS_THRESHOLDS,
   LOW_CARDINALITY_PATTERNS,
@@ -9,6 +20,7 @@ import type {
   ShuffleStrategy,
 } from "../types"
 
+/** Result of skew analysis containing detected anti-patterns. */
 interface SkewAnalysisResult {
   antiPatterns: FlinkAntiPattern[]
 }
@@ -192,6 +204,7 @@ function traverseOperators(
   }
 }
 
+/** Analyze all keyed operators in the plan tree for data skew risks. */
 export function analyzeSkew(root: FlinkOperatorNode): SkewAnalysisResult {
   const antiPatterns: FlinkAntiPattern[] = []
 

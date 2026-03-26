@@ -1,3 +1,14 @@
+/**
+ * Plan analyzer orchestrator.
+ *
+ * Runs all specialized analyzers (state, join, watermark, skew, changelog,
+ * window, bottleneck) against a normalized Flink execution plan, aggregates
+ * the detected anti-patterns and bottlenecks, generates actionable
+ * recommendations, and produces a fully analyzed plan summary.
+ *
+ * @module plan-analyzer/analyzer
+ */
+
 import type {
   AnalyzedFlinkPlan,
   FlinkAntiPattern,
@@ -22,10 +33,12 @@ export { analyzeState } from "./state-analyzer"
 export { analyzeWatermarks } from "./watermark-analyzer"
 export { analyzeWindows } from "./window-analyzer"
 
+/** Generates a unique plan identifier using timestamp and random suffix. */
 function generatePlanId(): string {
   return `flink-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
 
+/** Derives a human-readable plan name from the first source and sink relations in the operator tree. */
 function generatePlanName(root: FlinkOperatorNode): string {
   const sinks: string[] = []
   const sources: string[] = []
@@ -66,6 +79,7 @@ function generatePlanName(root: FlinkOperatorNode): string {
   return "Flink Query"
 }
 
+/** Recursively checks whether any node in the subtree matches the given operator category. */
 function traverseHasCategory(
   node: FlinkOperatorNode,
   category: string,
@@ -81,6 +95,16 @@ function traverseHasCategory(
   return false
 }
 
+/**
+ * Runs the full analysis pipeline on a normalized Flink execution plan.
+ *
+ * Invokes every specialized analyzer, merges their anti-patterns into a single
+ * list, generates prioritized recommendations, identifies the critical path
+ * from the top bottlenecks, and classifies the workload type (OLTP vs OLAP).
+ *
+ * @param plan - The normalized Flink plan to analyze.
+ * @returns A fully analyzed plan with anti-patterns, bottlenecks, recommendations, and state forecasts.
+ */
 export function analyzePlan(plan: NormalizedFlinkPlan): AnalyzedFlinkPlan {
   const root = plan.root
 

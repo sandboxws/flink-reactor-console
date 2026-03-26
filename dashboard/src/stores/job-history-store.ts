@@ -5,49 +5,76 @@ import {
   type JobHistoryPage,
 } from "@/lib/graphql-api-client"
 
-// ---------------------------------------------------------------------------
-// Job History store — unified historical + live job queries
-// ---------------------------------------------------------------------------
+/**
+ * Job history store — paginated historical job queries with filtering and sorting.
+ *
+ * Fetches job history from the Go GraphQL backend with cursor-based pagination.
+ * Supports time range, state, name, and cluster filters with configurable sort
+ * order. Changing any filter resets pagination to page 0.
+ *
+ * @module job-history-store
+ */
 
+/** Time range filter for job history queries. */
 type TimeRange = "LAST_1H" | "LAST_2H" | "LAST_24H" | "LAST_7D" | "LAST_30D"
+/** Sortable field for job history results. */
 type OrderField = "START_TIME" | "END_TIME" | "DURATION" | "NAME" | "STATE"
+/** Sort direction. */
 type OrderDirection = "ASC" | "DESC"
 
 interface JobHistoryState {
-  // Data
+  /** Current page of job history entries. */
   entries: JobHistoryEntry[]
+  /** Total number of matching entries across all pages. */
   totalCount: number
+  /** Whether more pages are available after the current one. */
   hasNextPage: boolean
+  /** Cursor for the end of the current page (used for forward pagination). */
   endCursor: string | null
 
-  // Filter
+  /** Active time range filter. */
   timeRange: TimeRange
+  /** Filter to a specific cluster, or null for all. */
   clusterID: string | null
+  /** Filter to a specific job state, or null for all. */
   stateFilter: string | null
+  /** Filter by job name substring, or null for no filter. */
   nameFilter: string | null
 
-  // Sort
+  /** Current sort field. */
   orderField: OrderField
+  /** Current sort direction (toggles on re-click of same field). */
   orderDirection: OrderDirection
 
-  // Pagination
+  /** Number of entries per page. */
   pageSize: number
+  /** Zero-based current page index. */
   currentPage: number
-  cursors: string[] // stack of cursors for previous pages
+  /** Stack of cursors for previous pages (enables backward navigation). */
+  cursors: string[]
 
-  // Loading
+  /** Whether a fetch is in progress. */
   isLoading: boolean
+  /** Error from the most recent failed fetch. */
   error: string | null
 
-  // Actions
+  /** Fetch the current page with active filters and sort. */
   fetch: () => Promise<void>
+  /** Change time range filter (resets pagination). */
   setTimeRange: (range: TimeRange) => void
+  /** Change sort field (toggles direction if same field, resets pagination). */
   setOrderBy: (field: OrderField) => void
+  /** Set the job name filter (resets pagination). */
   setNameFilter: (name: string | null) => void
+  /** Set the state filter (resets pagination). */
   setStateFilter: (state: string | null) => void
+  /** Set the cluster filter (resets pagination). */
   setClusterID: (id: string | null) => void
+  /** Navigate to the next page. */
   nextPage: () => Promise<void>
+  /** Navigate to the previous page. */
   prevPage: () => Promise<void>
+  /** Reset pagination to page 0. */
   resetPagination: () => void
 }
 

@@ -1,9 +1,14 @@
 /**
  * Pure mapper functions: GraphQL response → BlueGreenDeployment domain types.
+ *
+ * Maps raw GraphQL blue-green deployment responses to typed domain objects,
+ * normalizing state to a known enum with a safe default.
+ *
+ * @module
  */
 import type { BlueGreenDeployment, BlueGreenState } from "./bg-deployment-types"
 
-// GraphQL response shape (from codegen)
+/** Raw GraphQL response shape for a blue-green deployment. */
 interface GqlBlueGreenDeployment {
   name: string
   namespace: string
@@ -31,11 +36,13 @@ const VALID_STATES = new Set<string>([
   "TRANSITIONING_TO_GREEN",
 ])
 
+/** Normalize a raw state string to a known BlueGreenState enum (defaults to INITIALIZING_BLUE). */
 function mapState(raw: string): BlueGreenState {
   if (VALID_STATES.has(raw)) return raw as BlueGreenState
   return "INITIALIZING_BLUE"
 }
 
+/** Map a single GraphQL blue-green deployment response to a domain object. */
 export function mapBlueGreenDeployment(
   raw: GqlBlueGreenDeployment,
 ): BlueGreenDeployment {
@@ -57,6 +64,7 @@ export function mapBlueGreenDeployment(
   }
 }
 
+/** Map an array of GraphQL blue-green deployment responses to domain objects. */
 export function mapBlueGreenDeployments(
   raw: GqlBlueGreenDeployment[],
 ): BlueGreenDeployment[] {

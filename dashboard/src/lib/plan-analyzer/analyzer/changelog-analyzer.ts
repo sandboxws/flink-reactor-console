@@ -1,9 +1,22 @@
+/**
+ * Changelog mode analyzer for Flink execution plans.
+ *
+ * Infers the changelog mode (INSERT_ONLY, UPSERT, RETRACT, ALL) flowing
+ * through each operator based on source types, operator semantics, and
+ * upstream propagation. Detects sink compatibility issues where upstream
+ * changelog modes exceed sink capabilities (e.g., retract stream to
+ * append-only sink).
+ *
+ * @module plan-analyzer/analyzer/changelog-analyzer
+ */
+
 import type {
   ChangelogMode,
   FlinkAntiPattern,
   FlinkOperatorNode,
 } from "../types"
 
+/** Result of changelog analysis containing detected incompatibility anti-patterns. */
 interface ChangelogAnalysisResult {
   antiPatterns: FlinkAntiPattern[]
 }
@@ -249,6 +262,13 @@ function traverseOperators(
   }
 }
 
+/**
+ * Analyze changelog mode compatibility across the operator tree.
+ *
+ * Annotates every node with its inferred changelog mode, then checks each
+ * sink for compatibility with the upstream mode. Returns anti-patterns for
+ * any detected incompatibilities.
+ */
 export function analyzeChangelog(
   root: FlinkOperatorNode,
 ): ChangelogAnalysisResult {

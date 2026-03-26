@@ -3,12 +3,22 @@ import type { TapMetadata } from "@flink-reactor/ui"
 import { getAvailableOperators, loadTapManifest } from "@/lib/tap-manifest"
 import type { ColumnInfo } from "./sql-gateway-store"
 
-// ---------------------------------------------------------------------------
-// Tap Store — manages tap UI state (selected operators, open tabs, buffered rows)
-// ---------------------------------------------------------------------------
+/**
+ * Tap store — manages the tap observation UI state.
+ *
+ * Loads tap manifests by pipeline name to discover available operators, then
+ * manages open observation tabs with per-tab ring-buffered row data, column
+ * metadata, and throughput tracking (rows/sec updated every 1s).
+ *
+ * Works in tandem with sql-gateway-store which handles the actual SQL Gateway
+ * session lifecycle — this store owns the UI state (tabs, config, row buffers).
+ *
+ * @module tap-store
+ */
 
+/** An open tap observation tab with buffered results and throughput tracking. */
 export interface TapTab {
-  /** Tap node ID (unique per operator) */
+  /** Tap node ID (unique per operator). */
   nodeId: string
   /** Human-readable name from tap metadata */
   name: string
@@ -78,6 +88,7 @@ export function cleanupThroughputTracking(): void {
   throughputCounters.clear()
 }
 
+/** Start the 1s throughput tracking interval if not already running. */
 function ensureThroughputTracking(
   getState: () => TapState,
   setState: (

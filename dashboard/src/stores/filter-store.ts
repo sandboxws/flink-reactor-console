@@ -2,28 +2,49 @@ import { create } from "zustand"
 import type { LogLevel } from "@flink-reactor/ui"
 import { DEFAULT_LEVEL_FILTER } from "@/lib/constants"
 
-// ---------------------------------------------------------------------------
-// Filter store — severity toggles, search, source selection, time range
-// ---------------------------------------------------------------------------
+/**
+ * Filter store — log severity toggles, text search, source selection, and time range.
+ *
+ * Used by the log explorer to filter the buffered log entries from log-store.
+ * All filter state is client-side only (no persistence). Supports plain text
+ * and regex search modes.
+ *
+ * @module filter-store
+ */
 
 interface FilterState {
+  /** Per-severity toggle map (true = show entries of that level). */
   enabledLevels: Record<LogLevel, boolean>
+  /** Free-text or regex search query applied to log messages. */
   searchQuery: string
+  /** Whether searchQuery is interpreted as a regular expression. */
   isRegex: boolean
+  /** Set of selected source IDs (empty = show all sources). */
   selectedSources: Set<string>
+  /** Optional time range filter with start/end bounds. */
   timeRange: { start: Date | null; end: Date | null }
 }
 
 interface FilterActions {
+  /** Toggle a single log severity level on/off. */
   toggleLevel: (level: LogLevel) => void
+  /** Enable or disable all severity levels at once. */
   setAllLevels: (enabled: boolean) => void
+  /** Update the search query string. */
   setSearchQuery: (query: string) => void
+  /** Toggle regex mode for the search query. */
   setIsRegex: (isRegex: boolean) => void
+  /** Toggle a single source ID in the selection set. */
   toggleSource: (sourceId: string) => void
+  /** Replace the entire source selection set. */
   setSelectedSources: (sourceIds: Set<string>) => void
+  /** Clear all source selections (show all sources). */
   clearSources: () => void
+  /** Set the time range filter bounds. */
   setTimeRange: (start: Date | null, end: Date | null) => void
+  /** Clear the time range filter. */
   clearTimeRange: () => void
+  /** Reset all filters to their initial defaults. */
   resetAll: () => void
 }
 

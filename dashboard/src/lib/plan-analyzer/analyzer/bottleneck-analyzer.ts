@@ -1,10 +1,29 @@
+/**
+ * Bottleneck analyzer for Flink execution plans.
+ *
+ * Assigns a heuristic cost weight to each operator based on statefulness,
+ * join complexity, window size, shuffle risk, and parallelism. The operators
+ * are ranked by their relative weight to identify the top bottlenecks that
+ * account for the majority of estimated execution cost.
+ *
+ * @module plan-analyzer/analyzer/bottleneck-analyzer
+ */
+
 import { SHUFFLE_RISK_LEVELS, STATEFUL_OPERATORS } from "../constants"
 import type { FlinkBottleneck, FlinkOperatorNode } from "../types"
 
+/** Result of bottleneck analysis containing the ranked list of bottleneck operators. */
 interface BottleneckAnalysisResult {
   bottlenecks: FlinkBottleneck[]
 }
 
+/**
+ * Computes a relative cost weight for an operator.
+ *
+ * Multiplies a base weight by factors for statefulness, join type (regular,
+ * lookup, sync lookup), window size, aggregation, shuffle risk, and pattern
+ * matching operators.
+ */
 function calculateOperatorWeight(node: FlinkOperatorNode): number {
   let weight = 1.0
 

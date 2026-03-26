@@ -1,9 +1,21 @@
+/**
+ * Watermark analyzer for Flink execution plans.
+ *
+ * Inspects source operators for watermark definitions and detects issues:
+ * missing watermarks when event-time operations exist downstream, missing
+ * idle timeout configuration, overly strict or lenient bounds, and
+ * inconsistent watermark definitions across multi-source plans.
+ *
+ * @module plan-analyzer/analyzer/watermark-analyzer
+ */
+
 import type {
   FlinkAntiPattern,
   FlinkOperatorNode,
   WatermarkHealth,
 } from "../types"
 
+/** Result of watermark analysis with per-source health and detected anti-patterns. */
 interface WatermarkAnalysisResult {
   health: WatermarkHealth[]
   antiPatterns: FlinkAntiPattern[]
@@ -258,6 +270,7 @@ function hasEventTimeOperations(root: FlinkOperatorNode): boolean {
   return found
 }
 
+/** Analyze all source operators for watermark health and detect missing/misconfigured watermarks. */
 export function analyzeWatermarks(
   root: FlinkOperatorNode,
 ): WatermarkAnalysisResult {

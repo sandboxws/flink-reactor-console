@@ -1,6 +1,14 @@
-// Flink plan analyzer types — standalone (no base plan type inheritance)
+/**
+ * Flink plan analyzer type definitions.
+ *
+ * Standalone types for normalizing and analyzing Flink execution plans.
+ * These types have no inheritance from the cluster-types data layer — the plan
+ * analyzer operates on raw plan JSON and produces its own domain model.
+ *
+ * @module plan-analyzer/types
+ */
 
-// Flink operator categories
+/** High-level classification of a Flink operator (source, sink, join, etc.). */
 export type FlinkOperatorCategory =
   | "source"
   | "sink"
@@ -13,7 +21,11 @@ export type FlinkOperatorCategory =
   | "exchange"
   | "unknown"
 
-// Flink operator types
+/**
+ * Specific Flink operator type, matching the operator names found in execution plan JSON.
+ * Grouped by category: sources, transformations, aggregations, windows, joins,
+ * deduplication/ranking, CEP, exchange, and sinks.
+ */
 export type FlinkOperatorType =
   // Sources
   | "TableSourceScan"
@@ -63,7 +75,11 @@ export type FlinkOperatorType =
   // Unknown
   | "Unknown"
 
-// Shuffle strategies between operators (superset of ShipStrategy from cluster-types)
+/**
+ * Data shuffle strategy between operators.
+ * Superset of `ShipStrategy` from cluster-types, extended with CUSTOM and UNKNOWN
+ * for plan analysis scenarios where the strategy cannot be determined.
+ */
 export type ShuffleStrategy =
   | "FORWARD"
   | "HASH"
@@ -74,26 +90,26 @@ export type ShuffleStrategy =
   | "CUSTOM"
   | "UNKNOWN"
 
-// Exchange modes
+/** Exchange mode controlling how data is transferred between operators (pipelined vs. batch). */
 export type ExchangeMode =
   | "pipelined"
   | "pipelined_bounded"
   | "batch"
   | "undefined"
 
-// Changelog modes for Flink SQL
+/** Changelog mode for Flink SQL stream processing (insert-only, upsert, retract, or all). */
 export type ChangelogMode = "INSERT_ONLY" | "UPSERT" | "RETRACT" | "ALL"
 
-// Input specification for joins
+/** Input specification for join operators, describing the uniqueness guarantees of the input key. */
 export type InputSpec =
   | "NoUniqueKey"
   | "HasUniqueKey"
   | "JoinKeyContainsUniqueKey"
 
-// State growth patterns
+/** How an operator's state grows over time: bounded (fixed), linear (proportional to keys), or unbounded (no limit). */
 export type StateGrowthPattern = "bounded" | "linear" | "unbounded"
 
-// State types
+/** Flink state backend type used by a stateful operator. */
 export type FlinkStateType =
   | "ValueState"
   | "ListState"
@@ -104,7 +120,7 @@ export type FlinkStateType =
   | "KeyedBroadcastState"
   | "None"
 
-// Join types
+/** Type of join operation performed by a join operator. */
 export type FlinkJoinType =
   | "RegularJoin"
   | "IntervalJoin"
@@ -112,7 +128,7 @@ export type FlinkJoinType =
   | "LookupJoin"
   | "WindowJoin"
 
-// Window types
+/** Type of window operation: tumbling, hopping (sliding), session, or cumulative. */
 export type FlinkWindowType = "TUMBLE" | "HOP" | "SESSION" | "CUMULATE"
 
 // Flink-specific anti-pattern types

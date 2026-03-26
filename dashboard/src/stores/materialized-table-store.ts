@@ -4,32 +4,49 @@ import { mapMaterializedTables } from "@/data/materialized-table-mappers"
 import type { MaterializedTable } from "@flink-reactor/ui"
 import { graphqlClient } from "@/lib/graphql-client"
 
-// ---------------------------------------------------------------------------
-// Materialized table store
-// ---------------------------------------------------------------------------
+/**
+ * Materialized table store — CRUD operations for Flink materialized tables.
+ *
+ * Fetches the table list and detail via GraphQL, and supports suspend, resume,
+ * and refresh mutations. Maps raw GraphQL responses to domain types via
+ * {@link mapMaterializedTables}.
+ *
+ * @module materialized-table-store
+ */
 
 interface MaterializedTableState {
+  /** All known materialized tables. */
   tables: MaterializedTable[]
+  /** Whether the table list is loading. */
   isLoading: boolean
+  /** Error from the most recent list fetch. */
   fetchError: string | null
+  /** Lazily loaded detail for the selected table. */
   selectedTable: MaterializedTable | null
+  /** Whether a table detail fetch is in progress. */
   selectedTableLoading: boolean
+  /** Error from the most recent detail fetch. */
   selectedTableError: string | null
 }
 
 interface MaterializedTableActions {
+  /** Fetch all materialized tables, optionally filtered by cluster and catalog. */
   fetchTables: (cluster?: string, catalog?: string) => Promise<void>
+  /** Fetch detail for a single table by name and catalog. */
   fetchTable: (name: string, catalog: string, cluster?: string) => Promise<void>
+  /** Suspend a materialized table's refresh schedule. */
   suspendTable: (
     name: string,
     catalog: string,
     cluster?: string,
   ) => Promise<void>
+  /** Resume a suspended materialized table's refresh schedule. */
   resumeTable: (
     name: string,
     catalog: string,
     cluster?: string,
   ) => Promise<void>
+  /** Trigger an immediate refresh of a materialized table. */
   refreshTable: (
     name: string,
     catalog: string,

@@ -1,3 +1,12 @@
+/**
+ * Thread dump parser for Flink REST API responses.
+ *
+ * Converts the raw `threadInfos` array (returned by the Flink thread dump
+ * endpoint) into structured {@link ThreadDumpEntry} objects, extracting thread
+ * state, stack frames, lock annotations, and locked synchronizers.
+ *
+ * @module
+ */
 import type {
   ThreadDumpEntry,
   ThreadInfoRaw,

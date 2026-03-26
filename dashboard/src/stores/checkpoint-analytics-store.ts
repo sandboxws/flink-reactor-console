@@ -3,49 +3,86 @@ import type { Checkpoint, FlinkJob } from "@flink-reactor/ui"
 import { fetchJobDetail as fetchJobDetailApi } from "@/lib/graphql-api-client"
 import { useClusterStore } from "./cluster-store"
 
+/**
+ * Checkpoint analytics store — aggregates checkpoint metrics across all running
+ * jobs for the checkpoint analytics dashboard.
+ *
+ * Uses staggered polling (2 jobs per 30s tick) to avoid overwhelming the Flink
+ * REST API. Subscribes to cluster-store for reactivity — when running jobs
+ * first appear, an immediate fetch is triggered so data appears within seconds.
+ *
+ * @module checkpoint-analytics-store
+ */
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+/** Direction of a metric trend computed via simple linear regression. */
 export type TrendDirection = "stable" | "increasing" | "decreasing"
 
+/** Per-job checkpoint summary with trend analysis and sparkline data. */
 export type JobCheckpointSummary = {
   jobId: string
   jobName: string
+  /** Total completed + failed checkpoints (uses Flink lifetime counts when available). */
   totalCheckpoints: number
-  successRate: number // 0-100
-  avgDuration: number // ms
-  lastDuration: number // ms
-  totalStateSize: number // bytes
-  lastStateSize: number // bytes
+  /** Success rate as a percentage (0–100). */
+  successRate: number
+  /** Mean duration of the last 10 completed checkpoints in ms. */
+  avgDuration: number
+  /** Duration of the most recent completed checkpoint in ms. */
+  lastDuration: number
+  /** State size of the most recent completed checkpoint in bytes. */
+  totalStateSize: number
+  /** State size of the most recent completed checkpoint in bytes. */
+  lastStateSize: number
+  /** Timestamp of the most recent successful checkpoint, or null if none. */
   lastSuccessTime: Date | null
-  checkpointInterval: number // ms (from config)
+  /** Configured checkpoint interval in ms (from Flink checkpoint config). */
+  checkpointInterval: number
+  /** Trend direction for checkpoint duration over recent history. */
   durationTrend: TrendDirection
+  /** Trend direction for state size over recent history. */
   stateSizeTrend: TrendDirection
-  recentCheckpoints: Checkpoint[] // last 20 for sparkline
+  /** Last 20 checkpoints (all statuses) for sparkline rendering. */
+  recentCheckpoints: Checkpoint[]
 }
 
+/** A single 1-minute bucket in the checkpoint success/failure timeline. */
 export type CheckpointTimelineEntry = {
   timestamp: Date
   successes: number
   failures: number
 }
 
+/** Cluster-wide checkpoint aggregates across all running jobs. */
 export type CheckpointAggregates = {
+  /** Total checkpoints across all jobs. */
   totalCheckpoints: number
+  /** Weighted average success rate by checkpoint count. */
   overallSuccessRate: number
+  /** Mean of per-job average durations. */
   avgDuration: number
+  /** Sum of latest state sizes across all jobs. */
   totalStateSize: number
 }
 
-// Flink uses Long.MAX_VALUE (~9.2e18 ms) as interval when checkpointing is
-// disabled.  Anything above ~31 years is effectively "not configured".
+/**
+ * Flink uses Long.MAX_VALUE (~9.2e18 ms) as interval when checkpointing is
+ * disabled.  Anything above ~31 years is effectively "not configured".
+ */
 const CHECKPOINT_DISABLED_INTERVAL = 1_000_000_000_000
 
 // ---------------------------------------------------------------------------
 // Trend computation — simple linear regression
 // ---------------------------------------------------------------------------
 
+/**
+ * Compute the trend direction of a numeric series via simple linear regression.
+ * Returns "stable" for series shorter than 3 values or where the relative
+ * slope is within +/- 5% of the mean.
+ */
 export function computeTrend(values: number[]): TrendDirection {
   if (values.length < 3) return "stable"
 
@@ -78,6 +115,7 @@ export function computeTrend(values: number[]): TrendDirection {
 // Job checkpoint summary computation
 // ---------------------------------------------------------------------------
 
+/** Compute a checkpoint summary for a single job, or null if no checkpoints exist. */
 function computeJobSummary(job: FlinkJob): JobCheckpointSummary | null {
   if (!job.checkpoints || job.checkpoints.length === 0) return null
 
@@ -145,6 +183,7 @@ function computeJobSummary(job: FlinkJob): JobCheckpointSummary | null {
 // Aggregate computation
 // ---------------------------------------------------------------------------
 
+/** Compute cluster-wide aggregates from per-job summaries. */
 function computeAggregates(
   summaries: JobCheckpointSummary[],
 ): CheckpointAggregates | null {
@@ -176,6 +215,7 @@ function computeAggregates(
 // Timeline bucketing — 1-minute buckets across all jobs
 // ---------------------------------------------------------------------------
 
+/** Bucket checkpoints into 1-minute time slots for the timeline chart (last 30 buckets). */
 function computeTimeline(
   summaries: JobCheckpointSummary[],
 ): CheckpointTimelineEntry[] {
@@ -215,16 +255,24 @@ function computeTimeline(
 // ---------------------------------------------------------------------------
 
 interface CheckpointAnalyticsState {
+  /** Per-job checkpoint summaries for all running jobs. */
   summaries: JobCheckpointSummary[]
+  /** 1-minute bucketed success/failure timeline for the chart. */
   timeline: CheckpointTimelineEntry[]
+  /** Cluster-wide checkpoint aggregates, or null if no data. */
   aggregates: CheckpointAggregates | null
+  /** True while the initial detail fetch is in progress (shows skeleton). */
   loading: boolean
+  /** Timestamp of the last successful recomputation. */
   lastUpdated: Date | null
   /** True when at least one running job has a real checkpoint interval configured. */
   checkpointsConfigured: boolean
 
+  /** Subscribe to cluster-store and trigger an initial fetch (guarded — runs once). */
   initialize: () => void
+  /** Start the 30s staggered polling interval for checkpoint detail fetches. */
   startPolling: () => void
+  /** Stop polling, unsubscribe from cluster-store, and clear the job cache. */
   stopPolling: () => void
 }
 
@@ -241,6 +289,7 @@ let fetchQueuePtr = 0
 const checkpointJobCache = new Map<string, FlinkJob>()
 let initialFetchTriggered = false
 
+/** Fetch detail for up to BATCH_SIZE running jobs per tick and cache the results. */
 async function staggeredFetchCheckpointJobs() {
   const { runningJobs } = useClusterStore.getState()
   const runningIds = runningJobs.map((j) => j.id)
@@ -272,6 +321,7 @@ async function staggeredFetchCheckpointJobs() {
   }
 }
 
+/** Recompute summaries, aggregates, and timeline from cached job data. */
 function recompute(set: (partial: Partial<CheckpointAnalyticsState>) => void) {
   const { runningJobs } = useClusterStore.getState()
 

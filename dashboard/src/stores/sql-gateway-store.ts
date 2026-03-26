@@ -1,8 +1,15 @@
 import { create } from "zustand"
 
-// ---------------------------------------------------------------------------
-// SQL Gateway Store — manages active SQL Gateway tap observation sessions
-// ---------------------------------------------------------------------------
+/**
+ * SQL Gateway store — manages active SQL Gateway tap observation sessions.
+ *
+ * Opens Flink SQL Gateway sessions via the Go server proxy, submits DDL + query
+ * statements sequentially, and transitions sessions through connecting → streaming
+ * → paused → closed lifecycle. Each session is keyed by tap node ID and tracks
+ * its own operation handle and result token for paginated result polling.
+ *
+ * @module sql-gateway-store
+ */
 
 /** Column metadata from SQL Gateway result set */
 export interface ColumnInfo {
@@ -11,19 +18,27 @@ export interface ColumnInfo {
   nullable: boolean
 }
 
+/** An active tap observation session tracked by the store. */
 export interface ActiveTapSession {
+  /** SQL Gateway session handle (UUID). */
   sessionHandle: string
+  /** Handle for the currently executing SELECT operation. */
   operationHandle: string
+  /** Tap node ID linking this session to a DAG operator. */
   tapNodeId: string
+  /** Human-readable name for the tapped operator. */
   tapName: string
+  /** Session lifecycle state. */
   status: "connecting" | "streaming" | "paused" | "error" | "closed"
+  /** Column schema from the first result page. */
   columns: ColumnInfo[]
+  /** Error message when status is "error". */
   error?: string
-  /** Last successfully consumed result token (0 = first page from startTap, 1+ = polling) */
+  /** Last successfully consumed result token (0 = first page from startTap, 1+ = polling). */
   currentResultToken: number
 }
 
-/** First result page data returned by startTap */
+/** First result page data returned by startTap (columns + initial rows). */
 export interface FirstPageResult {
   columns: ColumnInfo[]
   rows: Array<{ kind: string; fields: unknown[] }>
@@ -61,6 +76,7 @@ interface SqlGatewayState {
 /** API route base path for SQL Gateway proxy (via Go server) */
 const SQL_GATEWAY_API = `${(import.meta.env.VITE_GRAPHQL_URL ?? "").replace("/graphql", "")}/api/flink/sql-gateway`
 
+/** Make an HTTP request to the SQL Gateway proxy, parsing JSON response and extracting errors. */
 async function apiRequest<T>(
   path: string,
   method: string = "GET",

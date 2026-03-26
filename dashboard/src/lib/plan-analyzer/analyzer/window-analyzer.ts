@@ -1,3 +1,14 @@
+/**
+ * Window strategy analyzer for Flink execution plans.
+ *
+ * Parses window specifications (tumbling, sliding/hop, session, cumulate)
+ * from operator descriptions and detects anti-patterns: oversized windows,
+ * sliding window pane explosions (many overlapping panes), and long-lived
+ * session windows that accumulate unbounded state.
+ *
+ * @module plan-analyzer/analyzer/window-analyzer
+ */
+
 import { formatDuration } from "@flink-reactor/ui"
 import { ANALYSIS_THRESHOLDS } from "../constants"
 import type {
@@ -7,6 +18,7 @@ import type {
   FlinkWindowType,
 } from "../types"
 
+/** Result of window analysis containing detected anti-patterns. */
 interface WindowAnalysisResult {
   antiPatterns: FlinkAntiPattern[]
 }
@@ -213,6 +225,7 @@ function traverseOperators(
   }
 }
 
+/** Analyze all window operators for sizing and pane configuration anti-patterns. */
 export function analyzeWindows(root: FlinkOperatorNode): WindowAnalysisResult {
   const antiPatterns: FlinkAntiPattern[] = []
 

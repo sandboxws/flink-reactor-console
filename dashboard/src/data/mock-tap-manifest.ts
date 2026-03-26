@@ -1,7 +1,12 @@
-// ---------------------------------------------------------------------------
-// Mock tap manifest — test fixture with sample tapped operators.
-// Covers Kafka source, Filter transform, and Kafka sink to exercise all UI paths.
-// ---------------------------------------------------------------------------
+/**
+ * Mock tap manifest — test fixture with sample tapped operators.
+ *
+ * Provides factory functions for generating realistic tap manifests and
+ * streaming row data used in tests and demos. Covers Kafka source, Filter
+ * transform, Kafka sink, and JDBC source to exercise all UI paths.
+ *
+ * @module
+ */
 
 import type { TapManifest } from "./tap-types"
 
@@ -273,6 +278,7 @@ export function generateMockStreamingRows(
   return rows
 }
 
+/** Generate a single mock value for a field using name heuristics with type-based fallback. */
 function generateMockValue(
   fieldName: string,
   fieldType: string,
