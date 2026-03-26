@@ -107,6 +107,9 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.Flink.SQLGatewayURL != "" {
 		t.Errorf("Flink.SQLGatewayURL = %q, want empty", cfg.Flink.SQLGatewayURL)
 	}
+	if cfg.Flink.InitSQLPath != "" {
+		t.Errorf("Flink.InitSQLPath = %q, want empty", cfg.Flink.InitSQLPath)
+	}
 
 	// Health defaults.
 	if cfg.Health.Interval != 30*time.Second {
@@ -192,11 +195,38 @@ func TestAuthTokenEnvVar(t *testing.T) {
 	}
 }
 
+func TestInitSQLPathEnvVar(t *testing.T) {
+	origDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Getwd: %v", err)
+	}
+	tmpDir := t.TempDir()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Chdir: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(origDir) })
+
+	t.Setenv("REACTOR_ENV", "")
+	t.Setenv("APP_ENV", "")
+	t.Setenv("FLINK_AUTH_TOKEN", "")
+	t.Setenv("FLINK_INIT_SQL_PATH", "/opt/flink/init/init-catalogs.sql")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+
+	if cfg.Flink.InitSQLPath != "/opt/flink/init/init-catalogs.sql" {
+		t.Errorf("Flink.InitSQLPath = %q, want %q", cfg.Flink.InitSQLPath, "/opt/flink/init/init-catalogs.sql")
+	}
+}
+
 func TestYAMLConfigValues(t *testing.T) {
 	cfg := loadWithYAML(t, `
 flink:
   rest_url: "http://flink:8081"
   sql_gateway_url: "http://sqlgw:8083"
+  init_sql_path: "/opt/flink/init/init-catalogs.sql"
 
 server:
   port: 9090
@@ -216,6 +246,9 @@ spa:
 	}
 	if cfg.Flink.SQLGatewayURL != "http://sqlgw:8083" {
 		t.Errorf("Flink.SQLGatewayURL = %q, want %q", cfg.Flink.SQLGatewayURL, "http://sqlgw:8083")
+	}
+	if cfg.Flink.InitSQLPath != "/opt/flink/init/init-catalogs.sql" {
+		t.Errorf("Flink.InitSQLPath = %q, want %q", cfg.Flink.InitSQLPath, "/opt/flink/init/init-catalogs.sql")
 	}
 	if cfg.Server.Port != 9090 {
 		t.Errorf("Server.Port = %d, want 9090", cfg.Server.Port)

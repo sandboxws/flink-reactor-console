@@ -89,6 +89,7 @@ type FlinkConfig struct {
 	RestURL       string `mapstructure:"rest_url"`
 	AuthToken     string `mapstructure:"auth_token"`
 	SQLGatewayURL string `mapstructure:"sql_gateway_url"`
+	InitSQLPath   string `mapstructure:"init_sql_path"`
 }
 
 // HealthConfig holds health check settings.
@@ -206,6 +207,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("flink.rest_url", "http://localhost:8081")
 	v.SetDefault("flink.auth_token", "")
 	v.SetDefault("flink.sql_gateway_url", "")
+	v.SetDefault("flink.init_sql_path", "")
 
 	v.SetDefault("health.interval", "30s")
 
@@ -253,6 +255,7 @@ func detectEnvironment() string {
 // must come from YAML config files.
 func bindSecretEnvVars(v *viper.Viper) {
 	_ = v.BindEnv("flink.auth_token", "FLINK_AUTH_TOKEN")
+	_ = v.BindEnv("flink.init_sql_path", "FLINK_INIT_SQL_PATH")
 	_ = v.BindEnv("storage.dsn", "REACTOR_STORAGE_DSN")
 }
 

@@ -1,4 +1,6 @@
 catalogs:
+  # ── JDBC Catalogs ──────────────────────────────────────────────
+
   - name: pagila
     connector:
       type: jdbc
@@ -270,3 +272,266 @@ catalogs:
               - { name: title, type: STRING }
               - { name: from_date, type: DATE }
               - { name: to_date, type: DATE }
+
+  - name: flink_sink
+    connector:
+      type: jdbc
+      properties:
+        url: "jdbc:postgresql://postgres:5432/flink_sink"
+        username: "reactor"
+        password: "reactor"
+    databases:
+      - name: public
+        tables: []
+
+  # ── Kafka Domain Catalogs ──────────────────────────────────────
+
+  - name: ecom
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "json"
+    databases:
+      - name: default
+        tables:
+          - name: orders
+            columns:
+              - { name: orderId, type: STRING }
+              - { name: customerId, type: STRING }
+              - { name: amount, type: DOUBLE }
+              - { name: currency, type: STRING }
+              - { name: status, type: STRING }
+              - { name: orderTime, type: "TIMESTAMP(3)" }
+          - name: order_items
+            columns:
+              - { name: orderId, type: STRING }
+              - { name: productId, type: STRING }
+              - { name: quantity, type: INT }
+              - { name: unitPrice, type: DOUBLE }
+              - { name: itemTime, type: "TIMESTAMP(3)" }
+          - name: products
+            columns:
+              - { name: productId, type: STRING }
+              - { name: name, type: STRING }
+              - { name: category, type: STRING }
+              - { name: price, type: DOUBLE }
+              - { name: stock, type: INT }
+              - { name: updateTime, type: "TIMESTAMP(3)" }
+          - name: customers
+            columns:
+              - { name: customerId, type: STRING }
+              - { name: name, type: STRING }
+              - { name: email, type: STRING }
+              - { name: tier, type: STRING }
+              - { name: updateTime, type: "TIMESTAMP(3)" }
+
+  - name: banking
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "json"
+    databases:
+      - name: default
+        tables:
+          - name: transactions
+            columns:
+              - { name: txnId, type: STRING }
+              - { name: accountId, type: STRING }
+              - { name: amount, type: DOUBLE }
+              - { name: currency, type: STRING }
+              - { name: merchant, type: STRING }
+              - { name: country, type: STRING }
+              - { name: txnTime, type: "TIMESTAMP(3)" }
+          - name: accounts
+            columns:
+              - { name: accountId, type: STRING }
+              - { name: name, type: STRING }
+              - { name: tier, type: STRING }
+              - { name: status, type: STRING }
+              - { name: balance, type: DOUBLE }
+              - { name: updateTime, type: "TIMESTAMP(3)" }
+
+  - name: iot
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "json"
+    databases:
+      - name: default
+        tables:
+          - name: sensor_readings
+            columns:
+              - { name: deviceId, type: STRING }
+              - { name: sensorType, type: STRING }
+              - { name: value, type: DOUBLE }
+              - { name: unit, type: STRING }
+              - { name: readingTime, type: "TIMESTAMP(3)" }
+          - name: device_registry
+            columns:
+              - { name: deviceId, type: STRING }
+              - { name: location, type: STRING }
+              - { name: firmwareVersion, type: STRING }
+              - { name: installDate, type: STRING }
+              - { name: thresholdTemp, type: DOUBLE }
+              - { name: thresholdVibration, type: DOUBLE }
+              - { name: updateTime, type: "TIMESTAMP(3)" }
+
+  - name: rides
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "json"
+    databases:
+      - name: default
+        tables:
+          - name: requests
+            columns:
+              - { name: rideId, type: STRING }
+              - { name: riderId, type: STRING }
+              - { name: pickupLat, type: DOUBLE }
+              - { name: pickupLng, type: DOUBLE }
+              - { name: dropoffLat, type: DOUBLE }
+              - { name: dropoffLng, type: DOUBLE }
+              - { name: requestTime, type: "TIMESTAMP(3)" }
+          - name: trip_events
+            columns:
+              - { name: rideId, type: STRING }
+              - { name: driverId, type: STRING }
+              - { name: status, type: STRING }
+              - { name: eventTime, type: "TIMESTAMP(3)" }
+          - name: surge_zones
+            columns:
+              - { name: zoneId, type: STRING }
+              - { name: baseMultiplier, type: DOUBLE }
+              - { name: updateTime, type: "TIMESTAMP(3)" }
+
+  - name: grocery
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "json"
+    databases:
+      - name: default
+        tables:
+          - name: orders
+            columns:
+              - { name: orderId, type: STRING }
+              - { name: storeId, type: STRING }
+              - { name: customerId, type: STRING }
+              - { name: itemCount, type: INT }
+              - { name: totalAmount, type: DOUBLE }
+              - { name: orderTime, type: "TIMESTAMP(3)" }
+          - name: store_inventory
+            columns:
+              - { name: storeId, type: STRING }
+              - { name: productId, type: STRING }
+              - { name: stockLevel, type: INT }
+              - { name: substitutionId, type: STRING }
+              - { name: updateTime, type: "TIMESTAMP(3)" }
+          - name: ratings
+            columns:
+              - { name: orderId, type: STRING }
+              - { name: storeId, type: STRING }
+              - { name: shopperRating, type: DOUBLE }
+              - { name: storeRating, type: DOUBLE }
+              - { name: itemQuality, type: DOUBLE }
+              - { name: ratingTime, type: "TIMESTAMP(3)" }
+
+  - name: analytics
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "json"
+    databases:
+      - name: default
+        tables:
+          - name: page_views
+            columns:
+              - { name: userId, type: STRING }
+              - { name: pageUrl, type: STRING }
+              - { name: viewTimestamp, type: "TIMESTAMP(3)" }
+
+  - name: cdc
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "debezium-json"
+    databases:
+      - name: default
+        tables:
+          - name: inventory_orders
+            columns:
+              - { name: orderId, type: BIGINT }
+              - { name: customerId, type: BIGINT }
+              - { name: product, type: STRING }
+              - { name: amount, type: "DECIMAL(10,2)" }
+              - { name: status, type: STRING }
+              - { name: createdAt, type: "TIMESTAMP(3)" }
+              - { name: updatedAt, type: "TIMESTAMP(3)" }
+
+  - name: lake
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "json"
+    databases:
+      - name: default
+        tables:
+          - name: events
+            columns:
+              - { name: eventId, type: STRING }
+              - { name: userId, type: STRING }
+              - { name: eventType, type: STRING }
+              - { name: payload, type: STRING }
+              - { name: eventTime, type: "TIMESTAMP(3)" }
+          - name: clickstream
+            columns:
+              - { name: sessionId, type: STRING }
+              - { name: userId, type: STRING }
+              - { name: pageUrl, type: STRING }
+              - { name: referrer, type: STRING }
+              - { name: userAgent, type: STRING }
+              - { name: clickTime, type: "TIMESTAMP(3)" }
+          - name: transactions
+            columns:
+              - { name: txnId, type: STRING }
+              - { name: accountId, type: STRING }
+              - { name: amount, type: DOUBLE }
+              - { name: currency, type: STRING }
+              - { name: txnType, type: STRING }
+              - { name: txnTime, type: "TIMESTAMP(3)" }
+
+  - name: orders
+    connector:
+      type: kafka
+      properties:
+        properties.bootstrap.servers: "kafka:9092"
+        scan.startup.mode: "earliest-offset"
+        format: "debezium-json"
+    databases:
+      - name: default
+        tables:
+          - name: cdc
+            columns:
+              - { name: orderId, type: STRING }
+              - { name: customerId, type: STRING }
+              - { name: product, type: STRING }
+              - { name: amount, type: DOUBLE }
+              - { name: status, type: STRING }
+              - { name: updatedAt, type: "TIMESTAMP(3)" }

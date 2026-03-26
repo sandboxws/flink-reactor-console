@@ -16,7 +16,11 @@ func TestBundledProvider_ListCatalogs(t *testing.T) {
 		t.Fatalf("ListCatalogs() error: %v", err)
 	}
 
-	expected := []string{"pagila", "chinook", "employees"}
+	// 4 JDBC + 9 Kafka domain catalogs = 13 total
+	expected := []string{
+		"pagila", "chinook", "employees", "flink_sink",
+		"ecom", "banking", "iot", "rides", "grocery", "analytics", "cdc", "lake", "orders",
+	}
 	if len(catalogs) != len(expected) {
 		t.Fatalf("got %d catalogs, want %d", len(catalogs), len(expected))
 	}
@@ -43,6 +47,16 @@ func TestBundledProvider_ListDatabases(t *testing.T) {
 		{"pagila", []string{"public"}},
 		{"chinook", []string{"public"}},
 		{"employees", []string{"employees"}},
+		{"flink_sink", []string{"public"}},
+		{"ecom", []string{"default"}},
+		{"banking", []string{"default"}},
+		{"iot", []string{"default"}},
+		{"rides", []string{"default"}},
+		{"grocery", []string{"default"}},
+		{"analytics", []string{"default"}},
+		{"cdc", []string{"default"}},
+		{"lake", []string{"default"}},
+		{"orders", []string{"default"}},
 		{"nonexistent", nil},
 	}
 
@@ -70,35 +84,38 @@ func TestBundledProvider_ListTables(t *testing.T) {
 		t.Fatalf("NewBundledProvider() error: %v", err)
 	}
 
-	// Pagila has 15 tables
-	tables, err := p.ListTables(context.Background(), "pagila", "public")
-	if err != nil {
-		t.Fatalf("ListTables(pagila) error: %v", err)
-	}
-	if len(tables) != 15 {
-		t.Errorf("pagila table count = %d, want 15", len(tables))
+	tests := []struct {
+		catalog  string
+		database string
+		count    int
+	}{
+		{"pagila", "public", 15},
+		{"chinook", "public", 11},
+		{"employees", "employees", 6},
+		{"flink_sink", "public", 0},
+		{"ecom", "default", 4},
+		{"banking", "default", 2},
+		{"iot", "default", 2},
+		{"rides", "default", 3},
+		{"grocery", "default", 3},
+		{"analytics", "default", 1},
+		{"cdc", "default", 1},
+		{"lake", "default", 3},
+		{"orders", "default", 1},
 	}
 
-	// Chinook has 11 tables
-	tables, err = p.ListTables(context.Background(), "chinook", "public")
-	if err != nil {
-		t.Fatalf("ListTables(chinook) error: %v", err)
-	}
-	if len(tables) != 11 {
-		t.Errorf("chinook table count = %d, want 11", len(tables))
-	}
-
-	// Employees has 6 tables (in 'employees' schema)
-	tables, err = p.ListTables(context.Background(), "employees", "employees")
-	if err != nil {
-		t.Fatalf("ListTables(employees) error: %v", err)
-	}
-	if len(tables) != 6 {
-		t.Errorf("employees table count = %d, want 6", len(tables))
+	for _, tt := range tests {
+		tables, err := p.ListTables(context.Background(), tt.catalog, tt.database)
+		if err != nil {
+			t.Fatalf("ListTables(%q, %q) error: %v", tt.catalog, tt.database, err)
+		}
+		if len(tables) != tt.count {
+			t.Errorf("ListTables(%q, %q) = %d tables, want %d", tt.catalog, tt.database, len(tables), tt.count)
+		}
 	}
 
 	// Nonexistent returns nil
-	tables, err = p.ListTables(context.Background(), "nonexistent", "public")
+	tables, err := p.ListTables(context.Background(), "nonexistent", "public")
 	if err != nil {
 		t.Fatalf("ListTables(nonexistent) error: %v", err)
 	}
@@ -155,6 +172,30 @@ func TestBundledProvider_ListColumns(t *testing.T) {
 	}
 	if cols[0].Name != "id" || cols[0].Type != "BIGINT" {
 		t.Errorf("first column = %+v, want {id BIGINT}", cols[0])
+	}
+
+	// Verify ecom orders columns (Kafka domain catalog)
+	cols, err = p.ListColumns(context.Background(), "ecom", "default", "orders")
+	if err != nil {
+		t.Fatalf("ListColumns(ecom orders) error: %v", err)
+	}
+	if len(cols) != 6 {
+		t.Fatalf("ecom orders got %d columns, want 6", len(cols))
+	}
+	if cols[0].Name != "orderId" || cols[0].Type != "STRING" {
+		t.Errorf("ecom orders first column = %+v, want {orderId STRING}", cols[0])
+	}
+
+	// Verify banking transactions columns
+	cols, err = p.ListColumns(context.Background(), "banking", "default", "transactions")
+	if err != nil {
+		t.Fatalf("ListColumns(banking transactions) error: %v", err)
+	}
+	if len(cols) != 7 {
+		t.Fatalf("banking transactions got %d columns, want 7", len(cols))
+	}
+	if cols[0].Name != "txnId" || cols[0].Type != "STRING" {
+		t.Errorf("banking transactions first column = %+v, want {txnId STRING}", cols[0])
 	}
 
 	// Nonexistent table returns nil

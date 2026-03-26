@@ -23,8 +23,8 @@ func TestGenerateSQL_CatalogCount(t *testing.T) {
 			catalogCount++
 		}
 	}
-	if catalogCount != 3 {
-		t.Errorf("got %d CREATE CATALOG statements, want 3", catalogCount)
+	if catalogCount != 13 {
+		t.Errorf("got %d CREATE CATALOG statements, want 13", catalogCount)
 	}
 }
 

@@ -53,7 +53,7 @@ func newTestSQLGatewayProvider(t *testing.T, handler http.HandlerFunc) *SQLGatew
 		t.Fatalf("manager init: %v", err)
 	}
 
-	return NewSQLGatewayProvider(mgr)
+	return NewSQLGatewayProvider(mgr, "", testLogger())
 }
 
 // ---------------------------------------------------------------------------

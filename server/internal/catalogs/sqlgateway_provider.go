@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
@@ -13,17 +16,67 @@ import (
 // SQLGatewayProvider implements CatalogProvider by executing SQL statements
 // against the Flink SQL Gateway.
 type SQLGatewayProvider struct {
-	manager  *cluster.Manager
-	mu       sync.Mutex
-	sessions map[string]string // cluster name → session handle
+	manager        *cluster.Manager
+	logger         *slog.Logger
+	mu             sync.Mutex
+	sessions       map[string]string // cluster name → session handle
+	initSQLPath    string
+	initStatements []string
+	initOnce       sync.Once
 }
 
 // NewSQLGatewayProvider creates a provider backed by the Flink SQL Gateway.
-func NewSQLGatewayProvider(manager *cluster.Manager) *SQLGatewayProvider {
+// initSQLPath is optional — when set, DDL from the file is executed on every
+// new session to register catalogs and tables.
+func NewSQLGatewayProvider(manager *cluster.Manager, initSQLPath string, logger *slog.Logger) *SQLGatewayProvider {
 	return &SQLGatewayProvider{
-		manager:  manager,
-		sessions: make(map[string]string),
+		manager:     manager,
+		logger:      logger,
+		sessions:    make(map[string]string),
+		initSQLPath: initSQLPath,
 	}
+}
+
+// InitStatements returns the cached init SQL statements, loading the file on
+// first call. Returns nil if no init SQL is configured or the file is absent.
+func (p *SQLGatewayProvider) InitStatements() []string {
+	p.loadInitSQL()
+	return p.initStatements
+}
+
+// loadInitSQL reads the init SQL file once and caches the parsed statements.
+func (p *SQLGatewayProvider) loadInitSQL() {
+	p.initOnce.Do(func() {
+		if p.initSQLPath == "" {
+			return
+		}
+		data, err := os.ReadFile(p.initSQLPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				p.logger.Warn("init SQL file not found, continuing without init SQL",
+					"path", p.initSQLPath)
+				return
+			}
+			p.logger.Error("failed to read init SQL file",
+				"path", p.initSQLPath, "error", err)
+			return
+		}
+		p.initStatements = splitStatements(string(data))
+		p.logger.Info("loaded init SQL", "path", p.initSQLPath, "statements", len(p.initStatements))
+	})
+}
+
+// splitStatements splits SQL text on semicolons, trims whitespace, and filters empty entries.
+func splitStatements(sql string) []string {
+	parts := strings.Split(sql, ";")
+	stmts := make([]string, 0, len(parts))
+	for _, part := range parts {
+		s := strings.TrimSpace(part)
+		if s != "" {
+			stmts = append(stmts, s)
+		}
+	}
+	return stmts
 }
 
 // ListCatalogs returns catalogs via SHOW CATALOGS.
@@ -118,7 +171,7 @@ func (p *SQLGatewayProvider) ListColumns(ctx context.Context, catalog, database,
 }
 
 // executeWithRecovery executes a statement using a cached session.
-// If the session has expired, it creates a new one and retries.
+// If the session has expired, it creates a new one (with init SQL) and retries.
 func (p *SQLGatewayProvider) executeWithRecovery(ctx context.Context, clusterName *string, statement string) ([][]any, error) {
 	conn, err := p.manager.Resolve(clusterName)
 	if err != nil {
@@ -163,6 +216,21 @@ func (p *SQLGatewayProvider) createSession(ctx context.Context, conn *cluster.Co
 	var session flink.SQLGatewaySessionResponse
 	if err := conn.SQLClient.PostJSON(ctx, "/v3/sessions", map[string]any{}, &session); err != nil {
 		return "", fmt.Errorf("creating catalog session: %w", err)
+	}
+
+	// Execute init SQL DDL statements so catalogs/tables are visible in this session.
+	p.loadInitSQL()
+	for _, stmt := range p.initStatements {
+		var op flink.SQLGatewayOperationResponse
+		body := map[string]string{"statement": stmt}
+		submitPath := fmt.Sprintf("/v3/sessions/%s/statements", session.SessionHandle)
+		if submitErr := conn.SQLClient.PostJSON(ctx, submitPath, body, &op); submitErr != nil {
+			continue
+		}
+		fetchPath := fmt.Sprintf("/v3/sessions/%s/operations/%s/result/0",
+			session.SessionHandle, op.OperationHandle)
+		var rs flink.SQLGatewayResultSet
+		_ = conn.SQLClient.GetJSON(ctx, fetchPath, &rs)
 	}
 
 	p.mu.Lock()

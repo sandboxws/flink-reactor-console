@@ -51,6 +51,10 @@ type Config struct {
 
 	// SimulationEngine manages chaos engineering simulations. May be nil when storage is disabled.
 	SimulationEngine *simulation.Engine
+
+	// InitSQLPath is the path to an init SQL file whose DDL is executed on
+	// every new SQL Gateway session. Empty string disables init SQL.
+	InitSQLPath string
 }
 
 // Server wraps an Echo server with middleware and health endpoints.
@@ -145,8 +149,9 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	} else {
 		catalogProviders = append(catalogProviders, bundledProvider)
 	}
+	var sqlGW *catalogs.SQLGatewayProvider
 	if manager != nil {
-		sqlGW := catalogs.NewSQLGatewayProvider(manager)
+		sqlGW = catalogs.NewSQLGatewayProvider(manager, cfg.InitSQLPath, logger)
 		catalogProviders = append(catalogProviders, sqlGW)
 
 		// Register bundled catalogs in Flink so they are queryable.
@@ -166,8 +171,14 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	}
 
 	// Pre-generate DDL so new SQL sessions can replay it.
+	// Prefer file-based init SQL (from DSL) over bundled catalog DDL.
 	var catalogInitDDL []string
-	if bundledProvider != nil {
+	if sqlGW != nil {
+		if fileStmts := sqlGW.InitStatements(); len(fileStmts) > 0 {
+			catalogInitDDL = fileStmts
+		}
+	}
+	if len(catalogInitDDL) == 0 && bundledProvider != nil {
 		dummyInit := catalogs.NewInitializer(bundledProvider.Data(), nil, logger)
 		catalogInitDDL = dummyInit.GenerateSQL()
 	}
@@ -257,6 +268,14 @@ func WithStores(stores *store.Stores) Option {
 func WithSimulationEngine(engine *simulation.Engine) Option {
 	return func(c *Config) {
 		c.SimulationEngine = engine
+	}
+}
+
+// WithInitSQLPath sets the path to an init SQL file whose DDL is executed
+// on every new SQL Gateway session.
+func WithInitSQLPath(path string) Option {
+	return func(c *Config) {
+		c.InitSQLPath = path
 	}
 }
 

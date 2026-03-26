@@ -124,6 +124,10 @@ func run() int {
 		serverOpts = append(serverOpts, server.WithSimulationEngine(simEngine))
 	}
 
+	if cfg.Flink.InitSQLPath != "" {
+		serverOpts = append(serverOpts, server.WithInitSQLPath(cfg.Flink.InitSQLPath))
+	}
+
 	srv := server.New(cfg.Address(), logger, manager, registry, serverOpts...)
 
 	// Start server in a goroutine.
