@@ -1,3 +1,4 @@
+/** Re-exports for layout shell components. */
 export {
   CommandPalette,
   type CommandPaletteProps,

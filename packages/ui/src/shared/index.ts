@@ -1,3 +1,4 @@
+/** Re-exports for shared cross-domain components. */
 export { EmptyState, type EmptyStateProps } from "./empty-state"
 export { MetricCard, type MetricCardProps } from "./metric-card"
 export { SearchInput, type SearchInputProps } from "./search-input"

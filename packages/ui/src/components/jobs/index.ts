@@ -1,3 +1,4 @@
+/** Re-exports for jobs domain components. */
 export { OperatorNode } from "./operator-node"
 export { StrategyEdge } from "./strategy-edge"
 export { SourceSinkCard } from "./source-sink-card"

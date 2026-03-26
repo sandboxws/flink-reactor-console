@@ -1,3 +1,4 @@
+/** Re-exports for catalog domain components. */
 export { ColumnsTable, type CatalogColumnInfo } from "./columns-table"
 export { TemplateSelector } from "./template-selector"
 export {

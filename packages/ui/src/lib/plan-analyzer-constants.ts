@@ -1,6 +1,8 @@
+/** Display constants for the plan analyzer UI. */
+
 import type { ShuffleStrategy } from "../types/plan-analyzer"
 
-// Shuffle strategy labels for display
+/** Human-readable labels for each data shuffle strategy. */
 export const SHUFFLE_STRATEGY_LABELS: Record<ShuffleStrategy, string> = {
   FORWARD: "Forward (1:1)",
   HASH: "Hash Partition",

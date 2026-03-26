@@ -1,9 +1,11 @@
-// ── Sandbox Synthesizer ─────────────────────────────────────────────
-// Browser-side TSX → SQL compilation pipeline.
-// Sucrase transpilation → new Function() execution → synthesizeApp()
-//
-// The DSL browser bundle is lazy-loaded on first synthesis to avoid
-// slowing down the initial dashboard load (~1-2MB).
+/**
+ * Sandbox Synthesizer — browser-side TSX to SQL compilation pipeline.
+ *
+ * Uses Sucrase transpilation followed by new Function() execution and
+ * synthesizeApp() from the DSL browser bundle. The DSL bundle is
+ * lazy-loaded on first synthesis to avoid slowing down the initial
+ * dashboard load (~1-2MB).
+ */
 
 import { transform } from "sucrase"
 

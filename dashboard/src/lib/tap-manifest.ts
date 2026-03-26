@@ -1,7 +1,7 @@
-// ---------------------------------------------------------------------------
-// Tap manifest loader — fetches and parses tap manifest from the API route,
-// provides helpers for building runtime observation SQL.
-// ---------------------------------------------------------------------------
+/**
+ * Tap manifest loader — fetches and parses tap manifests from the API route,
+ * provides helpers for building runtime observation SQL.
+ */
 
 import type { TapManifest, TapMetadata } from "@flink-reactor/ui"
 

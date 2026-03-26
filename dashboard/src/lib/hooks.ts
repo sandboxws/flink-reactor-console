@@ -1,12 +1,15 @@
+/** Custom hooks for log filtering, search, and auto-scroll behavior. */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { LogEntry } from "@flink-reactor/ui"
 import { useFilterStore } from "@/stores/filter-store"
 import { useLogStore } from "@/stores/log-store"
 
-// ---------------------------------------------------------------------------
-// useFilteredLogs — applies active filters to log buffer with memoization
-// ---------------------------------------------------------------------------
-
+/**
+ * Applies active filters (severity, source, time range, search) to the log
+ * buffer. Returns a memoized filtered array that only recomputes when filter
+ * state or entries change.
+ */
 export function useFilteredLogs(): LogEntry[] {
   const entries = useLogStore((s) => s.entries)
   const enabledLevels = useFilterStore((s) => s.enabledLevels)
@@ -60,10 +63,10 @@ export function useFilteredLogs(): LogEntry[] {
   }, [entries, enabledLevels, searchQuery, isRegex, selectedSources, timeRange])
 }
 
-// ---------------------------------------------------------------------------
-// useSearchMatches — pre-computes match IDs with debounce, O(1) navigation
-// ---------------------------------------------------------------------------
-
+/**
+ * Pre-computes search match IDs with a 300ms debounce. Returns match IDs,
+ * current index, and next/prev navigation callbacks for O(1) match cycling.
+ */
 export function useSearchMatches() {
   const entries = useLogStore((s) => s.entries)
   const searchQuery = useFilterStore((s) => s.searchQuery)
@@ -140,10 +143,10 @@ export function useSearchMatches() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// useAutoScroll — ref-based, pauses on scroll-up, resumes on action
-// ---------------------------------------------------------------------------
-
+/**
+ * Manages auto-scrolling behavior for a scrollable container. Pauses when the
+ * user scrolls up and resumes when they scroll back to the bottom.
+ */
 export function useAutoScroll<T extends HTMLElement>() {
   const containerRef = useRef<T>(null)
   const [isAutoScrolling, setIsAutoScrolling] = useState(true)

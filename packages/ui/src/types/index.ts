@@ -1,3 +1,4 @@
+/** Re-exports for all domain type definitions. */
 export * from "./cluster"
 export * from "./logs"
 export * from "./deployments"

@@ -1,3 +1,4 @@
+/** Re-exports for monitoring domain components. */
 export { AlertCard, type AlertCardProps } from "./alert-card"
 export {
   CheckpointTimelineChart,

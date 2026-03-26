@@ -1,3 +1,4 @@
+/** Re-exports for insights domain components. */
 export {
   HealthTrendChart,
   type HealthTrendChartProps,
