@@ -1,8 +1,10 @@
-// ── Sandbox Pipeline Templates ─────────────────────────────────────
-// Starter templates covering common Flink pipeline patterns.
-// Code is bare TSX (no imports) — the sandbox synthesizer injects
-// all DSL exports as scope variables.
+/**
+ * Sandbox pipeline templates — starter DSL snippets covering common Flink
+ * pipeline patterns. Code is bare TSX (no imports); the sandbox synthesizer
+ * injects all DSL exports as scope variables.
+ */
 
+/** Discriminated union of available template identifiers. */
 export type TemplateId =
   | "kafka-filter"
   | "jdbc-to-kafka"
@@ -10,13 +12,19 @@ export type TemplateId =
   | "join-pipeline"
   | "windowed-aggregation"
 
+/** A single sandbox template with its metadata and DSL source code. */
 export interface TemplateDefinition {
+  /** Unique identifier matching a {@link TemplateId} value. */
   id: TemplateId
+  /** Human-readable template name shown in the UI. */
   name: string
+  /** Short description of what the pipeline does. */
   description: string
+  /** Raw TSX code (no imports) — executed via the sandbox synthesizer. */
   code: string
 }
 
+/** All available sandbox templates, ordered for display in the template picker. */
 export const TEMPLATES: TemplateDefinition[] = [
   // ── Kafka Filter (default) ──────────────────────────────────────
   {
@@ -199,8 +207,13 @@ const payments = (
   },
 ]
 
+/** The template loaded when the sandbox opens with no selection. */
 export const DEFAULT_TEMPLATE_ID: TemplateId = "kafka-filter"
 
+/**
+ * Look up a template by its identifier.
+ * @returns The matching definition, or `undefined` if not found.
+ */
 export function findTemplate(id: TemplateId): TemplateDefinition | undefined {
   return TEMPLATES.find((t) => t.id === id)
 }

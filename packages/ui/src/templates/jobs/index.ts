@@ -1,3 +1,4 @@
+/** Jobs templates — job list table, job detail view, execution graph, checkpoints, and exceptions with demo variants. */
 export { JobsTableSection } from "./jobs-table-section"
 export { JobsTableSectionDemo } from "./jobs-table-section.demo"
 export { JobDetailSection } from "./job-detail-section"

@@ -1,3 +1,10 @@
+/**
+ * Component and TypeScript file extractor for the UI embedding pipeline.
+ *
+ * Uses targeted regex extraction (not AST parsing) to pull semantic chunks
+ * from .tsx/.ts files: interfaces, type aliases, JSDoc+function signatures,
+ * variant/style config objects, and exported constants.
+ */
 import { readFileSync } from "node:fs"
 import { basename, relative } from "node:path"
 import type { ContentChunk } from "../types.js"

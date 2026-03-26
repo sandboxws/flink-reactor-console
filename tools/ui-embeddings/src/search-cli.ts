@@ -1,3 +1,11 @@
+/**
+ * Interactive search CLI for querying UI component embeddings.
+ *
+ * Usage: pnpm ui:search <query> [--top-k N]
+ *
+ * Loads the embedding index, generates a query vector via Ollama,
+ * and returns the top-K most similar UI component chunks from LanceDB.
+ */
 import { existsSync, readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { LanceDbAdapter } from "./db/lancedb.js"
@@ -8,6 +16,7 @@ const EMBEDDINGS_DIR = resolve(REPO_ROOT, "packages/ui/.embeddings")
 const LANCEDB_DIR = resolve(EMBEDDINGS_DIR, "lancedb")
 const INDEX_FILE = resolve(EMBEDDINGS_DIR, "index.json")
 
+/** Parse CLI args, embed the query, search LanceDB, and print ranked results. */
 async function main(): Promise<void> {
   const query = process.argv.slice(2).join(" ").trim()
 

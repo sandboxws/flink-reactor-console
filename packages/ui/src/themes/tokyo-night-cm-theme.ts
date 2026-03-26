@@ -1,3 +1,5 @@
+/** Tokyo Night CodeMirror theme — cool blue-purple palette inspired by Tokyo night skyline. */
+
 import { EditorView } from "@codemirror/view"
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language"
 import { tags } from "@lezer/highlight"
@@ -104,6 +106,7 @@ const tokyoNightHighlighting = HighlightStyle.define([
   { tag: tags.angleBracket, color: "#89ddff" },
 ])
 
+/** Complete Tokyo Night CodeMirror extension array (base theme + syntax highlighting). */
 export const tokyoNightCmTheme = [
   tokyoNightTheme,
   syntaxHighlighting(tokyoNightHighlighting),

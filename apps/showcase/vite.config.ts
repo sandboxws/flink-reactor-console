@@ -1,3 +1,4 @@
+/** Vite configuration for the FlinkReactor component showcase app. */
 import path from "node:path"
 import tailwindcss from "@tailwindcss/vite"
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite"

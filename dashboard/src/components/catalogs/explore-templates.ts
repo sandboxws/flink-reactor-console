@@ -1,11 +1,29 @@
+/**
+ * SQL explore templates for the catalog browser.
+ *
+ * Provides pre-built query templates that users can apply to any catalog table
+ * (e.g., preview rows, describe schema) as well as sample queries against
+ * well-known demo databases (Pagila, Chinook, Employees).
+ */
+
+/** A single SQL query template with metadata for the catalog explorer UI. */
 export interface ExploreTemplate {
+  /** Display name shown in the template picker. */
   name: string
+  /** Short description of what the query does. */
   description: string
+  /** SQL template string. May contain `{{catalog}}`, `{{database}}`, and `{{table}}` placeholders. */
   sql: string
+  /** Grouping label for the template (e.g., "Pagila", "Chinook"). */
   category?: string
+  /** When `true`, the query is ready to run without placeholder substitution. */
   prefilled?: boolean
 }
 
+/**
+ * Generic table-exploration templates with `{{catalog}}`, `{{database}}`, and
+ * `{{table}}` placeholders. Resolved at runtime via {@link resolveTemplate}.
+ */
 export const EXPLORE_TEMPLATES: ExploreTemplate[] = [
   {
     name: "Preview table",
@@ -29,6 +47,11 @@ export const EXPLORE_TEMPLATES: ExploreTemplate[] = [
   },
 ]
 
+/**
+ * Pre-filled sample queries targeting well-known demo databases
+ * (Pagila, Chinook, Employees). These are ready to execute without
+ * placeholder substitution.
+ */
 export const SAMPLE_QUERY_TEMPLATES: ExploreTemplate[] = [
   // Pagila — DVD rental database
   {
@@ -206,6 +229,10 @@ LIMIT 20`,
   },
 ]
 
+/**
+ * Replace `{{catalog}}`, `{{database}}`, and `{{table}}` placeholders in a
+ * template's SQL string with the provided identifiers.
+ */
 export function resolveTemplate(
   template: ExploreTemplate,
   catalog: string,

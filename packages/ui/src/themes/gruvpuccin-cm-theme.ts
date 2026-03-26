@@ -1,3 +1,5 @@
+/** Gruvpuccin CodeMirror theme — warm color palette blending Gruvbox and Catppuccin. */
+
 import { EditorView } from "@codemirror/view"
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language"
 import { tags } from "@lezer/highlight"
@@ -104,6 +106,7 @@ const gruvpuccinHighlighting = HighlightStyle.define([
   { tag: tags.angleBracket, color: "#a89984" },
 ])
 
+/** Complete Gruvpuccin CodeMirror extension array (base theme + syntax highlighting). */
 export const gruvpuccinCmTheme = [
   gruvpuccinTheme,
   syntaxHighlighting(gruvpuccinHighlighting),

@@ -1,6 +1,9 @@
+/** Fixture data for checkpoint monitoring — summaries, timelines, and cross-job aggregates. */
+
 import type { JobCheckpointSummary, CheckpointTimelineEntry, CheckpointAggregates } from "../types"
 import { createCheckpoint } from "./cluster"
 
+/** Create a job checkpoint summary with 142 checkpoints and 20 recent entries. */
 export function createJobCheckpointSummary(overrides?: Partial<JobCheckpointSummary>): JobCheckpointSummary {
   return {
     jobId: "job-001",
@@ -22,6 +25,7 @@ export function createJobCheckpointSummary(overrides?: Partial<JobCheckpointSumm
   }
 }
 
+/** Create a single checkpoint timeline entry with 10 successes and zero failures. */
 export function createCheckpointTimelineEntry(overrides?: Partial<CheckpointTimelineEntry>): CheckpointTimelineEntry {
   return {
     timestamp: new Date(),
@@ -31,6 +35,7 @@ export function createCheckpointTimelineEntry(overrides?: Partial<CheckpointTime
   }
 }
 
+/** Create cross-job checkpoint aggregates with 99.3% overall success rate. */
 export function createCheckpointAggregates(overrides?: Partial<CheckpointAggregates>): CheckpointAggregates {
   return {
     totalCheckpoints: 284,

@@ -1,8 +1,13 @@
-// Checkpoint factories are in cluster.ts since Checkpoint type is a core cluster type.
-// This file provides additional checkpoint-specific factories.
+/**
+ * Checkpoint-specific fixture factories — detail views and per-subtask stats.
+ *
+ * Core checkpoint factories live in `cluster.ts`; this file provides the
+ * deeper checkpoint inspection types.
+ */
 
 import type { CheckpointDetail, CheckpointSubtaskStats } from "../types"
 
+/** Create a completed checkpoint detail fixture with subtask acknowledgement data. */
 export function createCheckpointDetail(overrides?: Partial<CheckpointDetail>): CheckpointDetail {
   return {
     id: 142,
@@ -19,6 +24,7 @@ export function createCheckpointDetail(overrides?: Partial<CheckpointDetail>): C
   }
 }
 
+/** Create checkpoint subtask stats with sync/async duration and alignment data. */
 export function createCheckpointSubtaskStats(overrides?: Partial<CheckpointSubtaskStats>): CheckpointSubtaskStats {
   return {
     subtaskIndex: 0,

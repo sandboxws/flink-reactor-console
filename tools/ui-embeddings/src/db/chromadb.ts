@@ -23,11 +23,13 @@ export class ChromaDbAdapter implements VectorDbAdapter {
     ReturnType<ChromaClient["getOrCreateCollection"]>
   > | null = null
 
+  /** Connect to a ChromaDB instance (ephemeral in-memory mode for benchmarks). */
   async connect(_path: string): Promise<void> {
     // Ephemeral mode — no server needed, in-memory only
     this.client = new ChromaClient()
   }
 
+  /** Insert embedding records into a fresh `ui_components` collection with cosine distance. */
   async addRecords(records: EmbeddingRecord[]): Promise<void> {
     if (!this.client) throw new Error("Not connected")
 
@@ -57,6 +59,7 @@ export class ChromaDbAdapter implements VectorDbAdapter {
     })
   }
 
+  /** Search for the top-K nearest vectors, converting cosine distance to similarity. */
   async search(queryVector: number[], topK: number): Promise<SearchResult[]> {
     if (!this.collection) throw new Error("No collection loaded")
 
@@ -85,11 +88,13 @@ export class ChromaDbAdapter implements VectorDbAdapter {
     }))
   }
 
+  /** Return the total number of documents in the collection. */
   async count(): Promise<number> {
     if (!this.collection) throw new Error("No collection loaded")
     return this.collection.count()
   }
 
+  /** Release references to the client and collection. */
   async close(): Promise<void> {
     this.client = null
     this.collection = null

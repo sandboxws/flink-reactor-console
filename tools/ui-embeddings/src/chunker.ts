@@ -1,3 +1,9 @@
+/**
+ * Content chunking pipeline for the UI embedding system.
+ *
+ * Scans the @flink-reactor/ui package and produces semantic content chunks
+ * from component files (.tsx/.ts) and style files (.css), ready for embedding.
+ */
 import { resolve } from "node:path"
 import { glob } from "glob"
 import { extractComponentChunks } from "./extractors/component.js"

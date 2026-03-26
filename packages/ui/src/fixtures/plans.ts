@@ -1,5 +1,8 @@
+/** Fixture data for execution plans — subtask timelines and flamegraph profiling data. */
+
 import type { FlamegraphNode, FlamegraphData, SubtaskTimeline, SubtaskTimelineEntry } from "../types"
 
+/** Create a subtask timeline with four subtasks across separate hosts. */
 export function createSubtaskTimeline(overrides?: Partial<SubtaskTimeline>): SubtaskTimeline {
   const subtasks: SubtaskTimelineEntry[] = Array.from({ length: 4 }, (_, i) => ({
     subtask: i,
@@ -19,6 +22,7 @@ export function createSubtaskTimeline(overrides?: Partial<SubtaskTimeline>): Sub
   }
 }
 
+/** Create a flamegraph with StreamTask invoke, processElement, and emitWatermark frames. */
 export function createFlamegraphData(): FlamegraphData {
   return {
     endTimestamp: Date.now(),

@@ -1,5 +1,8 @@
+/** Fixture data for blue-green deployment state and rollout configuration. */
+
 import type { BlueGreenDeployment } from "../types"
 
+/** Create a blue-green deployment fixture in ACTIVE_BLUE state. */
 export function createBlueGreenDeployment(overrides?: Partial<BlueGreenDeployment>): BlueGreenDeployment {
   return {
     name: "ecommerce-pipeline",

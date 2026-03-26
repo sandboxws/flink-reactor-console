@@ -1,3 +1,17 @@
+/**
+ * DSL autocompletion source for the sandbox CodeMirror editor.
+ *
+ * Provides context-aware completions for FlinkReactor DSL JSX:
+ * - Component tag names (`<KafkaSource`, `<Pipeline`, etc.)
+ * - Sub-component member expressions (`<Route.Branch`)
+ * - Props on known components (with required-prop boosting)
+ * - Prop enum values (e.g., `type="inner"`)
+ * - `Field.*` method completions for schema definitions
+ *
+ * Uses the Lezer syntax tree when available, with text-based fallbacks
+ * for incomplete/error parse states.
+ */
+
 import type {
   Completion,
   CompletionContext,
@@ -18,10 +32,14 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Lezer syntax tree node type (avoids direct @lezer/common dependency) */
+/** Lezer syntax tree node type (avoids direct `@lezer/common` dependency). */
 type SyntaxNode = ReturnType<ReturnType<typeof syntaxTree>["resolveInner"]>
 
-/** Walk up the tree to find the nearest ancestor matching one of the given types. */
+/**
+ * Walk up the tree to find the nearest ancestor matching one of the given types.
+ * @param node - Starting node.
+ * @param types - Node type names to match against.
+ */
 function findAncestor(node: SyntaxNode, ...types: string[]): SyntaxNode | null {
   let cur: SyntaxNode | null = node.parent
   while (cur) {
@@ -57,7 +75,7 @@ function getExistingAttributes(tagNode: SyntaxNode, doc: string): Set<string> {
   return attrs
 }
 
-/** Convert a ComponentEntry category to a CM6 completion type label. */
+/** Map a DSL component category to a CodeMirror completion type icon. */
 function categoryToType(category: ComponentEntry["category"]): string {
   switch (category) {
     case "source":
@@ -83,6 +101,7 @@ function categoryToType(category: ComponentEntry["category"]): string {
 // Completion builders
 // ---------------------------------------------------------------------------
 
+/** Build completions for top-level DSL component tags, filtered by prefix. */
 function buildComponentCompletions(prefix: string): Completion[] {
   const results: Completion[] = []
 
@@ -102,6 +121,7 @@ function buildComponentCompletions(prefix: string): Completion[] {
   return results
 }
 
+/** Build completions for sub-components of a parent (e.g., `Route.Branch`). */
 function buildSubComponentCompletions(parent: string): Completion[] {
   const subs = getSubComponents(parent)
   return subs.map((sc) => ({
@@ -112,6 +132,10 @@ function buildSubComponentCompletions(parent: string): Completion[] {
   }))
 }
 
+/**
+ * Build completions for props of a known DSL component.
+ * Excludes attributes already present on the tag and boosts required props.
+ */
 function buildPropCompletions(
   componentName: string,
   existingAttrs: Set<string>,
@@ -146,6 +170,7 @@ function buildPropCompletions(
     }))
 }
 
+/** Build completions for enum values of a specific prop on a component. */
 function buildPropValueCompletions(
   componentName: string,
   propName: string,
@@ -176,6 +201,7 @@ function buildPropValueCompletions(
   }))
 }
 
+/** Build completions for `Field.*` schema type methods (e.g., `Field.STRING()`). */
 function buildFieldMethodCompletions(): Completion[] {
   return fieldMethods.map((m) => ({
     label: m.name,
@@ -190,6 +216,7 @@ function buildFieldMethodCompletions(): Completion[] {
 // Context detection
 // ---------------------------------------------------------------------------
 
+/** Discriminated union describing the kind of completion the cursor context requires. */
 type CompletionKind =
   | { type: "tag"; prefix: string; from: number }
   | { type: "subComponent"; parent: string; from: number }
@@ -290,6 +317,11 @@ function detectPropValueFromText(
   return { componentName: propCtx.componentName, propName, from }
 }
 
+/**
+ * Analyze the cursor position and surrounding syntax tree to determine
+ * which kind of completion to offer. Falls back to text-based heuristics
+ * when the Lezer parse tree is incomplete.
+ */
 function detectContext(ctx: CompletionContext): CompletionKind {
   const { state, pos } = ctx
   const doc = state.doc.toString()
@@ -440,6 +472,14 @@ function detectContext(ctx: CompletionContext): CompletionKind {
 // CompletionSource
 // ---------------------------------------------------------------------------
 
+/**
+ * CodeMirror autocompletion source for the FlinkReactor DSL.
+ *
+ * Detects the cursor context (tag, prop, prop value, field method, or
+ * sub-component) and returns the appropriate completion list. Falls back
+ * to tag completions on explicit activation (Ctrl+Space) when no context
+ * is detected.
+ */
 export function dslCompletionSource(
   ctx: CompletionContext,
 ): CompletionResult | null {

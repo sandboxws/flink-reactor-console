@@ -1,3 +1,10 @@
+/**
+ * Embedding model and vector DB benchmark suite.
+ *
+ * Compares embedding models (via Ollama) and database backends (LanceDB, ChromaDB)
+ * using a fixed set of test queries with expected results. Measures P@1, P@3, P@5,
+ * MRR, search latency, and storage size, then picks a recommendation.
+ */
 import { mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { extractAllChunks, printChunkSummary } from "./chunker.js"
@@ -16,12 +23,14 @@ const REPO_ROOT = resolve(import.meta.dirname, "../../..")
 const EMBEDDINGS_DIR = resolve(REPO_ROOT, "packages/ui/.embeddings")
 
 // ── Models to compare ──────────────────────────────────────────────────────
+/** Ollama embedding models to compare. */
 const MODELS: ModelConfig[] = [
   { name: "nomic-embed-text", ollamaModel: "nomic-embed-text" },
   { name: "nomic-embed-text-v2-moe", ollamaModel: "nomic-embed-text-v2-moe" },
 ]
 
 // ── Test queries ───────────────────────────────────────────────────────────
+/** Curated test queries spanning direct lookups, feature search, props, styles, and concepts. */
 const TEST_QUERIES: TestQuery[] = [
   // Direct component lookup
   {
@@ -134,10 +143,17 @@ const TEST_QUERIES: TestQuery[] = [
   },
 ]
 
+/** Number of results to retrieve for each test query. */
 const TOP_K = 5
 
 // ── Evaluation helpers ─────────────────────────────────────────────────────
 
+/**
+ * Compute precision at K: fraction of top-K results that are relevant.
+ * @param results - Ranked search results
+ * @param expectedFiles - File basenames that count as relevant
+ * @param k - Cutoff rank
+ */
 function precisionAtK(
   results: Array<{ path: string }>,
   expectedFiles: string[],
@@ -150,6 +166,10 @@ function precisionAtK(
   return relevant.length / k
 }
 
+/**
+ * Compute reciprocal rank: 1/position of the first relevant result.
+ * @returns 0 if no relevant result is found in the list
+ */
 function reciprocalRank(
   results: Array<{ path: string }>,
   expectedFiles: string[],
@@ -183,6 +203,7 @@ function dirSizeKB(dirPath: string): number {
 
 // ── Main benchmark ─────────────────────────────────────────────────────────
 
+/** Run the full benchmark: embed with each model, index in each DB, evaluate queries. */
 async function main(): Promise<void> {
   console.log("╭─────────────────────────────────────────╮")
   console.log("│  Embedding Model & DB Benchmark         │")
@@ -297,6 +318,15 @@ async function main(): Promise<void> {
   console.log(`\n  Results saved to: ${outputPath}\n`)
 }
 
+/**
+ * Benchmark a single model+DB combination: index records, run all test queries, compute metrics.
+ * @param model - Embedding model configuration
+ * @param records - Pre-computed embedding records
+ * @param db - Vector database adapter to benchmark
+ * @param dbPath - On-disk path for the database
+ * @param allResults - Accumulator for benchmark results across all combinations
+ * @param totalEmbedTime - Total embedding generation time in ms (for reporting)
+ */
 async function benchmarkDb(
   model: ModelConfig,
   records: EmbeddingRecord[],
@@ -382,6 +412,7 @@ async function benchmarkDb(
   await db.close()
 }
 
+/** Print a formatted comparison table of all benchmark results to stdout. */
 function printComparisonTable(results: BenchmarkResult[]): void {
   console.log(`\n${"═".repeat(70)}`)
   console.log("  COMPARISON TABLE")
@@ -410,6 +441,7 @@ function printComparisonTable(results: BenchmarkResult[]): void {
   }
 }
 
+/** Select the best model+DB combination, ranked by MRR then search latency. */
 function pickRecommendation(results: BenchmarkResult[]): {
   model: string
   db: string

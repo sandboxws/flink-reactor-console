@@ -1,3 +1,4 @@
+/** Vite configuration for the FlinkReactor dashboard — TanStack Router plugin, dev server proxy. */
 import tailwindcss from "@tailwindcss/vite"
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"

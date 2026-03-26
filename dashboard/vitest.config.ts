@@ -1,3 +1,4 @@
+/** Vitest configuration for dashboard unit tests. */
 import path from "node:path"
 import { defineConfig } from "vitest/config"
 

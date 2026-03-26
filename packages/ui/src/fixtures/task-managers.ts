@@ -1,3 +1,5 @@
+/** Fixture data for task managers — resources, memory configuration, and JVM metrics. */
+
 import type {
   TaskManager,
   TaskManagerMetrics,
@@ -6,8 +8,10 @@ import type {
   AllocatedSlot,
 } from "../types"
 
+/** Monotonic counter for generating unique task manager IDs. */
 let tmCounter = 0
 
+/** Create a task manager resource descriptor with 4 CPU cores and default memory. */
 function createResource(overrides?: Partial<TaskManagerResource>): TaskManagerResource {
   return {
     cpuCores: 4,
@@ -19,6 +23,7 @@ function createResource(overrides?: Partial<TaskManagerResource>): TaskManagerRe
   }
 }
 
+/** Create a task manager memory configuration with ~8 GB total process memory. */
 function createMemoryConfig(overrides?: Partial<TaskManagerMemoryConfiguration>): TaskManagerMemoryConfiguration {
   return {
     frameworkHeap: 134_217_728,
@@ -35,6 +40,7 @@ function createMemoryConfig(overrides?: Partial<TaskManagerMemoryConfiguration>)
   }
 }
 
+/** Create task manager metrics with CPU, heap, network, managed memory, and GC stats. */
 export function createTaskManagerMetrics(overrides?: Partial<TaskManagerMetrics>): TaskManagerMetrics {
   return {
     cpuUsage: 0.35,
@@ -69,6 +75,7 @@ export function createTaskManagerMetrics(overrides?: Partial<TaskManagerMetrics>
   }
 }
 
+/** Create a task manager with 4 slots (3 allocated), metrics, and memory config. */
 export function createTaskManager(overrides?: Partial<TaskManager>): TaskManager {
   const idx = tmCounter++
   const id = overrides?.id ?? `tm-${idx}-${Date.now().toString(36)}`

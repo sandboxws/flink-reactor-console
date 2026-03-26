@@ -1,24 +1,38 @@
-// ── Sandbox Examples ────────────────────────────────────────────────
-// Categorized DSL examples for the Storybook-style sidebar.
-// Code is written without imports — the synthesizer injects all DSL
-// exports (Pipeline, KafkaSource, Filter, Schema, Field, etc.)
-// as scope variables via new Function().
+/**
+ * Categorized DSL examples for the Storybook-style sandbox sidebar.
+ * Code is written without imports — the synthesizer injects all DSL exports
+ * (Pipeline, KafkaSource, Filter, Schema, Field, etc.) as scope variables
+ * via `new Function()`.
+ */
 
+/** A single sandbox example with metadata and DSL source code. */
 export interface SandboxExample {
+  /** Unique identifier used for lookup and URL routing. */
   id: string
+  /** Human-readable name shown in the sidebar. */
   name: string
+  /** Short description of what the example demonstrates. */
   description: string
+  /** Raw TSX code (no imports) — executed via the sandbox synthesizer. */
   code: string
-  /** JSX tag names to keep bright (everything else dimmed) — Transform examples only */
+  /** JSX tag names to keep bright (everything else dimmed) — Transform examples only. */
   focusComponents?: string[]
 }
 
+/** A group of related examples under a common heading. */
 export interface SandboxCategory {
+  /** Unique category identifier. */
   id: string
+  /** Display name for the category header. */
   name: string
+  /** Ordered list of examples within this category. */
   examples: SandboxExample[]
 }
 
+/**
+ * All sandbox example categories, ordered for sidebar display.
+ * Categories: Getting Started, Transforms, Windows, Joins, Routing.
+ */
 export const SANDBOX_CATEGORIES: SandboxCategory[] = [
   // ── Getting Started ───────────────────────────────────────────────
   {
@@ -657,7 +671,11 @@ const actions = (
   },
 ]
 
-// Flat lookup helpers
+/**
+ * Find an example by ID across all categories.
+ * @param id - The example identifier to search for.
+ * @returns The matching example, or `undefined` if not found.
+ */
 export function findExample(id: string): SandboxExample | undefined {
   for (const category of SANDBOX_CATEGORIES) {
     const example = category.examples.find((e) => e.id === id)
@@ -666,6 +684,11 @@ export function findExample(id: string): SandboxExample | undefined {
   return undefined
 }
 
+/**
+ * Find the category ID that contains a given example.
+ * @param id - The example identifier to search for.
+ * @returns The parent category ID, or `null` if not found.
+ */
 export function findCategoryForExample(id: string): string | null {
   for (const cat of SANDBOX_CATEGORIES) {
     if (cat.examples.some((e) => e.id === id)) return cat.id
@@ -673,4 +696,5 @@ export function findCategoryForExample(id: string): string | null {
   return null
 }
 
+/** The example loaded when the sandbox opens with no selection. */
 export const DEFAULT_EXAMPLE_ID = "hello-world"

@@ -1,3 +1,9 @@
+/**
+ * Ollama-based embedding generation for UI component content chunks.
+ *
+ * Provides single-text and batch embedding functions, plus a model
+ * availability check. All calls go through the local Ollama server.
+ */
 import { Ollama } from "ollama"
 import type { ContentChunk, EmbeddingRecord } from "./types.js"
 

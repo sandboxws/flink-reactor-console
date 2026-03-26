@@ -1,3 +1,5 @@
+/** Cluster overview and job fixture factories — the core building blocks for Flink test data. */
+
 import type {
   ClusterOverview,
   FlinkJob,
@@ -15,13 +17,17 @@ import type {
   CheckpointConfig,
 } from "../types"
 
+/** Monotonic counter for generating unique IDs within a session. */
 let counter = 0
+/** Generate a short unique ID from timestamp and counter. */
 function uid() { return `${Date.now().toString(36)}-${(counter++).toString(36)}` }
 
+/** Create task counts with four running tasks by default. */
 export function createTaskCounts(overrides?: Partial<TaskCounts>): TaskCounts {
   return { pending: 0, running: 4, finished: 0, canceling: 0, failed: 0, ...overrides }
 }
 
+/** Create vertex metrics with throughput, busy time, and backpressure defaults. */
 export function createVertexMetrics(overrides?: Partial<JobVertexMetrics>): JobVertexMetrics {
   return {
     recordsIn: 125_000,
@@ -34,6 +40,7 @@ export function createVertexMetrics(overrides?: Partial<JobVertexMetrics>): JobV
   }
 }
 
+/** Create a running job vertex with metrics and task counts. */
 export function createJobVertex(overrides?: Partial<JobVertex>): JobVertex {
   const id = overrides?.id ?? uid()
   return {
@@ -49,6 +56,7 @@ export function createJobVertex(overrides?: Partial<JobVertex>): JobVertex {
   }
 }
 
+/** Create an edge between two job vertices with a HASH ship strategy. */
 export function createJobEdge(overrides?: Partial<JobEdge>): JobEdge {
   return {
     source: uid(),
@@ -58,6 +66,7 @@ export function createJobEdge(overrides?: Partial<JobEdge>): JobEdge {
   }
 }
 
+/** Create a linear job plan (Source -> Map -> Aggregate -> Sink) with the given vertex count. */
 export function createJobPlan(vertexCount = 4): JobPlan {
   const vertices: JobVertex[] = []
   const edges: JobEdge[] = []
@@ -83,6 +92,7 @@ export function createJobPlan(vertexCount = 4): JobPlan {
   return { vertices, edges }
 }
 
+/** Create a completed checkpoint fixture with random ID and realistic sizes. */
 export function createCheckpoint(overrides?: Partial<Checkpoint>): Checkpoint {
   return {
     id: Math.floor(Math.random() * 1000) + 1,
@@ -96,10 +106,12 @@ export function createCheckpoint(overrides?: Partial<Checkpoint>): Checkpoint {
   }
 }
 
+/** Create checkpoint counts with 142 completed and zero failures. */
 export function createCheckpointCounts(overrides?: Partial<CheckpointCounts>): CheckpointCounts {
   return { completed: 142, failed: 0, inProgress: 0, total: 142, ...overrides }
 }
 
+/** Create an EXACTLY_ONCE checkpoint config with 60s interval. */
 export function createCheckpointConfig(overrides?: Partial<CheckpointConfig>): CheckpointConfig {
   return {
     mode: "EXACTLY_ONCE",
@@ -111,6 +123,7 @@ export function createCheckpointConfig(overrides?: Partial<CheckpointConfig>): C
   }
 }
 
+/** Create a Kafka source connector fixture with throughput metrics. */
 export function createConnector(overrides?: Partial<JobConnector>): JobConnector {
   return {
     vertexId: "vertex-0",
@@ -125,6 +138,7 @@ export function createConnector(overrides?: Partial<JobConnector>): JobConnector
   }
 }
 
+/** Create a fully populated Flink job fixture with plan, checkpoints, and connectors. */
 export function createFlinkJob(overrides?: Partial<FlinkJob>): FlinkJob {
   const id = overrides?.id ?? uid()
   const plan = overrides?.plan !== undefined ? overrides.plan : createJobPlan()
@@ -166,6 +180,7 @@ export function createFlinkJob(overrides?: Partial<FlinkJob>): FlinkJob {
   }
 }
 
+/** Create a cluster overview with 3 TMs, 12 slots, and Flink 1.20.1. */
 export function createClusterOverview(overrides?: Partial<ClusterOverview>): ClusterOverview {
   return {
     flinkVersion: "1.20.1",
@@ -182,6 +197,7 @@ export function createClusterOverview(overrides?: Partial<ClusterOverview>): Clu
   }
 }
 
+/** Create Flink feature flags with submit, cancel, and history enabled. */
 export function createFeatureFlags(overrides?: Partial<FlinkFeatureFlags>): FlinkFeatureFlags {
   return {
     webSubmit: true,

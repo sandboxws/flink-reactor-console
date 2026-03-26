@@ -1,3 +1,8 @@
+/**
+ * Shared type definitions for the UI embedding pipeline: content chunks,
+ * embedding records, vector DB adapters, search results, and benchmark types.
+ */
+
 /** A semantic chunk of content ready for embedding. */
 export interface ContentChunk {
   /** Unique identifier, e.g. "button-summary" or "tokens-brand-colors" */

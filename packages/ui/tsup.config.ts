@@ -1,3 +1,4 @@
+/** Tsup bundler configuration for the @flink-reactor/ui package. */
 import { defineConfig } from "tsup"
 
 export default defineConfig({

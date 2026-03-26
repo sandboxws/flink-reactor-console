@@ -1,9 +1,11 @@
-// ── Connector Icon Gutter ────────────────────────────────────────────
-// CodeMirror 6 custom gutter that displays connector brand icons
-// (Kafka, ClickHouse, PostgreSQL, etc.) next to source/sink comment blocks.
-//
-// Brand icons are rendered via react-icons (SimpleIcons set) using
-// flushSync into a DOM cache, then cloned into gutter markers.
+/**
+ * CodeMirror 6 custom gutter that displays connector brand icons
+ * (Kafka, ClickHouse, PostgreSQL, etc.) next to source/sink lines.
+ *
+ * Brand icons are rendered via react-icons (SimpleIcons set) using
+ * `flushSync` into a DOM cache, then cloned into gutter markers.
+ * Generic connectors use inline Lucide-style SVG paths.
+ */
 
 import {
   type Extension,
@@ -56,6 +58,7 @@ const GENERIC_SVG: Record<string, string> = {
 const svgHtmlCache = new Map<string, string>()
 let cacheReady = false
 
+/** Lazily pre-renders all brand and generic icons into the HTML cache. */
 function ensureIconCache(): void {
   if (cacheReady) return
   cacheReady = true
@@ -98,6 +101,7 @@ function ensureIconCache(): void {
   }
 }
 
+/** Retrieve cached SVG HTML for the given icon key, or empty string if unknown. */
 function getIconHtml(iconKey: string): string {
   ensureIconCache()
   return svgHtmlCache.get(iconKey) ?? ""
@@ -107,6 +111,7 @@ function getIconHtml(iconKey: string): string {
 // JDBC URL → database brand detection
 // ---------------------------------------------------------------------------
 
+/** Ordered list of JDBC URL patterns mapped to icon keys and display labels. */
 const JDBC_PATTERNS: Array<{
   pattern: RegExp
   key: string
@@ -124,6 +129,7 @@ const JDBC_PATTERNS: Array<{
   { pattern: /jdbc:derby/i, key: "database", label: "Derby" },
 ]
 
+/** Match a JDBC URL against known database brands and return the icon key + label. */
 function resolveJdbcIcon(url: string): { key: string; label: string } {
   for (const { pattern, key, label } of JDBC_PATTERNS) {
     if (pattern.test(url)) return { key, label }
@@ -135,6 +141,7 @@ function resolveJdbcIcon(url: string): { key: string; label: string } {
 // Component → icon resolution
 // ---------------------------------------------------------------------------
 
+/** Result of icon resolution: the cache key and human-readable label. */
 interface ResolvedIcon {
   key: string
   label: string
@@ -193,6 +200,7 @@ function resolveIconKey(
 // GutterMarker subclass
 // ---------------------------------------------------------------------------
 
+/** GutterMarker that renders a cached connector SVG icon in the editor gutter. */
 class ConnectorIconMarker extends GutterMarker {
   constructor(
     readonly iconKey: string,
@@ -227,8 +235,10 @@ export interface ConnectorIconData {
   lineIcons: Map<number, { key: string; label: string }>
 }
 
+/** State effect to update the connector icon overlay. Dispatch `null` to clear. */
 export const setConnectorIcons = StateEffect.define<ConnectorIconData | null>()
 
+/** State field that stores the current connector icon mapping. */
 const connectorIconField = StateField.define<ConnectorIconData | null>({
   create: () => null,
   update(data, tr) {
@@ -243,8 +253,10 @@ const connectorIconField = StateField.define<ConnectorIconData | null>({
 // Tooltip (shared with diagnostic gutter pattern)
 // ---------------------------------------------------------------------------
 
+/** Singleton tooltip element, lazily created on hover. */
 let iconTooltipEl: HTMLDivElement | null = null
 
+/** Position and show a floating tooltip next to the hovered gutter icon. */
 function showIconTooltip(label: string, anchor: HTMLElement) {
   hideIconTooltip()
   iconTooltipEl = document.createElement("div")
@@ -275,6 +287,7 @@ function showIconTooltip(label: string, anchor: HTMLElement) {
   iconTooltipEl.style.top = `${rect.top - 2}px`
 }
 
+/** Remove and dispose the active tooltip element. */
 function hideIconTooltip() {
   if (iconTooltipEl) {
     iconTooltipEl.remove()
@@ -286,6 +299,7 @@ function hideIconTooltip() {
 // Gutter extension
 // ---------------------------------------------------------------------------
 
+/** Gutter definition that reads the icon state field and renders markers. */
 const connectorGutter = gutter({
   class: "cm-connector-gutter",
   markers: (view) => {
@@ -322,6 +336,7 @@ const connectorGutter = gutter({
   },
 })
 
+/** Bundled CodeMirror extension: state field + gutter for connector icons. */
 export const connectorIconGutter: Extension = [
   connectorIconField,
   connectorGutter,

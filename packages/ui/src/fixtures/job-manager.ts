@@ -1,5 +1,8 @@
+/** Fixture data for job manager configuration, JVM metrics, and classpath info. */
+
 import type { JobManagerInfo, JobManagerMetrics, JvmMetricSample } from "../types"
 
+/** Generate time-series metric samples with slight random jitter around a base value. */
 function createSamples(count: number, baseValue: number): JvmMetricSample[] {
   const samples: JvmMetricSample[] = []
   const now = Date.now()
@@ -12,6 +15,7 @@ function createSamples(count: number, baseValue: number): JvmMetricSample[] {
   return samples
 }
 
+/** Create JM metrics with 30-sample time series for heap, non-heap, threads, and GC. */
 export function createJobManagerMetrics(overrides?: Partial<JobManagerMetrics>): JobManagerMetrics {
   return {
     jvmHeapUsed: createSamples(30, 800_000_000),
@@ -25,6 +29,7 @@ export function createJobManagerMetrics(overrides?: Partial<JobManagerMetrics>):
   }
 }
 
+/** Create a fully populated job manager info with config, metrics, JVM, and classpath. */
 export function createJobManagerInfo(overrides?: Partial<JobManagerInfo>): JobManagerInfo {
   return {
     config: [

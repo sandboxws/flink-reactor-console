@@ -1,9 +1,12 @@
+/** Pre-built cluster scenarios for testing — healthy, degraded, failing, and empty states. */
+
 import type { ClusterOverview, FlinkJob, TaskManager, LogEntry, HealthSnapshot, BottleneckScore, Recommendation, HealthIssue } from "../types"
 import { createClusterOverview, createFlinkJob, createCheckpoint } from "./cluster"
 import { createTaskManager } from "./task-managers"
 import { createLogEntries } from "./logs"
 import { createHealthSnapshot, createHealthIssue, createBottleneckScore, createRecommendation } from "./health"
 
+/** Complete cluster state snapshot used by scenario factories. */
 export type ClusterScenario = {
   overview: ClusterOverview
   jobs: FlinkJob[]
@@ -15,6 +18,7 @@ export type ClusterScenario = {
   recommendations: Recommendation[]
 }
 
+/** Healthy cluster: 2 running jobs, no issues, health score 92. */
 export function healthyCluster(): ClusterScenario {
   return {
     overview: createClusterOverview({ runningJobs: 2, failedJobs: 0 }),
@@ -35,6 +39,7 @@ export function healthyCluster(): ClusterScenario {
   }
 }
 
+/** Degraded cluster: elevated backpressure, slow checkpoints, health score 65. */
 export function degradedCluster(): ClusterScenario {
   return {
     overview: createClusterOverview({ runningJobs: 2, availableTaskSlots: 1 }),
@@ -66,6 +71,7 @@ export function degradedCluster(): ClusterScenario {
   }
 }
 
+/** Failing cluster: one job failed with OOM, critical issues, health score 35. */
 export function failingCluster(): ClusterScenario {
   return {
     overview: createClusterOverview({ runningJobs: 1, failedJobs: 1, availableTaskSlots: 5 }),
@@ -109,6 +115,7 @@ export function failingCluster(): ClusterScenario {
   }
 }
 
+/** Empty cluster: no jobs, all 12 slots available, health score 100. */
 export function emptyCluster(): ClusterScenario {
   return {
     overview: createClusterOverview({

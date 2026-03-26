@@ -16,11 +16,13 @@ export class LanceDbAdapter implements VectorDbAdapter {
   private db: lancedb.Connection | null = null
   private table: lancedb.Table | null = null
 
+  /** Open a connection to a LanceDB database at the given directory path. */
   async connect(path: string): Promise<void> {
     this.dbPath = path
     this.db = await lancedb.connect(path)
   }
 
+  /** Insert embedding records, replacing the existing `ui_components` table. */
   async addRecords(records: EmbeddingRecord[]): Promise<void> {
     if (!this.db) throw new Error("Not connected")
 
@@ -44,6 +46,7 @@ export class LanceDbAdapter implements VectorDbAdapter {
     this.table = await this.db.createTable("ui_components", rows)
   }
 
+  /** Search for the top-K nearest vectors, converting L2 distance to similarity. */
   async search(queryVector: number[], topK: number): Promise<SearchResult[]> {
     if (!this.db) throw new Error("Not connected")
 
@@ -65,6 +68,7 @@ export class LanceDbAdapter implements VectorDbAdapter {
     }))
   }
 
+  /** Return the total number of rows in the `ui_components` table. */
   async count(): Promise<number> {
     if (!this.db) throw new Error("Not connected")
     if (!this.table) {
@@ -73,6 +77,7 @@ export class LanceDbAdapter implements VectorDbAdapter {
     return this.table.countRows()
   }
 
+  /** Release references to the connection and table. */
   async close(): Promise<void> {
     this.db = null
     this.table = null

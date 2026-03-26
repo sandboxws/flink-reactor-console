@@ -1,6 +1,9 @@
+/** Fixture data for job exceptions and grouped error patterns. */
+
 import type { JobException, ErrorGroup, LogEntry } from "../types"
 import { createLogEntry } from "./logs"
 
+/** Create a Kafka deserialization exception with stack trace. */
 export function createJobException(overrides?: Partial<JobException>): JobException {
   return {
     timestamp: new Date(Date.now() - 300_000),
@@ -17,6 +20,7 @@ export function createJobException(overrides?: Partial<JobException>): JobExcept
   }
 }
 
+/** Create a grouped error with three occurrences and a sample log entry. */
 export function createErrorGroup(overrides?: Partial<ErrorGroup>): ErrorGroup {
   const now = new Date()
   const sample = createLogEntry({

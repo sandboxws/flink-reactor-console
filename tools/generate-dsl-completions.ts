@@ -33,6 +33,7 @@ const OUTPUT = path.resolve(
 // Types
 // ---------------------------------------------------------------------------
 
+/** A single prop extracted from a component's Props interface. */
 interface PropEntry {
   name: string
   type: string
@@ -41,6 +42,7 @@ interface PropEntry {
   enumValues?: string[]
 }
 
+/** A top-level DSL component with its props and category. */
 interface ComponentEntry {
   name: string
   description: string
@@ -48,6 +50,7 @@ interface ComponentEntry {
   props: PropEntry[]
 }
 
+/** A namespaced sub-component (e.g. Query.Select, Route.Branch). */
 interface SubComponentEntry {
   parent: string
   name: string
@@ -55,6 +58,7 @@ interface SubComponentEntry {
   props: PropEntry[]
 }
 
+/** A field-type helper method signature and description. */
 interface FieldMethodEntry {
   name: string
   signature: string
@@ -65,6 +69,11 @@ interface FieldMethodEntry {
 // Categorization heuristics
 // ---------------------------------------------------------------------------
 
+/**
+ * Assign a semantic category to a component based on naming conventions.
+ * @param name - Component name (e.g. "KafkaSource", "Pipeline")
+ * @returns Category string: source, sink, catalog, join, window, container, transform, or utility
+ */
 function categorize(name: string, kind?: string): string {
   if (name.endsWith("Source") || name === "CatalogSource") return "source"
   if (name.endsWith("Sink")) return "sink"
@@ -82,6 +91,7 @@ function categorize(name: string, kind?: string): string {
 // Main
 // ---------------------------------------------------------------------------
 
+/** Parse browser.d.ts and generate the DSL completion registry. */
 function main() {
   if (!fs.existsSync(BROWSER_DTS)) {
     console.error(`Error: ${BROWSER_DTS} not found. Run 'pnpm install' first.`)

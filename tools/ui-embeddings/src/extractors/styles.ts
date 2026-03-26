@@ -1,3 +1,9 @@
+/**
+ * CSS style file extractor for the UI embedding pipeline.
+ *
+ * Splits CSS files by section header comments and produces one content
+ * chunk per section, classified as either css-tokens or css-class.
+ */
 import { readFileSync } from "node:fs"
 import { relative } from "node:path"
 import type { ContentChunk } from "../types.js"

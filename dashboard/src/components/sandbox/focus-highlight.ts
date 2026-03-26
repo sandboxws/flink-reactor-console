@@ -1,6 +1,8 @@
-// ── Focus Highlighting ──────────────────────────────────────────────
-// CodeMirror 6 extension that dims non-featured lines in Transform
-// examples. Used by both the editor (TSX) and output viewer (SQL).
+/**
+ * CodeMirror 6 extension that dims non-featured lines in Transform
+ * examples. Used by both the TSX editor and the SQL output viewer to
+ * highlight focused components while dimming surrounding context.
+ */
 
 import {
   type Extension,
@@ -28,10 +30,18 @@ export interface FocusData {
 /** Dispatch with FocusData to apply focus highlighting, or null to clear. */
 export const setFocusLines = StateEffect.define<FocusData | null>()
 
+/** Line decoration applied to fully dimmed (unfocused) lines. */
 const dimLineDecoration = Decoration.line({ class: "cm-dim-line" })
+/** Mark decoration applied to dim character spans within partially-focused lines. */
 const dimMarkDecoration = Decoration.mark({ class: "cm-dim-span" })
+/** Line decoration applied to SQL comment lines (section headers). */
 const commentLineDecoration = Decoration.line({ class: "cm-sql-comment" })
 
+/**
+ * Bundled CodeMirror extension that manages focus-highlight decorations.
+ * Reacts to {@link setFocusLines} effects to apply line-level and
+ * character-level dimming.
+ */
 export const focusHighlightField: Extension = (() => {
   const field = StateField.define<DecorationSet>({
     create: () => RangeSet.empty,
@@ -150,15 +160,20 @@ export function computeTsxFocusLines(
 // SQL focus range computation (uses statementOrigins from synthesis)
 // ---------------------------------------------------------------------------
 
+/** Provenance of a synthesized SQL statement (which DSL component produced it). */
 interface StatementOrigin {
   readonly nodeId: string
   readonly component: string
   readonly kind: string
 }
 
+/** A character range within a SQL statement traced back to a specific DSL component. */
 interface SqlFragment {
+  /** Byte offset within the containing statement. */
   readonly offset: number
+  /** Length in bytes of this fragment. */
   readonly length: number
+  /** The DSL component that produced this fragment. */
   readonly origin: StatementOrigin
 }
 

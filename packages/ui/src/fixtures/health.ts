@@ -1,5 +1,8 @@
+/** Fixture data for health scores, issues, bottleneck analysis, and recommendations. */
+
 import type { HealthSnapshot, HealthSubScore, HealthIssue, BottleneckScore, Recommendation } from "../types"
 
+/** Create a healthy sub-score (85/100) for slot utilization. */
 export function createHealthSubScore(overrides?: Partial<HealthSubScore>): HealthSubScore {
   return {
     name: "Slot Utilization",
@@ -11,6 +14,7 @@ export function createHealthSubScore(overrides?: Partial<HealthSubScore>): Healt
   }
 }
 
+/** Create a health snapshot with five weighted sub-scores (overall 82). */
 export function createHealthSnapshot(overrides?: Partial<HealthSnapshot>): HealthSnapshot {
   return {
     timestamp: new Date(),
@@ -26,6 +30,7 @@ export function createHealthSnapshot(overrides?: Partial<HealthSnapshot>): Healt
   }
 }
 
+/** Create a warning-level health issue for elevated backpressure. */
 export function createHealthIssue(overrides?: Partial<HealthIssue>): HealthIssue {
   return {
     id: `issue-${Date.now().toString(36)}`,
@@ -37,6 +42,7 @@ export function createHealthIssue(overrides?: Partial<HealthIssue>): HealthIssue
   }
 }
 
+/** Create a medium-severity bottleneck score for an aggregate vertex. */
 export function createBottleneckScore(overrides?: Partial<BottleneckScore>): BottleneckScore {
   return {
     vertexId: "vertex-2",
@@ -56,6 +62,7 @@ export function createBottleneckScore(overrides?: Partial<BottleneckScore>): Bot
   }
 }
 
+/** Create an increase-parallelism recommendation for a bottlenecked vertex. */
 export function createRecommendation(overrides?: Partial<Recommendation>): Recommendation {
   return {
     type: "increase-parallelism",

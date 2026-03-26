@@ -1,3 +1,4 @@
+/** Monitoring templates — checkpoint analytics charts and configurable alerts section. */
 export {
   CheckpointAnalyticsSection,
   type CheckpointAnalyticsSectionProps,

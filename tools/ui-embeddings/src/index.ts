@@ -1,3 +1,10 @@
+/**
+ * Embedding pipeline entry point for @flink-reactor/ui.
+ *
+ * Extracts semantic content chunks from the UI package, generates
+ * vector embeddings via Ollama, stores them in LanceDB, and writes
+ * metadata to packages/ui/.embeddings/index.json.
+ */
 import { mkdirSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { extractAllChunks, printChunkSummary } from "./chunker.js"
@@ -8,8 +15,13 @@ const REPO_ROOT = resolve(import.meta.dirname, "../../..")
 const EMBEDDINGS_DIR = resolve(REPO_ROOT, "packages/ui/.embeddings")
 const LANCEDB_DIR = resolve(EMBEDDINGS_DIR, "lancedb")
 
+/** Default Ollama embedding model (can be overridden via CLI arg). */
 const DEFAULT_MODEL = "nomic-embed-text"
 
+/**
+ * Run the full embedding pipeline: extract, embed, store, write metadata.
+ * Accepts an optional model name as the first CLI argument.
+ */
 async function main(): Promise<void> {
   const model = process.argv[2] ?? DEFAULT_MODEL
 

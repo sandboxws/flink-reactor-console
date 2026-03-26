@@ -1,3 +1,4 @@
+/** Insights templates — health dashboard with cluster metrics and bottleneck analysis section. */
 export {
   HealthDashboardSection,
   type HealthDashboardSectionProps,

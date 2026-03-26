@@ -1,5 +1,8 @@
+/** Fixture data for Flink SQL materialized tables with refresh configuration. */
+
 import type { MaterializedTable } from "../types"
 
+/** Create a continuously-refreshed materialized table for daily order summaries. */
 export function createMaterializedTable(overrides?: Partial<MaterializedTable>): MaterializedTable {
   return {
     name: "daily_order_summary",

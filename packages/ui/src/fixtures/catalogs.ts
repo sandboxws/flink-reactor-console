@@ -1,3 +1,5 @@
+/** Fixture data for Flink SQL catalog structures — databases, tables, and column schemas. */
+
 export type CatalogColumn = {
   name: string
   type: string
@@ -12,6 +14,7 @@ export type CatalogSchema = {
   columns: CatalogColumn[]
 }
 
+/** Create a catalog column fixture with sensible defaults. */
 export function createCatalogColumn(overrides?: Partial<CatalogColumn>): CatalogColumn {
   return {
     name: "order_id",
@@ -22,6 +25,7 @@ export function createCatalogColumn(overrides?: Partial<CatalogColumn>): Catalog
   }
 }
 
+/** Create a catalog schema fixture with a five-column orders table. */
 export function createCatalogSchema(overrides?: Partial<CatalogSchema>): CatalogSchema {
   return {
     catalog: "default_catalog",
