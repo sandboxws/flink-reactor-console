@@ -1,3 +1,4 @@
+/** State size forecasting chart -- projects state growth based on input rate and key cardinality. */
 "use client"
 
 import { Database } from "lucide-react"
@@ -17,6 +18,7 @@ const GROWTH_STYLES = {
   unbounded: { color: "text-job-failed", label: "Unbounded" },
 } as const
 
+/** Per-operator state growth projections at 1h, 24h, and 7d horizons with growth pattern badges. */
 export function PlanStateForecast({
   forecasts,
 }: {

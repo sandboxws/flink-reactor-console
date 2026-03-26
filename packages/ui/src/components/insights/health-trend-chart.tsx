@@ -1,3 +1,4 @@
+/** Health score over time chart — line chart of overall health score trend. */
 "use client"
 
 import {
@@ -44,6 +45,7 @@ export interface HealthTrendChartProps {
   history: HealthSnapshot[]
 }
 
+/** Area chart plotting health score snapshots over time, color-coded by current severity. */
 export function HealthTrendChart({ history }: HealthTrendChartProps) {
   const data = history.map((s) => ({
     time: s.timestamp.toLocaleTimeString([], {

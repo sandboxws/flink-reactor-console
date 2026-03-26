@@ -1,3 +1,4 @@
+/** Radix Dialog wrapper — centered modal overlay with close button. */
 "use client"
 
 import { Dialog as DialogPrimitive } from "radix-ui"
@@ -5,11 +6,16 @@ import { X } from "lucide-react"
 
 import { cn } from "../../lib/cn"
 
+/** Root dialog state container (Radix Dialog.Root). */
 const Dialog = DialogPrimitive.Root
+/** Element that opens the dialog. */
 const DialogTrigger = DialogPrimitive.Trigger
+/** Portals dialog content to document body. */
 const DialogPortal = DialogPrimitive.Portal
+/** Element that closes the dialog. */
 const DialogClose = DialogPrimitive.Close
 
+/** Semi-transparent backdrop behind the dialog. */
 function DialogOverlay({
   className,
   ...props
@@ -26,6 +32,7 @@ function DialogOverlay({
   )
 }
 
+/** Centered modal panel with close button and entry/exit animations. */
 function DialogContent({
   className,
   children,
@@ -52,6 +59,7 @@ function DialogContent({
   )
 }
 
+/** Semantic header layout region for the dialog. */
 function DialogHeader({
   className,
   ...props
@@ -68,6 +76,7 @@ function DialogHeader({
   )
 }
 
+/** Semantic footer layout region for the dialog. */
 function DialogFooter({
   className,
   ...props
@@ -84,6 +93,7 @@ function DialogFooter({
   )
 }
 
+/** Accessible title for the dialog. */
 function DialogTitle({
   className,
   ...props
@@ -100,6 +110,7 @@ function DialogTitle({
   )
 }
 
+/** Accessible description for the dialog. */
 function DialogDescription({
   className,
   ...props

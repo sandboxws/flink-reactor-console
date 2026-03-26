@@ -1,9 +1,11 @@
+/** Task slot utilization gauge -- shows used vs available task slots across the cluster. */
 "use client"
 
 import { Layers } from "lucide-react"
 import { cn } from "../../lib/cn"
 import { Progress } from "../ui/progress"
 
+/** Progress bar card showing available vs total task slots with color-coded health thresholds. */
 export function SlotUtilization({
   available,
   total,

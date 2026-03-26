@@ -1,7 +1,9 @@
+/** Table primitives -- composable header, body, row, and cell elements with dashboard styling. */
 "use client"
 
 import { cn } from "../../lib/cn"
 
+/** Scrollable table container. */
 function Table({
   className,
   ...props
@@ -16,6 +18,7 @@ function Table({
   )
 }
 
+/** Table head section with bottom border on rows. */
 function TableHeader({
   className,
   ...props
@@ -28,6 +31,7 @@ function TableHeader({
   )
 }
 
+/** Table body section. */
 function TableBody({
   className,
   ...props
@@ -37,6 +41,7 @@ function TableBody({
   )
 }
 
+/** Table foot section with background tint. */
 function TableFooter({
   className,
   ...props
@@ -52,6 +57,7 @@ function TableFooter({
   )
 }
 
+/** Table row with bottom border and transition colors. */
 function TableRow({
   className,
   ...props
@@ -67,6 +73,7 @@ function TableRow({
   )
 }
 
+/** Column header cell with compact sizing and muted text. */
 function TableHead({
   className,
   ...props
@@ -82,6 +89,7 @@ function TableHead({
   )
 }
 
+/** Standard data cell. */
 function TableCell({
   className,
   ...props
@@ -97,6 +105,7 @@ function TableCell({
   )
 }
 
+/** Muted caption below the table. */
 function TableCaption({
   className,
   ...props

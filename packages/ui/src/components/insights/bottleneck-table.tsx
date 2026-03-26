@@ -1,3 +1,4 @@
+/** Tabular bottleneck metrics — ranks operators by busy time, backpressure, and throughput. */
 "use client"
 
 import {
@@ -47,6 +48,7 @@ export interface BottleneckTableProps {
   scores: BottleneckScore[]
 }
 
+/** Sortable table displaying vertex name, job, parallelism, backpressure level, busy%, and severity. */
 export function BottleneckTable({ scores }: BottleneckTableProps) {
   const [sortCol, setSortCol] = useState<SortColumn>("score")
   const [sortDir, setSortDir] = useState<SortDir>("desc")

@@ -1,3 +1,4 @@
+/** Static log viewer -- displays log entries without live streaming. */
 "use client"
 
 import {
@@ -488,6 +489,7 @@ function StaticDetailPanel({
 // StaticLogExplorer — self-contained log viewer matching /logs visual style
 // ---------------------------------------------------------------------------
 
+/** Self-contained log explorer with severity filters, histogram, virtualized list, and detail side-panel. */
 export function StaticLogExplorer({
   entries,
   className,

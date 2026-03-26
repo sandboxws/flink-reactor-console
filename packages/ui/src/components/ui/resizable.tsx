@@ -1,9 +1,11 @@
+/** Resizable panel layout built on react-resizable-panels. */
 "use client"
 
 import { Group, Panel, Separator } from "react-resizable-panels"
 
 import { cn } from "../../lib/cn"
 
+/** Container that holds resizable panels and handles. */
 function ResizablePanelGroup({
   className,
   ...props
@@ -11,8 +13,10 @@ function ResizablePanelGroup({
   return <Group className={cn("h-full w-full", className)} {...props} />
 }
 
+/** Individual panel whose width adjusts on drag. */
 const ResizablePanel = Panel
 
+/** Draggable divider between panels with hover highlight. */
 function ResizableHandle({
   className,
   ...props

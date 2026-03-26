@@ -1,9 +1,11 @@
+/** Radix Label wrapper — accessible form label with disabled-peer styling. */
 "use client"
 
 import { Label as LabelPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
+/** Accessible label element that dims when its associated input is disabled. */
 function Label({
   className,
   ...props

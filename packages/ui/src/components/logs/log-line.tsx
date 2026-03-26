@@ -1,3 +1,4 @@
+/** Single log entry line -- renders timestamp, severity badge, source, and truncated message. */
 "use client"
 
 import { CollapsibleTrigger } from "../../components/ui/collapsible"
@@ -60,6 +61,7 @@ export interface LogLineProps {
   isRegex?: boolean
 }
 
+/** Memoized single log row with timestamp, severity, source, logger name, and search-highlighted message. */
 export const LogLine = memo(function LogLine({
   entry,
   isSelected,

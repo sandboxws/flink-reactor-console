@@ -1,3 +1,4 @@
+/** Materialized table refresh status badge -- color-coded indicator for refresh state (idle/running/failed). */
 "use client"
 
 import type {
@@ -43,6 +44,7 @@ interface RefreshStatusBadgeProps {
   className?: string
 }
 
+/** Pill badge with pulsing dot indicator colored by materialized table refresh status. */
 export function RefreshStatusBadge({
   status,
   className,

@@ -1,3 +1,4 @@
+/** Data skew analysis tab -- highlights uneven data distribution across subtasks. */
 "use client"
 
 import {
@@ -78,6 +79,7 @@ function SkewTooltip({
 // DataSkewTab
 // ---------------------------------------------------------------------------
 
+/** Per-vertex data skew visualization -- bar chart of records per subtask with a 2x-median reference line, skew-ratio highlighting, and summary statistics (min/max/median/avg). */
 export function DataSkewTab({
   subtaskMetrics,
   vertices,

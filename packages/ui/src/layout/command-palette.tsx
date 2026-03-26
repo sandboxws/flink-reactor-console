@@ -1,14 +1,17 @@
+/** Command palette dialog (Cmd+K) — fuzzy-search over navigation, jobs, and actions. */
 "use client"
 
 import { Command } from "cmdk"
 import type { LucideIcon } from "lucide-react"
 
+/** A navigable route entry displayed in the command palette. */
 export interface CommandRoute {
   label: string
   href: string
   icon: LucideIcon
 }
 
+/** Props for the CommandPalette modal dialog. */
 export interface CommandPaletteProps {
   /** Whether the palette is open */
   open: boolean
@@ -22,19 +25,7 @@ export interface CommandPaletteProps {
   placeholder?: string
 }
 
-/**
- * CommandPalette — Cmd+K style command palette for quick navigation.
- *
- * Usage:
- * ```tsx
- * <CommandPalette
- *   open={isOpen}
- *   onClose={() => setOpen(false)}
- *   onNavigate={(href) => { router.push(href); setOpen(false); }}
- *   routes={ROUTES}
- * />
- * ```
- */
+/** CommandPalette — Cmd+K style command palette for quick navigation. */
 export function CommandPalette({
   open,
   onClose,

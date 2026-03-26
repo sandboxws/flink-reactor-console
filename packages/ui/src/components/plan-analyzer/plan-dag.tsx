@@ -1,3 +1,4 @@
+/** Execution plan DAG visualization -- renders the operator graph for a compiled Flink SQL plan. */
 "use client"
 
 import type { Edge, Node } from "@xyflow/react"
@@ -259,6 +260,7 @@ function PlanDAGInner({
 // Exported wrapper with provider
 // ---------------------------------------------------------------------------
 
+/** ReactFlow-based DAG canvas with auto-layout, minimap, and custom operator node/edge types. */
 export function PlanDAG({
   plan,
   selectedNodeId,

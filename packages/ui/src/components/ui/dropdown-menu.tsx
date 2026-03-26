@@ -1,3 +1,4 @@
+/** Radix DropdownMenu wrapper — contextual menu with items, checkboxes, radios, and sub-menus. */
 "use client"
 
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
@@ -5,13 +6,16 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "../../lib/cn"
 
+/** Root menu state container (Radix DropdownMenu.Root). */
 const DropdownMenu = DropdownMenuPrimitive.Root
+/** Element that opens the menu. */
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 const DropdownMenuGroup = DropdownMenuPrimitive.Group
 const DropdownMenuPortal = DropdownMenuPrimitive.Portal
 const DropdownMenuSub = DropdownMenuPrimitive.Sub
 const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
 
+/** Nested sub-menu trigger — shows a chevron and opens the sub-content on hover/focus. */
 function DropdownMenuSubTrigger({
   className,
   inset,
@@ -35,6 +39,7 @@ function DropdownMenuSubTrigger({
   )
 }
 
+/** Nested sub-menu content panel with entry/exit animations. */
 function DropdownMenuSubContent({
   className,
   ...props
@@ -50,6 +55,7 @@ function DropdownMenuSubContent({
   )
 }
 
+/** Animated floating panel that holds menu items. */
 function DropdownMenuContent({
   className,
   sideOffset = 4,
@@ -69,6 +75,7 @@ function DropdownMenuContent({
   )
 }
 
+/** Single clickable menu option. */
 function DropdownMenuItem({
   className,
   inset,
@@ -88,6 +95,7 @@ function DropdownMenuItem({
   )
 }
 
+/** Menu item with a checkbox indicator. */
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -113,6 +121,7 @@ function DropdownMenuCheckboxItem({
   )
 }
 
+/** Menu item within a radio group. */
 function DropdownMenuRadioItem({
   className,
   children,
@@ -136,6 +145,7 @@ function DropdownMenuRadioItem({
   )
 }
 
+/** Non-interactive heading within a menu group. */
 function DropdownMenuLabel({
   className,
   inset,
@@ -155,6 +165,7 @@ function DropdownMenuLabel({
   )
 }
 
+/** Visual divider between menu sections. */
 function DropdownMenuSeparator({
   className,
   ...props
@@ -167,6 +178,7 @@ function DropdownMenuSeparator({
   )
 }
 
+/** Right-aligned keyboard shortcut hint. */
 function DropdownMenuShortcut({
   className,
   ...props

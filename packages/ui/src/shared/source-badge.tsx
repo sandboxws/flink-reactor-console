@@ -1,5 +1,7 @@
+/** Data source indicator badge showing the origin of a log entry or metric. */
 "use client"
 
+/** Describes the source of a log entry (e.g. jobmanager, taskmanager, client). */
 export interface LogSource {
   type: string
   id: string
@@ -12,15 +14,12 @@ const SHORT_LABELS: Record<string, string> = {
   client: "CLI",
 }
 
+/** Props for the SourceBadge component. */
 export interface SourceBadgeProps {
   source: LogSource
 }
 
-/**
- * SourceBadge — badge showing the source of a log entry.
- *
- * Automatically shortens common source types (JM, TM, CLI).
- */
+/** Badge showing the origin of a log entry, with automatic abbreviation (JM, TM-1, CLI). */
 export function SourceBadge({ source }: SourceBadgeProps) {
   const short = SHORT_LABELS[source.type] ?? source.type
   // For TMs, append the numeric part of the id (e.g. "TM-1")

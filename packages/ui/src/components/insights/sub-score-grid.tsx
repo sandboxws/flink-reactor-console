@@ -1,3 +1,4 @@
+/** Health sub-category score grid — cards for throughput, backpressure, checkpoint, and memory scores. */
 "use client"
 
 import {
@@ -31,6 +32,7 @@ export interface SubScoreGridProps {
   subScores: HealthSubScore[]
 }
 
+/** Responsive grid of MetricCards, one per health sub-category with icon, score, and status accent. */
 export function SubScoreGrid({ subScores }: SubScoreGridProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

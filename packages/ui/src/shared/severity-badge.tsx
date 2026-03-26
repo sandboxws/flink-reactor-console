@@ -1,5 +1,7 @@
+/** Log severity level badge — color-coded label for DEBUG/INFO/WARN/ERROR/FATAL. */
 "use client"
 
+/** Supported log severity levels. */
 export type LogLevel = "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR"
 
 const LEVEL_BG: Record<LogLevel, string> = {
@@ -10,15 +12,12 @@ const LEVEL_BG: Record<LogLevel, string> = {
   ERROR: "bg-log-error/20 text-log-error",
 }
 
+/** Props for the SeverityBadge component. */
 export interface SeverityBadgeProps {
   level: LogLevel
 }
 
-/**
- * SeverityBadge — colored badge for log severity levels.
- *
- * Uses the Tokyo Night color palette defined in tokens.css.
- */
+/** Colored badge for log severity levels, using the Tokyo Night color palette from tokens.css. */
 export function SeverityBadge({ level }: SeverityBadgeProps) {
   return <span className={`severity-badge ${LEVEL_BG[level]}`}>{level}</span>
 }

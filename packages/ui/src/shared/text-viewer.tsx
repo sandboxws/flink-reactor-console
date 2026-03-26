@@ -1,3 +1,4 @@
+/** Read-only text/log viewer with monospace styling and optional line numbers. */
 "use client"
 
 import { Check, Copy } from "lucide-react"

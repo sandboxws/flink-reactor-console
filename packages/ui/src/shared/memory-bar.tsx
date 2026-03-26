@@ -1,10 +1,7 @@
+/** Memory usage progress bar showing used/total with percentage. */
 "use client"
 
 import { cn } from "../lib/cn"
-
-// ---------------------------------------------------------------------------
-// MemoryBar — inline progress bar with used/total labels and color thresholds
-// ---------------------------------------------------------------------------
 
 function formatBytes(bytes: number): string {
   if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
@@ -18,6 +15,7 @@ function utilizationColor(pct: number): string {
   return "var(--color-job-running)"
 }
 
+/** Inline progress bar with used/total byte labels and color thresholds (green/amber/red). */
 export function MemoryBar({
   used,
   total,

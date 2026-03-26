@@ -1,3 +1,4 @@
+/** TAP query result data table -- renders live query output rows with column headers. */
 "use client"
 
 import { useVirtualizer } from "@tanstack/react-virtual"

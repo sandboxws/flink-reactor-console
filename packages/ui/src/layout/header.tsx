@@ -1,13 +1,16 @@
+/** Top navigation header bar with logo, breadcrumbs, and action slots. */
 "use client"
 
 import { ChevronLeft } from "lucide-react"
 import { cn } from "../lib/cn"
 
+/** Single breadcrumb segment with a routing key and display label. */
 export interface Breadcrumb {
   key: string
   label: string
 }
 
+/** Props for the Header top-bar component. */
 export interface HeaderProps {
   /** Content rendered at the far left (e.g. sidebar toggle) */
   leftContent?: React.ReactNode
@@ -28,22 +31,7 @@ export interface HeaderProps {
   className?: string
 }
 
-/**
- * Header — top bar with breadcrumb navigation and right-side controls.
- *
- * Utility function to generate breadcrumbs from pathname:
- * ```ts
- * function breadcrumbFromPath(pathname: string): Breadcrumb[] {
- *   const segments = pathname.split("/").filter(Boolean);
- *   let path = "";
- *   return segments.map((s) => {
- *     path += `/${s}`;
- *     const label = s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
- *     return { key: path, label };
- *   });
- * }
- * ```
- */
+/** Header — top bar with breadcrumb navigation and right-side controls. */
 export function Header({
   leftContent,
   rootLabel = "Dashboard",
@@ -122,9 +110,7 @@ export function Header({
   )
 }
 
-/**
- * Utility to generate breadcrumbs from a pathname
- */
+/** Generates breadcrumb segments from a URL pathname. */
 export function breadcrumbFromPath(pathname: string): Breadcrumb[] {
   const segments = pathname.split("/").filter(Boolean)
   let path = ""

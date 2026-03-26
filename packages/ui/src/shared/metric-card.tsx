@@ -1,7 +1,9 @@
+/** Metric value display card with icon, label, value, and optional trend indicator. */
 "use client"
 
 import { cn } from "../lib/cn"
 
+/** Props for the MetricCard component. */
 export interface MetricCardProps {
   icon: React.ComponentType<{ className?: string }>
   label: string
@@ -11,11 +13,7 @@ export interface MetricCardProps {
   children?: React.ReactNode
 }
 
-/**
- * MetricCard — glass-effect card for displaying a single metric with icon.
- *
- * Uses the `.glass-card` CSS class for the glassmorphism effect.
- */
+/** Glass-effect card for displaying a single metric with icon, label, and optional children for trend indicators. */
 export function MetricCard({
   icon: Icon,
   label,

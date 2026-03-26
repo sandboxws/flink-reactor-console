@@ -1,3 +1,4 @@
+/** Debounced search input with magnifying glass icon and optional clear button. */
 "use client"
 
 import { ChevronDown, ChevronUp, Regex, Search, X } from "lucide-react"

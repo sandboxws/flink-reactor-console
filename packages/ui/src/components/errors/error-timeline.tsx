@@ -1,3 +1,4 @@
+/** Error occurrence timeline chart — plots error frequency over time. */
 "use client"
 
 import { useMemo } from "react"
@@ -50,6 +51,7 @@ export interface ErrorTimelineProps {
   occurrences: Date[]
 }
 
+/** Bar chart showing error occurrence counts bucketed over 30 time intervals. */
 export function ErrorTimeline({ occurrences }: ErrorTimelineProps) {
   const data = useMemo(() => bucketize(occurrences), [occurrences])
 

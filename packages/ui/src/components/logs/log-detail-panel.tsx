@@ -1,3 +1,4 @@
+/** Expanded log entry detail panel -- shows full message, metadata fields, and context lines. */
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
@@ -43,6 +44,7 @@ export interface LogDetailPanelProps {
   onClose: () => void
 }
 
+/** Tabbed detail view for a selected log entry with details, stack trace, context, and raw tabs. */
 export function LogDetailPanel({
   entry,
   contextLines = [],

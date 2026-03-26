@@ -1,3 +1,4 @@
+/** Ranked list of top health issues — severity-ordered recommendations for job optimization. */
 "use client"
 
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react"
@@ -30,6 +31,7 @@ export interface TopIssuesListProps {
   maxItems?: number
 }
 
+/** Displays active health issues with severity icon, message, source badge, and relative timestamp. */
 export function TopIssuesList({
   issues,
   maxItems = 10,

@@ -1,3 +1,4 @@
+/** Radix Accordion wrapper — vertically stacked collapsible content sections. */
 "use client"
 
 import { Accordion as AccordionPrimitive } from "radix-ui"
@@ -5,8 +6,10 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "../../lib/cn"
 
+/** Root container, supports single or multiple expanded items. */
 const Accordion = AccordionPrimitive.Root
 
+/** Single collapsible section. */
 function AccordionItem({
   className,
   ...props
@@ -19,6 +22,7 @@ function AccordionItem({
   )
 }
 
+/** Clickable header that toggles open/closed, includes rotating chevron. */
 function AccordionTrigger({
   className,
   children,
@@ -40,6 +44,7 @@ function AccordionTrigger({
   )
 }
 
+/** Animated collapsible content region. */
 function AccordionContent({
   className,
   children,

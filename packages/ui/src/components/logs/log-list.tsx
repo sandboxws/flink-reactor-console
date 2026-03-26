@@ -1,3 +1,4 @@
+/** Virtualized log entry list -- efficiently renders large log volumes with windowed scrolling. */
 "use client"
 
 import { Collapsible, CollapsibleContent } from "../../components/ui/collapsible"
@@ -22,6 +23,7 @@ export interface LogListProps {
   currentMatchId?: string | null
 }
 
+/** Windowed log list with auto-scroll, collapsible stack traces, and jump-to-bottom overlay. */
 export function LogList({
   entries,
   selectedEntryId = null,

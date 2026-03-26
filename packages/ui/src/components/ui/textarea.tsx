@@ -1,7 +1,9 @@
+/** Styled multiline text input with border focus ring. */
 "use client"
 
 import { cn } from "../../lib/cn"
 
+/** Multiline text input with dashboard theme styling and focus-visible ring. */
 function Textarea({
   className,
   ...props

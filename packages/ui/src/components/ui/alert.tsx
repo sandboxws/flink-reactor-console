@@ -1,3 +1,4 @@
+/** Alert banner component with default and destructive variants. */
 "use client"
 
 import { cn } from "../../lib/cn"
@@ -13,6 +14,7 @@ const variantStyles: Record<AlertVariant, string> = {
   destructive: "border-red-500/30 text-red-400",
 }
 
+/** Alert container with variant-driven border and text colors. */
 function Alert({ className, variant = "default", ...props }: AlertProps) {
   return (
     <div
@@ -27,6 +29,7 @@ function Alert({ className, variant = "default", ...props }: AlertProps) {
   )
 }
 
+/** Bold heading within an alert. */
 function AlertTitle({
   className,
   ...props
@@ -39,6 +42,7 @@ function AlertTitle({
   )
 }
 
+/** Body text within an alert. */
 function AlertDescription({
   className,
   ...props

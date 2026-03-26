@@ -1,9 +1,11 @@
+/** Keyboard shortcut display — renders key combinations as styled key caps. */
 "use client"
 
 import { cn } from "../../lib/cn"
 
 interface KbdProps extends React.HTMLAttributes<HTMLElement> {}
 
+/** Single keyboard key rendered as a bordered inline badge. */
 function Kbd({ className, children, ...props }: KbdProps) {
   return (
     <kbd
@@ -20,6 +22,7 @@ function Kbd({ className, children, ...props }: KbdProps) {
 
 interface KbdGroupProps extends React.HTMLAttributes<HTMLSpanElement> {}
 
+/** Horizontal group of Kbd elements with tight spacing. */
 function KbdGroup({ className, children, ...props }: KbdGroupProps) {
   return (
     <span

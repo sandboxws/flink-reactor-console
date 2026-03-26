@@ -1,3 +1,4 @@
+/** Log volume histogram -- bar chart of log entry counts bucketed by time interval. */
 "use client"
 
 import { useMemo } from "react"
@@ -92,6 +93,7 @@ export interface LogHistogramProps {
   onBucketClick?: (start: Date, end: Date) => void
 }
 
+/** Stacked bar chart showing log counts per severity level across 60 time buckets. */
 export function LogHistogram({ entries, onBucketClick }: LogHistogramProps) {
   const data = useMemo(() => bucketize(entries), [entries])
 

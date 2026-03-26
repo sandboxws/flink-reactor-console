@@ -1,7 +1,9 @@
+/** Cluster version and metadata display -- shows Flink version, commit hash, and cluster ID. */
 "use client"
 
 import { Info } from "lucide-react"
 
+/** Inline bar displaying Flink version, short commit hash, and capability badges. */
 export function ClusterInfo({
   version,
   commitId,

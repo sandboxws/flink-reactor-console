@@ -1,3 +1,4 @@
+/** Java thread dump viewer -- renders thread states with collapsible stack frames. */
 "use client"
 
 import {
@@ -498,6 +499,7 @@ function ThreadCard({
 // Main component
 // ---------------------------------------------------------------------------
 
+/** Full thread dump panel with state-distribution bar, filterable thread list, and collapsible stack frames. */
 export function ThreadDumpViewer({
   threads,
   className,

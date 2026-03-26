@@ -1,3 +1,4 @@
+/** Source/sink connector detail card -- shows connector type, topic/table, and throughput metrics. */
 "use client"
 
 import {
@@ -51,6 +52,7 @@ function formatCount(n: number): string {
   return n.toString()
 }
 
+/** Glass card for a single source or sink connector -- displays connector icon, type label, resource name (topic/table), role badge, confidence level, and read/write throughput metrics. */
 export function SourceSinkCard({ connector }: { connector: JobConnector }) {
   const Icon = connectorIcons[connector.connectorType] ?? Database
   const label =

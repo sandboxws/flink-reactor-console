@@ -1,3 +1,4 @@
+/** Time-series metric chart — renders line/area charts for monitoring data. */
 "use client"
 
 import { X } from "lucide-react"
@@ -25,6 +26,7 @@ const CHART_COLORS = [
   "#bb9af7", // purple
 ]
 
+/** Returns a color from the rotating chart palette by index. */
 export function getChartColor(index: number): string {
   return CHART_COLORS[index % CHART_COLORS.length]
 }
@@ -39,6 +41,7 @@ function formatTime(timestamp: number): string {
   })
 }
 
+/** Formats a raw metric value into a human-readable string using unit-aware scaling (bytes, ms, ratios, records). */
 export function formatMetricValue(
   value: number | null,
   meta: MetricMeta,
@@ -83,6 +86,7 @@ export function formatMetricValue(
   }
 }
 
+/** Returns the display label for a metric's unit badge (e.g. "rate . bytes/s", "%"). */
 export function getUnitBadgeLabel(meta: MetricMeta): string {
   if (meta.type === "counter") return `rate \u00b7 ${meta.unit}/s`
   if (meta.unit === "ratio") return "%"
@@ -98,6 +102,7 @@ type MetricChartProps = {
   onRemove: () => void
 }
 
+/** Recharts-based line chart panel for a single metric, with header stats, source badge, and removable card layout. */
 export function MetricChart({
   data,
   meta,

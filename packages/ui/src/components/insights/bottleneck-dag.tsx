@@ -1,3 +1,4 @@
+/** DAG visualization of operator bottlenecks — highlights backpressured and slow operators. */
 "use client"
 
 import type { Edge, Node, NodeProps } from "@xyflow/react"
@@ -266,6 +267,7 @@ export interface BottleneckDAGProps {
   edges: JobEdge[]
 }
 
+/** ReactFlow DAG rendering operators as severity-colored nodes with topological layout. */
 export function BottleneckDAG({ scores, edges }: BottleneckDAGProps) {
   if (scores.length === 0) {
     return (

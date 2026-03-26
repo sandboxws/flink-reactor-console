@@ -1,3 +1,4 @@
+/** TAP query execution status bar -- progress indicator with row count and elapsed time. */
 "use client"
 
 import { Activity, Database, Radio, Users } from "lucide-react"
@@ -20,6 +21,7 @@ interface TapStatusBarProps {
   consumerGroupId: string
 }
 
+/** Footer bar showing total rows, throughput, buffer usage, consumer group, and error state. */
 export function TapStatusBar({
   totalRowCount,
   rowsPerSecond,

@@ -1,3 +1,4 @@
+/** Table column schema display — lists column names, types, and nullability for a catalog table. */
 "use client"
 
 import {
@@ -39,6 +40,7 @@ const PAGE_SIZE = 20
 // ColumnsTable
 // ---------------------------------------------------------------------------
 
+/** Sortable, paginated table listing column names and types with search filtering. */
 export function ColumnsTable({ columns }: { columns: CatalogColumnInfo[] }) {
   const [search, setSearch] = useState("")
   const [sortField, setSortField] = useState<SortField>("name")

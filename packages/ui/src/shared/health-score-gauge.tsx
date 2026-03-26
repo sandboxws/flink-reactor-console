@@ -1,3 +1,4 @@
+/** Circular health score gauge — radial progress indicator for 0-100 scores. */
 "use client"
 
 function scoreColor(score: number): string {
@@ -6,6 +7,7 @@ function scoreColor(score: number): string {
   return "var(--color-job-failed)"
 }
 
+/** SVG radial gauge that visualizes a 0-100 health score with color-coded thresholds (green/amber/red). */
 export function HealthScoreGauge({
   score,
   size = 200,

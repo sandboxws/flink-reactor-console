@@ -1,3 +1,4 @@
+/** Plan DAG partitioning edge -- shows the shuffle strategy between plan operators. */
 "use client"
 
 import type { EdgeProps } from "@xyflow/react"
@@ -7,6 +8,7 @@ import type { ShuffleStrategy } from "../../types/plan-analyzer"
 
 type PlanEdgeData = { shipStrategy: ShuffleStrategy }
 
+/** ReactFlow custom edge rendering a smooth step path with a shuffle strategy label. */
 export function PlanStrategyEdge({
   id,
   sourceX,

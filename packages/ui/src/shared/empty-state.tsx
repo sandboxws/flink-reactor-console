@@ -1,7 +1,9 @@
+/** Empty state placeholder with centered icon, title, and optional description. */
 "use client"
 
 import { Inbox } from "lucide-react"
 
+/** Props for the EmptyState component. */
 export interface EmptyStateProps {
   icon?: React.ComponentType<{ className?: string }>
   message?: string
@@ -10,12 +12,7 @@ export interface EmptyStateProps {
   children?: React.ReactNode
 }
 
-/**
- * EmptyState — centered placeholder for empty content areas.
- *
- * Simple usage: `<EmptyState message="No jobs found" />`
- * Rich usage:  `<EmptyState icon={Search} title="No results" description="Try adjusting your filters"><Button>Clear filters</Button></EmptyState>`
- */
+/** Centered placeholder for empty content areas, supporting simple message or rich title/description/action modes. */
 export function EmptyState({
   icon: Icon = Inbox,
   message,

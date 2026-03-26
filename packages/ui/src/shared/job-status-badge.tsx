@@ -1,3 +1,4 @@
+/** Job lifecycle status badge -- color-coded pill for RUNNING/FINISHED/CANCELED/FAILED states. */
 "use client"
 
 import { Badge } from "../components/ui/badge"
@@ -17,6 +18,7 @@ const statusStyles: Record<JobStatus, string> = {
   RECONCILING: "bg-job-created/15 text-job-created",
 }
 
+/** Color-coded pill displaying a Flink job's lifecycle state (RUNNING, FINISHED, CANCELED, FAILED, etc.). */
 export function JobStatusBadge({ status }: { status: JobStatus }) {
   return (
     <Badge

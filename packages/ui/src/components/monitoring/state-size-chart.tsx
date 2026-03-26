@@ -1,3 +1,4 @@
+/** State backend size chart -- area chart of state size growth over time. */
 "use client"
 
 import { useState } from "react"
@@ -145,6 +146,7 @@ export interface StateSizeChartProps {
   summaries: JobCheckpointSummary[]
 }
 
+/** Dual-mode chart showing per-job state size (area) or checkpoint duration trend (line) over time. */
 export function StateSizeChart({ summaries }: StateSizeChartProps) {
   const [mode, setMode] = useState<ViewMode>("stateSize")
   const { data, jobNames } = buildChartData(summaries, mode)

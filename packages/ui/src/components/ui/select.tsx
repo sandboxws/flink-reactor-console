@@ -1,3 +1,4 @@
+/** Radix Select wrapper — dropdown selector with scroll buttons and item groups. */
 "use client"
 
 import { Select as SelectPrimitive } from "radix-ui"
@@ -5,10 +6,14 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "../../lib/cn"
 
+/** Root select state container. */
 const Select = SelectPrimitive.Root
+/** Groups related select items under a label. */
 const SelectGroup = SelectPrimitive.Group
+/** Displays the currently selected value in the trigger. */
 const SelectValue = SelectPrimitive.Value
 
+/** Button that opens the select dropdown. */
 function SelectTrigger({
   className,
   children,
@@ -31,6 +36,7 @@ function SelectTrigger({
   )
 }
 
+/** Scroll indicator at the top of the list when items overflow. */
 function SelectScrollUpButton({
   className,
   ...props
@@ -48,6 +54,7 @@ function SelectScrollUpButton({
   )
 }
 
+/** Scroll indicator at the bottom of the list when items overflow. */
 function SelectScrollDownButton({
   className,
   ...props
@@ -65,6 +72,7 @@ function SelectScrollDownButton({
   )
 }
 
+/** Floating panel with select items and scroll indicators. */
 function SelectContent({
   className,
   children,
@@ -100,6 +108,7 @@ function SelectContent({
   )
 }
 
+/** Non-interactive heading within a select group. */
 function SelectLabel({
   className,
   ...props
@@ -112,6 +121,7 @@ function SelectLabel({
   )
 }
 
+/** Single selectable option with check indicator. */
 function SelectItem({
   className,
   children,
@@ -136,6 +146,7 @@ function SelectItem({
   )
 }
 
+/** Visual divider between select items. */
 function SelectSeparator({
   className,
   ...props

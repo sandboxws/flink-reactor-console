@@ -1,13 +1,17 @@
+/** Radix Popover wrapper — floating panel anchored to a trigger element. */
 "use client"
 
 import { Popover as PopoverPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
+/** Root popover state container. */
 const Popover = PopoverPrimitive.Root
 
+/** Element that toggles the popover open/closed. */
 const PopoverTrigger = PopoverPrimitive.Trigger
 
+/** Floating panel with entry/exit animations, portaled to document body. */
 function PopoverContent({
   className,
   align = "center",

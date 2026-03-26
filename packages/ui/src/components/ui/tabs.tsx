@@ -1,11 +1,14 @@
+/** Radix Tabs wrapper -- tabbed content navigation. */
 "use client"
 
 import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
+/** Root tabs state container. */
 const Tabs = TabsPrimitive.Root
 
+/** Horizontal row of tab triggers. */
 function TabsList({
   className,
   ...props
@@ -19,6 +22,7 @@ function TabsList({
   )
 }
 
+/** Individual tab button with active state styling. */
 function TabsTrigger({
   className,
   ...props
@@ -35,6 +39,7 @@ function TabsTrigger({
   )
 }
 
+/** Content panel associated with a tab trigger. */
 function TabsContent({
   className,
   ...props

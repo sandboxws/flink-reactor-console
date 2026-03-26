@@ -1,3 +1,4 @@
+/** Job exception list tab -- chronological list of exceptions with timestamps and root causes. */
 "use client"
 
 import {
@@ -101,6 +102,7 @@ function ExceptionCard({
 // ExceptionsTab
 // ---------------------------------------------------------------------------
 
+/** Chronological list of job exceptions -- highlights the root cause with an alert card and renders remaining exceptions with collapsible stack traces. */
 export function ExceptionsTab({ exceptions }: { exceptions: JobException[] }) {
   if (exceptions.length === 0) {
     return <EmptyState icon={CheckCircle} message="No exceptions recorded" />

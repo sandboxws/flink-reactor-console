@@ -1,3 +1,4 @@
+/** Checkpoint history and metrics tab -- table of completed checkpoints with size, duration, and alignment. */
 "use client"
 
 import { Badge } from "../../components/ui/badge"
@@ -719,6 +720,11 @@ function CountStat({
 // CheckpointsTab
 // ---------------------------------------------------------------------------
 
+/**
+ * Full checkpoint dashboard for a Flink job -- displays checkpoint counts, config summary,
+ * latest completed/failed/savepoint/restore info, sortable history table with drill-down
+ * to per-operator and per-subtask stats, and size/duration trend sparklines.
+ */
 export function CheckpointsTab({
   jobId,
   checkpoints,

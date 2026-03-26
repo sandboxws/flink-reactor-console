@@ -1,3 +1,4 @@
+/** Job execution timeline tab -- Gantt-style chart of vertex scheduling and execution phases. */
 "use client"
 
 import { Clock, Maximize2, ZoomIn, ZoomOut } from "lucide-react"
@@ -68,6 +69,7 @@ function GanttTooltip({
 // TimelineTab
 // ---------------------------------------------------------------------------
 
+/** Zoomable Gantt chart of vertex execution -- each bar represents a vertex with offset from job start, duration, and status color. Includes time axis ticks and a status-color legend. */
 export function TimelineTab({
   vertices,
   jobStartTime,

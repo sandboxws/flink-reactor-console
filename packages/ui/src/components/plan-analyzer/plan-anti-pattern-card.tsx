@@ -1,3 +1,4 @@
+/** Anti-pattern warning card -- highlights potential performance issues in the execution plan. */
 "use client"
 
 import { AlertTriangle, Copy, Info, OctagonAlert } from "lucide-react"
@@ -26,6 +27,7 @@ const SEVERITY_STYLES = {
   },
 } as const
 
+/** Severity-bordered card showing anti-pattern title, description, suggestion, and copyable code fixes. */
 export function PlanAntiPatternCard({
   antiPattern,
 }: {

@@ -1,3 +1,4 @@
+/** Vertex/operator metrics table tab -- per-vertex throughput, busy time, and backpressure stats. */
 "use client"
 
 import {
@@ -764,6 +765,11 @@ function MetricsSection({ subtasks }: { subtasks: SubtaskMetrics[] }) {
 // VerticesTab -- main component
 // ---------------------------------------------------------------------------
 
+/**
+ * Multi-tab vertex inspector -- select a vertex to view detail stats, per-subtask metrics table,
+ * task-manager grouping, watermarks, backpressure levels, user accumulators, and a subtask
+ * comparison bar chart.
+ */
 export function VerticesTab({
   job,
   selectedVertexId,

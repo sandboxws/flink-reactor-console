@@ -1,3 +1,4 @@
+/** Alert rule status card -- shows alert name, condition, current state, and last triggered time. */
 "use client"
 
 import { formatDistanceToNow } from "date-fns"
@@ -32,6 +33,7 @@ const SEVERITY_CONFIG = {
   },
 } as const
 
+/** Severity-colored card displaying alert rule name, threshold, current value, and acknowledge/resolve actions. */
 export function AlertCard({ alert, onAcknowledge, onResolve }: AlertCardProps) {
   const config = SEVERITY_CONFIG[alert.severity]
   const Icon = config.icon

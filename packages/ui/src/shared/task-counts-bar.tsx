@@ -1,3 +1,4 @@
+/** Task status distribution bar — stacked segments for pending/running/finished/failed counts. */
 "use client"
 
 import {
@@ -17,6 +18,7 @@ const segments: { key: TaskStatus; label: string; color: string }[] = [
   { key: "failed", label: "Failed", color: "bg-job-failed" },
 ]
 
+/** Stacked horizontal bar visualizing task status distribution with a hover tooltip breakdown. */
 export function TaskCountsBar({ tasks }: { tasks: TaskCounts }) {
   const total = Object.values(tasks).reduce((a, b) => a + b, 0)
   if (total === 0) return null

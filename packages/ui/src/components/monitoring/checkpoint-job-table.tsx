@@ -1,3 +1,4 @@
+/** Per-job checkpoint stats table -- lists jobs with latest checkpoint size, duration, and status. */
 "use client"
 
 import {
@@ -154,6 +155,7 @@ export interface CheckpointJobTableProps {
   summaries: JobCheckpointSummary[]
 }
 
+/** Sortable table of per-job checkpoint metrics including interval, duration, state size, and success rate. */
 export function CheckpointJobTable({ summaries }: CheckpointJobTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("successRate")
   const [sortDir, setSortDir] = useState<SortDir>("asc")

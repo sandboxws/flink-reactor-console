@@ -1,3 +1,4 @@
+/** Button component with six visual variants and four size presets. */
 "use client"
 
 import { cn } from "../../lib/cn"
@@ -33,6 +34,7 @@ const sizeStyles: Record<ButtonSize, string> = {
   icon: "size-8",
 }
 
+/** Primary action element with variant (default/secondary/destructive/outline/ghost/link) and size (default/sm/lg/icon) props. */
 function Button({
   className,
   variant = "default",

@@ -1,3 +1,4 @@
+/** Radix Checkbox wrapper styled for the dashboard theme. */
 "use client"
 
 import { Checkbox as CheckboxPrimitive } from "radix-ui"
@@ -5,6 +6,7 @@ import { Check } from "lucide-react"
 
 import { cn } from "../../lib/cn"
 
+/** Toggleable checkbox with check indicator and focus ring. */
 function Checkbox({
   className,
   ...props

@@ -1,15 +1,18 @@
+/** Form field primitives — composable label, input area, description, and error message slots. */
 "use client"
 
 import { cn } from "../../lib/cn"
 
 interface FieldProps extends React.HTMLAttributes<HTMLDivElement> {}
 
+/** Vertical stack container for a single form field. */
 function Field({ className, ...props }: FieldProps) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)} {...props} />
   )
 }
 
+/** Label element for the field input. */
 function FieldLabel({
   className,
   ...props
@@ -25,6 +28,7 @@ function FieldLabel({
   )
 }
 
+/** Wrapper for the input element and related content. */
 function FieldContent({
   className,
   ...props
@@ -32,6 +36,7 @@ function FieldContent({
   return <div className={cn("flex flex-col gap-1.5", className)} {...props} />
 }
 
+/** Muted helper text below the input. */
 function FieldDescription({
   className,
   ...props
@@ -41,6 +46,7 @@ function FieldDescription({
   )
 }
 
+/** Red error message below the input. */
 function FieldError({
   className,
   ...props
@@ -52,6 +58,7 @@ function FieldError({
 
 interface FieldSetProps extends React.FieldsetHTMLAttributes<HTMLFieldSetElement> {}
 
+/** Grouped set of related fields (HTML fieldset). */
 function FieldSet({ className, ...props }: FieldSetProps) {
   return (
     <fieldset
@@ -61,6 +68,7 @@ function FieldSet({ className, ...props }: FieldSetProps) {
   )
 }
 
+/** Heading for a field set group. */
 function FieldLegend({
   className,
   ...props

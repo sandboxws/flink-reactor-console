@@ -1,13 +1,17 @@
+/** Radix HoverCard wrapper — content card that appears on hover. */
 "use client"
 
 import { HoverCard as HoverCardPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
+/** Root hover-card state container (Radix HoverCard.Root). */
 const HoverCard = HoverCardPrimitive.Root
 
+/** Element that triggers the hover card on mouse enter. */
 const HoverCardTrigger = HoverCardPrimitive.Trigger
 
+/** Floating card panel with entry/exit animations. */
 function HoverCardContent({
   className,
   align = "center",
@@ -30,6 +34,7 @@ function HoverCardContent({
   )
 }
 
+/** Arrow pointing from the card to the trigger. */
 const HoverCardArrow = HoverCardPrimitive.Arrow
 
 export { HoverCard, HoverCardTrigger, HoverCardContent, HoverCardArrow }

@@ -1,3 +1,4 @@
+/** SQL query result table -- renders column headers and row data from query output. */
 "use client"
 
 import { AlertTriangle, Clock, Loader2, Rows3 } from "lucide-react"
@@ -11,6 +12,7 @@ export interface QueryResultsProps {
   streaming?: boolean
 }
 
+/** Tabular display of SQL query output with column types, row counts, execution time, and truncation warnings. */
 export function QueryResults({
   columns,
   rows,

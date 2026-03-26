@@ -1,3 +1,4 @@
+/** Plan DAG operator node -- displays operator name, estimated cost, and state size. */
 "use client"
 
 import {
@@ -140,6 +141,7 @@ export type PlanOperatorNodeData = {
   onSelect?: (nodeId: string) => void
 }
 
+/** ReactFlow custom node rendering operator category, parallelism, state forecast, and anti-pattern badges. */
 export function PlanOperatorNode({
   data,
 }: NodeProps & { data: PlanOperatorNodeData }) {

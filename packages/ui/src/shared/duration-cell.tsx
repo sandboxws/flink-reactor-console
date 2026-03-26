@@ -1,3 +1,4 @@
+/** Duration display cell with human-readable formatting (e.g. "2h 15m"). */
 "use client"
 
 import { useEffect, useState } from "react"
@@ -12,6 +13,7 @@ function formatDuration(ms: number): string {
   return `${hr}h ${min % 60}m`
 }
 
+/** Displays elapsed duration in a monospace cell, auto-ticking every second while the job is running. */
 export function DurationCell({
   startTime,
   endTime,

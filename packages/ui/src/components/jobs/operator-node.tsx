@@ -1,3 +1,4 @@
+/** DAG operator node -- renders a single operator in the job execution graph with metrics overlay. */
 "use client"
 
 import {
@@ -191,6 +192,7 @@ type OperatorNodeData = {
   onStopTap?: (vertexId: string) => void
 }
 
+/** ReactFlow custom node for a single DAG operator -- shows status, parallelism, records/bytes in/out, busy time, backpressure, and task bar. Hover card reveals full metric breakdown and optional tap controls. */
 export function OperatorNode({ data }: NodeProps & { data: OperatorNodeData }) {
   const { vertex } = data
   const { metrics } = vertex

@@ -1,3 +1,4 @@
+/** TAP source configuration form -- inputs for selecting target job, operator, and sample size. */
 "use client"
 
 import {
@@ -29,6 +30,7 @@ const OFFSET_MODES = [
   { value: "timestamp" as const, label: "Timestamp" },
 ]
 
+/** Collapsible form for offset mode, timestamp range, buffer size, and consumer group ID. */
 export function TapSourceConfig({
   config,
   consumerGroupId,

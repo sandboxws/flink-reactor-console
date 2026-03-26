@@ -1,9 +1,11 @@
+/** Radix Switch wrapper -- toggle switch for boolean settings. */
 "use client"
 
 import { Switch as SwitchPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
+/** Toggle switch with sliding thumb and checked/unchecked states. */
 function Switch({
   className,
   ...props

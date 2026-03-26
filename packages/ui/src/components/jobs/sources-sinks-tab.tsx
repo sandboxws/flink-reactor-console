@@ -1,9 +1,11 @@
+/** Sources and sinks overview tab -- cards for each source/sink connector with throughput and lag. */
 "use client"
 
 import { ArrowDown, ArrowUp, Unplug } from "lucide-react"
 import type { JobConnector } from "../../types"
 import { SourceSinkCard } from "./source-sink-card"
 
+/** Grid of SourceSinkCard components split into sources and sinks sections -- each card shows connector type, resource, and throughput metrics for detected Flink connectors. */
 export function SourcesSinksTab({
   sourcesAndSinks,
 }: {

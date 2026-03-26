@@ -1,8 +1,10 @@
+/** Application shell — top-level layout with sidebar navigation and scrollable content area. */
 "use client"
 
 import { useEffect } from "react"
 import { cn } from "../lib/cn"
 
+/** Props for the root Shell layout container. */
 export interface ShellProps {
   children: React.ReactNode
   sidebar?: React.ReactNode
@@ -13,12 +15,7 @@ export interface ShellProps {
   className?: string
 }
 
-/**
- * Shell — root layout container with optional sidebar, header, and command palette.
- *
- * For the FlinkReactor dashboard, this wraps the entire app with a flex layout
- * that supports collapsible sidebar and fixed header.
- */
+/** Shell — root layout container with optional sidebar, header, and command palette. */
 export function Shell({
   children,
   sidebar,

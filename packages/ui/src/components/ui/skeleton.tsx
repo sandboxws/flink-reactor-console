@@ -1,3 +1,4 @@
+/** Loading skeleton placeholder with preset shape variants. */
 "use client"
 
 import { cn } from "../../lib/cn"
@@ -16,6 +17,7 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: SkeletonVariant
 }
 
+/** Pulsing placeholder with text/heading/avatar/card shape presets. */
 function Skeleton({
   className,
   variant = "default",

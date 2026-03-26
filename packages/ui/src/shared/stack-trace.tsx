@@ -1,3 +1,4 @@
+/** Exception stack trace viewer -- renders Java/Flink exception chains with expandable frames. */
 "use client"
 
 import {
@@ -167,6 +168,7 @@ function CausedByChain({ section }: { section: CausedBySection }) {
 // Main component
 // ---------------------------------------------------------------------------
 
+/** Renders a parsed Java/Flink exception with syntax-highlighted frames and collapsible "Caused by" chains. */
 export function StackTrace({ raw }: { raw: string }) {
   const parsed = useMemo(() => parseStackTrace(raw), [raw])
   const [copied, setCopied] = useState(false)

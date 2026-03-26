@@ -1,3 +1,4 @@
+/** Checkpoint duration timeline -- bar chart of checkpoint completion times over time. */
 "use client"
 
 import {
@@ -46,6 +47,7 @@ export interface CheckpointTimelineChartProps {
   timeline: CheckpointTimelineEntry[]
 }
 
+/** Stacked bar chart of checkpoint successes and failures over time. */
 export function CheckpointTimelineChart({
   timeline,
 }: CheckpointTimelineChartProps) {

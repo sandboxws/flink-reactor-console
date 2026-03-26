@@ -1,9 +1,11 @@
+/** Radix Progress wrapper — horizontal bar indicating completion percentage. */
 "use client"
 
 import { Progress as ProgressPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
+/** Determinate progress bar with animated fill driven by the `value` prop (0-100). */
 function Progress({
   className,
   value,

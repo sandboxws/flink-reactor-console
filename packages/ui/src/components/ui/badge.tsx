@@ -1,3 +1,4 @@
+/** Inline badge component with variant-driven colors for labeling and status indicators. */
 "use client"
 
 import { cn } from "../../lib/cn"
@@ -15,6 +16,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   outline: "border-dash-border text-zinc-300",
 }
 
+/** Pill-shaped label with default, secondary, destructive, and outline variants. */
 function Badge({ className, variant = "default", ...props }: BadgeProps) {
   return (
     <div

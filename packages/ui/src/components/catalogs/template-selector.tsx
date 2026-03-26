@@ -1,3 +1,4 @@
+/** SQL template picker — dropdown of predefined SQL query templates for the TAP editor. */
 "use client"
 
 import { Button } from "../ui/button"
@@ -39,6 +40,7 @@ function groupByCategory(
   return groups
 }
 
+/** Dialog-based template browser with category grouping, live SQL preview, and placeholder inputs. */
 export function TemplateSelector({ onSelect }: TemplateSelectorProps) {
   const [open, setOpen] = useState(false)
   const [catalog, setCatalog] = useState("")

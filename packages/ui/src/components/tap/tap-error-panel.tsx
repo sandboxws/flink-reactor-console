@@ -1,3 +1,4 @@
+/** TAP query error display -- shows SQL compilation or execution error details. */
 "use client"
 
 import { AlertTriangle, Check, Copy, RotateCcw } from "lucide-react"
@@ -78,6 +79,7 @@ function isFrameworkFrame(frame: string): boolean {
   return FRAMEWORK_PREFIXES.some((prefix) => match[1].startsWith(prefix))
 }
 
+/** Collapsible error panel parsing Java exception chains with copy and retry actions. */
 export function TapErrorPanel({ error, onRetry }: TapErrorPanelProps) {
   const [copied, setCopied] = useState(false)
   const [expanded, setExpanded] = useState(false)

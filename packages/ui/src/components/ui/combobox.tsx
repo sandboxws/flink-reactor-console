@@ -1,3 +1,4 @@
+/** Searchable combobox built on cmdk — supports flat options and grouped options. */
 "use client"
 
 import { Command as CommandPrimitive } from "cmdk"
@@ -8,17 +9,20 @@ import { cn } from "../../lib/cn"
 
 /* ── Types ─────────────────────────────────────────────────────────────────── */
 
+/** Single selectable option within a combobox. */
 interface ComboboxOption {
   value: string
   label: string
   disabled?: boolean
 }
 
+/** Labeled group of options displayed under a shared heading. */
 interface ComboboxGroup {
   label: string
   options: ComboboxOption[]
 }
 
+/** Props for the Combobox — `emptyMessage` is shown when no options match the search query. */
 interface ComboboxProps {
   options: (ComboboxOption | ComboboxGroup)[]
   value?: string
@@ -38,6 +42,7 @@ function isGroup(item: ComboboxOption | ComboboxGroup): item is ComboboxGroup {
 
 /* ── Component ─────────────────────────────────────────────────────────────── */
 
+/** Searchable dropdown with keyboard navigation, option groups, and controlled value. */
 function Combobox({
   options,
   value,

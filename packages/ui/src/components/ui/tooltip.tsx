@@ -1,13 +1,20 @@
+/** Radix Tooltip wrapper -- informational popup on hover or focus. */
 "use client"
 
 import { Tooltip as TooltipPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
+/** Context provider that configures tooltip delay and behavior. */
 const TooltipProvider = TooltipPrimitive.Provider
+
+/** Root tooltip state container. */
 const Tooltip = TooltipPrimitive.Root
+
+/** Element that activates the tooltip on hover/focus. */
 const TooltipTrigger = TooltipPrimitive.Trigger
 
+/** Floating label with entry/exit animations, portaled to document body. */
 function TooltipContent({
   className,
   sideOffset = 4,

@@ -1,3 +1,4 @@
+/** Groups adjacent buttons into a visually connected strip. */
 "use client"
 
 import { cn } from "../../lib/cn"
@@ -8,6 +9,7 @@ interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   orientation?: ButtonGroupOrientation
 }
 
+/** Container that merges border-radii of child buttons. Supports horizontal and vertical orientation. */
 function ButtonGroup({
   className,
   orientation = "horizontal",

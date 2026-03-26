@@ -1,20 +1,24 @@
+/** Navigation sidebar with collapsible link groups and active-route highlighting. */
 "use client"
 
 import type { LucideIcon } from "lucide-react"
 import { ChevronLeft, ChevronRight, PanelLeft } from "lucide-react"
 import { cn } from "../lib/cn"
 
+/** Single navigation link with an icon and target route. */
 export interface NavItem {
   href: string
   label: string
   icon: LucideIcon
 }
 
+/** Labelled group of navigation items rendered as a collapsible section. */
 export interface NavGroup {
   label: string
   items: NavItem[]
 }
 
+/** Props for the collapsible Sidebar navigation component. */
 export interface SidebarProps {
   /** Navigation groups to display */
   navGroups: NavGroup[]
@@ -39,11 +43,7 @@ export interface SidebarProps {
   className?: string
 }
 
-/**
- * Sidebar — collapsible navigation sidebar with grouped nav items.
- *
- * Pass a custom LinkComponent for your router (Next.js Link, React Router Link, etc.)
- */
+/** Sidebar — collapsible navigation sidebar with grouped nav items. */
 export function Sidebar({
   navGroups,
   collapsed = false,

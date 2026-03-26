@@ -1,3 +1,4 @@
+/** Time range picker -- dropdown selector for relative time windows (last 5m, 1h, etc.). */
 "use client"
 
 import { cn } from "../lib/cn"

@@ -1,3 +1,4 @@
+/** DAG edge with partitioning strategy label -- connects operators showing HASH/FORWARD/REBALANCE. */
 "use client"
 
 import type { EdgeProps } from "@xyflow/react"
@@ -5,6 +6,7 @@ import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from "@xyflow/react"
 
 type StrategyEdgeData = { shipStrategy: string }
 
+/** ReactFlow custom edge that renders a smooth-step path between operator nodes with an inline label showing the Flink ship strategy (HASH, FORWARD, REBALANCE, etc.). */
 export function StrategyEdge({
   id,
   sourceX,

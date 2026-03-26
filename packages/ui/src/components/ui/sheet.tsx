@@ -1,3 +1,4 @@
+/** Radix Dialog-based sheet/drawer — slides in from any screen edge. */
 "use client"
 
 import { Dialog as DialogPrimitive } from "radix-ui"
@@ -5,11 +6,16 @@ import { X } from "lucide-react"
 
 import { cn } from "../../lib/cn"
 
+/** Root sheet state container (built on Radix Dialog). */
 const Sheet = DialogPrimitive.Root
+/** Element that opens the sheet. */
 const SheetTrigger = DialogPrimitive.Trigger
+/** Element that closes the sheet. */
 const SheetClose = DialogPrimitive.Close
+/** Portals sheet content to document body. */
 const SheetPortal = DialogPrimitive.Portal
 
+/** Semi-transparent backdrop behind the sheet. */
 function SheetOverlay({
   className,
   ...props
@@ -41,6 +47,7 @@ interface SheetContentProps
   side?: SheetSide
 }
 
+/** Sliding panel with configurable side (top/right/bottom/left) and close button. */
 function SheetContent({
   side = "right",
   className,
@@ -68,6 +75,7 @@ function SheetContent({
   )
 }
 
+/** Semantic header layout region for sheet content. */
 function SheetHeader({
   className,
   ...props
@@ -80,6 +88,7 @@ function SheetHeader({
   )
 }
 
+/** Semantic footer layout region for sheet content. */
 function SheetFooter({
   className,
   ...props
@@ -92,6 +101,7 @@ function SheetFooter({
   )
 }
 
+/** Accessible title for the sheet panel. */
 function SheetTitle({
   className,
   ...props
@@ -104,6 +114,7 @@ function SheetTitle({
   )
 }
 
+/** Accessible description for the sheet panel. */
 function SheetDescription({
   className,
   ...props

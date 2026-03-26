@@ -1,3 +1,4 @@
+/** Job list table -- displays all jobs with status badges, start time, duration, and task counts. */
 "use client"
 
 import {
@@ -239,6 +240,7 @@ const completedColumns: ColumnDef[] = [
 // JobsTable
 // ---------------------------------------------------------------------------
 
+/** Sortable table of Flink jobs with status badges, durations, and task-count bars. Supports running and completed modes with column-specific sorting. */
 export function JobsTable({
   mode,
   jobs,

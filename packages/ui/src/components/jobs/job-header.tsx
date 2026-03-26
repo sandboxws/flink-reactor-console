@@ -1,3 +1,4 @@
+/** Job detail page header -- shows job name, status badge, timing info, and action buttons. */
 "use client"
 
 import { Badge } from "../../components/ui/badge"
@@ -206,6 +207,7 @@ function StatCard({
 // JobHeader
 // ---------------------------------------------------------------------------
 
+/** Full-width header for a single job detail page -- renders name, status badge, live/static duration, progress ring, parallelism/task stats, and action buttons (cancel, stop, savepoint). */
 export function JobHeader({
   job,
   featureFlags,

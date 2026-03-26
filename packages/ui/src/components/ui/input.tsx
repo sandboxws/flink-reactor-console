@@ -1,7 +1,9 @@
+/** Styled text input with border focus ring. */
 "use client"
 
 import { cn } from "../../lib/cn"
 
+/** Single-line text input with dashboard theme styling and focus-visible ring. */
 function Input({
   className,
   type,

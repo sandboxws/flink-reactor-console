@@ -1,3 +1,4 @@
+/** Historical job runs table -- lists previous executions with status, duration, and timestamps. */
 "use client"
 
 import {
@@ -24,7 +25,7 @@ import { JobStatusBadge } from "../../shared/job-status-badge"
 // Types
 // ---------------------------------------------------------------------------
 
-/** Entry shape for job history rows */
+/** Row shape for the job history table -- one entry per historical job execution. */
 export type JobHistoryEntry = {
   jid: string
   cluster: string
@@ -155,6 +156,7 @@ function PaginationControls({
 // JobHistoryTable
 // ---------------------------------------------------------------------------
 
+/** Paginated, sortable table of historical job runs with status badges and formatted timestamps. Fetches pages via callback props. */
 export function JobHistoryTable({
   entries,
   totalCount,

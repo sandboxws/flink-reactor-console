@@ -1,3 +1,4 @@
+/** Card container with composable header, content, and footer slots. */
 "use client"
 
 import { cn } from "../../lib/cn"
@@ -8,6 +9,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: CardSize
 }
 
+/** Bordered panel with compact/default/lg size presets. */
 function Card({ className, size = "default", ...props }: CardProps) {
   return (
     <div
@@ -22,6 +24,7 @@ function Card({ className, size = "default", ...props }: CardProps) {
   )
 }
 
+/** Top section with title and description spacing. */
 function CardHeader({
   className,
   ...props
@@ -38,6 +41,7 @@ function CardHeader({
   )
 }
 
+/** Bold card heading. */
 function CardTitle({
   className,
   ...props
@@ -54,6 +58,7 @@ function CardTitle({
   )
 }
 
+/** Muted subtitle text below the card title. */
 function CardDescription({
   className,
   ...props
@@ -61,6 +66,7 @@ function CardDescription({
   return <div data-slot="description" className={cn("text-xs text-zinc-500", className)} {...props} />
 }
 
+/** Main body area of the card. */
 function CardContent({
   className,
   ...props
@@ -77,6 +83,7 @@ function CardContent({
   )
 }
 
+/** Bottom action bar. */
 function CardFooter({
   className,
   ...props

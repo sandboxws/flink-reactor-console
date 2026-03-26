@@ -1,3 +1,4 @@
+/** Job configuration display tab -- key-value table of Flink job configuration properties. */
 "use client"
 
 import {
@@ -103,6 +104,7 @@ function ConfigGroup({
 // ConfigurationTab
 // ---------------------------------------------------------------------------
 
+/** Searchable, grouped display of Flink job configuration properties -- groups entries by dotted key prefix with collapsible sections and copy-on-click values. */
 export function ConfigurationTab({
   configuration,
 }: {

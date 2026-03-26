@@ -1,3 +1,4 @@
+/** Job count by status chart -- donut or bar chart of running/finished/failed/canceled totals. */
 "use client"
 
 import { AlertTriangle, Ban, CheckCircle2, Play } from "lucide-react"
@@ -33,6 +34,7 @@ const statuses = [
   },
 ] as const
 
+/** Four-column grid of running/finished/cancelled/failed job counts with status-colored icons. */
 export function JobStatusSummary({
   running,
   finished,

@@ -1,9 +1,11 @@
+/** Input group — combines an input with prefix/suffix addon slots. */
 "use client"
 
 import { cn } from "../../lib/cn"
 
 interface InputGroupProps extends React.HTMLAttributes<HTMLDivElement> {}
 
+/** Flex container that merges borders between input and addons. */
 function InputGroup({ className, ...props }: InputGroupProps) {
   return (
     <div
@@ -16,6 +18,7 @@ function InputGroup({ className, ...props }: InputGroupProps) {
   )
 }
 
+/** Non-interactive text or icon slot beside the input. */
 function InputGroupAddon({
   className,
   ...props

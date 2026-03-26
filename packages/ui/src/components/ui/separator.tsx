@@ -1,9 +1,11 @@
+/** Radix Separator wrapper — horizontal or vertical visual divider. */
 "use client"
 
 import { Separator as SeparatorPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/cn"
 
+/** Thin line divider with horizontal/vertical orientation support. */
 function Separator({
   className,
   orientation = "horizontal",

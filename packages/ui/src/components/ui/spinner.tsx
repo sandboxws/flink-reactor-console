@@ -1,3 +1,4 @@
+/** Animated loading spinner with size presets and accessible label. */
 "use client"
 
 import { Loader2 } from "lucide-react"
@@ -17,6 +18,7 @@ const sizeStyles: Record<SpinnerSize, string> = {
   lg: "size-6",
 }
 
+/** Rotating Loader2 icon with sm/default/lg sizes and an aria-label for screen readers. */
 function Spinner({
   className,
   size = "default",

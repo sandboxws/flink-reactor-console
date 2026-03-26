@@ -1,3 +1,4 @@
+/** Error detail panel — displays exception message, root cause, and stack trace for a job error. */
 "use client"
 
 import { format, formatDistanceToNow } from "date-fns"
@@ -34,6 +35,7 @@ export interface ErrorDetailProps {
   onViewRelatedLogs?: (group: ErrorGroup) => void
 }
 
+/** Renders exception class, message, occurrence count, timestamps, affected sources, and stack trace. */
 export function ErrorDetail({ group, onViewRelatedLogs }: ErrorDetailProps) {
   return (
     <div className="flex flex-col gap-4 overflow-auto p-4">

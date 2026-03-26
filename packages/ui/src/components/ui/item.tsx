@@ -1,3 +1,4 @@
+/** Generic list item component with media, content, and action slots. */
 "use client"
 
 import { cn } from "../../lib/cn"
@@ -14,6 +15,7 @@ const variantStyles: Record<ItemVariant, string> = {
   muted: "bg-white/[0.03] rounded-lg",
 }
 
+/** Horizontal layout with default/outline/muted variants. */
 function Item({ className, variant = "default", ...props }: ItemProps) {
   return (
     <div
@@ -27,6 +29,7 @@ function Item({ className, variant = "default", ...props }: ItemProps) {
   )
 }
 
+/** Fixed-width slot for icons or avatars. */
 function ItemMedia({
   className,
   ...props
@@ -39,6 +42,7 @@ function ItemMedia({
   )
 }
 
+/** Flexible text area with title and description. */
 function ItemContent({
   className,
   ...props
@@ -48,6 +52,7 @@ function ItemContent({
   )
 }
 
+/** Bold primary text within an item. */
 function ItemTitle({
   className,
   ...props
@@ -60,6 +65,7 @@ function ItemTitle({
   )
 }
 
+/** Muted secondary text within an item. */
 function ItemDescription({
   className,
   ...props
@@ -72,6 +78,7 @@ function ItemDescription({
   )
 }
 
+/** Right-aligned action buttons. */
 function ItemActions({
   className,
   ...props
