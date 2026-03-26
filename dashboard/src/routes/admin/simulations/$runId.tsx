@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { SimulationRunTimeline } from "@/components/admin/simulation-run-timeline"
 import { useSimulationStore } from "@/stores/simulation-store"
 
+/** Route: /admin/simulations/$runId — Simulation run detail with timeline, live polling for active runs, and back-navigation. */
 export const Route = createFileRoute("/admin/simulations/$runId")({
   component: SimulationRunPage,
 })

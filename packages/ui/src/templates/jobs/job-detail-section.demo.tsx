@@ -8,6 +8,7 @@
 import { JobDetailSection } from "./job-detail-section"
 import { createFlinkJob, createFeatureFlags, createJobException } from "../../fixtures"
 
+/** Standalone demo of the job detail section with a fully-populated running job fixture. */
 export function JobDetailSectionDemo() {
   const job = createFlinkJob({
     name: "ecommerce-order-enrichment",

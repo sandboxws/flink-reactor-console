@@ -3,6 +3,7 @@ import { useEffect } from "react"
 import { MaterializedTablesTable } from "@/components/materialized-tables/materialized-tables-table"
 import { useMaterializedTableStore } from "@/stores/materialized-table-store"
 
+/** Route: /materialized-tables — Materialized table list with status, count, and refresh info. */
 export const Route = createFileRoute("/materialized-tables/")({
   component: MaterializedTables,
 })

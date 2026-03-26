@@ -114,6 +114,7 @@ const TOC = [
   { id: "log-histogram", label: "LogHistogram" },
 ]
 
+/** Showcase route: /domain/logs -- Showcases log explorer components (LogLine, LogList, LogDetailPanel, LogHistogram) with fixture data. */
 function LogsDomainPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selectedEntry = entries.find((e) => e.id === selectedId) ?? errorEntry

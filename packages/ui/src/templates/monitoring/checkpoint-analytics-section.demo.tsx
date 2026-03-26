@@ -29,6 +29,7 @@ const timeline = Array.from({ length: 24 }, (_, i) =>
 
 const aggregates = createCheckpointAggregates()
 
+/** Standalone demo of the checkpoint analytics section with fixture summaries, timeline, and aggregates. */
 export function CheckpointAnalyticsSectionDemo() {
   return (
     <div className="rounded-lg border border-dash-border bg-dash-surface">

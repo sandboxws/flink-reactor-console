@@ -1,6 +1,7 @@
 import { PlanAnalyzerSectionDemo } from "@flink-reactor/ui/src/templates/plan-analyzer/plan-analyzer-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/plan-analyzer -- Demonstrates the plan analyzer template section with anti-pattern detection and state growth forecasts. */
 function PlanAnalyzerTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

@@ -15,6 +15,7 @@ import { OverviewSection } from "@flink-reactor/ui/src/templates/overview/overvi
 import { createFileRoute } from "@tanstack/react-router"
 import { AlertCircle } from "lucide-react"
 
+/** Showcase route: /scenarios/degraded -- Demonstrates components in a degraded cluster state with elevated backpressure and declining health. */
 function DegradedScenarioPage() {
   const scenario = degradedCluster()
   const running = scenario.jobs.filter((j) => j.status === "RUNNING")

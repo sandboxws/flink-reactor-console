@@ -8,6 +8,7 @@
 import { ExceptionsSection } from "./exceptions-section"
 import { createJobException } from "../../fixtures"
 
+/** Standalone demo of the exceptions section with fixture exception data. */
 export function ExceptionsSectionDemo() {
   const exceptions = [
     createJobException({

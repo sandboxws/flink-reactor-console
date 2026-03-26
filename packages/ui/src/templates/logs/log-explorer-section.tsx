@@ -29,6 +29,7 @@ const DEFAULT_FILTER: Record<LogLevel, boolean> = {
   ERROR: true,
 }
 
+/** Renders the log explorer section with level filter pills, histogram, and scrollable log list. */
 export function LogExplorerSection({
   logs,
   onFilterChange,

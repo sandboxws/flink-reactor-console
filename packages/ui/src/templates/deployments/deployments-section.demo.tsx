@@ -20,6 +20,7 @@ const deployments = [
   }),
 ]
 
+/** Standalone demo of the deployments section with fixture blue-green deployment data. */
 export function DeploymentsSectionDemo() {
   return (
     <div className="max-w-5xl rounded-lg border border-dash-border bg-dash-surface">

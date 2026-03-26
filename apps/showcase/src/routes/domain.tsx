@@ -14,6 +14,7 @@ const DOMAIN_PAGES = [
   { label: "Materialized Tables", path: "/domain/materialized-tables" },
 ]
 
+/** Showcase layout: /domain -- Layout wrapper for domain component showcase pages with sidebar navigation. */
 function DomainLayout() {
   return (
     <div className="flex">

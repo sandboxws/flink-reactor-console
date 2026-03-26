@@ -8,6 +8,7 @@ type MaterializedTableSearch = {
   catalog?: string
 }
 
+/** Route: /materialized-tables/$name — Materialized table detail with properties, defining query, and suspend/resume/refresh actions. */
 export const Route = createFileRoute("/materialized-tables/$name")({
   validateSearch: (
     search: Record<string, unknown>,

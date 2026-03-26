@@ -25,6 +25,7 @@ const tables = [
   }),
 ]
 
+/** Standalone demo of the materialized tables section with fixture table data. */
 export function MatTablesSectionDemo() {
   return (
     <div className="max-w-4xl rounded-lg border border-dash-border bg-dash-surface">

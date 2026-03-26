@@ -18,6 +18,7 @@ export interface ErrorExplorerSectionProps {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the error explorer section with grouped error details and log navigation. */
 export function ErrorExplorerSection({
   errors,
   onViewLogs,

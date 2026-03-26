@@ -1,6 +1,7 @@
 import { OverviewSectionDemo } from "@flink-reactor/ui/src/templates/overview/overview-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/overview -- Demonstrates the full cluster overview template section with fixture data. */
 function OverviewTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

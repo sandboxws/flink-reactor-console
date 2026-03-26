@@ -3,6 +3,7 @@ import { useEffect } from "react"
 import { JobsTable } from "@/components/jobs/jobs-table"
 import { useClusterStore } from "@/stores/cluster-store"
 
+/** Route: /jobs/running — Lists currently active Flink jobs with status, task counts, and cancel action. */
 export const Route = createFileRoute("/jobs/running")({
   component: RunningJobs,
 })

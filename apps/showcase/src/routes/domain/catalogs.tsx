@@ -52,6 +52,7 @@ GROUP BY
 ORDER BY day DESC
 LIMIT 100;`
 
+/** Showcase route: /domain/catalogs -- Showcases catalog browser components (ColumnsTable, TemplateSelector, SqlHighlight) with fixture data. */
 function CatalogsDomainPage() {
   return (
     <ShowcasePage

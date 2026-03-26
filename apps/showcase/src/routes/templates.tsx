@@ -16,6 +16,7 @@ const TEMPLATE_PAGES = [
   { label: "Materialized Tables", path: "/templates/materialized-tables" },
 ]
 
+/** Showcase layout: /templates -- Layout wrapper for template demo pages with sidebar navigation. */
 function TemplatesLayout() {
   return (
     <div className="flex">

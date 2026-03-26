@@ -8,6 +8,7 @@
 import { CheckpointsSection } from "./checkpoints-section"
 import { createFlinkJob, createCheckpoint, createCheckpointCounts } from "../../fixtures"
 
+/** Standalone demo of the checkpoints section with fixture checkpoint data. */
 export function CheckpointsSectionDemo() {
   const job = createFlinkJob({
     checkpoints: [

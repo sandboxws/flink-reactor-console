@@ -8,6 +8,7 @@
 import { JobsTableSection } from "./jobs-table-section"
 import { createFlinkJob } from "../../fixtures"
 
+/** Standalone demo of the jobs table section with a mix of running and completed fixture jobs. */
 export function JobsTableSectionDemo() {
   const jobs = [
     createFlinkJob({ name: "ecommerce-order-enrichment", status: "RUNNING" }),

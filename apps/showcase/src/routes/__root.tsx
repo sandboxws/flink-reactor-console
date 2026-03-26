@@ -50,6 +50,7 @@ const NAV_GROUPS = [
   },
 ]
 
+/** Showcase route: __root -- Root layout with sidebar navigation between primitives, shared, domain, templates, and scenarios sections. */
 function RootLayout() {
   const location = useLocation()
   return (

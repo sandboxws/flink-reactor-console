@@ -4,6 +4,7 @@ import { HealthDashboard } from "@/components/insights/health-dashboard"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useInsightsStore } from "@/stores/insights-store"
 
+/** Route: /insights/health — Health dashboard with cluster and job health indicators via insights polling. */
 export const Route = createFileRoute("/insights/health")({
   component: ClusterHealth,
 })

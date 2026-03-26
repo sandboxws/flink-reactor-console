@@ -134,6 +134,7 @@ const sampleMetricMeta: MetricMeta = { type: "gauge", unit: "records/s" }
 // Page
 // ---------------------------------------------------------------------------
 
+/** Showcase route: /shared -- Shared components showcase with metric cards, badges, log viewers, charts, and data display widgets. */
 function SharedPage() {
   const [searchValue, setSearchValue] = useState("checkpoint")
   const [searchRegex, setSearchRegex] = useState(false)

@@ -1,6 +1,7 @@
 import { DeploymentsSectionDemo } from "@flink-reactor/ui/src/templates/deployments/deployments-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/deployments -- Demonstrates the blue-green deployment management template section. */
 function DeploymentsTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

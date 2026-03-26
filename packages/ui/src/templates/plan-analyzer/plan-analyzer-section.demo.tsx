@@ -67,6 +67,7 @@ const forecast: StateGrowthForecast[] = [
   },
 ]
 
+/** Standalone demo of the plan analyzer section with fixture anti-patterns and state forecasts. */
 export function PlanAnalyzerSectionDemo() {
   return (
     <div className="max-w-3xl rounded-lg border border-dash-border bg-dash-surface">

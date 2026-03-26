@@ -14,6 +14,7 @@ import { Database } from "lucide-react"
 import type { FlinkJob } from "../../types"
 import { CheckpointsTab } from "../../components/jobs/checkpoints-tab"
 
+/** Renders the checkpoints section with checkpoint history, counts, and configuration. */
 export function CheckpointsSection({ job }: { job: FlinkJob }) {
   const vertexNames: Record<string, string> = {}
   for (const v of job.plan?.vertices ?? []) {

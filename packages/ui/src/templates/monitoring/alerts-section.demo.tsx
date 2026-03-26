@@ -50,6 +50,7 @@ const alerts: ActiveAlert[] = [
   },
 ]
 
+/** Standalone demo of the alerts section with fixture alert data across severity levels. */
 export function AlertsSectionDemo() {
   return (
     <div className="max-w-4xl rounded-lg border border-dash-border bg-dash-surface">

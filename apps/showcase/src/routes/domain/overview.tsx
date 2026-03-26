@@ -74,6 +74,7 @@ const TOC = [
   { id: "job-status-summary", label: "JobStatusSummary" },
 ]
 
+/** Showcase route: /domain/overview -- Showcases cluster overview components (StatCard, ClusterInfo, SlotUtilization, JobStatusSummary) with fixture data. */
 function OverviewDomainPage() {
   return (
     <ShowcasePage

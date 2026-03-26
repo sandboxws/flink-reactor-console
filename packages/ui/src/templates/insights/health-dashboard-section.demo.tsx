@@ -27,6 +27,7 @@ const issues = [
   }),
 ]
 
+/** Standalone demo of the health dashboard section with fixture snapshot, history, and issues. */
 export function HealthDashboardSectionDemo() {
   return (
     <div className="rounded-lg border border-dash-border bg-dash-surface">

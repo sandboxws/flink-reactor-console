@@ -25,6 +25,7 @@ export interface MatTablesSectionProps {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the materialized tables section with table list, refresh status, and freshness. */
 export function MatTablesSection({ tables }: MatTablesSectionProps) {
   if (tables.length === 0) {
     return (

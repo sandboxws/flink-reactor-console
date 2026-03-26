@@ -125,6 +125,7 @@ Caused by: org.apache.flink.table.api.ValidationException: Table 'default_catalo
 \tat org.apache.flink.table.planner.catalog.CatalogSchemaTable.resolveTable(CatalogSchemaTable.java:98)
 \t... 15 more`
 
+/** Showcase route: /domain/tap -- Showcases TAP (live data tapping) components (TapDataTable, TapStatusBar, TapSourceConfig, TapErrorPanel) with fixture data. */
 function TapDomainPage() {
   const [config, setConfig] = useState<TapSourceConfigData>({
     offsetMode: "latest",

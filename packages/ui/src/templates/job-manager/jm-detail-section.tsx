@@ -27,6 +27,7 @@ function MemRow({ label, used, max }: { label: string; used: number; max: number
   )
 }
 
+/** Renders the job manager detail section with configuration, JVM memory metrics, and log output. */
 export function JmDetailSection({ info }: JmDetailSectionProps) {
   const [tab, setTab] = useState("config")
   const mem = info.jvm.memoryConfig

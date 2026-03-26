@@ -156,6 +156,7 @@ const TOC = [
   { id: "bottleneck-table", label: "BottleneckTable" },
 ]
 
+/** Showcase route: /domain/insights -- Showcases insight components (HealthTrendChart, SubScoreGrid, TopIssuesList, BottleneckDAG, BottleneckTable) with fixture data. */
 function InsightsDomainPage() {
   return (
     <ShowcasePage

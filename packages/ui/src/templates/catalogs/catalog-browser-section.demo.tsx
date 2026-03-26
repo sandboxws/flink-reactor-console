@@ -10,6 +10,7 @@ const columns: CatalogColumnInfo[] = schema.columns.map((c) => ({
   type: c.type,
 }))
 
+/** Standalone demo of the catalog browser section with fixture catalog schema data. */
 export function CatalogBrowserSectionDemo() {
   return (
     <div className="max-w-2xl rounded-lg border border-dash-border bg-dash-surface">

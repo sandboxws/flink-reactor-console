@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 
 /* ─── Section ────────────────────────────────────────────────────────────── */
 
+/** Renders a showcase section layout wrapper with title, description, and content area. */
 export function Section({
   id,
   title,
@@ -33,10 +34,7 @@ export function Section({
 
 export type TocItem = { id: string; label: string }
 
-/**
- * Two-column layout with a sticky secondary sidebar listing component
- * sections. Uses IntersectionObserver to highlight the active section.
- */
+/** Renders a two-column showcase page with a sticky ToC sidebar and IntersectionObserver-driven active section highlighting. */
 export function ShowcasePage({
   title,
   description,

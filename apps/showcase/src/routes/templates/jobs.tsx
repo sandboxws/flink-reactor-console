@@ -6,6 +6,7 @@ import { JobGraphSectionDemo } from "@flink-reactor/ui/src/templates/jobs/job-gr
 import { JobsTableSectionDemo } from "@flink-reactor/ui/src/templates/jobs/jobs-table-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/jobs -- Demonstrates job template sections (table, detail, graph, checkpoints, exceptions). */
 function JobsTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

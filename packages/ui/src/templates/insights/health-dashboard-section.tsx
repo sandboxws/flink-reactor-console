@@ -30,6 +30,7 @@ function statusLabel(score: number): { text: string; color: string } {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the health dashboard section with score gauge, trend chart, sub-scores, and active issues. */
 export function HealthDashboardSection({
   snapshot,
   history,

@@ -15,6 +15,7 @@ import { useState } from "react"
 import type { FlinkJob } from "../../types"
 import { JobsTable } from "../../components/jobs/jobs-table"
 
+/** Renders the jobs table section with running/completed mode toggle and sortable job list. */
 export function JobsTableSection({
   jobs,
   tappablePipelines,

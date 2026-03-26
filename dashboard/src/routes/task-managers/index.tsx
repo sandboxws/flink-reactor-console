@@ -3,6 +3,7 @@ import { useEffect } from "react"
 import { TaskManagerList } from "@/components/task-managers/task-manager-list"
 import { useClusterStore } from "@/stores/cluster-store"
 
+/** Route: /task-managers — Task manager list with resource utilization and polling. */
 export const Route = createFileRoute("/task-managers/")({
   component: TaskManagers,
 })

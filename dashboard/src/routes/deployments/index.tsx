@@ -3,6 +3,7 @@ import { useEffect } from "react"
 import { DeploymentsTable } from "@/components/deployments/deployments-table"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
 
+/** Route: /deployments — Blue-green deployment list with status and configuration overview. */
 export const Route = createFileRoute("/deployments/")({
   component: Deployments,
 })

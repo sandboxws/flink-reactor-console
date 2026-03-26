@@ -110,6 +110,7 @@ const TOC = [
   { id: "checkpoint-job-table", label: "CheckpointJobTable" },
 ]
 
+/** Showcase route: /domain/monitoring -- Showcases monitoring components (AlertCard, CheckpointTimelineChart, StateSizeChart, CheckpointJobTable) with fixture data. */
 function MonitoringDomainPage() {
   return (
     <ShowcasePage

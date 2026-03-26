@@ -13,6 +13,7 @@ import { AlertTriangle, CheckCircle } from "lucide-react"
 import type { JobException } from "../../types"
 import { ExceptionsTab } from "../../components/jobs/exceptions-tab"
 
+/** Renders the exceptions section with exception list, severity indicator, and stack traces. */
 export function ExceptionsSection({
   exceptions,
 }: {

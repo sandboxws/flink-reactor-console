@@ -71,6 +71,7 @@ function PlanVerticesList({ job }: { job: FlinkJob }) {
 // JobDetailSection
 // ---------------------------------------------------------------------------
 
+/** Renders the job detail section with status header and tabbed views for vertices, exceptions, data skew, timeline, checkpoints, sources/sinks, and configuration. */
 export function JobDetailSection({
   job,
   featureFlags,

@@ -35,6 +35,7 @@ const TOC = [
   { id: "error-timeline", label: "ErrorTimeline" },
 ]
 
+/** Showcase route: /domain/errors -- Showcases error explorer components (ErrorDetail, ErrorTimeline) with fixture data. */
 function ErrorsDomainPage() {
   return (
     <ShowcasePage

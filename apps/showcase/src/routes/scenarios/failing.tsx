@@ -17,6 +17,7 @@ import { OverviewSection } from "@flink-reactor/ui/src/templates/overview/overvi
 import { createFileRoute } from "@tanstack/react-router"
 import { AlertCircle } from "lucide-react"
 
+/** Showcase route: /scenarios/failing -- Demonstrates components in a failing cluster state with OOM errors and critical health score. */
 function FailingScenarioPage() {
   const scenario = failingCluster()
   const running = scenario.jobs.filter((j) => j.status === "RUNNING")

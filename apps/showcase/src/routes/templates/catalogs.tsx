@@ -1,6 +1,7 @@
 import { CatalogBrowserSectionDemo } from "@flink-reactor/ui/src/templates/catalogs/catalog-browser-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/catalogs -- Demonstrates the catalog browser template section with schema and column details. */
 function CatalogsTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

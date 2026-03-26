@@ -46,6 +46,7 @@ const COLOR_CLASSES: Record<StateBadgeColor, string> = {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the deployments section with blue-green deployment list and state badges. */
 export function DeploymentsSection({
   deployments,
   onSelect,

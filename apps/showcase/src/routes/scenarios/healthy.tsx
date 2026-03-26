@@ -3,6 +3,7 @@ import { healthyCluster } from "@flink-reactor/ui/fixtures"
 import { OverviewSection } from "@flink-reactor/ui/src/templates/overview/overview-section"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /scenarios/healthy -- Demonstrates components in a healthy cluster state with all systems nominal. */
 function HealthyScenarioPage() {
   const scenario = healthyCluster()
   const running = scenario.jobs.filter((j) => j.status === "RUNNING")

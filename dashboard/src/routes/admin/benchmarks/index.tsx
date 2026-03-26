@@ -11,6 +11,7 @@ import type {
 import { fetchSimulationRun } from "@/lib/graphql-api-client"
 import { useSimulationStore } from "@/stores/simulation-store"
 
+/** Route: /admin/benchmarks — Benchmark runner with run selection, side-by-side comparison, and metrics summary. */
 export const Route = createFileRoute("/admin/benchmarks/")({
   component: BenchmarksPage,
 })

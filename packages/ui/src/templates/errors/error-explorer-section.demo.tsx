@@ -23,6 +23,7 @@ const errors = [
   }),
 ]
 
+/** Standalone demo of the error explorer section with fixture error groups. */
 export function ErrorExplorerSectionDemo() {
   return (
     <div className="max-w-3xl rounded-lg border border-dash-border bg-dash-surface">

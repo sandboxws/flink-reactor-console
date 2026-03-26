@@ -36,6 +36,7 @@ function RootComponent() {
   )
 }
 
+/** Route: __root — Root layout with Shell wrapper, dynamic document title, and Outlet for child routes. */
 export const Route = createRootRoute({
   component: RootComponent,
 })

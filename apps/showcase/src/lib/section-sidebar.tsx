@@ -6,10 +6,7 @@ export interface SectionPage {
   path: string
 }
 
-/**
- * Secondary sidebar for navigating between sub-pages within a section.
- * Rendered by layout routes for Domain, Templates, and Scenarios.
- */
+/** Renders the sidebar navigation for showcase sections with active state highlighting. */
 export function SectionSidebar({
   label,
   pages,

@@ -1,6 +1,7 @@
 import { JmDetailSectionDemo } from "@flink-reactor/ui/src/templates/job-manager/jm-detail-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/job-manager -- Demonstrates the job manager detail template section with configuration and metrics. */
 function JobManagerTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

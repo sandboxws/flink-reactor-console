@@ -4,6 +4,7 @@ import { OverviewSection } from "@flink-reactor/ui/src/templates/overview/overvi
 import { createFileRoute } from "@tanstack/react-router"
 import { Briefcase } from "lucide-react"
 
+/** Showcase route: /scenarios/empty -- Demonstrates components in an empty cluster state with no deployed workloads. */
 function EmptyScenarioPage() {
   const scenario = emptyCluster()
 

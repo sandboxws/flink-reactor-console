@@ -5,6 +5,7 @@ import { StateBadge } from "@/components/deployments/state-badge"
 import { StateMachine } from "@/components/deployments/state-machine"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
 
+/** Route: /deployments/$name — Deployment detail with state machine visualization, blue/green cards, and configuration. */
 export const Route = createFileRoute("/deployments/$name")({
   component: DeploymentDetail,
 })

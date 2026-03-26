@@ -4,6 +4,7 @@ import { Skeleton, TimeRange, type TimeRangeValue, type TimeRangePreset } from "
 import { JobHistoryTable } from "@/components/jobs/job-history-table"
 import { useJobHistoryStore } from "@/stores/job-history-store"
 
+/** Route: /jobs/completed — Lists finished Flink jobs with time-range filtering, sorting, and pagination. */
 export const Route = createFileRoute("/jobs/completed")({
   component: CompletedJobs,
 })

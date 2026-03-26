@@ -1,6 +1,7 @@
 import { ErrorExplorerSectionDemo } from "@flink-reactor/ui/src/templates/errors/error-explorer-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/errors -- Demonstrates the error explorer template section with grouping and timeline. */
 function ErrorsTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

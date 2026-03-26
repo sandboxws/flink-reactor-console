@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { JobDetail } from "@/components/jobs/job-detail"
 import { useClusterStore } from "@/stores/cluster-store"
 
+/** Route: /jobs/$id — Job detail view with loading skeleton, error handling, and full job detail component. */
 export const Route = createFileRoute("/jobs/$id")({
   component: JobPage,
 })

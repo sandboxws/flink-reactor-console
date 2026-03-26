@@ -197,6 +197,7 @@ const TOC = [
   { id: "plan-state-forecast", label: "PlanStateForecast" },
 ]
 
+/** Showcase route: /domain/plan-analyzer -- Showcases plan analyzer components (PlanDAG, PlanAntiPatternCard, PlanStateForecast) with fixture data. */
 function PlanAnalyzerDomainPage() {
   return (
     <ShowcasePage

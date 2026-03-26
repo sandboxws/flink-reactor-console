@@ -3,6 +3,7 @@ import { BottleneckSectionDemo } from "@flink-reactor/ui/src/templates/insights/
 import { HealthDashboardSectionDemo } from "@flink-reactor/ui/src/templates/insights/health-dashboard-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/insights -- Demonstrates the insights template sections (health dashboard, bottleneck analysis). */
 function InsightsTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

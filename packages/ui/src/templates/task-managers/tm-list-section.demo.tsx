@@ -20,6 +20,7 @@ const taskManagers = [
   }),
 ]
 
+/** Standalone demo of the task manager list section with fixture task manager data. */
 export function TmListSectionDemo() {
   return (
     <div className="max-w-5xl rounded-lg border border-dash-border bg-dash-surface">

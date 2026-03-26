@@ -23,6 +23,7 @@ export interface PlanAnalyzerSectionProps {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the plan analyzer section with anti-pattern cards and state growth forecasts. */
 export function PlanAnalyzerSection({
   antiPatterns,
   forecast,

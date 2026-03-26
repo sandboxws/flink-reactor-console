@@ -5,6 +5,7 @@ import { EmptyState, Spinner } from "@flink-reactor/ui"
 import { TaskManagerDetail } from "@/components/task-managers/task-manager-detail"
 import { useClusterStore } from "@/stores/cluster-store"
 
+/** Route: /task-managers/$id — Task manager detail with slots, metrics, and logs. */
 export const Route = createFileRoute("/task-managers/$id")({
   component: TaskManagerPage,
 })

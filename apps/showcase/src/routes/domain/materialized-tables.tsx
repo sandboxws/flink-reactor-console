@@ -29,6 +29,7 @@ const statuses: MaterializedTableRefreshStatus[] = [
   "INITIALIZING",
 ]
 
+/** Showcase route: /domain/materialized-tables -- Showcases materialized table components (RefreshStatusBadge) with fixture data. */
 function MaterializedTablesDomainPage() {
   return (
     <ShowcasePage

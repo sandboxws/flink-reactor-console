@@ -615,6 +615,7 @@ function sortRows(rows: TaskManagerRow[], field: SortField, dir: SortDir) {
 }
 
 /* ─── Page Component ──────────────────────────────────────────────────────── */
+/** Showcase route: /primitives -- UI primitives showcase with buttons, inputs, badges, cards, tables, and Radix-based components. */
 function PrimitivesPage() {
   const [switchChecked, setSwitchChecked] = useState(false)
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)

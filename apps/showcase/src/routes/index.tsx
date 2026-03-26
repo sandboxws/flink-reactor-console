@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 
+/** Showcase route: / -- Landing page with overview cards linking to each component library section. */
 function HomePage() {
   const sections = [
     {

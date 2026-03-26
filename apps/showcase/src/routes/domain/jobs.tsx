@@ -114,6 +114,7 @@ const TOC = [
   { id: "detail-tabs", label: "Detail Tabs" },
 ]
 
+/** Showcase route: /domain/jobs -- Showcases job-related components (tables, graph nodes, detail tabs) with fixture data. */
 function JobsDomainPage() {
   return (
     <ShowcasePage

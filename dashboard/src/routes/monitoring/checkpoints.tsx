@@ -4,6 +4,7 @@ import { CheckpointAnalytics } from "@/components/monitoring/checkpoint-analytic
 import { useCheckpointAnalyticsStore } from "@/stores/checkpoint-analytics-store"
 import { useClusterStore } from "@/stores/cluster-store"
 
+/** Route: /monitoring/checkpoints — Checkpoint analytics with duration, size, and alignment metrics. */
 export const Route = createFileRoute("/monitoring/checkpoints")({
   component: Checkpoints,
 })

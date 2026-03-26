@@ -4,6 +4,7 @@ import { BottleneckAnalyzerPage } from "@/components/insights/bottleneck-analyze
 import { useClusterStore } from "@/stores/cluster-store"
 import { useInsightsStore } from "@/stores/insights-store"
 
+/** Route: /insights/bottlenecks — Bottleneck analyzer for identifying performance constraints across jobs. */
 export const Route = createFileRoute("/insights/bottlenecks")({
   component: Bottlenecks,
 })

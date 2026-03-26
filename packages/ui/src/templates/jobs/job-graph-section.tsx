@@ -58,6 +58,7 @@ const statusDotColor: Record<string, string> = {
 // JobGraphSection
 // ---------------------------------------------------------------------------
 
+/** Renders the job graph section with plan vertices and data edges as a structured list. */
 export function JobGraphSection({ job }: { job: FlinkJob }) {
   const plan = job.plan
   if (!plan || plan.vertices.length === 0) {

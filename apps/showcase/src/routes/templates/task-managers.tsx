@@ -1,6 +1,7 @@
 import { TmListSectionDemo } from "@flink-reactor/ui/src/templates/task-managers/tm-list-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/task-managers -- Demonstrates the task manager list template section with metrics overview. */
 function TaskManagersTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

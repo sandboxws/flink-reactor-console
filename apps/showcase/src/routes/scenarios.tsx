@@ -8,6 +8,7 @@ const SCENARIO_PAGES = [
   { label: "Empty Cluster", path: "/scenarios/empty" },
 ]
 
+/** Showcase layout: /scenarios -- Layout wrapper for state scenario demo pages with sidebar navigation. */
 function ScenariosLayout() {
   return (
     <div className="flex">

@@ -4,6 +4,7 @@ import { AlertsDashboard } from "@/components/monitoring/alerts-dashboard"
 import { useAlertsStore } from "@/stores/alerts-store"
 import { useClusterStore } from "@/stores/cluster-store"
 
+/** Route: /monitoring/alerts — Alerts dashboard with rule management and cluster polling. */
 export const Route = createFileRoute("/monitoring/alerts")({
   component: Alerts,
 })

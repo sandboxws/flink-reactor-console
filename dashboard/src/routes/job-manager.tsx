@@ -5,6 +5,7 @@ import { JobManagerPage } from "@/components/job-manager/job-manager-page"
 import { EmptyState } from "@flink-reactor/ui"
 import { useClusterStore } from "@/stores/cluster-store"
 
+/** Route: /job-manager — Job manager detail page with configuration, metrics, and polling. */
 export const Route = createFileRoute("/job-manager")({
   component: JobManager,
 })

@@ -13,6 +13,7 @@ import type {
 } from "@/lib/graphql-api-client"
 import { useSimulationStore } from "@/stores/simulation-store"
 
+/** Route: /admin/simulations — Simulation preset browser with grid/list views, run history, and active simulation panel. */
 export const Route = createFileRoute("/admin/simulations/")({
   component: SimulationsPage,
 })

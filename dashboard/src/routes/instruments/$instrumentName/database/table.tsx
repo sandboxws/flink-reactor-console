@@ -6,6 +6,7 @@ type TableSearch = {
   table: string
 }
 
+/** Route: /instruments/$instrumentName/database/table — Table detail with schema and data preview via search params. */
 export const Route = createFileRoute(
   "/instruments/$instrumentName/database/table",
 )({

@@ -3,6 +3,7 @@ import { AlertsSectionDemo } from "@flink-reactor/ui/src/templates/monitoring/al
 import { CheckpointAnalyticsSectionDemo } from "@flink-reactor/ui/src/templates/monitoring/checkpoint-analytics-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/monitoring -- Demonstrates the monitoring template sections (alerts, checkpoint analytics). */
 function MonitoringTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

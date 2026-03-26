@@ -18,6 +18,7 @@ export interface AlertsSectionProps {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the alerts section with active alerts, acknowledge/resolve actions, and severity grouping. */
 export function AlertsSection({ alerts: initialAlerts }: AlertsSectionProps) {
   const [alerts, setAlerts] = useState(initialAlerts)
 

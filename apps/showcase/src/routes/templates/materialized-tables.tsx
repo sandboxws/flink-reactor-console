@@ -1,6 +1,7 @@
 import { MatTablesSectionDemo } from "@flink-reactor/ui/src/templates/materialized-tables/mat-tables-section.demo"
 import { createFileRoute } from "@tanstack/react-router"
 
+/** Showcase route: /templates/materialized-tables -- Demonstrates the materialized tables template section with refresh status management. */
 function MaterializedTablesTemplatePage() {
   return (
     <div className="flex flex-col gap-8 p-6">

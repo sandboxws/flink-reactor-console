@@ -39,6 +39,7 @@ function formatDuration(ms: number): string {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the checkpoint analytics section with aggregate metrics, timeline chart, and per-job table. */
 export function CheckpointAnalyticsSection({
   summaries,
   timeline,

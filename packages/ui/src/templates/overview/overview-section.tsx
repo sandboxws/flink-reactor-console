@@ -106,6 +106,7 @@ function MiniJobList({
 // OverviewSection
 // ---------------------------------------------------------------------------
 
+/** Renders the cluster overview section with stat cards, slot utilization, job status summary, and mini job lists. */
 export function OverviewSection({
   overview,
   runningJobs,

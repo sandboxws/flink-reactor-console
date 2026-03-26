@@ -30,6 +30,7 @@ const REC_COLORS: Record<string, string> = {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the bottleneck analysis section with scored operator metrics and recommendations. */
 export function BottleneckSection({
   bottlenecks,
   recommendations,

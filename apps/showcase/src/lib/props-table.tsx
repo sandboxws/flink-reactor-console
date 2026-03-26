@@ -14,6 +14,7 @@ export type PropDef = {
   description: string
 }
 
+/** Renders a documentation table showing component prop names, types, defaults, and descriptions. */
 export function PropsTable({ props }: { props: PropDef[] }) {
   return (
     <Table>

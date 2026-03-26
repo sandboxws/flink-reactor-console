@@ -34,6 +34,7 @@ const recommendations = [
   }),
 ]
 
+/** Standalone demo of the bottleneck analysis section with fixture scores and recommendations. */
 export function BottleneckSectionDemo() {
   return (
     <div className="max-w-5xl rounded-lg border border-dash-border bg-dash-surface">

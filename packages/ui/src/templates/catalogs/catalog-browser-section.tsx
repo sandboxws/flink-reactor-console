@@ -17,6 +17,7 @@ export interface CatalogBrowserSectionProps {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the catalog browser section with column schema for a selected table. */
 export function CatalogBrowserSection({
   columns,
   tableName,

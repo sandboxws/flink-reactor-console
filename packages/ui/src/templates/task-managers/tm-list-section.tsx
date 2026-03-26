@@ -38,6 +38,7 @@ function cpuColor(usage: number): string {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Renders the task manager list section with slot allocation, memory bars, and CPU utilization. */
 export function TmListSection({
   taskManagers,
   onSelect,

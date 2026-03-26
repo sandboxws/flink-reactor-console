@@ -8,6 +8,7 @@
 import { OverviewSection } from "./overview-section"
 import { healthyCluster } from "../../fixtures"
 
+/** Standalone demo of the overview section with fixture data from the healthyCluster scenario. */
 export function OverviewSectionDemo() {
   const scenario = healthyCluster()
 
