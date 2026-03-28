@@ -8,6 +8,7 @@ import { InstrumentSidebarSection } from "@flink-reactor/instruments-ui"
 import { Link, useLocation } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
+  Activity,
   AlertTriangle,
   ArrowLeftRight,
   BarChart3,
@@ -15,14 +16,17 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Code,
   Database,
-  FlaskConical,
+  FolderTree,
+  Gauge,
   GitFork,
   HeartPulse,
   LayoutDashboard,
   LineChart,
   Play,
   ScrollText,
+  Search,
   Server,
   Settings,
   Upload,
@@ -51,7 +55,7 @@ type NavGroup = {
 /** Static navigation structure defining all sidebar groups and their routes. */
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Cluster",
+    label: "Overview",
     items: [{ href: "/overview", label: "Overview", icon: LayoutDashboard }],
   },
   {
@@ -59,99 +63,71 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/jobs/running", label: "Running Jobs", icon: Play },
       { href: "/jobs/completed", label: "Completed Jobs", icon: CheckCircle2 },
-    ],
-  },
-  {
-    label: "Deployments",
-    items: [
+      { href: "/jobs/submit", label: "Submit New Job", icon: Upload },
       {
         href: "/deployments",
-        label: "Blue-Green",
+        label: "Blue-Green Deployments",
         icon: ArrowLeftRight,
       },
     ],
   },
   {
-    label: "Data Management",
+    label: "Cluster",
     items: [
-      {
-        href: "/materialized-tables",
-        label: "Materialized Tables",
-        icon: Database,
-      },
-    ],
-  },
-  {
-    label: "Catalogs",
-    items: [
-      {
-        href: "/catalogs/available",
-        label: "Available Catalogs",
-        icon: Database,
-      },
-      {
-        href: "/catalogs/explore",
-        label: "Explore Catalogs",
-        icon: FlaskConical,
-      },
-    ],
-  },
-  {
-    label: "Insights",
-    items: [
+      { href: "/task-managers", label: "Task Managers", icon: Server },
+      { href: "/job-manager", label: "Job Manager", icon: Settings },
       { href: "/insights/health", label: "Cluster Health", icon: HeartPulse },
+    ],
+  },
+  {
+    label: "Observe",
+    items: [
+      { href: "/insights/metrics", label: "Metrics Explorer", icon: LineChart },
       {
         href: "/insights/bottlenecks",
         label: "Bottleneck Analyzer",
         icon: GitFork,
       },
-      { href: "/insights/metrics", label: "Metrics Explorer", icon: LineChart },
-    ],
-  },
-  {
-    label: "Cluster Management",
-    items: [
-      { href: "/task-managers", label: "Task Managers", icon: Server },
-      { href: "/job-manager", label: "Job Manager", icon: Settings },
-    ],
-  },
-  {
-    label: "Monitoring",
-    items: [
       { href: "/monitoring/alerts", label: "Alerts & Rules", icon: Bell },
       {
         href: "/monitoring/checkpoints",
         label: "Checkpoint Analytics",
         icon: BarChart3,
       },
-    ],
-  },
-  {
-    label: "Diagnostics",
-    items: [
       { href: "/logs", label: "Logs", icon: ScrollText },
       { href: "/errors", label: "Errors", icon: AlertTriangle },
     ],
   },
   {
-    label: "Operations",
-    items: [{ href: "/jobs/submit", label: "Submit New Job", icon: Upload }],
-  },
-  {
-    label: "Sandbox",
+    label: "Data",
     items: [
       {
-        href: "/sandbox",
-        label: "Synthesis Sandbox",
-        icon: FlaskConical,
+        href: "/materialized-tables",
+        label: "Materialized Tables",
+        icon: Database,
+      },
+      {
+        href: "/catalogs/available",
+        label: "Available Catalogs",
+        icon: FolderTree,
+      },
+      {
+        href: "/catalogs/explore",
+        label: "Explore Catalogs",
+        icon: Search,
       },
     ],
   },
   {
-    label: "Admin",
+    label: "Tools",
     items: [
-      { href: "/admin/simulations", label: "Simulations", icon: FlaskConical },
-      { href: "/admin/benchmarks", label: "Benchmarks", icon: BarChart3 },
+      {
+        href: "/sandbox",
+        label: "Synthesis Sandbox",
+        icon: Code,
+      },
+      { href: "/admin/simulations", label: "Simulations", icon: Activity },
+      { href: "/admin/benchmarks", label: "Benchmarks", icon: Gauge },
     ],
   },
 ]
