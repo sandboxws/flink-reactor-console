@@ -177,7 +177,7 @@ export function JmConfigSection({ config }: { config: JobManagerConfig[] }) {
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <EmptyState message="No configuration entries" />
+            <EmptyState icon={Settings} message="No configuration entries" />
           )}
         </div>
 

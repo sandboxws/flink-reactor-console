@@ -22,7 +22,7 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import {
   ArrowRight,
-  Briefcase,
+  Zap,
   Radio,
 } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -181,7 +181,7 @@ export function JobList({
       </div>
 
       {visible.length === 0 ? (
-        <EmptyState icon={Briefcase} message="No jobs found" />
+        <EmptyState icon={Zap} message="No jobs found" />
       ) : (
         <Table>
           <TableHeader>

@@ -26,6 +26,7 @@ import {
   Check,
   Copy,
   Radio,
+  Zap,
   XCircle,
 } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
@@ -290,6 +291,7 @@ export function JobsTable({
   if (jobs.length === 0) {
     return (
       <EmptyState
+        icon={Zap}
         message={isRunning ? "No running jobs" : "No matching jobs"}
       />
     )

@@ -1,4 +1,6 @@
+import { EmptyState } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
+import { ArrowLeftRight } from "lucide-react"
 import type { BlueGreenDeployment } from "@flink-reactor/ui"
 import { StateBadge } from "./state-badge"
 
@@ -9,13 +11,11 @@ interface DeploymentsTableProps {
 export function DeploymentsTable({ deployments }: DeploymentsTableProps) {
   if (deployments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
-        <p className="text-sm">No blue-green deployments found</p>
-        <p className="mt-1 text-xs">
-          Configure Kubernetes access to monitor FlinkBlueGreenDeployment
-          resources
-        </p>
-      </div>
+      <EmptyState
+        icon={ArrowLeftRight}
+        title="No blue-green deployments found"
+        description="Configure Kubernetes access to monitor FlinkBlueGreenDeployment resources"
+      />
     )
   }
 

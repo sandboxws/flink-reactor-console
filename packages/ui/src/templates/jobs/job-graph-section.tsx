@@ -62,7 +62,7 @@ const statusDotColor: Record<string, string> = {
 export function JobGraphSection({ job }: { job: FlinkJob }) {
   const plan = job.plan
   if (!plan || plan.vertices.length === 0) {
-    return <EmptyState message="No execution plan available" />
+    return <EmptyState icon={GitBranch} message="No execution plan available" />
   }
 
   const vertexMap = new Map(plan.vertices.map((v) => [v.id, v]))
