@@ -1488,14 +1488,28 @@ export async function fetchCheckpointSubtaskDetail(
 // Catalogs
 // ---------------------------------------------------------------------------
 
-export type CatalogInfo = { name: string; source: string }
+export type CatalogInfo = {
+  name: string
+  source: string
+  connectorType: string
+  properties: Record<string, string> | null
+  databaseCount: number
+  tableCount: number
+}
 export type CatalogDatabase = { name: string }
 export type CatalogTable = { name: string }
 export type ColumnInfo = { name: string; type: string }
 
 const CATALOGS_QUERY = gql`
   query Catalogs {
-    catalogs { name source }
+    catalogs {
+      name
+      source
+      connectorType
+      properties
+      databaseCount
+      tableCount
+    }
   }
 `
 
@@ -1554,6 +1568,24 @@ export async function fetchCatalogColumns(
     .toPromise()
   if (result.error) throw new Error(result.error.message)
   return result.data?.catalogColumns ?? []
+}
+
+const CATALOG_TABLE_DDL_QUERY = gql`
+  query CatalogTableDDL($catalog: String!, $database: String!, $table: String!) {
+    catalogTableDDL(catalog: $catalog, database: $database, table: $table)
+  }
+`
+
+export async function fetchCatalogTableDDL(
+  catalog: string,
+  database: string,
+  table: string,
+): Promise<string> {
+  const result = await graphqlClient
+    .query(CATALOG_TABLE_DDL_QUERY, { catalog, database, table })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.catalogTableDDL ?? ""
 }
 
 // ---------------------------------------------------------------------------

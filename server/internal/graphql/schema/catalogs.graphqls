@@ -3,6 +3,10 @@
 type CatalogInfo {
   name: String!
   source: String!
+  connectorType: String!
+  properties: JSON
+  databaseCount: Int!
+  tableCount: Int!
 }
 
 type CatalogDatabase {
@@ -30,4 +34,7 @@ extend type Query {
 
   """List columns for a table"""
   catalogColumns(catalog: String!, database: String!, table: String!, cluster: String): [ColumnInfo!]!
+
+  """Get the CREATE TABLE DDL for a table"""
+  catalogTableDDL(catalog: String!, database: String!, table: String!, cluster: String): String!
 }

@@ -20,7 +20,21 @@ func (r *queryResolver) Catalogs(ctx context.Context, cluster *string) ([]*model
 
 	result := make([]*model.CatalogInfo, len(catalogs))
 	for i, c := range catalogs {
-		result[i] = &model.CatalogInfo{Name: c.Name, Source: c.Source}
+		var props map[string]any
+		if c.Properties != nil {
+			props = make(map[string]any, len(c.Properties))
+			for k, v := range c.Properties {
+				props[k] = v
+			}
+		}
+		result[i] = &model.CatalogInfo{
+			Name:          c.Name,
+			Source:        c.Source,
+			ConnectorType: c.ConnectorType,
+			Properties:    props,
+			DatabaseCount: c.DatabaseCount,
+			TableCount:    c.TableCount,
+		}
 	}
 	return result, nil
 }
@@ -65,4 +79,9 @@ func (r *queryResolver) CatalogColumns(ctx context.Context, catalog string, data
 		result[i] = &model.ColumnInfo{Name: c.Name, Type: c.Type}
 	}
 	return result, nil
+}
+
+// CatalogTableDdl is the resolver for the catalogTableDDL field.
+func (r *queryResolver) CatalogTableDdl(ctx context.Context, catalog string, database string, table string, cluster *string) (string, error) {
+	return r.CatalogService.TableDDL(ctx, catalog, database, table)
 }

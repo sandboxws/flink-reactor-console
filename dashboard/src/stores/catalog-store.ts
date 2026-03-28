@@ -16,6 +16,7 @@ import {
   fetchCatalogColumns,
   fetchCatalogDatabases,
   fetchCatalogs,
+  fetchCatalogTableDDL,
   fetchCatalogTables,
 } from "@/lib/graphql-api-client"
 
@@ -35,6 +36,8 @@ interface CatalogState {
   tables: Record<string, CatalogTable[]>
   /** Columns per table node key. */
   columns: Record<string, ColumnInfo[]>
+  /** DDL per table node key. */
+  ddl: Record<string, string>
   /** Set of node keys currently being fetched. */
   loadingNodes: Set<string>
 }
@@ -49,6 +52,8 @@ interface CatalogActions {
     database?: string,
     table?: string,
   ) => void
+  /** Fetch DDL for a table (if not already cached). */
+  fetchTableDDL: (catalog: string, database: string, table: string) => Promise<void>
 }
 
 export type CatalogStore = CatalogState & CatalogActions
@@ -61,6 +66,7 @@ export const useCatalogStore = create<CatalogStore>((set, get) => ({
   databases: {},
   tables: {},
   columns: {},
+  ddl: {},
   loadingNodes: new Set(),
 
   fetchCatalogs: async () => {
@@ -143,6 +149,17 @@ export const useCatalogStore = create<CatalogStore>((set, get) => ({
           loadingNodes: next,
         }
       })
+    }
+  },
+
+  fetchTableDDL: async (catalog: string, database: string, table: string) => {
+    const key = `${catalog}.${database}.${table}`
+    if (get().ddl[key] !== undefined) return
+    try {
+      const ddl = await fetchCatalogTableDDL(catalog, database, table)
+      set((s) => ({ ddl: { ...s.ddl, [key]: ddl } }))
+    } catch {
+      // DDL fetch is supplementary — don't block the UI
     }
   },
 }))

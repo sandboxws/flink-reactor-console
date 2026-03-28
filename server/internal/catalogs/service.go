@@ -75,3 +75,18 @@ func (s *Service) ListColumns(ctx context.Context, catalog, database, table stri
 	}
 	return all, nil
 }
+
+// TableDDL returns the CREATE TABLE DDL from the first provider that succeeds.
+func (s *Service) TableDDL(ctx context.Context, catalog, database, table string) (string, error) {
+	for _, p := range s.providers {
+		ddl, err := p.TableDDL(ctx, catalog, database, table)
+		if err != nil {
+			s.logger.Warn("catalog provider error", "op", "TableDDL", "catalog", catalog, "database", database, "table", table, "error", err)
+			continue
+		}
+		if ddl != "" {
+			return ddl, nil
+		}
+	}
+	return "", nil
+}

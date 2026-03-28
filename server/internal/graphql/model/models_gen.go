@@ -48,8 +48,12 @@ type CatalogDatabase struct {
 }
 
 type CatalogInfo struct {
-	Name   string `json:"name"`
-	Source string `json:"source"`
+	Name          string         `json:"name"`
+	Source        string         `json:"source"`
+	ConnectorType string         `json:"connectorType"`
+	Properties    map[string]any `json:"properties,omitempty"`
+	DatabaseCount int            `json:"databaseCount"`
+	TableCount    int            `json:"tableCount"`
 }
 
 type CatalogTable struct {

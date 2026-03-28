@@ -170,6 +170,21 @@ func (p *SQLGatewayProvider) ListColumns(ctx context.Context, catalog, database,
 	return columns, nil
 }
 
+// TableDDL returns the CREATE TABLE DDL via SHOW CREATE TABLE.
+func (p *SQLGatewayProvider) TableDDL(ctx context.Context, catalog, database, table string) (string, error) {
+	stmt := fmt.Sprintf("SHOW CREATE TABLE `%s`.`%s`.`%s`", catalog, database, table)
+	rows, err := p.executeWithRecovery(ctx, nil, stmt)
+	if err != nil {
+		return "", fmt.Errorf("getting DDL for %q.%q.%q: %w", catalog, database, table, err)
+	}
+	if len(rows) > 0 && len(rows[0]) > 0 {
+		if ddl, ok := rows[0][0].(string); ok {
+			return ddl, nil
+		}
+	}
+	return "", nil
+}
+
 // executeWithRecovery executes a statement using a cached session.
 // If the session has expired, it creates a new one (with init SQL) and retries.
 func (p *SQLGatewayProvider) executeWithRecovery(ctx context.Context, clusterName *string, statement string) ([][]any, error) {

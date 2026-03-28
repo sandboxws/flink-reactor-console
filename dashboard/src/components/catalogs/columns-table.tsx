@@ -86,7 +86,7 @@ export function ColumnsTable({ columns }: { columns: ColumnInfo[] }) {
   const pageRows = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
-    <div className="ml-[5.5rem] mr-2 mb-1 mt-0.5 rounded-md border border-dash-border bg-dash-surface/50">
+    <div className="h-full rounded-md border border-dash-border bg-dash-surface/50">
       {/* Search bar */}
       <div className="flex items-center gap-1.5 border-b border-dash-border px-2.5 py-1.5">
         <Search className="size-3 shrink-0 text-zinc-500" />

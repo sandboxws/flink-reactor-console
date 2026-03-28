@@ -316,6 +316,13 @@ func (m *mockProvider) ListColumns(_ context.Context, catalog, database, table s
 	return m.columns[catalog+"."+database+"."+table], nil
 }
 
+func (m *mockProvider) TableDDL(_ context.Context, _, _, _ string) (string, error) {
+	if m.err != nil {
+		return "", m.err
+	}
+	return "", nil
+}
+
 func TestService_MergesProviders(t *testing.T) {
 	bundled := &mockProvider{
 		catalogs: []CatalogInfo{{Name: "bundled_cat", Source: "bundled"}},

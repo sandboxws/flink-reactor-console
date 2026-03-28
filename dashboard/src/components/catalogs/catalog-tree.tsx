@@ -1,146 +1,111 @@
 /**
  * @module catalog-tree
  *
- * Three-level tree view for navigating Flink SQL catalogs. Lazy-loads
- * databases when a catalog is expanded, tables when a database is expanded,
- * and column schemas when a table is expanded. Expansion state and loading
- * indicators are managed by {@link useCatalogStore}.
+ * Database/table tree for a single catalog. Used as the middle panel in the
+ * three-panel catalog browser. Lazy-loads databases on mount and tables when
+ * a database is expanded. Calls `onSelectTable` when a table row is clicked.
  */
 
 import { Spinner } from "@flink-reactor/ui"
 import {
   ChevronDown,
   ChevronRight,
-  Database,
   Folder,
   Table2,
 } from "lucide-react"
 import { cn } from "@/lib/cn"
 import { useCatalogStore } from "@/stores/catalog-store"
-import { ColumnsTable } from "./columns-table"
 
 /**
- * Collapsible tree of catalogs > databases > tables > columns.
+ * Tree showing databases > tables for a single catalog.
  *
- * Each level lazy-loads its children via the catalog store when expanded.
- * Leaf table nodes display a {@link ColumnsTable} showing column schemas.
+ * When `catalogName` is provided, shows that catalog's databases as root nodes.
+ * When omitted, falls back to showing all catalogs (backward compat).
+ * `onSelectTable` fires when a table row is clicked.
  */
-export function CatalogTree() {
-  const catalogs = useCatalogStore((s) => s.catalogs)
+export function CatalogTree({
+  catalogName,
+  selectedTable,
+  onSelectTable,
+}: {
+  catalogName: string
+  selectedTable?: string | null
+  onSelectTable?: (catalog: string, database: string, table: string) => void
+}) {
   const expandedNodes = useCatalogStore((s) => s.expandedNodes)
   const databases = useCatalogStore((s) => s.databases)
   const tables = useCatalogStore((s) => s.tables)
-  const columns = useCatalogStore((s) => s.columns)
   const loadingNodes = useCatalogStore((s) => s.loadingNodes)
   const toggleNode = useCatalogStore((s) => s.toggleNode)
 
-  if (catalogs.length === 0) {
+  const catalogDbs = databases[catalogName] ?? []
+  const isLoading = loadingNodes.has(catalogName)
+
+  if (isLoading && catalogDbs.length === 0) {
     return (
-      <div className="p-4 text-center text-xs text-zinc-500">
-        No catalogs found
+      <div className="flex items-center justify-center p-6">
+        <Spinner size="sm" />
+      </div>
+    )
+  }
+
+  if (catalogDbs.length === 0) {
+    return (
+      <div className="p-4 text-center text-xs text-zinc-600">
+        No databases
       </div>
     )
   }
 
   return (
-    <div className="space-y-0.5">
-      {catalogs.map((catalog) => {
-        const catalogKey = catalog.name
-        const isExpanded = expandedNodes.has(catalogKey)
-        const isLoading = loadingNodes.has(catalogKey)
-        const catalogDbs = databases[catalogKey] ?? []
+    <div className="space-y-0.5 p-1">
+      {catalogDbs.map((db) => {
+        const dbKey = `${catalogName}.${db.name}`
+        const isDbExpanded = expandedNodes.has(dbKey)
+        const isDbLoading = loadingNodes.has(dbKey)
+        const dbTables = tables[dbKey] ?? []
 
         return (
-          <div key={catalogKey}>
+          <div key={dbKey}>
             <TreeButton
-              icon={Database}
-              label={catalog.name}
-              badge={catalog.source === "bundled" ? "(example)" : undefined}
-              expanded={isExpanded}
-              loading={isLoading}
+              icon={Folder}
+              label={db.name}
+              expanded={isDbExpanded}
+              loading={isDbLoading}
               depth={0}
-              onClick={() => toggleNode(catalogKey, catalog.name)}
+              onClick={() => toggleNode(dbKey, catalogName, db.name)}
             />
-            {isExpanded && (
+            {isDbExpanded && (
               <div>
-                {isLoading &&
-                catalogDbs.length === 0 ? null : catalogDbs.length === 0 ? (
-                  <div className="pl-8 py-1 text-[10px] text-zinc-600">
-                    No databases
+                {isDbLoading && dbTables.length === 0 ? null : dbTables.length ===
+                  0 ? (
+                  <div className="py-1 pl-8 text-[10px] text-zinc-600">
+                    No tables
                   </div>
                 ) : (
-                  catalogDbs.map((db) => {
-                    const dbKey = `${catalog.name}.${db.name}`
-                    const isDbExpanded = expandedNodes.has(dbKey)
-                    const isDbLoading = loadingNodes.has(dbKey)
-                    const dbTables = tables[dbKey] ?? []
+                  dbTables.map((table) => {
+                    const tableKey = `${catalogName}.${db.name}.${table.name}`
+                    const isSelected = selectedTable === tableKey
 
                     return (
-                      <div key={dbKey}>
-                        <TreeButton
-                          icon={Folder}
-                          label={db.name}
-                          expanded={isDbExpanded}
-                          loading={isDbLoading}
-                          depth={1}
-                          onClick={() =>
-                            toggleNode(dbKey, catalog.name, db.name)
-                          }
-                        />
-                        {isDbExpanded && (
-                          <div>
-                            {isDbLoading &&
-                            dbTables.length === 0 ? null : dbTables.length ===
-                              0 ? (
-                              <div className="pl-14 py-1 text-[10px] text-zinc-600">
-                                No tables
-                              </div>
-                            ) : (
-                              dbTables.map((table) => {
-                                const tableKey = `${catalog.name}.${db.name}.${table.name}`
-                                const isTableExpanded =
-                                  expandedNodes.has(tableKey)
-                                const isTableLoading =
-                                  loadingNodes.has(tableKey)
-                                const tableCols = columns[tableKey] ?? []
-
-                                return (
-                                  <div key={tableKey}>
-                                    <TreeButton
-                                      icon={Table2}
-                                      label={table.name}
-                                      expanded={isTableExpanded}
-                                      loading={isTableLoading}
-                                      depth={2}
-                                      onClick={() =>
-                                        toggleNode(
-                                          tableKey,
-                                          catalog.name,
-                                          db.name,
-                                          table.name,
-                                        )
-                                      }
-                                    />
-                                    {isTableExpanded && (
-                                      <div>
-                                        {isTableLoading &&
-                                        tableCols.length ===
-                                          0 ? null : tableCols.length === 0 ? (
-                                          <div className="pl-[5.5rem] py-1 text-[10px] text-zinc-600">
-                                            No columns
-                                          </div>
-                                        ) : (
-                                          <ColumnsTable columns={tableCols} />
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                )
-                              })
-                            )}
-                          </div>
+                      <button
+                        key={tableKey}
+                        type="button"
+                        onClick={() =>
+                          onSelectTable?.(catalogName, db.name, table.name)
+                        }
+                        className={cn(
+                          "flex w-full items-center gap-2 rounded-md px-2 py-1.5 pl-8 text-xs transition-colors",
+                          isSelected
+                            ? "bg-white/[0.06] text-zinc-100"
+                            : "text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-300",
                         )}
-                      </div>
+                      >
+                        <Table2 className="size-3 shrink-0 text-zinc-500" />
+                        <span className="truncate font-mono text-[11px]">
+                          {table.name}
+                        </span>
+                      </button>
                     )
                   })
                 )}
@@ -153,19 +118,17 @@ export function CatalogTree() {
   )
 }
 
-/** Indented tree row button with expand/collapse chevron, icon, label, and optional badge. */
+/** Indented tree row button with expand/collapse chevron, icon, and label. */
 function TreeButton({
   icon: Icon,
   label,
-  badge,
   expanded,
   loading,
   depth,
   onClick,
 }: {
-  icon: typeof Database
+  icon: typeof Folder
   label: string
-  badge?: string
   expanded: boolean
   loading: boolean
   depth: number
@@ -178,7 +141,6 @@ function TreeButton({
       className={cn(
         "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-white/[0.04]",
         depth === 1 && "pl-8",
-        depth === 2 && "pl-14",
       )}
     >
       {loading ? (
@@ -190,9 +152,6 @@ function TreeButton({
       )}
       <Icon className="size-3.5 shrink-0 text-zinc-500" />
       <span className="truncate font-mono text-[11px]">{label}</span>
-      {badge && (
-        <span className="shrink-0 text-[9px] text-zinc-600">{badge}</span>
-      )}
     </button>
   )
 }

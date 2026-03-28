@@ -67,11 +67,22 @@ func NewBundledProvider() (*BundledProvider, error) {
 	return &BundledProvider{data: data}, nil
 }
 
-// ListCatalogs returns all bundled example catalogs.
+// ListCatalogs returns all bundled example catalogs with connector metadata.
 func (p *BundledProvider) ListCatalogs(_ context.Context) ([]CatalogInfo, error) {
 	result := make([]CatalogInfo, len(p.data.Catalogs))
 	for i, c := range p.data.Catalogs {
-		result[i] = CatalogInfo{Name: c.Name, Source: "bundled"}
+		tableCount := 0
+		for _, db := range c.Databases {
+			tableCount += len(db.Tables)
+		}
+		result[i] = CatalogInfo{
+			Name:          c.Name,
+			Source:        "bundled",
+			ConnectorType: c.Connector.Type,
+			Properties:    RedactProperties(c.Connector.Properties),
+			DatabaseCount: len(c.Databases),
+			TableCount:    tableCount,
+		}
 	}
 	return result, nil
 }
@@ -131,4 +142,24 @@ func (p *BundledProvider) ListColumns(_ context.Context, catalog, database, tabl
 		}
 	}
 	return nil, nil
+}
+
+// TableDDL generates a CREATE TABLE statement from the bundled YAML data.
+func (p *BundledProvider) TableDDL(_ context.Context, catalog, database, table string) (string, error) {
+	for _, c := range p.data.Catalogs {
+		if c.Name != catalog {
+			continue
+		}
+		for _, db := range c.Databases {
+			if db.Name != database {
+				continue
+			}
+			for _, t := range db.Tables {
+				if t.Name == table {
+					return generateCreateTable(catalog, database, t, c.Connector), nil
+				}
+			}
+		}
+	}
+	return "", nil
 }
