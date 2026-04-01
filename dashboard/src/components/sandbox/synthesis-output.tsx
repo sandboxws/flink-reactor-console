@@ -6,7 +6,7 @@ import {
   foldGutter,
   foldService,
 } from "@codemirror/language"
-import { Compartment, EditorState } from "@codemirror/state"
+import { EditorState } from "@codemirror/state"
 import { EditorView, lineNumbers } from "@codemirror/view"
 import {
   Button,
@@ -40,21 +40,17 @@ import {
   setFocusLines,
 } from "./focus-highlight"
 import { SynthInspector } from "./synth-inspector"
-import { gruvpuccinCmTheme } from "./themes/gruvpuccin-cm-theme"
-import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
+import {
+  createThemeCompartment,
+  getActiveTheme,
+  useCmPaletteObserver,
+} from "@/lib/cm-themes"
 
 // ---------------------------------------------------------------------------
 // Read-only CodeMirror viewer
 // ---------------------------------------------------------------------------
 
-const themeCompartment = new Compartment()
-
-function getActiveTheme() {
-  if (typeof document === "undefined") return gruvpuccinCmTheme
-  return document.documentElement.dataset.palette === "tokyo-night"
-    ? tokyoNightCmTheme
-    : gruvpuccinCmTheme
-}
+const themeCompartment = createThemeCompartment()
 
 /**
  * Fold service that tells CM6 where CREATE TABLE folds are possible.
@@ -255,22 +251,7 @@ function CodeViewer({
   ])
 
   // Watch for palette changes
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const view = viewRef.current
-      if (!view) return
-      view.dispatch({
-        effects: themeCompartment.reconfigure(getActiveTheme()),
-      })
-    })
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-palette"],
-    })
-
-    return () => observer.disconnect()
-  }, [])
+  useCmPaletteObserver(viewRef, themeCompartment)
 
   return (
     <div

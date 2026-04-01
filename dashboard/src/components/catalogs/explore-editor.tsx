@@ -1,25 +1,44 @@
 /**
  * @module explore-editor
  *
- * SQL editor textarea with run/cancel controls for the catalog explore page.
+ * CodeMirror 6 SQL editor with run/cancel controls for the catalog explore page.
  * Reads SQL text and execution status from {@link useCatalogExploreStore}.
- * Supports Cmd+Enter keyboard shortcut to execute queries.
+ * Supports Cmd+Enter keyboard shortcut to execute queries. Uses the same
+ * Gruvpuccin / Tokyo Night theme system as the sandbox editor.
  */
 
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
+import { sql } from "@codemirror/lang-sql"
+import { bracketMatching } from "@codemirror/language"
+import { EditorState } from "@codemirror/state"
+import {
+  EditorView,
+  highlightActiveLine,
+  keymap,
+  lineNumbers,
+  placeholder,
+} from "@codemirror/view"
 import { Button, Spinner } from "@flink-reactor/ui"
 import { Play, Square } from "lucide-react"
-import { useCallback } from "react"
+import { useEffect, useRef } from "react"
+import {
+  createThemeCompartment,
+  getActiveTheme,
+  useCmPaletteObserver,
+} from "@/lib/cm-themes"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
+
+const themeCompartment = createThemeCompartment()
 
 /**
  * SQL editor with status indicator, run button, and cancel button.
  *
  * Displays the current query status (idle, submitting, running, completed,
- * failed, cancelled) in the toolbar. The textarea supports Cmd+Enter to
- * execute and auto-disables controls while a query is in flight.
+ * failed, cancelled) in the toolbar. The CodeMirror editor supports
+ * Cmd+Enter to execute and syncs with the catalog explore store.
  */
 export function ExploreEditor() {
-  const sql = useCatalogExploreStore((s) => s.sql)
+  const sql$ = useCatalogExploreStore((s) => s.sql)
   const setSql = useCatalogExploreStore((s) => s.setSql)
   const status = useCatalogExploreStore((s) => s.status)
   const executeQuery = useCatalogExploreStore((s) => s.executeQuery)
@@ -27,16 +46,77 @@ export function ExploreEditor() {
 
   const isRunning = status === "submitting" || status === "running"
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-        e.preventDefault()
-        if (isRunning) return
-        executeQuery()
-      }
-    },
-    [executeQuery, isRunning],
-  )
+  const containerRef = useRef<HTMLDivElement>(null)
+  const viewRef = useRef<EditorView | null>(null)
+  const setSqlRef = useRef(setSql)
+  const executeQueryRef = useRef(executeQuery)
+  const isRunningRef = useRef(isRunning)
+
+  setSqlRef.current = setSql
+  executeQueryRef.current = executeQuery
+  isRunningRef.current = isRunning
+
+  // Create the CodeMirror editor on mount
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    const state = EditorState.create({
+      doc: sql$,
+      extensions: [
+        lineNumbers(),
+        highlightActiveLine(),
+        bracketMatching(),
+        history(),
+        sql(),
+        placeholder("SELECT * FROM ..."),
+        themeCompartment.of(getActiveTheme()),
+        keymap.of([
+          ...defaultKeymap,
+          ...historyKeymap,
+          {
+            key: "Mod-Enter",
+            run: () => {
+              if (isRunningRef.current) return true
+              executeQueryRef.current()
+              return true
+            },
+          },
+        ]),
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            setSqlRef.current(update.state.doc.toString())
+          }
+        }),
+      ],
+    })
+
+    const view = new EditorView({
+      state,
+      parent: containerRef.current,
+    })
+
+    viewRef.current = view
+
+    return () => {
+      view.destroy()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Sync external value changes (e.g. template selector)
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    const current = view.state.doc.toString()
+    if (current !== sql$) {
+      view.dispatch({
+        changes: { from: 0, to: current.length, insert: sql$ },
+      })
+    }
+  }, [sql$])
+
+  // Watch for palette changes and reconfigure the theme compartment
+  useCmPaletteObserver(viewRef, themeCompartment)
 
   return (
     <div className="glass-card overflow-hidden">
@@ -81,7 +161,7 @@ export function ExploreEditor() {
             size="sm"
             variant="outline"
             onClick={executeQuery}
-            disabled={isRunning || !sql.trim()}
+            disabled={isRunning || !sql$.trim()}
             className="h-7 gap-1.5 text-xs"
           >
             {isRunning ? <Spinner size="sm" /> : <Play className="size-3" />}
@@ -89,13 +169,9 @@ export function ExploreEditor() {
           </Button>
         </div>
       </div>
-      <textarea
-        value={sql}
-        onChange={(e) => setSql(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="SELECT * FROM ..."
-        spellCheck={false}
-        className="h-32 w-full resize-y bg-transparent p-3 font-mono text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none"
+      <div
+        ref={containerRef}
+        className="[&_.cm-editor]:min-h-32 [&_.cm-editor]:outline-none [&_.cm-scroller]:max-h-96 [&_.cm-scroller]:overflow-y-auto"
       />
     </div>
   )

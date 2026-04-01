@@ -13,7 +13,6 @@ import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
 import { javascript } from "@codemirror/lang-javascript"
 import { bracketMatching } from "@codemirror/language"
 import {
-  Compartment,
   EditorState,
   RangeSet,
   StateEffect,
@@ -41,8 +40,11 @@ import {
   focusHighlightField,
   setFocusLines,
 } from "./focus-highlight"
-import { gruvpuccinCmTheme } from "./themes/gruvpuccin-cm-theme"
-import { tokyoNightCmTheme } from "./themes/tokyo-night-cm-theme"
+import {
+  createThemeCompartment,
+  getActiveTheme,
+  useCmPaletteObserver,
+} from "@/lib/cm-themes"
 
 // ---------------------------------------------------------------------------
 // Gutter marker classes — each instance carries its diagnostic message
@@ -273,14 +275,7 @@ interface SandboxEditorProps {
   focusComponents?: string[] | null
 }
 
-const themeCompartment = new Compartment()
-
-function getActiveTheme() {
-  if (typeof document === "undefined") return gruvpuccinCmTheme
-  return document.documentElement.dataset.palette === "tokyo-night"
-    ? tokyoNightCmTheme
-    : gruvpuccinCmTheme
-}
+const themeCompartment = createThemeCompartment()
 
 /**
  * CodeMirror editor with TSX/JSX support, DSL autocompletion, diagnostic
@@ -407,22 +402,7 @@ export function SandboxEditor({
   }, [focusComponents])
 
   // Watch for palette changes and reconfigure the theme compartment
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const view = viewRef.current
-      if (!view) return
-      view.dispatch({
-        effects: themeCompartment.reconfigure(getActiveTheme()),
-      })
-    })
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-palette"],
-    })
-
-    return () => observer.disconnect()
-  }, [])
+  useCmPaletteObserver(viewRef, themeCompartment)
 
   return (
     <div
