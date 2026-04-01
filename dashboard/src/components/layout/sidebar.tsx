@@ -32,6 +32,7 @@ import {
   Upload,
 } from "lucide-react"
 import { cn } from "@/lib/cn"
+import { isLinkEnabled, isSectionEnabled } from "@/lib/dashboard-config"
 import { useUiStore } from "@/stores/ui-store"
 
 /** A single navigation link in the sidebar. */
@@ -46,6 +47,8 @@ type NavItem = {
 
 /** A labeled group of related {@link NavItem} entries in the sidebar. */
 type NavGroup = {
+  /** Stable identifier used in dashboard.config.toml to disable this section. */
+  id: string
   /** Section heading displayed above the group's links. */
   label: string
   /** Ordered list of navigation links within this group. */
@@ -55,10 +58,12 @@ type NavGroup = {
 /** Static navigation structure defining all sidebar groups and their routes. */
 const NAV_GROUPS: NavGroup[] = [
   {
+    id: "overview",
     label: "Overview",
     items: [{ href: "/overview", label: "Overview", icon: LayoutDashboard }],
   },
   {
+    id: "jobs",
     label: "Jobs",
     items: [
       { href: "/jobs/running", label: "Running Jobs", icon: Play },
@@ -72,6 +77,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: "cluster",
     label: "Cluster",
     items: [
       { href: "/task-managers", label: "Task Managers", icon: Server },
@@ -80,6 +86,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: "observe",
     label: "Observe",
     items: [
       { href: "/insights/metrics", label: "Metrics Explorer", icon: LineChart },
@@ -99,6 +106,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: "data",
     label: "Data",
     items: [
       {
@@ -119,6 +127,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: "tools",
     label: "Tools",
     items: [
       {
@@ -164,42 +173,48 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-1.5">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label} className="mb-1">
-            {!collapsed && (
-              <div className="px-2.5 pb-1 pt-2.5 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
-                {group.label}
+        {NAV_GROUPS.filter((g) => isSectionEnabled(g.id)).map((group) => {
+          const items = group.items.filter((i) => isLinkEnabled(i.href))
+          if (items.length === 0) return null
+          return (
+            <div key={group.id} className="mb-1">
+              {!collapsed && (
+                <div className="px-2.5 pb-1 pt-2.5 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
+                  {group.label}
+                </div>
+              )}
+              <div className="space-y-0.5">
+                {items.map((item) => {
+                  const active = pathname.startsWith(item.href)
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors",
+                        active
+                          ? "bg-white/[0.08] text-white"
+                          : "text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300",
+                      )}
+                    >
+                      <item.icon className="size-3.5 shrink-0" />
+                      {!collapsed && <span>{item.label}</span>}
+                    </Link>
+                  )
+                })}
               </div>
-            )}
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const active = pathname.startsWith(item.href)
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={cn(
-                      "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors",
-                      active
-                        ? "bg-white/[0.08] text-white"
-                        : "text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300",
-                    )}
-                  >
-                    <item.icon className="size-3.5 shrink-0" />
-                    {!collapsed && <span>{item.label}</span>}
-                  </Link>
-                )
-              })}
             </div>
-          </div>
-        ))}
+          )
+        })}
 
         {/* Dynamic instruments group — rendered by the instruments UI package */}
-        <InstrumentSidebarSection
-          collapsed={collapsed}
-          activePath={pathname}
-          LinkComponent={Link}
-        />
+        {isSectionEnabled("instruments") && (
+          <InstrumentSidebarSection
+            collapsed={collapsed}
+            activePath={pathname}
+            LinkComponent={Link}
+          />
+        )}
       </nav>
 
       {/* Collapse toggle */}

@@ -1,0 +1,19 @@
+# FlinkReactor Dashboard Configuration
+# This file controls dashboard behavior and is parsed at build time by Vite.
+
+[sidebar]
+# Hide entire sidebar sections by ID.
+# Valid IDs: overview, jobs, cluster, observe, data, tools, instruments
+disabled_sections = ["instruments", "tools"]
+
+# Hide individual sidebar links by their route path.
+# Examples: "/jobs/submit", "/sandbox", "/admin/simulations"
+disabled_links = [
+  "/insights/bottlenecks",
+  "/insights/metrics",
+  "/insights/health",
+  "/materialized-tables",
+  "/monitoring/alerts",
+  "/monitoring/checkpoints",
+  "/deployments",
+]
