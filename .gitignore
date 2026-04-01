@@ -395,6 +395,7 @@ dashboard/.env.staging
 
 ### Go ###
 bin/
+server/dashboard/
 *.exe
 *.exe~
 *.dll

@@ -20,9 +20,23 @@ generate:
 dev:
     go run ./cmd/reactor-server/
 
-# Build Docker image
+# Build Docker image (builds dashboard, copies static assets, then builds image)
 docker:
-    docker build -t reactor-server .
+    cd .. && pnpm build
+    mkdir -p dashboard
+    rsync -a --delete ../dashboard/dist/ dashboard/
+    docker build \
+        --build-context instruments=../../flink-reactor-instruments/server \
+        -t reactor-server .
+
+# Build Docker image inside minikube's Docker daemon
+docker-minikube:
+    cd .. && pnpm build
+    mkdir -p dashboard
+    rsync -a --delete ../dashboard/dist/ dashboard/
+    eval $(minikube docker-env) && docker build \
+        --build-context instruments=../../flink-reactor-instruments/server \
+        -t reactor-server .
 
 # Run tests with coverage
 coverage:
