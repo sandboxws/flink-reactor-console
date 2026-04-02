@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d2021"/>
+      <stop offset="100%" stop-color="#181a1b"/>
+    </linearGradient>
+    <radialGradient id="center" cx="40%" cy="36%" r="68%">
+      <stop offset="0%" stop-color="#a8d4ca"/>
+      <stop offset="100%" stop-color="#5e9e93"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="102" fill="url(#bg)"/>
+  <rect x="20" y="20" width="472" height="472" rx="86" fill="none" stroke="#d4be98" stroke-width="3.5" opacity="0.18"/>
+
+  <g transform="translate(256,256)">
+    <path d="M -71.7 -129.4 A 148 148 0 0 1 71.7 -129.4" stroke="#7daea3" stroke-width="54" fill="none" stroke-linecap="round" transform="rotate(0)"/>
+    <path d="M -71.7 -129.4 A 148 148 0 0 1 71.7 -129.4" stroke="#c28fd6" stroke-width="54" fill="none" stroke-linecap="round" transform="rotate(90)"/>
+    <path d="M -71.7 -129.4 A 148 148 0 0 1 71.7 -129.4" stroke="#ea6962" stroke-width="54" fill="none" stroke-linecap="round" transform="rotate(180)"/>
+    <path d="M -71.7 -129.4 A 148 148 0 0 1 71.7 -129.4" stroke="#e78a4e" stroke-width="54" fill="none" stroke-linecap="round" transform="rotate(270)"/>
+  </g>
+
+  <circle cx="256" cy="256" r="66" fill="url(#center)"/>
+
+  <!-- Lucide: gauge -->
+  <g transform="translate(256,256) scale(3.5) translate(-12,-12)" fill="none" stroke="#fbf1c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m12 14 4-4"/>
+    <path d="M3.34 19a10 10 0 1 1 17.32 0"/>
+  </g>
+</svg>

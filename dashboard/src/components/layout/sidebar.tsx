@@ -163,11 +163,16 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex h-11 items-center gap-2 border-b border-dash-border px-3">
-        <div className="size-5 shrink-0 rounded bg-gradient-to-br from-fr-coral to-fr-purple" />
+        <img src="/favicon.svg" alt="FlinkReactor" className="size-5 shrink-0 rounded" />
         {!collapsed && (
-          <span className="text-xs font-semibold tracking-wide text-zinc-300">
-            FlinkReactor
-          </span>
+          <div className="flex flex-col leading-none">
+            <span className="text-xs font-semibold tracking-wide text-zinc-300">
+              FlinkReactor
+            </span>
+            <span className="font-mono text-[9px] font-medium tracking-widest text-fr-coral/70 uppercase">
+              Console
+            </span>
+          </div>
         )}
       </div>
 
