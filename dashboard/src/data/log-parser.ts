@@ -37,10 +37,12 @@ function abbreviateLogger(fqcn: string): string {
   return lastDot === -1 ? fqcn : fqcn.substring(lastDot + 1)
 }
 
-/** Parse a Flink log4j timestamp string into a Date. */
+/** Parse a Flink log4j timestamp string into a UTC Date. */
 function parseTimestamp(ts: string): Date {
-  // "2025-01-15 14:23:45,123" → "2025-01-15T14:23:45.123"
-  return new Date(ts.replace(" ", "T").replace(",", "."))
+  // "2025-01-15 14:23:45,123" → "2025-01-15T14:23:45.123Z"
+  // Flink JVM logs use the server timezone (UTC in Docker/K8s).
+  // The trailing Z ensures JS doesn't reinterpret them as browser-local time.
+  return new Date(`${ts.replace(" ", "T").replace(",", ".")}Z`)
 }
 
 /** Check if a line is part of a stack trace continuation. */
@@ -164,11 +166,11 @@ export function buildLogEntry(params: {
   }
 }
 
-/** Format a Date as Flink log4j timestamp. */
+/** Format a Date as Flink log4j timestamp (UTC). */
 function formatTimestamp(d: Date): string {
   const pad2 = (n: number) => String(n).padStart(2, "0")
   const pad3 = (n: number) => String(n).padStart(3, "0")
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())},${pad3(d.getMilliseconds())}`
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}:${pad2(d.getUTCSeconds())},${pad3(d.getUTCMilliseconds())}`
 }
 
 /**

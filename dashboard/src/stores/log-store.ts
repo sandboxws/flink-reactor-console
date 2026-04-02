@@ -64,6 +64,7 @@ export type LogStore = LogState & LogActions
 // ---------------------------------------------------------------------------
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
+let polling = false
 const lastOffset: Record<string, number> = {}
 
 /** JM log source identifier. */
@@ -157,54 +158,61 @@ async function runWithConcurrency<T>(
 
 /** Execute a single poll cycle: fetch JM + all TM logs, parse deltas. */
 async function pollLogs(appendEntries: (entries: LogEntry[]) => void) {
-  const allEntries: LogEntry[] = []
+  if (polling) return // skip if a poll is already in flight
+  polling = true
 
-  // Always poll JM log
-  const jmEntries = await fetchAndParseDelta(
-    () => fetchJobManagerLog(),
-    "jm",
-    JM_SOURCE,
-  )
-  allEntries.push(...jmEntries)
+  try {
+    const allEntries: LogEntry[] = []
 
-  // Poll SQL Gateway log (silently skips if not available)
-  const sgwEntries = await fetchAndParseDelta(
-    () => fetchSQLGatewayLog(),
-    "sgw",
-    SGW_SOURCE,
-  )
-  allEntries.push(...sgwEntries)
-
-  // Poll TM logs (IDs from cluster-store)
-  const tms = useClusterStore.getState().taskManagers
-  if (tms.length > 0) {
-    const tmTasks = tms.map(
-      (tm) => () =>
-        fetchAndParseDelta(
-          () => fetchTaskManagerLog(tm.id),
-          `tm:${tm.id}`,
-          tmSource(tm.id),
-        ),
+    // Always poll JM log
+    const jmEntries = await fetchAndParseDelta(
+      () => fetchJobManagerLog(),
+      "jm",
+      JM_SOURCE,
     )
+    allEntries.push(...jmEntries)
 
-    const tmResults = await runWithConcurrency(tmTasks, TM_CONCURRENCY_CAP)
-    for (const entries of tmResults) {
-      allEntries.push(...entries)
-    }
-  }
+    // Poll SQL Gateway log (silently skips if not available)
+    const sgwEntries = await fetchAndParseDelta(
+      () => fetchSQLGatewayLog(),
+      "sgw",
+      SGW_SOURCE,
+    )
+    allEntries.push(...sgwEntries)
 
-  if (allEntries.length > 0) {
-    // Sort by timestamp before appending
-    allEntries.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
-    appendEntries(allEntries)
+    // Poll TM logs (IDs from cluster-store)
+    const tms = useClusterStore.getState().taskManagers
+    if (tms.length > 0) {
+      const tmTasks = tms.map(
+        (tm) => () =>
+          fetchAndParseDelta(
+            () => fetchTaskManagerLog(tm.id),
+            `tm:${tm.id}`,
+            tmSource(tm.id),
+          ),
+      )
 
-    // Feed exceptions from the log stream into the error store
-    const { processEntry } = useErrorStore.getState()
-    for (const entry of allEntries) {
-      if (entry.isException) {
-        processEntry(entry)
+      const tmResults = await runWithConcurrency(tmTasks, TM_CONCURRENCY_CAP)
+      for (const entries of tmResults) {
+        allEntries.push(...entries)
       }
     }
+
+    if (allEntries.length > 0) {
+      // Sort by timestamp before appending
+      allEntries.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+      appendEntries(allEntries)
+
+      // Feed exceptions from the log stream into the error store
+      const { processEntry } = useErrorStore.getState()
+      for (const entry of allEntries) {
+        if (entry.isException) {
+          processEntry(entry)
+        }
+      }
+    }
+  } finally {
+    polling = false
   }
 }
 
@@ -227,6 +235,9 @@ export const useLogStore = create<LogStore>((set, get) => ({
   },
 
   clear: () => {
+    for (const key of Object.keys(lastOffset)) {
+      delete lastOffset[key]
+    }
     set({ entries: [] })
   },
 
@@ -251,13 +262,11 @@ export const useLogStore = create<LogStore>((set, get) => ({
   },
 
   startStreaming: () => {
+    if (get().isStreaming) return
+
     log.info("LIVE → polling JM/TM/SGW log endpoints", {
       screen: "Log Explorer",
     })
-    // Reset offsets on fresh start
-    for (const key of Object.keys(lastOffset)) {
-      delete lastOffset[key]
-    }
 
     // Run initial poll immediately, then set up interval
     pollLogs(get().appendEntries)
