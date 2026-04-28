@@ -1,0 +1,53 @@
+query SchemaSubjects($instrument: String!) {
+  schemaSubjects(instrument: $instrument) {
+    name
+    latestVersion
+    schemaType
+    schemaId
+    compatibility
+  }
+}
+
+query SchemaVersions($instrument: String!, $subject: String!) {
+  schemaVersions(instrument: $instrument, subject: $subject)
+}
+
+query SchemaDetail(
+  $instrument: String!
+  $subject: String!
+  $version: Int!
+) {
+  schemaDetail(
+    instrument: $instrument
+    subject: $subject
+    version: $version
+  ) {
+    subject
+    version
+    id
+    schemaType
+    schema
+    references {
+      name
+      subject
+      version
+    }
+  }
+}
+
+mutation CheckSchemaCompatibility(
+  $instrument: String!
+  $subject: String!
+  $schema: String!
+  $schemaType: String!
+) {
+  checkSchemaCompatibility(
+    instrument: $instrument
+    subject: $subject
+    schema: $schema
+    schemaType: $schemaType
+  ) {
+    isCompatible
+    messages
+  }
+}

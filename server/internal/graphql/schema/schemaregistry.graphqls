@@ -1,0 +1,74 @@
+"""
+A subject in the Schema Registry, with metadata about its latest version.
+"""
+type SchemaSubject {
+  name: String!
+  latestVersion: Int!
+  schemaType: String!
+  schemaId: Int!
+  compatibility: String!
+}
+
+"""
+A cross-subject reference embedded in a schema.
+"""
+type SchemaReference {
+  name: String!
+  subject: String!
+  version: Int!
+}
+
+"""
+The full content of a single schema version.
+"""
+type SchemaDetail {
+  subject: String!
+  version: Int!
+  id: Int!
+  schemaType: String!
+  schema: String!
+  references: [SchemaReference!]!
+}
+
+"""
+The result of a compatibility check. `messages` describes incompatibilities
+when `isCompatible` is false; empty otherwise.
+"""
+type CompatibilityResult {
+  isCompatible: Boolean!
+  messages: [String!]!
+}
+
+extend type Query {
+  """
+  List all subjects in the Schema Registry, with their latest version metadata.
+  """
+  schemaSubjects(instrument: String!): [SchemaSubject!]!
+
+  """
+  List the version numbers registered for a subject.
+  """
+  schemaVersions(instrument: String!, subject: String!): [Int!]!
+
+  """
+  Get the full schema for a specific subject and version.
+  """
+  schemaDetail(
+    instrument: String!
+    subject: String!
+    version: Int!
+  ): SchemaDetail!
+}
+
+extend type Mutation {
+  """
+  Check whether a candidate schema is compatible with the latest version of a
+  subject. This is read-only on the registry — the schema is not registered.
+  """
+  checkSchemaCompatibility(
+    instrument: String!
+    subject: String!
+    schema: String!
+    schemaType: String!
+  ): CompatibilityResult!
+}

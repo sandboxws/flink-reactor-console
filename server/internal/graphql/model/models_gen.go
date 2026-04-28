@@ -208,6 +208,13 @@ type ColumnInfo struct {
 	Type string `json:"type"`
 }
 
+// The result of a compatibility check. `messages` describes incompatibilities
+// when `isCompatible` is false; empty otherwise.
+type CompatibilityResult struct {
+	IsCompatible bool     `json:"isCompatible"`
+	Messages     []string `json:"messages"`
+}
+
 // I/O throughput metrics for a connector
 type ConnectorMetrics struct {
 	// Records read (for sources)
@@ -862,6 +869,32 @@ type SQLStatementResult struct {
 
 type SavepointTriggerResult struct {
 	RequestID string `json:"requestId"`
+}
+
+// The full content of a single schema version.
+type SchemaDetail struct {
+	Subject    string             `json:"subject"`
+	Version    int                `json:"version"`
+	ID         int                `json:"id"`
+	SchemaType string             `json:"schemaType"`
+	Schema     string             `json:"schema"`
+	References []*SchemaReference `json:"references"`
+}
+
+// A cross-subject reference embedded in a schema.
+type SchemaReference struct {
+	Name    string `json:"name"`
+	Subject string `json:"subject"`
+	Version int    `json:"version"`
+}
+
+// A subject in the Schema Registry, with metadata about its latest version.
+type SchemaSubject struct {
+	Name          string `json:"name"`
+	LatestVersion int    `json:"latestVersion"`
+	SchemaType    string `json:"schemaType"`
+	SchemaID      int    `json:"schemaId"`
+	Compatibility string `json:"compatibility"`
 }
 
 type SimulationInput struct {

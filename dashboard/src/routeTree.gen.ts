@@ -40,8 +40,11 @@ import { Route as InstrumentsInstrumentNameIndexRouteImport } from './routes/ins
 import { Route as AdminSimulationsIndexRouteImport } from './routes/admin/simulations/index'
 import { Route as AdminBenchmarksIndexRouteImport } from './routes/admin/benchmarks/index'
 import { Route as AdminSimulationsRunIdRouteImport } from './routes/admin/simulations/$runId'
+import { Route as InstrumentsInstrumentNameSchemaRegistryIndexRouteImport } from './routes/instruments/$instrumentName/schema-registry/index'
 import { Route as InstrumentsInstrumentNameRedisIndexRouteImport } from './routes/instruments/$instrumentName/redis/index'
 import { Route as InstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/instruments/$instrumentName/database/index'
+import { Route as InstrumentsInstrumentNameSchemaRegistrySubjectRouteImport } from './routes/instruments/$instrumentName/schema-registry/subject'
+import { Route as InstrumentsInstrumentNameSchemaRegistryCompatibilityRouteImport } from './routes/instruments/$instrumentName/schema-registry/compatibility'
 import { Route as InstrumentsInstrumentNameRedisServerRouteImport } from './routes/instruments/$instrumentName/redis/server'
 import { Route as InstrumentsInstrumentNameRedisKeyRouteImport } from './routes/instruments/$instrumentName/redis/key'
 import { Route as InstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/instruments/$instrumentName/database/table'
@@ -204,6 +207,12 @@ const AdminSimulationsRunIdRoute = AdminSimulationsRunIdRouteImport.update({
   path: '/admin/simulations/$runId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstrumentsInstrumentNameSchemaRegistryIndexRoute =
+  InstrumentsInstrumentNameSchemaRegistryIndexRouteImport.update({
+    id: '/schema-registry/',
+    path: '/schema-registry/',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
 const InstrumentsInstrumentNameRedisIndexRoute =
   InstrumentsInstrumentNameRedisIndexRouteImport.update({
     id: '/redis/',
@@ -214,6 +223,18 @@ const InstrumentsInstrumentNameDatabaseIndexRoute =
   InstrumentsInstrumentNameDatabaseIndexRouteImport.update({
     id: '/database/',
     path: '/database/',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
+const InstrumentsInstrumentNameSchemaRegistrySubjectRoute =
+  InstrumentsInstrumentNameSchemaRegistrySubjectRouteImport.update({
+    id: '/schema-registry/subject',
+    path: '/schema-registry/subject',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
+const InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute =
+  InstrumentsInstrumentNameSchemaRegistryCompatibilityRouteImport.update({
+    id: '/schema-registry/compatibility',
+    path: '/schema-registry/compatibility',
     getParentRoute: () => InstrumentsInstrumentNameRoute,
   } as any)
 const InstrumentsInstrumentNameRedisServerRoute =
@@ -277,8 +298,11 @@ export interface FileRoutesByFullPath {
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/redis/key': typeof InstrumentsInstrumentNameRedisKeyRoute
   '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
+  '/instruments/$instrumentName/schema-registry/compatibility': typeof InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
+  '/instruments/$instrumentName/schema-registry/subject': typeof InstrumentsInstrumentNameSchemaRegistrySubjectRoute
   '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
   '/instruments/$instrumentName/redis/': typeof InstrumentsInstrumentNameRedisIndexRoute
+  '/instruments/$instrumentName/schema-registry/': typeof InstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -315,8 +339,11 @@ export interface FileRoutesByTo {
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/redis/key': typeof InstrumentsInstrumentNameRedisKeyRoute
   '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
+  '/instruments/$instrumentName/schema-registry/compatibility': typeof InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
+  '/instruments/$instrumentName/schema-registry/subject': typeof InstrumentsInstrumentNameSchemaRegistrySubjectRoute
   '/instruments/$instrumentName/database': typeof InstrumentsInstrumentNameDatabaseIndexRoute
   '/instruments/$instrumentName/redis': typeof InstrumentsInstrumentNameRedisIndexRoute
+  '/instruments/$instrumentName/schema-registry': typeof InstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -355,8 +382,11 @@ export interface FileRoutesById {
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/redis/key': typeof InstrumentsInstrumentNameRedisKeyRoute
   '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
+  '/instruments/$instrumentName/schema-registry/compatibility': typeof InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
+  '/instruments/$instrumentName/schema-registry/subject': typeof InstrumentsInstrumentNameSchemaRegistrySubjectRoute
   '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
   '/instruments/$instrumentName/redis/': typeof InstrumentsInstrumentNameRedisIndexRoute
+  '/instruments/$instrumentName/schema-registry/': typeof InstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -396,8 +426,11 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/redis/key'
     | '/instruments/$instrumentName/redis/server'
+    | '/instruments/$instrumentName/schema-registry/compatibility'
+    | '/instruments/$instrumentName/schema-registry/subject'
     | '/instruments/$instrumentName/database/'
     | '/instruments/$instrumentName/redis/'
+    | '/instruments/$instrumentName/schema-registry/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -434,8 +467,11 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/redis/key'
     | '/instruments/$instrumentName/redis/server'
+    | '/instruments/$instrumentName/schema-registry/compatibility'
+    | '/instruments/$instrumentName/schema-registry/subject'
     | '/instruments/$instrumentName/database'
     | '/instruments/$instrumentName/redis'
+    | '/instruments/$instrumentName/schema-registry'
   id:
     | '__root__'
     | '/'
@@ -473,8 +509,11 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/redis/key'
     | '/instruments/$instrumentName/redis/server'
+    | '/instruments/$instrumentName/schema-registry/compatibility'
+    | '/instruments/$instrumentName/schema-registry/subject'
     | '/instruments/$instrumentName/database/'
     | '/instruments/$instrumentName/redis/'
+    | '/instruments/$instrumentName/schema-registry/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -729,6 +768,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSimulationsRunIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instruments/$instrumentName/schema-registry/': {
+      id: '/instruments/$instrumentName/schema-registry/'
+      path: '/schema-registry'
+      fullPath: '/instruments/$instrumentName/schema-registry/'
+      preLoaderRoute: typeof InstrumentsInstrumentNameSchemaRegistryIndexRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
     '/instruments/$instrumentName/redis/': {
       id: '/instruments/$instrumentName/redis/'
       path: '/redis'
@@ -741,6 +787,20 @@ declare module '@tanstack/react-router' {
       path: '/database'
       fullPath: '/instruments/$instrumentName/database/'
       preLoaderRoute: typeof InstrumentsInstrumentNameDatabaseIndexRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
+    '/instruments/$instrumentName/schema-registry/subject': {
+      id: '/instruments/$instrumentName/schema-registry/subject'
+      path: '/schema-registry/subject'
+      fullPath: '/instruments/$instrumentName/schema-registry/subject'
+      preLoaderRoute: typeof InstrumentsInstrumentNameSchemaRegistrySubjectRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
+    '/instruments/$instrumentName/schema-registry/compatibility': {
+      id: '/instruments/$instrumentName/schema-registry/compatibility'
+      path: '/schema-registry/compatibility'
+      fullPath: '/instruments/$instrumentName/schema-registry/compatibility'
+      preLoaderRoute: typeof InstrumentsInstrumentNameSchemaRegistryCompatibilityRouteImport
       parentRoute: typeof InstrumentsInstrumentNameRoute
     }
     '/instruments/$instrumentName/redis/server': {
@@ -780,8 +840,11 @@ interface InstrumentsInstrumentNameRouteChildren {
   InstrumentsInstrumentNameDatabaseTableRoute: typeof InstrumentsInstrumentNameDatabaseTableRoute
   InstrumentsInstrumentNameRedisKeyRoute: typeof InstrumentsInstrumentNameRedisKeyRoute
   InstrumentsInstrumentNameRedisServerRoute: typeof InstrumentsInstrumentNameRedisServerRoute
+  InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute: typeof InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
+  InstrumentsInstrumentNameSchemaRegistrySubjectRoute: typeof InstrumentsInstrumentNameSchemaRegistrySubjectRoute
   InstrumentsInstrumentNameDatabaseIndexRoute: typeof InstrumentsInstrumentNameDatabaseIndexRoute
   InstrumentsInstrumentNameRedisIndexRoute: typeof InstrumentsInstrumentNameRedisIndexRoute
+  InstrumentsInstrumentNameSchemaRegistryIndexRoute: typeof InstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
 
 const InstrumentsInstrumentNameRouteChildren: InstrumentsInstrumentNameRouteChildren =
@@ -795,10 +858,16 @@ const InstrumentsInstrumentNameRouteChildren: InstrumentsInstrumentNameRouteChil
       InstrumentsInstrumentNameRedisKeyRoute,
     InstrumentsInstrumentNameRedisServerRoute:
       InstrumentsInstrumentNameRedisServerRoute,
+    InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute:
+      InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute,
+    InstrumentsInstrumentNameSchemaRegistrySubjectRoute:
+      InstrumentsInstrumentNameSchemaRegistrySubjectRoute,
     InstrumentsInstrumentNameDatabaseIndexRoute:
       InstrumentsInstrumentNameDatabaseIndexRoute,
     InstrumentsInstrumentNameRedisIndexRoute:
       InstrumentsInstrumentNameRedisIndexRoute,
+    InstrumentsInstrumentNameSchemaRegistryIndexRoute:
+      InstrumentsInstrumentNameSchemaRegistryIndexRoute,
   }
 
 const InstrumentsInstrumentNameRouteWithChildren =

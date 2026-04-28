@@ -250,6 +250,16 @@ export type ColumnInfo = {
   type: Scalars['String']['output'];
 };
 
+/**
+ * The result of a compatibility check. `messages` describes incompatibilities
+ * when `isCompatible` is false; empty otherwise.
+ */
+export type CompatibilityResult = {
+  __typename?: 'CompatibilityResult';
+  isCompatible: Scalars['Boolean']['output'];
+  messages: Array<Scalars['String']['output']>;
+};
+
 /** I/O throughput metrics for a connector */
 export type ConnectorMetrics = {
   __typename?: 'ConnectorMetrics';
@@ -817,6 +827,11 @@ export type Mutation = {
   __typename?: 'Mutation';
   /** Cancel a running job */
   cancelJob: CancelJobResult;
+  /**
+   * Check whether a candidate schema is compatible with the latest version of a
+   * subject. This is read-only on the registry — the schema is not registered.
+   */
+  checkSchemaCompatibility: CompatibilityResult;
   /** Close a SQL Gateway session */
   closeSQLSession: SqlCloseResult;
   /** Create a new SQL Gateway session */
@@ -858,6 +873,14 @@ export type Mutation = {
 export type MutationCancelJobArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationCheckSchemaCompatibilityArgs = {
+  instrument: Scalars['String']['input'];
+  schema: Scalars['String']['input'];
+  schemaType: Scalars['String']['input'];
+  subject: Scalars['String']['input'];
 };
 
 
@@ -1102,6 +1125,12 @@ export type Query = {
   redisScan: RedisScanResult;
   /** Get high-level Redis server stats (version, uptime, memory, keyspace). */
   redisServerInfo: RedisServerInfo;
+  /** Get the full schema for a specific subject and version. */
+  schemaDetail: SchemaDetail;
+  /** List all subjects in the Schema Registry, with their latest version metadata. */
+  schemaSubjects: Array<SchemaSubject>;
+  /** List the version numbers registered for a subject. */
+  schemaVersions: Array<Scalars['Int']['output']>;
   /** Run pre-flight checks verifying minikube infrastructure is ready for simulations. */
   simulationPreflight: Array<PreflightCheck>;
   /** List available simulation presets */
@@ -1350,6 +1379,24 @@ export type QueryRedisServerInfoArgs = {
 };
 
 
+export type QuerySchemaDetailArgs = {
+  instrument: Scalars['String']['input'];
+  subject: Scalars['String']['input'];
+  version: Scalars['Int']['input'];
+};
+
+
+export type QuerySchemaSubjectsArgs = {
+  instrument: Scalars['String']['input'];
+};
+
+
+export type QuerySchemaVersionsArgs = {
+  instrument: Scalars['String']['input'];
+  subject: Scalars['String']['input'];
+};
+
+
 export type QuerySimulationRunArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1520,6 +1567,35 @@ export type SqlStatementResult = {
 export type SavepointTriggerResult = {
   __typename?: 'SavepointTriggerResult';
   requestId: Scalars['String']['output'];
+};
+
+/** The full content of a single schema version. */
+export type SchemaDetail = {
+  __typename?: 'SchemaDetail';
+  id: Scalars['Int']['output'];
+  references: Array<SchemaReference>;
+  schema: Scalars['String']['output'];
+  schemaType: Scalars['String']['output'];
+  subject: Scalars['String']['output'];
+  version: Scalars['Int']['output'];
+};
+
+/** A cross-subject reference embedded in a schema. */
+export type SchemaReference = {
+  __typename?: 'SchemaReference';
+  name: Scalars['String']['output'];
+  subject: Scalars['String']['output'];
+  version: Scalars['Int']['output'];
+};
+
+/** A subject in the Schema Registry, with metadata about its latest version. */
+export type SchemaSubject = {
+  __typename?: 'SchemaSubject';
+  compatibility: Scalars['String']['output'];
+  latestVersion: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  schemaId: Scalars['Int']['output'];
+  schemaType: Scalars['String']['output'];
 };
 
 export type SimulationInput = {
@@ -2052,6 +2128,40 @@ export type RedisMemoryStatsQueryVariables = Exact<{
 
 
 export type RedisMemoryStatsQuery = { __typename?: 'Query', redisMemoryStats: { __typename?: 'RedisMemoryStats', usedMemory: number, peakMemory: number, rss: number, fragmentationRatio: number, datasetSize: number, overhead: number, allocator: string } };
+
+export type SchemaSubjectsQueryVariables = Exact<{
+  instrument: Scalars['String']['input'];
+}>;
+
+
+export type SchemaSubjectsQuery = { __typename?: 'Query', schemaSubjects: Array<{ __typename?: 'SchemaSubject', name: string, latestVersion: number, schemaType: string, schemaId: number, compatibility: string }> };
+
+export type SchemaVersionsQueryVariables = Exact<{
+  instrument: Scalars['String']['input'];
+  subject: Scalars['String']['input'];
+}>;
+
+
+export type SchemaVersionsQuery = { __typename?: 'Query', schemaVersions: Array<number> };
+
+export type SchemaDetailQueryVariables = Exact<{
+  instrument: Scalars['String']['input'];
+  subject: Scalars['String']['input'];
+  version: Scalars['Int']['input'];
+}>;
+
+
+export type SchemaDetailQuery = { __typename?: 'Query', schemaDetail: { __typename?: 'SchemaDetail', subject: string, version: number, id: number, schemaType: string, schema: string, references: Array<{ __typename?: 'SchemaReference', name: string, subject: string, version: number }> } };
+
+export type CheckSchemaCompatibilityMutationVariables = Exact<{
+  instrument: Scalars['String']['input'];
+  subject: Scalars['String']['input'];
+  schema: Scalars['String']['input'];
+  schemaType: Scalars['String']['input'];
+}>;
+
+
+export type CheckSchemaCompatibilityMutation = { __typename?: 'Mutation', checkSchemaCompatibility: { __typename?: 'CompatibilityResult', isCompatible: boolean, messages: Array<string> } };
 
 export type CreateSqlSessionMutationVariables = Exact<{
   cluster: InputMaybe<Scalars['String']['input']>;
