@@ -1,0 +1,71 @@
+query RedisScan(
+  $instrument: String!
+  $cursor: String
+  $pattern: String
+  $count: Int
+) {
+  redisScan(
+    instrument: $instrument
+    cursor: $cursor
+    pattern: $pattern
+    count: $count
+  ) {
+    keys
+    cursor
+    hasMore
+  }
+}
+
+query RedisKeyInfo($instrument: String!, $key: String!) {
+  redisKeyInfo(instrument: $instrument, key: $key) {
+    key
+    type
+    ttl
+    encoding
+    memoryUsage
+  }
+}
+
+query RedisKeyValue($instrument: String!, $key: String!) {
+  redisKeyValue(instrument: $instrument, key: $key) {
+    key
+    type
+    stringValue
+    hashValue {
+      field
+      value
+    }
+    listValue
+    setValue
+    zsetValue {
+      member
+      score
+    }
+    truncated
+    totalSize
+  }
+}
+
+query RedisServerInfo($instrument: String!) {
+  redisServerInfo(instrument: $instrument) {
+    version
+    uptime
+    connectedClients
+    usedMemory
+    totalKeys
+    keyspaceHits
+    keyspaceMisses
+  }
+}
+
+query RedisMemoryStats($instrument: String!) {
+  redisMemoryStats(instrument: $instrument) {
+    usedMemory
+    peakMemory
+    rss
+    fragmentationRatio
+    datasetSize
+    overhead
+    allocator
+  }
+}

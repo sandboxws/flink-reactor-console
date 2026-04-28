@@ -40,7 +40,10 @@ import { Route as InstrumentsInstrumentNameIndexRouteImport } from './routes/ins
 import { Route as AdminSimulationsIndexRouteImport } from './routes/admin/simulations/index'
 import { Route as AdminBenchmarksIndexRouteImport } from './routes/admin/benchmarks/index'
 import { Route as AdminSimulationsRunIdRouteImport } from './routes/admin/simulations/$runId'
+import { Route as InstrumentsInstrumentNameRedisIndexRouteImport } from './routes/instruments/$instrumentName/redis/index'
 import { Route as InstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/instruments/$instrumentName/database/index'
+import { Route as InstrumentsInstrumentNameRedisServerRouteImport } from './routes/instruments/$instrumentName/redis/server'
+import { Route as InstrumentsInstrumentNameRedisKeyRouteImport } from './routes/instruments/$instrumentName/redis/key'
 import { Route as InstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/instruments/$instrumentName/database/table'
 import { Route as InstrumentsInstrumentNameDatabaseQueryRouteImport } from './routes/instruments/$instrumentName/database/query'
 
@@ -201,10 +204,28 @@ const AdminSimulationsRunIdRoute = AdminSimulationsRunIdRouteImport.update({
   path: '/admin/simulations/$runId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstrumentsInstrumentNameRedisIndexRoute =
+  InstrumentsInstrumentNameRedisIndexRouteImport.update({
+    id: '/redis/',
+    path: '/redis/',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
 const InstrumentsInstrumentNameDatabaseIndexRoute =
   InstrumentsInstrumentNameDatabaseIndexRouteImport.update({
     id: '/database/',
     path: '/database/',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
+const InstrumentsInstrumentNameRedisServerRoute =
+  InstrumentsInstrumentNameRedisServerRouteImport.update({
+    id: '/redis/server',
+    path: '/redis/server',
+    getParentRoute: () => InstrumentsInstrumentNameRoute,
+  } as any)
+const InstrumentsInstrumentNameRedisKeyRoute =
+  InstrumentsInstrumentNameRedisKeyRouteImport.update({
+    id: '/redis/key',
+    path: '/redis/key',
     getParentRoute: () => InstrumentsInstrumentNameRoute,
   } as any)
 const InstrumentsInstrumentNameDatabaseTableRoute =
@@ -254,7 +275,10 @@ export interface FileRoutesByFullPath {
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
+  '/instruments/$instrumentName/redis/key': typeof InstrumentsInstrumentNameRedisKeyRoute
+  '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
   '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
+  '/instruments/$instrumentName/redis/': typeof InstrumentsInstrumentNameRedisIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -289,7 +313,10 @@ export interface FileRoutesByTo {
   '/instruments/$instrumentName': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
+  '/instruments/$instrumentName/redis/key': typeof InstrumentsInstrumentNameRedisKeyRoute
+  '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
   '/instruments/$instrumentName/database': typeof InstrumentsInstrumentNameDatabaseIndexRoute
+  '/instruments/$instrumentName/redis': typeof InstrumentsInstrumentNameRedisIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -326,7 +353,10 @@ export interface FileRoutesById {
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
+  '/instruments/$instrumentName/redis/key': typeof InstrumentsInstrumentNameRedisKeyRoute
+  '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
   '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
+  '/instruments/$instrumentName/redis/': typeof InstrumentsInstrumentNameRedisIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -364,7 +394,10 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
+    | '/instruments/$instrumentName/redis/key'
+    | '/instruments/$instrumentName/redis/server'
     | '/instruments/$instrumentName/database/'
+    | '/instruments/$instrumentName/redis/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -399,7 +432,10 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
+    | '/instruments/$instrumentName/redis/key'
+    | '/instruments/$instrumentName/redis/server'
     | '/instruments/$instrumentName/database'
+    | '/instruments/$instrumentName/redis'
   id:
     | '__root__'
     | '/'
@@ -435,7 +471,10 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
+    | '/instruments/$instrumentName/redis/key'
+    | '/instruments/$instrumentName/redis/server'
     | '/instruments/$instrumentName/database/'
+    | '/instruments/$instrumentName/redis/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -690,11 +729,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSimulationsRunIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instruments/$instrumentName/redis/': {
+      id: '/instruments/$instrumentName/redis/'
+      path: '/redis'
+      fullPath: '/instruments/$instrumentName/redis/'
+      preLoaderRoute: typeof InstrumentsInstrumentNameRedisIndexRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
     '/instruments/$instrumentName/database/': {
       id: '/instruments/$instrumentName/database/'
       path: '/database'
       fullPath: '/instruments/$instrumentName/database/'
       preLoaderRoute: typeof InstrumentsInstrumentNameDatabaseIndexRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
+    '/instruments/$instrumentName/redis/server': {
+      id: '/instruments/$instrumentName/redis/server'
+      path: '/redis/server'
+      fullPath: '/instruments/$instrumentName/redis/server'
+      preLoaderRoute: typeof InstrumentsInstrumentNameRedisServerRouteImport
+      parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
+    '/instruments/$instrumentName/redis/key': {
+      id: '/instruments/$instrumentName/redis/key'
+      path: '/redis/key'
+      fullPath: '/instruments/$instrumentName/redis/key'
+      preLoaderRoute: typeof InstrumentsInstrumentNameRedisKeyRouteImport
       parentRoute: typeof InstrumentsInstrumentNameRoute
     }
     '/instruments/$instrumentName/database/table': {
@@ -718,7 +778,10 @@ interface InstrumentsInstrumentNameRouteChildren {
   InstrumentsInstrumentNameIndexRoute: typeof InstrumentsInstrumentNameIndexRoute
   InstrumentsInstrumentNameDatabaseQueryRoute: typeof InstrumentsInstrumentNameDatabaseQueryRoute
   InstrumentsInstrumentNameDatabaseTableRoute: typeof InstrumentsInstrumentNameDatabaseTableRoute
+  InstrumentsInstrumentNameRedisKeyRoute: typeof InstrumentsInstrumentNameRedisKeyRoute
+  InstrumentsInstrumentNameRedisServerRoute: typeof InstrumentsInstrumentNameRedisServerRoute
   InstrumentsInstrumentNameDatabaseIndexRoute: typeof InstrumentsInstrumentNameDatabaseIndexRoute
+  InstrumentsInstrumentNameRedisIndexRoute: typeof InstrumentsInstrumentNameRedisIndexRoute
 }
 
 const InstrumentsInstrumentNameRouteChildren: InstrumentsInstrumentNameRouteChildren =
@@ -728,8 +791,14 @@ const InstrumentsInstrumentNameRouteChildren: InstrumentsInstrumentNameRouteChil
       InstrumentsInstrumentNameDatabaseQueryRoute,
     InstrumentsInstrumentNameDatabaseTableRoute:
       InstrumentsInstrumentNameDatabaseTableRoute,
+    InstrumentsInstrumentNameRedisKeyRoute:
+      InstrumentsInstrumentNameRedisKeyRoute,
+    InstrumentsInstrumentNameRedisServerRoute:
+      InstrumentsInstrumentNameRedisServerRoute,
     InstrumentsInstrumentNameDatabaseIndexRoute:
       InstrumentsInstrumentNameDatabaseIndexRoute,
+    InstrumentsInstrumentNameRedisIndexRoute:
+      InstrumentsInstrumentNameRedisIndexRoute,
   }
 
 const InstrumentsInstrumentNameRouteWithChildren =

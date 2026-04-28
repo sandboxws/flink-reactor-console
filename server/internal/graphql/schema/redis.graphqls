@@ -1,0 +1,112 @@
+"""
+Result of a Redis SCAN operation: a batch of keys plus the cursor for the next
+page (or "0" when iteration is complete).
+"""
+type RedisScanResult {
+  keys: [String!]!
+  cursor: String!
+  hasMore: Boolean!
+}
+
+"""
+Metadata about a single Redis key.
+"""
+type RedisKeyInfo {
+  key: String!
+  type: String!
+  ttl: Int!
+  encoding: String!
+  memoryUsage: Int!
+}
+
+"""
+A single field/value pair from a Redis HASH.
+"""
+type RedisHashEntry {
+  field: String!
+  value: String!
+}
+
+"""
+A single member/score pair from a Redis ZSET.
+"""
+type RedisZSetEntry {
+  member: String!
+  score: Float!
+}
+
+"""
+The type-aware value of a Redis key. Only the field corresponding to `type` is
+populated; the others are null.
+"""
+type RedisKeyValue {
+  key: String!
+  type: String!
+  stringValue: String
+  hashValue: [RedisHashEntry!]
+  listValue: [String!]
+  setValue: [String!]
+  zsetValue: [RedisZSetEntry!]
+  truncated: Boolean!
+  totalSize: Int!
+}
+
+"""
+High-level Redis server statistics parsed from INFO.
+"""
+type RedisServerInfo {
+  version: String!
+  uptime: Int!
+  connectedClients: Int!
+  usedMemory: Int!
+  totalKeys: Int!
+  keyspaceHits: Int!
+  keyspaceMisses: Int!
+}
+
+"""
+Memory breakdown parsed from INFO memory.
+"""
+type RedisMemoryStats {
+  usedMemory: Int!
+  peakMemory: Int!
+  rss: Int!
+  fragmentationRatio: Float!
+  datasetSize: Int!
+  overhead: Int!
+  allocator: String!
+}
+
+extend type Query {
+  """
+  Scan keys for a Redis instrument. Use cursor "0" to start; pass the returned
+  cursor to fetch the next batch. `hasMore` is false when iteration is done.
+  """
+  redisScan(
+    instrument: String!
+    cursor: String
+    pattern: String
+    count: Int
+  ): RedisScanResult!
+
+  """
+  Get metadata (type, TTL, encoding, memory usage) for a single key.
+  """
+  redisKeyInfo(instrument: String!, key: String!): RedisKeyInfo!
+
+  """
+  Get the type-aware value of a single key. Strings are truncated at 10KB;
+  collections are limited to 100 entries.
+  """
+  redisKeyValue(instrument: String!, key: String!): RedisKeyValue!
+
+  """
+  Get high-level Redis server stats (version, uptime, memory, keyspace).
+  """
+  redisServerInfo(instrument: String!): RedisServerInfo!
+
+  """
+  Get the parsed INFO memory section.
+  """
+  redisMemoryStats(instrument: String!): RedisMemoryStats!
+}

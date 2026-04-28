@@ -6,6 +6,7 @@ import (
 
 	dbinst "github.com/sandboxws/flink-reactor-instruments/database"
 	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
+	redisinst "github.com/sandboxws/flink-reactor-instruments/redis"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 )
 
@@ -45,6 +46,21 @@ func (r *Resolver) resolveDatabaseInstrument(instrument string) (*dbinst.Instrum
 		return nil, fmt.Errorf("instrument %q is not a Database instrument", instrument)
 	}
 	return di, nil
+}
+
+func (r *queryResolver) resolveRedisInstrument(instrument string) (*redisinst.Instrument, error) {
+	if r.InstrumentRegistry == nil {
+		return nil, fmt.Errorf("instruments not configured")
+	}
+	inst, err := r.InstrumentRegistry.Get(instrument)
+	if err != nil {
+		return nil, err
+	}
+	ri, ok := inst.(*redisinst.Instrument)
+	if !ok {
+		return nil, fmt.Errorf("instrument %q is not a Redis instrument", instrument)
+	}
+	return ri, nil
 }
 
 // i64 converts an int64 to string for GraphQL String! fields.

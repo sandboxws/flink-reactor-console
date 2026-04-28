@@ -753,6 +753,71 @@ type PreflightCheck struct {
 type Query struct {
 }
 
+// A single field/value pair from a Redis HASH.
+type RedisHashEntry struct {
+	Field string `json:"field"`
+	Value string `json:"value"`
+}
+
+// Metadata about a single Redis key.
+type RedisKeyInfo struct {
+	Key         string `json:"key"`
+	Type        string `json:"type"`
+	TTL         int    `json:"ttl"`
+	Encoding    string `json:"encoding"`
+	MemoryUsage int    `json:"memoryUsage"`
+}
+
+// The type-aware value of a Redis key. Only the field corresponding to `type` is
+// populated; the others are null.
+type RedisKeyValue struct {
+	Key         string            `json:"key"`
+	Type        string            `json:"type"`
+	StringValue *string           `json:"stringValue,omitempty"`
+	HashValue   []*RedisHashEntry `json:"hashValue,omitempty"`
+	ListValue   []string          `json:"listValue,omitempty"`
+	SetValue    []string          `json:"setValue,omitempty"`
+	ZsetValue   []*RedisZSetEntry `json:"zsetValue,omitempty"`
+	Truncated   bool              `json:"truncated"`
+	TotalSize   int               `json:"totalSize"`
+}
+
+// Memory breakdown parsed from INFO memory.
+type RedisMemoryStats struct {
+	UsedMemory         int     `json:"usedMemory"`
+	PeakMemory         int     `json:"peakMemory"`
+	Rss                int     `json:"rss"`
+	FragmentationRatio float64 `json:"fragmentationRatio"`
+	DatasetSize        int     `json:"datasetSize"`
+	Overhead           int     `json:"overhead"`
+	Allocator          string  `json:"allocator"`
+}
+
+// Result of a Redis SCAN operation: a batch of keys plus the cursor for the next
+// page (or "0" when iteration is complete).
+type RedisScanResult struct {
+	Keys    []string `json:"keys"`
+	Cursor  string   `json:"cursor"`
+	HasMore bool     `json:"hasMore"`
+}
+
+// High-level Redis server statistics parsed from INFO.
+type RedisServerInfo struct {
+	Version          string `json:"version"`
+	Uptime           int    `json:"uptime"`
+	ConnectedClients int    `json:"connectedClients"`
+	UsedMemory       int    `json:"usedMemory"`
+	TotalKeys        int    `json:"totalKeys"`
+	KeyspaceHits     int    `json:"keyspaceHits"`
+	KeyspaceMisses   int    `json:"keyspaceMisses"`
+}
+
+// A single member/score pair from a Redis ZSET.
+type RedisZSetEntry struct {
+	Member string  `json:"member"`
+	Score  float64 `json:"score"`
+}
+
 type RescaleResult struct {
 	RequestID string `json:"requestId"`
 }

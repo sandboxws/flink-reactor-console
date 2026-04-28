@@ -12,6 +12,7 @@ import (
 	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor-instruments/database"
 	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
+	redisinst "github.com/sandboxws/flink-reactor-instruments/redis"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
@@ -63,6 +64,8 @@ func run() int {
 			registry.Register(kafkainst.NewInstrument(instCfg.Name))
 		case "database":
 			registry.Register(database.NewInstrument(instCfg.Name, logger))
+		case "redis":
+			registry.Register(redisinst.NewInstrument(instCfg.Name))
 		default:
 			logger.Warn("unknown instrument type", "type", instCfg.Type, "name", instCfg.Name)
 		}

@@ -663,6 +663,11 @@ type ComplexityRoot struct {
 		MetricCatalog          func(childComplexity int, clusterID string) int
 		MetricHistory          func(childComplexity int, filter model.MetricHistoryFilter) int
 		MetricSeries           func(childComplexity int, clusterID string, series []*model.MetricSeriesRequest, after string, before string, maxPoints *int) int
+		RedisKeyInfo           func(childComplexity int, instrument string, key string) int
+		RedisKeyValue          func(childComplexity int, instrument string, key string) int
+		RedisMemoryStats       func(childComplexity int, instrument string) int
+		RedisScan              func(childComplexity int, instrument string, cursor *string, pattern *string, count *int) int
+		RedisServerInfo        func(childComplexity int, instrument string) int
 		SimulationPreflight    func(childComplexity int) int
 		SimulationPresets      func(childComplexity int) int
 		SimulationRun          func(childComplexity int, id string) int
@@ -675,6 +680,62 @@ type ComplexityRoot struct {
 		TaskManagerThreadDump  func(childComplexity int, id string, cluster *string) int
 		TaskManagers           func(childComplexity int, cluster *string) int
 		VertexDetail           func(childComplexity int, jobID string, vertexID string, cluster *string) int
+	}
+
+	RedisHashEntry struct {
+		Field func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
+	RedisKeyInfo struct {
+		Encoding    func(childComplexity int) int
+		Key         func(childComplexity int) int
+		MemoryUsage func(childComplexity int) int
+		TTL         func(childComplexity int) int
+		Type        func(childComplexity int) int
+	}
+
+	RedisKeyValue struct {
+		HashValue   func(childComplexity int) int
+		Key         func(childComplexity int) int
+		ListValue   func(childComplexity int) int
+		SetValue    func(childComplexity int) int
+		StringValue func(childComplexity int) int
+		TotalSize   func(childComplexity int) int
+		Truncated   func(childComplexity int) int
+		Type        func(childComplexity int) int
+		ZsetValue   func(childComplexity int) int
+	}
+
+	RedisMemoryStats struct {
+		Allocator          func(childComplexity int) int
+		DatasetSize        func(childComplexity int) int
+		FragmentationRatio func(childComplexity int) int
+		Overhead           func(childComplexity int) int
+		PeakMemory         func(childComplexity int) int
+		Rss                func(childComplexity int) int
+		UsedMemory         func(childComplexity int) int
+	}
+
+	RedisScanResult struct {
+		Cursor  func(childComplexity int) int
+		HasMore func(childComplexity int) int
+		Keys    func(childComplexity int) int
+	}
+
+	RedisServerInfo struct {
+		ConnectedClients func(childComplexity int) int
+		KeyspaceHits     func(childComplexity int) int
+		KeyspaceMisses   func(childComplexity int) int
+		TotalKeys        func(childComplexity int) int
+		Uptime           func(childComplexity int) int
+		UsedMemory       func(childComplexity int) int
+		Version          func(childComplexity int) int
+	}
+
+	RedisZSetEntry struct {
+		Member func(childComplexity int) int
+		Score  func(childComplexity int) int
 	}
 
 	RescaleResult struct {
@@ -1025,6 +1086,11 @@ type QueryResolver interface {
 	KafkaConsumerGroup(ctx context.Context, instrument string, groupID string) (*model.KafkaConsumerGroupDetail, error)
 	MaterializedTables(ctx context.Context, cluster *string, catalog *string) ([]*model.MaterializedTable, error)
 	MaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
+	RedisScan(ctx context.Context, instrument string, cursor *string, pattern *string, count *int) (*model.RedisScanResult, error)
+	RedisKeyInfo(ctx context.Context, instrument string, key string) (*model.RedisKeyInfo, error)
+	RedisKeyValue(ctx context.Context, instrument string, key string) (*model.RedisKeyValue, error)
+	RedisServerInfo(ctx context.Context, instrument string) (*model.RedisServerInfo, error)
+	RedisMemoryStats(ctx context.Context, instrument string) (*model.RedisMemoryStats, error)
 	SimulationPreflight(ctx context.Context) ([]*model.PreflightCheck, error)
 	SimulationRuns(ctx context.Context) ([]*model.SimulationRun, error)
 	SimulationRun(ctx context.Context, id string) (*model.SimulationRun, error)
@@ -3726,6 +3792,61 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.MetricSeries(childComplexity, args["clusterID"].(string), args["series"].([]*model.MetricSeriesRequest), args["after"].(string), args["before"].(string), args["maxPoints"].(*int)), true
+	case "Query.redisKeyInfo":
+		if e.ComplexityRoot.Query.RedisKeyInfo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_redisKeyInfo_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RedisKeyInfo(childComplexity, args["instrument"].(string), args["key"].(string)), true
+	case "Query.redisKeyValue":
+		if e.ComplexityRoot.Query.RedisKeyValue == nil {
+			break
+		}
+
+		args, err := ec.field_Query_redisKeyValue_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RedisKeyValue(childComplexity, args["instrument"].(string), args["key"].(string)), true
+	case "Query.redisMemoryStats":
+		if e.ComplexityRoot.Query.RedisMemoryStats == nil {
+			break
+		}
+
+		args, err := ec.field_Query_redisMemoryStats_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RedisMemoryStats(childComplexity, args["instrument"].(string)), true
+	case "Query.redisScan":
+		if e.ComplexityRoot.Query.RedisScan == nil {
+			break
+		}
+
+		args, err := ec.field_Query_redisScan_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RedisScan(childComplexity, args["instrument"].(string), args["cursor"].(*string), args["pattern"].(*string), args["count"].(*int)), true
+	case "Query.redisServerInfo":
+		if e.ComplexityRoot.Query.RedisServerInfo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_redisServerInfo_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RedisServerInfo(childComplexity, args["instrument"].(string)), true
 	case "Query.simulationPreflight":
 		if e.ComplexityRoot.Query.SimulationPreflight == nil {
 			break
@@ -3833,6 +3954,223 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.VertexDetail(childComplexity, args["jobId"].(string), args["vertexId"].(string), args["cluster"].(*string)), true
+
+	case "RedisHashEntry.field":
+		if e.ComplexityRoot.RedisHashEntry.Field == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisHashEntry.Field(childComplexity), true
+	case "RedisHashEntry.value":
+		if e.ComplexityRoot.RedisHashEntry.Value == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisHashEntry.Value(childComplexity), true
+
+	case "RedisKeyInfo.encoding":
+		if e.ComplexityRoot.RedisKeyInfo.Encoding == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyInfo.Encoding(childComplexity), true
+	case "RedisKeyInfo.key":
+		if e.ComplexityRoot.RedisKeyInfo.Key == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyInfo.Key(childComplexity), true
+	case "RedisKeyInfo.memoryUsage":
+		if e.ComplexityRoot.RedisKeyInfo.MemoryUsage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyInfo.MemoryUsage(childComplexity), true
+	case "RedisKeyInfo.ttl":
+		if e.ComplexityRoot.RedisKeyInfo.TTL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyInfo.TTL(childComplexity), true
+	case "RedisKeyInfo.type":
+		if e.ComplexityRoot.RedisKeyInfo.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyInfo.Type(childComplexity), true
+
+	case "RedisKeyValue.hashValue":
+		if e.ComplexityRoot.RedisKeyValue.HashValue == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.HashValue(childComplexity), true
+	case "RedisKeyValue.key":
+		if e.ComplexityRoot.RedisKeyValue.Key == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.Key(childComplexity), true
+	case "RedisKeyValue.listValue":
+		if e.ComplexityRoot.RedisKeyValue.ListValue == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.ListValue(childComplexity), true
+	case "RedisKeyValue.setValue":
+		if e.ComplexityRoot.RedisKeyValue.SetValue == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.SetValue(childComplexity), true
+	case "RedisKeyValue.stringValue":
+		if e.ComplexityRoot.RedisKeyValue.StringValue == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.StringValue(childComplexity), true
+	case "RedisKeyValue.totalSize":
+		if e.ComplexityRoot.RedisKeyValue.TotalSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.TotalSize(childComplexity), true
+	case "RedisKeyValue.truncated":
+		if e.ComplexityRoot.RedisKeyValue.Truncated == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.Truncated(childComplexity), true
+	case "RedisKeyValue.type":
+		if e.ComplexityRoot.RedisKeyValue.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.Type(childComplexity), true
+	case "RedisKeyValue.zsetValue":
+		if e.ComplexityRoot.RedisKeyValue.ZsetValue == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisKeyValue.ZsetValue(childComplexity), true
+
+	case "RedisMemoryStats.allocator":
+		if e.ComplexityRoot.RedisMemoryStats.Allocator == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisMemoryStats.Allocator(childComplexity), true
+	case "RedisMemoryStats.datasetSize":
+		if e.ComplexityRoot.RedisMemoryStats.DatasetSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisMemoryStats.DatasetSize(childComplexity), true
+	case "RedisMemoryStats.fragmentationRatio":
+		if e.ComplexityRoot.RedisMemoryStats.FragmentationRatio == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisMemoryStats.FragmentationRatio(childComplexity), true
+	case "RedisMemoryStats.overhead":
+		if e.ComplexityRoot.RedisMemoryStats.Overhead == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisMemoryStats.Overhead(childComplexity), true
+	case "RedisMemoryStats.peakMemory":
+		if e.ComplexityRoot.RedisMemoryStats.PeakMemory == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisMemoryStats.PeakMemory(childComplexity), true
+	case "RedisMemoryStats.rss":
+		if e.ComplexityRoot.RedisMemoryStats.Rss == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisMemoryStats.Rss(childComplexity), true
+	case "RedisMemoryStats.usedMemory":
+		if e.ComplexityRoot.RedisMemoryStats.UsedMemory == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisMemoryStats.UsedMemory(childComplexity), true
+
+	case "RedisScanResult.cursor":
+		if e.ComplexityRoot.RedisScanResult.Cursor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisScanResult.Cursor(childComplexity), true
+	case "RedisScanResult.hasMore":
+		if e.ComplexityRoot.RedisScanResult.HasMore == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisScanResult.HasMore(childComplexity), true
+	case "RedisScanResult.keys":
+		if e.ComplexityRoot.RedisScanResult.Keys == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisScanResult.Keys(childComplexity), true
+
+	case "RedisServerInfo.connectedClients":
+		if e.ComplexityRoot.RedisServerInfo.ConnectedClients == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisServerInfo.ConnectedClients(childComplexity), true
+	case "RedisServerInfo.keyspaceHits":
+		if e.ComplexityRoot.RedisServerInfo.KeyspaceHits == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisServerInfo.KeyspaceHits(childComplexity), true
+	case "RedisServerInfo.keyspaceMisses":
+		if e.ComplexityRoot.RedisServerInfo.KeyspaceMisses == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisServerInfo.KeyspaceMisses(childComplexity), true
+	case "RedisServerInfo.totalKeys":
+		if e.ComplexityRoot.RedisServerInfo.TotalKeys == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisServerInfo.TotalKeys(childComplexity), true
+	case "RedisServerInfo.uptime":
+		if e.ComplexityRoot.RedisServerInfo.Uptime == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisServerInfo.Uptime(childComplexity), true
+	case "RedisServerInfo.usedMemory":
+		if e.ComplexityRoot.RedisServerInfo.UsedMemory == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisServerInfo.UsedMemory(childComplexity), true
+	case "RedisServerInfo.version":
+		if e.ComplexityRoot.RedisServerInfo.Version == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisServerInfo.Version(childComplexity), true
+
+	case "RedisZSetEntry.member":
+		if e.ComplexityRoot.RedisZSetEntry.Member == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisZSetEntry.Member(childComplexity), true
+	case "RedisZSetEntry.score":
+		if e.ComplexityRoot.RedisZSetEntry.Score == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RedisZSetEntry.Score(childComplexity), true
 
 	case "RescaleResult.requestId":
 		if e.ComplexityRoot.RescaleResult.RequestID == nil {
@@ -6165,6 +6503,119 @@ extend type Mutation {
   refreshMaterializedTable(name: String!, catalog: String!, cluster: String): MaterializedTable!
 }
 `, BuiltIn: false},
+	{Name: "../schema/redis.graphqls", Input: `"""
+Result of a Redis SCAN operation: a batch of keys plus the cursor for the next
+page (or "0" when iteration is complete).
+"""
+type RedisScanResult {
+  keys: [String!]!
+  cursor: String!
+  hasMore: Boolean!
+}
+
+"""
+Metadata about a single Redis key.
+"""
+type RedisKeyInfo {
+  key: String!
+  type: String!
+  ttl: Int!
+  encoding: String!
+  memoryUsage: Int!
+}
+
+"""
+A single field/value pair from a Redis HASH.
+"""
+type RedisHashEntry {
+  field: String!
+  value: String!
+}
+
+"""
+A single member/score pair from a Redis ZSET.
+"""
+type RedisZSetEntry {
+  member: String!
+  score: Float!
+}
+
+"""
+The type-aware value of a Redis key. Only the field corresponding to ` + "`" + `type` + "`" + ` is
+populated; the others are null.
+"""
+type RedisKeyValue {
+  key: String!
+  type: String!
+  stringValue: String
+  hashValue: [RedisHashEntry!]
+  listValue: [String!]
+  setValue: [String!]
+  zsetValue: [RedisZSetEntry!]
+  truncated: Boolean!
+  totalSize: Int!
+}
+
+"""
+High-level Redis server statistics parsed from INFO.
+"""
+type RedisServerInfo {
+  version: String!
+  uptime: Int!
+  connectedClients: Int!
+  usedMemory: Int!
+  totalKeys: Int!
+  keyspaceHits: Int!
+  keyspaceMisses: Int!
+}
+
+"""
+Memory breakdown parsed from INFO memory.
+"""
+type RedisMemoryStats {
+  usedMemory: Int!
+  peakMemory: Int!
+  rss: Int!
+  fragmentationRatio: Float!
+  datasetSize: Int!
+  overhead: Int!
+  allocator: String!
+}
+
+extend type Query {
+  """
+  Scan keys for a Redis instrument. Use cursor "0" to start; pass the returned
+  cursor to fetch the next batch. ` + "`" + `hasMore` + "`" + ` is false when iteration is done.
+  """
+  redisScan(
+    instrument: String!
+    cursor: String
+    pattern: String
+    count: Int
+  ): RedisScanResult!
+
+  """
+  Get metadata (type, TTL, encoding, memory usage) for a single key.
+  """
+  redisKeyInfo(instrument: String!, key: String!): RedisKeyInfo!
+
+  """
+  Get the type-aware value of a single key. Strings are truncated at 10KB;
+  collections are limited to 100 entries.
+  """
+  redisKeyValue(instrument: String!, key: String!): RedisKeyValue!
+
+  """
+  Get high-level Redis server stats (version, uptime, memory, keyspace).
+  """
+  redisServerInfo(instrument: String!): RedisServerInfo!
+
+  """
+  Get the parsed INFO memory section.
+  """
+  redisMemoryStats(instrument: String!): RedisMemoryStats!
+}
+`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `"""
 Health status of a registered Flink cluster.
 """
@@ -7392,6 +7843,86 @@ func (ec *executionContext) field_Query_metricSeries_args(ctx context.Context, r
 		return nil, err
 	}
 	args["maxPoints"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_redisKeyInfo_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "key", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["key"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_redisKeyValue_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "key", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["key"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_redisMemoryStats_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_redisScan_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cursor", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cursor"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "pattern", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["pattern"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "count", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["count"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_redisServerInfo_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
 	return args, nil
 }
 
@@ -20974,6 +21505,283 @@ func (ec *executionContext) fieldContext_Query_materializedTable(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_redisScan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_redisScan,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RedisScan(ctx, fc.Args["instrument"].(string), fc.Args["cursor"].(*string), fc.Args["pattern"].(*string), fc.Args["count"].(*int))
+		},
+		nil,
+		ec.marshalNRedisScanResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_redisScan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "keys":
+				return ec.fieldContext_RedisScanResult_keys(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RedisScanResult_cursor(ctx, field)
+			case "hasMore":
+				return ec.fieldContext_RedisScanResult_hasMore(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedisScanResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_redisScan_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_redisKeyInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_redisKeyInfo,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RedisKeyInfo(ctx, fc.Args["instrument"].(string), fc.Args["key"].(string))
+		},
+		nil,
+		ec.marshalNRedisKeyInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_redisKeyInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_RedisKeyInfo_key(ctx, field)
+			case "type":
+				return ec.fieldContext_RedisKeyInfo_type(ctx, field)
+			case "ttl":
+				return ec.fieldContext_RedisKeyInfo_ttl(ctx, field)
+			case "encoding":
+				return ec.fieldContext_RedisKeyInfo_encoding(ctx, field)
+			case "memoryUsage":
+				return ec.fieldContext_RedisKeyInfo_memoryUsage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedisKeyInfo", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_redisKeyInfo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_redisKeyValue(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_redisKeyValue,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RedisKeyValue(ctx, fc.Args["instrument"].(string), fc.Args["key"].(string))
+		},
+		nil,
+		ec.marshalNRedisKeyValue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_redisKeyValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_RedisKeyValue_key(ctx, field)
+			case "type":
+				return ec.fieldContext_RedisKeyValue_type(ctx, field)
+			case "stringValue":
+				return ec.fieldContext_RedisKeyValue_stringValue(ctx, field)
+			case "hashValue":
+				return ec.fieldContext_RedisKeyValue_hashValue(ctx, field)
+			case "listValue":
+				return ec.fieldContext_RedisKeyValue_listValue(ctx, field)
+			case "setValue":
+				return ec.fieldContext_RedisKeyValue_setValue(ctx, field)
+			case "zsetValue":
+				return ec.fieldContext_RedisKeyValue_zsetValue(ctx, field)
+			case "truncated":
+				return ec.fieldContext_RedisKeyValue_truncated(ctx, field)
+			case "totalSize":
+				return ec.fieldContext_RedisKeyValue_totalSize(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedisKeyValue", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_redisKeyValue_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_redisServerInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_redisServerInfo,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RedisServerInfo(ctx, fc.Args["instrument"].(string))
+		},
+		nil,
+		ec.marshalNRedisServerInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_redisServerInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "version":
+				return ec.fieldContext_RedisServerInfo_version(ctx, field)
+			case "uptime":
+				return ec.fieldContext_RedisServerInfo_uptime(ctx, field)
+			case "connectedClients":
+				return ec.fieldContext_RedisServerInfo_connectedClients(ctx, field)
+			case "usedMemory":
+				return ec.fieldContext_RedisServerInfo_usedMemory(ctx, field)
+			case "totalKeys":
+				return ec.fieldContext_RedisServerInfo_totalKeys(ctx, field)
+			case "keyspaceHits":
+				return ec.fieldContext_RedisServerInfo_keyspaceHits(ctx, field)
+			case "keyspaceMisses":
+				return ec.fieldContext_RedisServerInfo_keyspaceMisses(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedisServerInfo", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_redisServerInfo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_redisMemoryStats(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_redisMemoryStats,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RedisMemoryStats(ctx, fc.Args["instrument"].(string))
+		},
+		nil,
+		ec.marshalNRedisMemoryStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_redisMemoryStats(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "usedMemory":
+				return ec.fieldContext_RedisMemoryStats_usedMemory(ctx, field)
+			case "peakMemory":
+				return ec.fieldContext_RedisMemoryStats_peakMemory(ctx, field)
+			case "rss":
+				return ec.fieldContext_RedisMemoryStats_rss(ctx, field)
+			case "fragmentationRatio":
+				return ec.fieldContext_RedisMemoryStats_fragmentationRatio(ctx, field)
+			case "datasetSize":
+				return ec.fieldContext_RedisMemoryStats_datasetSize(ctx, field)
+			case "overhead":
+				return ec.fieldContext_RedisMemoryStats_overhead(ctx, field)
+			case "allocator":
+				return ec.fieldContext_RedisMemoryStats_allocator(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedisMemoryStats", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_redisMemoryStats_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_simulationPreflight(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -21530,6 +22338,1033 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisHashEntry_field(ctx context.Context, field graphql.CollectedField, obj *model.RedisHashEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisHashEntry_field,
+		func(ctx context.Context) (any, error) {
+			return obj.Field, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisHashEntry_field(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisHashEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisHashEntry_value(ctx context.Context, field graphql.CollectedField, obj *model.RedisHashEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisHashEntry_value,
+		func(ctx context.Context) (any, error) {
+			return obj.Value, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisHashEntry_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisHashEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyInfo_key(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyInfo_key,
+		func(ctx context.Context) (any, error) {
+			return obj.Key, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyInfo_key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyInfo_type(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyInfo_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyInfo_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyInfo_ttl(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyInfo_ttl,
+		func(ctx context.Context) (any, error) {
+			return obj.TTL, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyInfo_ttl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyInfo_encoding(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyInfo_encoding,
+		func(ctx context.Context) (any, error) {
+			return obj.Encoding, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyInfo_encoding(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyInfo_memoryUsage(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyInfo_memoryUsage,
+		func(ctx context.Context) (any, error) {
+			return obj.MemoryUsage, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyInfo_memoryUsage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_key(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_key,
+		func(ctx context.Context) (any, error) {
+			return obj.Key, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_type(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_stringValue(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_stringValue,
+		func(ctx context.Context) (any, error) {
+			return obj.StringValue, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_stringValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_hashValue(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_hashValue,
+		func(ctx context.Context) (any, error) {
+			return obj.HashValue, nil
+		},
+		nil,
+		ec.marshalORedisHashEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntryᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_hashValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "field":
+				return ec.fieldContext_RedisHashEntry_field(ctx, field)
+			case "value":
+				return ec.fieldContext_RedisHashEntry_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedisHashEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_listValue(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_listValue,
+		func(ctx context.Context) (any, error) {
+			return obj.ListValue, nil
+		},
+		nil,
+		ec.marshalOString2ᚕstringᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_listValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_setValue(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_setValue,
+		func(ctx context.Context) (any, error) {
+			return obj.SetValue, nil
+		},
+		nil,
+		ec.marshalOString2ᚕstringᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_setValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_zsetValue(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_zsetValue,
+		func(ctx context.Context) (any, error) {
+			return obj.ZsetValue, nil
+		},
+		nil,
+		ec.marshalORedisZSetEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntryᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_zsetValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "member":
+				return ec.fieldContext_RedisZSetEntry_member(ctx, field)
+			case "score":
+				return ec.fieldContext_RedisZSetEntry_score(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedisZSetEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_truncated(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_truncated,
+		func(ctx context.Context) (any, error) {
+			return obj.Truncated, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_truncated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisKeyValue_totalSize(ctx context.Context, field graphql.CollectedField, obj *model.RedisKeyValue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisKeyValue_totalSize,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalSize, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisKeyValue_totalSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisKeyValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisMemoryStats_usedMemory(ctx context.Context, field graphql.CollectedField, obj *model.RedisMemoryStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisMemoryStats_usedMemory,
+		func(ctx context.Context) (any, error) {
+			return obj.UsedMemory, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisMemoryStats_usedMemory(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisMemoryStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisMemoryStats_peakMemory(ctx context.Context, field graphql.CollectedField, obj *model.RedisMemoryStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisMemoryStats_peakMemory,
+		func(ctx context.Context) (any, error) {
+			return obj.PeakMemory, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisMemoryStats_peakMemory(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisMemoryStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisMemoryStats_rss(ctx context.Context, field graphql.CollectedField, obj *model.RedisMemoryStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisMemoryStats_rss,
+		func(ctx context.Context) (any, error) {
+			return obj.Rss, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisMemoryStats_rss(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisMemoryStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisMemoryStats_fragmentationRatio(ctx context.Context, field graphql.CollectedField, obj *model.RedisMemoryStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisMemoryStats_fragmentationRatio,
+		func(ctx context.Context) (any, error) {
+			return obj.FragmentationRatio, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisMemoryStats_fragmentationRatio(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisMemoryStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisMemoryStats_datasetSize(ctx context.Context, field graphql.CollectedField, obj *model.RedisMemoryStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisMemoryStats_datasetSize,
+		func(ctx context.Context) (any, error) {
+			return obj.DatasetSize, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisMemoryStats_datasetSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisMemoryStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisMemoryStats_overhead(ctx context.Context, field graphql.CollectedField, obj *model.RedisMemoryStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisMemoryStats_overhead,
+		func(ctx context.Context) (any, error) {
+			return obj.Overhead, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisMemoryStats_overhead(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisMemoryStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisMemoryStats_allocator(ctx context.Context, field graphql.CollectedField, obj *model.RedisMemoryStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisMemoryStats_allocator,
+		func(ctx context.Context) (any, error) {
+			return obj.Allocator, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisMemoryStats_allocator(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisMemoryStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisScanResult_keys(ctx context.Context, field graphql.CollectedField, obj *model.RedisScanResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisScanResult_keys,
+		func(ctx context.Context) (any, error) {
+			return obj.Keys, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisScanResult_keys(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisScanResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisScanResult_cursor(ctx context.Context, field graphql.CollectedField, obj *model.RedisScanResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisScanResult_cursor,
+		func(ctx context.Context) (any, error) {
+			return obj.Cursor, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisScanResult_cursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisScanResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisScanResult_hasMore(ctx context.Context, field graphql.CollectedField, obj *model.RedisScanResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisScanResult_hasMore,
+		func(ctx context.Context) (any, error) {
+			return obj.HasMore, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisScanResult_hasMore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisScanResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisServerInfo_version(ctx context.Context, field graphql.CollectedField, obj *model.RedisServerInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisServerInfo_version,
+		func(ctx context.Context) (any, error) {
+			return obj.Version, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisServerInfo_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisServerInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisServerInfo_uptime(ctx context.Context, field graphql.CollectedField, obj *model.RedisServerInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisServerInfo_uptime,
+		func(ctx context.Context) (any, error) {
+			return obj.Uptime, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisServerInfo_uptime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisServerInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisServerInfo_connectedClients(ctx context.Context, field graphql.CollectedField, obj *model.RedisServerInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisServerInfo_connectedClients,
+		func(ctx context.Context) (any, error) {
+			return obj.ConnectedClients, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisServerInfo_connectedClients(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisServerInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisServerInfo_usedMemory(ctx context.Context, field graphql.CollectedField, obj *model.RedisServerInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisServerInfo_usedMemory,
+		func(ctx context.Context) (any, error) {
+			return obj.UsedMemory, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisServerInfo_usedMemory(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisServerInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisServerInfo_totalKeys(ctx context.Context, field graphql.CollectedField, obj *model.RedisServerInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisServerInfo_totalKeys,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalKeys, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisServerInfo_totalKeys(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisServerInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisServerInfo_keyspaceHits(ctx context.Context, field graphql.CollectedField, obj *model.RedisServerInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisServerInfo_keyspaceHits,
+		func(ctx context.Context) (any, error) {
+			return obj.KeyspaceHits, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisServerInfo_keyspaceHits(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisServerInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisServerInfo_keyspaceMisses(ctx context.Context, field graphql.CollectedField, obj *model.RedisServerInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisServerInfo_keyspaceMisses,
+		func(ctx context.Context) (any, error) {
+			return obj.KeyspaceMisses, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisServerInfo_keyspaceMisses(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisServerInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisZSetEntry_member(ctx context.Context, field graphql.CollectedField, obj *model.RedisZSetEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisZSetEntry_member,
+		func(ctx context.Context) (any, error) {
+			return obj.Member, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisZSetEntry_member(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisZSetEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedisZSetEntry_score(ctx context.Context, field graphql.CollectedField, obj *model.RedisZSetEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RedisZSetEntry_score,
+		func(ctx context.Context) (any, error) {
+			return obj.Score, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RedisZSetEntry_score(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedisZSetEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -34025,6 +35860,116 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "redisScan":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_redisScan(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "redisKeyInfo":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_redisKeyInfo(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "redisKeyValue":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_redisKeyValue(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "redisServerInfo":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_redisServerInfo(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "redisMemoryStats":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_redisMemoryStats(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "simulationPreflight":
 			field := field
 
@@ -34228,6 +36173,404 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var redisHashEntryImplementors = []string{"RedisHashEntry"}
+
+func (ec *executionContext) _RedisHashEntry(ctx context.Context, sel ast.SelectionSet, obj *model.RedisHashEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, redisHashEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RedisHashEntry")
+		case "field":
+			out.Values[i] = ec._RedisHashEntry_field(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._RedisHashEntry_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var redisKeyInfoImplementors = []string{"RedisKeyInfo"}
+
+func (ec *executionContext) _RedisKeyInfo(ctx context.Context, sel ast.SelectionSet, obj *model.RedisKeyInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, redisKeyInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RedisKeyInfo")
+		case "key":
+			out.Values[i] = ec._RedisKeyInfo_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._RedisKeyInfo_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ttl":
+			out.Values[i] = ec._RedisKeyInfo_ttl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "encoding":
+			out.Values[i] = ec._RedisKeyInfo_encoding(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "memoryUsage":
+			out.Values[i] = ec._RedisKeyInfo_memoryUsage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var redisKeyValueImplementors = []string{"RedisKeyValue"}
+
+func (ec *executionContext) _RedisKeyValue(ctx context.Context, sel ast.SelectionSet, obj *model.RedisKeyValue) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, redisKeyValueImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RedisKeyValue")
+		case "key":
+			out.Values[i] = ec._RedisKeyValue_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._RedisKeyValue_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stringValue":
+			out.Values[i] = ec._RedisKeyValue_stringValue(ctx, field, obj)
+		case "hashValue":
+			out.Values[i] = ec._RedisKeyValue_hashValue(ctx, field, obj)
+		case "listValue":
+			out.Values[i] = ec._RedisKeyValue_listValue(ctx, field, obj)
+		case "setValue":
+			out.Values[i] = ec._RedisKeyValue_setValue(ctx, field, obj)
+		case "zsetValue":
+			out.Values[i] = ec._RedisKeyValue_zsetValue(ctx, field, obj)
+		case "truncated":
+			out.Values[i] = ec._RedisKeyValue_truncated(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalSize":
+			out.Values[i] = ec._RedisKeyValue_totalSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var redisMemoryStatsImplementors = []string{"RedisMemoryStats"}
+
+func (ec *executionContext) _RedisMemoryStats(ctx context.Context, sel ast.SelectionSet, obj *model.RedisMemoryStats) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, redisMemoryStatsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RedisMemoryStats")
+		case "usedMemory":
+			out.Values[i] = ec._RedisMemoryStats_usedMemory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "peakMemory":
+			out.Values[i] = ec._RedisMemoryStats_peakMemory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rss":
+			out.Values[i] = ec._RedisMemoryStats_rss(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "fragmentationRatio":
+			out.Values[i] = ec._RedisMemoryStats_fragmentationRatio(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "datasetSize":
+			out.Values[i] = ec._RedisMemoryStats_datasetSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "overhead":
+			out.Values[i] = ec._RedisMemoryStats_overhead(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "allocator":
+			out.Values[i] = ec._RedisMemoryStats_allocator(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var redisScanResultImplementors = []string{"RedisScanResult"}
+
+func (ec *executionContext) _RedisScanResult(ctx context.Context, sel ast.SelectionSet, obj *model.RedisScanResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, redisScanResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RedisScanResult")
+		case "keys":
+			out.Values[i] = ec._RedisScanResult_keys(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cursor":
+			out.Values[i] = ec._RedisScanResult_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "hasMore":
+			out.Values[i] = ec._RedisScanResult_hasMore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var redisServerInfoImplementors = []string{"RedisServerInfo"}
+
+func (ec *executionContext) _RedisServerInfo(ctx context.Context, sel ast.SelectionSet, obj *model.RedisServerInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, redisServerInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RedisServerInfo")
+		case "version":
+			out.Values[i] = ec._RedisServerInfo_version(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "uptime":
+			out.Values[i] = ec._RedisServerInfo_uptime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "connectedClients":
+			out.Values[i] = ec._RedisServerInfo_connectedClients(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "usedMemory":
+			out.Values[i] = ec._RedisServerInfo_usedMemory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalKeys":
+			out.Values[i] = ec._RedisServerInfo_totalKeys(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "keyspaceHits":
+			out.Values[i] = ec._RedisServerInfo_keyspaceHits(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "keyspaceMisses":
+			out.Values[i] = ec._RedisServerInfo_keyspaceMisses(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var redisZSetEntryImplementors = []string{"RedisZSetEntry"}
+
+func (ec *executionContext) _RedisZSetEntry(ctx context.Context, sel ast.SelectionSet, obj *model.RedisZSetEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, redisZSetEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RedisZSetEntry")
+		case "member":
+			out.Values[i] = ec._RedisZSetEntry_member(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "score":
+			out.Values[i] = ec._RedisZSetEntry_score(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38303,6 +40646,96 @@ func (ec *executionContext) marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxws�
 	return ec._PreflightCheck(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNRedisHashEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntry(ctx context.Context, sel ast.SelectionSet, v *model.RedisHashEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RedisHashEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRedisKeyInfo2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo(ctx context.Context, sel ast.SelectionSet, v model.RedisKeyInfo) graphql.Marshaler {
+	return ec._RedisKeyInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRedisKeyInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo(ctx context.Context, sel ast.SelectionSet, v *model.RedisKeyInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RedisKeyInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRedisKeyValue2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue(ctx context.Context, sel ast.SelectionSet, v model.RedisKeyValue) graphql.Marshaler {
+	return ec._RedisKeyValue(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRedisKeyValue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue(ctx context.Context, sel ast.SelectionSet, v *model.RedisKeyValue) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RedisKeyValue(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRedisMemoryStats2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats(ctx context.Context, sel ast.SelectionSet, v model.RedisMemoryStats) graphql.Marshaler {
+	return ec._RedisMemoryStats(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRedisMemoryStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats(ctx context.Context, sel ast.SelectionSet, v *model.RedisMemoryStats) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RedisMemoryStats(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRedisScanResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult(ctx context.Context, sel ast.SelectionSet, v model.RedisScanResult) graphql.Marshaler {
+	return ec._RedisScanResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRedisScanResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult(ctx context.Context, sel ast.SelectionSet, v *model.RedisScanResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RedisScanResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRedisServerInfo2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo(ctx context.Context, sel ast.SelectionSet, v model.RedisServerInfo) graphql.Marshaler {
+	return ec._RedisServerInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRedisServerInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo(ctx context.Context, sel ast.SelectionSet, v *model.RedisServerInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RedisServerInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRedisZSetEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntry(ctx context.Context, sel ast.SelectionSet, v *model.RedisZSetEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RedisZSetEntry(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNRescaleResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v model.RescaleResult) graphql.Marshaler {
 	return ec._RescaleResult(ctx, sel, &v)
 }
@@ -39452,11 +41885,85 @@ func (ec *executionContext) marshalOPlanNodeInput2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
+func (ec *executionContext) marshalORedisHashEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedisHashEntry) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNRedisHashEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalORedisZSetEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedisZSetEntry) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNRedisZSetEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalOSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx context.Context, sel ast.SelectionSet, v *model.SimulationRun) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._SimulationRun(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚕᚖstring(ctx context.Context, v any) ([]*string, error) {
