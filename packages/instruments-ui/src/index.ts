@@ -22,6 +22,11 @@ export type {
   RedisKeyValue,
   RedisServerInfo,
   RedisMemoryStats,
+  SchemaType,
+  SchemaSubject,
+  SchemaReference,
+  SchemaDetail,
+  CompatibilityResult,
 } from "./types"
 
 // Store
@@ -40,6 +45,10 @@ export {
   fetchRedisKeyValue,
   fetchRedisServerInfo,
   fetchRedisMemoryStats,
+  fetchSchemaSubjects,
+  fetchSchemaVersions,
+  fetchSchemaDetail,
+  checkSchemaCompatibility,
 } from "./api"
 
 // Components
@@ -59,3 +68,6 @@ export { DatabaseTableRoute } from "./routes/database-table"
 export { RedisKeysRoute } from "./routes/redis-keys"
 export { RedisKeyRoute } from "./routes/redis-key"
 export { RedisServerRoute } from "./routes/redis-server"
+export { SchemaRegistrySubjectsRoute } from "./routes/schema-registry-subjects"
+export { SchemaRegistrySubjectRoute } from "./routes/schema-registry-subject"
+export { SchemaRegistryCompatibilityRoute } from "./routes/schema-registry-compatibility"

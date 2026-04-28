@@ -148,3 +148,37 @@ export type RedisMemoryStats = {
   overhead: number
   allocator: string
 }
+
+// ---------------------------------------------------------------------------
+// Schema Registry instrument types
+// ---------------------------------------------------------------------------
+
+export type SchemaType = "AVRO" | "PROTOBUF" | "JSON"
+
+export type SchemaSubject = {
+  name: string
+  latestVersion: number
+  schemaType: SchemaType
+  schemaId: number
+  compatibility: string
+}
+
+export type SchemaReference = {
+  name: string
+  subject: string
+  version: number
+}
+
+export type SchemaDetail = {
+  subject: string
+  version: number
+  id: number
+  schemaType: SchemaType
+  schema: string
+  references: SchemaReference[]
+}
+
+export type CompatibilityResult = {
+  isCompatible: boolean
+  messages: string[]
+}

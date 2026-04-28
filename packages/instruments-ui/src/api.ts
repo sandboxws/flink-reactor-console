@@ -12,6 +12,9 @@ import type {
   RedisKeyValue,
   RedisServerInfo,
   RedisMemoryStats,
+  SchemaSubject,
+  SchemaDetail,
+  CompatibilityResult,
 } from "./types"
 import { getGraphQLClient } from "./graphql-client"
 
@@ -355,4 +358,125 @@ export async function fetchRedisMemoryStats(
     .toPromise()
   if (result.error) throw new Error(result.error.message)
   return result.data?.redisMemoryStats
+}
+
+// ---------------------------------------------------------------------------
+// Schema Registry instrument
+// ---------------------------------------------------------------------------
+
+const SCHEMA_SUBJECTS_QUERY = gql`
+  query SchemaSubjects($instrument: String!) {
+    schemaSubjects(instrument: $instrument) {
+      name
+      latestVersion
+      schemaType
+      schemaId
+      compatibility
+    }
+  }
+`
+
+const SCHEMA_VERSIONS_QUERY = gql`
+  query SchemaVersions($instrument: String!, $subject: String!) {
+    schemaVersions(instrument: $instrument, subject: $subject)
+  }
+`
+
+const SCHEMA_DETAIL_QUERY = gql`
+  query SchemaDetail(
+    $instrument: String!
+    $subject: String!
+    $version: Int!
+  ) {
+    schemaDetail(
+      instrument: $instrument
+      subject: $subject
+      version: $version
+    ) {
+      subject
+      version
+      id
+      schemaType
+      schema
+      references {
+        name
+        subject
+        version
+      }
+    }
+  }
+`
+
+const CHECK_COMPATIBILITY_MUTATION = gql`
+  mutation CheckSchemaCompatibility(
+    $instrument: String!
+    $subject: String!
+    $schema: String!
+    $schemaType: String!
+  ) {
+    checkSchemaCompatibility(
+      instrument: $instrument
+      subject: $subject
+      schema: $schema
+      schemaType: $schemaType
+    ) {
+      isCompatible
+      messages
+    }
+  }
+`
+
+export async function fetchSchemaSubjects(
+  instrument: string,
+): Promise<SchemaSubject[]> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(SCHEMA_SUBJECTS_QUERY, { instrument })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.schemaSubjects ?? []
+}
+
+export async function fetchSchemaVersions(
+  instrument: string,
+  subject: string,
+): Promise<number[]> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(SCHEMA_VERSIONS_QUERY, { instrument, subject })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.schemaVersions ?? []
+}
+
+export async function fetchSchemaDetail(
+  instrument: string,
+  subject: string,
+  version: number,
+): Promise<SchemaDetail> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(SCHEMA_DETAIL_QUERY, { instrument, subject, version })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.schemaDetail
+}
+
+export async function checkSchemaCompatibility(
+  instrument: string,
+  subject: string,
+  schema: string,
+  schemaType: string,
+): Promise<CompatibilityResult> {
+  const client = getGraphQLClient()
+  const result = await client
+    .mutation(CHECK_COMPATIBILITY_MUTATION, {
+      instrument,
+      subject,
+      schema,
+      schemaType,
+    })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.checkSchemaCompatibility
 }

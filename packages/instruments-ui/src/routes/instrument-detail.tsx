@@ -96,6 +96,16 @@ export function InstrumentDetailRoute({
     )
   }
 
+  if (instrument.type === "schemaregistry") {
+    tabs.push(
+      { label: "Subjects", path: `${basePath}/schema-registry` },
+      {
+        label: "Compatibility",
+        path: `${basePath}/schema-registry/compatibility`,
+      },
+    )
+  }
+
   return (
     <InstrumentShell
       instrument={instrument}
