@@ -14,6 +14,14 @@ export type {
   DatabaseConstraint,
   DatabaseQueryResult,
   DatabaseQueryHistoryEntry,
+  RedisKeyType,
+  RedisScanResult,
+  RedisKeyInfo,
+  RedisHashEntry,
+  RedisZSetEntry,
+  RedisKeyValue,
+  RedisServerInfo,
+  RedisMemoryStats,
 } from "./types"
 
 // Store
@@ -27,6 +35,11 @@ export {
   fetchDatabaseTable,
   fetchDatabaseQueryHistory,
   executeDatabaseQuery,
+  fetchRedisScan,
+  fetchRedisKeyInfo,
+  fetchRedisKeyValue,
+  fetchRedisServerInfo,
+  fetchRedisMemoryStats,
 } from "./api"
 
 // Components
@@ -43,3 +56,6 @@ export { InstrumentDetailRoute } from "./routes/instrument-detail"
 export { DatabaseSchemasRoute } from "./routes/database-schemas"
 export { DatabaseQueryRoute } from "./routes/database-query"
 export { DatabaseTableRoute } from "./routes/database-table"
+export { RedisKeysRoute } from "./routes/redis-keys"
+export { RedisKeyRoute } from "./routes/redis-key"
+export { RedisServerRoute } from "./routes/redis-server"

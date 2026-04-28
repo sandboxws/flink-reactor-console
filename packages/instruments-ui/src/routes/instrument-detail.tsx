@@ -89,6 +89,13 @@ export function InstrumentDetailRoute({
     )
   }
 
+  if (instrument.type === "redis") {
+    tabs.push(
+      { label: "Keys", path: `${basePath}/redis` },
+      { label: "Server", path: `${basePath}/redis/server` },
+    )
+  }
+
   return (
     <InstrumentShell
       instrument={instrument}

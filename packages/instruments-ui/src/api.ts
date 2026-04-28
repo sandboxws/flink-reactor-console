@@ -7,6 +7,11 @@ import type {
   DatabaseTableDetail,
   DatabaseQueryResult,
   DatabaseQueryHistoryEntry,
+  RedisScanResult,
+  RedisKeyInfo,
+  RedisKeyValue,
+  RedisServerInfo,
+  RedisMemoryStats,
 } from "./types"
 import { getGraphQLClient } from "./graphql-client"
 
@@ -199,4 +204,155 @@ export async function executeDatabaseQuery(
     .toPromise()
   if (result.error) throw new Error(result.error.message)
   return result.data?.executeDatabaseQuery
+}
+
+// ---------------------------------------------------------------------------
+// Redis instrument
+// ---------------------------------------------------------------------------
+
+const REDIS_SCAN_QUERY = gql`
+  query RedisScan(
+    $instrument: String!
+    $cursor: String
+    $pattern: String
+    $count: Int
+  ) {
+    redisScan(
+      instrument: $instrument
+      cursor: $cursor
+      pattern: $pattern
+      count: $count
+    ) {
+      keys
+      cursor
+      hasMore
+    }
+  }
+`
+
+const REDIS_KEY_INFO_QUERY = gql`
+  query RedisKeyInfo($instrument: String!, $key: String!) {
+    redisKeyInfo(instrument: $instrument, key: $key) {
+      key
+      type
+      ttl
+      encoding
+      memoryUsage
+    }
+  }
+`
+
+const REDIS_KEY_VALUE_QUERY = gql`
+  query RedisKeyValue($instrument: String!, $key: String!) {
+    redisKeyValue(instrument: $instrument, key: $key) {
+      key
+      type
+      stringValue
+      hashValue {
+        field
+        value
+      }
+      listValue
+      setValue
+      zsetValue {
+        member
+        score
+      }
+      truncated
+      totalSize
+    }
+  }
+`
+
+const REDIS_SERVER_INFO_QUERY = gql`
+  query RedisServerInfo($instrument: String!) {
+    redisServerInfo(instrument: $instrument) {
+      version
+      uptime
+      connectedClients
+      usedMemory
+      totalKeys
+      keyspaceHits
+      keyspaceMisses
+    }
+  }
+`
+
+const REDIS_MEMORY_STATS_QUERY = gql`
+  query RedisMemoryStats($instrument: String!) {
+    redisMemoryStats(instrument: $instrument) {
+      usedMemory
+      peakMemory
+      rss
+      fragmentationRatio
+      datasetSize
+      overhead
+      allocator
+    }
+  }
+`
+
+export async function fetchRedisScan(
+  instrument: string,
+  cursor: string | null,
+  pattern: string,
+  count: number,
+): Promise<RedisScanResult> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(REDIS_SCAN_QUERY, {
+      instrument,
+      cursor: cursor ?? "0",
+      pattern: pattern || null,
+      count,
+    })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.redisScan
+}
+
+export async function fetchRedisKeyInfo(
+  instrument: string,
+  key: string,
+): Promise<RedisKeyInfo> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(REDIS_KEY_INFO_QUERY, { instrument, key })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.redisKeyInfo
+}
+
+export async function fetchRedisKeyValue(
+  instrument: string,
+  key: string,
+): Promise<RedisKeyValue> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(REDIS_KEY_VALUE_QUERY, { instrument, key })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.redisKeyValue
+}
+
+export async function fetchRedisServerInfo(
+  instrument: string,
+): Promise<RedisServerInfo> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(REDIS_SERVER_INFO_QUERY, { instrument })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.redisServerInfo
+}
+
+export async function fetchRedisMemoryStats(
+  instrument: string,
+): Promise<RedisMemoryStats> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(REDIS_MEMORY_STATS_QUERY, { instrument })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.redisMemoryStats
 }

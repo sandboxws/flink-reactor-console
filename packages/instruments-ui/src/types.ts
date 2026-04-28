@@ -86,3 +86,65 @@ export type DatabaseQueryHistoryEntry = {
   rowCount: number
   error: string | null
 }
+
+// ---------------------------------------------------------------------------
+// Redis instrument types
+// ---------------------------------------------------------------------------
+
+export type RedisKeyType = "string" | "hash" | "list" | "set" | "zset"
+
+export type RedisScanResult = {
+  keys: string[]
+  cursor: string
+  hasMore: boolean
+}
+
+export type RedisKeyInfo = {
+  key: string
+  type: RedisKeyType
+  ttl: number
+  encoding: string
+  memoryUsage: number
+}
+
+export type RedisHashEntry = {
+  field: string
+  value: string
+}
+
+export type RedisZSetEntry = {
+  member: string
+  score: number
+}
+
+export type RedisKeyValue = {
+  key: string
+  type: RedisKeyType
+  stringValue: string | null
+  hashValue: RedisHashEntry[] | null
+  listValue: string[] | null
+  setValue: string[] | null
+  zsetValue: RedisZSetEntry[] | null
+  truncated: boolean
+  totalSize: number
+}
+
+export type RedisServerInfo = {
+  version: string
+  uptime: number
+  connectedClients: number
+  usedMemory: number
+  totalKeys: number
+  keyspaceHits: number
+  keyspaceMisses: number
+}
+
+export type RedisMemoryStats = {
+  usedMemory: number
+  peakMemory: number
+  rss: number
+  fragmentationRatio: number
+  datasetSize: number
+  overhead: number
+  allocator: string
+}
