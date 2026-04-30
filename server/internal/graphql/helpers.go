@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	dbinst "github.com/sandboxws/flink-reactor-instruments/database"
+	flussinst "github.com/sandboxws/flink-reactor-instruments/fluss"
 	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
 	redisinst "github.com/sandboxws/flink-reactor-instruments/redis"
 	srinst "github.com/sandboxws/flink-reactor-instruments/schemaregistry"
@@ -77,6 +78,21 @@ func (r *Resolver) resolveSchemaRegistryInstrument(instrument string) (*srinst.I
 		return nil, fmt.Errorf("instrument %q is not a Schema Registry instrument", instrument)
 	}
 	return si, nil
+}
+
+func (r *Resolver) resolveFlussInstrument(instrument string) (*flussinst.Instrument, error) {
+	if r.InstrumentRegistry == nil {
+		return nil, fmt.Errorf("instruments not configured")
+	}
+	inst, err := r.InstrumentRegistry.Get(instrument)
+	if err != nil {
+		return nil, err
+	}
+	fi, ok := inst.(*flussinst.Instrument)
+	if !ok {
+		return nil, fmt.Errorf("instrument %q is not a Fluss instrument", instrument)
+	}
+	return fi, nil
 }
 
 // i64 converts an int64 to string for GraphQL String! fields.

@@ -1,0 +1,77 @@
+"""
+Fields of a single column in a Fluss table schema.
+"""
+type FlussSchemaField {
+  name: String!
+  type: String!
+  nullable: Boolean!
+  comment: String!
+}
+
+"""
+A Fluss table at the summary granularity returned by `flussTables`.
+The `tableType` is either "PrimaryKey" (KV-style upsert) or "Log" (append-only).
+"""
+type FlussTableSummary {
+  database: String!
+  name: String!
+  tableType: String!
+  bucketCount: Int!
+  bucketKey: [String!]!
+  primaryKey: [String!]!
+  lastUpdatedMs: Int!
+}
+
+"""
+Full metadata for a single Fluss table — schema, bucket configuration,
+connector properties, last-update timestamp.
+"""
+type FlussTableMetadata {
+  database: String!
+  name: String!
+  tableType: String!
+  bucketCount: Int!
+  bucketKey: [String!]!
+  primaryKey: [String!]!
+  schema: [FlussSchemaField!]!
+  properties: JSON!
+  comment: String!
+  lastUpdatedMs: Int!
+}
+
+"""
+Health of a single TabletServer in the Fluss cluster. `leadership` is the
+number of bucket leaderships the server currently holds.
+"""
+type FlussTabletServerHealth {
+  server: String!
+  alive: Boolean!
+  leadership: Int!
+}
+
+extend type Query {
+  """
+  List every database registered in the Fluss cluster.
+  """
+  flussDatabases(instrument: String!): [String!]!
+
+  """
+  List the tables in a Fluss database with summary metadata.
+  """
+  flussTables(instrument: String!, database: String!): [FlussTableSummary!]!
+
+  """
+  Get the full metadata for a single Fluss table.
+  """
+  flussTable(
+    instrument: String!
+    database: String!
+    table: String!
+  ): FlussTableMetadata!
+
+  """
+  List the TabletServers in the Fluss cluster with their alive status and
+  leadership counts.
+  """
+  flussTabletServers(instrument: String!): [FlussTabletServerHealth!]!
+}

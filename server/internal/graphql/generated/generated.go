@@ -335,6 +335,42 @@ type ComplexityRoot struct {
 		WebSubmit  func(childComplexity int) int
 	}
 
+	FlussSchemaField struct {
+		Comment  func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Nullable func(childComplexity int) int
+		Type     func(childComplexity int) int
+	}
+
+	FlussTableMetadata struct {
+		BucketCount   func(childComplexity int) int
+		BucketKey     func(childComplexity int) int
+		Comment       func(childComplexity int) int
+		Database      func(childComplexity int) int
+		LastUpdatedMs func(childComplexity int) int
+		Name          func(childComplexity int) int
+		PrimaryKey    func(childComplexity int) int
+		Properties    func(childComplexity int) int
+		Schema        func(childComplexity int) int
+		TableType     func(childComplexity int) int
+	}
+
+	FlussTableSummary struct {
+		BucketCount   func(childComplexity int) int
+		BucketKey     func(childComplexity int) int
+		Database      func(childComplexity int) int
+		LastUpdatedMs func(childComplexity int) int
+		Name          func(childComplexity int) int
+		PrimaryKey    func(childComplexity int) int
+		TableType     func(childComplexity int) int
+	}
+
+	FlussTabletServerHealth struct {
+		Alive      func(childComplexity int) int
+		Leadership func(childComplexity int) int
+		Server     func(childComplexity int) int
+	}
+
 	InstrumentInfo struct {
 		Capabilities    func(childComplexity int) int
 		DisplayName     func(childComplexity int) int
@@ -653,6 +689,10 @@ type ComplexityRoot struct {
 		ExceptionHistory       func(childComplexity int, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) int
 		Flamegraph             func(childComplexity int, jobID string, vertexID string, typeArg string, cluster *string) int
 		FlinkConfig            func(childComplexity int, cluster *string) int
+		FlussDatabases         func(childComplexity int, instrument string) int
+		FlussTable             func(childComplexity int, instrument string, database string, table string) int
+		FlussTables            func(childComplexity int, instrument string, database string) int
+		FlussTabletServers     func(childComplexity int, instrument string) int
 		Health                 func(childComplexity int) int
 		Instruments            func(childComplexity int) int
 		Jars                   func(childComplexity int, cluster *string) int
@@ -1096,6 +1136,10 @@ type QueryResolver interface {
 	DatabaseTables(ctx context.Context, instrument string, schema string) ([]*model.DatabaseTableSummary, error)
 	DatabaseTable(ctx context.Context, instrument string, schema string, table string) (*model.DatabaseTableDetail, error)
 	DatabaseQueryHistory(ctx context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error)
+	FlussDatabases(ctx context.Context, instrument string) ([]string, error)
+	FlussTables(ctx context.Context, instrument string, database string) ([]*model.FlussTableSummary, error)
+	FlussTable(ctx context.Context, instrument string, database string, table string) (*model.FlussTableMetadata, error)
+	FlussTabletServers(ctx context.Context, instrument string) ([]*model.FlussTabletServerHealth, error)
 	StorageStatus(ctx context.Context) (*model.StorageStatus, error)
 	JobHistory(ctx context.Context, filter *model.JobHistoryFilter, pagination *model.PaginationInput, orderBy *model.OrderByInput) (*model.JobHistoryConnection, error)
 	CheckpointHistory(ctx context.Context, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) (*model.CheckpointHistoryConnection, error)
@@ -2236,6 +2280,154 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.FlinkFeatures.WebSubmit(childComplexity), true
+
+	case "FlussSchemaField.comment":
+		if e.ComplexityRoot.FlussSchemaField.Comment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussSchemaField.Comment(childComplexity), true
+	case "FlussSchemaField.name":
+		if e.ComplexityRoot.FlussSchemaField.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussSchemaField.Name(childComplexity), true
+	case "FlussSchemaField.nullable":
+		if e.ComplexityRoot.FlussSchemaField.Nullable == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussSchemaField.Nullable(childComplexity), true
+	case "FlussSchemaField.type":
+		if e.ComplexityRoot.FlussSchemaField.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussSchemaField.Type(childComplexity), true
+
+	case "FlussTableMetadata.bucketCount":
+		if e.ComplexityRoot.FlussTableMetadata.BucketCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.BucketCount(childComplexity), true
+	case "FlussTableMetadata.bucketKey":
+		if e.ComplexityRoot.FlussTableMetadata.BucketKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.BucketKey(childComplexity), true
+	case "FlussTableMetadata.comment":
+		if e.ComplexityRoot.FlussTableMetadata.Comment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.Comment(childComplexity), true
+	case "FlussTableMetadata.database":
+		if e.ComplexityRoot.FlussTableMetadata.Database == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.Database(childComplexity), true
+	case "FlussTableMetadata.lastUpdatedMs":
+		if e.ComplexityRoot.FlussTableMetadata.LastUpdatedMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.LastUpdatedMs(childComplexity), true
+	case "FlussTableMetadata.name":
+		if e.ComplexityRoot.FlussTableMetadata.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.Name(childComplexity), true
+	case "FlussTableMetadata.primaryKey":
+		if e.ComplexityRoot.FlussTableMetadata.PrimaryKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.PrimaryKey(childComplexity), true
+	case "FlussTableMetadata.properties":
+		if e.ComplexityRoot.FlussTableMetadata.Properties == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.Properties(childComplexity), true
+	case "FlussTableMetadata.schema":
+		if e.ComplexityRoot.FlussTableMetadata.Schema == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.Schema(childComplexity), true
+	case "FlussTableMetadata.tableType":
+		if e.ComplexityRoot.FlussTableMetadata.TableType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableMetadata.TableType(childComplexity), true
+
+	case "FlussTableSummary.bucketCount":
+		if e.ComplexityRoot.FlussTableSummary.BucketCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableSummary.BucketCount(childComplexity), true
+	case "FlussTableSummary.bucketKey":
+		if e.ComplexityRoot.FlussTableSummary.BucketKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableSummary.BucketKey(childComplexity), true
+	case "FlussTableSummary.database":
+		if e.ComplexityRoot.FlussTableSummary.Database == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableSummary.Database(childComplexity), true
+	case "FlussTableSummary.lastUpdatedMs":
+		if e.ComplexityRoot.FlussTableSummary.LastUpdatedMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableSummary.LastUpdatedMs(childComplexity), true
+	case "FlussTableSummary.name":
+		if e.ComplexityRoot.FlussTableSummary.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableSummary.Name(childComplexity), true
+	case "FlussTableSummary.primaryKey":
+		if e.ComplexityRoot.FlussTableSummary.PrimaryKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableSummary.PrimaryKey(childComplexity), true
+	case "FlussTableSummary.tableType":
+		if e.ComplexityRoot.FlussTableSummary.TableType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTableSummary.TableType(childComplexity), true
+
+	case "FlussTabletServerHealth.alive":
+		if e.ComplexityRoot.FlussTabletServerHealth.Alive == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTabletServerHealth.Alive(childComplexity), true
+	case "FlussTabletServerHealth.leadership":
+		if e.ComplexityRoot.FlussTabletServerHealth.Leadership == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTabletServerHealth.Leadership(childComplexity), true
+	case "FlussTabletServerHealth.server":
+		if e.ComplexityRoot.FlussTabletServerHealth.Server == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FlussTabletServerHealth.Server(childComplexity), true
 
 	case "InstrumentInfo.capabilities":
 		if e.ComplexityRoot.InstrumentInfo.Capabilities == nil {
@@ -3685,6 +3877,50 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.FlinkConfig(childComplexity, args["cluster"].(*string)), true
+	case "Query.flussDatabases":
+		if e.ComplexityRoot.Query.FlussDatabases == nil {
+			break
+		}
+
+		args, err := ec.field_Query_flussDatabases_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.FlussDatabases(childComplexity, args["instrument"].(string)), true
+	case "Query.flussTable":
+		if e.ComplexityRoot.Query.FlussTable == nil {
+			break
+		}
+
+		args, err := ec.field_Query_flussTable_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.FlussTable(childComplexity, args["instrument"].(string), args["database"].(string), args["table"].(string)), true
+	case "Query.flussTables":
+		if e.ComplexityRoot.Query.FlussTables == nil {
+			break
+		}
+
+		args, err := ec.field_Query_flussTables_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.FlussTables(childComplexity, args["instrument"].(string), args["database"].(string)), true
+	case "Query.flussTabletServers":
+		if e.ComplexityRoot.Query.FlussTabletServers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_flussTabletServers_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.FlussTabletServers(childComplexity, args["instrument"].(string)), true
 	case "Query.health":
 		if e.ComplexityRoot.Query.Health == nil {
 			break
@@ -5807,6 +6043,84 @@ extend type Mutation {
   executeDatabaseQuery(instrument: String!, sql: String!): DatabaseQueryResult!
 }
 `, BuiltIn: false},
+	{Name: "../schema/fluss.graphqls", Input: `"""
+Fields of a single column in a Fluss table schema.
+"""
+type FlussSchemaField {
+  name: String!
+  type: String!
+  nullable: Boolean!
+  comment: String!
+}
+
+"""
+A Fluss table at the summary granularity returned by ` + "`" + `flussTables` + "`" + `.
+The ` + "`" + `tableType` + "`" + ` is either "PrimaryKey" (KV-style upsert) or "Log" (append-only).
+"""
+type FlussTableSummary {
+  database: String!
+  name: String!
+  tableType: String!
+  bucketCount: Int!
+  bucketKey: [String!]!
+  primaryKey: [String!]!
+  lastUpdatedMs: Int!
+}
+
+"""
+Full metadata for a single Fluss table — schema, bucket configuration,
+connector properties, last-update timestamp.
+"""
+type FlussTableMetadata {
+  database: String!
+  name: String!
+  tableType: String!
+  bucketCount: Int!
+  bucketKey: [String!]!
+  primaryKey: [String!]!
+  schema: [FlussSchemaField!]!
+  properties: JSON!
+  comment: String!
+  lastUpdatedMs: Int!
+}
+
+"""
+Health of a single TabletServer in the Fluss cluster. ` + "`" + `leadership` + "`" + ` is the
+number of bucket leaderships the server currently holds.
+"""
+type FlussTabletServerHealth {
+  server: String!
+  alive: Boolean!
+  leadership: Int!
+}
+
+extend type Query {
+  """
+  List every database registered in the Fluss cluster.
+  """
+  flussDatabases(instrument: String!): [String!]!
+
+  """
+  List the tables in a Fluss database with summary metadata.
+  """
+  flussTables(instrument: String!, database: String!): [FlussTableSummary!]!
+
+  """
+  Get the full metadata for a single Fluss table.
+  """
+  flussTable(
+    instrument: String!
+    database: String!
+    table: String!
+  ): FlussTableMetadata!
+
+  """
+  List the TabletServers in the Fluss cluster with their alive status and
+  leadership counts.
+  """
+  flussTabletServers(instrument: String!): [FlussTabletServerHealth!]!
+}
+`, BuiltIn: false},
 	{Name: "../schema/history.graphqls", Input: `"""
 Status of the PostgreSQL historical storage backend.
 """
@@ -7910,6 +8224,65 @@ func (ec *executionContext) field_Query_flinkConfig_args(ctx context.Context, ra
 		return nil, err
 	}
 	args["cluster"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_flussDatabases_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_flussTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "database", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["database"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "table", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["table"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_flussTables_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "database", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["database"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_flussTabletServers_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
 	return args, nil
 }
 
@@ -13839,6 +14212,712 @@ func (ec *executionContext) fieldContext_FlinkFeatures_webHistory(_ context.Cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussSchemaField_name(ctx context.Context, field graphql.CollectedField, obj *model.FlussSchemaField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussSchemaField_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussSchemaField_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussSchemaField",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussSchemaField_type(ctx context.Context, field graphql.CollectedField, obj *model.FlussSchemaField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussSchemaField_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussSchemaField_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussSchemaField",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussSchemaField_nullable(ctx context.Context, field graphql.CollectedField, obj *model.FlussSchemaField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussSchemaField_nullable,
+		func(ctx context.Context) (any, error) {
+			return obj.Nullable, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussSchemaField_nullable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussSchemaField",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussSchemaField_comment(ctx context.Context, field graphql.CollectedField, obj *model.FlussSchemaField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussSchemaField_comment,
+		func(ctx context.Context) (any, error) {
+			return obj.Comment, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussSchemaField_comment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussSchemaField",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_database(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_database,
+		func(ctx context.Context) (any, error) {
+			return obj.Database, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_database(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_name(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_tableType(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_tableType,
+		func(ctx context.Context) (any, error) {
+			return obj.TableType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_tableType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_bucketCount(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_bucketCount,
+		func(ctx context.Context) (any, error) {
+			return obj.BucketCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_bucketCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_bucketKey(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_bucketKey,
+		func(ctx context.Context) (any, error) {
+			return obj.BucketKey, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_bucketKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_primaryKey(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_primaryKey,
+		func(ctx context.Context) (any, error) {
+			return obj.PrimaryKey, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_primaryKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_schema(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_schema,
+		func(ctx context.Context) (any, error) {
+			return obj.Schema, nil
+		},
+		nil,
+		ec.marshalNFlussSchemaField2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaFieldᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_schema(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_FlussSchemaField_name(ctx, field)
+			case "type":
+				return ec.fieldContext_FlussSchemaField_type(ctx, field)
+			case "nullable":
+				return ec.fieldContext_FlussSchemaField_nullable(ctx, field)
+			case "comment":
+				return ec.fieldContext_FlussSchemaField_comment(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FlussSchemaField", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_properties(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_properties,
+		func(ctx context.Context) (any, error) {
+			return obj.Properties, nil
+		},
+		nil,
+		ec.marshalNJSON2map,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_properties(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type JSON does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_comment(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_comment,
+		func(ctx context.Context) (any, error) {
+			return obj.Comment, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_comment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableMetadata_lastUpdatedMs(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableMetadata) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableMetadata_lastUpdatedMs,
+		func(ctx context.Context) (any, error) {
+			return obj.LastUpdatedMs, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableMetadata_lastUpdatedMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableSummary_database(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableSummary_database,
+		func(ctx context.Context) (any, error) {
+			return obj.Database, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableSummary_database(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableSummary_name(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableSummary_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableSummary_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableSummary_tableType(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableSummary_tableType,
+		func(ctx context.Context) (any, error) {
+			return obj.TableType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableSummary_tableType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableSummary_bucketCount(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableSummary_bucketCount,
+		func(ctx context.Context) (any, error) {
+			return obj.BucketCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableSummary_bucketCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableSummary_bucketKey(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableSummary_bucketKey,
+		func(ctx context.Context) (any, error) {
+			return obj.BucketKey, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableSummary_bucketKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableSummary_primaryKey(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableSummary_primaryKey,
+		func(ctx context.Context) (any, error) {
+			return obj.PrimaryKey, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableSummary_primaryKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTableSummary_lastUpdatedMs(ctx context.Context, field graphql.CollectedField, obj *model.FlussTableSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTableSummary_lastUpdatedMs,
+		func(ctx context.Context) (any, error) {
+			return obj.LastUpdatedMs, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTableSummary_lastUpdatedMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTableSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTabletServerHealth_server(ctx context.Context, field graphql.CollectedField, obj *model.FlussTabletServerHealth) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTabletServerHealth_server,
+		func(ctx context.Context) (any, error) {
+			return obj.Server, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTabletServerHealth_server(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTabletServerHealth",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTabletServerHealth_alive(ctx context.Context, field graphql.CollectedField, obj *model.FlussTabletServerHealth) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTabletServerHealth_alive,
+		func(ctx context.Context) (any, error) {
+			return obj.Alive, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTabletServerHealth_alive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTabletServerHealth",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlussTabletServerHealth_leadership(ctx context.Context, field graphql.CollectedField, obj *model.FlussTabletServerHealth) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FlussTabletServerHealth_leadership,
+		func(ctx context.Context) (any, error) {
+			return obj.Leadership, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FlussTabletServerHealth_leadership(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlussTabletServerHealth",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -20714,6 +21793,216 @@ func (ec *executionContext) fieldContext_Query_databaseQueryHistory(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_databaseQueryHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_flussDatabases(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_flussDatabases,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().FlussDatabases(ctx, fc.Args["instrument"].(string))
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_flussDatabases(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_flussDatabases_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_flussTables(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_flussTables,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().FlussTables(ctx, fc.Args["instrument"].(string), fc.Args["database"].(string))
+		},
+		nil,
+		ec.marshalNFlussTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummaryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_flussTables(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "database":
+				return ec.fieldContext_FlussTableSummary_database(ctx, field)
+			case "name":
+				return ec.fieldContext_FlussTableSummary_name(ctx, field)
+			case "tableType":
+				return ec.fieldContext_FlussTableSummary_tableType(ctx, field)
+			case "bucketCount":
+				return ec.fieldContext_FlussTableSummary_bucketCount(ctx, field)
+			case "bucketKey":
+				return ec.fieldContext_FlussTableSummary_bucketKey(ctx, field)
+			case "primaryKey":
+				return ec.fieldContext_FlussTableSummary_primaryKey(ctx, field)
+			case "lastUpdatedMs":
+				return ec.fieldContext_FlussTableSummary_lastUpdatedMs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FlussTableSummary", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_flussTables_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_flussTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_flussTable,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().FlussTable(ctx, fc.Args["instrument"].(string), fc.Args["database"].(string), fc.Args["table"].(string))
+		},
+		nil,
+		ec.marshalNFlussTableMetadata2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_flussTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "database":
+				return ec.fieldContext_FlussTableMetadata_database(ctx, field)
+			case "name":
+				return ec.fieldContext_FlussTableMetadata_name(ctx, field)
+			case "tableType":
+				return ec.fieldContext_FlussTableMetadata_tableType(ctx, field)
+			case "bucketCount":
+				return ec.fieldContext_FlussTableMetadata_bucketCount(ctx, field)
+			case "bucketKey":
+				return ec.fieldContext_FlussTableMetadata_bucketKey(ctx, field)
+			case "primaryKey":
+				return ec.fieldContext_FlussTableMetadata_primaryKey(ctx, field)
+			case "schema":
+				return ec.fieldContext_FlussTableMetadata_schema(ctx, field)
+			case "properties":
+				return ec.fieldContext_FlussTableMetadata_properties(ctx, field)
+			case "comment":
+				return ec.fieldContext_FlussTableMetadata_comment(ctx, field)
+			case "lastUpdatedMs":
+				return ec.fieldContext_FlussTableMetadata_lastUpdatedMs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FlussTableMetadata", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_flussTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_flussTabletServers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_flussTabletServers,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().FlussTabletServers(ctx, fc.Args["instrument"].(string))
+		},
+		nil,
+		ec.marshalNFlussTabletServerHealth2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealthᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_flussTabletServers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "server":
+				return ec.fieldContext_FlussTabletServerHealth_server(ctx, field)
+			case "alive":
+				return ec.fieldContext_FlussTabletServerHealth_alive(ctx, field)
+			case "leadership":
+				return ec.fieldContext_FlussTabletServerHealth_leadership(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FlussTabletServerHealth", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_flussTabletServers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -33882,6 +35171,262 @@ func (ec *executionContext) _FlinkFeatures(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var flussSchemaFieldImplementors = []string{"FlussSchemaField"}
+
+func (ec *executionContext) _FlussSchemaField(ctx context.Context, sel ast.SelectionSet, obj *model.FlussSchemaField) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, flussSchemaFieldImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FlussSchemaField")
+		case "name":
+			out.Values[i] = ec._FlussSchemaField_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._FlussSchemaField_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nullable":
+			out.Values[i] = ec._FlussSchemaField_nullable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "comment":
+			out.Values[i] = ec._FlussSchemaField_comment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var flussTableMetadataImplementors = []string{"FlussTableMetadata"}
+
+func (ec *executionContext) _FlussTableMetadata(ctx context.Context, sel ast.SelectionSet, obj *model.FlussTableMetadata) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, flussTableMetadataImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FlussTableMetadata")
+		case "database":
+			out.Values[i] = ec._FlussTableMetadata_database(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._FlussTableMetadata_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tableType":
+			out.Values[i] = ec._FlussTableMetadata_tableType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bucketCount":
+			out.Values[i] = ec._FlussTableMetadata_bucketCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bucketKey":
+			out.Values[i] = ec._FlussTableMetadata_bucketKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "primaryKey":
+			out.Values[i] = ec._FlussTableMetadata_primaryKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "schema":
+			out.Values[i] = ec._FlussTableMetadata_schema(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "properties":
+			out.Values[i] = ec._FlussTableMetadata_properties(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "comment":
+			out.Values[i] = ec._FlussTableMetadata_comment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastUpdatedMs":
+			out.Values[i] = ec._FlussTableMetadata_lastUpdatedMs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var flussTableSummaryImplementors = []string{"FlussTableSummary"}
+
+func (ec *executionContext) _FlussTableSummary(ctx context.Context, sel ast.SelectionSet, obj *model.FlussTableSummary) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, flussTableSummaryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FlussTableSummary")
+		case "database":
+			out.Values[i] = ec._FlussTableSummary_database(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._FlussTableSummary_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tableType":
+			out.Values[i] = ec._FlussTableSummary_tableType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bucketCount":
+			out.Values[i] = ec._FlussTableSummary_bucketCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bucketKey":
+			out.Values[i] = ec._FlussTableSummary_bucketKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "primaryKey":
+			out.Values[i] = ec._FlussTableSummary_primaryKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastUpdatedMs":
+			out.Values[i] = ec._FlussTableSummary_lastUpdatedMs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var flussTabletServerHealthImplementors = []string{"FlussTabletServerHealth"}
+
+func (ec *executionContext) _FlussTabletServerHealth(ctx context.Context, sel ast.SelectionSet, obj *model.FlussTabletServerHealth) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, flussTabletServerHealthImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FlussTabletServerHealth")
+		case "server":
+			out.Values[i] = ec._FlussTabletServerHealth_server(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "alive":
+			out.Values[i] = ec._FlussTabletServerHealth_alive(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "leadership":
+			out.Values[i] = ec._FlussTabletServerHealth_leadership(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var instrumentInfoImplementors = []string{"InstrumentInfo"}
 
 func (ec *executionContext) _InstrumentInfo(ctx context.Context, sel ast.SelectionSet, obj *model.InstrumentInfo) graphql.Marshaler {
@@ -36393,6 +37938,94 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_databaseQueryHistory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "flussDatabases":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_flussDatabases(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "flussTables":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_flussTables(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "flussTable":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_flussTable(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "flussTabletServers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_flussTabletServers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -41057,6 +42690,98 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) marshalNFlussSchemaField2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaFieldᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussSchemaField) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFlussSchemaField2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaField(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFlussSchemaField2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaField(ctx context.Context, sel ast.SelectionSet, v *model.FlussSchemaField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FlussSchemaField(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFlussTableMetadata2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata(ctx context.Context, sel ast.SelectionSet, v model.FlussTableMetadata) graphql.Marshaler {
+	return ec._FlussTableMetadata(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFlussTableMetadata2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata(ctx context.Context, sel ast.SelectionSet, v *model.FlussTableMetadata) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FlussTableMetadata(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFlussTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussTableSummary) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFlussTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummary(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFlussTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummary(ctx context.Context, sel ast.SelectionSet, v *model.FlussTableSummary) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FlussTableSummary(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFlussTabletServerHealth2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealthᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussTabletServerHealth) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFlussTabletServerHealth2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealth(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFlussTabletServerHealth2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealth(ctx context.Context, sel ast.SelectionSet, v *model.FlussTabletServerHealth) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FlussTabletServerHealth(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {

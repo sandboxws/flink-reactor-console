@@ -22,6 +22,7 @@ var (
 	kafkaPattern      = regexp.MustCompile(`(?i)kafka[_-]?(source|sink)?[_-]?(.*)`)
 	icebergPattern    = regexp.MustCompile(`(?i)iceberg[_-]?(source|sink)?[_-]?(.*)`)
 	paimonPattern     = regexp.MustCompile(`(?i)paimon[_-]?(source|sink)?[_-]?(.*)`)
+	flussPattern      = regexp.MustCompile(`(?i)fluss[_-]?(source|sink)?[_-]?(.*)`)
 	jdbcPattern       = regexp.MustCompile(`(?i)jdbc[_-]?(source|sink|lookup)?[_-]?(.*)`)
 	filesystemPattern = regexp.MustCompile(`(?i)file[_-]?system[_-]?(source|sink)?[_-]?(.*)`)
 
@@ -35,6 +36,7 @@ var (
 		ConnectorKafka:      regexp.MustCompile(`(?i)kafka`),
 		ConnectorIceberg:    regexp.MustCompile(`(?i)iceberg`),
 		ConnectorPaimon:     regexp.MustCompile(`(?i)paimon`),
+		ConnectorFluss:      regexp.MustCompile(`(?i)fluss`),
 		ConnectorJDBC:       regexp.MustCompile(`(?i)jdbc`),
 		ConnectorFileSystem: regexp.MustCompile(`(?i)filesystem`),
 	}
@@ -97,6 +99,19 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 			VertexID:   vertexID,
 			VertexName: vertexName,
 			Type:       ConnectorPaimon,
+			Role:       role,
+			Resource:   resource,
+			Confidence: 0.8,
+			Method:     DetectionVertexName,
+		}
+	}
+
+	if m := flussPattern.FindStringSubmatch(remainder); m != nil {
+		resource := strings.TrimSpace(m[2])
+		return &ConnectorRef{
+			VertexID:   vertexID,
+			VertexName: vertexName,
+			Type:       ConnectorFluss,
 			Role:       role,
 			Resource:   resource,
 			Confidence: 0.8,
@@ -181,6 +196,8 @@ func inferTypeFromTableName(parts []string) ConnectorType {
 			return ConnectorIceberg
 		case strings.Contains(lp, "paimon"):
 			return ConnectorPaimon
+		case strings.Contains(lp, "fluss"):
+			return ConnectorFluss
 		case strings.Contains(lp, "kafka"):
 			return ConnectorKafka
 		case strings.Contains(lp, "jdbc"):

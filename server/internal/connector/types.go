@@ -8,6 +8,7 @@ const (
 	ConnectorKafka      ConnectorType = "kafka"
 	ConnectorIceberg    ConnectorType = "iceberg"
 	ConnectorPaimon     ConnectorType = "paimon"
+	ConnectorFluss      ConnectorType = "fluss"
 	ConnectorJDBC       ConnectorType = "jdbc"
 	ConnectorFileSystem ConnectorType = "filesystem"
 	ConnectorUnknown    ConnectorType = "unknown"

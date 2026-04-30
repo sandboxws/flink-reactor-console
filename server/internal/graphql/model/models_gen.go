@@ -384,6 +384,49 @@ type FlinkFeatures struct {
 	WebHistory bool `json:"webHistory"`
 }
 
+// Fields of a single column in a Fluss table schema.
+type FlussSchemaField struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Nullable bool   `json:"nullable"`
+	Comment  string `json:"comment"`
+}
+
+// Full metadata for a single Fluss table — schema, bucket configuration,
+// connector properties, last-update timestamp.
+type FlussTableMetadata struct {
+	Database      string              `json:"database"`
+	Name          string              `json:"name"`
+	TableType     string              `json:"tableType"`
+	BucketCount   int                 `json:"bucketCount"`
+	BucketKey     []string            `json:"bucketKey"`
+	PrimaryKey    []string            `json:"primaryKey"`
+	Schema        []*FlussSchemaField `json:"schema"`
+	Properties    map[string]any      `json:"properties"`
+	Comment       string              `json:"comment"`
+	LastUpdatedMs int                 `json:"lastUpdatedMs"`
+}
+
+// A Fluss table at the summary granularity returned by `flussTables`.
+// The `tableType` is either "PrimaryKey" (KV-style upsert) or "Log" (append-only).
+type FlussTableSummary struct {
+	Database      string   `json:"database"`
+	Name          string   `json:"name"`
+	TableType     string   `json:"tableType"`
+	BucketCount   int      `json:"bucketCount"`
+	BucketKey     []string `json:"bucketKey"`
+	PrimaryKey    []string `json:"primaryKey"`
+	LastUpdatedMs int      `json:"lastUpdatedMs"`
+}
+
+// Health of a single TabletServer in the Fluss cluster. `leadership` is the
+// number of bucket leaderships the server currently holds.
+type FlussTabletServerHealth struct {
+	Server     string `json:"server"`
+	Alive      bool   `json:"alive"`
+	Leadership int    `json:"leadership"`
+}
+
 // Information about a registered infrastructure instrument.
 type InstrumentInfo struct {
 	Name            string   `json:"name"`

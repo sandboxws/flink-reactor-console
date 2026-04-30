@@ -12,6 +12,7 @@ import (
 	instruments "github.com/sandboxws/flink-reactor-instruments"
 	"github.com/sandboxws/flink-reactor-instruments/database"
 	dlinst "github.com/sandboxws/flink-reactor-instruments/datalake"
+	flussinst "github.com/sandboxws/flink-reactor-instruments/fluss"
 	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
 	redisinst "github.com/sandboxws/flink-reactor-instruments/redis"
 	srinst "github.com/sandboxws/flink-reactor-instruments/schemaregistry"
@@ -72,6 +73,8 @@ func run() int {
 			registry.Register(srinst.NewInstrument(instCfg.Name))
 		case "datalake":
 			registry.Register(dlinst.NewInstrument(instCfg.Name))
+		case "fluss":
+			registry.Register(flussinst.NewInstrument(instCfg.Name))
 		default:
 			logger.Warn("unknown instrument type", "type", instCfg.Type, "name", instCfg.Name)
 		}
