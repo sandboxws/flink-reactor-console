@@ -15,6 +15,9 @@ import type {
   SchemaSubject,
   SchemaDetail,
   CompatibilityResult,
+  FlussTableSummary,
+  FlussTableMetadata,
+  FlussTabletServerHealth,
 } from "./types"
 import { getGraphQLClient } from "./graphql-client"
 
@@ -479,4 +482,111 @@ export async function checkSchemaCompatibility(
     .toPromise()
   if (result.error) throw new Error(result.error.message)
   return result.data?.checkSchemaCompatibility
+}
+
+// ---------------------------------------------------------------------------
+// Fluss instrument
+// ---------------------------------------------------------------------------
+
+const FLUSS_DATABASES_QUERY = gql`
+  query FlussDatabases($instrument: String!) {
+    flussDatabases(instrument: $instrument)
+  }
+`
+
+const FLUSS_TABLES_QUERY = gql`
+  query FlussTables($instrument: String!, $database: String!) {
+    flussTables(instrument: $instrument, database: $database) {
+      database
+      name
+      tableType
+      bucketCount
+      bucketKey
+      primaryKey
+      lastUpdatedMs
+    }
+  }
+`
+
+const FLUSS_TABLE_QUERY = gql`
+  query FlussTable(
+    $instrument: String!
+    $database: String!
+    $table: String!
+  ) {
+    flussTable(instrument: $instrument, database: $database, table: $table) {
+      database
+      name
+      tableType
+      bucketCount
+      bucketKey
+      primaryKey
+      schema {
+        name
+        type
+        nullable
+        comment
+      }
+      properties
+      comment
+      lastUpdatedMs
+    }
+  }
+`
+
+const FLUSS_TABLET_SERVERS_QUERY = gql`
+  query FlussTabletServers($instrument: String!) {
+    flussTabletServers(instrument: $instrument) {
+      server
+      alive
+      leadership
+    }
+  }
+`
+
+export async function fetchFlussDatabases(
+  instrument: string,
+): Promise<string[]> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(FLUSS_DATABASES_QUERY, { instrument })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.flussDatabases ?? []
+}
+
+export async function fetchFlussTables(
+  instrument: string,
+  database: string,
+): Promise<FlussTableSummary[]> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(FLUSS_TABLES_QUERY, { instrument, database })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.flussTables ?? []
+}
+
+export async function fetchFlussTable(
+  instrument: string,
+  database: string,
+  table: string,
+): Promise<FlussTableMetadata> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(FLUSS_TABLE_QUERY, { instrument, database, table })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.flussTable
+}
+
+export async function fetchFlussTabletServers(
+  instrument: string,
+): Promise<FlussTabletServerHealth[]> {
+  const client = getGraphQLClient()
+  const result = await client
+    .query(FLUSS_TABLET_SERVERS_QUERY, { instrument })
+    .toPromise()
+  if (result.error) throw new Error(result.error.message)
+  return result.data?.flussTabletServers ?? []
 }

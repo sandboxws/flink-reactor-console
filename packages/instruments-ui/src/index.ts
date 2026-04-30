@@ -27,6 +27,11 @@ export type {
   SchemaReference,
   SchemaDetail,
   CompatibilityResult,
+  FlussTableType,
+  FlussSchemaField,
+  FlussTableSummary,
+  FlussTableMetadata,
+  FlussTabletServerHealth,
 } from "./types"
 
 // Store
@@ -49,6 +54,10 @@ export {
   fetchSchemaVersions,
   fetchSchemaDetail,
   checkSchemaCompatibility,
+  fetchFlussDatabases,
+  fetchFlussTables,
+  fetchFlussTable,
+  fetchFlussTabletServers,
 } from "./api"
 
 // Components
@@ -71,3 +80,6 @@ export { RedisServerRoute } from "./routes/redis-server"
 export { SchemaRegistrySubjectsRoute } from "./routes/schema-registry-subjects"
 export { SchemaRegistrySubjectRoute } from "./routes/schema-registry-subject"
 export { SchemaRegistryCompatibilityRoute } from "./routes/schema-registry-compatibility"
+export { FlussTablesRoute } from "./routes/fluss-tables"
+export { FlussTableRoute } from "./routes/fluss-table"
+export { FlussHealthRoute } from "./routes/fluss-health"

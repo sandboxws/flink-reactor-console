@@ -10,6 +10,7 @@ export type InstrumentType =
   | "prometheus"
   | "redis"
   | "schemaregistry"
+  | "fluss"
 
 export type InstrumentCapability = string
 
@@ -181,4 +182,46 @@ export type SchemaDetail = {
 export type CompatibilityResult = {
   isCompatible: boolean
   messages: string[]
+}
+
+// ---------------------------------------------------------------------------
+// Fluss instrument types
+// ---------------------------------------------------------------------------
+
+export type FlussTableType = "PrimaryKey" | "Log"
+
+export type FlussSchemaField = {
+  name: string
+  type: string
+  nullable: boolean
+  comment: string
+}
+
+export type FlussTableSummary = {
+  database: string
+  name: string
+  tableType: FlussTableType
+  bucketCount: number
+  bucketKey: string[]
+  primaryKey: string[]
+  lastUpdatedMs: number
+}
+
+export type FlussTableMetadata = {
+  database: string
+  name: string
+  tableType: FlussTableType
+  bucketCount: number
+  bucketKey: string[]
+  primaryKey: string[]
+  schema: FlussSchemaField[]
+  properties: Record<string, string>
+  comment: string
+  lastUpdatedMs: number
+}
+
+export type FlussTabletServerHealth = {
+  server: string
+  alive: boolean
+  leadership: number
 }

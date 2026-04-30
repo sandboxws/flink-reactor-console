@@ -4,6 +4,7 @@ import {
   Container,
   Database,
   HardDrive,
+  Layers,
   MessageSquare,
   Network,
   Waves,
@@ -18,6 +19,7 @@ const INSTRUMENT_ICON_MAP: Record<InstrumentType, LucideIcon> = {
   prometheus: Activity,
   redis: Network,
   schemaregistry: MessageSquare,
+  fluss: Layers,
 }
 
 export function getInstrumentIcon(type: InstrumentType): LucideIcon {
