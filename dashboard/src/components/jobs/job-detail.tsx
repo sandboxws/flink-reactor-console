@@ -34,6 +34,7 @@ import { DataSkewTab } from "./detail/data-skew-tab"
 import { ExceptionsTab } from "./detail/exceptions-tab"
 import { JobHeader } from "./detail/job-header"
 import { SourcesSinksTab } from "./detail/sources-sinks-tab"
+import { SqlTab } from "./detail/sql-tab"
 import { TimelineTab } from "./detail/timeline-tab"
 import { VerticesTab } from "./detail/vertices-tab"
 
@@ -201,6 +202,9 @@ export function JobDetail({
           <TabsTrigger value="overview" className="detail-tab">
             Overview
           </TabsTrigger>
+          <TabsTrigger value="sql" className="detail-tab">
+            SQL
+          </TabsTrigger>
           <TabsTrigger value="vertices" className="detail-tab">
             Vertices
           </TabsTrigger>
@@ -259,6 +263,13 @@ export function JobDetail({
               No execution plan available
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent
+          value="sql"
+          className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden"
+        >
+          <SqlTab jobConfig={job.jobConfig} />
         </TabsContent>
 
         <TabsContent value="vertices" className="mt-4 flex-1 overflow-auto">

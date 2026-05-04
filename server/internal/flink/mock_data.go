@@ -441,6 +441,42 @@ func MockJobConfig(jobID string) JobConfig {
 			ObjectReuseMode: false,
 			UserConfig: map[string]string{
 				"pipeline.name": "ETL-Orders-Pipeline",
+				"pipeline.sql": `CREATE TABLE orders_src (
+  id BIGINT,
+  customer_id BIGINT,
+  amount DECIMAL(10, 2),
+  region STRING,
+  created_at TIMESTAMP(3),
+  WATERMARK FOR created_at AS created_at - INTERVAL '5' SECOND
+) WITH (
+  'connector' = 'kafka',
+  'topic' = 'orders',
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'format' = 'json',
+  'scan.startup.mode' = 'latest-offset'
+);
+
+CREATE TABLE orders_sink (
+  region STRING,
+  window_start TIMESTAMP(3),
+  total_amount DECIMAL(20, 2),
+  order_count BIGINT,
+  PRIMARY KEY (region, window_start) NOT ENFORCED
+) WITH (
+  'connector' = 'jdbc',
+  'url' = 'jdbc:postgresql://postgres:5432/analytics',
+  'table-name' = 'orders_rollup'
+);
+
+INSERT INTO orders_sink
+SELECT
+  region,
+  TUMBLE_START(created_at, INTERVAL '1' MINUTE) AS window_start,
+  SUM(amount) AS total_amount,
+  COUNT(*) AS order_count
+FROM orders_src
+WHERE amount > 0
+GROUP BY region, TUMBLE(created_at, INTERVAL '1' MINUTE);`,
 			},
 		},
 	}

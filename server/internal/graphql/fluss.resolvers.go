@@ -102,13 +102,3 @@ func (r *queryResolver) FlussTabletServers(ctx context.Context, instrument strin
 	}
 	return out, nil
 }
-
-// orEmpty replaces a nil string slice with an empty one — GraphQL non-null
-// list fields fail to encode nil, and the JSON tag on our Fluss types omits
-// empty slices on the wire.
-func orEmpty(s []string) []string {
-	if s == nil {
-		return []string{}
-	}
-	return s
-}

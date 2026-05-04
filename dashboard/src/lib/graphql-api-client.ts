@@ -149,6 +149,10 @@ const JOB_DETAIL_QUERY = gql`
         mode interval timeout minPause maxConcurrent
         externalizedEnabled externalizedDeleteOnCancellation unalignedCheckpoints
       }
+      jobConfig {
+        jid name executionMode restartStrategy jobParallelism objectReuseMode
+        userConfig { key value }
+      }
       vertexDetails {
         id name parallelism now
         subtasks {
@@ -409,6 +413,7 @@ function mapJobOverview(j: any): FlinkJob {
     checkpointLatest: null,
     subtaskMetrics: {},
     configuration: [],
+    jobConfig: null,
     watermarks: {},
     backpressure: {},
     accumulators: {},
@@ -931,6 +936,23 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
     )
   }
 
+  // Map job-submit-time config (null when /jobs/:id/config endpoint failed server-side).
+  const jobConfig: FlinkJob["jobConfig"] = j.jobConfig
+    ? {
+        jid: j.jobConfig.jid,
+        name: j.jobConfig.name,
+        executionMode: j.jobConfig.executionMode,
+        restartStrategy: j.jobConfig.restartStrategy,
+        jobParallelism: j.jobConfig.jobParallelism,
+        objectReuseMode: j.jobConfig.objectReuseMode,
+        userConfig: Object.fromEntries(
+          (j.jobConfig.userConfig ?? []).map(
+            (e: { key: string; value: string }) => [e.key, e.value],
+          ),
+        ),
+      }
+    : null
+
   return {
     id: j.id,
     name: j.name,
@@ -963,6 +985,7 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
     checkpointLatest,
     subtaskMetrics,
     configuration: [],
+    jobConfig,
     watermarks,
     backpressure,
     accumulators,

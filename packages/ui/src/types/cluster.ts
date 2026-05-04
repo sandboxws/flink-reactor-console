@@ -207,6 +207,24 @@ export type JobConfiguration = {
   value: string
 }
 
+/**
+ * Job-submit-time configuration as returned by Flink's `/jobs/:id/config` endpoint.
+ *
+ * The `userConfig` map carries any submitter-set keys (e.g. `pipeline.sql`,
+ * `pipeline.name`, `flinkreactor.sql`) and is the only place Flink preserves
+ * arbitrary submitter context after the JobGraph is compiled.
+ */
+export type JobUserConfig = {
+  jid: string
+  name: string
+  executionMode: string
+  restartStrategy: string
+  jobParallelism: number
+  objectReuseMode: boolean
+  /** Flat map of user-config entries (already converted from `[{key,value}]`). */
+  userConfig: Record<string, string>
+}
+
 // --- Connector detection types ---
 
 /** Known connector types detected from vertex names or TAP manifests. */
@@ -264,6 +282,8 @@ export type FlinkJob = {
   /** Per-vertex subtask metrics, keyed by vertex ID. */
   subtaskMetrics: Record<string, SubtaskMetrics[]>
   configuration: JobConfiguration[]
+  /** Job-submit-time configuration (null if Flink's /jobs/:id/config endpoint was unavailable). */
+  jobConfig: JobUserConfig | null
   /** Per-vertex watermark values, keyed by vertex ID. */
   watermarks: Record<string, VertexWatermark[]>
   /** Per-vertex back-pressure status, keyed by vertex ID. */

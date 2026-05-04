@@ -53,6 +53,10 @@ func (r *mutationResolver) CreateSQLSession(ctx context.Context, cluster *string
 }
 
 // SubmitStatement is the resolver for the submitStatement field.
+//
+// Attaches the original statement text as `pipeline.sql` in the SQL Gateway's
+// per-statement executionConfig so the resulting Flink job preserves the SQL
+// in its user-config map (visible later via /jobs/:id/config and the SQL tab).
 func (r *mutationResolver) SubmitStatement(ctx context.Context, sessionHandle string, statement string, cluster *string) (*model.SQLStatementResult, error) {
 	conn, err := r.resolveCluster(cluster)
 	if err != nil {
@@ -63,7 +67,12 @@ func (r *mutationResolver) SubmitStatement(ctx context.Context, sessionHandle st
 	}
 
 	var result flink.SQLGatewayOperationResponse
-	body := map[string]string{"statement": statement}
+	body := map[string]any{
+		"statement": statement,
+		"executionConfig": map[string]string{
+			"pipeline.sql": statement,
+		},
+	}
 	path := fmt.Sprintf("/v3/sessions/%s/statements", sessionHandle)
 	if err := conn.SQLClient.PostJSON(ctx, path, body, &result); err != nil {
 		return nil, err

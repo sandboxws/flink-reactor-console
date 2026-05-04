@@ -215,6 +215,11 @@ type CompatibilityResult struct {
 	Messages     []string `json:"messages"`
 }
 
+type ConfigEntry struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 // I/O throughput metrics for a connector
 type ConnectorMetrics struct {
 	// Records read (for sources)
@@ -475,6 +480,16 @@ type JarUploadResult struct {
 	Status   string `json:"status"`
 }
 
+type JobConfig struct {
+	Jid             string         `json:"jid"`
+	Name            string         `json:"name"`
+	ExecutionMode   string         `json:"executionMode"`
+	RestartStrategy string         `json:"restartStrategy"`
+	JobParallelism  int            `json:"jobParallelism"`
+	ObjectReuseMode bool           `json:"objectReuseMode"`
+	UserConfig      []*ConfigEntry `json:"userConfig"`
+}
+
 // Detected source or sink connector for a job
 type JobConnector struct {
 	// Flink vertex ID
@@ -508,6 +523,7 @@ type JobDetail struct {
 	Exceptions       []*ExceptionEntry     `json:"exceptions"`
 	Checkpoints      *CheckpointStats      `json:"checkpoints,omitempty"`
 	CheckpointConfig *CheckpointConfig     `json:"checkpointConfig,omitempty"`
+	JobConfig        *JobConfig            `json:"jobConfig,omitempty"`
 	VertexDetails    []*VertexDetail       `json:"vertexDetails,omitempty"`
 	Watermarks       []*VertexWatermarks   `json:"watermarks,omitempty"`
 	BackPressure     []*VertexBackPressure `json:"backPressure,omitempty"`

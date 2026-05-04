@@ -162,6 +162,7 @@ export function createFlinkJob(overrides?: Partial<FlinkJob>): FlinkJob {
       { key: "execution.runtime-mode", value: "STREAMING" },
       { key: "execution.checkpointing.interval", value: "60000" },
     ],
+    jobConfig: null,
     watermarks: {},
     backpressure: {},
     accumulators: {},

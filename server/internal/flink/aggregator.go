@@ -119,9 +119,10 @@ func NewAggregator(client *Client) *Aggregator {
 
 // JobDetail fetches a full job detail aggregate using two-phase concurrency.
 //
-// Phase 1: job overview, exceptions, and job config are fetched as critical
-// (any failure cancels the request). Checkpoints and checkpoint config are
-// supplementary (fallback to nil on failure, e.g. SQL jobs without checkpointing).
+// Phase 1: job overview and exceptions are fetched as critical (any failure
+// cancels the request). Checkpoints, checkpoint config, and job config are
+// supplementary (fallback to nil on failure — config 404s/500s should not blank
+// the entire detail page; SQL jobs without checkpointing 404 their checkpoints).
 //
 // Phase 2 (per-vertex): vertex detail (critical), watermarks, backpressure, and
 // accumulators are fetched in parallel with SetLimit(10). Supplementary fetches
@@ -135,7 +136,7 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 		exceptions JobExceptions
 		checkpts   *CheckpointStats
 		cpConfig   *CheckpointConfig
-		jobCfg     JobConfig
+		jobCfg     *JobConfig
 	)
 
 	// Phase 1: critical fetches — fail fast on any error.
@@ -146,9 +147,6 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 	})
 	g1.Go(func() error {
 		return a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/exceptions", jobID), &exceptions)
-	})
-	g1.Go(func() error {
-		return a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/config", jobID), &jobCfg)
 	})
 
 	// Supplementary: checkpoints may 404 for SQL jobs without checkpointing.
@@ -163,6 +161,15 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 		var cc CheckpointConfig
 		if err := a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/checkpoints/config", jobID), &cc); err == nil {
 			cpConfig = &cc
+		}
+		return nil
+	})
+
+	// Supplementary: job config — flakes on this endpoint must not blank the page.
+	g1.Go(func() error {
+		var jc JobConfig
+		if err := a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/config", jobID), &jc); err == nil {
+			jobCfg = &jc
 		}
 		return nil
 	})
@@ -253,7 +260,7 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 		Exceptions:       &exceptions,
 		Checkpoints:      checkpts,
 		CheckpointConfig: cpConfig,
-		JobConfig:        &jobCfg,
+		JobConfig:        jobCfg,
 		VertexDetails:    vertexDetail,
 		Watermarks:       watermarks,
 		BackPressure:     backpressure,

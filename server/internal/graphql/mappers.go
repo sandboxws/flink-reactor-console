@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/connector"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
@@ -157,10 +158,39 @@ func mapJobDetailAggregate(agg *flink.JobDetailAggregate) *model.JobDetail {
 		Exceptions:       exceptions,
 		Checkpoints:      checkpoints,
 		CheckpointConfig: cpConfig,
+		JobConfig:        mapJobConfig(agg.JobConfig),
 		VertexDetails:    vertexDetails,
 		Watermarks:       watermarks,
 		BackPressure:     backPressure,
 		Accumulators:     accumulators,
+	}
+}
+
+// mapJobConfig converts the Flink JobConfig (raw /jobs/:id/config response) into a
+// GraphQL JobConfig. The user-config map is emitted as a list of ConfigEntry sorted
+// by key so the wire payload is deterministic.
+func mapJobConfig(jc *flink.JobConfig) *model.JobConfig {
+	if jc == nil {
+		return nil
+	}
+	uc := jc.ExecutionConfig.UserConfig
+	keys := make([]string, 0, len(uc))
+	for k := range uc {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	entries := make([]*model.ConfigEntry, len(keys))
+	for i, k := range keys {
+		entries[i] = &model.ConfigEntry{Key: k, Value: uc[k]}
+	}
+	return &model.JobConfig{
+		Jid:             jc.JID,
+		Name:            jc.Name,
+		ExecutionMode:   jc.ExecutionConfig.ExecutionMode,
+		RestartStrategy: jc.ExecutionConfig.RestartStrategy,
+		JobParallelism:  jc.ExecutionConfig.JobParallelism,
+		ObjectReuseMode: jc.ExecutionConfig.ObjectReuseMode,
+		UserConfig:      entries,
 	}
 }
 

@@ -104,6 +104,58 @@ func TestAggregator_JobDetail_Phase1_Failure(t *testing.T) {
 	}
 }
 
+func TestAggregator_JobDetail_ConfigEndpoint_Supplementary(t *testing.T) {
+	t.Parallel()
+
+	// Config endpoint 500s; everything else returns valid mock data. The aggregator
+	// must succeed with a nil JobConfig instead of failing the whole detail page.
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /jobs/{id}", func(w http.ResponseWriter, r *http.Request) {
+		writeTestJSON(w, flink.MockJobDetail(r.PathValue("id")))
+	})
+	mux.HandleFunc("GET /jobs/{id}/exceptions", func(w http.ResponseWriter, r *http.Request) {
+		writeTestJSON(w, flink.MockJobExceptions(r.PathValue("id")))
+	})
+	mux.HandleFunc("GET /jobs/{id}/checkpoints", func(w http.ResponseWriter, r *http.Request) {
+		writeTestJSON(w, flink.MockCheckpointStats(r.PathValue("id")))
+	})
+	mux.HandleFunc("GET /jobs/{id}/checkpoints/config", func(w http.ResponseWriter, _ *http.Request) {
+		writeTestJSON(w, flink.MockCheckpointConfig())
+	})
+	mux.HandleFunc("GET /jobs/{id}/config", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}", func(w http.ResponseWriter, r *http.Request) {
+		writeTestJSON(w, flink.MockVertexDetail(r.PathValue("vid")))
+	})
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/watermarks", func(w http.ResponseWriter, r *http.Request) {
+		writeTestJSON(w, flink.MockWatermarks(r.PathValue("vid")))
+	})
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/backpressure", func(w http.ResponseWriter, _ *http.Request) {
+		writeTestJSON(w, flink.MockBackPressure())
+	})
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/accumulators", func(w http.ResponseWriter, r *http.Request) {
+		writeTestJSON(w, flink.MockAccumulators(r.PathValue("vid")))
+	})
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client := flink.NewClient(flink.WithBaseURL(srv.URL))
+	agg := flink.NewAggregator(client)
+
+	result, err := agg.JobDetail(context.Background(), "d1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6")
+	if err != nil {
+		t.Fatalf("expected supplementary fallback for config 500, got error: %v", err)
+	}
+	if result.JobConfig != nil {
+		t.Errorf("expected JobConfig to be nil after config endpoint 500, got %+v", result.JobConfig)
+	}
+	if result.Job == nil {
+		t.Fatal("expected job detail to still load")
+	}
+}
+
 func TestAggregator_JobDetail_Phase2_SupplementaryFallback(t *testing.T) {
 	t.Parallel()
 

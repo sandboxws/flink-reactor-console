@@ -203,6 +203,11 @@ type ComplexityRoot struct {
 		Messages     func(childComplexity int) int
 	}
 
+	ConfigEntry struct {
+		Key   func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	ConnectorMetrics struct {
 		BytesRead      func(childComplexity int) int
 		BytesWritten   func(childComplexity int) int
@@ -418,6 +423,16 @@ type ComplexityRoot struct {
 		Status   func(childComplexity int) int
 	}
 
+	JobConfig struct {
+		ExecutionMode   func(childComplexity int) int
+		Jid             func(childComplexity int) int
+		JobParallelism  func(childComplexity int) int
+		Name            func(childComplexity int) int
+		ObjectReuseMode func(childComplexity int) int
+		RestartStrategy func(childComplexity int) int
+		UserConfig      func(childComplexity int) int
+	}
+
 	JobConnector struct {
 		Confidence      func(childComplexity int) int
 		ConnectorType   func(childComplexity int) int
@@ -438,6 +453,7 @@ type ComplexityRoot struct {
 		EndTime          func(childComplexity int) int
 		Exceptions       func(childComplexity int) int
 		ID               func(childComplexity int) int
+		JobConfig        func(childComplexity int) int
 		Name             func(childComplexity int) int
 		Now              func(childComplexity int) int
 		Plan             func(childComplexity int) int
@@ -1829,6 +1845,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CompatibilityResult.Messages(childComplexity), true
 
+	case "ConfigEntry.key":
+		if e.ComplexityRoot.ConfigEntry.Key == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigEntry.Key(childComplexity), true
+	case "ConfigEntry.value":
+		if e.ComplexityRoot.ConfigEntry.Value == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigEntry.Value(childComplexity), true
+
 	case "ConnectorMetrics.bytesRead":
 		if e.ComplexityRoot.ConnectorMetrics.BytesRead == nil {
 			break
@@ -2575,6 +2604,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.JarUploadResult.Status(childComplexity), true
 
+	case "JobConfig.executionMode":
+		if e.ComplexityRoot.JobConfig.ExecutionMode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConfig.ExecutionMode(childComplexity), true
+	case "JobConfig.jid":
+		if e.ComplexityRoot.JobConfig.Jid == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConfig.Jid(childComplexity), true
+	case "JobConfig.jobParallelism":
+		if e.ComplexityRoot.JobConfig.JobParallelism == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConfig.JobParallelism(childComplexity), true
+	case "JobConfig.name":
+		if e.ComplexityRoot.JobConfig.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConfig.Name(childComplexity), true
+	case "JobConfig.objectReuseMode":
+		if e.ComplexityRoot.JobConfig.ObjectReuseMode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConfig.ObjectReuseMode(childComplexity), true
+	case "JobConfig.restartStrategy":
+		if e.ComplexityRoot.JobConfig.RestartStrategy == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConfig.RestartStrategy(childComplexity), true
+	case "JobConfig.userConfig":
+		if e.ComplexityRoot.JobConfig.UserConfig == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobConfig.UserConfig(childComplexity), true
+
 	case "JobConnector.confidence":
 		if e.ComplexityRoot.JobConnector.Confidence == nil {
 			break
@@ -2672,6 +2744,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobDetail.ID(childComplexity), true
+	case "JobDetail.jobConfig":
+		if e.ComplexityRoot.JobDetail.JobConfig == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobDetail.JobConfig(childComplexity), true
 	case "JobDetail.name":
 		if e.ComplexityRoot.JobDetail.Name == nil {
 			break
@@ -6770,6 +6848,21 @@ type Flamegraph {
   data: FlamegraphNode!
 }
 
+type ConfigEntry {
+  key: String!
+  value: String!
+}
+
+type JobConfig {
+  jid: String!
+  name: String!
+  executionMode: String!
+  restartStrategy: String!
+  jobParallelism: Int!
+  objectReuseMode: Boolean!
+  userConfig: [ConfigEntry!]!
+}
+
 type JobDetail {
   id: ID!
   name: String!
@@ -6783,6 +6876,7 @@ type JobDetail {
   exceptions: [ExceptionEntry!]!
   checkpoints: CheckpointStats
   checkpointConfig: CheckpointConfig
+  jobConfig: JobConfig
   vertexDetails: [VertexDetail!]
   watermarks: [VertexWatermarks!]
   backPressure: [VertexBackPressure!]
@@ -12027,6 +12121,64 @@ func (ec *executionContext) fieldContext_CompatibilityResult_messages(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigEntry_key(ctx context.Context, field graphql.CollectedField, obj *model.ConfigEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigEntry_key,
+		func(ctx context.Context) (any, error) {
+			return obj.Key, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigEntry_key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigEntry_value(ctx context.Context, field graphql.CollectedField, obj *model.ConfigEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigEntry_value,
+		func(ctx context.Context) (any, error) {
+			return obj.Value, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigEntry_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConnectorMetrics_recordsRead(ctx context.Context, field graphql.CollectedField, obj *model.ConnectorMetrics) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -15604,6 +15756,215 @@ func (ec *executionContext) fieldContext_JarUploadResult_status(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _JobConfig_jid(ctx context.Context, field graphql.CollectedField, obj *model.JobConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConfig_jid,
+		func(ctx context.Context) (any, error) {
+			return obj.Jid, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConfig_jid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConfig_name(ctx context.Context, field graphql.CollectedField, obj *model.JobConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConfig_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConfig_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConfig_executionMode(ctx context.Context, field graphql.CollectedField, obj *model.JobConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConfig_executionMode,
+		func(ctx context.Context) (any, error) {
+			return obj.ExecutionMode, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConfig_executionMode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConfig_restartStrategy(ctx context.Context, field graphql.CollectedField, obj *model.JobConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConfig_restartStrategy,
+		func(ctx context.Context) (any, error) {
+			return obj.RestartStrategy, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConfig_restartStrategy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConfig_jobParallelism(ctx context.Context, field graphql.CollectedField, obj *model.JobConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConfig_jobParallelism,
+		func(ctx context.Context) (any, error) {
+			return obj.JobParallelism, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConfig_jobParallelism(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConfig_objectReuseMode(ctx context.Context, field graphql.CollectedField, obj *model.JobConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConfig_objectReuseMode,
+		func(ctx context.Context) (any, error) {
+			return obj.ObjectReuseMode, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConfig_objectReuseMode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobConfig_userConfig(ctx context.Context, field graphql.CollectedField, obj *model.JobConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobConfig_userConfig,
+		func(ctx context.Context) (any, error) {
+			return obj.UserConfig, nil
+		},
+		nil,
+		ec.marshalNConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobConfig_userConfig(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_ConfigEntry_key(ctx, field)
+			case "value":
+				return ec.fieldContext_ConfigEntry_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobConnector_vertexId(ctx context.Context, field graphql.CollectedField, obj *model.JobConnector) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -16263,6 +16624,51 @@ func (ec *executionContext) fieldContext_JobDetail_checkpointConfig(_ context.Co
 				return ec.fieldContext_CheckpointConfig_unalignedCheckpoints(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CheckpointConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobDetail_jobConfig(ctx context.Context, field graphql.CollectedField, obj *model.JobDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobDetail_jobConfig,
+		func(ctx context.Context) (any, error) {
+			return obj.JobConfig, nil
+		},
+		nil,
+		ec.marshalOJobConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConfig,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobDetail_jobConfig(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "jid":
+				return ec.fieldContext_JobConfig_jid(ctx, field)
+			case "name":
+				return ec.fieldContext_JobConfig_name(ctx, field)
+			case "executionMode":
+				return ec.fieldContext_JobConfig_executionMode(ctx, field)
+			case "restartStrategy":
+				return ec.fieldContext_JobConfig_restartStrategy(ctx, field)
+			case "jobParallelism":
+				return ec.fieldContext_JobConfig_jobParallelism(ctx, field)
+			case "objectReuseMode":
+				return ec.fieldContext_JobConfig_objectReuseMode(ctx, field)
+			case "userConfig":
+				return ec.fieldContext_JobConfig_userConfig(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobConfig", field.Name)
 		},
 	}
 	return fc, nil
@@ -22654,6 +23060,8 @@ func (ec *executionContext) fieldContext_Query_job(ctx context.Context, field gr
 				return ec.fieldContext_JobDetail_checkpoints(ctx, field)
 			case "checkpointConfig":
 				return ec.fieldContext_JobDetail_checkpointConfig(ctx, field)
+			case "jobConfig":
+				return ec.fieldContext_JobDetail_jobConfig(ctx, field)
 			case "vertexDetails":
 				return ec.fieldContext_JobDetail_vertexDetails(ctx, field)
 			case "watermarks":
@@ -34149,6 +34557,50 @@ func (ec *executionContext) _CompatibilityResult(ctx context.Context, sel ast.Se
 	return out
 }
 
+var configEntryImplementors = []string{"ConfigEntry"}
+
+func (ec *executionContext) _ConfigEntry(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigEntry")
+		case "key":
+			out.Values[i] = ec._ConfigEntry_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._ConfigEntry_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var connectorMetricsImplementors = []string{"ConnectorMetrics"}
 
 func (ec *executionContext) _ConnectorMetrics(ctx context.Context, sel ast.SelectionSet, obj *model.ConnectorMetrics) graphql.Marshaler {
@@ -35808,6 +36260,75 @@ func (ec *executionContext) _JarUploadResult(ctx context.Context, sel ast.Select
 	return out
 }
 
+var jobConfigImplementors = []string{"JobConfig"}
+
+func (ec *executionContext) _JobConfig(ctx context.Context, sel ast.SelectionSet, obj *model.JobConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobConfig")
+		case "jid":
+			out.Values[i] = ec._JobConfig_jid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._JobConfig_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "executionMode":
+			out.Values[i] = ec._JobConfig_executionMode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "restartStrategy":
+			out.Values[i] = ec._JobConfig_restartStrategy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jobParallelism":
+			out.Values[i] = ec._JobConfig_jobParallelism(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "objectReuseMode":
+			out.Values[i] = ec._JobConfig_objectReuseMode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "userConfig":
+			out.Values[i] = ec._JobConfig_userConfig(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var jobConnectorImplementors = []string{"JobConnector"}
 
 func (ec *executionContext) _JobConnector(ctx context.Context, sel ast.SelectionSet, obj *model.JobConnector) graphql.Marshaler {
@@ -35944,6 +36465,8 @@ func (ec *executionContext) _JobDetail(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._JobDetail_checkpoints(ctx, field, obj)
 		case "checkpointConfig":
 			out.Values[i] = ec._JobDetail_checkpointConfig(ctx, field, obj)
+		case "jobConfig":
+			out.Values[i] = ec._JobDetail_jobConfig(ctx, field, obj)
 		case "vertexDetails":
 			out.Values[i] = ec._JobDetail_vertexDetails(ctx, field, obj)
 		case "watermarks":
@@ -42314,6 +42837,32 @@ func (ec *executionContext) marshalNCompatibilityResult2ᚖgithubᚗcomᚋsandbo
 	return ec._CompatibilityResult(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigEntry) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntry(ctx context.Context, sel ast.SelectionSet, v *model.ConfigEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigEntry(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNDashboardConfig2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig(ctx context.Context, sel ast.SelectionSet, v model.DashboardConfig) graphql.Marshaler {
 	return ec._DashboardConfig(ctx, sel, &v)
 }
@@ -44924,6 +45473,13 @@ func (ec *executionContext) marshalOJSON2ᚕmap(ctx context.Context, sel ast.Sel
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOJobConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConfig(ctx context.Context, sel ast.SelectionSet, v *model.JobConfig) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._JobConfig(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryFilter(ctx context.Context, v any) (*model.JobHistoryFilter, error) {

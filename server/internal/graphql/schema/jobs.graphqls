@@ -229,6 +229,21 @@ type Flamegraph {
   data: FlamegraphNode!
 }
 
+type ConfigEntry {
+  key: String!
+  value: String!
+}
+
+type JobConfig {
+  jid: String!
+  name: String!
+  executionMode: String!
+  restartStrategy: String!
+  jobParallelism: Int!
+  objectReuseMode: Boolean!
+  userConfig: [ConfigEntry!]!
+}
+
 type JobDetail {
   id: ID!
   name: String!
@@ -242,6 +257,7 @@ type JobDetail {
   exceptions: [ExceptionEntry!]!
   checkpoints: CheckpointStats
   checkpointConfig: CheckpointConfig
+  jobConfig: JobConfig
   vertexDetails: [VertexDetail!]
   watermarks: [VertexWatermarks!]
   backPressure: [VertexBackPressure!]
