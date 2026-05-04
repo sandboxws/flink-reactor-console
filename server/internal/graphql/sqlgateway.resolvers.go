@@ -7,6 +7,7 @@ package graphql
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strings"
@@ -54,9 +55,12 @@ func (r *mutationResolver) CreateSQLSession(ctx context.Context, cluster *string
 
 // SubmitStatement is the resolver for the submitStatement field.
 //
-// Attaches the original statement text as `pipeline.sql` in the SQL Gateway's
-// per-statement executionConfig so the resulting Flink job preserves the SQL
-// in its user-config map (visible later via /jobs/:id/config and the SQL tab).
+// Attaches the original statement text on the resulting Flink job's user-config
+// by routing it through Flink's recognized `pipeline.global-job-parameters` map
+// (the only documented passthrough for arbitrary user data → ExecutionConfig
+// .globalJobParameters → /jobs/:id/config user-config). Encoded as base64 under
+// the key `pipeline.sql.b64` so colons/commas/newlines in the SQL don't collide
+// with Flink's mapType parser. The dashboard decodes for display.
 func (r *mutationResolver) SubmitStatement(ctx context.Context, sessionHandle string, statement string, cluster *string) (*model.SQLStatementResult, error) {
 	conn, err := r.resolveCluster(cluster)
 	if err != nil {
@@ -66,11 +70,12 @@ func (r *mutationResolver) SubmitStatement(ctx context.Context, sessionHandle st
 		return nil, fmt.Errorf("SQL Gateway not configured for cluster %q", conn.Name)
 	}
 
+	stmtB64 := base64.StdEncoding.EncodeToString([]byte(statement))
 	var result flink.SQLGatewayOperationResponse
 	body := map[string]any{
 		"statement": statement,
 		"executionConfig": map[string]string{
-			"pipeline.sql": statement,
+			"pipeline.global-job-parameters": "pipeline.sql.b64:" + stmtB64,
 		},
 	}
 	path := fmt.Sprintf("/v3/sessions/%s/statements", sessionHandle)

@@ -58,4 +58,47 @@ describe("extractSql", () => {
       sql,
     })
   })
+
+  describe("pipeline.sql.b64 (transport format)", () => {
+    const b64 = (s: string) => Buffer.from(s, "utf-8").toString("base64")
+
+    it("decodes pipeline.sql.b64 into UTF-8 SQL", () => {
+      const sql = "INSERT INTO sink SELECT * FROM src;"
+      const got = extractSql({ "pipeline.sql.b64": b64(sql) })
+      expect(got).toEqual({ key: "pipeline.sql.b64", sql })
+    })
+
+    it("decodes multi-line SQL with colons, commas, and quotes", () => {
+      const sql =
+        "CREATE TABLE x (\n  a STRING,\n  b BIGINT\n) WITH (\n  'connector' = 'kafka:9092'\n);"
+      const got = extractSql({ "pipeline.sql.b64": b64(sql) })
+      expect(got?.sql).toBe(sql)
+    })
+
+    it("prefers pipeline.sql.b64 over the raw fallback keys", () => {
+      const decoded = "DECODED"
+      const got = extractSql({
+        "pipeline.sql.b64": b64(decoded),
+        "pipeline.sql": "RAW_FALLBACK",
+        "sql.statement": "ALSO_RAW",
+      })
+      expect(got).toEqual({ key: "pipeline.sql.b64", sql: decoded })
+    })
+
+    it("falls back to pipeline.sql when pipeline.sql.b64 is malformed", () => {
+      const got = extractSql({
+        "pipeline.sql.b64": "not_base64!!@#$",
+        "pipeline.sql": "FALLBACK",
+      })
+      expect(got).toEqual({ key: "pipeline.sql", sql: "FALLBACK" })
+    })
+
+    it("falls back when pipeline.sql.b64 decodes to empty/whitespace", () => {
+      const got = extractSql({
+        "pipeline.sql.b64": b64("   \n\t  "),
+        "pipeline.sql": "FALLBACK",
+      })
+      expect(got).toEqual({ key: "pipeline.sql", sql: "FALLBACK" })
+    })
+  })
 })

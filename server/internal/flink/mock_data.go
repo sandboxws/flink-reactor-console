@@ -1,6 +1,7 @@
 package flink
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 )
@@ -424,24 +425,18 @@ func MockCheckpointConfig() CheckpointConfig {
 }
 
 // MockJobConfig returns a realistic job config response.
+//
+// In production, the FlinkReactor DSL (CRD generator + SQL Gateway client) and
+// the console SQL Gateway resolver attach SQL via Flink's recognized
+// `pipeline.global-job-parameters` mapType config: e.g. submit-time
+// `pipeline.global-job-parameters = pipeline.sql.b64:<base64>`. By the time
+// `/jobs/:jid/config` returns, Flink has already parsed that mapType into
+// `ExecutionConfig.GlobalJobParameters` and surfaces each entry as a flat
+// top-level key in the response's `user-config` field. So the mock seeds
+// `pipeline.sql.b64` directly — that's the *response* shape the aggregator
+// reads and the dashboard's SQL tab decodes for display.
 func MockJobConfig(jobID string) JobConfig {
-	return JobConfig{
-		JID:  jobID,
-		Name: "ETL-Orders-Pipeline",
-		ExecutionConfig: struct {
-			ExecutionMode   string            `json:"execution-mode"`
-			RestartStrategy string            `json:"restart-strategy"`
-			JobParallelism  int               `json:"job-parallelism"`
-			ObjectReuseMode bool              `json:"object-reuse-mode"`
-			UserConfig      map[string]string `json:"user-config"`
-		}{
-			ExecutionMode:   "PIPELINED",
-			RestartStrategy: "Cluster level: Fixed Delay with 3 restart(s) and 10000 ms delay",
-			JobParallelism:  4,
-			ObjectReuseMode: false,
-			UserConfig: map[string]string{
-				"pipeline.name": "ETL-Orders-Pipeline",
-				"pipeline.sql": `CREATE TABLE orders_src (
+	sql := `CREATE TABLE orders_src (
   id BIGINT,
   customer_id BIGINT,
   amount DECIMAL(10, 2),
@@ -476,7 +471,25 @@ SELECT
   COUNT(*) AS order_count
 FROM orders_src
 WHERE amount > 0
-GROUP BY region, TUMBLE(created_at, INTERVAL '1' MINUTE);`,
+GROUP BY region, TUMBLE(created_at, INTERVAL '1' MINUTE);`
+	sqlB64 := base64.StdEncoding.EncodeToString([]byte(sql))
+	return JobConfig{
+		JID:  jobID,
+		Name: "ETL-Orders-Pipeline",
+		ExecutionConfig: struct {
+			ExecutionMode   string            `json:"execution-mode"`
+			RestartStrategy string            `json:"restart-strategy"`
+			JobParallelism  int               `json:"job-parallelism"`
+			ObjectReuseMode bool              `json:"object-reuse-mode"`
+			UserConfig      map[string]string `json:"user-config"`
+		}{
+			ExecutionMode:   "PIPELINED",
+			RestartStrategy: "Cluster level: Fixed Delay with 3 restart(s) and 10000 ms delay",
+			JobParallelism:  4,
+			ObjectReuseMode: false,
+			UserConfig: map[string]string{
+				"pipeline.name":    "ETL-Orders-Pipeline",
+				"pipeline.sql.b64": sqlB64,
 			},
 		},
 	}
