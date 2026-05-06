@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkpoints · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="checkpoints">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-6 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Observe</span></div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Checkpoint analytics</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">All pipelines · last 24h: 1.79M checkpoints · 99.997% success · avg 84ms</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="layers" class="text-sm"></i>All pipelines<i data-lucide="chevron-down" class="text-xs"></i></button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="calendar" class="text-sm"></i>Last 24h<i data-lucide="chevron-down" class="text-xs"></i></button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+          <div class="kpi-card"><div class="kpi-label">Total ckpts (24h)</div><div class="kpi-value">1.79M</div></div>
+          <div class="kpi-card"><div class="kpi-label">Success rate</div><div class="kpi-value text-fr-sage">99.997%</div><div class="kpi-sub">54 failures / 1.79M</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg duration</div><div class="kpi-value">84<span class="text-[12px] text-fg-muted">ms</span></div><div class="kpi-sub">↓ 12% vs 24h ago</div></div>
+          <div class="kpi-card"><div class="kpi-label">p99 duration</div><div class="kpi-value">142<span class="text-[12px] text-fg-muted">ms</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">State size</div><div class="kpi-value">142<span class="text-[12px] text-fg-muted">MB avg</span></div><div class="kpi-sub">across 7 pipelines</div></div>
+        </section>
+
+        <!-- Engine bars chart for checkpoints -->
+        <section class="mb-6 glass-card-static p-5">
+          <div class="mb-3 flex items-center justify-between">
+            <div>
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100">Checkpoint outcomes — last 38 minutes</h3>
+              <p class="mt-0.5 text-[11px] text-fg-muted">sage = success, coral = failed</p>
+            </div>
+            <span class="sev-badge ok"><span class="live-dot"></span>Live</span>
+          </div>
+          <svg viewBox="0 0 600 180" preserveAspectRatio="none" class="h-44 w-full">
+            <g stroke="rgba(212,190,152,0.06)"><line x1="0" y1="45" x2="600" y2="45"/><line x1="0" y1="90" x2="600" y2="90"/><line x1="0" y1="135" x2="600" y2="135"/></g>
+            <g id="engineBars"></g>
+          </svg>
+        </section>
+
+        <!-- Per-pipeline breakdown + checkpoint table -->
+        <section class="grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-7">
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Recent checkpoint events</h3>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-[12px]">
+                  <thead>
+                    <tr class="text-[10px] font-mono uppercase tracking-wider text-fg-faint border-b border-dash-border">
+                      <th class="px-3 py-2 text-left">#</th>
+                      <th class="px-3 py-2 text-left">Pipeline</th>
+                      <th class="px-3 py-2 text-left">Status</th>
+                      <th class="px-3 py-2 text-right">Duration</th>
+                      <th class="px-3 py-2 text-right">Size</th>
+                      <th class="px-3 py-2 text-right">Aligned</th>
+                      <th class="px-3 py-2 text-right">Trigger</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-dash-border/40">
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-3 py-2 font-mono text-fg-muted">10238</td>
+                      <td class="px-3 py-2"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">reactor-core</a></td>
+                      <td class="px-3 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-3 py-2 text-right font-mono">84ms</td>
+                      <td class="px-3 py-2 text-right font-mono">142 MB</td>
+                      <td class="px-3 py-2 text-right font-mono text-fr-sage">12ms</td>
+                      <td class="px-3 py-2 text-right font-mono text-fg-faint">2m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-3 py-2 font-mono text-fg-muted">8412</td>
+                      <td class="px-3 py-2"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">fluss-ingest</a></td>
+                      <td class="px-3 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-3 py-2 text-right font-mono">62ms</td>
+                      <td class="px-3 py-2 text-right font-mono">88 MB</td>
+                      <td class="px-3 py-2 text-right font-mono text-fr-sage">8ms</td>
+                      <td class="px-3 py-2 text-right font-mono text-fg-faint">2m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-3 py-2 font-mono text-fg-muted">7234</td>
+                      <td class="px-3 py-2"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">paimon-sink</a></td>
+                      <td class="px-3 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-3 py-2 text-right font-mono">112ms</td>
+                      <td class="px-3 py-2 text-right font-mono">218 MB</td>
+                      <td class="px-3 py-2 text-right font-mono text-fr-amber">22ms</td>
+                      <td class="px-3 py-2 text-right font-mono text-fg-faint">3m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-3 py-2 font-mono text-fg-muted">10237</td>
+                      <td class="px-3 py-2"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">reactor-core</a></td>
+                      <td class="px-3 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-3 py-2 text-right font-mono">91ms</td>
+                      <td class="px-3 py-2 text-right font-mono">138 MB</td>
+                      <td class="px-3 py-2 text-right font-mono text-fr-sage">9ms</td>
+                      <td class="px-3 py-2 text-right font-mono text-fg-faint">5m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-3 py-2 font-mono text-fg-muted">3041</td>
+                      <td class="px-3 py-2"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">datalake-connect</a></td>
+                      <td class="px-3 py-2"><span class="font-mono text-[10px] text-fr-rose">FAILED</span></td>
+                      <td class="px-3 py-2 text-right font-mono">3.2s</td>
+                      <td class="px-3 py-2 text-right font-mono text-fg-faint">—</td>
+                      <td class="px-3 py-2 text-right font-mono text-fg-faint">timeout</td>
+                      <td class="px-3 py-2 text-right font-mono text-fg-faint">8m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-3 py-2 font-mono text-fg-muted">10236</td>
+                      <td class="px-3 py-2"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">reactor-core</a></td>
+                      <td class="px-3 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-3 py-2 text-right font-mono">79ms</td>
+                      <td class="px-3 py-2 text-right font-mono">141 MB</td>
+                      <td class="px-3 py-2 text-right font-mono text-fr-sage">14ms</td>
+                      <td class="px-3 py-2 text-right font-mono text-fg-faint">8m ago</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-12 lg:col-span-5 space-y-5">
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Density · last 26 weeks</h3>
+              <div id="heatmap" class="flex gap-[3px]"></div>
+              <div class="mt-2 flex items-center justify-between text-[10px] font-mono text-fg-faint">
+                <span>less</span>
+                <span class="hm-0 inline-block size-3 rounded-sm"></span>
+                <span class="hm-1 inline-block size-3 rounded-sm"></span>
+                <span class="hm-2 inline-block size-3 rounded-sm"></span>
+                <span class="hm-3 inline-block size-3 rounded-sm"></span>
+                <span class="hm-4 inline-block size-3 rounded-sm"></span>
+                <span>more</span>
+              </div>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Per-pipeline summary</h3>
+              <div class="space-y-2 text-[12px]">
+                <div class="flex items-center justify-between"><span class="font-mono text-fg-muted">reactor-core</span><span class="font-mono text-fg">847K · 100%</span></div>
+                <div class="flex items-center justify-between"><span class="font-mono text-fg-muted">clickstream-enrich</span><span class="font-mono text-fg">412K · 100%</span></div>
+                <div class="flex items-center justify-between"><span class="font-mono text-fg-muted">fluss-ingest</span><span class="font-mono text-fg">328K · 100%</span></div>
+                <div class="flex items-center justify-between"><span class="font-mono text-fg-muted">paimon-sink</span><span class="font-mono text-fg">147K · 99.99%</span></div>
+                <div class="flex items-center justify-between"><span class="font-mono text-fg-muted">datalake-connect</span><span class="font-mono text-fr-amber">52K · 98.96%</span></div>
+                <div class="flex items-center justify-between"><span class="font-mono text-fg-muted">schema-registry-sync</span><span class="font-mono text-fg">3.2K · 100%</span></div>
+                <div class="flex items-center justify-between opacity-60"><span class="font-mono text-fg-muted">cdc-loader</span><span class="font-mono text-fg-faint">— offline</span></div>
+              </div>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Savepoints (last 7d)</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">sp-2401 · paimon-sink</a><span class="font-mono text-[10px] text-fg-faint">2h ago</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">sp-2398 · reactor-core</a><span class="font-mono text-[10px] text-fg-faint">8h ago</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">sp-2391 · fluss-ingest</a><span class="font-mono text-[10px] text-fg-faint">1d ago</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral">sp-2384 · clickstream-enrich</a><span class="font-mono text-[10px] text-fg-faint">3d ago</span></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

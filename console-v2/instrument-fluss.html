@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fluss · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="instrument-fluss">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-5 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><a href="instruments.html" class="hover:text-fr-coral">Instruments</a><span class="text-fg-faint mx-1">/</span><span>Fluss</span></div>
+            <h1 class="mt-1 flex items-center gap-3 font-sans text-[24px] font-semibold tracking-tight text-zinc-100"><span class="flex size-9 items-center justify-center rounded-lg bg-fr-teal/10 border border-fr-teal/20"><i data-lucide="layers" class="text-lg text-fr-teal"></i></span>Fluss</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">streaming storage · v0.6.2 · 8 TabletServers · 3-node ZK · cluster id <span class="font-mono">fluss-acme-1</span></p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="settings-2" class="text-sm"></i>Configure</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-cw" class="text-sm"></i>Rebalance</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="search-code" class="text-sm"></i>Query</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+          <div class="kpi-card"><div class="kpi-label">TabletServers</div><div class="kpi-value">8 <span class="text-[12px] text-fr-sage">/8 healthy</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">Tables</div><div class="kpi-value">248</div><div class="kpi-sub">across 6 dbs</div></div>
+          <div class="kpi-card"><div class="kpi-label">Throughput</div><div class="kpi-value text-fr-sage">1.83<span class="text-[12px] text-fg-muted">M/s</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">Storage used</div><div class="kpi-value">2.4<span class="text-[12px] text-fg-muted">TB</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">Replication lag</div><div class="kpi-value text-fr-sage">8<span class="text-[12px] text-fg-muted">ms p99</span></div></div>
+        </section>
+
+        <!-- Tabs -->
+        <div class="mb-4 border-b border-dash-border">
+          <nav class="flex">
+            <button class="tab active">Overview</button>
+            <button class="tab">Tables<span class="tab-count">248</span></button>
+            <button class="tab">TabletServers<span class="tab-count">8</span></button>
+            <button class="tab">Coordinator<span class="tab-count">2</span></button>
+            <button class="tab">ZooKeeper<span class="tab-count">3</span></button>
+            <button class="tab">Config</button>
+            <button class="tab">Logs</button>
+          </nav>
+        </div>
+
+        <!-- Cluster topology grid + tables list -->
+        <section class="mb-6 grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-7 glass-card-static p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100">Cluster topology</h3>
+              <span class="text-[11px] font-mono text-fg-muted">us-west-2 · 3 AZs</span>
+            </div>
+
+            <!-- Coordinator row -->
+            <div class="mb-4">
+              <div class="text-[10px] font-mono uppercase tracking-wider text-fg-faint mb-2">Coordinator</div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-3 hover:border-fr-coral/40">
+                  <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-2"><span class="live-dot"></span><span class="font-mono text-[12px] text-fg">coord-1</span></div><span class="sev-badge ok">leader</span></div>
+                  <div class="font-mono text-[10.5px] text-fg-muted">10.4.2.18 · az-a · uptime 28d</div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-3 hover:border-fr-coral/40">
+                  <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-2"><span class="size-2 rounded-full bg-fr-teal"></span><span class="font-mono text-[12px] text-fg">coord-2</span></div><span class="sev-badge info">follower</span></div>
+                  <div class="font-mono text-[10.5px] text-fg-muted">10.4.2.19 · az-b · uptime 28d</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TabletServer grid -->
+            <div class="mb-4">
+              <div class="text-[10px] font-mono uppercase tracking-wider text-fg-faint mb-2">TabletServers</div>
+              <div class="grid grid-cols-4 gap-2">
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-2.5">
+                  <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="live-dot"></span><span class="font-mono text-[11.5px] text-fg">ts-1</span></div></div>
+                  <div class="font-mono text-[9.5px] text-fg-muted">az-a · 31 tablets</div>
+                  <div class="resource-bar mt-1.5"><div class="seg heap" style="width:72%"></div></div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-2.5">
+                  <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="live-dot"></span><span class="font-mono text-[11.5px] text-fg">ts-2</span></div></div>
+                  <div class="font-mono text-[9.5px] text-fg-muted">az-b · 31 tablets</div>
+                  <div class="resource-bar mt-1.5"><div class="seg heap" style="width:68%"></div></div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-2.5">
+                  <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="live-dot"></span><span class="font-mono text-[11.5px] text-fg">ts-3</span></div></div>
+                  <div class="font-mono text-[9.5px] text-fg-muted">az-c · 31 tablets</div>
+                  <div class="resource-bar mt-1.5"><div class="seg heap" style="width:74%"></div></div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-2.5">
+                  <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="live-dot"></span><span class="font-mono text-[11.5px] text-fg">ts-4</span></div></div>
+                  <div class="font-mono text-[9.5px] text-fg-muted">az-a · 31 tablets</div>
+                  <div class="resource-bar mt-1.5"><div class="seg heap" style="width:70%"></div></div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-2.5">
+                  <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="live-dot"></span><span class="font-mono text-[11.5px] text-fg">ts-5</span></div></div>
+                  <div class="font-mono text-[9.5px] text-fg-muted">az-b · 31 tablets</div>
+                  <div class="resource-bar mt-1.5"><div class="seg heap" style="width:66%"></div></div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-2.5">
+                  <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="live-dot"></span><span class="font-mono text-[11.5px] text-fg">ts-6</span></div></div>
+                  <div class="font-mono text-[9.5px] text-fg-muted">az-c · 31 tablets</div>
+                  <div class="resource-bar mt-1.5"><div class="seg heap" style="width:78%"></div></div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-2.5">
+                  <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="live-dot"></span><span class="font-mono text-[11.5px] text-fg">ts-7</span></div></div>
+                  <div class="font-mono text-[9.5px] text-fg-muted">az-a · 31 tablets</div>
+                  <div class="resource-bar mt-1.5"><div class="seg heap" style="width:72%"></div></div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-2.5">
+                  <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="live-dot"></span><span class="font-mono text-[11.5px] text-fg">ts-8</span></div></div>
+                  <div class="font-mono text-[9.5px] text-fg-muted">az-b · 31 tablets</div>
+                  <div class="resource-bar mt-1.5"><div class="seg heap" style="width:64%"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ZK row -->
+            <div>
+              <div class="text-[10px] font-mono uppercase tracking-wider text-fg-faint mb-2">ZooKeeper quorum</div>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-3">
+                  <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-2"><span class="live-dot"></span><span class="font-mono text-[12px] text-fg">zk-1</span></div><span class="sev-badge ok">leader</span></div>
+                  <div class="font-mono text-[10px] text-fg-muted">epoch 12 · uptime 84d</div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-3">
+                  <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-2"><span class="size-2 rounded-full bg-fr-teal"></span><span class="font-mono text-[12px] text-fg">zk-2</span></div><span class="sev-badge info">follower</span></div>
+                  <div class="font-mono text-[10px] text-fg-muted">in-sync · uptime 84d</div>
+                </div>
+                <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-3">
+                  <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-2"><span class="size-2 rounded-full bg-fr-teal"></span><span class="font-mono text-[12px] text-fg">zk-3</span></div><span class="sev-badge info">follower</span></div>
+                  <div class="font-mono text-[10px] text-fg-muted">in-sync · uptime 84d</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Side: connections -->
+          <aside class="col-span-12 lg:col-span-5 space-y-4">
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Connection</h3>
+              <dl class="space-y-2 text-[11.5px]">
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Bootstrap</dt><dd class="col-span-2 font-mono text-fg">fluss.acme.svc:9092</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Auth</dt><dd class="col-span-2 font-mono text-fg">SASL_SSL · scram-sha-512</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Default RF</dt><dd class="col-span-2 font-mono text-fg">3</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Bucketing</dt><dd class="col-span-2 font-mono text-fg">consistent-hash</dd></div>
+              </dl>
+              <div class="mt-3 pt-3 border-t border-dash-border text-[11px]">
+                <div class="text-fg-faint font-mono uppercase tracking-wider text-[9px] mb-1">Connection ping</div>
+                <div class="flex items-baseline justify-between"><span class="font-mono text-fr-sage text-[14px]">3.2ms</span><span class="font-mono text-fg-muted text-[10px]">p99 · last 1m</span></div>
+              </div>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Used by</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><span class="live-dot mr-2"></span>reactor-core</a><span class="text-fg-faint">read 4.2M/s</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><span class="live-dot mr-2"></span>fluss-ingest</a><span class="text-fg-faint">write 1.8M/s</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><span class="live-dot mr-2"></span>paimon-sink</a><span class="text-fg-faint">read 920K/s</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><span class="live-dot mr-2"></span>clickstream-enrich</a><span class="text-fg-faint">read 3.1M/s</span></li>
+              </ul>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Recent events</h3>
+              <ul class="space-y-2 text-[11.5px]">
+                <li class="activity-entry"><span class="activity-icon"><i data-lucide="rotate-cw" class="text-sm text-fr-sage"></i></span><div><span class="activity-text"><strong>ts-3</strong> rebalanced 4 partitions</span></div><span class="activity-time">2m</span></li>
+                <li class="activity-entry"><span class="activity-icon"><i data-lucide="check-circle" class="text-sm text-fr-sage"></i></span><div><span class="activity-text">Compaction <strong>events.orders_raw</strong> done · 8.4MB reclaimed</span></div><span class="activity-time">12m</span></li>
+                <li class="activity-entry"><span class="activity-icon"><i data-lucide="key" class="text-sm text-fr-amber"></i></span><div><span class="activity-text">Coord re-elected to <strong>coord-1</strong></span></div><span class="activity-time">2h</span></li>
+                <li class="activity-entry"><span class="activity-icon"><i data-lucide="plus" class="text-sm text-fr-coral"></i></span><div><span class="activity-text">Created <strong>events.payments_raw</strong> · 8 buckets</span></div><span class="activity-time">5h</span></li>
+              </ul>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Tables list -->
+        <section class="glass-card-static overflow-hidden">
+          <div class="flex items-center justify-between border-b border-dash-border px-4 py-3">
+            <h3 class="font-sans text-[14px] font-medium text-zinc-100">Tables</h3>
+            <div class="flex items-center gap-2">
+              <span class="prop-chip"><i data-lucide="folder" class="text-sm"></i>events<i data-lucide="chevron-down" class="text-xs"></i></span>
+              <span class="prop-chip"><i data-lucide="search" class="text-sm"></i>filter</span>
+              <button class="btn btn-secondary btn-sm"><i data-lucide="plus" class="text-sm"></i>New table</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-[24px_1fr_120px_120px_140px_140px_60px] gap-3 border-b border-dash-border px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+            <span></span><span>Name</span><span class="text-right">Buckets</span><span class="text-right">Records / s</span><span class="text-right">Bytes / s</span><span class="text-right">Last write</span><span>Status</span>
+          </div>
+
+          <a href="#" class="grid grid-cols-[24px_1fr_120px_120px_140px_140px_60px] gap-3 px-4 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30 cursor-pointer items-center">
+            <i data-lucide="table" class="text-base text-fr-teal"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">events.orders_raw</div><div class="font-mono text-[10.5px] text-fg-faint">key: order_id · format: protobuf</div></div>
+            <span class="text-right font-mono text-[12px] text-fg">16</span>
+            <span class="text-right font-mono text-[12px] text-fr-sage">1.42M</span>
+            <span class="text-right font-mono text-[12px] text-fg">182MB</span>
+            <span class="text-right font-mono text-[11px] text-fg-muted"><span class="live-dot mr-1"></span>just now</span>
+            <span class="status-pill running">live</span>
+          </a>
+          <a href="#" class="grid grid-cols-[24px_1fr_120px_120px_140px_140px_60px] gap-3 px-4 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30 cursor-pointer items-center">
+            <i data-lucide="table" class="text-base text-fr-teal"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">events.user_clickstream</div><div class="font-mono text-[10.5px] text-fg-faint">key: session_id · format: avro</div></div>
+            <span class="text-right font-mono text-[12px] text-fg">32</span>
+            <span class="text-right font-mono text-[12px] text-fr-sage">3.10M</span>
+            <span class="text-right font-mono text-[12px] text-fg">412MB</span>
+            <span class="text-right font-mono text-[11px] text-fg-muted"><span class="live-dot mr-1"></span>just now</span>
+            <span class="status-pill running">live</span>
+          </a>
+          <a href="#" class="grid grid-cols-[24px_1fr_120px_120px_140px_140px_60px] gap-3 px-4 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30 cursor-pointer items-center">
+            <i data-lucide="table" class="text-base text-fr-teal"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">events.payments_raw</div><div class="font-mono text-[10.5px] text-fg-faint">key: tx_id · format: protobuf · CDC</div></div>
+            <span class="text-right font-mono text-[12px] text-fg">8</span>
+            <span class="text-right font-mono text-[12px] text-fr-sage">42K</span>
+            <span class="text-right font-mono text-[12px] text-fg">8.2MB</span>
+            <span class="text-right font-mono text-[11px] text-fg-muted"><span class="live-dot mr-1"></span>2s ago</span>
+            <span class="status-pill running">live</span>
+          </a>
+          <a href="#" class="grid grid-cols-[24px_1fr_120px_120px_140px_140px_60px] gap-3 px-4 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30 cursor-pointer items-center">
+            <i data-lucide="table" class="text-base text-fr-teal"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">iot.device_telemetry</div><div class="font-mono text-[10.5px] text-fg-faint">key: device_id · format: protobuf</div></div>
+            <span class="text-right font-mono text-[12px] text-fg">64</span>
+            <span class="text-right font-mono text-[12px] text-fr-sage">1.28M</span>
+            <span class="text-right font-mono text-[12px] text-fg">142MB</span>
+            <span class="text-right font-mono text-[11px] text-fg-muted"><span class="live-dot mr-1"></span>just now</span>
+            <span class="status-pill running">live</span>
+          </a>
+          <a href="#" class="grid grid-cols-[24px_1fr_120px_120px_140px_140px_60px] gap-3 px-4 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30 cursor-pointer items-center">
+            <i data-lucide="table" class="text-base text-fr-teal"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">cdc_raw.users</div><div class="font-mono text-[10.5px] text-fg-faint">key: user_id · format: debezium-json</div></div>
+            <span class="text-right font-mono text-[12px] text-fg">8</span>
+            <span class="text-right font-mono text-[12px] text-fr-amber">12K</span>
+            <span class="text-right font-mono text-[12px] text-fg">1.8MB</span>
+            <span class="text-right font-mono text-[11px] text-fg-muted">14s ago</span>
+            <span class="status-pill warning">degraded</span>
+          </a>
+          <a href="#" class="grid grid-cols-[24px_1fr_120px_120px_140px_140px_60px] gap-3 px-4 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30 cursor-pointer items-center">
+            <i data-lucide="table" class="text-base text-fr-teal"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">cdc_raw.orders</div><div class="font-mono text-[10.5px] text-fg-faint">key: order_id · format: debezium-json</div></div>
+            <span class="text-right font-mono text-[12px] text-fg">16</span>
+            <span class="text-right font-mono text-[12px] text-fr-rose">—</span>
+            <span class="text-right font-mono text-[12px] text-fg">—</span>
+            <span class="text-right font-mono text-[11px] text-fr-rose">12m ago</span>
+            <span class="status-pill failed">stalled</span>
+          </a>
+          <a href="#" class="grid grid-cols-[24px_1fr_120px_120px_140px_140px_60px] gap-3 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer items-center">
+            <i data-lucide="table" class="text-base text-fr-teal"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">staging.test_orders_v2</div><div class="font-mono text-[10.5px] text-fg-faint">key: order_id · format: protobuf</div></div>
+            <span class="text-right font-mono text-[12px] text-fg">4</span>
+            <span class="text-right font-mono text-[12px] text-fg-muted">8</span>
+            <span class="text-right font-mono text-[12px] text-fg-muted">2KB</span>
+            <span class="text-right font-mono text-[11px] text-fg-muted">2h ago</span>
+            <span class="status-pill draft">staging</span>
+          </a>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

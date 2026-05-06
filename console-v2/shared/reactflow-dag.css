@@ -1,0 +1,325 @@
+/*
+ * console-v2 — ReactFlow restyle (FR Gruvpuccin)
+ * ─────────────────────────────────────────────────────────────────────
+ * Overrides @xyflow/react v12 default classes.
+ *
+ * Rule: status conveyed by corner pill, ring, or background tint —
+ * never a colored vertical left border (matches the suite-wide hard rule).
+ */
+
+/* ── Canvas ───────────────────────────────────────────────────────── */
+
+.react-flow {
+  background: transparent;
+  font-family: "Geist", system-ui, sans-serif;
+}
+
+.react-flow__background {
+  background-color: transparent;
+}
+.react-flow__background-pattern {
+  /* Dot grid matches .dot-grid in styles.css */
+  fill: rgba(212, 190, 152, 0.08);
+}
+
+.react-flow__attribution {
+  display: none;
+}
+
+/* Selection box */
+.react-flow__selection {
+  background: rgba(231, 138, 78, 0.06);
+  border: 1px dashed rgba(231, 138, 78, 0.4);
+}
+
+/* Pane cursor */
+.react-flow__pane.dragging {
+  cursor: grabbing;
+}
+
+/* ── Operator node card (320×170, matches dashboard contract) ─────── */
+
+.fr-op-node {
+  width: 320px;
+  height: 170px;
+  background: rgba(20, 22, 23, 0.92);
+  border: 1px solid #2e2c2b;
+  border-radius: 10px;
+  padding: 0;
+  font-family: "Geist", system-ui, sans-serif;
+  color: #d4be98;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.2s;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+.fr-op-node:hover {
+  border-color: rgba(231, 138, 78, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(231, 138, 78, 0.08);
+}
+.fr-op-node.selected,
+.react-flow__node.selected .fr-op-node {
+  border-color: rgba(231, 138, 78, 0.6);
+  box-shadow: 0 0 0 1px rgba(231, 138, 78, 0.4), 0 4px 14px rgba(231, 138, 78, 0.12);
+}
+
+/* Backpressure ring — convey severity around the WHOLE card, not as a left bar */
+.fr-op-node[data-bp="ok"]   { /* default border, no extra ring */ }
+.fr-op-node[data-bp="warn"] {
+  border-color: rgba(216, 166, 87, 0.5);
+  box-shadow: 0 0 0 1px rgba(216, 166, 87, 0.18), 0 1px 0 rgba(0,0,0,0.4);
+}
+.fr-op-node[data-bp="crit"] {
+  border-color: rgba(234, 105, 98, 0.6);
+  box-shadow: 0 0 0 1px rgba(234, 105, 98, 0.25), 0 0 24px rgba(234, 105, 98, 0.06);
+}
+
+/* Header row */
+.fr-op-node .head {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 12px;
+  background: rgba(212, 190, 152, 0.025);
+  border-bottom: 1px solid #2e2c2b;
+}
+.fr-op-node .head .icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.fr-op-node .head .icon.source { color: #e78a4e; }
+.fr-op-node .head .icon.op     { color: #bb9af7; }
+.fr-op-node .head .icon.sink   { color: #d8a657; }
+.fr-op-node .head .icon.shuffle{ color: #7daea3; }
+
+.fr-op-node .head .name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fr-op-node .head .name .prefix {
+  color: #a69a8a;
+  font-weight: 400;
+}
+
+/* Status pill in header corner — replaces what would be a left-border accent */
+.fr-op-node .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-family: "Geist Mono", monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.fr-op-node .pill.running   { color: #a9b665; background: rgba(169,182,101,0.12); border: 1px solid rgba(169,182,101,0.3); }
+.fr-op-node .pill.finished  { color: #7daea3; background: rgba(125,174,163,0.12); border: 1px solid rgba(125,174,163,0.3); }
+.fr-op-node .pill.failed    { color: #ea6962; background: rgba(234,105,98,0.12);  border: 1px solid rgba(234,105,98,0.3); }
+.fr-op-node .pill.canceled  { color: #d8a657; background: rgba(216,166,87,0.12);  border: 1px solid rgba(216,166,87,0.3); }
+.fr-op-node .pill.created   { color: #a69a8a; background: rgba(124,114,105,0.12); border: 1px solid rgba(124,114,105,0.3); }
+.fr-op-node .pill .live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #a9b665;
+  box-shadow: 0 0 6px rgba(169,182,101,0.7);
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+/* Metrics grid — 4 cols × 2 rows */
+.fr-op-node .metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px 10px;
+  padding: 9px 12px 8px;
+  flex: 1;
+}
+.fr-op-node .metric .label {
+  font-family: "Geist Mono", monospace;
+  font-size: 8.5px;
+  color: #5a524c;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  margin-bottom: 1px;
+}
+.fr-op-node .metric .value {
+  font-family: "Geist Mono", monospace;
+  font-size: 12px;
+  color: #d4be98;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fr-op-node .metric .value.sage  { color: #a9b665; }
+.fr-op-node .metric .value.amber { color: #d8a657; }
+.fr-op-node .metric .value.rose  { color: #ea6962; }
+.fr-op-node .metric .value.muted { color: #7c7269; }
+
+/* Mini task bar (proportional stacked bar) */
+.fr-op-node .task-bar {
+  display: flex;
+  height: 6px;
+  margin: 0 12px 9px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(46, 44, 43, 0.7);
+}
+.fr-op-node .task-bar .seg {
+  height: 100%;
+  transition: width 0.3s;
+}
+.fr-op-node .task-bar .seg.created   { background: rgba(124,114,105,0.5); }
+.fr-op-node .task-bar .seg.running   { background: #a9b665; }
+.fr-op-node .task-bar .seg.finished  { background: #7daea3; }
+.fr-op-node .task-bar .seg.canceling { background: #d8a657; }
+.fr-op-node .task-bar .seg.failed    { background: #ea6962; }
+
+/* ── Handles (connection ports) — visually muted ────────────────── */
+
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: #2e2c2b;
+  border: 1.5px solid #5a524c;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s;
+}
+.react-flow__handle:hover {
+  opacity: 1;
+  background: #e78a4e;
+  border-color: #e78a4e;
+}
+.react-flow__handle.target { left: -5px; }
+.react-flow__handle.source { right: -5px; }
+
+/* ── Edges ─────────────────────────────────────────────────────── */
+
+.react-flow__edge-path {
+  stroke: #5a524c;
+  stroke-width: 1.5;
+  fill: none;
+}
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:focus .react-flow__edge-path {
+  stroke: #e78a4e;
+  stroke-width: 2;
+}
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #a69a8a;
+}
+
+/* Edge ship-strategy label as a small mono pill */
+.react-flow__edge-text {
+  font-family: "Geist Mono", monospace;
+  font-size: 9.5px;
+  fill: #a69a8a;
+  font-weight: 500;
+}
+.react-flow__edge-textbg {
+  fill: rgba(20, 22, 23, 0.92);
+  stroke: #2e2c2b;
+  stroke-width: 1;
+  rx: 4;
+  ry: 4;
+}
+
+/* Animated edges (for hot data paths) */
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 5 5;
+  animation: dash-flow 1.2s linear infinite;
+}
+@keyframes dash-flow {
+  to { stroke-dashoffset: -10; }
+}
+
+/* ── Controls (zoom in/out/fit) — restyle to .btn btn-ghost ───── */
+
+.react-flow__controls {
+  background: rgba(20, 22, 23, 0.92);
+  border: 1px solid #2e2c2b;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+.react-flow__controls-button {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #2e2c2b;
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  color: #a69a8a;
+  transition: background 0.12s, color 0.12s;
+}
+.react-flow__controls-button:hover {
+  background: rgba(231, 138, 78, 0.06);
+  color: #e78a4e;
+}
+.react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+.react-flow__controls-button svg {
+  fill: currentColor;
+  max-width: 14px;
+  max-height: 14px;
+}
+
+/* ── MiniMap ─────────────────────────────────────────────────── */
+
+.react-flow__minimap {
+  background: rgba(20, 22, 23, 0.92);
+  border: 1px solid #2e2c2b;
+  border-radius: 8px;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+.react-flow__minimap-mask {
+  fill: rgba(231, 138, 78, 0.08);
+  stroke: rgba(231, 138, 78, 0.3);
+  stroke-width: 1;
+}
+.react-flow__minimap-node {
+  fill: rgba(212, 190, 152, 0.2);
+  stroke: rgba(212, 190, 152, 0.3);
+  stroke-width: 1;
+}
+.react-flow__minimap-node[data-bp="warn"] { fill: rgba(216, 166, 87, 0.5); }
+.react-flow__minimap-node[data-bp="crit"] { fill: rgba(234, 105, 98, 0.6); }
+
+/* ── Mount container ────────────────────────────────────────── */
+
+.fr-dag-mount {
+  position: relative;
+  width: 100%;
+  height: 460px;
+  background: transparent;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.fr-dag-mount.loading::before {
+  content: "Loading DAG…";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Geist Mono", monospace;
+  font-size: 11px;
+  color: #7c7269;
+  pointer-events: none;
+}

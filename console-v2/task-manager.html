@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tm-04 · Task manager · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="task-managers">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-2 text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><a href="task-managers.html" class="hover:text-fr-coral">Task managers</a><span class="text-fg-faint mx-1">/</span><span class="font-mono">tm-04</span></div>
+        <div class="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-3"><i data-lucide="server" class="text-fr-amber text-2xl"></i><h1 class="font-sans text-[26px] font-semibold tracking-tight text-zinc-100">tm-04</h1><span class="status-pill warning"><i data-lucide="alert-triangle" class="text-[10px]"></i>Heap 92%</span></div>
+            <div class="mt-1.5 text-[12px] text-fg-muted"><span class="font-mono">10.42.18.91</span><span class="text-fg-faint mx-2">·</span><span>us-west-2a</span><span class="text-fg-faint mx-2">·</span><span>up 5h 12m (last restart: heap pressure)</span></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-ghost btn-sm"><i data-lucide="terminal" class="text-sm"></i>SSH</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-ccw" class="text-sm"></i>Restart</button>
+            <button class="btn btn-danger btn-sm"><i data-lucide="x" class="text-sm"></i>Drain</button>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <nav class="mt-2 flex items-center gap-1 border-b border-dash-border overflow-x-auto -mb-px">
+          <a href="#" class="tab active"><i data-lucide="sliders-horizontal" class="text-base"></i><span>Config</span></a>
+          <a href="#" class="tab"><i data-lucide="hard-drive" class="text-base"></i><span>Memory</span></a>
+          <a href="#" class="tab"><i data-lucide="line-chart" class="text-base"></i><span>Metrics</span></a>
+          <a href="logs.html" class="tab"><i data-lucide="scroll-text" class="text-base"></i><span>Logs</span></a>
+          <a href="#" class="tab"><i data-lucide="terminal" class="text-base"></i><span>StdOut</span></a>
+          <a href="#" class="tab"><i data-lucide="cpu" class="text-base"></i><span>Threads</span></a>
+        </nav>
+
+        <!-- Memory breakdown panel -->
+        <section class="mt-6 grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-8">
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-4">Memory breakdown</h3>
+              <div class="resource-bar mb-3" style="height: 18px;">
+                <div class="seg heap" style="width: 64%"></div>
+                <div class="seg managed" style="width: 14%"></div>
+                <div class="seg network" style="width: 6%"></div>
+                <div class="seg direct" style="width: 8%"></div>
+                <div class="seg free" style="width: 8%"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-[12px] md:grid-cols-5">
+                <div><div class="text-[10px] text-fg-faint font-mono uppercase">Heap</div><div class="font-mono text-zinc-100">61.4 / 96 GB</div><div class="text-[10px] text-fr-amber">64% — warn at 75%</div></div>
+                <div><div class="text-[10px] text-fg-faint font-mono uppercase">Managed</div><div class="font-mono text-zinc-100">13.4 / 96 GB</div><div class="text-[10px] text-fr-sage">14%</div></div>
+                <div><div class="text-[10px] text-fg-faint font-mono uppercase">Network</div><div class="font-mono text-zinc-100">5.8 / 96 GB</div><div class="text-[10px] text-fr-sage">6%</div></div>
+                <div><div class="text-[10px] text-fg-faint font-mono uppercase">Direct</div><div class="font-mono text-zinc-100">7.7 / 96 GB</div><div class="text-[10px] text-fr-sage">8%</div></div>
+                <div><div class="text-[10px] text-fg-faint font-mono uppercase">Free</div><div class="font-mono text-fg-muted">7.7 GB</div><div class="text-[10px] text-fg-faint">8%</div></div>
+              </div>
+
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mt-6 mb-3">Heap utilization · last 30 min</h3>
+              <svg viewBox="0 0 600 120" class="w-full h-32">
+                <g stroke="rgba(212,190,152,0.06)"><line x1="0" y1="30" x2="600" y2="30"/><line x1="0" y1="60" x2="600" y2="60"/><line x1="0" y1="90" x2="600" y2="90"/></g>
+                <line x1="0" y1="22" x2="600" y2="22" stroke="#ea6962" stroke-width="1" stroke-dasharray="3,3"/>
+                <text x="6" y="18" fill="#ea6962" font-family="Geist Mono" font-size="9">90% threshold</text>
+                <polyline points="0,75 30,72 60,68 90,66 120,62 150,58 180,52 210,48 240,46 270,42 300,40 330,38 360,36 390,32 420,30 450,28 480,26 510,24 540,24 570,26 600,28" fill="none" stroke="#d8a657" stroke-width="2"/>
+              </svg>
+
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mt-6 mb-3">GC activity · last 30 min</h3>
+              <div class="flex items-end gap-1 h-16">
+                <div class="flex-1 bg-fr-sage rounded-sm" style="height: 22%"></div>
+                <div class="flex-1 bg-fr-sage rounded-sm" style="height: 18%"></div>
+                <div class="flex-1 bg-fr-sage rounded-sm" style="height: 28%"></div>
+                <div class="flex-1 bg-fr-sage rounded-sm" style="height: 24%"></div>
+                <div class="flex-1 bg-fr-amber rounded-sm" style="height: 48%"></div>
+                <div class="flex-1 bg-fr-sage rounded-sm" style="height: 32%"></div>
+                <div class="flex-1 bg-fr-amber rounded-sm" style="height: 52%"></div>
+                <div class="flex-1 bg-fr-sage rounded-sm" style="height: 28%"></div>
+                <div class="flex-1 bg-fr-rose rounded-sm" style="height: 88%"></div>
+                <div class="flex-1 bg-fr-amber rounded-sm" style="height: 44%"></div>
+                <div class="flex-1 bg-fr-sage rounded-sm" style="height: 36%"></div>
+                <div class="flex-1 bg-fr-sage rounded-sm" style="height: 32%"></div>
+              </div>
+              <div class="mt-2 text-[10px] font-mono text-fg-faint">12 minor GC · 1 full GC (1.4s) · avg pause 64ms</div>
+            </div>
+          </div>
+
+          <div class="col-span-12 lg:col-span-4 space-y-4">
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">TM properties</h3>
+              <dl class="space-y-2 text-[12px]">
+                <div class="flex justify-between"><dt class="text-fg-muted">Slots</dt><dd class="font-mono text-fg">87 / 96</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">Tasks</dt><dd class="font-mono text-fg">87</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">JVM PID</dt><dd class="font-mono text-fg">42891</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">JVM version</dt><dd class="font-mono text-fg">17.0.10+7</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">Flink ver</dt><dd class="font-mono text-fg">1.20.1</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">Container</dt><dd class="font-mono text-fg">k8s · 96 GB · 24 vCPU</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">FS scheme</dt><dd class="font-mono text-fg">s3a://</dd></div>
+              </dl>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Hosted pipelines (4)</h3>
+              <ul class="space-y-1.5 text-[12px]">
+                <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-fr-sage"></span><a href="job.html" class="text-fg hover:text-fr-coral">reactor-core</a><span class="ml-auto font-mono text-[10px] text-fg-faint">32 tasks</span></li>
+                <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-fr-sage"></span><a href="job.html" class="text-fg hover:text-fr-coral">clickstream-enrich</a><span class="ml-auto font-mono text-[10px] text-fg-faint">24 tasks</span></li>
+                <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-fr-sage"></span><a href="job.html" class="text-fg hover:text-fr-coral">fluss-ingest</a><span class="ml-auto font-mono text-[10px] text-fg-faint">16 tasks</span></li>
+                <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-fr-amber"></span><a href="job.html" class="text-fg hover:text-fr-coral">datalake-connect</a><span class="ml-auto font-mono text-[10px] text-fg-faint">15 tasks</span></li>
+              </ul>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Active alert</h3>
+              <a href="alerts.html" class="block rounded-md border border-fr-amber/25 bg-fr-amber/5 p-3">
+                <div class="flex items-start gap-2">
+                  <span class="status-icon in-progress mt-0.5"></span>
+                  <div>
+                    <div class="text-[12.5px] text-fg">TM heap utilization &gt; 92%</div>
+                    <div class="mt-0.5 font-mono text-[10px] text-fg-faint">P2 · 5h ago · scaling planned</div>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

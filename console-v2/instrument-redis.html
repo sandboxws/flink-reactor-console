@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redis · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="instrument-redis">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-5 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><a href="instruments.html" class="hover:text-fr-coral">Instruments</a><span class="text-fg-faint mx-1">/</span><span>Redis</span></div>
+            <h1 class="mt-1 flex items-center gap-3 font-sans text-[24px] font-semibold tracking-tight text-zinc-100"><span class="flex size-9 items-center justify-center rounded-lg bg-fr-rose/10 border border-fr-rose/20"><i data-lucide="database" class="text-lg text-fr-rose"></i></span>Redis</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">v7.2.4 · primary + 2 replicas · cluster mode disabled · used by 2 pipelines</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="terminal" class="text-sm"></i>Console</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="settings-2" class="text-sm"></i>Configure</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="rotate-cw" class="text-sm"></i>Failover</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+          <div class="kpi-card"><div class="kpi-label">Memory used</div><div class="kpi-value">3.2<span class="text-[12px] text-fg-muted">/12 GB</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">Keys</div><div class="kpi-value">2.42M</div></div>
+          <div class="kpi-card"><div class="kpi-label">Ops / s</div><div class="kpi-value text-fr-sage">38.4K</div></div>
+          <div class="kpi-card"><div class="kpi-label">Hit ratio</div><div class="kpi-value text-fr-sage">0.94</div></div>
+          <div class="kpi-card"><div class="kpi-label">p99 latency</div><div class="kpi-value">62<span class="text-[12px] text-fg-muted">ms</span></div></div>
+        </section>
+
+        <section class="grid grid-cols-12 gap-5">
+          <!-- Replication topology -->
+          <div class="col-span-12 lg:col-span-7 glass-card-static p-5">
+            <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Replication topology</h3>
+
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div class="rounded-lg border border-fr-rose/30 bg-fr-rose/[0.04] p-3">
+                <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-2"><span class="live-dot coral"></span><span class="font-mono text-[12.5px] text-fg">redis-primary</span></div><span class="sev-badge coral">primary</span></div>
+                <div class="font-mono text-[10.5px] text-fg-muted mb-1">10.4.2.40 · az-a · uptime 124d</div>
+                <dl class="text-[11px] mt-2 space-y-0.5">
+                  <div class="flex justify-between"><dt class="font-mono text-fg-faint">writes/s</dt><dd class="font-mono text-fr-coral">8.2k</dd></div>
+                  <div class="flex justify-between"><dt class="font-mono text-fg-faint">role lag</dt><dd class="font-mono text-fr-sage">0ms</dd></div>
+                </dl>
+              </div>
+              <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-3">
+                <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-2"><span class="live-dot"></span><span class="font-mono text-[12.5px] text-fg">redis-replica-1</span></div><span class="sev-badge ok">replica</span></div>
+                <div class="font-mono text-[10.5px] text-fg-muted mb-1">10.4.2.41 · az-b · uptime 124d</div>
+                <dl class="text-[11px] mt-2 space-y-0.5">
+                  <div class="flex justify-between"><dt class="font-mono text-fg-faint">reads/s</dt><dd class="font-mono text-fr-sage">14.2k</dd></div>
+                  <div class="flex justify-between"><dt class="font-mono text-fg-faint">repl lag</dt><dd class="font-mono text-fr-sage">2ms</dd></div>
+                </dl>
+              </div>
+              <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-3">
+                <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-2"><span class="live-dot"></span><span class="font-mono text-[12.5px] text-fg">redis-replica-2</span></div><span class="sev-badge ok">replica</span></div>
+                <div class="font-mono text-[10.5px] text-fg-muted mb-1">10.4.2.42 · az-c · uptime 124d</div>
+                <dl class="text-[11px] mt-2 space-y-0.5">
+                  <div class="flex justify-between"><dt class="font-mono text-fg-faint">reads/s</dt><dd class="font-mono text-fr-sage">16.0k</dd></div>
+                  <div class="flex justify-between"><dt class="font-mono text-fg-faint">repl lag</dt><dd class="font-mono text-fr-sage">4ms</dd></div>
+                </dl>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="text-[10px] font-mono uppercase tracking-wider text-fg-faint mb-2">Memory breakdown</div>
+              <div class="resource-bar h-3 mb-2">
+                <div class="seg heap" style="width:62%"></div>
+                <div class="seg managed" style="width:18%"></div>
+                <div class="seg network" style="width:8%"></div>
+                <div class="seg direct" style="width:4%"></div>
+                <div class="seg free" style="width:8%"></div>
+              </div>
+              <div class="grid grid-cols-5 gap-2 text-[10.5px] font-mono">
+                <div class="flex items-center gap-1.5"><span class="size-2 rounded-sm bg-fr-sage"></span><span class="text-fg-muted">data 62%</span></div>
+                <div class="flex items-center gap-1.5"><span class="size-2 rounded-sm bg-fr-amber"></span><span class="text-fg-muted">repl 18%</span></div>
+                <div class="flex items-center gap-1.5"><span class="size-2 rounded-sm bg-fr-teal"></span><span class="text-fg-muted">aof 8%</span></div>
+                <div class="flex items-center gap-1.5"><span class="size-2 rounded-sm bg-fr-coral"></span><span class="text-fg-muted">lua 4%</span></div>
+                <div class="flex items-center gap-1.5"><span class="size-2 rounded-sm" style="background:rgba(212,190,152,0.1)"></span><span class="text-fg-muted">free 8%</span></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[10px] font-mono uppercase tracking-wider text-fg-faint mb-2">Ops/s · last 38 minutes</div>
+              <svg viewBox="0 0 600 100" preserveAspectRatio="none" class="w-full h-24">
+                <g stroke="rgba(212,190,152,0.06)"><line x1="0" y1="25" x2="600" y2="25"/><line x1="0" y1="50" x2="600" y2="50"/><line x1="0" y1="75" x2="600" y2="75"/></g>
+                <path d="M0 70 L20 60 L40 50 L60 45 L80 38 L100 32 L120 30 L140 28 L160 30 L180 32 L200 28 L220 22 L240 18 L260 22 L280 28 L300 32 L320 36 L340 40 L360 38 L380 32 L400 28 L420 24 L440 22 L460 26 L480 30 L500 28 L520 24 L540 20 L560 22 L580 24 L600 22"
+                  fill="none" stroke="#a9b665" stroke-width="1.5"/>
+                <path d="M0 70 L20 60 L40 50 L60 45 L80 38 L100 32 L120 30 L140 28 L160 30 L180 32 L200 28 L220 22 L240 18 L260 22 L280 28 L300 32 L320 36 L340 40 L360 38 L380 32 L400 28 L420 24 L440 22 L460 26 L480 30 L500 28 L520 24 L540 20 L560 22 L580 24 L600 22 L600 100 L0 100 Z"
+                  fill="rgba(169,182,101,0.08)" stroke="none"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Server stats / used by -->
+          <aside class="col-span-12 lg:col-span-5 space-y-4">
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Connection</h3>
+              <dl class="space-y-2 text-[11.5px]">
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Endpoint</dt><dd class="col-span-2 font-mono text-fg">redis.acme.svc:6379</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Mode</dt><dd class="col-span-2 font-mono text-fg">master/replica</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">TLS</dt><dd class="col-span-2 font-mono text-fg">enabled · v1.3</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">AUTH</dt><dd class="col-span-2 font-mono text-fg">ACL · ro / rw users</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Persistence</dt><dd class="col-span-2 font-mono text-fg">AOF (everysec) + RDB (hourly)</dd></div>
+              </dl>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Used by</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><span class="live-dot mr-2"></span>clickstream-enrich</a><span class="text-fg-faint">38.2k lookups/s</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><span class="live-dot mr-2"></span>reactor-core</a><span class="text-fg-faint">142 lookups/s · sessions</span></li>
+              </ul>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Slow log (last 5)</h3>
+              <ul class="space-y-1.5 text-[11px] font-mono">
+                <li class="flex items-baseline justify-between rounded px-2 py-1 hover:bg-dash-elevated/30"><span><span class="text-fr-amber">142ms</span> KEYS user:* <span class="text-fg-faint">— flagged</span></span><span class="text-fg-faint">12m</span></li>
+                <li class="flex items-baseline justify-between rounded px-2 py-1 hover:bg-dash-elevated/30"><span><span class="text-fg-muted">62ms</span> SMEMBERS analytics:active_users</span><span class="text-fg-faint">38m</span></li>
+                <li class="flex items-baseline justify-between rounded px-2 py-1 hover:bg-dash-elevated/30"><span><span class="text-fg-muted">58ms</span> HGETALL session:88421:*</span><span class="text-fg-faint">1h</span></li>
+                <li class="flex items-baseline justify-between rounded px-2 py-1 hover:bg-dash-elevated/30"><span><span class="text-fg-muted">42ms</span> ZRANGEBYSCORE leaderboard 0 100</span><span class="text-fg-faint">2h</span></li>
+                <li class="flex items-baseline justify-between rounded px-2 py-1 hover:bg-dash-elevated/30"><span><span class="text-fg-muted">38ms</span> SCAN 0 MATCH session:* COUNT 1000</span><span class="text-fg-faint">3h</span></li>
+              </ul>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Key browser -->
+        <section class="mt-6 glass-card-static overflow-hidden">
+          <div class="flex items-center justify-between border-b border-dash-border px-4 py-3">
+            <h3 class="font-sans text-[14px] font-medium text-zinc-100">Key browser</h3>
+            <div class="flex items-center gap-2">
+              <input type="text" class="form-input mono w-72 pl-3" style="height: 30px; font-size: 11.5px;" placeholder="MATCH session:* COUNT 100" />
+              <button class="btn btn-secondary btn-sm"><i data-lucide="search" class="text-sm"></i>Scan</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 border-b border-dash-border px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+            <span>Key</span><span>Type</span><span class="text-right">Size</span><span class="text-right">TTL</span><span>Actions</span>
+          </div>
+
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 px-4 py-2 border-b border-dash-border/40 hover:bg-dash-elevated/30 items-center">
+            <span class="font-mono text-[12px] text-fg truncate">session:88421:state</span>
+            <span class="font-mono text-[11px] text-fr-teal">HASH</span>
+            <span class="font-mono text-[11.5px] text-right text-fg">2.4 KB</span>
+            <span class="font-mono text-[11px] text-right text-fg-muted">28m left</span>
+            <div class="flex gap-1"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="eye" class="text-sm"></i></button><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="trash" class="text-sm"></i></button></div>
+          </div>
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 px-4 py-2 border-b border-dash-border/40 hover:bg-dash-elevated/30 items-center">
+            <span class="font-mono text-[12px] text-fg truncate">session:62012:state</span>
+            <span class="font-mono text-[11px] text-fr-teal">HASH</span>
+            <span class="font-mono text-[11.5px] text-right text-fg">1.8 KB</span>
+            <span class="font-mono text-[11px] text-right text-fg-muted">28m left</span>
+            <div class="flex gap-1"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="eye" class="text-sm"></i></button><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="trash" class="text-sm"></i></button></div>
+          </div>
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 px-4 py-2 border-b border-dash-border/40 hover:bg-dash-elevated/30 items-center">
+            <span class="font-mono text-[12px] text-fg truncate">session:28471:state</span>
+            <span class="font-mono text-[11px] text-fr-teal">HASH</span>
+            <span class="font-mono text-[11.5px] text-right text-fg">3.2 KB</span>
+            <span class="font-mono text-[11px] text-right text-fg-muted">28m left</span>
+            <div class="flex gap-1"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="eye" class="text-sm"></i></button><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="trash" class="text-sm"></i></button></div>
+          </div>
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 px-4 py-2 border-b border-dash-border/40 hover:bg-dash-elevated/30 items-center">
+            <span class="font-mono text-[12px] text-fg truncate">session:14228:state</span>
+            <span class="font-mono text-[11px] text-fr-teal">HASH</span>
+            <span class="font-mono text-[11.5px] text-right text-fg">1.4 KB</span>
+            <span class="font-mono text-[11px] text-right text-fg-muted">28m left</span>
+            <div class="flex gap-1"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="eye" class="text-sm"></i></button><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="trash" class="text-sm"></i></button></div>
+          </div>
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 px-4 py-2 border-b border-dash-border/40 hover:bg-dash-elevated/30 items-center">
+            <span class="font-mono text-[12px] text-fg truncate">leaderboard:daily</span>
+            <span class="font-mono text-[11px] text-fr-amber">ZSET</span>
+            <span class="font-mono text-[11.5px] text-right text-fg">142 KB</span>
+            <span class="font-mono text-[11px] text-right text-fg-muted">18h left</span>
+            <div class="flex gap-1"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="eye" class="text-sm"></i></button><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="trash" class="text-sm"></i></button></div>
+          </div>
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 px-4 py-2 border-b border-dash-border/40 hover:bg-dash-elevated/30 items-center">
+            <span class="font-mono text-[12px] text-fg truncate">analytics:active_users</span>
+            <span class="font-mono text-[11px] text-fr-coral">SET</span>
+            <span class="font-mono text-[11.5px] text-right text-fg">412 KB</span>
+            <span class="font-mono text-[11px] text-right text-fg-muted">no expiry</span>
+            <div class="flex gap-1"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="eye" class="text-sm"></i></button><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="trash" class="text-sm"></i></button></div>
+          </div>
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 px-4 py-2 border-b border-dash-border/40 hover:bg-dash-elevated/30 items-center">
+            <span class="font-mono text-[12px] text-fg truncate">cache:product:sku-A2C3D6</span>
+            <span class="font-mono text-[11px] text-fr-sage">STRING</span>
+            <span class="font-mono text-[11.5px] text-right text-fg">820 B</span>
+            <span class="font-mono text-[11px] text-right text-fg-muted">5m left</span>
+            <div class="flex gap-1"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="eye" class="text-sm"></i></button><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="trash" class="text-sm"></i></button></div>
+          </div>
+          <div class="grid grid-cols-[1fr_100px_120px_140px_60px] gap-3 px-4 py-2 hover:bg-dash-elevated/30 items-center">
+            <span class="font-mono text-[12px] text-fg truncate">stream:audit_log</span>
+            <span class="font-mono text-[11px] text-fr-violet">STREAM</span>
+            <span class="font-mono text-[11.5px] text-right text-fg">8.4 MB</span>
+            <span class="font-mono text-[11px] text-right text-fg-muted">capped 100k</span>
+            <div class="flex gap-1"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="eye" class="text-sm"></i></button><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="trash" class="text-sm"></i></button></div>
+          </div>
+
+          <div class="px-4 py-2 text-[11px] font-mono text-fg-faint border-t border-dash-border">8 of 2.42M keys · cursor 0 → 1024 · click Scan to continue</div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

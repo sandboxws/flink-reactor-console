@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Materialized tables · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="materialized-tables">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-5 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Data</span></div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Materialized tables</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">12 materialized views · 4 catalogs · backed by Paimon &amp; Fluss</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="filter" class="text-sm"></i>Filter</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-cw" class="text-sm"></i>Refresh all</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="plus" class="text-sm"></i>New view</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div class="kpi-card"><div class="kpi-label">Materialized views</div><div class="kpi-value">12</div><div class="kpi-sub">across 4 catalogs</div></div>
+          <div class="kpi-card"><div class="kpi-label">Rows materialized</div><div class="kpi-value">2.4B</div><div class="kpi-sub">since cluster launch</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg refresh lag</div><div class="kpi-value">3.2<span class="text-[12px] text-fg-muted">s</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">Stale views</div><div class="kpi-value text-fr-amber">1</div><div class="kpi-sub">orders_summary</div></div>
+        </section>
+
+        <!-- Filter chip bar -->
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="prop-chip active"><i data-lucide="folder" class="text-sm"></i>All catalogs</span>
+          <span class="prop-chip"><i data-lucide="check-circle" class="text-sm"></i>Fresh<span class="count">10</span></span>
+          <span class="prop-chip"><span class="size-1.5 rounded-full bg-fr-amber"></span>Stale<span class="count">1</span></span>
+          <span class="prop-chip"><span class="size-1.5 rounded-full bg-fr-rose"></span>Failing<span class="count">1</span></span>
+          <span class="prop-chip"><i data-lucide="layers" class="text-sm"></i>All sinks</span>
+          <span class="prop-chip"><i data-lucide="users" class="text-sm"></i>All owners</span>
+        </div>
+
+        <!-- Table list (flat, sortable) -->
+        <div class="glass-card-static overflow-hidden">
+          <div class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+            <span></span><span>Name &middot; catalog.db</span><span class="text-right">Rows</span><span class="text-right">Size</span><span>Backed by</span><span>Last refresh</span><span class="text-right">Owner</span><span>Status</span>
+          </div>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">orders_realtime</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.retail</div></div>
+            <span class="font-mono text-[12px] text-right">142.8M</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">8.4GB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">reactor-core</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px]"><span class="live-dot"></span> 12s ago</span>
+            <div class="text-right"><span class="avatar avatar-coral h-6 w-6 text-[10px]">A</span></div>
+            <span class="status-pill running">fresh</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">user_session_active</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.users</div></div>
+            <span class="font-mono text-[12px] text-right">8.2M</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">418MB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">clickstream-enrich</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px]"><span class="live-dot"></span> 4s ago</span>
+            <div class="text-right"><span class="avatar avatar-teal h-6 w-6 text-[10px]">O</span></div>
+            <span class="status-pill running">fresh</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">events_by_country_5m</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.analytics</div></div>
+            <span class="font-mono text-[12px] text-right">428K</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">62MB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">clickstream-enrich</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px]"><span class="live-dot"></span> 2s ago</span>
+            <div class="text-right"><span class="avatar avatar-teal h-6 w-6 text-[10px]">O</span></div>
+            <span class="status-pill running">fresh</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">orders_summary</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.retail</div></div>
+            <span class="font-mono text-[12px] text-right">1.2M</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">142MB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">paimon-sink</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px] text-fr-amber">38m ago</span>
+            <div class="text-right"><span class="avatar avatar-amber h-6 w-6 text-[10px]">L</span></div>
+            <span class="status-pill warning">stale</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">device_state_latest</div><div class="font-mono text-[10.5px] text-fg-faint">fluss.iot</div></div>
+            <span class="font-mono text-[12px] text-right">28.4M</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">2.1GB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">fluss-ingest</a> <span class="text-fg-faint">→ Fluss</span></span>
+            <span class="font-mono text-[11px]"><span class="live-dot"></span> 3s ago</span>
+            <div class="text-right"><span class="avatar avatar-sage h-6 w-6 text-[10px]">K</span></div>
+            <span class="status-pill running">fresh</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">device_telemetry_1h</div><div class="font-mono text-[10.5px] text-fg-faint">fluss.iot</div></div>
+            <span class="font-mono text-[12px] text-right">142.8K</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">38MB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">fluss-ingest</a> <span class="text-fg-faint">→ Fluss</span></span>
+            <span class="font-mono text-[11px]"><span class="live-dot"></span> 8s ago</span>
+            <div class="text-right"><span class="avatar avatar-sage h-6 w-6 text-[10px]">K</span></div>
+            <span class="status-pill running">fresh</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">cdc_outbox_processed</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.cdc</div></div>
+            <span class="font-mono text-[12px] text-right">812K</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">94MB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">cdc-loader</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px] text-fr-rose">12m ago</span>
+            <div class="text-right"><span class="avatar avatar-violet h-6 w-6 text-[10px]">P</span></div>
+            <span class="status-pill failed">failed</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">payments_settled_daily</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.finance</div></div>
+            <span class="font-mono text-[12px] text-right">42K</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">12MB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">paimon-sink</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px]"><span class="live-dot"></span> 1m ago</span>
+            <div class="text-right"><span class="avatar avatar-amber h-6 w-6 text-[10px]">L</span></div>
+            <span class="status-pill running">fresh</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">enriched_events_v2</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.analytics</div></div>
+            <span class="font-mono text-[12px] text-right">3.2B</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">182GB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">clickstream-enrich</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px]"><span class="live-dot"></span> 1s ago</span>
+            <div class="text-right"><span class="avatar avatar-teal h-6 w-6 text-[10px]">O</span></div>
+            <span class="status-pill running">fresh</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">subjects_compatibility</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.meta</div></div>
+            <span class="font-mono text-[12px] text-right">412</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">2MB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">schema-registry-sync</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px]"><span class="live-dot"></span> 28s ago</span>
+            <div class="text-right"><span class="avatar avatar-coral h-6 w-6 text-[10px]">M</span></div>
+            <span class="status-pill running">fresh</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">datalake_sink_audit</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.audit</div></div>
+            <span class="font-mono text-[12px] text-right">82M</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">4.2GB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">datalake-connect</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px] text-fr-amber">8m ago</span>
+            <div class="text-right"><span class="avatar avatar-amber h-6 w-6 text-[10px]">N</span></div>
+            <span class="status-pill warning">degraded</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[20px_1fr_120px_90px_140px_120px_88px_60px] items-center gap-3 px-4 py-2.5 hover:bg-dash-elevated/30 cursor-pointer">
+            <i data-lucide="database" class="text-base text-fr-sage"></i>
+            <div><div class="font-mono text-[12.5px] text-fg">slowly_changing_users</div><div class="font-mono text-[10.5px] text-fg-faint">paimon.users</div></div>
+            <span class="font-mono text-[12px] text-right">14.2M</span>
+            <span class="font-mono text-[12px] text-right text-fg-muted">812MB</span>
+            <span class="font-mono text-[11px]"><a href="job.html" class="text-fr-coral hover:underline">cdc-loader</a> <span class="text-fg-faint">→ Paimon</span></span>
+            <span class="font-mono text-[11px] text-fg-muted">2h ago</span>
+            <div class="text-right"><span class="avatar avatar-violet h-6 w-6 text-[10px]">P</span></div>
+            <span class="status-pill cancelled">paused</span>
+          </a>
+        </div>
+
+        <!-- Inline view definition card (on first selection) -->
+        <section class="mt-6 grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-7 glass-card-static p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <h3 class="font-sans text-[14px] font-medium text-zinc-100">orders_realtime &middot; definition</h3>
+                <p class="mt-0.5 text-[11px] text-fg-muted">Streaming view, refresh on commit, partition: dt=event_date</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-ghost btn-sm"><i data-lucide="copy" class="text-sm"></i></button>
+                <button class="btn btn-secondary btn-sm"><i data-lucide="external-link" class="text-sm"></i>Open in SQL</button>
+              </div>
+            </div>
+            <div class="rounded bg-fr-bg/60 p-3 font-mono text-[12px] leading-relaxed overflow-x-auto whitespace-pre">
+<span class="tk-key">CREATE</span> <span class="tk-key">MATERIALIZED VIEW</span> <span class="tk-fn">paimon.retail.orders_realtime</span>
+<span class="tk-key">PARTITIONED BY</span> (<span class="tk-fn">dt</span>) <span class="tk-key">WITH</span> (
+  <span class="tk-str">'connector'</span> = <span class="tk-str">'paimon'</span>,
+  <span class="tk-str">'bucket'</span>     = <span class="tk-str">'8'</span>,
+  <span class="tk-str">'merge-engine'</span> = <span class="tk-str">'partial-update'</span>,
+  <span class="tk-str">'changelog-producer'</span> = <span class="tk-str">'lookup'</span>
+) <span class="tk-key">AS</span>
+<span class="tk-key">SELECT</span>
+  <span class="tk-fn">o.order_id</span>,
+  <span class="tk-fn">o.customer_id</span>,
+  <span class="tk-fn">o.amount</span>,
+  <span class="tk-fn">o.status</span>,
+  <span class="tk-fn">DATE_FORMAT</span>(<span class="tk-fn">o.event_time</span>, <span class="tk-str">'yyyy-MM-dd'</span>) <span class="tk-key">AS</span> <span class="tk-fn">dt</span>
+<span class="tk-key">FROM</span> <span class="tk-fn">fluss.events.orders_stream</span> <span class="tk-key">AS</span> <span class="tk-fn">o</span>
+<span class="tk-key">WHERE</span> <span class="tk-fn">o.status</span> <span class="tk-op">!=</span> <span class="tk-str">'CANCELLED'</span></div>
+          </div>
+
+          <aside class="col-span-12 lg:col-span-5 space-y-4">
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[13px] font-medium text-zinc-100 mb-3">Refresh metadata</h3>
+              <dl class="space-y-2 text-[12px]">
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Strategy</dt><dd class="col-span-2 font-mono text-fg">streaming · on-commit</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Lag</dt><dd class="col-span-2 font-mono text-fr-sage">2.4s avg</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Last full refresh</dt><dd class="col-span-2 font-mono text-fg">2026-04-28 (8d ago)</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Snapshots kept</dt><dd class="col-span-2 font-mono text-fg">14</dd></div>
+                <div class="grid grid-cols-3 gap-2"><dt class="font-mono text-fg-faint">Compaction</dt><dd class="col-span-2 font-mono text-fg-muted">auto · last 14m ago</dd></div>
+              </dl>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[13px] font-medium text-zinc-100 mb-3">Downstream consumers</h3>
+              <ul class="space-y-1.5 text-[12px]">
+                <li class="flex items-center gap-2 font-mono text-fg-muted"><i data-lucide="line-chart" class="text-sm text-fr-coral"></i><a href="#" class="hover:text-fr-coral">analytics.daily_orders_dashboard</a></li>
+                <li class="flex items-center gap-2 font-mono text-fg-muted"><i data-lucide="line-chart" class="text-sm text-fr-coral"></i><a href="#" class="hover:text-fr-coral">finance.revenue_recognition</a></li>
+                <li class="flex items-center gap-2 font-mono text-fg-muted"><i data-lucide="search-code" class="text-sm text-fr-coral"></i><a href="sql-explorer.html" class="hover:text-fr-coral">SQL explorer (3 saved queries)</a></li>
+                <li class="flex items-center gap-2 font-mono text-fg-muted"><i data-lucide="layers" class="text-sm text-fr-coral"></i><a href="#" class="hover:text-fr-coral">paimon.retail.customer_orders_summary</a></li>
+              </ul>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

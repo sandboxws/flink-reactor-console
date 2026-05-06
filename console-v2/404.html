@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reactor not found · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell dot-grid">
+
+    <!-- Minimal top bar -->
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="ml-auto flex items-center gap-3"><a href="overview.html" class="btn btn-ghost btn-sm">Back to overview</a></div>
+    </header>
+
+    <main class="flex flex-col items-center justify-center px-6" style="min-height: calc(100vh - 56px);">
+
+      <!-- Concentric ring oversize -->
+      <div class="relative mb-8">
+        <span class="brand-glyph" data-size="120"></span>
+        <span class="absolute inset-0 flex items-center justify-center">
+          <span class="font-mono text-[42px] font-semibold text-fr-coral">404</span>
+        </span>
+      </div>
+
+      <h1 class="font-sans text-[28px] font-semibold tracking-tight text-zinc-100">Reactor not found</h1>
+      <p class="mt-2 font-mono text-[12.5px] text-fg-muted text-center max-w-md">
+        The route you're looking for isn't registered against this cluster, or the resource may have been deleted, renamed, or never existed.
+      </p>
+
+      <!-- Faux stack trace -->
+      <div class="mt-6 w-full max-w-2xl rounded-lg bg-fr-bg/60 border border-dash-border p-4 font-mono text-[11.5px] leading-relaxed text-fg-muted">
+        <div class="text-fr-rose">Caused by: <span class="text-fg">RouteNotFoundException</span>: no handler matched the requested path</div>
+        <div class="ml-4 mt-1">
+          <div>at <span class="text-fr-coral">flinkreactor.console.router.match</span>(:128)</div>
+          <div>at <span class="text-fr-coral">flinkreactor.console.dispatch</span>(:64)</div>
+          <div>at <span class="text-fr-coral">flinkreactor.console.serve</span>(:42)</div>
+        </div>
+        <div class="mt-2 text-fg-faint">request_id: <span class="text-fg">req-7a2b9e</span> · cluster: acme-prod-1.fr · timestamp: 2026-05-05T14:32:09Z</div>
+      </div>
+
+      <!-- Quick links -->
+      <div class="mt-6 grid grid-cols-2 gap-2 md:grid-cols-4">
+        <a href="overview.html" class="prop-chip"><i data-lucide="layout-dashboard" class="text-sm"></i>Overview</a>
+        <a href="jobs-running.html" class="prop-chip"><i data-lucide="play" class="text-sm"></i>Pipelines</a>
+        <a href="alerts.html" class="prop-chip"><i data-lucide="bell-ring" class="text-sm"></i>Alerts</a>
+        <a href="logs.html" class="prop-chip"><i data-lucide="scroll-text" class="text-sm"></i>Logs</a>
+        <a href="health.html" class="prop-chip"><i data-lucide="heart-pulse" class="text-sm"></i>Health</a>
+        <a href="catalogs.html" class="prop-chip"><i data-lucide="folder-tree" class="text-sm"></i>Catalogs</a>
+        <a href="sql-explorer.html" class="prop-chip"><i data-lucide="search-code" class="text-sm"></i>SQL explorer</a>
+        <a href="instruments.html" class="prop-chip"><i data-lucide="layers" class="text-sm"></i>Instruments</a>
+      </div>
+
+      <div class="mt-8 flex items-center gap-3">
+        <a href="overview.html" class="btn btn-primary btn-sm"><i data-lucide="home" class="text-sm"></i>Back to overview</a>
+        <button class="btn btn-secondary btn-sm" onclick="history.back()"><i data-lucide="arrow-left" class="text-sm"></i>Go back</button>
+        <a href="logs.html" class="btn btn-ghost btn-sm"><i data-lucide="external-link" class="text-sm"></i>View server logs</a>
+      </div>
+    </main>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

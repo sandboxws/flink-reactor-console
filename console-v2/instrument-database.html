@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Datalake · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="instrument-database">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-5 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><a href="instruments.html" class="hover:text-fr-coral">Instruments</a><span class="text-fg-faint mx-1">/</span><span>Datalake</span></div>
+            <h1 class="mt-1 flex items-center gap-3 font-sans text-[24px] font-semibold tracking-tight text-zinc-100"><span class="flex size-9 items-center justify-center rounded-lg bg-fr-coral/10 border border-fr-coral/20"><i data-lucide="hard-drive" class="text-lg text-fr-coral"></i></span>Datalake</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">Federated catalog · 28 catalogs · 412 tables · spans Paimon, Hive, JDBC backends</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="settings-2" class="text-sm"></i>Configure</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-cw" class="text-sm"></i>Re-discover</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="terminal" class="text-sm"></i>Open shell</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+          <div class="kpi-card"><div class="kpi-label">Catalogs</div><div class="kpi-value">28</div><div class="kpi-sub">3 backends</div></div>
+          <div class="kpi-card"><div class="kpi-label">Databases</div><div class="kpi-value">182</div></div>
+          <div class="kpi-card"><div class="kpi-label">Tables</div><div class="kpi-value">412</div></div>
+          <div class="kpi-card"><div class="kpi-label">Queries (1h)</div><div class="kpi-value">8.4K</div></div>
+          <div class="kpi-card"><div class="kpi-label">p99 query</div><div class="kpi-value">1.4<span class="text-[12px] text-fg-muted">s</span></div></div>
+        </section>
+
+        <section class="grid grid-cols-12 gap-5">
+          <!-- Catalog backends -->
+          <div class="col-span-12 lg:col-span-7 glass-card-static p-5">
+            <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-4">Connected backends</h3>
+            <div class="space-y-3">
+              <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-4 hover:border-fr-coral/40">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-3">
+                    <div class="flex size-8 items-center justify-center rounded-lg bg-fr-amber/10"><i data-lucide="archive" class="text-base text-fr-amber"></i></div>
+                    <div>
+                      <div class="font-mono text-[13px] text-fg">paimon-prod</div>
+                      <div class="font-mono text-[10.5px] text-fg-muted">paimon · s3://acme-paimon-prod/warehouse/</div>
+                    </div>
+                  </div>
+                  <span class="status-pill running">healthy</span>
+                </div>
+                <div class="grid grid-cols-4 gap-3 text-[11px] mt-3">
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Catalogs</div><div class="font-mono text-fg mt-0.5">8</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Tables</div><div class="font-mono text-fg mt-0.5">184</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Storage</div><div class="font-mono text-fg mt-0.5">5.2 TB</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Last scan</div><div class="font-mono text-fg-muted mt-0.5">14m ago</div></div>
+                </div>
+              </div>
+
+              <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-4 hover:border-fr-coral/40">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-3">
+                    <div class="flex size-8 items-center justify-center rounded-lg bg-fr-violet/10"><i data-lucide="hard-drive" class="text-base text-fr-violet"></i></div>
+                    <div>
+                      <div class="font-mono text-[13px] text-fg">hive-warehouse</div>
+                      <div class="font-mono text-[10.5px] text-fg-muted">hive metastore · thrift://hms.acme.svc:9083</div>
+                    </div>
+                  </div>
+                  <span class="status-pill running">healthy</span>
+                </div>
+                <div class="grid grid-cols-4 gap-3 text-[11px] mt-3">
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Catalogs</div><div class="font-mono text-fg mt-0.5">12</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Tables</div><div class="font-mono text-fg mt-0.5">186</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Storage</div><div class="font-mono text-fg mt-0.5">12.4 TB</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Last scan</div><div class="font-mono text-fg-muted mt-0.5">28m ago</div></div>
+                </div>
+              </div>
+
+              <div class="rounded-lg border border-dash-border bg-fr-bg/40 p-4 hover:border-fr-coral/40">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-3">
+                    <div class="flex size-8 items-center justify-center rounded-lg bg-fr-rose/10"><i data-lucide="server" class="text-base text-fr-rose"></i></div>
+                    <div>
+                      <div class="font-mono text-[13px] text-fg">jdbc-legacy-pg</div>
+                      <div class="font-mono text-[10.5px] text-fg-muted">postgres · jdbc:postgresql://pg-replica.acme.svc:5432/legacy</div>
+                    </div>
+                  </div>
+                  <span class="status-pill warning">read-only</span>
+                </div>
+                <div class="grid grid-cols-4 gap-3 text-[11px] mt-3">
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Catalogs</div><div class="font-mono text-fg mt-0.5">8</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Tables</div><div class="font-mono text-fg mt-0.5">42</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Mode</div><div class="font-mono text-fr-amber mt-0.5">RO</div></div>
+                  <div><div class="font-mono text-[9.5px] text-fg-faint uppercase tracking-wider">Last scan</div><div class="font-mono text-fg-muted mt-0.5">2h ago</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent queries / lineage -->
+          <aside class="col-span-12 lg:col-span-5 space-y-4">
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Query throughput</h3>
+              <div class="text-[10px] font-mono uppercase tracking-wider text-fg-faint mb-1">queries/s · last hour</div>
+              <svg viewBox="0 0 600 80" preserveAspectRatio="none" class="w-full h-20 mb-3">
+                <g stroke="rgba(212,190,152,0.06)"><line x1="0" y1="20" x2="600" y2="20"/><line x1="0" y1="40" x2="600" y2="40"/><line x1="0" y1="60" x2="600" y2="60"/></g>
+                <path d="M0 60 L40 50 L80 38 L120 32 L160 28 L200 26 L240 28 L280 32 L320 28 L360 22 L400 18 L440 22 L480 28 L520 32 L560 28 L600 24"
+                  fill="none" stroke="#7daea3" stroke-width="1.5"/>
+              </svg>
+              <dl class="grid grid-cols-3 gap-2 text-[11px]">
+                <div><dt class="font-mono text-fg-faint text-[9.5px] uppercase tracking-wider">Avg</dt><dd class="font-mono text-fg mt-0.5">2.34/s</dd></div>
+                <div><dt class="font-mono text-fg-faint text-[9.5px] uppercase tracking-wider">Peak</dt><dd class="font-mono text-fg mt-0.5">3.81/s</dd></div>
+                <div><dt class="font-mono text-fg-faint text-[9.5px] uppercase tracking-wider">Failed</dt><dd class="font-mono text-fr-rose mt-0.5">2 (0.02%)</dd></div>
+              </dl>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Top consumers</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><i data-lucide="play" class="text-sm inline mr-2 text-fr-sage"></i>datalake-connect</a><span class="font-mono text-fg-muted text-[11px]">8.2 q/s</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><i data-lucide="play" class="text-sm inline mr-2 text-fr-sage"></i>cdc-loader</a><span class="font-mono text-fg-muted text-[11px]">2.4 q/s</span></li>
+                <li class="flex items-center justify-between"><a href="sql-explorer.html" class="font-mono text-fg hover:text-fr-coral"><i data-lucide="search-code" class="text-sm inline mr-2 text-fr-coral"></i>SQL explorer (ad-hoc)</a><span class="font-mono text-fg-muted text-[11px]">1.8 q/s</span></li>
+                <li class="flex items-center justify-between"><span class="font-mono text-fg"><i data-lucide="cloud" class="text-sm inline mr-2 text-fg-muted"></i>External BI tools</span><span class="font-mono text-fg-muted text-[11px]">820/h</span></li>
+              </ul>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Recent slow queries</h3>
+              <ul class="space-y-1.5 text-[11px]">
+                <li class="rounded px-2 py-1.5 hover:bg-dash-elevated/30">
+                  <div class="flex items-baseline justify-between mb-0.5"><span class="font-mono text-fr-amber">8.2s</span><span class="font-mono text-fg-faint">12m ago</span></div>
+                  <div class="font-mono text-fg-muted truncate">SELECT * FROM hive.legacy.user_events WHERE dt &gt; '2025-01-01'</div>
+                </li>
+                <li class="rounded px-2 py-1.5 hover:bg-dash-elevated/30">
+                  <div class="flex items-baseline justify-between mb-0.5"><span class="font-mono text-fr-amber">4.1s</span><span class="font-mono text-fg-faint">28m ago</span></div>
+                  <div class="font-mono text-fg-muted truncate">SELECT COUNT(*) FROM paimon.cdc.outbox</div>
+                </li>
+                <li class="rounded px-2 py-1.5 hover:bg-dash-elevated/30">
+                  <div class="flex items-baseline justify-between mb-0.5"><span class="font-mono text-fr-amber">3.8s</span><span class="font-mono text-fg-faint">38m ago</span></div>
+                  <div class="font-mono text-fg-muted truncate">EXPLAIN PLAN FOR SELECT a.*, b.session FROM paimon.r…</div>
+                </li>
+              </ul>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Quick query box -->
+        <section class="mt-6 glass-card-static p-5">
+          <div class="mb-3 flex items-center justify-between">
+            <div>
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100">Quick query</h3>
+              <p class="text-[11px] text-fg-muted mt-0.5">Run a one-shot query against any registered backend without leaving this page.</p>
+            </div>
+            <a href="sql-explorer.html" class="btn btn-secondary btn-sm"><i data-lucide="external-link" class="text-sm"></i>Open in SQL explorer</a>
+          </div>
+          <div class="rounded bg-fr-bg/60 p-3 font-mono text-[12.5px] leading-relaxed overflow-x-auto whitespace-pre">
+<span class="tk-key">SELECT</span> <span class="tk-fn">catalog</span>, <span class="tk-fn">database_name</span>, <span class="tk-fn">COUNT</span>(*) <span class="tk-key">AS</span> <span class="tk-fn">tables</span>
+<span class="tk-key">FROM</span> <span class="tk-fn">datalake.information_schema.tables</span>
+<span class="tk-key">WHERE</span> <span class="tk-fn">table_owner</span> <span class="tk-op">!=</span> <span class="tk-str">'system'</span>
+<span class="tk-key">GROUP BY</span> <span class="tk-fn">catalog</span>, <span class="tk-fn">database_name</span>
+<span class="tk-key">ORDER BY</span> <span class="tk-fn">tables</span> <span class="tk-key">DESC</span>;</div>
+          <div class="mt-3 flex items-center gap-2">
+            <button class="btn btn-primary btn-sm"><i data-lucide="play" class="text-sm"></i>Run · ⌘↵</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="wand-sparkles" class="text-sm"></i>Format</button>
+            <span class="ml-auto text-[10.5px] font-mono text-fg-muted">backend: <span class="text-fg">datalake</span> · est. cost <span class="text-fg">12 KB</span></span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

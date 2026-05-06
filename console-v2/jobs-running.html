@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Running pipelines · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+    <style>
+      .pipe-row {
+        display: grid;
+        grid-template-columns: 18px 1fr 90px 100px 80px 100px 50px 32px;
+        gap: 14px;
+        align-items: center;
+        padding: 12px 18px;
+        border-bottom: 1px solid #1f2122;
+        font-size: 12.5px;
+        transition: background 0.12s;
+      }
+      .pipe-row:hover { background: rgba(231, 138, 78, 0.04); }
+      .pipe-row:last-child { border-bottom: 0; }
+    </style>
+  </head>
+  <body class="page-shell" data-page="jobs-running">
+
+    <!-- Top bar -->
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5">
+        <span class="brand-glyph" data-size="22"></span>
+        <div class="flex items-baseline gap-2">
+          <span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span>
+          <span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span>
+        </div>
+      </a>
+      <button class="cluster-selector">
+        <span class="env prod">prod</span>
+        <span>acme-prod-1.fr</span>
+        <i data-lucide="chevron-down" class="text-fg-faint text-xs"></i>
+      </button>
+      <div class="relative max-w-md flex-1">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i>
+        <input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" />
+      </div>
+      <div class="ml-auto flex items-center gap-3">
+        <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button>
+        <button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button>
+        <button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button>
+      </div>
+    </header>
+
+    <div class="page-grid">
+      <!-- Sidebar -->
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3>
+          <a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instruments.html" data-nav="instruments" class="nav-item text-fg-faint"><i data-lucide="plus"></i>Add instrument</a>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <main class="px-8 py-6 min-w-0">
+        <!-- Header -->
+        <div class="mb-6 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted">
+              <a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a>
+              <span class="text-fg-faint mx-1">/</span>
+              <span>Jobs</span>
+            </div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Running pipelines</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">5 running · 1 warning · 1 failed · live update every 4s</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-fr-sage/10 border border-fr-sage/30 px-2.5 py-1 text-[10px] font-mono text-fr-sage">
+              <span class="live-dot"></span> live
+            </span>
+            <button class="btn btn-secondary btn-sm">
+              <i data-lucide="refresh-cw" class="text-sm"></i>
+              4s
+              <i data-lucide="chevron-down" class="text-xs"></i>
+            </button>
+            <a href="jobs-submit.html" class="btn btn-primary btn-sm">
+              <i data-lucide="upload" class="text-sm"></i>
+              Submit pipeline
+            </a>
+          </div>
+        </div>
+
+        <!-- Filter chip bar -->
+        <div class="mb-3 flex flex-wrap items-center gap-2 border-b border-dash-border pb-3">
+          <div class="relative max-w-xs flex-1">
+            <i data-lucide="filter" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-faint text-sm"></i>
+            <input type="text" placeholder="Filter pipelines..." class="form-input mono pl-8" style="height: 30px; font-size: 12px;" />
+          </div>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Status</button>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Owner</button>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Throughput</button>
+          <button class="prop-chip active"><span class="size-1.5 rounded-full bg-fr-coral"></span>Backpressure: any</button>
+          <div class="ml-auto flex items-center gap-2">
+            <button class="btn btn-ghost btn-sm">
+              <i data-lucide="arrow-up-down" class="text-sm"></i>
+              Throughput desc
+            </button>
+            <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="layout-grid" class="text-sm"></i></button>
+            <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="settings-2" class="text-sm"></i></button>
+          </div>
+        </div>
+
+        <!-- Pipeline table -->
+        <div class="glass-card-static overflow-hidden">
+          <!-- Header row -->
+          <div class="pipe-row !py-2 border-b border-dash-border bg-dash-surface/40 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+            <span></span>
+            <span>Pipeline</span>
+            <span>Status</span>
+            <span class="text-right">Throughput</span>
+            <span class="text-right">Watermark</span>
+            <span>Tasks</span>
+            <span class="text-right">p</span>
+            <span></span>
+          </div>
+
+          <a href="job.html" class="pipe-row">
+            <i data-lucide="layers" class="text-fr-coral text-base"></i>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-zinc-100">reactor-core</span>
+                <span class="font-mono text-[10px] text-fg-faint">a3f2c891</span>
+              </div>
+              <div class="mt-0.5 flex items-center gap-2 text-[10.5px] font-mono text-fg-faint">
+                <span>by ahmed</span>
+                <span>·</span>
+                <span>up 12d 4h</span>
+                <span>·</span>
+                <span class="text-fr-sage">v0.9.4</span>
+              </div>
+            </div>
+            <span class="status-pill running"><span class="live-dot"></span>Running</span>
+            <div class="text-right">
+              <div class="font-mono text-[14px] text-zinc-100">4.21M</div>
+              <div class="font-mono text-[10px] text-fr-sage">↑ 8.4%</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-[12px] text-fg">12ms</div>
+              <div class="font-mono text-[10px] text-fg-faint">p99</div>
+            </div>
+            <div>
+              <div class="text-[12px] text-fg">247 <span class="text-fg-faint">/247</span></div>
+              <div class="font-mono text-[10px] text-fr-sage">all running</div>
+            </div>
+            <span class="font-mono text-[12px] text-fg-muted text-right">32</span>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="job.html" class="pipe-row">
+            <i data-lucide="layers" class="text-fr-coral text-base"></i>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-zinc-100">clickstream-enrich</span>
+                <span class="font-mono text-[10px] text-fg-faint">f1b2c566</span>
+              </div>
+              <div class="mt-0.5 flex items-center gap-2 text-[10.5px] font-mono text-fg-faint">
+                <span>by omar</span>
+                <span>·</span>
+                <span>up 15d 9h</span>
+                <span>·</span>
+                <span class="text-fr-sage">v0.9.4</span>
+              </div>
+            </div>
+            <span class="status-pill running"><span class="live-dot"></span>Running</span>
+            <div class="text-right">
+              <div class="font-mono text-[14px] text-zinc-100">3.10M</div>
+              <div class="font-mono text-[10px] text-fr-sage">↑ 2.1%</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-[12px] text-fg">8ms</div>
+              <div class="font-mono text-[10px] text-fg-faint">p99</div>
+            </div>
+            <div>
+              <div class="text-[12px] text-fg">192 <span class="text-fg-faint">/192</span></div>
+              <div class="font-mono text-[10px] text-fr-sage">all running</div>
+            </div>
+            <span class="font-mono text-[12px] text-fg-muted text-right">24</span>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="job.html" class="pipe-row">
+            <i data-lucide="layers" class="text-fr-coral text-base"></i>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-zinc-100">fluss-ingest</span>
+                <span class="font-mono text-[10px] text-fg-faint">b7d4e102</span>
+              </div>
+              <div class="mt-0.5 flex items-center gap-2 text-[10.5px] font-mono text-fg-faint">
+                <span>by kira</span>
+                <span>·</span>
+                <span>up 8d 12h</span>
+                <span>·</span>
+                <span class="text-fr-sage">v0.9.4</span>
+              </div>
+            </div>
+            <span class="status-pill running"><span class="live-dot"></span>Running</span>
+            <div class="text-right">
+              <div class="font-mono text-[14px] text-zinc-100">1.83M</div>
+              <div class="font-mono text-[10px] text-fr-sage">↑ 1.0%</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-[12px] text-fg">14ms</div>
+              <div class="font-mono text-[10px] text-fg-faint">p99</div>
+            </div>
+            <div>
+              <div class="text-[12px] text-fg">96 <span class="text-fg-faint">/96</span></div>
+              <div class="font-mono text-[10px] text-fr-sage">all running</div>
+            </div>
+            <span class="font-mono text-[12px] text-fg-muted text-right">16</span>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="job.html" class="pipe-row">
+            <i data-lucide="layers" class="text-fr-coral text-base"></i>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-zinc-100">paimon-sink</span>
+                <span class="font-mono text-[10px] text-fg-faint">c8e1d233</span>
+              </div>
+              <div class="mt-0.5 flex items-center gap-2 text-[10.5px] font-mono text-fg-faint">
+                <span>by liam</span>
+                <span>·</span>
+                <span>up 6d 2h</span>
+                <span>·</span>
+                <span class="text-fr-sage">v0.9.3</span>
+              </div>
+            </div>
+            <span class="status-pill running"><span class="live-dot"></span>Running</span>
+            <div class="text-right">
+              <div class="font-mono text-[14px] text-zinc-100">920K</div>
+              <div class="font-mono text-[10px] text-fg-muted">— 0.0%</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-[12px] text-fg">22ms</div>
+              <div class="font-mono text-[10px] text-fg-faint">p99</div>
+            </div>
+            <div>
+              <div class="text-[12px] text-fg">64 <span class="text-fg-faint">/64</span></div>
+              <div class="font-mono text-[10px] text-fr-sage">all running</div>
+            </div>
+            <span class="font-mono text-[12px] text-fg-muted text-right">12</span>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="job.html" class="pipe-row">
+            <i data-lucide="layers" class="text-fr-amber text-base"></i>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-zinc-100">datalake-connect</span>
+                <span class="font-mono text-[10px] text-fg-faint">e0a1b455</span>
+                <span class="sev-badge warn"><i data-lucide="alert-triangle" class="text-[8px]"></i>op.4</span>
+              </div>
+              <div class="mt-0.5 flex items-center gap-2 text-[10.5px] font-mono text-fg-faint">
+                <span>by nora</span>
+                <span>·</span>
+                <span>up 3d 4h</span>
+                <span>·</span>
+                <span class="text-fr-amber">backpressure since 22m</span>
+              </div>
+            </div>
+            <span class="status-pill warning"><i data-lucide="alert-triangle" class="text-[10px]"></i>Backpressure</span>
+            <div class="text-right">
+              <div class="font-mono text-[14px] text-fr-amber">440K</div>
+              <div class="font-mono text-[10px] text-fr-rose">↓ 64.1%</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-[12px] text-fr-amber">142ms</div>
+              <div class="font-mono text-[10px] text-fr-amber">degraded</div>
+            </div>
+            <div>
+              <div class="text-[12px] text-fg">48 <span class="text-fg-faint">/48</span></div>
+              <div class="font-mono text-[10px] text-fr-amber">1 hot op</div>
+            </div>
+            <span class="font-mono text-[12px] text-fg-muted text-right">8</span>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="job.html" class="pipe-row">
+            <i data-lucide="layers" class="text-fg-dim text-base"></i>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-zinc-100">schema-registry-sync</span>
+                <span class="font-mono text-[10px] text-fg-faint">d9f0e344</span>
+              </div>
+              <div class="mt-0.5 flex items-center gap-2 text-[10.5px] font-mono text-fg-faint">
+                <span>by mei</span>
+                <span>·</span>
+                <span>up 23d 1h</span>
+                <span>·</span>
+                <span class="text-fr-sage">v0.9.4</span>
+              </div>
+            </div>
+            <span class="status-pill running"><span class="live-dot"></span>Running</span>
+            <div class="text-right">
+              <div class="font-mono text-[14px] text-zinc-100">12K</div>
+              <div class="font-mono text-[10px] text-fg-muted">— stable</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-[12px] text-fg">3ms</div>
+              <div class="font-mono text-[10px] text-fg-faint">p99</div>
+            </div>
+            <div>
+              <div class="text-[12px] text-fg">8 <span class="text-fg-faint">/8</span></div>
+              <div class="font-mono text-[10px] text-fr-sage">all running</div>
+            </div>
+            <span class="font-mono text-[12px] text-fg-muted text-right">2</span>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="job.html" class="pipe-row">
+            <i data-lucide="layers" class="text-fr-rose text-base"></i>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-zinc-100">cdc-loader</span>
+                <span class="font-mono text-[10px] text-fg-faint">a2c3d677</span>
+                <span class="sev-badge fail">P1</span>
+              </div>
+              <div class="mt-0.5 flex items-center gap-2 text-[10.5px] font-mono text-fg-faint">
+                <span>by priya</span>
+                <span>·</span>
+                <span>down 12m</span>
+                <span>·</span>
+                <span class="text-fr-rose">FlinkRuntimeException at op.2</span>
+              </div>
+            </div>
+            <span class="status-pill failed"><i data-lucide="x-circle" class="text-[10px]"></i>Failed</span>
+            <div class="text-right">
+              <div class="font-mono text-[14px] text-fr-rose">—</div>
+              <div class="font-mono text-[10px] text-fr-rose">offline</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-[12px] text-fg-faint">—</div>
+              <div class="font-mono text-[10px] text-fg-faint">—</div>
+            </div>
+            <div>
+              <div class="text-[12px] text-fr-rose">0 <span class="text-fg-faint">/32</span></div>
+              <div class="font-mono text-[10px] text-fr-rose">restart pending</div>
+            </div>
+            <span class="font-mono text-[12px] text-fg-muted text-right">8</span>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <!-- Footer -->
+          <div class="flex items-center justify-between border-t border-dash-border bg-dash-surface/40 px-4 py-2.5 text-[11px] font-mono text-fg-faint">
+            <span>7 pipelines · 685 tasks · 102 slots</span>
+            <span>Last updated 4s ago</span>
+          </div>
+        </div>
+
+        <!-- Aggregate stats -->
+        <section class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div class="kpi-card">
+            <div class="kpi-label">Aggregate throughput</div>
+            <div class="kpi-value">10.5M<span class="text-[12px] text-fg-muted font-normal">evt/s</span></div>
+            <div class="kpi-sub">↑ 4.2% vs 1h ago</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Pipelines running</div>
+            <div class="kpi-value">5 <span class="text-[14px] text-fg-muted font-normal">/ 7</span></div>
+            <div class="kpi-sub">1 warning · 1 failed</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total tasks</div>
+            <div class="kpi-value">685</div>
+            <div class="kpi-sub">across 102 slots</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Median watermark</div>
+            <div class="kpi-value">12<span class="text-[14px] text-fg-muted font-normal">ms</span></div>
+            <div class="kpi-sub">range 3–142ms</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

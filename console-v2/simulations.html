@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulations · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="simulations">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-5 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Tools</span></div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Simulations</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">Replay traffic against a candidate DSL · 28 runs in last 24h · 3 active</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="filter" class="text-sm"></i>Filter</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="download" class="text-sm"></i>Export</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="play" class="text-sm"></i>New simulation</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div class="kpi-card"><div class="kpi-label">Runs (24h)</div><div class="kpi-value">28</div></div>
+          <div class="kpi-card"><div class="kpi-label">Active now</div><div class="kpi-value text-fr-sage">3</div><div class="kpi-sub">via sandbox</div></div>
+          <div class="kpi-card"><div class="kpi-label">Pass rate</div><div class="kpi-value text-fr-sage">82%</div><div class="kpi-sub">23 / 28 passed</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg duration</div><div class="kpi-value">1m 42s</div></div>
+        </section>
+
+        <!-- Filter chips -->
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="prop-chip active"><i data-lucide="layers" class="text-sm"></i>All scratchpads</span>
+          <span class="prop-chip"><i data-lucide="users" class="text-sm"></i>All users</span>
+          <span class="prop-chip"><span class="size-1.5 rounded-full bg-fr-sage"></span>Passed<span class="count">23</span></span>
+          <span class="prop-chip"><span class="size-1.5 rounded-full bg-fr-rose"></span>Failed<span class="count">3</span></span>
+          <span class="prop-chip"><span class="size-1.5 rounded-full bg-fr-amber"></span>Running<span class="count">3</span></span>
+          <span class="prop-chip"><i data-lucide="calendar-clock" class="text-sm"></i>Last 24h<i data-lucide="chevron-down" class="text-xs"></i></span>
+        </div>
+
+        <!-- Run list -->
+        <div class="glass-card-static overflow-hidden">
+          <div class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+            <span></span><span>Run id</span><span>Scratchpad &middot; reactor</span><span class="text-right">Throughput</span><span class="text-right">p99 latency</span><span class="text-right">Records</span><span class="text-right">Owner</span><span>Status</span>
+          </div>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon in-progress"></span>
+            <div class="font-mono text-[11px] text-fg">sim-7a2b9e</div>
+            <div><div class="font-mono text-[12px] text-fg">orders-enrich.fr.ts <span class="text-fg-faint">→</span> orders-enrich</div><div class="font-mono text-[11px] text-fg-muted">100k records · 10× speed · started 32s ago</div></div>
+            <span class="font-mono text-right text-fg">8.2k/s</span>
+            <span class="font-mono text-right text-fg">142ms</span>
+            <span class="font-mono text-right text-fg-muted">28k / 100k</span>
+            <span class="text-right"><span class="avatar avatar-coral h-6 w-6 text-[10px]">A</span></span>
+            <span class="status-pill running"><span class="live-dot"></span>running</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon in-progress"></span>
+            <div class="font-mono text-[11px] text-fg">sim-7a2b9d</div>
+            <div><div class="font-mono text-[12px] text-fg">funnel-7d.fr.ts <span class="text-fg-faint">→</span> funnel-rebuild</div><div class="font-mono text-[11px] text-fg-muted">7d historical replay · 1× speed · 14m elapsed</div></div>
+            <span class="font-mono text-right text-fg">12.4k/s</span>
+            <span class="font-mono text-right text-fg">218ms</span>
+            <span class="font-mono text-right text-fg-muted">1.2M / 14M</span>
+            <span class="text-right"><span class="avatar avatar-teal h-6 w-6 text-[10px]">O</span></span>
+            <span class="status-pill running"><span class="live-dot"></span>running</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon in-progress"></span>
+            <div class="font-mono text-[11px] text-fg">sim-7a2b9c</div>
+            <div><div class="font-mono text-[12px] text-fg">device-window.fr.ts <span class="text-fg-faint">→</span> device-aggregate</div><div class="font-mono text-[11px] text-fg-muted">10k records · 10× speed · started 18s ago</div></div>
+            <span class="font-mono text-right text-fg">3.1k/s</span>
+            <span class="font-mono text-right text-fg">88ms</span>
+            <span class="font-mono text-right text-fg-muted">2k / 10k</span>
+            <span class="text-right"><span class="avatar avatar-sage h-6 w-6 text-[10px]">K</span></span>
+            <span class="status-pill running"><span class="live-dot"></span>running</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon resolved"></span>
+            <div class="font-mono text-[11px] text-fg-muted">sim-7a2b9b</div>
+            <div><div class="font-mono text-[12px] text-fg">orders-enrich.fr.ts <span class="text-fg-faint">→</span> orders-enrich</div><div class="font-mono text-[11px] text-fg-muted">1k records · 10× speed · 14:28</div></div>
+            <span class="font-mono text-right text-fg">8.0k/s</span>
+            <span class="font-mono text-right text-fg">128ms</span>
+            <span class="font-mono text-right text-fg-muted">1k</span>
+            <span class="text-right"><span class="avatar avatar-coral h-6 w-6 text-[10px]">A</span></span>
+            <span class="status-pill running">passed</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon resolved"></span>
+            <div class="font-mono text-[11px] text-fg-muted">sim-7a2b9a</div>
+            <div><div class="font-mono text-[12px] text-fg">cdc-rebuilt.fr.ts <span class="text-fg-faint">→</span> cdc-loader</div><div class="font-mono text-[11px] text-fg-muted">100k records · 10× speed · 14:18</div></div>
+            <span class="font-mono text-right text-fg">12.1k/s</span>
+            <span class="font-mono text-right text-fg">94ms</span>
+            <span class="font-mono text-right text-fg-muted">100k</span>
+            <span class="text-right"><span class="avatar avatar-violet h-6 w-6 text-[10px]">P</span></span>
+            <span class="status-pill running">passed</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon firing"></span>
+            <div class="font-mono text-[11px] text-fg-muted">sim-7a2b99</div>
+            <div><div class="font-mono text-[12px] text-fg">device-window.fr.ts (v2) <span class="text-fg-faint">→</span> device-aggregate</div><div class="font-mono text-[11px] text-fr-rose">CheckpointException at 18% &middot; rocksdb OOM</div></div>
+            <span class="font-mono text-right text-fr-rose">—</span>
+            <span class="font-mono text-right text-fg">—</span>
+            <span class="font-mono text-right text-fg-muted">1.8k / 10k</span>
+            <span class="text-right"><span class="avatar avatar-sage h-6 w-6 text-[10px]">K</span></span>
+            <span class="status-pill failed">failed</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon resolved"></span>
+            <div class="font-mono text-[11px] text-fg-muted">sim-7a2b98</div>
+            <div><div class="font-mono text-[12px] text-fg">funnel-7d.fr.ts <span class="text-fg-faint">→</span> funnel-rebuild</div><div class="font-mono text-[11px] text-fg-muted">1d replay · 5× speed · 13:48</div></div>
+            <span class="font-mono text-right text-fg">10.8k/s</span>
+            <span class="font-mono text-right text-fg">182ms</span>
+            <span class="font-mono text-right text-fg-muted">2.0M</span>
+            <span class="text-right"><span class="avatar avatar-teal h-6 w-6 text-[10px]">O</span></span>
+            <span class="status-pill running">passed</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon resolved"></span>
+            <div class="font-mono text-[11px] text-fg-muted">sim-7a2b97</div>
+            <div><div class="font-mono text-[12px] text-fg">orders-enrich.fr.ts (v3) <span class="text-fg-faint">→</span> orders-enrich</div><div class="font-mono text-[11px] text-fg-muted">10k records · 10× speed · 12:21</div></div>
+            <span class="font-mono text-right text-fg">8.4k/s</span>
+            <span class="font-mono text-right text-fg">131ms</span>
+            <span class="font-mono text-right text-fg-muted">10k</span>
+            <span class="text-right"><span class="avatar avatar-coral h-6 w-6 text-[10px]">A</span></span>
+            <span class="status-pill running">passed</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon firing"></span>
+            <div class="font-mono text-[11px] text-fg-muted">sim-7a2b96</div>
+            <div><div class="font-mono text-[12px] text-fg">cdc-rebuilt.fr.ts (alt) <span class="text-fg-faint">→</span> cdc-loader</div><div class="font-mono text-[11px] text-fr-rose">PSQLException &middot; replay killed at 4%</div></div>
+            <span class="font-mono text-right text-fr-rose">—</span>
+            <span class="font-mono text-right text-fg">—</span>
+            <span class="font-mono text-right text-fg-muted">4k / 100k</span>
+            <span class="text-right"><span class="avatar avatar-violet h-6 w-6 text-[10px]">P</span></span>
+            <span class="status-pill failed">failed</span>
+          </a>
+
+          <a href="#" class="grid grid-cols-[16px_120px_1fr_140px_120px_120px_88px_88px] items-center gap-3 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer">
+            <span class="status-icon resolved"></span>
+            <div class="font-mono text-[11px] text-fg-muted">sim-7a2b95</div>
+            <div><div class="font-mono text-[12px] text-fg">device-window.fr.ts <span class="text-fg-faint">→</span> device-aggregate</div><div class="font-mono text-[11px] text-fg-muted">10k records · 10× speed · 11:48</div></div>
+            <span class="font-mono text-right text-fg">3.0k/s</span>
+            <span class="font-mono text-right text-fg">82ms</span>
+            <span class="font-mono text-right text-fg-muted">10k</span>
+            <span class="text-right"><span class="avatar avatar-sage h-6 w-6 text-[10px]">K</span></span>
+            <span class="status-pill running">passed</span>
+          </a>
+        </div>
+
+        <!-- Detail card: focused run sim-7a2b9b -->
+        <section class="mt-6 grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-7 glass-card-static p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <h3 class="font-sans text-[14px] font-medium text-zinc-100">sim-7a2b9b · throughput timeline</h3>
+                <p class="mt-0.5 text-[11px] text-fg-muted">orders-enrich.fr.ts · 1k records replayed at 10× · sandbox</p>
+              </div>
+              <span class="status-pill running">passed</span>
+            </div>
+            <svg viewBox="0 0 600 160" preserveAspectRatio="none" class="h-40 w-full">
+              <g stroke="rgba(212,190,152,0.06)"><line x1="0" y1="40" x2="600" y2="40"/><line x1="0" y1="80" x2="600" y2="80"/><line x1="0" y1="120" x2="600" y2="120"/></g>
+              <!-- 30 mini bars -->
+              <g fill="#a9b665" opacity="0.9">
+                <rect x="0"   y="100" width="14" height="50"/><rect x="20"  y="92" width="14" height="58"/><rect x="40"  y="78" width="14" height="72"/><rect x="60"  y="68" width="14" height="82"/><rect x="80"  y="62" width="14" height="88"/><rect x="100" y="56" width="14" height="94"/><rect x="120" y="50" width="14" height="100"/><rect x="140" y="46" width="14" height="104"/><rect x="160" y="42" width="14" height="108"/><rect x="180" y="40" width="14" height="110"/><rect x="200" y="40" width="14" height="110"/><rect x="220" y="42" width="14" height="108"/><rect x="240" y="44" width="14" height="106"/><rect x="260" y="46" width="14" height="104"/><rect x="280" y="48" width="14" height="102"/><rect x="300" y="50" width="14" height="100"/><rect x="320" y="52" width="14" height="98"/><rect x="340" y="56" width="14" height="94"/><rect x="360" y="58" width="14" height="92"/><rect x="380" y="60" width="14" height="90"/><rect x="400" y="64" width="14" height="86"/><rect x="420" y="68" width="14" height="82"/><rect x="440" y="74" width="14" height="76"/><rect x="460" y="80" width="14" height="70"/><rect x="480" y="86" width="14" height="64"/><rect x="500" y="92" width="14" height="58"/><rect x="520" y="98" width="14" height="52"/><rect x="540" y="104" width="14" height="46"/><rect x="560" y="110" width="14" height="40"/><rect x="580" y="116" width="14" height="34"/>
+              </g>
+            </svg>
+            <div class="mt-3 grid grid-cols-4 gap-3 text-[11px]">
+              <div><div class="text-fg-faint font-mono uppercase tracking-wider text-[9px]">Throughput</div><div class="mt-1 font-mono text-fr-sage">8.0k/s peak</div></div>
+              <div><div class="text-fg-faint font-mono uppercase tracking-wider text-[9px]">p50 latency</div><div class="mt-1 font-mono text-fg">62ms</div></div>
+              <div><div class="text-fg-faint font-mono uppercase tracking-wider text-[9px]">p99 latency</div><div class="mt-1 font-mono text-fg">128ms</div></div>
+              <div><div class="text-fg-faint font-mono uppercase tracking-wider text-[9px]">Backpressure</div><div class="mt-1 font-mono text-fg-muted">none</div></div>
+            </div>
+          </div>
+
+          <aside class="col-span-12 lg:col-span-5 glass-card-static p-5">
+            <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Inferred outcome</h3>
+            <ul class="space-y-2 text-[12px]">
+              <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="text-base text-fr-sage flex-shrink-0 mt-0.5"></i><span class="text-fg-muted">No backpressure observed across all 4 stages.</span></li>
+              <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="text-base text-fr-sage flex-shrink-0 mt-0.5"></i><span class="text-fg-muted">All checkpoints succeeded (~84ms each).</span></li>
+              <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="text-base text-fr-sage flex-shrink-0 mt-0.5"></i><span class="text-fg-muted">Output schema matches downstream contract.</span></li>
+              <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="text-base text-fr-amber flex-shrink-0 mt-0.5"></i><span class="text-fg-muted">62 records (6.2%) dropped due to missing Redis session — consider <span class="font-mono text-fr-coral">.fallback(null)</span>.</span></li>
+              <li class="flex items-start gap-2"><i data-lucide="info" class="text-base text-fr-teal flex-shrink-0 mt-0.5"></i><span class="text-fg-muted">Backed-out delta vs prod: <span class="font-mono">+8.4%</span> throughput, <span class="font-mono">+2 stages</span>.</span></li>
+            </ul>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button class="btn btn-secondary btn-sm"><i data-lucide="git-compare" class="text-sm"></i>Diff vs prod</button>
+              <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-cw" class="text-sm"></i>Re-run</button>
+              <button class="btn btn-primary btn-sm"><i data-lucide="rocket" class="text-sm"></i>Promote</button>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

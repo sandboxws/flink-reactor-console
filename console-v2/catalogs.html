@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catalogs · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="catalogs">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-5 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Catalogs</span><span class="text-fg-faint mx-1">/</span><span class="font-mono text-fr-coral">paimon.retail</span><span class="text-fg-faint mx-1">/</span><span class="font-mono text-fg">orders_realtime</span></div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Catalog browser</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">4 catalogs · 28 databases · 412 tables</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-cw" class="text-sm"></i>Refresh</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="search-code" class="text-sm"></i>Open in SQL</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="plus" class="text-sm"></i>New catalog</button>
+          </div>
+        </div>
+
+        <section class="grid grid-cols-12 gap-5">
+          <!-- Tree pane -->
+          <div class="col-span-12 lg:col-span-4 xl:col-span-3">
+            <div class="glass-card-static overflow-hidden">
+              <div class="flex items-center gap-2 border-b border-dash-border px-3 py-2">
+                <i data-lucide="search" class="text-sm text-fg-muted"></i>
+                <input type="text" placeholder="Filter tables..." class="flex-1 bg-transparent font-mono text-[12px] text-fg outline-none placeholder:text-fg-faint" />
+                <span class="text-[10px] font-mono text-fg-faint">412</span>
+              </div>
+
+              <div class="max-h-[72vh] overflow-y-auto p-2">
+                <!-- paimon catalog -->
+                <div class="mb-3">
+                  <div class="file-tree-row active">
+                    <i data-lucide="chevron-down" class="text-sm text-fg-muted"></i>
+                    <i data-lucide="folder-open" class="text-sm text-fr-coral"></i>
+                    <span class="font-mono text-[12.5px] text-fg">paimon</span>
+                    <span class="ml-auto font-mono text-[10px] text-fg-faint">8 db</span>
+                  </div>
+                  <!-- retail (open) -->
+                  <div class="ml-3 mt-0.5">
+                    <div class="file-tree-row active">
+                      <i data-lucide="chevron-down" class="text-sm text-fg-muted"></i>
+                      <i data-lucide="folder-open" class="text-sm text-fr-amber"></i>
+                      <span class="font-mono text-[12px] text-fg">retail</span>
+                      <span class="ml-auto font-mono text-[10px] text-fg-faint">14</span>
+                    </div>
+                    <div class="ml-4 mt-0.5">
+                      <div class="file-tree-row active">
+                        <i data-lucide="dot" class="text-sm text-fg-faint"></i>
+                        <i data-lucide="table" class="text-sm text-fr-sage"></i>
+                        <span class="font-mono text-[12px] text-fr-coral">orders_realtime</span>
+                      </div>
+                      <div class="file-tree-row">
+                        <i data-lucide="dot" class="text-sm text-fg-faint"></i>
+                        <i data-lucide="table" class="text-sm text-fr-sage"></i>
+                        <span class="font-mono text-[12px]">orders_summary</span>
+                        <span class="ml-auto sev-badge warn">stale</span>
+                      </div>
+                      <div class="file-tree-row"><i data-lucide="dot" class="text-sm text-fg-faint"></i><i data-lucide="table" class="text-sm text-fr-sage"></i><span class="font-mono text-[12px]">customer_orders_summary</span></div>
+                      <div class="file-tree-row"><i data-lucide="dot" class="text-sm text-fg-faint"></i><i data-lucide="table" class="text-sm text-fr-sage"></i><span class="font-mono text-[12px]">products</span></div>
+                      <div class="file-tree-row"><i data-lucide="dot" class="text-sm text-fg-faint"></i><i data-lucide="table" class="text-sm text-fr-sage"></i><span class="font-mono text-[12px]">product_inventory</span></div>
+                      <div class="file-tree-row"><i data-lucide="dot" class="text-sm text-fg-faint"></i><i data-lucide="table" class="text-sm text-fr-sage"></i><span class="font-mono text-[12px]">orders_returned</span></div>
+                      <div class="file-tree-row"><i data-lucide="dot" class="text-sm text-fg-faint"></i><i data-lucide="table" class="text-sm text-fr-sage"></i><span class="font-mono text-[12px]">discounts</span></div>
+                      <div class="file-tree-row"><i data-lucide="dot" class="text-sm text-fg-faint"></i><i data-lucide="table" class="text-sm text-fr-sage"></i><span class="font-mono text-[12px]">store_locations</span></div>
+                      <div class="file-tree-row"><i data-lucide="dot" class="text-sm text-fg-faint"></i><i data-lucide="ellipsis" class="text-sm text-fg-faint"></i><span class="font-mono text-[11px] text-fg-faint">6 more</span></div>
+                    </div>
+                    <!-- analytics (closed) -->
+                    <div class="file-tree-row mt-1"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">analytics</span><span class="ml-auto font-mono text-[10px] text-fg-faint">28</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">finance</span><span class="ml-auto font-mono text-[10px] text-fg-faint">12</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">users</span><span class="ml-auto font-mono text-[10px] text-fg-faint">18</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">cdc</span><span class="ml-auto font-mono text-[10px] text-fg-faint">9</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">audit</span><span class="ml-auto font-mono text-[10px] text-fg-faint">6</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">meta</span><span class="ml-auto font-mono text-[10px] text-fg-faint">4</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">staging</span><span class="ml-auto font-mono text-[10px] text-fg-faint">22</span></div>
+                  </div>
+                </div>
+
+                <!-- fluss catalog -->
+                <div class="mb-3">
+                  <div class="file-tree-row">
+                    <i data-lucide="chevron-down" class="text-sm text-fg-muted"></i>
+                    <i data-lucide="folder-open" class="text-sm text-fr-teal"></i>
+                    <span class="font-mono text-[12.5px] text-fg">fluss</span>
+                    <span class="ml-auto font-mono text-[10px] text-fg-faint">6 db</span>
+                  </div>
+                  <div class="ml-3 mt-0.5">
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">events</span><span class="ml-auto font-mono text-[10px] text-fg-faint">42</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">iot</span><span class="ml-auto font-mono text-[10px] text-fg-faint">28</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">clickstream</span><span class="ml-auto font-mono text-[10px] text-fg-faint">18</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">payments</span><span class="ml-auto font-mono text-[10px] text-fg-faint">14</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">cdc_raw</span><span class="ml-auto font-mono text-[10px] text-fg-faint">22</span></div>
+                    <div class="file-tree-row"><i data-lucide="chevron-right" class="text-sm text-fg-faint"></i><i data-lucide="folder" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px]">staging</span><span class="ml-auto font-mono text-[10px] text-fg-faint">8</span></div>
+                  </div>
+                </div>
+
+                <!-- hive_sandbox catalog (closed) -->
+                <div class="mb-3">
+                  <div class="file-tree-row">
+                    <i data-lucide="chevron-right" class="text-sm text-fg-faint"></i>
+                    <i data-lucide="folder" class="text-sm text-fr-violet"></i>
+                    <span class="font-mono text-[12.5px] text-fg">hive_sandbox</span>
+                    <span class="ml-auto font-mono text-[10px] text-fg-faint">8 db</span>
+                  </div>
+                </div>
+
+                <!-- jdbc_legacy catalog -->
+                <div class="mb-3">
+                  <div class="file-tree-row">
+                    <i data-lucide="chevron-right" class="text-sm text-fg-faint"></i>
+                    <i data-lucide="folder" class="text-sm text-fr-rose"></i>
+                    <span class="font-mono text-[12.5px] text-fg">jdbc_legacy</span>
+                    <span class="ml-auto sev-badge warn">read-only</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detail pane -->
+          <div class="col-span-12 lg:col-span-8 xl:col-span-9 space-y-4">
+            <!-- Header -->
+            <div class="glass-card-static p-5">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-3">
+                    <i data-lucide="table" class="text-2xl text-fr-sage"></i>
+                    <div>
+                      <h2 class="font-mono text-[18px] text-zinc-100"><span class="text-fg-faint">paimon.retail.</span><span class="text-fg">orders_realtime</span></h2>
+                      <p class="mt-0.5 text-[12px] text-fg-muted">Paimon table · partial-update · partition by dt · 8 buckets</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="status-pill running">live</span>
+                  <button class="btn btn-secondary btn-sm"><i data-lucide="search-code" class="text-sm"></i>Query</button>
+                  <button class="btn btn-secondary btn-sm"><i data-lucide="copy" class="text-sm"></i>Copy DDL</button>
+                  <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="more-horizontal" class="text-sm"></i></button>
+                </div>
+              </div>
+
+              <div class="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div class="kpi-card"><div class="kpi-label">Rows</div><div class="kpi-value">142.8M</div></div>
+                <div class="kpi-card"><div class="kpi-label">Size</div><div class="kpi-value">8.4<span class="text-[12px] text-fg-muted">GB</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">Snapshots</div><div class="kpi-value">14</div></div>
+                <div class="kpi-card"><div class="kpi-label">Partitions</div><div class="kpi-value">28</div><div class="kpi-sub">28 days × 1</div></div>
+                <div class="kpi-card"><div class="kpi-label">Avg lag</div><div class="kpi-value text-fr-sage">2.4s</div></div>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="border-b border-dash-border">
+              <nav class="flex">
+                <button class="tab active">Schema<span class="tab-count">14</span></button>
+                <button class="tab">Snapshots<span class="tab-count">14</span></button>
+                <button class="tab">Partitions<span class="tab-count">28</span></button>
+                <button class="tab">Sample data</button>
+                <button class="tab">DDL</button>
+                <button class="tab">Lineage</button>
+              </nav>
+            </div>
+
+            <!-- Schema columns -->
+            <div class="glass-card-static overflow-hidden">
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 border-b border-dash-border px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+                <span>#</span><span>Column</span><span>Type</span><span class="text-center">PK</span><span class="text-center">Null</span><span>Description</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">1</span>
+                <span class="font-mono text-fg">order_id</span>
+                <span class="font-mono text-fr-teal">VARCHAR(36)</span>
+                <span class="text-center"><i data-lucide="key" class="text-sm text-fr-amber inline"></i></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">Primary key, UUID v4</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">2</span>
+                <span class="font-mono text-fg">customer_id</span>
+                <span class="font-mono text-fr-teal">BIGINT</span>
+                <span class="text-center"><i data-lucide="link" class="text-sm text-fr-coral inline"></i></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">FK → users.customer_id</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">3</span>
+                <span class="font-mono text-fg">amount</span>
+                <span class="font-mono text-fr-teal">DECIMAL(12,2)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">Order total in cents</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">4</span>
+                <span class="font-mono text-fg">currency</span>
+                <span class="font-mono text-fr-teal">CHAR(3)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">ISO 4217 currency code</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">5</span>
+                <span class="font-mono text-fg">status</span>
+                <span class="font-mono text-fr-teal">VARCHAR(16)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">PENDING | PAID | SHIPPED | DELIVERED | CANCELLED</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">6</span>
+                <span class="font-mono text-fg">payment_method</span>
+                <span class="font-mono text-fr-teal">VARCHAR(32)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg">yes</span>
+                <span class="text-fg-muted">Channel identifier</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">7</span>
+                <span class="font-mono text-fg">items</span>
+                <span class="font-mono text-fr-teal">ARRAY&lt;ROW&lt;sku VARCHAR,qty INT&gt;&gt;</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">Line items</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">8</span>
+                <span class="font-mono text-fg">event_time</span>
+                <span class="font-mono text-fr-teal">TIMESTAMP_LTZ(3)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">Source event timestamp; watermark column</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">9</span>
+                <span class="font-mono text-fg">processing_time</span>
+                <span class="font-mono text-fr-teal">TIMESTAMP_LTZ(3)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">Computed via PROCTIME()</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">10</span>
+                <span class="font-mono text-fg">channel</span>
+                <span class="font-mono text-fr-teal">VARCHAR(16)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg">yes</span>
+                <span class="text-fg-muted">web | mobile | partner | api</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">11</span>
+                <span class="font-mono text-fg">country_code</span>
+                <span class="font-mono text-fr-teal">CHAR(2)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">ISO 3166-1 alpha-2</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">12</span>
+                <span class="font-mono text-fg">user_agent</span>
+                <span class="font-mono text-fr-teal">VARCHAR(255)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg">yes</span>
+                <span class="text-fg-muted"></span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] border-b border-dash-border/40">
+                <span class="font-mono text-fg-faint">13</span>
+                <span class="font-mono text-fg">discount_code</span>
+                <span class="font-mono text-fr-teal">VARCHAR(32)</span>
+                <span class="text-center"></span>
+                <span class="text-center font-mono text-fg">yes</span>
+                <span class="text-fg-muted">Optional promo</span>
+              </div>
+              <div class="grid grid-cols-[24px_1fr_180px_60px_60px_1fr] gap-3 px-4 py-2 hover:bg-dash-elevated/30 text-[12px] bg-fr-coral/[0.04]">
+                <span class="font-mono text-fg-faint">14</span>
+                <span class="font-mono text-fg">dt</span>
+                <span class="font-mono text-fr-teal">VARCHAR(10)</span>
+                <span class="text-center"><i data-lucide="layers" class="text-sm text-fr-coral inline"></i></span>
+                <span class="text-center font-mono text-fg-faint">no</span>
+                <span class="text-fg-muted">Partition column · derived from event_time</span>
+              </div>
+            </div>
+
+            <!-- Sample data preview -->
+            <div class="glass-card-static p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="font-sans text-[14px] font-medium text-zinc-100">Recent rows (sample)</h3>
+                <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-cw" class="text-sm"></i>Refresh</button>
+              </div>
+              <div class="overflow-x-auto rounded bg-fr-bg/60">
+                <table class="w-full text-[11px] font-mono">
+                  <thead>
+                    <tr class="border-b border-dash-border text-fg-faint">
+                      <th class="px-3 py-2 text-left">order_id</th>
+                      <th class="px-3 py-2 text-left">customer</th>
+                      <th class="px-3 py-2 text-right">amount</th>
+                      <th class="px-3 py-2 text-left">status</th>
+                      <th class="px-3 py-2 text-left">channel</th>
+                      <th class="px-3 py-2 text-left">event_time</th>
+                      <th class="px-3 py-2 text-left">dt</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-dash-border/40">
+                    <tr><td class="px-3 py-1.5 text-fg-muted">a3f2c891-4e21-...</td><td class="px-3 py-1.5">28471</td><td class="px-3 py-1.5 text-right text-fr-sage">142.50</td><td class="px-3 py-1.5">PAID</td><td class="px-3 py-1.5 text-fg-muted">web</td><td class="px-3 py-1.5 text-fg-muted">14:32:08.142</td><td class="px-3 py-1.5 text-fr-coral">2026-05-05</td></tr>
+                    <tr><td class="px-3 py-1.5 text-fg-muted">b7d4e102-91aa-...</td><td class="px-3 py-1.5">14228</td><td class="px-3 py-1.5 text-right text-fr-sage">68.20</td><td class="px-3 py-1.5">SHIPPED</td><td class="px-3 py-1.5 text-fg-muted">mobile</td><td class="px-3 py-1.5 text-fg-muted">14:32:07.802</td><td class="px-3 py-1.5 text-fr-coral">2026-05-05</td></tr>
+                    <tr><td class="px-3 py-1.5 text-fg-muted">c8e1d233-bf38-...</td><td class="px-3 py-1.5">38142</td><td class="px-3 py-1.5 text-right text-fr-sage">412.80</td><td class="px-3 py-1.5">PENDING</td><td class="px-3 py-1.5 text-fg-muted">api</td><td class="px-3 py-1.5 text-fg-muted">14:32:07.245</td><td class="px-3 py-1.5 text-fr-coral">2026-05-05</td></tr>
+                    <tr><td class="px-3 py-1.5 text-fg-muted">d9f0e344-1c44-...</td><td class="px-3 py-1.5">28471</td><td class="px-3 py-1.5 text-right text-fr-sage">94.10</td><td class="px-3 py-1.5">DELIVERED</td><td class="px-3 py-1.5 text-fg-muted">web</td><td class="px-3 py-1.5 text-fg-muted">14:32:06.918</td><td class="px-3 py-1.5 text-fr-coral">2026-05-05</td></tr>
+                    <tr><td class="px-3 py-1.5 text-fg-muted">e0a1b455-0aff-...</td><td class="px-3 py-1.5">62012</td><td class="px-3 py-1.5 text-right text-fr-amber">8.40</td><td class="px-3 py-1.5">PAID</td><td class="px-3 py-1.5 text-fg-muted">partner</td><td class="px-3 py-1.5 text-fg-muted">14:32:06.501</td><td class="px-3 py-1.5 text-fr-coral">2026-05-05</td></tr>
+                    <tr><td class="px-3 py-1.5 text-fg-muted">f1b2c566-bb22-...</td><td class="px-3 py-1.5">88421</td><td class="px-3 py-1.5 text-right text-fr-rose">2,142.00</td><td class="px-3 py-1.5">PAID</td><td class="px-3 py-1.5 text-fg-muted">web</td><td class="px-3 py-1.5 text-fg-muted">14:32:06.288</td><td class="px-3 py-1.5 text-fr-coral">2026-05-05</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="mt-2 text-[11px] text-fg-faint">SELECT * FROM paimon.retail.orders_realtime ORDER BY event_time DESC LIMIT 6</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

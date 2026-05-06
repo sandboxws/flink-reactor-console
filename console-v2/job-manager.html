@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job manager · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="job-manager">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-2 text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Cluster</span></div>
+        <div class="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-3"><i data-lucide="cpu" class="text-fr-coral text-2xl"></i><h1 class="font-sans text-[26px] font-semibold tracking-tight text-zinc-100">Job manager</h1><span class="status-pill running"><span class="live-dot"></span>Leader · jm-01</span></div>
+            <div class="mt-1.5 text-[12px] text-fg-muted"><span class="font-mono">10.42.18.71</span><span class="text-fg-faint mx-2">·</span><span>HA quorum 3/3</span><span class="text-fg-faint mx-2">·</span><span>up 28d 14h · last failover none</span></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-ghost btn-sm"><i data-lucide="git-branch" class="text-sm"></i>Trigger failover</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-ccw" class="text-sm"></i>Restart</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-6">
+          <div class="kpi-card"><div class="kpi-label">Pipelines</div><div class="kpi-value">7</div></div>
+          <div class="kpi-card"><div class="kpi-label">Submitted (24h)</div><div class="kpi-value">12</div></div>
+          <div class="kpi-card"><div class="kpi-label">REST QPS</div><div class="kpi-value">42</div></div>
+          <div class="kpi-card"><div class="kpi-label">Heap</div><div class="kpi-value">3.2<span class="text-[10px] text-fg-muted">/8 GB</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">CPU</div><div class="kpi-value">14<span class="text-[10px] text-fg-muted">%</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">ZK latency</div><div class="kpi-value">2<span class="text-[10px] text-fg-muted">ms</span></div></div>
+        </section>
+
+        <!-- Tabs -->
+        <nav class="flex items-center gap-1 border-b border-dash-border overflow-x-auto -mb-px">
+          <a href="#" class="tab active"><i data-lucide="sliders-horizontal" class="text-base"></i><span>Config</span><span class="tab-count">418</span></a>
+          <a href="#" class="tab"><i data-lucide="line-chart" class="text-base"></i><span>Metrics</span></a>
+          <a href="logs.html" class="tab"><i data-lucide="scroll-text" class="text-base"></i><span>Logs</span></a>
+          <a href="#" class="tab"><i data-lucide="terminal" class="text-base"></i><span>StdOut</span></a>
+          <a href="#" class="tab"><i data-lucide="archive" class="text-base"></i><span>Classpath</span><span class="tab-count">142</span></a>
+          <a href="#" class="tab"><i data-lucide="cpu" class="text-base"></i><span>JVM</span></a>
+          <a href="#" class="tab"><i data-lucide="layers-3" class="text-base"></i><span>Threads</span><span class="tab-count">87</span></a>
+          <a href="#" class="tab"><i data-lucide="activity" class="text-base"></i><span>Profiler</span></a>
+        </nav>
+
+        <!-- Config tab content -->
+        <section class="mt-6 grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-8">
+            <div class="glass-card-static p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="font-sans text-[14px] font-medium text-zinc-100">Configuration</h3>
+                <div class="flex items-center gap-2">
+                  <input type="text" placeholder="Filter keys..." class="form-input mono" style="height: 28px; font-size: 11px; width: 200px;" />
+                  <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="download" class="text-sm"></i></button>
+                </div>
+              </div>
+              <div class="font-mono text-[12px] divide-y divide-dash-border/40">
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">execution.checkpointing.interval</span><span class="text-fg">3000ms</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">execution.checkpointing.mode</span><span class="text-fg">EXACTLY_ONCE</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">execution.checkpointing.timeout</span><span class="text-fg">10min</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">execution.checkpointing.unaligned</span><span class="text-fg">true</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">restart-strategy</span><span class="text-fg">exponential-delay</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">restart-strategy.exponential-delay.initial-backoff</span><span class="text-fg">1s</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">restart-strategy.exponential-delay.max-backoff</span><span class="text-fg">5min</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">state.backend.type</span><span class="text-fg">rocksdb</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">state.checkpoints.dir</span><span class="text-fg">s3a://reactor-ckpts/acme-prod-1</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">state.savepoints.dir</span><span class="text-fg">s3a://reactor-savepoints/acme-prod-1</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">jobmanager.memory.process.size</span><span class="text-fg">8g</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">taskmanager.memory.process.size</span><span class="text-fg">96g</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">taskmanager.numberOfTaskSlots</span><span class="text-fg">96</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">parallelism.default</span><span class="text-fg">16</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">high-availability</span><span class="text-fg">kubernetes</span></div>
+                <div class="grid grid-cols-2 gap-4 py-2"><span class="text-fg-muted">high-availability.cluster-id</span><span class="text-fg">acme-prod-1</span></div>
+              </div>
+              <div class="mt-3 flex items-center justify-between border-t border-dash-border pt-3 text-[11px] font-mono text-fg-faint">
+                <span>Showing 16 of 418 keys</span>
+                <span><a href="#" class="hover:text-fr-coral">+ Show all</a></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-12 lg:col-span-4 space-y-4">
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">JM properties</h3>
+              <dl class="space-y-2 text-[12px]">
+                <div class="flex justify-between"><dt class="text-fg-muted">Role</dt><dd class="font-mono text-fr-coral">leader</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">JVM PID</dt><dd class="font-mono text-fg">14422</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">JVM</dt><dd class="font-mono text-fg">17.0.10+7</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">Flink</dt><dd class="font-mono text-fg">1.20.1</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">Reactor</dt><dd class="font-mono text-fg">v0.9.4</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">HA backend</dt><dd class="font-mono text-fg">k8s configmap</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-muted">REST port</dt><dd class="font-mono text-fg">8081</dd></div>
+              </dl>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Quorum members</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-fr-coral"></span><span class="font-mono text-fg">jm-01</span><span class="ml-auto font-mono text-[10px] text-fr-coral">leader</span></li>
+                <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-fr-sage"></span><span class="font-mono text-fg">jm-02</span><span class="ml-auto font-mono text-[10px] text-fg-faint">standby</span></li>
+                <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-fr-sage"></span><span class="font-mono text-fg">jm-03</span><span class="ml-auto font-mono text-[10px] text-fg-faint">standby</span></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

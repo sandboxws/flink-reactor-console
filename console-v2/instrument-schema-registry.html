@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schema Registry · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="instrument-schema-registry">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-5 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><a href="instruments.html" class="hover:text-fr-coral">Instruments</a><span class="text-fg-faint mx-1">/</span><span>Schema Registry</span></div>
+            <h1 class="mt-1 flex items-center gap-3 font-sans text-[24px] font-semibold tracking-tight text-zinc-100"><span class="flex size-9 items-center justify-center rounded-lg bg-fr-violet/10 border border-fr-violet/20"><i data-lucide="file-json" class="text-lg text-fr-violet"></i></span>Schema Registry</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">Confluent v7.5.1 · 412 subjects · 2,841 versions · default compatibility BACKWARD</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="settings-2" class="text-sm"></i>Configure</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="upload" class="text-sm"></i>Import</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="plus" class="text-sm"></i>Register schema</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+          <div class="kpi-card"><div class="kpi-label">Subjects</div><div class="kpi-value">412</div></div>
+          <div class="kpi-card"><div class="kpi-label">Total versions</div><div class="kpi-value">2,841</div></div>
+          <div class="kpi-card"><div class="kpi-label">Compatibility</div><div class="kpi-value text-fr-teal">BACK<span class="text-[12px] text-fg-muted">WARD</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">Conflicts</div><div class="kpi-value text-fr-amber">1</div><div class="kpi-sub">events.user_v3</div></div>
+          <div class="kpi-card"><div class="kpi-label">Registered (24h)</div><div class="kpi-value">14</div></div>
+        </section>
+
+        <!-- Banner: schema conflict -->
+        <div class="mb-5 rounded-lg bg-fr-amber/[0.06] border border-fr-amber/20 px-4 py-3 flex items-center gap-3">
+          <i data-lucide="alert-triangle" class="text-xl text-fr-amber"></i>
+          <div class="flex-1">
+            <div class="text-[12.5px] font-medium text-fg">Subject <span class="font-mono">events.user_v3</span> is incompatible with the BACKWARD policy</div>
+            <div class="text-[11px] text-fg-muted mt-0.5">Field <span class="font-mono">user_id</span> changed type from <span class="font-mono">string</span> → <span class="font-mono">long</span>. Producers using v4 will fail consumer schema evolution.</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm">Review</button>
+            <button class="btn btn-primary btn-sm">Approve override</button>
+          </div>
+        </div>
+
+        <section class="grid grid-cols-12 gap-5">
+          <!-- Subjects list -->
+          <div class="col-span-12 lg:col-span-4 glass-card-static overflow-hidden">
+            <div class="flex items-center gap-2 border-b border-dash-border px-3 py-2">
+              <i data-lucide="search" class="text-sm text-fg-muted"></i>
+              <input type="text" placeholder="Filter subjects..." class="flex-1 bg-transparent font-mono text-[12px] text-fg outline-none placeholder:text-fg-faint" />
+              <span class="text-[10px] font-mono text-fg-faint">412</span>
+            </div>
+            <div class="max-h-[64vh] overflow-y-auto">
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 bg-fr-coral/[0.04] hover:bg-dash-elevated/30">
+                <i data-lucide="alert-triangle" class="text-sm text-fr-amber flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">events.user_v3</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v4 latest · BACKWARD ⚠</div>
+                </div>
+                <span class="font-mono text-[10px] text-fr-amber">conflict</span>
+              </a>
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30">
+                <i data-lucide="check-circle-2" class="text-sm text-fr-sage flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">events.orders_raw</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v18 latest · FULL</div>
+                </div>
+                <span class="font-mono text-[10px] text-fg-muted">protobuf</span>
+              </a>
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30">
+                <i data-lucide="check-circle-2" class="text-sm text-fr-sage flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">events.payments_raw</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v8 latest · BACKWARD</div>
+                </div>
+                <span class="font-mono text-[10px] text-fg-muted">protobuf</span>
+              </a>
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30">
+                <i data-lucide="check-circle-2" class="text-sm text-fr-sage flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">events.user_clickstream</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v22 latest · FULL_TRANSITIVE</div>
+                </div>
+                <span class="font-mono text-[10px] text-fg-muted">avro</span>
+              </a>
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30">
+                <i data-lucide="check-circle-2" class="text-sm text-fr-sage flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">iot.device_telemetry</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v12 latest · BACKWARD</div>
+                </div>
+                <span class="font-mono text-[10px] text-fg-muted">protobuf</span>
+              </a>
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30">
+                <i data-lucide="check-circle-2" class="text-sm text-fr-sage flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">cdc.users</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v4 latest · NONE</div>
+                </div>
+                <span class="font-mono text-[10px] text-fg-muted">debezium</span>
+              </a>
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30">
+                <i data-lucide="check-circle-2" class="text-sm text-fr-sage flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">cdc.orders</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v6 latest · NONE</div>
+                </div>
+                <span class="font-mono text-[10px] text-fg-muted">debezium</span>
+              </a>
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30">
+                <i data-lucide="check-circle-2" class="text-sm text-fr-sage flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">analytics.session_summary</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v8 latest · FORWARD</div>
+                </div>
+                <span class="font-mono text-[10px] text-fg-muted">avro</span>
+              </a>
+              <a href="#" class="flex items-center gap-2 px-3 py-2.5 border-b border-dash-border/40 hover:bg-dash-elevated/30">
+                <i data-lucide="check-circle-2" class="text-sm text-fr-sage flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="font-mono text-[12px] text-fg truncate">finance.payments_settled</div>
+                  <div class="font-mono text-[10px] text-fg-faint">v6 latest · BACKWARD</div>
+                </div>
+                <span class="font-mono text-[10px] text-fg-muted">avro</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Detail: events.user_v3 versions + diff -->
+          <div class="col-span-12 lg:col-span-8 space-y-4">
+            <!-- Header -->
+            <div class="glass-card-static p-5">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <h2 class="font-mono text-[18px] text-zinc-100">events.user_v3</h2>
+                    <span class="sev-badge warn">incompatible</span>
+                  </div>
+                  <p class="text-[12px] text-fg-muted">avro schema · 4 versions · last published 1h ago by mei · used by 2 pipelines</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="btn btn-secondary btn-sm"><i data-lucide="download" class="text-sm"></i>Export</button>
+                  <button class="btn btn-secondary btn-sm"><i data-lucide="git-compare" class="text-sm"></i>Diff</button>
+                  <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="more-horizontal" class="text-sm"></i></button>
+                </div>
+              </div>
+
+              <!-- version timeline -->
+              <div class="mt-4">
+                <div class="text-[10px] font-mono uppercase tracking-wider text-fg-faint mb-2">Versions</div>
+                <div class="flex items-center gap-2">
+                  <div class="flex-1 flex items-center">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dash-border bg-fr-bg/40">
+                      <span class="font-mono text-[11px] text-fr-sage">v1</span>
+                      <span class="font-mono text-[9px] text-fg-faint">2025-11</span>
+                    </div>
+                    <div class="h-px flex-1 bg-dash-border"></div>
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dash-border bg-fr-bg/40">
+                      <span class="font-mono text-[11px] text-fr-sage">v2</span>
+                      <span class="font-mono text-[9px] text-fg-faint">2026-01</span>
+                    </div>
+                    <div class="h-px flex-1 bg-dash-border"></div>
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dash-border bg-fr-bg/40">
+                      <span class="font-mono text-[11px] text-fr-sage">v3</span>
+                      <span class="font-mono text-[9px] text-fg-faint">2026-03</span>
+                    </div>
+                    <div class="h-px flex-1 bg-fr-amber/40"></div>
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-fr-amber/40 bg-fr-amber/10">
+                      <span class="font-mono text-[11px] text-fr-amber">v4</span>
+                      <span class="font-mono text-[9px] text-fg-muted">1h ago</span>
+                      <i data-lucide="alert-triangle" class="text-xs text-fr-amber"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Diff viewer -->
+            <div class="glass-card-static overflow-hidden">
+              <div class="flex items-center justify-between border-b border-dash-border px-4 py-3">
+                <div class="flex items-center gap-3">
+                  <h3 class="font-sans text-[14px] font-medium text-zinc-100">Diff: v3 → v4</h3>
+                  <span class="text-fg-faint text-[11px]">·</span>
+                  <span class="font-mono text-[11px] text-fr-sage">+3 added</span>
+                  <span class="font-mono text-[11px] text-fr-coral">−1 removed</span>
+                  <span class="font-mono text-[11px] text-fr-amber">2 changed type</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="prop-chip active">v3</button>
+                  <i data-lucide="arrow-right" class="text-fg-faint text-base"></i>
+                  <button class="prop-chip active">v4</button>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto bg-fr-bg/40 py-2">
+                <div class="diff-line hunk"><span class="ln"></span><span class="ln"></span><span class="gutter">@@</span><span class="code">@@ -1,18 +1,21 @@ events.user_v3</span></div>
+                <div class="diff-line"><span class="ln">1</span><span class="ln">1</span><span class="gutter"></span><span class="code">{</span></div>
+                <div class="diff-line"><span class="ln">2</span><span class="ln">2</span><span class="gutter"></span><span class="code">  <span class="tk-attr">"type"</span>: <span class="tk-str">"record"</span>,</span></div>
+                <div class="diff-line"><span class="ln">3</span><span class="ln">3</span><span class="gutter"></span><span class="code">  <span class="tk-attr">"name"</span>: <span class="tk-str">"User"</span>,</span></div>
+                <div class="diff-line"><span class="ln">4</span><span class="ln">4</span><span class="gutter"></span><span class="code">  <span class="tk-attr">"namespace"</span>: <span class="tk-str">"acme.events"</span>,</span></div>
+                <div class="diff-line"><span class="ln">5</span><span class="ln">5</span><span class="gutter"></span><span class="code">  <span class="tk-attr">"fields"</span>: [</div>
+                <div class="diff-line removed"><span class="ln">6</span><span class="ln"></span><span class="gutter">−</span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"user_id"</span>, <span class="tk-attr">"type"</span>: <span class="tk-str">"string"</span> },</span></div>
+                <div class="diff-line added"><span class="ln"></span><span class="ln">6</span><span class="gutter">+</span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"user_id"</span>, <span class="tk-attr">"type"</span>: <span class="tk-str">"long"</span> },</span></div>
+                <div class="diff-line"><span class="ln">7</span><span class="ln">7</span><span class="gutter"></span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"email"</span>, <span class="tk-attr">"type"</span>: [<span class="tk-str">"null"</span>, <span class="tk-str">"string"</span>], <span class="tk-attr">"default"</span>: <span class="tk-key">null</span> },</span></div>
+                <div class="diff-line"><span class="ln">8</span><span class="ln">8</span><span class="gutter"></span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"signup_country"</span>, <span class="tk-attr">"type"</span>: <span class="tk-str">"string"</span> },</span></div>
+                <div class="diff-line removed"><span class="ln">9</span><span class="ln"></span><span class="gutter">−</span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"created_at_ms"</span>, <span class="tk-attr">"type"</span>: <span class="tk-str">"long"</span> },</span></div>
+                <div class="diff-line added"><span class="ln"></span><span class="ln">9</span><span class="gutter">+</span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"created_at"</span>, <span class="tk-attr">"type"</span>: { <span class="tk-attr">"type"</span>: <span class="tk-str">"long"</span>, <span class="tk-attr">"logicalType"</span>: <span class="tk-str">"timestamp-millis"</span> } },</span></div>
+                <div class="diff-line"><span class="ln">10</span><span class="ln">10</span><span class="gutter"></span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"is_verified"</span>, <span class="tk-attr">"type"</span>: <span class="tk-str">"boolean"</span>, <span class="tk-attr">"default"</span>: <span class="tk-key">false</span> },</span></div>
+                <div class="diff-line added"><span class="ln"></span><span class="ln">11</span><span class="gutter">+</span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"locale"</span>, <span class="tk-attr">"type"</span>: <span class="tk-str">"string"</span>, <span class="tk-attr">"default"</span>: <span class="tk-str">"en-US"</span> },</span></div>
+                <div class="diff-line added"><span class="ln"></span><span class="ln">12</span><span class="gutter">+</span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"opt_in_marketing"</span>, <span class="tk-attr">"type"</span>: <span class="tk-str">"boolean"</span>, <span class="tk-attr">"default"</span>: <span class="tk-key">false</span> },</span></div>
+                <div class="diff-line added"><span class="ln"></span><span class="ln">13</span><span class="gutter">+</span><span class="code">    { <span class="tk-attr">"name"</span>: <span class="tk-str">"tier"</span>, <span class="tk-attr">"type"</span>: { <span class="tk-attr">"type"</span>: <span class="tk-str">"enum"</span>, <span class="tk-attr">"name"</span>: <span class="tk-str">"Tier"</span>, <span class="tk-attr">"symbols"</span>: [<span class="tk-str">"FREE"</span>,<span class="tk-str">"PRO"</span>,<span class="tk-str">"ENT"</span>] }, <span class="tk-attr">"default"</span>: <span class="tk-str">"FREE"</span> }</span></div>
+                <div class="diff-line"><span class="ln">11</span><span class="ln">14</span><span class="gutter"></span><span class="code">  ]</span></div>
+                <div class="diff-line"><span class="ln">12</span><span class="ln">15</span><span class="gutter"></span><span class="code">}</span></div>
+              </div>
+
+              <div class="border-t border-dash-border px-4 py-2.5 flex items-center justify-between">
+                <div class="text-[11px] font-mono text-fg-muted">
+                  <span class="text-fr-amber">⚠</span> Field <span class="font-mono text-fg">user_id</span> changed type — breaks BACKWARD compatibility
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="btn btn-ghost btn-sm">Suggest fix</button>
+                  <button class="btn btn-secondary btn-sm">Override policy</button>
+                  <button class="btn btn-danger btn-sm">Reject v4</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Consumers -->
+            <div class="glass-card-static p-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Consumers of events.user_v3</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><i data-lucide="play" class="text-sm inline mr-2 text-fr-sage"></i>clickstream-enrich</a><span class="font-mono text-fg-muted text-[11px]">currently on v3</span></li>
+                <li class="flex items-center justify-between"><a href="job.html" class="font-mono text-fg hover:text-fr-coral"><i data-lucide="play" class="text-sm inline mr-2 text-fr-sage"></i>schema-registry-sync</a><span class="font-mono text-fg-muted text-[11px]">subscribes to all</span></li>
+                <li class="flex items-center justify-between"><span class="font-mono text-fg"><i data-lucide="cloud" class="text-sm inline mr-2 text-fg-muted"></i>3 external consumers</span><span class="font-mono text-fg-muted text-[11px]">via REST</span></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

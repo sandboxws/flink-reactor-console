@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task managers · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+    <style>
+      .tm-row {
+        display: grid;
+        grid-template-columns: 18px 140px 1fr 90px 90px 100px 80px 32px;
+        gap: 14px;
+        align-items: center;
+        padding: 12px 18px;
+        border-bottom: 1px solid #1f2122;
+        font-size: 12.5px;
+        transition: background 0.12s;
+      }
+      .tm-row:hover { background: rgba(231, 138, 78, 0.04); }
+      .tm-row:last-child { border-bottom: 0; }
+    </style>
+  </head>
+  <body class="page-shell" data-page="task-managers">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-6 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Cluster</span></div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Task managers</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">8 active · 768 total slots · 91% utilized · live update every 10s</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-fr-sage/10 border border-fr-sage/30 px-2.5 py-1 text-[10px] font-mono text-fr-sage"><span class="live-dot"></span> live</span>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="plus" class="text-sm"></i>Scale up</button>
+            <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="more-horizontal" class="text-sm"></i></button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div class="kpi-card"><div class="kpi-label">Active TMs</div><div class="kpi-value">8</div><div class="kpi-sub">12 nodes provisioned</div></div>
+          <div class="kpi-card"><div class="kpi-label">Total slots</div><div class="kpi-value">699 <span class="text-[12px] text-fg-muted">/768</span></div><div class="kpi-sub">91% util</div></div>
+          <div class="kpi-card"><div class="kpi-label">Heap (cluster)</div><div class="kpi-value">412 <span class="text-[12px] text-fg-muted">/768 GB</span></div><div class="kpi-sub">54% allocated</div></div>
+          <div class="kpi-card"><div class="kpi-label">Network</div><div class="kpi-value">2.8 <span class="text-[12px] text-fg-muted">/12 GB/s</span></div><div class="kpi-sub">23% capacity</div></div>
+        </section>
+
+        <div class="mb-3 flex items-center gap-2 border-b border-dash-border pb-3">
+          <div class="relative max-w-xs flex-1"><i data-lucide="filter" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-faint text-sm"></i><input type="text" placeholder="Filter task managers..." class="form-input mono pl-8" style="height: 30px; font-size: 12px;" /></div>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Status</button>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Region</button>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Tier</button>
+          <div class="ml-auto"><button class="btn btn-ghost btn-sm"><i data-lucide="arrow-up-down" class="text-sm"></i>Slot util desc</button></div>
+        </div>
+
+        <div class="glass-card-static overflow-hidden">
+          <div class="tm-row !py-2 border-b border-dash-border bg-dash-surface/40 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+            <span></span>
+            <span>TM ID</span>
+            <span>Memory breakdown</span>
+            <span class="text-right">Slots</span>
+            <span class="text-right">Tasks</span>
+            <span class="text-right">Network</span>
+            <span class="text-right">Uptime</span>
+            <span></span>
+          </div>
+
+          <a href="task-manager.html" class="tm-row">
+            <span class="live-dot"></span>
+            <div>
+              <div class="font-mono text-zinc-100">tm-01</div>
+              <div class="font-mono text-[10px] text-fg-faint">us-west-2a</div>
+            </div>
+            <div>
+              <div class="resource-bar mb-1">
+                <div class="seg heap" style="width: 56%"></div>
+                <div class="seg managed" style="width: 18%"></div>
+                <div class="seg network" style="width: 12%"></div>
+                <div class="seg free" style="width: 14%"></div>
+              </div>
+              <div class="flex items-center gap-3 text-[10px] font-mono text-fg-faint">
+                <span><span class="inline-block size-2 rounded-sm bg-fr-sage mr-1"></span>heap 56G</span>
+                <span><span class="inline-block size-2 rounded-sm bg-fr-amber mr-1"></span>managed 18G</span>
+                <span><span class="inline-block size-2 rounded-sm bg-fr-teal mr-1"></span>net 12G</span>
+              </div>
+            </div>
+            <div class="text-right"><div class="font-mono text-[14px] text-zinc-100">96/96</div><div class="font-mono text-[10px] text-fr-amber">100%</div></div>
+            <div class="text-right"><div class="font-mono">96</div></div>
+            <div class="text-right"><div class="font-mono">412 MB/s</div></div>
+            <div class="text-right font-mono text-[11px] text-fg-faint">28d 14h</div>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="task-manager.html" class="tm-row">
+            <span class="live-dot"></span>
+            <div>
+              <div class="font-mono text-zinc-100">tm-02</div>
+              <div class="font-mono text-[10px] text-fg-faint">us-west-2a</div>
+            </div>
+            <div>
+              <div class="resource-bar mb-1">
+                <div class="seg heap" style="width: 48%"></div>
+                <div class="seg managed" style="width: 22%"></div>
+                <div class="seg network" style="width: 8%"></div>
+                <div class="seg free" style="width: 22%"></div>
+              </div>
+              <div class="flex items-center gap-3 text-[10px] font-mono text-fg-faint"><span><span class="inline-block size-2 rounded-sm bg-fr-sage mr-1"></span>heap 48G</span><span><span class="inline-block size-2 rounded-sm bg-fr-amber mr-1"></span>managed 22G</span><span><span class="inline-block size-2 rounded-sm bg-fr-teal mr-1"></span>net 8G</span></div>
+            </div>
+            <div class="text-right"><div class="font-mono text-[14px] text-zinc-100">94/96</div><div class="font-mono text-[10px] text-fr-sage">98%</div></div>
+            <div class="text-right"><div class="font-mono">94</div></div>
+            <div class="text-right"><div class="font-mono">388 MB/s</div></div>
+            <div class="text-right font-mono text-[11px] text-fg-faint">28d 14h</div>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="task-manager.html" class="tm-row">
+            <span class="live-dot"></span>
+            <div>
+              <div class="font-mono text-zinc-100">tm-03</div>
+              <div class="font-mono text-[10px] text-fg-faint">us-west-2b</div>
+            </div>
+            <div>
+              <div class="resource-bar mb-1">
+                <div class="seg heap" style="width: 62%"></div>
+                <div class="seg managed" style="width: 14%"></div>
+                <div class="seg network" style="width: 16%"></div>
+                <div class="seg free" style="width: 8%"></div>
+              </div>
+              <div class="flex items-center gap-3 text-[10px] font-mono text-fg-faint"><span><span class="inline-block size-2 rounded-sm bg-fr-sage mr-1"></span>heap 62G</span><span><span class="inline-block size-2 rounded-sm bg-fr-amber mr-1"></span>managed 14G</span><span><span class="inline-block size-2 rounded-sm bg-fr-teal mr-1"></span>net 16G</span></div>
+            </div>
+            <div class="text-right"><div class="font-mono text-[14px] text-zinc-100">90/96</div><div class="font-mono text-[10px] text-fr-sage">94%</div></div>
+            <div class="text-right"><div class="font-mono">90</div></div>
+            <div class="text-right"><div class="font-mono">521 MB/s</div></div>
+            <div class="text-right font-mono text-[11px] text-fg-faint">28d 14h</div>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="task-manager.html" class="tm-row">
+            <span class="live-dot amber"></span>
+            <div>
+              <div class="font-mono text-zinc-100">tm-04</div>
+              <div class="font-mono text-[10px] text-fr-amber">heap 92% · alerting</div>
+            </div>
+            <div>
+              <div class="resource-bar mb-1">
+                <div class="seg heap" style="width: 78%"></div>
+                <div class="seg managed" style="width: 12%"></div>
+                <div class="seg network" style="width: 6%"></div>
+                <div class="seg free" style="width: 4%"></div>
+              </div>
+              <div class="flex items-center gap-3 text-[10px] font-mono text-fr-amber"><span><span class="inline-block size-2 rounded-sm bg-fr-sage mr-1"></span>heap 78G ⚠</span><span><span class="inline-block size-2 rounded-sm bg-fr-amber mr-1"></span>managed 12G</span></div>
+            </div>
+            <div class="text-right"><div class="font-mono text-[14px] text-zinc-100">87/96</div><div class="font-mono text-[10px] text-fr-amber">91%</div></div>
+            <div class="text-right"><div class="font-mono">87</div></div>
+            <div class="text-right"><div class="font-mono">298 MB/s</div></div>
+            <div class="text-right font-mono text-[11px] text-fg-faint">5h 12m</div>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="task-manager.html" class="tm-row">
+            <span class="live-dot"></span>
+            <div><div class="font-mono text-zinc-100">tm-05</div><div class="font-mono text-[10px] text-fg-faint">us-west-2b</div></div>
+            <div>
+              <div class="resource-bar mb-1"><div class="seg heap" style="width: 42%"></div><div class="seg managed" style="width: 16%"></div><div class="seg network" style="width: 10%"></div><div class="seg free" style="width: 32%"></div></div>
+              <div class="flex items-center gap-3 text-[10px] font-mono text-fg-faint"><span><span class="inline-block size-2 rounded-sm bg-fr-sage mr-1"></span>heap 42G</span><span><span class="inline-block size-2 rounded-sm bg-fr-amber mr-1"></span>managed 16G</span></div>
+            </div>
+            <div class="text-right"><div class="font-mono text-[14px] text-zinc-100">82/96</div><div class="font-mono text-[10px] text-fr-sage">85%</div></div>
+            <div class="text-right"><div class="font-mono">82</div></div>
+            <div class="text-right"><div class="font-mono">241 MB/s</div></div>
+            <div class="text-right font-mono text-[11px] text-fg-faint">28d 14h</div>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="task-manager.html" class="tm-row">
+            <span class="live-dot"></span>
+            <div><div class="font-mono text-zinc-100">tm-06</div><div class="font-mono text-[10px] text-fg-faint">us-west-2c</div></div>
+            <div>
+              <div class="resource-bar mb-1"><div class="seg heap" style="width: 51%"></div><div class="seg managed" style="width: 14%"></div><div class="seg network" style="width: 11%"></div><div class="seg free" style="width: 24%"></div></div>
+              <div class="flex items-center gap-3 text-[10px] font-mono text-fg-faint"><span><span class="inline-block size-2 rounded-sm bg-fr-sage mr-1"></span>heap 51G</span><span><span class="inline-block size-2 rounded-sm bg-fr-amber mr-1"></span>managed 14G</span></div>
+            </div>
+            <div class="text-right"><div class="font-mono text-[14px] text-zinc-100">86/96</div><div class="font-mono text-[10px] text-fr-sage">89%</div></div>
+            <div class="text-right"><div class="font-mono">86</div></div>
+            <div class="text-right"><div class="font-mono">312 MB/s</div></div>
+            <div class="text-right font-mono text-[11px] text-fg-faint">28d 14h</div>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="task-manager.html" class="tm-row">
+            <span class="live-dot"></span>
+            <div><div class="font-mono text-zinc-100">tm-07</div><div class="font-mono text-[10px] text-fg-faint">us-west-2c</div></div>
+            <div>
+              <div class="resource-bar mb-1"><div class="seg heap" style="width: 38%"></div><div class="seg managed" style="width: 11%"></div><div class="seg network" style="width: 7%"></div><div class="seg free" style="width: 44%"></div></div>
+              <div class="flex items-center gap-3 text-[10px] font-mono text-fg-faint"><span><span class="inline-block size-2 rounded-sm bg-fr-sage mr-1"></span>heap 38G</span><span><span class="inline-block size-2 rounded-sm bg-fr-amber mr-1"></span>managed 11G</span></div>
+            </div>
+            <div class="text-right"><div class="font-mono text-[14px] text-zinc-100">76/96</div><div class="font-mono text-[10px] text-fr-sage">79%</div></div>
+            <div class="text-right"><div class="font-mono">76</div></div>
+            <div class="text-right"><div class="font-mono">187 MB/s</div></div>
+            <div class="text-right font-mono text-[11px] text-fg-faint">28d 14h</div>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <a href="task-manager.html" class="tm-row">
+            <span class="live-dot"></span>
+            <div><div class="font-mono text-zinc-100">tm-08</div><div class="font-mono text-[10px] text-fg-faint">us-west-2c</div></div>
+            <div>
+              <div class="resource-bar mb-1"><div class="seg heap" style="width: 31%"></div><div class="seg managed" style="width: 9%"></div><div class="seg network" style="width: 4%"></div><div class="seg free" style="width: 56%"></div></div>
+              <div class="flex items-center gap-3 text-[10px] font-mono text-fg-faint"><span><span class="inline-block size-2 rounded-sm bg-fr-sage mr-1"></span>heap 31G</span><span><span class="inline-block size-2 rounded-sm bg-fr-amber mr-1"></span>managed 9G</span></div>
+            </div>
+            <div class="text-right"><div class="font-mono text-[14px] text-zinc-100">88/96</div><div class="font-mono text-[10px] text-fr-sage">92%</div></div>
+            <div class="text-right"><div class="font-mono">88</div></div>
+            <div class="text-right"><div class="font-mono">156 MB/s</div></div>
+            <div class="text-right font-mono text-[11px] text-fg-faint">12d 8h</div>
+            <button class="text-fg-faint hover:text-fr-coral"><i data-lucide="more-vertical" class="text-sm"></i></button>
+          </a>
+
+          <div class="flex items-center justify-between border-t border-dash-border bg-dash-surface/40 px-4 py-2.5 text-[11px] font-mono text-fg-faint">
+            <span>8 task managers · 699 / 768 slots · 412 GB heap</span>
+            <span>1 alerting · last update 8s ago</span>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

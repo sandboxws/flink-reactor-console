@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instruments · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="instruments">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-6 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Instruments</span></div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Instruments</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">5 connected · 1 with warnings · sources, sinks &amp; auxiliary services for this cluster</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="rotate-cw" class="text-sm"></i>Rescan</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="library" class="text-sm"></i>Catalog</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="plus" class="text-sm"></i>Connect new</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div class="kpi-card"><div class="kpi-label">Connected</div><div class="kpi-value">5</div></div>
+          <div class="kpi-card"><div class="kpi-label">Healthy</div><div class="kpi-value text-fr-sage">4</div></div>
+          <div class="kpi-card"><div class="kpi-label">Warnings</div><div class="kpi-value text-fr-amber">1</div><div class="kpi-sub">schema registry</div></div>
+          <div class="kpi-card"><div class="kpi-label">Cross-references</div><div class="kpi-value">142</div><div class="kpi-sub">DSL imports</div></div>
+        </section>
+
+        <!-- Instrument grid -->
+        <section class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+
+          <!-- Fluss -->
+          <a href="instrument-fluss.html" class="glass-card p-5 group">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-fr-teal/10 border border-fr-teal/20"><i data-lucide="layers" class="text-xl text-fr-teal"></i></div>
+                <div>
+                  <h3 class="font-sans text-[15px] font-medium text-zinc-100">Fluss</h3>
+                  <p class="font-mono text-[10.5px] text-fg-muted">streaming storage · v0.6.2</p>
+                </div>
+              </div>
+              <span class="status-pill running">healthy</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">TabletServers</div><div class="font-mono text-[14px] text-fg">8/8</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Tables</div><div class="font-mono text-[14px] text-fg">248</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Throughput</div><div class="font-mono text-[14px] text-fr-sage">1.83M/s</div></div>
+            </div>
+            <div class="text-[11px] text-fg-muted">Used by <span class="text-fg">3 pipelines</span> · last seen <span class="text-fg">2s ago</span></div>
+          </a>
+
+          <!-- Paimon -->
+          <a href="instrument-database.html" class="glass-card p-5 group">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-fr-amber/10 border border-fr-amber/20"><i data-lucide="archive" class="text-xl text-fr-amber"></i></div>
+                <div>
+                  <h3 class="font-sans text-[15px] font-medium text-zinc-100">Paimon</h3>
+                  <p class="font-mono text-[10.5px] text-fg-muted">datalake · v1.0.0</p>
+                </div>
+              </div>
+              <span class="status-pill running">healthy</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Storage</div><div class="font-mono text-[14px] text-fg">5.2TB</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Tables</div><div class="font-mono text-[14px] text-fg">184</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Compactions</div><div class="font-mono text-[14px] text-fr-sage">42/h</div></div>
+            </div>
+            <div class="text-[11px] text-fg-muted">Used by <span class="text-fg">5 pipelines</span> · backed by <span class="text-fg">S3</span></div>
+          </a>
+
+          <!-- Redis -->
+          <a href="instrument-redis.html" class="glass-card p-5 group">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-fr-rose/10 border border-fr-rose/20"><i data-lucide="database" class="text-xl text-fr-rose"></i></div>
+                <div>
+                  <h3 class="font-sans text-[15px] font-medium text-zinc-100">Redis</h3>
+                  <p class="font-mono text-[10.5px] text-fg-muted">cache + lookup · v7.2</p>
+                </div>
+              </div>
+              <span class="status-pill running">healthy</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Replicas</div><div class="font-mono text-[14px] text-fg">1+2</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Keys</div><div class="font-mono text-[14px] text-fg">2.4M</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Hit ratio</div><div class="font-mono text-[14px] text-fr-sage">0.94</div></div>
+            </div>
+            <div class="text-[11px] text-fg-muted">Used by <span class="text-fg">2 pipelines</span> · <span class="text-fg">62ms p99</span></div>
+          </a>
+
+          <!-- Schema Registry -->
+          <a href="instrument-schema-registry.html" class="glass-card p-5 group">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-fr-violet/10 border border-fr-violet/20"><i data-lucide="file-json" class="text-xl text-fr-violet"></i></div>
+                <div>
+                  <h3 class="font-sans text-[15px] font-medium text-zinc-100">Schema Registry</h3>
+                  <p class="font-mono text-[10.5px] text-fg-muted">confluent · v7.5.1</p>
+                </div>
+              </div>
+              <span class="status-pill warning">warn</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Subjects</div><div class="font-mono text-[14px] text-fg">412</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Versions</div><div class="font-mono text-[14px] text-fg">2,841</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Conflicts</div><div class="font-mono text-[14px] text-fr-amber">1</div></div>
+            </div>
+            <div class="text-[11px] text-fr-amber"><span class="font-mono">events.user_v3</span> incompatible — needs review</div>
+          </a>
+
+          <!-- Datalake (db) -->
+          <a href="instrument-database.html" class="glass-card p-5 group">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-fr-coral/10 border border-fr-coral/20"><i data-lucide="hard-drive" class="text-xl text-fr-coral"></i></div>
+                <div>
+                  <h3 class="font-sans text-[15px] font-medium text-zinc-100">Datalake</h3>
+                  <p class="font-mono text-[10.5px] text-fg-muted">database catalog · v0.4</p>
+                </div>
+              </div>
+              <span class="status-pill running">healthy</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Catalogs</div><div class="font-mono text-[14px] text-fg">28</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Tables</div><div class="font-mono text-[14px] text-fg">412</div></div>
+              <div><div class="font-mono text-[10px] text-fg-faint uppercase tracking-wider">Queries (1h)</div><div class="font-mono text-[14px] text-fg">8.4k</div></div>
+            </div>
+            <div class="text-[11px] text-fg-muted">Federated across <span class="text-fg">Paimon, Hive, JDBC</span></div>
+          </a>
+
+          <!-- Add new instrument card -->
+          <button class="rounded-xl border border-dashed border-dash-border p-5 text-left hover:border-fr-coral/40 hover:bg-dash-elevated/20 transition-colors">
+            <div class="flex items-start gap-3 mb-3">
+              <div class="flex size-10 items-center justify-center rounded-lg bg-dash-elevated text-fg-muted"><i data-lucide="plus" class="text-xl"></i></div>
+              <div>
+                <h3 class="font-sans text-[15px] font-medium text-zinc-100">Connect instrument</h3>
+                <p class="font-mono text-[10.5px] text-fg-muted">Kafka · Iceberg · Postgres · Pinot · Druid · custom</p>
+              </div>
+            </div>
+            <div class="text-[11px] text-fg-muted">Browse <span class="text-fr-coral">14 connector packs</span> in the catalog or write a custom DSL adapter.</div>
+          </button>
+        </section>
+
+        <!-- Cross-pipeline matrix -->
+        <section class="glass-card-static p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100">Pipeline ⇄ instrument matrix</h3>
+              <p class="text-[11px] text-fg-muted mt-0.5">Which pipeline reads from / writes to which instrument</p>
+            </div>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="external-link" class="text-sm"></i>Open lineage view</button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-[12px]">
+              <thead>
+                <tr class="border-b border-dash-border text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+                  <th class="px-3 py-2 text-left">Pipeline</th>
+                  <th class="px-3 py-2 text-center">Fluss</th>
+                  <th class="px-3 py-2 text-center">Paimon</th>
+                  <th class="px-3 py-2 text-center">Redis</th>
+                  <th class="px-3 py-2 text-center">Schema Reg.</th>
+                  <th class="px-3 py-2 text-center">Datalake</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dash-border/40">
+                <tr class="hover:bg-dash-elevated/30">
+                  <td class="px-3 py-2 font-mono text-fg"><a href="job.html" class="hover:text-fr-coral">reactor-core</a></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-teal">read</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-amber">write</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-violet">depends</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                </tr>
+                <tr class="hover:bg-dash-elevated/30">
+                  <td class="px-3 py-2 font-mono text-fg"><a href="job.html" class="hover:text-fr-coral">fluss-ingest</a></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-amber">write</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-violet">depends</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                </tr>
+                <tr class="hover:bg-dash-elevated/30">
+                  <td class="px-3 py-2 font-mono text-fg"><a href="job.html" class="hover:text-fr-coral">paimon-sink</a></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-teal">read</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-amber">write</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                </tr>
+                <tr class="hover:bg-dash-elevated/30">
+                  <td class="px-3 py-2 font-mono text-fg"><a href="job.html" class="hover:text-fr-coral">clickstream-enrich</a></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-teal">read</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-amber">write</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-rose">lookup</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                </tr>
+                <tr class="hover:bg-dash-elevated/30">
+                  <td class="px-3 py-2 font-mono text-fg"><a href="job.html" class="hover:text-fr-coral">datalake-connect</a></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-amber">write</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-coral">read</span></td>
+                </tr>
+                <tr class="hover:bg-dash-elevated/30">
+                  <td class="px-3 py-2 font-mono text-fg"><a href="job.html" class="hover:text-fr-coral">schema-registry-sync</a></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-amber">write</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-violet">read</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                </tr>
+                <tr class="hover:bg-dash-elevated/30">
+                  <td class="px-3 py-2 font-mono text-fg"><a href="job.html" class="hover:text-fr-coral">cdc-loader</a></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-amber">write</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="text-fg-faint">—</span></td>
+                  <td class="text-center px-3 py-2"><span class="font-mono text-[10px] text-fr-coral">read</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

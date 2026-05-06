@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alerts · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="alerts">
+
+    <!-- Top bar -->
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5">
+        <span class="brand-glyph" data-size="22"></span>
+        <div class="flex items-baseline gap-2">
+          <span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span>
+          <span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span>
+        </div>
+      </a>
+      <button class="cluster-selector">
+        <span class="env prod">prod</span>
+        <span>acme-prod-1.fr</span>
+        <i data-lucide="chevron-down" class="text-fg-faint text-xs"></i>
+      </button>
+      <div class="relative max-w-md flex-1">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i>
+        <input type="text" placeholder="Type / to search alerts..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" />
+      </div>
+      <div class="ml-auto flex items-center gap-3">
+        <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button>
+        <button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button>
+        <button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button>
+      </div>
+    </header>
+
+    <div class="page-grid">
+      <!-- Sidebar (compact, identical to overview) -->
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3>
+          <a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <main class="px-8 py-6 min-w-0">
+        <!-- Page header -->
+        <div class="mb-6 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted">
+              <a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a>
+              <span class="text-fg-faint mx-1">/</span>
+              <span>Observe</span>
+            </div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Alerts</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">2 firing · 3 acknowledged · 12 resolved (last 24h) · live update</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm">
+              <i data-lucide="filter" class="text-sm"></i>
+              Triage
+              <i data-lucide="chevron-down" class="text-xs"></i>
+            </button>
+            <button class="btn btn-ghost btn-sm">
+              <i data-lucide="bell-off" class="text-sm"></i>
+              Silence
+            </button>
+            <button class="btn btn-primary btn-sm">
+              <i data-lucide="plus" class="text-sm"></i>
+              New alert rule
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <section class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
+          <div class="kpi-card">
+            <div class="kpi-label flex items-center gap-1">
+              <span class="status-icon firing" style="width: 10px; height: 10px;"></span>
+              Firing
+            </div>
+            <div class="kpi-value text-fr-coral">2</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label flex items-center gap-1">
+              <span class="status-icon acknowledged" style="width: 10px; height: 10px;"></span>
+              Acknowledged
+            </div>
+            <div class="kpi-value text-fr-amber">3</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label flex items-center gap-1">
+              <span class="status-icon in-progress" style="width: 10px; height: 10px;"></span>
+              In progress
+            </div>
+            <div class="kpi-value text-fr-sage">2</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">MTTR</div>
+            <div class="kpi-value">28<span class="text-[12px] text-fg-muted">m</span></div>
+            <div class="kpi-sub">7-day median</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Noise rate</div>
+            <div class="kpi-value">3.2<span class="text-[12px] text-fg-muted">%</span></div>
+            <div class="kpi-sub">auto-resolved &lt; 60s</div>
+          </div>
+        </section>
+
+        <!-- Filter chip bar -->
+        <div class="mb-3 flex flex-wrap items-center gap-2 border-b border-dash-border pb-3">
+          <div class="relative max-w-xs flex-1">
+            <i data-lucide="filter" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-faint text-sm"></i>
+            <input type="text" placeholder="Filter by name, ID, source..." class="form-input mono pl-8" style="height: 30px; font-size: 12px;" />
+          </div>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Status</button>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Priority</button>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Pipeline</button>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Source</button>
+          <button class="prop-chip"><i data-lucide="plus-circle" class="text-sm"></i>Assignee</button>
+
+          <div class="ml-auto flex items-center gap-2">
+            <button class="btn btn-ghost btn-sm">
+              <i data-lucide="arrow-up-down" class="text-sm"></i>
+              Priority desc
+            </button>
+            <button class="btn btn-ghost btn-sm">
+              <i data-lucide="layers-3" class="text-sm"></i>
+              Group: Status
+            </button>
+            <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sliders-horizontal" class="text-sm"></i></button>
+          </div>
+        </div>
+
+        <!-- Alerts table -->
+        <div class="glass-card-static overflow-hidden">
+
+          <!-- ── Firing ────────────────────────────────────────── -->
+          <div class="issue-group-header">
+            <i data-lucide="chevron-down" class="text-fg-faint text-sm"></i>
+            <span class="status-icon firing"></span>
+            <span class="text-fg">Firing</span>
+            <span class="font-mono text-fg-faint">2</span>
+            <span class="ml-auto font-mono text-[11px] text-fr-coral">requires action</span>
+          </div>
+
+          <div class="issue-row">
+            <div class="priority priority-urgent"><span></span><span></span><span></span></div>
+            <span class="status-icon firing"></span>
+            <span class="id">ALR-1024</span>
+            <a href="#" class="title">Watermark lag exceeded 30s on cdc-loader</a>
+            <span class="label-chip" style="color:#ea6962; background:rgba(234,105,98,0.1); border-color:rgba(234,105,98,0.25);">P1 · cdc-loader</span>
+            <span class="meta">12m ago</span>
+            <a href="#" class="avatar avatar-rose h-5 w-5 text-[9px]" title="priya">P</a>
+          </div>
+
+          <div class="issue-row">
+            <div class="priority priority-high"><span></span><span></span><span></span></div>
+            <span class="status-icon firing"></span>
+            <span class="id">ALR-1019</span>
+            <a href="#" class="title">Backpressure on operator 4 of datalake-connect</a>
+            <span class="label-chip" style="color:#e78a4e; background:rgba(231,138,78,0.1); border-color:rgba(231,138,78,0.25);">P2 · datalake-connect</span>
+            <span class="meta">22m ago</span>
+            <a href="#" class="avatar avatar-mixed h-5 w-5 text-[9px]" title="nora">N</a>
+          </div>
+
+          <!-- ── Acknowledged ─────────────────────────────────── -->
+          <div class="issue-group-header">
+            <i data-lucide="chevron-down" class="text-fg-faint text-sm"></i>
+            <span class="status-icon acknowledged"></span>
+            <span class="text-fg">Acknowledged</span>
+            <span class="font-mono text-fg-faint">3</span>
+            <span class="ml-auto font-mono text-[11px] text-fg-muted">work in progress</span>
+          </div>
+
+          <div class="issue-row">
+            <div class="priority priority-high"><span></span><span></span><span></span></div>
+            <span class="status-icon acknowledged"></span>
+            <span class="id">ALR-1018</span>
+            <a href="#" class="title">Schema Registry incompatibility for user-events.v3</a>
+            <span class="label-chip" style="color:#d8a657; background:rgba(216,166,87,0.1); border-color:rgba(216,166,87,0.25);">P2 · schema-registry</span>
+            <span class="meta">1h ago · ack mei</span>
+            <a href="#" class="avatar avatar-amber h-5 w-5 text-[9px]" title="mei">M</a>
+          </div>
+
+          <div class="issue-row">
+            <div class="priority priority-medium"><span></span><span></span><span></span></div>
+            <span class="status-icon acknowledged"></span>
+            <span class="id">ALR-1015</span>
+            <a href="#" class="title">Checkpoint duration p99 above 800ms on reactor-core</a>
+            <span class="label-chip" style="color:#d8a657; background:rgba(216,166,87,0.1); border-color:rgba(216,166,87,0.25);">P3 · reactor-core</span>
+            <span class="meta">2h ago · ack ahmed</span>
+            <a href="#" class="avatar avatar-coral h-5 w-5 text-[9px]" title="ahmed">A</a>
+          </div>
+
+          <div class="issue-row">
+            <div class="priority priority-medium"><span></span><span></span><span></span></div>
+            <span class="status-icon acknowledged"></span>
+            <span class="id">ALR-1009</span>
+            <a href="#" class="title">Kafka consumer lag &gt; 5K on topic events.cdc</a>
+            <span class="label-chip" style="color:#d8a657; background:rgba(216,166,87,0.1); border-color:rgba(216,166,87,0.25);">P3 · cdc-loader</span>
+            <span class="meta">4h ago · ack priya</span>
+            <a href="#" class="avatar avatar-rose h-5 w-5 text-[9px]" title="priya">P</a>
+          </div>
+
+          <!-- ── In progress ──────────────────────────────────── -->
+          <div class="issue-group-header">
+            <i data-lucide="chevron-down" class="text-fg-faint text-sm"></i>
+            <span class="status-icon in-progress"></span>
+            <span class="text-fg">In progress</span>
+            <span class="font-mono text-fg-faint">2</span>
+            <span class="ml-auto font-mono text-[11px] text-fg-muted">someone is fixing</span>
+          </div>
+
+          <div class="issue-row">
+            <div class="priority priority-high"><span></span><span></span><span></span></div>
+            <span class="status-icon in-progress"></span>
+            <span class="id">ALR-1006</span>
+            <a href="#" class="title">TM heap utilization &gt; 92% on tm-04</a>
+            <span class="label-chip" style="color:#e78a4e; background:rgba(231,138,78,0.1); border-color:rgba(231,138,78,0.25);">P2 · cluster</span>
+            <span class="meta">5h ago · scaling</span>
+            <a href="#" class="avatar avatar-deep h-5 w-5 text-[9px]" title="omar">O</a>
+          </div>
+
+          <div class="issue-row">
+            <div class="priority priority-low"><span></span><span></span><span></span></div>
+            <span class="status-icon in-progress"></span>
+            <span class="id">ALR-1003</span>
+            <a href="#" class="title">Network bandwidth saturation between TM-02 and TM-03</a>
+            <span class="label-chip" style="color:#d8a657; background:rgba(216,166,87,0.1); border-color:rgba(216,166,87,0.25);">P3 · network</span>
+            <span class="meta">7h ago · investigating</span>
+            <a href="#" class="avatar avatar-deep h-5 w-5 text-[9px]" title="omar">O</a>
+          </div>
+
+          <!-- ── Backlog ──────────────────────────────────────── -->
+          <div class="issue-group-header">
+            <i data-lucide="chevron-down" class="text-fg-faint text-sm"></i>
+            <span class="status-icon suppressed"></span>
+            <span class="text-fg">Suppressed</span>
+            <span class="font-mono text-fg-faint">3</span>
+            <span class="ml-auto font-mono text-[11px] text-fg-muted">silenced for now</span>
+          </div>
+
+          <div class="issue-row">
+            <div class="priority priority-low"><span></span><span></span><span></span></div>
+            <span class="status-icon suppressed"></span>
+            <span class="id">ALR-997</span>
+            <a href="#" class="title">Slot allocation latency &gt; 200ms (deploy.html active)</a>
+            <span class="label-chip" style="color:#7c7269; background:rgba(124,114,105,0.1); border-color:rgba(124,114,105,0.25);">P3 · cluster</span>
+            <span class="meta">silenced 2h</span>
+            <span class="text-fg-faint text-[11px]">—</span>
+          </div>
+          <div class="issue-row">
+            <div class="priority priority-none"><span></span><span></span><span></span></div>
+            <span class="status-icon suppressed"></span>
+            <span class="id">ALR-991</span>
+            <a href="#" class="title">JVM full GC duration &gt; 1s on jm-01</a>
+            <span class="label-chip" style="color:#7c7269; background:rgba(124,114,105,0.1); border-color:rgba(124,114,105,0.25);">P4 · jvm</span>
+            <span class="meta">silenced 6h</span>
+            <span class="text-fg-faint text-[11px]">—</span>
+          </div>
+          <div class="issue-row">
+            <div class="priority priority-none"><span></span><span></span><span></span></div>
+            <span class="status-icon suppressed"></span>
+            <span class="id">ALR-986</span>
+            <a href="#" class="title">Deprecated API call: form()</a>
+            <span class="label-chip" style="color:#bb9af7; background:rgba(187,154,247,0.1); border-color:rgba(187,154,247,0.25);">P5 · deprecation</span>
+            <span class="meta">silenced 24h</span>
+            <span class="text-fg-faint text-[11px]">—</span>
+          </div>
+
+          <!-- ── Resolved ─────────────────────────────────────── -->
+          <div class="issue-group-header">
+            <i data-lucide="chevron-right" class="text-fg-faint text-sm"></i>
+            <span class="status-icon resolved"></span>
+            <span class="text-fg-muted">Resolved (last 7d)</span>
+            <span class="font-mono text-fg-faint">12</span>
+            <span class="ml-auto font-mono text-[11px] text-fg-faint">click to expand</span>
+          </div>
+
+          <div class="issue-row opacity-65">
+            <div class="priority priority-high"><span></span><span></span><span></span></div>
+            <span class="status-icon resolved"></span>
+            <span class="id">ALR-984</span>
+            <a href="#" class="title line-through">TM heap above 85% threshold</a>
+            <span></span>
+            <span class="meta text-fr-sage">resolved 3h ago</span>
+            <a href="#" class="avatar avatar-coral h-5 w-5 text-[9px]" title="ahmed">A</a>
+          </div>
+          <div class="issue-row opacity-65">
+            <div class="priority priority-medium"><span></span><span></span><span></span></div>
+            <span class="status-icon resolved"></span>
+            <span class="id">ALR-980</span>
+            <a href="#" class="title line-through">Source kafka.events lag spike during rebalance</a>
+            <span></span>
+            <span class="meta text-fr-sage">resolved 8h ago · auto</span>
+            <span class="text-fg-faint text-[11px]">—</span>
+          </div>
+
+          <!-- Footer -->
+          <div class="flex items-center justify-between border-t border-dash-border bg-dash-surface/40 px-4 py-2.5 text-[11px] font-mono text-fg-faint">
+            <span>10 active alerts · 12 resolved (7d) · MTTR 28m</span>
+            <span>↓ 4 auto-archived this week</span>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

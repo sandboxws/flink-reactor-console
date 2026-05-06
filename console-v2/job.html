@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>reactor-core · pipeline a3f2c891 · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+    <link rel="stylesheet" href="https://esm.sh/@xyflow/react@12.10.1/dist/style.css" />
+    <link rel="stylesheet" href="shared/reactflow-dag.css" />
+    <style>
+      .op-node {
+        position: relative;
+        background: rgba(20, 22, 23, 0.8);
+        border: 1px solid #2e2c2b;
+        border-radius: 10px;
+        padding: 10px 14px;
+        min-width: 170px;
+        transition: border-color 0.15s, transform 0.15s;
+        cursor: pointer;
+      }
+      .op-node:hover {
+        border-color: rgba(231, 138, 78, 0.4);
+        transform: translateY(-1px);
+      }
+      .op-node.selected {
+        border-color: rgba(231, 138, 78, 0.5);
+        background: rgba(231, 138, 78, 0.04);
+      }
+      .op-node.warning {
+        border-color: rgba(216, 166, 87, 0.5);
+        background: rgba(216, 166, 87, 0.04);
+      }
+      .op-busy {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        font-family: "Geist Mono", monospace;
+        font-size: 9px;
+        color: #5a524c;
+      }
+    </style>
+  </head>
+  <body class="page-shell" data-page="jobs-running">
+
+    <!-- Top bar -->
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5">
+        <span class="brand-glyph" data-size="22"></span>
+        <div class="flex items-baseline gap-2">
+          <span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span>
+          <span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span>
+        </div>
+      </a>
+      <button class="cluster-selector">
+        <span class="env prod">prod</span>
+        <span>acme-prod-1.fr</span>
+        <i data-lucide="chevron-down" class="text-fg-faint text-xs"></i>
+      </button>
+      <div class="relative max-w-md flex-1">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i>
+        <input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" />
+      </div>
+      <div class="ml-auto flex items-center gap-3">
+        <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button>
+        <button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button>
+        <button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button>
+      </div>
+    </header>
+
+    <div class="page-grid">
+      <!-- Sidebar -->
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3>
+          <a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <main class="px-8 py-6 min-w-0">
+
+        <!-- Page header -->
+        <div class="mb-2 text-[12px] text-fg-muted">
+          <a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a>
+          <span class="text-fg-faint mx-1">/</span>
+          <a href="jobs-running.html" class="hover:text-fr-coral">Pipelines</a>
+          <span class="text-fg-faint mx-1">/</span>
+          <span class="font-mono">a3f2c891</span>
+        </div>
+        <div class="flex items-end justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-3">
+              <i data-lucide="layers" class="text-fr-coral text-2xl"></i>
+              <h1 class="font-sans text-[26px] font-semibold tracking-tight text-zinc-100">reactor-core</h1>
+              <span class="status-pill running">
+                <span class="live-dot"></span>
+                Running
+              </span>
+            </div>
+            <div class="mt-1.5 flex items-center gap-3 text-[12px] text-fg-muted">
+              <span class="font-mono">a3f2c891-7e02-4b1c-9d44-ae3f8b21c401</span>
+              <span class="text-fg-faint">·</span>
+              <span>by <a href="#" class="hover:text-fr-coral">ahmed</a></span>
+              <span class="text-fg-faint">·</span>
+              <span>started 12d 4h ago</span>
+              <span class="text-fg-faint">·</span>
+              <span>v0.9.4 · jar reactor-core-0.9.4.jar</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-ghost btn-sm">
+              <i data-lucide="bookmark" class="text-sm"></i>
+              Savepoint
+            </button>
+            <button class="btn btn-secondary btn-sm">
+              <i data-lucide="rotate-ccw" class="text-sm"></i>
+              Restart
+            </button>
+            <button class="btn btn-danger btn-sm">
+              <i data-lucide="square" class="text-sm"></i>
+              Cancel
+            </button>
+            <button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="more-horizontal" class="text-sm"></i></button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-6">
+          <div class="kpi-card">
+            <div class="kpi-label flex items-center gap-1"><span class="live-dot"></span>Throughput</div>
+            <div class="kpi-value">4.21<span class="text-[10px] text-fg-muted">M/s</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Watermark</div>
+            <div class="kpi-value">12<span class="text-[10px] text-fg-muted">ms</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Tasks</div>
+            <div class="kpi-value">247</div>
+            <div class="kpi-sub">all running</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Parallelism</div>
+            <div class="kpi-value">32</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Last ckpt</div>
+            <div class="kpi-value">84<span class="text-[10px] text-fg-muted">ms</span></div>
+            <div class="kpi-sub">2m ago</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Backpressure</div>
+            <div class="kpi-value text-fr-sage">0%</div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <nav class="mt-6 flex items-center gap-1 border-b border-dash-border overflow-x-auto -mb-px">
+          <a href="#" class="tab active"><i data-lucide="git-branch" class="text-base"></i><span>DAG</span></a>
+          <a href="#" class="tab"><i data-lucide="line-chart" class="text-base"></i><span>Metrics</span></a>
+          <a href="checkpoints.html" class="tab"><i data-lucide="bar-chart-3" class="text-base"></i><span>Checkpoints</span><span class="tab-count">10238</span></a>
+          <a href="errors.html" class="tab"><i data-lucide="alert-triangle" class="text-base"></i><span>Exceptions</span></a>
+          <a href="#" class="tab"><i data-lucide="sliders-horizontal" class="text-base"></i><span>Config</span></a>
+          <a href="#" class="tab"><i data-lucide="clock" class="text-base"></i><span>Timeline</span></a>
+          <a href="#" class="tab"><i data-lucide="droplets" class="text-base"></i><span>Watermarks</span></a>
+        </nav>
+
+        <!-- ── DAG tab ─────────────────────────────────────────────── -->
+        <section class="mt-6 grid grid-cols-12 gap-5">
+          <!-- DAG canvas -->
+          <div class="col-span-12 lg:col-span-8">
+            <div class="glass-card-static p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 class="font-sans text-[14px] font-medium text-zinc-100">Operator DAG</h3>
+                  <p class="mt-0.5 text-[11px] text-fg-muted">7 vertices · 6 edges · click any operator for detail · ReactFlow rendered</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="btn btn-ghost btn-sm btn-icon" title="Zoom in"><i data-lucide="zoom-in" class="text-sm"></i></button>
+                  <button class="btn btn-ghost btn-sm btn-icon" title="Zoom out"><i data-lucide="zoom-out" class="text-sm"></i></button>
+                  <button class="btn btn-ghost btn-sm btn-icon" title="Reset"><i data-lucide="maximize" class="text-sm"></i></button>
+                </div>
+              </div>
+
+              <!-- ReactFlow DAG mount (see shared/job-dag.js) -->
+              <div id="jobDag" class="fr-dag-mount loading"></div>
+
+              <!-- file:// detection — ES modules can't fetch over file:// (CORS).
+                   When opened directly from disk, swap the mount for an inline
+                   notice + un-hide the static SVG fallback below. -->
+              <script>
+                (function () {
+                  var mount = document.getElementById("jobDag");
+                  if (!mount) return;
+                  if (window.location.protocol !== "file:") return;
+                  mount.classList.remove("loading");
+                  mount.innerHTML =
+                    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;padding:20px;text-align:center;">' +
+                      '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d8a657" stroke-width="1.6"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+                      '<div style="font-family:Geist Mono,monospace;font-size:11px;color:#d8a657;font-weight:500;">ReactFlow needs a local server</div>' +
+                      '<div style="font-family:Geist,sans-serif;font-size:12px;color:#a69a8a;max-width:480px;line-height:1.5;">' +
+                        "ES modules (ReactFlow) can't load over <span style=\"font-family:Geist Mono,monospace;color:#e78a4e;\">file://</span> due to browser CORS. " +
+                        "Static SVG fallback shown below." +
+                      '</div>' +
+                      '<div style="margin-top:6px;padding:8px 12px;background:rgba(20,22,23,0.8);border:1px solid #2e2c2b;border-radius:6px;font-family:Geist Mono,monospace;font-size:11px;color:#d4be98;">' +
+                        "$ cd console-v2 &amp;&amp; python3 -m http.server 8000" +
+                      '</div>' +
+                      '<div style="font-family:Geist,sans-serif;font-size:11px;color:#7c7269;">then open <span style=\"font-family:Geist Mono,monospace;color:#7daea3;\">http://localhost:8000/job.html</span></div>' +
+                    '</div>';
+                  // Un-hide the static SVG fallback (the next sibling block)
+                  var fallback = document.querySelector(".relative.hidden[data-fallback=\"static-dag\"]");
+                  if (fallback) fallback.classList.remove("hidden");
+                })();
+              </script>
+
+              <script>
+                // Demo cast — reactor-core (a3f2c891), 7 vertices, mixed status.
+                // Backpressure on op.4 (window-aggregate) shows the warning ring.
+                window.fr = window.fr || {};
+                window.fr.jobDagSeed = {
+                  target: "jobDag",
+                  vertices: [
+                    { id: "v1", name: "Source: fluss.events.orders_raw", parallelism: 32, status: "RUNNING",
+                      recordsIn: 0,        recordsOut: 4_210_000,
+                      bytesIn: 0,          bytesOut: 188_000_000,
+                      busy: 142, backpressure: 0, duration: 1_036_800 },
+
+                    { id: "v2", name: "Source: fluss.events.payments_raw", parallelism: 16, status: "RUNNING",
+                      recordsIn: 0,        recordsOut: 280_000,
+                      bytesIn: 0,          bytesOut: 12_400_000,
+                      busy: 38,  backpressure: 0, duration: 1_036_800 },
+
+                    { id: "v3", name: "Filter: valid_only", parallelism: 32, status: "RUNNING",
+                      recordsIn: 4_210_000, recordsOut: 4_180_000,
+                      bytesIn: 188_000_000, bytesOut: 184_400_000,
+                      busy: 412, backpressure: 0, duration: 1_036_800 },
+
+                    { id: "v4", name: "Enrich: redis-lookup", parallelism: 32, status: "RUNNING",
+                      recordsIn: 4_180_000, recordsOut: 4_180_000,
+                      bytesIn: 184_400_000, bytesOut: 220_200_000,
+                      busy: 528, backpressure: 142, duration: 1_036_800 },
+
+                    { id: "v5", name: "Window: tumble-5m", parallelism: 24, status: "RUNNING",
+                      recordsIn: 4_180_000, recordsOut: 920_000,
+                      bytesIn: 220_200_000, bytesOut: 84_400_000,
+                      busy: 712, backpressure: 624, duration: 1_036_800 },
+
+                    { id: "v6", name: "Sink: paimon.retail.orders_realtime", parallelism: 12, status: "RUNNING",
+                      recordsIn: 920_000,  recordsOut: 0,
+                      bytesIn: 84_400_000, bytesOut: 0,
+                      busy: 218, backpressure: 0, duration: 1_036_800 },
+
+                    { id: "v7", name: "Sink: schema-registry-sync", parallelism: 2, status: "RUNNING",
+                      recordsIn: 12_000,   recordsOut: 0,
+                      bytesIn: 1_200_000,  bytesOut: 0,
+                      busy: 24, backpressure: 0, duration: 2_002_800 },
+                  ],
+                  edges: [
+                    { source: "v1", target: "v3", shipStrategy: "FORWARD", hot: true },
+                    { source: "v2", target: "v3", shipStrategy: "FORWARD" },
+                    { source: "v3", target: "v4", shipStrategy: "HASH",    hot: true },
+                    { source: "v4", target: "v5", shipStrategy: "HASH",    hot: true },
+                    { source: "v5", target: "v6", shipStrategy: "REBALANCE", hot: true },
+                    { source: "v4", target: "v7", shipStrategy: "BROADCAST" },
+                  ],
+                };
+              </script>
+
+              <!-- Static SVG fallback — un-hidden by the file:// detection script above -->
+              <div class="relative hidden mt-3" data-fallback="static-dag" style="height: 360px;">
+                <!-- Operators -->
+                <div class="op-node selected absolute" style="top: 50px; left: 5px;">
+                  <div class="op-busy">p32</div>
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="download" class="text-fr-coral text-sm"></i>
+                    <span class="text-[12px] font-medium text-zinc-100">Source: kafka.events</span>
+                  </div>
+                  <div class="mt-1.5 flex items-baseline gap-2">
+                    <span class="font-mono text-[16px] text-fg">4.21M</span>
+                    <span class="font-mono text-[10px] text-fg-muted">evt/s</span>
+                  </div>
+                  <div class="mt-1 flex items-center gap-1.5">
+                    <span class="font-mono text-[10px] text-fg-faint">busy</span>
+                    <div class="h-1 w-16 rounded-full bg-dash-border overflow-hidden">
+                      <div class="h-full bg-fr-sage" style="width: 82%"></div>
+                    </div>
+                    <span class="font-mono text-[10px] text-fr-sage">82%</span>
+                  </div>
+                </div>
+
+                <div class="op-node absolute" style="top: 150px; left: 5px;">
+                  <div class="op-busy">p32</div>
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="download" class="text-fr-coral text-sm"></i>
+                    <span class="text-[12px] font-medium text-zinc-100">Source: kafka.cdc</span>
+                  </div>
+                  <div class="mt-1.5 flex items-baseline gap-2">
+                    <span class="font-mono text-[16px] text-fg">280K</span>
+                    <span class="font-mono text-[10px] text-fg-muted">evt/s</span>
+                  </div>
+                  <div class="mt-1 flex items-center gap-1.5">
+                    <span class="font-mono text-[10px] text-fg-faint">busy</span>
+                    <div class="h-1 w-16 rounded-full bg-dash-border overflow-hidden">
+                      <div class="h-full bg-fr-sage" style="width: 24%"></div>
+                    </div>
+                    <span class="font-mono text-[10px] text-fr-sage">24%</span>
+                  </div>
+                </div>
+
+                <div class="op-node absolute" style="top: 75px; left: 270px;">
+                  <div class="op-busy">p32</div>
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="filter" class="text-fr-amber text-sm"></i>
+                    <span class="text-[12px] font-medium text-zinc-100">Filter: valid_only</span>
+                  </div>
+                  <div class="mt-1.5 flex items-baseline gap-2">
+                    <span class="font-mono text-[16px] text-fg">4.18M</span>
+                    <span class="font-mono text-[10px] text-fg-muted">evt/s</span>
+                  </div>
+                  <div class="mt-1 flex items-center gap-1.5">
+                    <span class="font-mono text-[10px] text-fg-faint">busy</span>
+                    <div class="h-1 w-16 rounded-full bg-dash-border overflow-hidden">
+                      <div class="h-full bg-fr-sage" style="width: 71%"></div>
+                    </div>
+                    <span class="font-mono text-[10px] text-fr-sage">71%</span>
+                  </div>
+                </div>
+
+                <div class="op-node absolute" style="top: 150px; left: 270px;">
+                  <div class="op-busy">p16</div>
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="filter" class="text-fr-amber text-sm"></i>
+                    <span class="text-[12px] font-medium text-zinc-100">Filter: cdc_relevant</span>
+                  </div>
+                  <div class="mt-1.5 flex items-baseline gap-2">
+                    <span class="font-mono text-[16px] text-fg">274K</span>
+                    <span class="font-mono text-[10px] text-fg-muted">evt/s</span>
+                  </div>
+                  <div class="mt-1 flex items-center gap-1.5">
+                    <span class="font-mono text-[10px] text-fg-faint">busy</span>
+                    <div class="h-1 w-16 rounded-full bg-dash-border overflow-hidden">
+                      <div class="h-full bg-fr-sage" style="width: 18%"></div>
+                    </div>
+                    <span class="font-mono text-[10px] text-fr-sage">18%</span>
+                  </div>
+                </div>
+
+                <div class="op-node absolute" style="top: 110px; left: 510px;">
+                  <div class="op-busy">p32</div>
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="git-merge" class="text-fr-teal text-sm"></i>
+                    <span class="text-[12px] font-medium text-zinc-100">Map+Enrich</span>
+                  </div>
+                  <div class="mt-1.5 flex items-baseline gap-2">
+                    <span class="font-mono text-[16px] text-fg">4.45M</span>
+                    <span class="font-mono text-[10px] text-fg-muted">evt/s</span>
+                  </div>
+                  <div class="mt-1 flex items-center gap-1.5">
+                    <span class="font-mono text-[10px] text-fg-faint">busy</span>
+                    <div class="h-1 w-16 rounded-full bg-dash-border overflow-hidden">
+                      <div class="h-full bg-fr-amber" style="width: 64%"></div>
+                    </div>
+                    <span class="font-mono text-[10px] text-fr-amber">64%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Legend -->
+              <div class="mt-3 flex items-center justify-between border-t border-dash-border pt-3 text-[10px] font-mono text-fg-faint">
+                <div class="flex items-center gap-3">
+                  <span class="flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-fr-coral inline-block"></span>source</span>
+                  <span class="flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-fr-violet inline-block"></span>operator</span>
+                  <span class="flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-fr-teal inline-block"></span>shuffle</span>
+                  <span class="flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-fr-amber inline-block"></span>sink</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span>busy &lt; 300ms/s sage</span>
+                  <span>300–600 amber ring</span>
+                  <span>≥ 600 rose ring</span>
+                  <span class="text-fg-faint">·</span>
+                  <span>drag · scroll-zoom · ⇧-select</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected operator detail -->
+          <div class="col-span-12 lg:col-span-4">
+            <div class="glass-card-static p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="section-heading">Source: kafka.events</h3>
+                <span class="font-mono text-[10px] text-fg-faint">vertex 1 / 5</span>
+              </div>
+
+              <div class="space-y-3 text-[12px]">
+                <div>
+                  <div class="text-[10px] text-fg-faint font-mono uppercase tracking-wider mb-1">Inputs</div>
+                  <div class="font-mono text-zinc-100">topic <span class="tk-str">"events"</span></div>
+                  <div class="font-mono text-fg-muted text-[11px]">offset committed: 8,439,2837 / 8,439,2912</div>
+                  <div class="font-mono text-fr-amber text-[10px]">75 messages behind</div>
+                </div>
+
+                <div>
+                  <div class="text-[10px] text-fg-faint font-mono uppercase tracking-wider mb-1">Records</div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <div class="text-fg-muted text-[10px]">read</div>
+                      <div class="font-mono text-zinc-100">2.7B</div>
+                    </div>
+                    <div>
+                      <div class="text-fg-muted text-[10px]">emitted</div>
+                      <div class="font-mono text-zinc-100">2.7B</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-[10px] text-fg-faint font-mono uppercase tracking-wider mb-1">Throughput · last 30 min</div>
+                  <svg viewBox="0 0 200 40" class="h-10 w-full">
+                    <polyline points="0,30 10,28 20,29 30,24 40,25 50,21 60,23 70,18 80,21 90,17 100,19 110,15 120,17 130,12 140,14 150,10 160,12 170,8 180,10 190,6 200,8" fill="none" stroke="#a9b665" stroke-width="1.5"/>
+                  </svg>
+                </div>
+
+                <div>
+                  <div class="text-[10px] text-fg-faint font-mono uppercase tracking-wider mb-1">Subtasks · 32 of 32 running</div>
+                  <div class="grid grid-cols-8 gap-[3px]">
+                    <span class="size-4 rounded bg-fr-sage" title="subtask 0 · running"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                    <span class="size-4 rounded bg-fr-sage"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent checkpoints + Recent exceptions -->
+        <section class="mt-6 grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-7">
+            <div class="glass-card-static p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="section-heading">Recent checkpoints</h3>
+                <a href="checkpoints.html" class="text-[10px] text-fg-faint hover:text-fr-coral font-mono">VIEW ALL</a>
+              </div>
+
+              <div class="-mx-5">
+                <table class="w-full text-[12px]">
+                  <thead>
+                    <tr class="text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+                      <th class="px-5 py-1.5 text-left">#</th>
+                      <th class="px-5 py-1.5 text-left">Status</th>
+                      <th class="px-5 py-1.5 text-right">Duration</th>
+                      <th class="px-5 py-1.5 text-right">Size</th>
+                      <th class="px-5 py-1.5 text-right">Aligned</th>
+                      <th class="px-5 py-1.5 text-right">Trigger time</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-dash-border/40">
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-5 py-2 font-mono text-fg-muted">10238</td>
+                      <td class="px-5 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-5 py-2 text-right font-mono">84ms</td>
+                      <td class="px-5 py-2 text-right font-mono">142 MB</td>
+                      <td class="px-5 py-2 text-right font-mono text-fr-sage">12ms</td>
+                      <td class="px-5 py-2 text-right font-mono text-fg-faint">2m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-5 py-2 font-mono text-fg-muted">10237</td>
+                      <td class="px-5 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-5 py-2 text-right font-mono">91ms</td>
+                      <td class="px-5 py-2 text-right font-mono">138 MB</td>
+                      <td class="px-5 py-2 text-right font-mono text-fr-sage">9ms</td>
+                      <td class="px-5 py-2 text-right font-mono text-fg-faint">5m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-5 py-2 font-mono text-fg-muted">10236</td>
+                      <td class="px-5 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-5 py-2 text-right font-mono">79ms</td>
+                      <td class="px-5 py-2 text-right font-mono">141 MB</td>
+                      <td class="px-5 py-2 text-right font-mono text-fr-sage">14ms</td>
+                      <td class="px-5 py-2 text-right font-mono text-fg-faint">8m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-5 py-2 font-mono text-fg-muted">10235</td>
+                      <td class="px-5 py-2"><span class="font-mono text-[10px] text-fr-rose">FAILED</span></td>
+                      <td class="px-5 py-2 text-right font-mono">3.2s</td>
+                      <td class="px-5 py-2 text-right font-mono text-fg-faint">—</td>
+                      <td class="px-5 py-2 text-right font-mono text-fg-faint">—</td>
+                      <td class="px-5 py-2 text-right font-mono text-fg-faint">11m ago</td>
+                    </tr>
+                    <tr class="hover:bg-dash-elevated/30">
+                      <td class="px-5 py-2 font-mono text-fg-muted">10234</td>
+                      <td class="px-5 py-2"><span class="font-mono text-[10px] text-fr-sage">COMPLETED</span></td>
+                      <td class="px-5 py-2 text-right font-mono">87ms</td>
+                      <td class="px-5 py-2 text-right font-mono">140 MB</td>
+                      <td class="px-5 py-2 text-right font-mono text-fr-sage">11ms</td>
+                      <td class="px-5 py-2 text-right font-mono text-fg-faint">14m ago</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-12 lg:col-span-5">
+            <div class="glass-card-static p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="section-heading">Recent exceptions</h3>
+                <a href="errors.html" class="text-[10px] text-fg-faint hover:text-fr-coral font-mono">VIEW ALL</a>
+              </div>
+
+              <div class="space-y-3">
+                <div class="rounded-md border border-fr-amber/25 bg-fr-amber/5 p-3">
+                  <div class="flex items-start gap-2">
+                    <i data-lucide="alert-triangle" class="text-fr-amber text-sm shrink-0 mt-0.5"></i>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-mono text-[12px] text-zinc-100">CheckpointDeclineException</div>
+                      <div class="font-mono text-[10.5px] text-fg-muted mt-1 line-clamp-2">at o.a.f.runtime.checkpoint.CheckpointCoordinator.tryReceiveAcknowledge:892</div>
+                      <div class="mt-1.5 flex items-center gap-2 text-[10px] font-mono text-fg-faint">
+                        <span class="text-fr-amber">WARN</span>
+                        <span>·</span>
+                        <span>11m ago</span>
+                        <span>·</span>
+                        <span>vertex map+enrich</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-md border border-dash-border bg-dash-surface/30 p-3">
+                  <div class="flex items-start gap-2">
+                    <i data-lucide="info" class="text-fr-teal text-sm shrink-0 mt-0.5"></i>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-mono text-[12px] text-zinc-100">RestartingTask (auto-recovery)</div>
+                      <div class="font-mono text-[10.5px] text-fg-muted mt-1">subtask 18 of 32 restarting after operator timeout</div>
+                      <div class="mt-1.5 flex items-center gap-2 text-[10px] font-mono text-fg-faint">
+                        <span class="text-fr-teal">INFO</span>
+                        <span>·</span>
+                        <span>2h ago</span>
+                        <span>·</span>
+                        <span>resolved</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-center">
+                  <a href="errors.html" class="text-[11px] font-mono text-fg-faint hover:text-fr-coral">+ 4 older exceptions in last 24h</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+    <script type="module" src="shared/job-dag.js"></script>
+  </body>
+</html>

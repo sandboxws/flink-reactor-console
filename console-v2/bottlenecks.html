@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bottlenecks · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+    <style>
+      .bp-cell {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+      .bp-cell:hover { transform: scale(1.4); z-index: 10; position: relative; }
+    </style>
+  </head>
+  <body class="page-shell" data-page="bottlenecks">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-6 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Observe</span></div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Bottleneck analyzer</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">Vertex-level backpressure heatmap across 7 pipelines · last 30 min</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="calendar" class="text-sm"></i>30 min<i data-lucide="chevron-down" class="text-xs"></i></button>
+          </div>
+        </div>
+
+        <!-- Hot operators (top-N) -->
+        <section class="mb-6">
+          <div class="glass-card-static p-5">
+            <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-4">Top hot operators · last 30 min</h3>
+            <div class="space-y-3">
+              <div>
+                <div class="mb-1 flex items-center justify-between text-[12px]">
+                  <span class="font-mono text-fr-coral">datalake-connect / flush_to_iceberg (op.4)</span>
+                  <span class="font-mono text-fr-coral">82%</span>
+                </div>
+                <div class="resource-bar"><div class="seg" style="width: 82%; background: #ea6962"></div><div class="seg free" style="width: 18%"></div></div>
+                <div class="mt-1 text-[10px] font-mono text-fg-faint">subtask 11/16 saturated · cause: downstream throughput limit</div>
+              </div>
+              <div>
+                <div class="mb-1 flex items-center justify-between text-[12px]">
+                  <span class="font-mono text-fr-amber">paimon-sink / commit (op.3)</span>
+                  <span class="font-mono text-fr-amber">48%</span>
+                </div>
+                <div class="resource-bar"><div class="seg" style="width: 48%; background: #d8a657"></div><div class="seg free" style="width: 52%"></div></div>
+                <div class="mt-1 text-[10px] font-mono text-fg-faint">subtask 4/12 elevated · cause: snapshot write latency</div>
+              </div>
+              <div>
+                <div class="mb-1 flex items-center justify-between text-[12px]">
+                  <span class="font-mono text-fg">reactor-core / map_enrich (op.3)</span>
+                  <span class="font-mono text-fg-muted">22%</span>
+                </div>
+                <div class="resource-bar"><div class="seg" style="width: 22%; background: #a9b665"></div><div class="seg free" style="width: 78%"></div></div>
+                <div class="mt-1 text-[10px] font-mono text-fg-faint">healthy · headroom 78%</div>
+              </div>
+              <div>
+                <div class="mb-1 flex items-center justify-between text-[12px]">
+                  <span class="font-mono text-fg">fluss-ingest / sink (op.4)</span>
+                  <span class="font-mono text-fg-muted">18%</span>
+                </div>
+                <div class="resource-bar"><div class="seg" style="width: 18%; background: #a9b665"></div><div class="seg free" style="width: 82%"></div></div>
+              </div>
+              <div>
+                <div class="mb-1 flex items-center justify-between text-[12px]">
+                  <span class="font-mono text-fg">clickstream-enrich / window (op.5)</span>
+                  <span class="font-mono text-fg-muted">14%</span>
+                </div>
+                <div class="resource-bar"><div class="seg" style="width: 14%; background: #a9b665"></div><div class="seg free" style="width: 86%"></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Backpressure heatmap (operators × subtasks) -->
+        <section class="grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-7">
+            <div class="glass-card-static p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <div>
+                  <h3 class="font-sans text-[14px] font-medium text-zinc-100">datalake-connect — subtask backpressure heatmap</h3>
+                  <p class="mt-0.5 text-[11px] text-fg-muted">5 operators × 16 subtasks · darker = higher backpressure %</p>
+                </div>
+                <a href="job.html" class="text-[10px] text-fg-faint hover:text-fr-coral font-mono">VIEW JOB DAG</a>
+              </div>
+
+              <div class="overflow-x-auto">
+                <div class="space-y-1 inline-block">
+                  <!-- Headers (subtask 0-15) -->
+                  <div class="flex gap-1 items-center">
+                    <span class="w-32 shrink-0"></span>
+                    <div class="flex gap-1">
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">0</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">1</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">2</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">3</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">4</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">5</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">6</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">7</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">8</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">9</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">10</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">11</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">12</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">13</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">14</span>
+                      <span class="w-4 text-[9px] font-mono text-center text-fg-faint">15</span>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-1 items-center">
+                    <span class="w-32 shrink-0 text-[10px] font-mono text-fg-muted">source kafka</span>
+                    <div class="flex gap-1">
+                      <span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span>
+                    </div>
+                  </div>
+                  <div class="flex gap-1 items-center">
+                    <span class="w-32 shrink-0 text-[10px] font-mono text-fg-muted">filter valid_only</span>
+                    <div class="flex gap-1">
+                      <span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-1"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-1"></span>
+                    </div>
+                  </div>
+                  <div class="flex gap-1 items-center">
+                    <span class="w-32 shrink-0 text-[10px] font-mono text-fg-muted">map enrich</span>
+                    <div class="flex gap-1">
+                      <span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span>
+                    </div>
+                  </div>
+                  <div class="flex gap-1 items-center">
+                    <span class="w-32 shrink-0 text-[10px] font-mono text-fr-coral font-bold">flush iceberg ⚠</span>
+                    <div class="flex gap-1">
+                      <span class="bp-cell hm-3"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-4"></span><span class="bp-cell hm-4"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-4"></span><span class="bp-cell hm-4"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-4"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-4"></span><span class="bp-cell hm-3"></span><span class="bp-cell hm-3"></span>
+                    </div>
+                  </div>
+                  <div class="flex gap-1 items-center">
+                    <span class="w-32 shrink-0 text-[10px] font-mono text-fg-muted">commit</span>
+                    <div class="flex gap-1">
+                      <span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span><span class="bp-cell hm-2"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between text-[10px] font-mono text-fg-faint">
+                <span>Click any cell for subtask drill-down</span>
+                <div class="flex items-center gap-2">
+                  <span>0%</span>
+                  <span class="hm-0 inline-block size-3 rounded-sm"></span>
+                  <span class="hm-1 inline-block size-3 rounded-sm"></span>
+                  <span class="hm-2 inline-block size-3 rounded-sm"></span>
+                  <span class="hm-3 inline-block size-3 rounded-sm"></span>
+                  <span class="hm-4 inline-block size-3 rounded-sm"></span>
+                  <span>100%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-12 lg:col-span-5 space-y-5">
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Inferred root causes</h3>
+              <ul class="space-y-3 text-[12px]">
+                <li class="rounded-md border border-fr-rose/25 bg-fr-rose/5 p-3">
+                  <div class="flex items-start gap-2">
+                    <i data-lucide="zap" class="text-fr-rose text-base mt-0.5"></i>
+                    <div>
+                      <div class="font-medium text-zinc-100">Iceberg commit is throughput-bound</div>
+                      <div class="text-fg-muted mt-1">Suggested action: increase commit-batch-size from 5K → 25K rows, or add 2 more parallel commit subtasks (currently 16 → 24).</div>
+                    </div>
+                  </div>
+                </li>
+                <li class="rounded-md border border-fr-amber/25 bg-fr-amber/5 p-3">
+                  <div class="flex items-start gap-2">
+                    <i data-lucide="git-merge" class="text-fr-amber text-base mt-0.5"></i>
+                    <div>
+                      <div class="font-medium text-zinc-100">Map enrich is uneven across keys</div>
+                      <div class="text-fg-muted mt-1">3 of 16 subtasks at 70%+ busy. Consider re-keying with a higher-cardinality field.</div>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Pipeline picker</h3>
+              <ul class="space-y-1 text-[12px]">
+                <li class="nav-item"><span class="size-1.5 rounded-full bg-fr-rose"></span><span>datalake-connect</span><span class="ml-auto font-mono text-[10px] text-fr-rose">82%</span></li>
+                <li class="nav-item"><span class="size-1.5 rounded-full bg-fr-amber"></span><span>paimon-sink</span><span class="ml-auto font-mono text-[10px] text-fr-amber">48%</span></li>
+                <li class="nav-item"><span class="size-1.5 rounded-full bg-fr-sage"></span><span>reactor-core</span><span class="ml-auto font-mono text-[10px] text-fr-sage">22%</span></li>
+                <li class="nav-item"><span class="size-1.5 rounded-full bg-fr-sage"></span><span>fluss-ingest</span><span class="ml-auto font-mono text-[10px] text-fr-sage">18%</span></li>
+                <li class="nav-item"><span class="size-1.5 rounded-full bg-fr-sage"></span><span>clickstream-enrich</span><span class="ml-auto font-mono text-[10px] text-fr-sage">14%</span></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

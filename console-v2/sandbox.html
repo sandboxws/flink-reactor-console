@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sandbox · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="sandbox">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="flex flex-col min-w-0">
+        <!-- Header bar -->
+        <div class="flex items-center justify-between border-b border-dash-border px-6 py-3">
+          <div class="flex items-center gap-3">
+            <h1 class="font-sans text-[15px] font-medium text-zinc-100">DSL sandbox</h1>
+            <span class="text-fg-faint">·</span>
+            <span class="font-mono text-[11px] text-fg-muted">flink-reactor-dsl @<span class="text-fg">0.4.2</span> · scratch <span class="text-fg">orders-enrich.fr.ts</span></span>
+            <span class="status-pill running">parsed ✓</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-ghost btn-sm"><i data-lucide="git-compare" class="text-sm"></i>Compare prod</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="copy" class="text-sm"></i>Copy as YAML</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="bookmark-plus" class="text-sm"></i>Save scratch</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="rocket" class="text-sm"></i>Submit · ⌘↵</button>
+          </div>
+        </div>
+
+        <!-- 3-column workspace -->
+        <div class="grid grid-cols-[260px_1fr_360px] flex-1 min-h-0">
+
+          <!-- LEFT: scratchpad library + recipes -->
+          <div class="border-r border-dash-border overflow-y-auto px-3 py-4">
+            <h3 class="section-heading mb-2">Scratchpads</h3>
+            <ul class="space-y-0.5 mb-5">
+              <li class="file-tree-row active"><i data-lucide="code-2" class="text-sm text-fr-coral"></i><span class="font-mono text-[12px] truncate">orders-enrich.fr.ts</span><span class="ml-auto"><span class="size-1.5 rounded-full bg-fr-sage inline-block"></span></span></li>
+              <li class="file-tree-row"><i data-lucide="code-2" class="text-sm"></i><span class="font-mono text-[12px] truncate">device-window.fr.ts</span></li>
+              <li class="file-tree-row"><i data-lucide="code-2" class="text-sm"></i><span class="font-mono text-[12px] truncate">cdc-rebuilt.fr.ts</span></li>
+              <li class="file-tree-row"><i data-lucide="code-2" class="text-sm"></i><span class="font-mono text-[12px] truncate">funnel-7d.fr.ts</span></li>
+            </ul>
+
+            <h3 class="section-heading mb-2">Templates</h3>
+            <ul class="space-y-0.5 mb-5">
+              <li class="file-tree-row"><i data-lucide="layers" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px] truncate">stream → enrich → sink</span></li>
+              <li class="file-tree-row"><i data-lucide="layers" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px] truncate">window aggregate</span></li>
+              <li class="file-tree-row"><i data-lucide="layers" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px] truncate">CDC source → MV</span></li>
+              <li class="file-tree-row"><i data-lucide="layers" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px] truncate">redis lookup join</span></li>
+              <li class="file-tree-row"><i data-lucide="layers" class="text-sm text-fr-amber"></i><span class="font-mono text-[12px] truncate">schema-evo migration</span></li>
+            </ul>
+
+            <h3 class="section-heading mb-2">Imports</h3>
+            <ul class="space-y-1 text-[11px] font-mono">
+              <li class="flex items-center justify-between px-2 py-1 rounded hover:bg-dash-elevated/30"><span class="text-fg-muted">@flink-reactor/dsl</span><span class="text-fg-faint">^0.4.2</span></li>
+              <li class="flex items-center justify-between px-2 py-1 rounded hover:bg-dash-elevated/30"><span class="text-fg-muted">@flink-reactor/sources</span><span class="text-fg-faint">^0.3.1</span></li>
+              <li class="flex items-center justify-between px-2 py-1 rounded hover:bg-dash-elevated/30"><span class="text-fg-muted">@flink-reactor/sinks</span><span class="text-fg-faint">^0.3.1</span></li>
+              <li class="flex items-center justify-between px-2 py-1 rounded hover:bg-dash-elevated/30"><span class="text-fg-muted">@flink-reactor/instruments</span><span class="text-fg-faint">^0.4.0</span></li>
+            </ul>
+          </div>
+
+          <!-- CENTER: editor -->
+          <div class="flex flex-col min-w-0 bg-fr-bg/60">
+            <div class="flex items-center gap-0.5 border-b border-dash-border px-3 pt-2 bg-dash-surface/30">
+              <button class="flex items-center gap-2 rounded-t-md bg-fr-bg px-3 py-1.5 text-[12px] font-mono text-fg border border-b-0 border-dash-border">
+                <i data-lucide="code-2" class="text-sm text-fr-coral"></i>orders-enrich.fr.ts
+                <i data-lucide="x" class="text-xs text-fg-faint hover:text-fg-muted"></i>
+              </button>
+              <button class="flex items-center gap-2 px-3 py-1.5 text-[12px] font-mono text-fg-muted hover:text-fg">
+                <i data-lucide="code-2" class="text-sm"></i>device-window.fr.ts
+              </button>
+            </div>
+
+            <div class="flex-1 overflow-auto">
+              <div class="grid grid-cols-[44px_1fr] font-mono text-[12.5px] leading-relaxed py-3">
+                <div class="text-right text-fg-faint pr-3 select-none">
+                  <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div><div>15</div><div>16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div><div>22</div><div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div><div>29</div><div>30</div><div>31</div><div>32</div><div>33</div><div>34</div><div>35</div><div>36</div><div>37</div>
+                </div>
+                <div class="overflow-x-auto whitespace-pre">
+<span class="tk-key">import</span> { <span class="tk-fn">defineReactor</span>, <span class="tk-fn">windows</span>, <span class="tk-fn">instr</span> } <span class="tk-key">from</span> <span class="tk-str">"@flink-reactor/dsl"</span>;
+<span class="tk-key">import</span> { <span class="tk-fn">flussSource</span>, <span class="tk-fn">redisLookup</span> } <span class="tk-key">from</span> <span class="tk-str">"@flink-reactor/instruments"</span>;
+<span class="tk-key">import</span> { <span class="tk-fn">paimonSink</span> } <span class="tk-key">from</span> <span class="tk-str">"@flink-reactor/sinks"</span>;
+
+<span class="tk-com">/**</span>
+<span class="tk-com"> * orders-enrich</span>
+<span class="tk-com"> *  src: fluss(events.orders_raw)</span>
+<span class="tk-com"> *  joins: redis(user_session) for active session enrichment</span>
+<span class="tk-com"> *  sink: paimon(retail.orders_realtime)</span>
+<span class="tk-com"> */</span>
+<span class="tk-key">export default</span> <span class="tk-fn">defineReactor</span>({
+  <span class="tk-attr">name</span>: <span class="tk-str">"orders-enrich"</span>,
+  <span class="tk-attr">parallelism</span>: <span class="tk-num">16</span>,
+  <span class="tk-attr">checkpoint</span>: { <span class="tk-attr">interval</span>: <span class="tk-str">"30s"</span>, <span class="tk-attr">mode</span>: <span class="tk-str">"EXACTLY_ONCE"</span> },
+
+  <span class="tk-attr">source</span>: <span class="tk-fn">flussSource</span>({
+    <span class="tk-attr">topic</span>:    <span class="tk-str">"events.orders_raw"</span>,
+    <span class="tk-attr">format</span>:   <span class="tk-str">"protobuf"</span>,
+    <span class="tk-attr">startup</span>:  <span class="tk-str">"latest"</span>,
+    <span class="tk-attr">consumer</span>: <span class="tk-str">"reactor.cg.orders-enrich"</span>,
+  }),
+
+  <span class="tk-attr">enrich</span>: [
+    <span class="tk-fn">redisLookup</span>({
+      <span class="tk-attr">key</span>:    (<span class="tk-fn">o</span>) <span class="tk-op">=&gt;</span> <span class="tk-str">`session:</span><span class="tk-op">${</span><span class="tk-fn">o.customer_id</span><span class="tk-op">}</span><span class="tk-str">`</span>,
+      <span class="tk-attr">into</span>:   <span class="tk-str">"session"</span>,
+      <span class="tk-attr">ttl</span>:    <span class="tk-str">"30m"</span>,
+      <span class="tk-attr">timeout</span>: <span class="tk-str">"50ms"</span>,
+    }),
+  ],
+
+  <span class="tk-attr">window</span>: <span class="tk-fn">windows.tumbling</span>({ <span class="tk-attr">size</span>: <span class="tk-str">"5m"</span>, <span class="tk-attr">on</span>: <span class="tk-str">"event_time"</span> }),
+
+  <span class="tk-attr">sink</span>: <span class="tk-fn">paimonSink</span>({
+    <span class="tk-attr">table</span>:        <span class="tk-str">"paimon.retail.orders_realtime"</span>,
+    <span class="tk-attr">mergeEngine</span>:  <span class="tk-str">"partial-update"</span>,
+    <span class="tk-attr">partitionBy</span>:  [<span class="tk-str">"dt"</span>],
+    <span class="tk-attr">writeMode</span>:    <span class="tk-str">"streaming"</span>,
+  }),
+});</div>
+              </div>
+            </div>
+
+            <!-- Editor footer + preview tabs -->
+            <div class="border-t border-dash-border bg-dash-surface/40">
+              <div class="flex items-center justify-between px-4 py-2">
+                <div class="flex items-center gap-3 text-[10.5px] font-mono text-fg-faint">
+                  <span>Ln 28, Col 14</span><span>·</span><span>37 lines</span><span>·</span><span class="text-fr-sage">type-check ✓</span><span>·</span><span class="text-fr-sage">DSL valid ✓</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="btn btn-ghost btn-sm"><i data-lucide="wand-sparkles" class="text-sm"></i>Format</button>
+                  <button class="btn btn-secondary btn-sm"><i data-lucide="eye" class="text-sm"></i>Live preview</button>
+                </div>
+              </div>
+
+              <div class="flex border-t border-dash-border px-4">
+                <button class="tab active">Plan graph</button>
+                <button class="tab">Generated SQL</button>
+                <button class="tab">Job config</button>
+                <button class="tab">Validation<span class="tab-count">2</span></button>
+              </div>
+
+              <!-- Plan graph preview -->
+              <div class="bg-fr-bg/60 px-6 py-5">
+                <svg viewBox="0 0 720 200" class="w-full" style="max-height: 220px;">
+                  <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                      <path d="M0 0 L10 5 L0 10 Z" fill="#7c7269"/>
+                    </marker>
+                  </defs>
+                  <!-- nodes -->
+                  <g>
+                    <rect x="20"  y="60" width="120" height="60" rx="8" fill="rgba(125,174,163,0.08)" stroke="#7daea3" stroke-width="1"/>
+                    <text x="80" y="90" text-anchor="middle" fill="#7daea3" font-family="Geist Mono" font-size="11">fluss.source</text>
+                    <text x="80" y="105" text-anchor="middle" fill="#bfb3a2" font-family="Geist Mono" font-size="9">events.orders_raw</text>
+                  </g>
+                  <g>
+                    <rect x="200" y="60" width="120" height="60" rx="8" fill="rgba(216,166,87,0.08)" stroke="#d8a657" stroke-width="1"/>
+                    <text x="260" y="90" text-anchor="middle" fill="#d8a657" font-family="Geist Mono" font-size="11">redis.lookup</text>
+                    <text x="260" y="105" text-anchor="middle" fill="#bfb3a2" font-family="Geist Mono" font-size="9">session:cust_id</text>
+                  </g>
+                  <g>
+                    <rect x="380" y="60" width="120" height="60" rx="8" fill="rgba(231,138,78,0.08)" stroke="#e78a4e" stroke-width="1"/>
+                    <text x="440" y="90" text-anchor="middle" fill="#e78a4e" font-family="Geist Mono" font-size="11">window.tumble</text>
+                    <text x="440" y="105" text-anchor="middle" fill="#bfb3a2" font-family="Geist Mono" font-size="9">5m · event_time</text>
+                  </g>
+                  <g>
+                    <rect x="560" y="60" width="140" height="60" rx="8" fill="rgba(169,182,101,0.08)" stroke="#a9b665" stroke-width="1"/>
+                    <text x="630" y="90" text-anchor="middle" fill="#a9b665" font-family="Geist Mono" font-size="11">paimon.sink</text>
+                    <text x="630" y="105" text-anchor="middle" fill="#bfb3a2" font-family="Geist Mono" font-size="9">retail.orders_realtime</text>
+                  </g>
+                  <!-- edges -->
+                  <path d="M140 90 L200 90" stroke="#7c7269" stroke-width="1.4" fill="none" marker-end="url(#arrow)"/>
+                  <path d="M320 90 L380 90" stroke="#7c7269" stroke-width="1.4" fill="none" marker-end="url(#arrow)"/>
+                  <path d="M500 90 L560 90" stroke="#7c7269" stroke-width="1.4" fill="none" marker-end="url(#arrow)"/>
+                  <!-- annotations -->
+                  <text x="170" y="80" text-anchor="middle" fill="#5a524c" font-family="Geist Mono" font-size="9">stream</text>
+                  <text x="350" y="80" text-anchor="middle" fill="#5a524c" font-family="Geist Mono" font-size="9">enriched</text>
+                  <text x="530" y="80" text-anchor="middle" fill="#5a524c" font-family="Geist Mono" font-size="9">windowed</text>
+                  <!-- footer hint -->
+                  <text x="20" y="170" fill="#7c7269" font-family="Geist Mono" font-size="10">parallelism: 16 · checkpoint: 30s · EXACTLY_ONCE · 4 stages</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: validation + simulate + AI -->
+          <aside class="border-l border-dash-border overflow-y-auto px-3 py-4 bg-dash-surface/30">
+
+            <h3 class="section-heading mb-2">Validation</h3>
+            <div class="space-y-2 mb-5">
+              <div class="rounded border border-dash-border bg-fr-bg/40 p-3 text-[11.5px]">
+                <div class="flex items-center gap-1.5 mb-1.5"><i data-lucide="check-circle-2" class="text-sm text-fr-sage"></i><span class="text-fr-sage font-medium">Compiles</span></div>
+                <p class="text-fg-muted leading-relaxed">DSL parsed in 142ms · 4 stages · 0 errors</p>
+              </div>
+              <div class="rounded border border-dash-border bg-fr-bg/40 p-3 text-[11.5px]">
+                <div class="flex items-center gap-1.5 mb-1.5"><i data-lucide="alert-triangle" class="text-sm text-fr-amber"></i><span class="text-fr-amber font-medium">Warning · L24</span></div>
+                <p class="text-fg-muted leading-relaxed">Redis timeout (50ms) is shorter than Redis cluster p99 (78ms). Consider raising or adding fallback.</p>
+              </div>
+              <div class="rounded border border-dash-border bg-fr-bg/40 p-3 text-[11.5px]">
+                <div class="flex items-center gap-1.5 mb-1.5"><i data-lucide="alert-triangle" class="text-sm text-fr-amber"></i><span class="text-fr-amber font-medium">Warning · L29</span></div>
+                <p class="text-fg-muted leading-relaxed">Tumbling window of 5m on event_time without watermark strategy will use auto-watermark = max - 200ms.</p>
+              </div>
+            </div>
+
+            <h3 class="section-heading mb-2">Simulate</h3>
+            <div class="rounded border border-dash-border bg-fr-bg/40 p-3 mb-5">
+              <div class="grid grid-cols-3 gap-2 text-[11px] mb-3">
+                <div><div class="text-fg-faint font-mono uppercase tracking-wider text-[9px]">Mode</div><div class="mt-1 font-mono text-fg">dry-run</div></div>
+                <div><div class="text-fg-faint font-mono uppercase tracking-wider text-[9px]">Records</div><div class="mt-1 font-mono text-fg">1k</div></div>
+                <div><div class="text-fg-faint font-mono uppercase tracking-wider text-[9px]">Speed</div><div class="mt-1 font-mono text-fg">10×</div></div>
+              </div>
+              <button class="btn btn-secondary btn-sm w-full"><i data-lucide="flask-conical" class="text-sm"></i>Run simulation</button>
+            </div>
+
+            <h3 class="section-heading mb-2">Last simulation</h3>
+            <div class="rounded border border-dash-border bg-fr-bg/40 p-3 text-[11.5px] mb-5">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-fg-muted">14:28 · 1k records</span>
+                <span class="status-pill running">passed</span>
+              </div>
+              <dl class="space-y-1 text-[11px]">
+                <div class="flex justify-between"><dt class="text-fg-faint font-mono">throughput</dt><dd class="font-mono text-fr-sage">8.2k/s</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-faint font-mono">p99 latency</dt><dd class="font-mono text-fg">142ms</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-faint font-mono">redis hit ratio</dt><dd class="font-mono text-fr-sage">0.94</dd></div>
+                <div class="flex justify-between"><dt class="text-fg-faint font-mono">dropped (no session)</dt><dd class="font-mono text-fr-amber">62 (6.2%)</dd></div>
+              </dl>
+              <a href="simulations.html" class="mt-2 inline-flex items-center gap-1 text-[11px] text-fr-coral hover:underline">View run details<i data-lucide="arrow-right" class="text-sm"></i></a>
+            </div>
+
+            <h3 class="section-heading mb-2">AI assist</h3>
+            <div class="rounded border border-dash-border bg-fr-bg/40 p-3 text-[11.5px]">
+              <div class="flex items-center gap-1.5 mb-1.5"><i data-lucide="sparkles" class="text-sm text-fr-violet"></i><span class="text-fr-violet font-medium">Suggestion</span></div>
+              <p class="text-fg-muted leading-relaxed mb-2">Add a fallback to <span class="font-mono text-fr-coral">.enrich</span> so missed Redis lookups still let records through with <span class="font-mono">session = null</span>.</p>
+              <div class="flex gap-2">
+                <button class="btn btn-secondary btn-sm">Apply</button>
+                <button class="btn btn-ghost btn-sm">Explain</button>
+              </div>
+            </div>
+
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

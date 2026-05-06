@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DEP-244 · reactor-core SSE backpressure fix · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+    <style>
+      .vs-card {
+        position: relative;
+        padding: 16px 18px;
+        border-radius: 12px;
+      }
+      .vs-card.blue {
+        background: rgba(125, 174, 163, 0.04);
+        border: 1px solid rgba(125, 174, 163, 0.2);
+      }
+      .vs-card.green {
+        background: rgba(169, 182, 101, 0.04);
+        border: 1px solid rgba(169, 182, 101, 0.3);
+      }
+      .vs-card.shifting::after {
+        content: "shifting";
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(231, 138, 78, 0.1);
+        color: #e78a4e;
+        font-family: "Geist Mono";
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .traffic-bar {
+        height: 14px;
+        border-radius: 7px;
+        background: rgba(125, 174, 163, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+      .traffic-bar > .green-share {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(169, 182, 101, 0.7) 100%);
+        border-radius: 7px;
+      }
+    </style>
+  </head>
+  <body class="page-shell" data-page="deployments">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-2 text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><a href="deployments.html" class="hover:text-fr-coral">Deployments</a><span class="text-fg-faint mx-1">/</span><span class="font-mono">DEP-244</span></div>
+        <div class="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-3">
+              <i data-lucide="arrow-left-right" class="text-fr-coral text-2xl"></i>
+              <h1 class="font-sans text-[24px] font-semibold tracking-tight text-zinc-100">reactor-core SSE backpressure fix</h1>
+              <span class="status-pill running"><span class="live-dot"></span>Rolling out · 68%</span>
+            </div>
+            <div class="mt-1.5 text-[12px] text-fg-muted">
+              <span class="font-mono">DEP-244</span><span class="text-fg-faint mx-2">·</span>
+              by <a href="#" class="hover:text-fr-coral">ahmed</a><span class="text-fg-faint mx-2">·</span>
+              started 14m ago<span class="text-fg-faint mx-2">·</span>
+              strategy <span class="text-fr-coral">blue-green · linear shift</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="pause" class="text-sm"></i>Pause</button>
+            <button class="btn btn-danger btn-sm"><i data-lucide="rotate-ccw" class="text-sm"></i>Roll back</button>
+            <button class="btn btn-primary btn-sm"><i data-lucide="check" class="text-sm"></i>Promote now</button>
+          </div>
+        </div>
+
+        <!-- State machine -->
+        <div class="mb-6 glass-card-static p-4">
+          <div class="flex items-center justify-between gap-2 overflow-x-auto">
+            <span class="state-pill done"><i data-lucide="check" class="text-xs"></i>Pending</span>
+            <i data-lucide="chevron-right" class="text-fg-faint text-sm"></i>
+            <span class="state-pill done"><i data-lucide="check" class="text-xs"></i>Validating</span>
+            <i data-lucide="chevron-right" class="text-fg-faint text-sm"></i>
+            <span class="state-pill active"><span class="live-dot"></span>Rolling out (68%)</span>
+            <i data-lucide="chevron-right" class="text-fg-faint text-sm"></i>
+            <span class="state-pill pending">Smoke check</span>
+            <i data-lucide="chevron-right" class="text-fg-faint text-sm"></i>
+            <span class="state-pill pending">Promote</span>
+            <i data-lucide="chevron-right" class="text-fg-faint text-sm"></i>
+            <span class="state-pill pending">Decommission blue</span>
+          </div>
+        </div>
+
+        <!-- Blue / Green comparison -->
+        <section class="mb-6 grid grid-cols-12 gap-5">
+          <div class="vs-card blue col-span-12 lg:col-span-6">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <div class="font-mono text-[11px] text-fr-teal uppercase tracking-wider">Blue (current)</div>
+                <h3 class="mt-0.5 font-sans text-[16px] font-medium text-zinc-100">reactor-core <span class="font-mono text-fg-muted text-[14px]">v0.9.4</span></h3>
+              </div>
+              <span class="font-mono text-[10px] text-fg-faint">job a3f2c891</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-[12px]">
+              <div><div class="text-fg-muted text-[10px]">Throughput</div><div class="font-mono text-fg">1.39M evt/s</div><div class="text-[10px] text-fg-faint">32% of traffic</div></div>
+              <div><div class="text-fg-muted text-[10px]">Watermark</div><div class="font-mono text-fg">14ms p99</div></div>
+              <div><div class="text-fg-muted text-[10px]">Tasks</div><div class="font-mono text-fg">247</div></div>
+              <div><div class="text-fg-muted text-[10px]">Heap</div><div class="font-mono text-fg">42 / 96 GB</div></div>
+            </div>
+          </div>
+
+          <div class="vs-card green shifting col-span-12 lg:col-span-6">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <div class="font-mono text-[11px] text-fr-sage uppercase tracking-wider">Green (new)</div>
+                <h3 class="mt-0.5 font-sans text-[16px] font-medium text-zinc-100">reactor-core <span class="font-mono text-fr-coral text-[14px]">v0.9.5</span></h3>
+              </div>
+              <span class="font-mono text-[10px] text-fg-faint">job ee82a401</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-[12px]">
+              <div><div class="text-fg-muted text-[10px]">Throughput</div><div class="font-mono text-fg">2.82M evt/s</div><div class="text-[10px] text-fr-sage">68% of traffic</div></div>
+              <div><div class="text-fg-muted text-[10px]">Watermark</div><div class="font-mono text-fg">8ms p99</div><div class="text-[10px] text-fr-sage">↓ 43%</div></div>
+              <div><div class="text-fg-muted text-[10px]">Tasks</div><div class="font-mono text-fg">247</div></div>
+              <div><div class="text-fg-muted text-[10px]">Heap</div><div class="font-mono text-fg">38 / 96 GB</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Traffic shift bar -->
+        <section class="mb-6 glass-card-static p-5">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 class="font-sans text-[14px] font-medium text-zinc-100">Traffic shift</h3>
+            <span class="font-mono text-[11px] text-fr-coral">linear · 5 pp/min</span>
+          </div>
+          <div class="traffic-bar">
+            <div class="green-share" style="width: 68%"></div>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-[11px] font-mono">
+            <span class="text-fr-teal">blue 32%</span>
+            <span class="text-fg-faint">target 100% green at 16:42 (8m)</span>
+            <span class="text-fr-sage">green 68%</span>
+          </div>
+        </section>
+
+        <!-- Config diff -->
+        <section class="mb-6">
+          <div class="glass-card-static p-0 overflow-hidden">
+            <div class="flex items-center justify-between border-b border-dash-border bg-dash-surface/30 px-5 py-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="file-diff" class="text-fr-coral text-base"></i>
+                <h3 class="font-sans text-[14px] font-medium text-zinc-100">Configuration diff</h3>
+                <span class="font-mono text-[11px] text-fr-sage">+12</span>
+                <span class="font-mono text-[11px] text-fr-coral">-8</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn btn-ghost btn-sm">
+                  <i data-lucide="filter" class="text-sm"></i>
+                  Hide whitespace
+                </button>
+                <div class="flex items-center gap-1 rounded-md border border-dash-border p-0.5">
+                  <button class="rounded bg-dash-elevated px-2 py-1 text-[11px] font-medium text-zinc-100">Unified</button>
+                  <button class="rounded px-2 py-1 text-[11px] font-medium text-fg-muted hover:text-zinc-100">Split</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="diff-line hunk"><span class="ln"></span><span class="ln"></span><span class="gutter">@</span><span class="code">@@ checkpointing &amp; backpressure @@</span></div>
+              <div class="diff-line"><span class="ln">12</span><span class="ln">12</span><span class="gutter"></span><span class="code">execution.checkpointing.interval: <span class="tk-num">3000ms</span></span></div>
+              <div class="diff-line removed"><span class="ln">13</span><span class="ln"></span><span class="gutter">-</span><span class="code">execution.checkpointing.timeout: <span class="tk-num">10min</span></span></div>
+              <div class="diff-line added"><span class="ln"></span><span class="ln">13</span><span class="gutter">+</span><span class="code">execution.checkpointing.timeout: <span class="tk-num">5min</span>  <span class="tk-com"># tighter</span></span></div>
+              <div class="diff-line removed"><span class="ln">14</span><span class="ln"></span><span class="gutter">-</span><span class="code">execution.checkpointing.unaligned: <span class="tk-key">false</span></span></div>
+              <div class="diff-line added"><span class="ln"></span><span class="ln">14</span><span class="gutter">+</span><span class="code">execution.checkpointing.unaligned: <span class="tk-key">true</span>  <span class="tk-com"># enable for SSE backpressure</span></span></div>
+              <div class="diff-line added"><span class="ln"></span><span class="ln">15</span><span class="gutter">+</span><span class="code">execution.checkpointing.aligned-checkpoint-timeout: <span class="tk-num">30s</span></span></div>
+              <div class="diff-line"><span class="ln">15</span><span class="ln">16</span><span class="gutter"></span><span class="code">state.backend.type: rocksdb</span></div>
+
+              <div class="diff-line hunk"><span class="ln"></span><span class="ln"></span><span class="gutter">@</span><span class="code">@@ network &amp; buffers @@</span></div>
+              <div class="diff-line removed"><span class="ln">42</span><span class="ln"></span><span class="gutter">-</span><span class="code">taskmanager.network.memory.buffers-per-channel: <span class="tk-num">4</span></span></div>
+              <div class="diff-line added"><span class="ln"></span><span class="ln">42</span><span class="gutter">+</span><span class="code">taskmanager.network.memory.buffers-per-channel: <span class="tk-num">8</span>  <span class="tk-com"># 2x for burst</span></span></div>
+              <div class="diff-line removed"><span class="ln">43</span><span class="ln"></span><span class="gutter">-</span><span class="code">taskmanager.network.memory.floating-buffers-per-gate: <span class="tk-num">8</span></span></div>
+              <div class="diff-line added"><span class="ln"></span><span class="ln">43</span><span class="gutter">+</span><span class="code">taskmanager.network.memory.floating-buffers-per-gate: <span class="tk-num">16</span></span></div>
+              <div class="diff-line added"><span class="ln"></span><span class="ln">44</span><span class="gutter">+</span><span class="code">taskmanager.network.memory.max-buffers-per-channel: <span class="tk-num">16</span></span></div>
+
+              <div class="diff-line hunk"><span class="ln"></span><span class="ln"></span><span class="gutter">@</span><span class="code">@@ source-specific overrides @@</span></div>
+              <div class="diff-line added"><span class="ln"></span><span class="ln">88</span><span class="gutter">+</span><span class="code">source.kafka.events.backpressure-policy: <span class="tk-str">"buffer-then-pause"</span></span></div>
+              <div class="diff-line added"><span class="ln"></span><span class="ln">89</span><span class="gutter">+</span><span class="code">source.kafka.events.max-pending: <span class="tk-num">8192</span></span></div>
+              <div class="diff-line removed"><span class="ln">87</span><span class="ln"></span><span class="gutter">-</span><span class="code">source.kafka.events.max-pending: <span class="tk-num">4096</span></span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- History -->
+        <section class="grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-7">
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Deployment timeline</h3>
+              <div class="space-y-1">
+                <div class="activity-entry"><div class="activity-icon"><i data-lucide="play" class="text-fr-coral text-sm"></i></div><div class="activity-text"><strong>ahmed</strong> initiated deployment from <span class="font-mono">v0.9.4 → v0.9.5</span></div><div class="activity-time">14m ago</div></div>
+                <div class="activity-entry"><div class="activity-icon"><i data-lucide="check-circle-2" class="text-fr-sage text-sm"></i></div><div class="activity-text">Validation passed (3 checks · 4.2s)</div><div class="activity-time">14m ago</div></div>
+                <div class="activity-entry"><div class="activity-icon"><i data-lucide="check-circle-2" class="text-fr-sage text-sm"></i></div><div class="activity-text">Green job <span class="font-mono">ee82a401</span> deployed and warmed up</div><div class="activity-time">12m ago</div></div>
+                <div class="activity-entry"><div class="activity-icon"><i data-lucide="check-circle-2" class="text-fr-sage text-sm"></i></div><div class="activity-text">Smoke check passed: <span class="font-mono">200 OK</span> across 8 endpoints</div><div class="activity-time">11m ago</div></div>
+                <div class="activity-entry"><div class="activity-icon"><i data-lucide="arrow-right" class="text-fr-coral text-sm"></i></div><div class="activity-text">Traffic shift started · 5 pp/min</div><div class="activity-time">9m ago</div></div>
+                <div class="activity-entry"><div class="activity-icon"><span class="size-2.5 rounded-full bg-fr-sage live-dot inline-block"></span></div><div class="activity-text">Currently shifting · <span class="font-mono">68%</span> on green</div><div class="activity-time">now</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-span-12 lg:col-span-5 space-y-4">
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Validation gates</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="text-fr-sage text-sm"></i><span class="text-fg-muted">Schema compat (4 subjects)</span></li>
+                <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="text-fr-sage text-sm"></i><span class="text-fg-muted">Smoke probes (8/8)</span></li>
+                <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="text-fr-sage text-sm"></i><span class="text-fg-muted">Throughput within ±5% baseline</span></li>
+                <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="text-fr-sage text-sm"></i><span class="text-fg-muted">Watermark progressing</span></li>
+                <li class="flex items-center gap-2"><i data-lucide="loader" class="text-fr-amber text-sm animate-spin"></i><span class="text-fg-muted">Sustained for 5min (3:14 / 5:00)</span></li>
+              </ul>
+            </div>
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Approvers</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center gap-2"><a href="#" class="avatar avatar-coral h-5 w-5 text-[9px]">A</a><span class="text-fg">ahmed</span><i data-lucide="check-circle-2" class="ml-auto text-fr-sage text-sm"></i></li>
+                <li class="flex items-center gap-2"><a href="#" class="avatar avatar-sage h-5 w-5 text-[9px]">K</a><span class="text-fg">kira</span><i data-lucide="check-circle-2" class="ml-auto text-fr-sage text-sm"></i></li>
+                <li class="flex items-center gap-2"><a href="#" class="avatar avatar-deep h-5 w-5 text-[9px]">O</a><span class="text-fg-muted">omar</span><i data-lucide="circle-dashed" class="ml-auto text-fg-faint text-sm"></i></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>

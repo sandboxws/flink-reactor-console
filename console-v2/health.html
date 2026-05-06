@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Health · acme-prod-1.fr · flinkreactor.hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/tw-config.js"></script>
+    <link rel="stylesheet" href="shared/styles.css" />
+  </head>
+  <body class="page-shell" data-page="health">
+
+    <header class="sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md">
+      <a href="overview.html" class="flex items-center gap-2.5"><span class="brand-glyph" data-size="22"></span><div class="flex items-baseline gap-2"><span class="text-[15px] font-semibold tracking-tight text-zinc-100">flinkreactor<span class="text-fg-dim">.hub</span></span><span class="rounded border border-fr-coral/40 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-widest text-fr-coral">Alpha</span></div></a>
+      <button class="cluster-selector"><span class="env prod">prod</span><span>acme-prod-1.fr</span><i data-lucide="chevron-down" class="text-fg-faint text-xs"></i></button>
+      <div class="relative max-w-md flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint text-base"></i><input type="text" placeholder="Type / to search..." class="form-input mono pl-9" style="height: 32px; font-size: 12px;" /></div>
+      <div class="ml-auto flex items-center gap-3"><button class="btn btn-ghost btn-sm btn-icon"><i data-lucide="sparkles" class="text-base text-fg-muted"></i></button><button class="btn btn-ghost btn-sm btn-icon"><span class="relative inline-flex"><i data-lucide="bell" class="text-base text-fg-muted"></i><span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-fr-coral"></span></span></button><button class="avatar avatar-coral h-8 w-8 text-[11px]">A</button></div>
+    </header>
+
+    <div class="page-grid">
+      <aside class="border-r border-dash-border bg-dash-surface/30 px-3 py-5">
+        <nav class="space-y-1">
+          <h3 class="section-heading mb-2 px-2.5 mt-1">Overview</h3><a href="overview.html" data-nav="overview" class="nav-item"><i data-lucide="layout-dashboard"></i>Overview</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Jobs</h3>
+          <a href="jobs-running.html" data-nav="jobs-running" class="nav-item"><i data-lucide="play"></i>Running<span class="nav-count">5</span></a>
+          <a href="jobs-completed.html" data-nav="jobs-completed" class="nav-item"><i data-lucide="check-circle-2"></i>Completed</a>
+          <a href="jobs-submit.html" data-nav="jobs-submit" class="nav-item"><i data-lucide="upload"></i>Submit</a>
+          <a href="deployments.html" data-nav="deployments" class="nav-item"><i data-lucide="arrow-left-right"></i>Deployments<span class="nav-count">3</span></a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Cluster</h3>
+          <a href="task-managers.html" data-nav="task-managers" class="nav-item"><i data-lucide="server"></i>Task managers<span class="nav-count">8</span></a>
+          <a href="job-manager.html" data-nav="job-manager" class="nav-item"><i data-lucide="cpu"></i>Job manager</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Observe</h3>
+          <a href="health.html" data-nav="health" class="nav-item"><i data-lucide="heart-pulse"></i>Health</a>
+          <a href="metrics.html" data-nav="metrics" class="nav-item"><i data-lucide="line-chart"></i>Metrics</a>
+          <a href="bottlenecks.html" data-nav="bottlenecks" class="nav-item"><i data-lucide="git-fork"></i>Bottlenecks</a>
+          <a href="alerts.html" data-nav="alerts" class="nav-item"><i data-lucide="bell-ring"></i>Alerts<span class="nav-count" style="color:#e78a4e">7</span></a>
+          <a href="checkpoints.html" data-nav="checkpoints" class="nav-item"><i data-lucide="bar-chart-3"></i>Checkpoints</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Logs</h3>
+          <a href="logs.html" data-nav="logs" class="nav-item"><i data-lucide="scroll-text"></i>Logs</a>
+          <a href="errors.html" data-nav="errors" class="nav-item"><i data-lucide="alert-triangle"></i>Errors</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Data</h3>
+          <a href="materialized-tables.html" data-nav="materialized-tables" class="nav-item"><i data-lucide="database"></i>Materialized</a>
+          <a href="catalogs.html" data-nav="catalogs" class="nav-item"><i data-lucide="folder-tree"></i>Catalogs</a>
+          <a href="sql-explorer.html" data-nav="sql-explorer" class="nav-item"><i data-lucide="search-code"></i>SQL explorer</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Tools</h3>
+          <a href="sandbox.html" data-nav="sandbox" class="nav-item"><i data-lucide="code-2"></i>Sandbox</a>
+          <a href="simulations.html" data-nav="simulations" class="nav-item"><i data-lucide="activity"></i>Simulations</a>
+          <h3 class="section-heading mb-2 mt-5 px-2.5">Instruments</h3>
+          <a href="instrument-fluss.html" data-nav="instrument-fluss" class="nav-item"><i data-lucide="layers"></i>Fluss<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-redis.html" data-nav="instrument-redis" class="nav-item"><i data-lucide="database"></i>Redis<span class="nav-count" style="color:#a9b665">✓</span></a>
+          <a href="instrument-schema-registry.html" data-nav="instrument-schema-registry" class="nav-item"><i data-lucide="file-json"></i>Schema reg.<span class="nav-count" style="color:#d8a657">⚠</span></a>
+          <a href="instrument-database.html" data-nav="instrument-database" class="nav-item"><i data-lucide="hard-drive"></i>Database<span class="nav-count" style="color:#a9b665">✓</span></a>
+        </nav>
+      </aside>
+
+      <main class="px-8 py-6 min-w-0">
+        <div class="mb-6 flex items-end justify-between">
+          <div>
+            <div class="text-[12px] text-fg-muted"><a href="overview.html" class="hover:text-fr-coral">acme-prod-1.fr</a><span class="text-fg-faint mx-1">/</span><span>Observe</span></div>
+            <h1 class="mt-1 font-sans text-[24px] font-semibold tracking-tight text-zinc-100">Cluster health</h1>
+            <p class="mt-0.5 text-[12px] text-fg-muted">SLO 99.99% (28d rolling) · 1 instrument warning · 1 TM heap pressure</p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-fr-sage/10 border border-fr-sage/30 px-3 py-1 text-[11px] font-mono text-fr-sage"><span class="live-dot"></span> Operational</span>
+        </div>
+
+        <!-- Health rings hero -->
+        <section class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div class="kpi-card flex items-center gap-4">
+            <div class="health-ring">
+              <svg viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="42" stroke-width="8" fill="none"/>
+                <circle class="ring-fg" cx="50" cy="50" r="42" stroke-width="8" fill="none" stroke-dasharray="263 264" stroke-linecap="round"/>
+              </svg>
+              <div class="ring-label">99%</div>
+            </div>
+            <div>
+              <div class="kpi-label">Cluster</div>
+              <div class="text-[12px] text-fg-muted">7 of 7 nodes nominal</div>
+            </div>
+          </div>
+          <div class="kpi-card flex items-center gap-4">
+            <div class="health-ring">
+              <svg viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="42" stroke-width="8" fill="none"/>
+                <circle cx="50" cy="50" r="42" stroke-width="8" fill="none" stroke="#a9b665" stroke-dasharray="237 264" stroke-linecap="round"/>
+              </svg>
+              <div class="ring-label">90%</div>
+            </div>
+            <div>
+              <div class="kpi-label">Pipelines</div>
+              <div class="text-[12px] text-fg-muted">5/7 healthy · 1 degraded</div>
+            </div>
+          </div>
+          <div class="kpi-card flex items-center gap-4">
+            <div class="health-ring">
+              <svg viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="42" stroke-width="8" fill="none"/>
+                <circle cx="50" cy="50" r="42" stroke-width="8" fill="none" stroke="#d8a657" stroke-dasharray="221 264" stroke-linecap="round"/>
+              </svg>
+              <div class="ring-label">84%</div>
+            </div>
+            <div>
+              <div class="kpi-label">Resources</div>
+              <div class="text-[12px] text-fg-muted">heap pressure on tm-04</div>
+            </div>
+          </div>
+          <div class="kpi-card flex items-center gap-4">
+            <div class="health-ring">
+              <svg viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="42" stroke-width="8" fill="none"/>
+                <circle cx="50" cy="50" r="42" stroke-width="8" fill="none" stroke="#7daea3" stroke-dasharray="252 264" stroke-linecap="round"/>
+              </svg>
+              <div class="ring-label">96%</div>
+            </div>
+            <div>
+              <div class="kpi-label">Instruments</div>
+              <div class="text-[12px] text-fg-muted">4/5 OK · schema-reg WARN</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Detail grid -->
+        <section class="grid grid-cols-12 gap-5">
+
+          <!-- Pipelines health -->
+          <div class="col-span-12 lg:col-span-7">
+            <div class="glass-card-static p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="font-sans text-[14px] font-medium text-zinc-100">Pipeline health</h3>
+                <span class="font-mono text-[10px] text-fg-faint">last 5 min · auto-refresh</span>
+              </div>
+              <div class="space-y-1">
+                <div class="sev-row hover:bg-dash-elevated/40">
+                  <i data-lucide="check" class="text-fr-sage text-sm"></i>
+                  <div><div class="text-[12.5px] text-fg">reactor-core</div><div class="text-[10px] font-mono text-fg-faint">4.21M evt/s · wm 12ms · ckpts ok</div></div>
+                  <span class="font-mono text-[10px] text-fr-sage">OK</span>
+                  <span class="font-mono text-[10px] text-fg-faint text-right">99.99%</span>
+                </div>
+                <div class="sev-row hover:bg-dash-elevated/40">
+                  <i data-lucide="check" class="text-fr-sage text-sm"></i>
+                  <div><div class="text-[12.5px] text-fg">clickstream-enrich</div><div class="text-[10px] font-mono text-fg-faint">3.10M evt/s · wm 8ms</div></div>
+                  <span class="font-mono text-[10px] text-fr-sage">OK</span>
+                  <span class="font-mono text-[10px] text-fg-faint text-right">99.99%</span>
+                </div>
+                <div class="sev-row hover:bg-dash-elevated/40">
+                  <i data-lucide="check" class="text-fr-sage text-sm"></i>
+                  <div><div class="text-[12.5px] text-fg">fluss-ingest</div><div class="text-[10px] font-mono text-fg-faint">1.83M evt/s · wm 14ms</div></div>
+                  <span class="font-mono text-[10px] text-fr-sage">OK</span>
+                  <span class="font-mono text-[10px] text-fg-faint text-right">99.97%</span>
+                </div>
+                <div class="sev-row hover:bg-dash-elevated/40">
+                  <i data-lucide="check" class="text-fr-sage text-sm"></i>
+                  <div><div class="text-[12.5px] text-fg">paimon-sink</div><div class="text-[10px] font-mono text-fg-faint">920K evt/s · wm 22ms</div></div>
+                  <span class="font-mono text-[10px] text-fr-sage">OK</span>
+                  <span class="font-mono text-[10px] text-fg-faint text-right">99.98%</span>
+                </div>
+                <div class="sev-row hover:bg-dash-elevated/40">
+                  <i data-lucide="check" class="text-fr-sage text-sm"></i>
+                  <div><div class="text-[12.5px] text-fg">schema-registry-sync</div><div class="text-[10px] font-mono text-fg-faint">12K evt/s · wm 3ms</div></div>
+                  <span class="font-mono text-[10px] text-fr-sage">OK</span>
+                  <span class="font-mono text-[10px] text-fg-faint text-right">100.0%</span>
+                </div>
+                <div class="sev-row hover:bg-dash-elevated/40">
+                  <i data-lucide="alert-triangle" class="text-fr-amber text-sm"></i>
+                  <div><div class="text-[12.5px] text-fg">datalake-connect</div><div class="text-[10px] font-mono text-fr-amber">backpressure on op.4 · wm 142ms</div></div>
+                  <span class="font-mono text-[10px] text-fr-amber">WARN</span>
+                  <span class="font-mono text-[10px] text-fr-amber text-right">94.2%</span>
+                </div>
+                <div class="sev-row hover:bg-dash-elevated/40">
+                  <i data-lucide="x-circle" class="text-fr-rose text-sm"></i>
+                  <div><div class="text-[12.5px] text-fg">cdc-loader</div><div class="text-[10px] font-mono text-fr-rose">FAILED · 12m down</div></div>
+                  <span class="font-mono text-[10px] text-fr-rose">FAIL</span>
+                  <span class="font-mono text-[10px] text-fr-rose text-right">81.3%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-card-static p-5 mt-5">
+              <h3 class="font-sans text-[14px] font-medium text-zinc-100 mb-3">Resource pressure · cluster average</h3>
+              <div class="space-y-3 text-[12px]">
+                <div>
+                  <div class="flex items-center justify-between mb-1"><span class="text-fg-muted">CPU (cluster avg)</span><span class="font-mono text-zinc-100">62%</span></div>
+                  <div class="resource-bar"><div class="seg heap" style="width: 62%"></div><div class="seg free" style="width: 38%"></div></div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-1"><span class="text-fg-muted">Heap (cluster avg)</span><span class="font-mono text-zinc-100">54%</span></div>
+                  <div class="resource-bar"><div class="seg heap" style="width: 54%"></div><div class="seg free" style="width: 46%"></div></div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-1"><span class="text-fg-muted">Network in</span><span class="font-mono text-zinc-100">2.8 GB/s · 23% capacity</span></div>
+                  <div class="resource-bar"><div class="seg network" style="width: 23%"></div><div class="seg free" style="width: 77%"></div></div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-1"><span class="text-fg-muted">Disk I/O (rocksdb)</span><span class="font-mono text-zinc-100">412 MB/s · 18% capacity</span></div>
+                  <div class="resource-bar"><div class="seg managed" style="width: 18%"></div><div class="seg free" style="width: 82%"></div></div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-1"><span class="text-fr-amber">Heap (tm-04 worst)</span><span class="font-mono text-fr-amber">92%</span></div>
+                  <div class="resource-bar"><div class="seg heap" style="width: 92%"></div><div class="seg free" style="width: 8%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column: instrument health + SLO + checkpoints -->
+          <div class="col-span-12 lg:col-span-5 space-y-5">
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Instrument health</h3>
+              <div class="space-y-1">
+                <div class="sev-row hover:bg-dash-elevated/40"><i data-lucide="check" class="text-fr-sage text-sm"></i><div><div class="text-[12.5px] text-fg">Fluss</div></div><span class="font-mono text-[10px] text-fr-sage">OK</span><span class="font-mono text-[10px] text-fg-faint text-right">2ms</span></div>
+                <div class="sev-row hover:bg-dash-elevated/40"><i data-lucide="check" class="text-fr-sage text-sm"></i><div><div class="text-[12.5px] text-fg">Paimon</div></div><span class="font-mono text-[10px] text-fr-sage">OK</span><span class="font-mono text-[10px] text-fg-faint text-right">8ms</span></div>
+                <div class="sev-row hover:bg-dash-elevated/40"><i data-lucide="check" class="text-fr-sage text-sm"></i><div><div class="text-[12.5px] text-fg">Redis</div></div><span class="font-mono text-[10px] text-fr-sage">OK</span><span class="font-mono text-[10px] text-fg-faint text-right">1ms</span></div>
+                <div class="sev-row hover:bg-dash-elevated/40"><i data-lucide="alert-triangle" class="text-fr-amber text-sm"></i><div><div class="text-[12.5px] text-fg">Schema Registry</div><div class="text-[10px] font-mono text-fr-amber">1 incompatible subject</div></div><span class="font-mono text-[10px] text-fr-amber">WARN</span><span class="font-mono text-[10px] text-fg-faint text-right">12ms</span></div>
+                <div class="sev-row hover:bg-dash-elevated/40"><i data-lucide="check" class="text-fr-sage text-sm"></i><div><div class="text-[12.5px] text-fg">Datalake</div></div><span class="font-mono text-[10px] text-fr-sage">OK</span><span class="font-mono text-[10px] text-fg-faint text-right">14ms</span></div>
+              </div>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">SLO budget</h3>
+              <div class="text-[12px] text-fg-muted mb-3">Target 99.9% over rolling 28 days · burn rate alert at 14d remaining</div>
+              <div class="resource-bar mb-2" style="height: 12px;">
+                <div class="seg heap" style="width: 88%; background: #a9b665;"></div>
+                <div class="seg free" style="width: 12%;"></div>
+              </div>
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-fr-sage">88% budget remaining</span>
+                <span class="text-fg-faint">consumed 12% in 28d</span>
+              </div>
+            </div>
+
+            <div class="glass-card-static p-5">
+              <h3 class="section-heading mb-3">Probes</h3>
+              <ul class="space-y-2 text-[12px]">
+                <li class="flex items-center gap-2"><i data-lucide="check" class="text-fr-sage text-sm"></i><span class="text-fg-muted">JM REST <code class="font-mono text-fg">/health</code></span><span class="ml-auto font-mono text-[10px] text-fg-faint">3ms</span></li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="text-fr-sage text-sm"></i><span class="text-fg-muted">All TM heartbeats</span><span class="ml-auto font-mono text-[10px] text-fg-faint">8/8</span></li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="text-fr-sage text-sm"></i><span class="text-fg-muted">ZK quorum</span><span class="ml-auto font-mono text-[10px] text-fg-faint">3/3</span></li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="text-fr-sage text-sm"></i><span class="text-fg-muted">S3 reach (ckpts)</span><span class="ml-auto font-mono text-[10px] text-fg-faint">42ms</span></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="shared/icons.js"></script>
+  </body>
+</html>
