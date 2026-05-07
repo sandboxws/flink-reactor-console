@@ -2,14 +2,15 @@
  * Detail pane for a selected catalog table — header card with KPIs +
  * tabbed content (Schema / DDL / Sample data).
  *
- * Mirrors `console-v2/catalogs.html` lines 173-365. KPI counts (rows,
- * size, snapshots, partitions, avg-lag) are not exposed by the GraphQL
- * `catalogs` resolver today, so they render as `—` placeholders. The
- * Schema tab uses the mockup's 6-column grid (`# / Column / Type / PK /
- * Null / Description`) — PK / Null / Description show `—` since
- * `ColumnInfo` is `{ name, type }` only. DDL is real (from
- * `catalogTableDDL`); Sample data links to the SQL Explorer with a
- * pre-filled `SELECT * LIMIT 50`.
+ * The Flink catalog resolver only exposes `{ name, type }` per column
+ * and no per-table stats (rows / size / snapshots / partitions / lag)
+ * — those would require connector-specific queries (`information_schema`
+ * for JDBC, snapshot listing for Paimon, etc.) that aren't wired yet.
+ * Rather than render five misleading `—` cards, the KPI strip shows
+ * data we *do* have: column count, connector type, source identifier,
+ * catalog properties count, and DDL line count. The Schema tab uses
+ * the mockup's 6-column grid; PK / Null / Description columns show
+ * `—` placeholders since the resolver doesn't surface those fields.
  */
 
 import { Link } from "@tanstack/react-router"
@@ -21,10 +22,13 @@ import {
   Table as TableIcon,
 } from "lucide-react"
 import { useState } from "react"
-import type { ColumnInfo } from "@/lib/graphql-api-client"
+import type { CatalogInfo, ColumnInfo } from "@/lib/graphql-api-client"
 
 interface CatalogTableDetailProps {
   selected: { catalog: string; database: string; table: string }
+  /** Parent catalog metadata (connectorType, source, properties) used to
+   *  populate the KPI strip with real data. */
+  catalog: CatalogInfo | undefined
   columns: ColumnInfo[]
   ddl: string | undefined
 }
@@ -33,12 +37,17 @@ type DetailTab = "schema" | "ddl" | "sample"
 
 export function CatalogTableDetail({
   selected,
+  catalog,
   columns,
   ddl,
 }: CatalogTableDetailProps) {
   const [tab, setTab] = useState<DetailTab>("schema")
   const qualifiedName = `${selected.catalog}.${selected.database}.${selected.table}`
   const sampleSql = `SELECT * FROM ${qualifiedName} ORDER BY 1 DESC LIMIT 50`
+  const propertyCount = catalog?.properties
+    ? Object.keys(catalog.properties).length
+    : 0
+  const ddlLines = ddl ? ddl.split("\n").length : 0
 
   const copyDdl = () => {
     if (!ddl) return
@@ -96,15 +105,18 @@ export function CatalogTableDetail({
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-5">
-          <KpiCard label="Rows" value="—" />
-          <KpiCard label="Size" value="—" />
-          <KpiCard label="Snapshots" value="—" />
-          <KpiCard label="Partitions" value="—" />
-          <KpiCard label="Avg lag" value="—" />
+          <Stat label="Columns" value={String(columns.length)} />
+          <Stat label="Connector" value={catalog?.connectorType ?? "—"} />
+          <Stat label="Source" value={catalog?.source ?? "—"} />
+          <Stat
+            label="Properties"
+            value={propertyCount > 0 ? String(propertyCount) : "—"}
+          />
+          <Stat
+            label="DDL"
+            value={ddl ? `${ddlLines} line${ddlLines === 1 ? "" : "s"}` : "—"}
+          />
         </div>
-        <p className="mt-2 font-mono text-[10px] text-fg-faint">
-          Stats not yet exposed by the catalog resolver — placeholder.
-        </p>
       </div>
 
       {/* Tabs */}
@@ -133,11 +145,24 @@ export function CatalogTableDetail({
   )
 }
 
-function KpiCard({ label, value }: { label: string; value: string }) {
+/** Stat tile scoped to the catalog table detail. Uses a darker
+ *  surface (`bg-dash-surface/70`) than the global `.kpi-card` because
+ *  the surrounding `.glass-card-static` parent and the global card's
+ *  ~3% tint stacked together produced a barely-visible card in this
+ *  context. Truncates long mono values (e.g. `paimon-catalog-jdbc`)
+ *  with an ellipsis so the grid stays uniform. */
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="kpi-card">
-      <div className="kpi-label">{label}</div>
-      <div className="kpi-value">{value}</div>
+    <div className="rounded-lg border border-dash-border/70 bg-dash-surface/70 px-4 py-3 transition-colors hover:border-fr-coral/30">
+      <div className="font-mono text-[10px] uppercase tracking-wider text-fg-faint">
+        {label}
+      </div>
+      <div
+        className="mt-1 truncate font-mono text-[16px] text-zinc-100"
+        title={value}
+      >
+        {value}
+      </div>
     </div>
   )
 }

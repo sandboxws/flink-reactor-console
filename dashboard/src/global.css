@@ -1,5 +1,9 @@
 @import "tailwindcss";
-@import "@flink-reactor/ui/styles/hub";
+/* `layer(components)` is REQUIRED — without it, hub.css class rules
+ * (e.g. `.form-input`, `.cluster-selector`) silently outrank Tailwind
+ * utilities like `pl-9`/`pr-4`, causing the search-icon-overlapping-text
+ * regression. See `dashboard/CLAUDE.md` "Common pitfalls observed". */
+@import "@flink-reactor/ui/styles/hub" layer(components);
 @source "../node_modules/@flink-reactor/ui/src/**/*.{ts,tsx}";
 @source "../node_modules/@flink-reactor/ui/dist/**/*.js";
 @source "../node_modules/@flink-reactor/instruments-ui/dist/**/*.js";

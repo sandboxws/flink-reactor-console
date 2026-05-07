@@ -65,6 +65,11 @@ function HubCatalogs() {
     return ddlMap[ddlKey]
   }, [selected, ddlMap])
 
+  const selectedCatalog = useMemo(() => {
+    if (!selected) return undefined
+    return catalogs.find((c) => c.name === selected.catalog)
+  }, [selected, catalogs])
+
   const totalDatabases = useMemo(
     () => catalogs.reduce((sum, c) => sum + c.databaseCount, 0),
     [catalogs],
@@ -155,6 +160,7 @@ function HubCatalogs() {
           {selected ? (
             <CatalogTableDetail
               selected={selected}
+              catalog={selectedCatalog}
               columns={columns}
               ddl={ddl}
             />
