@@ -1,18 +1,22 @@
 /**
  * Hub catalogs — /hub/catalogs.
  *
- * Mirrors `console-v2/catalogs.html`: 3-pane file-tree browser (catalogs →
- * databases → tables) on the left, schema preview in the center, and a
- * sample-rows / DDL placeholder on the right. Tree expansion state is
- * persisted in `useUiStore` so navigating to a table detail and back keeps
- * the previously-open nodes expanded.
+ * Mirrors `console-v2/catalogs.html` exactly: page header with breadcrumb
+ * (extending into the selected table), title, summary stats, and action
+ * buttons; 2-pane workspace below with a filterable tree on the left and
+ * a tabbed table-detail pane on the right (header card with KPIs, then
+ * Schema / DDL / Sample-data tabs).
+ *
+ * Tree expansion state is persisted in `useUiStore` so navigating to
+ * a table detail and back keeps the previously-open nodes expanded.
  */
 
 import { HubBreadcrumb } from "@flink-reactor/ui"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { FolderTree, Plus, RotateCw, Search, SearchCode } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { CatalogTableDetail } from "@/components/hub/data/catalog-table-detail"
 import { CatalogTreeBrowser } from "@/components/hub/data/catalog-tree-browser"
-import { SchemaPreview } from "@/components/hub/data/schema-preview"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useCatalogStore } from "@/stores/catalog-store"
@@ -30,8 +34,10 @@ function HubCatalogs() {
   const catalogs = useCatalogStore((s) => s.catalogs)
   const columnsMap = useCatalogStore((s) => s.columns)
   const ddlMap = useCatalogStore((s) => s.ddl)
+  const loading = useCatalogStore((s) => s.loading)
 
   const [selected, setSelected] = useState<Selection | null>(null)
+  const [filter, setFilter] = useState("")
 
   useEffect(() => {
     fetchCatalogs()
@@ -55,64 +61,126 @@ function HubCatalogs() {
 
   const ddl = useMemo(() => {
     if (!selected) return undefined
-    const ddlKey = `${selected.catalog}/${selected.database}/${selected.table}`
+    const ddlKey = `${selected.catalog}.${selected.database}.${selected.table}`
     return ddlMap[ddlKey]
   }, [selected, ddlMap])
 
+  const totalDatabases = useMemo(
+    () => catalogs.reduce((sum, c) => sum + c.databaseCount, 0),
+    [catalogs],
+  )
+  const totalTables = useMemo(
+    () => catalogs.reduce((sum, c) => sum + c.tableCount, 0),
+    [catalogs],
+  )
+
+  const breadcrumb = selected
+    ? [
+        { label: "Data" },
+        { label: "Catalogs" },
+        { label: `${selected.catalog}.${selected.database}`, mono: true },
+        { label: selected.table, mono: true },
+      ]
+    : [{ label: "Data" }, { label: "Catalogs" }]
+
   return (
     <HubAppShell>
-      <HubBreadcrumb
-        crumbs={[{ label: "Data" }, { label: "Catalogs" }]}
-        LinkComponent={HubLink}
-      />
+      <HubBreadcrumb crumbs={breadcrumb} LinkComponent={HubLink} />
 
-      <div className="mt-1 mb-6">
-        <h1 className="font-sans text-[24px] font-semibold tracking-tight text-zinc-100">
-          Catalogs
-        </h1>
-        <p className="mt-0.5 text-[12px] text-fg-muted">
-          {catalogs.length} catalog{catalogs.length === 1 ? "" : "s"} · expand a
-          node to lazy-load its children
+      <div className="mt-1 mb-5 flex items-end justify-between gap-4">
+        <div>
+          <h1 className="font-sans text-[24px] font-semibold tracking-tight text-zinc-100">
+            Catalog browser
+          </h1>
+          <p className="mt-0.5 text-[12px] text-fg-muted">
+            {loading && catalogs.length === 0
+              ? "loading…"
+              : `${catalogs.length} catalog${catalogs.length === 1 ? "" : "s"} · ${totalDatabases} database${totalDatabases === 1 ? "" : "s"} · ${totalTables} table${totalTables === 1 ? "" : "s"}`}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fetchCatalogs()}
+            className="btn btn-secondary btn-sm"
+          >
+            <RotateCw className="size-3.5" />
+            Refresh
+          </button>
+          <Link to="/hub/sql-explorer" className="btn btn-secondary btn-sm">
+            <SearchCode className="size-3.5" />
+            Open in SQL
+          </Link>
+          <button
+            type="button"
+            disabled
+            className="btn btn-primary btn-sm"
+            title="Catalog creation lands in a follow-up"
+          >
+            <Plus className="size-3.5" />
+            New catalog
+          </button>
+        </div>
+      </div>
+
+      <section className="grid grid-cols-12 gap-5">
+        {/* Tree pane */}
+        <div className="col-span-12 lg:col-span-4 xl:col-span-3">
+          <div className="glass-card-static overflow-hidden">
+            <div className="flex items-center gap-2 border-b border-dash-border px-3 py-2">
+              <Search className="size-3.5 text-fg-muted" />
+              <input
+                type="text"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="Filter tables…"
+                className="flex-1 bg-transparent font-mono text-[12px] text-fg outline-none placeholder:text-fg-faint"
+              />
+              <span className="font-mono text-[10px] text-fg-faint">
+                {totalTables}
+              </span>
+            </div>
+            <div className="max-h-[72vh] overflow-y-auto p-2">
+              <CatalogTreeBrowser
+                selected={selected}
+                onSelect={setSelected}
+                filter={filter}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Detail pane */}
+        <div className="col-span-12 lg:col-span-8 xl:col-span-9">
+          {selected ? (
+            <CatalogTableDetail
+              selected={selected}
+              columns={columns}
+              ddl={ddl}
+            />
+          ) : (
+            <EmptyState />
+          )}
+        </div>
+      </section>
+    </HubAppShell>
+  )
+}
+
+function EmptyState() {
+  return (
+    <div className="glass-card-static flex h-full min-h-[320px] flex-col items-center justify-center gap-3 p-10 text-center">
+      <FolderTree className="size-8 text-fr-coral/60" />
+      <div>
+        <h3 className="font-sans text-[14px] font-medium text-zinc-100">
+          Pick a table to inspect
+        </h3>
+        <p className="mt-1 max-w-sm text-[12px] text-fg-muted">
+          Expand a catalog and database in the tree to see its tables. Selecting
+          a table shows its schema, DDL, and sample-data shortcut.
         </p>
       </div>
-
-      <div className="grid grid-cols-12 gap-5">
-        {/* Tree */}
-        <aside className="col-span-12 lg:col-span-3">
-          <div className="glass-card-static p-4">
-            <CatalogTreeBrowser selected={selected} onSelect={setSelected} />
-          </div>
-        </aside>
-
-        {/* Schema preview */}
-        <main className="col-span-12 lg:col-span-5">
-          <div className="glass-card-static p-5">
-            <SchemaPreview selected={selected} columns={columns} ddl={ddl} />
-          </div>
-        </main>
-
-        {/* Sample rows / actions */}
-        <aside className="col-span-12 lg:col-span-4">
-          <div className="glass-card-static p-5">
-            <h3 className="section-heading mb-3">Sample rows</h3>
-            {selected ? (
-              <p className="text-[11px] font-mono text-fg-faint">
-                Sample rows wire up via the SQL Gateway —{" "}
-                <code>
-                  SELECT * FROM {selected.catalog}.{selected.database}.
-                  {selected.table} LIMIT 50
-                </code>{" "}
-                in the SQL explorer.
-              </p>
-            ) : (
-              <p className="text-[11px] font-mono text-fg-faint">
-                Select a table in the tree to preview rows.
-              </p>
-            )}
-          </div>
-        </aside>
-      </div>
-    </HubAppShell>
+    </div>
   )
 }
 

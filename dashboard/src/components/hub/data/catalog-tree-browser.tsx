@@ -5,12 +5,21 @@
  * `useUiStore.catalogTreeExpanded` so navigating away and back preserves
  * which nodes are expanded. Lazy-loads database/table lists from
  * `useCatalogStore`.
+ *
+ * Catalog folder color is derived from `connectorType` (paimon = coral,
+ * fluss = teal, hive = violet, jdbc = rose, default = amber) to match
+ * the mockup's visual hierarchy.
+ *
+ * `filter`, when non-empty, filters tables by case-insensitive substring
+ * match on table name within each opened database. Catalogs and
+ * databases are always shown.
  */
 
 import {
   ChevronDown,
   ChevronRight,
   Database,
+  Folder,
   FolderOpen,
   Table,
 } from "lucide-react"
@@ -20,11 +29,26 @@ import { useUiStore } from "@/stores/ui-store"
 interface CatalogTreeBrowserProps {
   selected: { catalog: string; database: string; table: string } | null
   onSelect: (sel: { catalog: string; database: string; table: string }) => void
+  /** Optional table-name filter (case-insensitive substring). */
+  filter?: string
+}
+
+/** Catalog folder color resolver. Static lookup so Tailwind's static
+ *  scanner sees full utility class strings. */
+function catalogIconClass(connectorType: string): string {
+  const t = connectorType.toLowerCase()
+  if (t.includes("paimon")) return "text-fr-coral"
+  if (t.includes("fluss")) return "text-fr-teal"
+  if (t.includes("hive")) return "text-fr-purple"
+  if (t.includes("jdbc")) return "text-fr-rose"
+  if (t.includes("iceberg")) return "text-fr-sage"
+  return "text-fr-amber"
 }
 
 export function CatalogTreeBrowser({
   selected,
   onSelect,
+  filter,
 }: CatalogTreeBrowserProps) {
   const catalogs = useCatalogStore((s) => s.catalogs)
   const databases = useCatalogStore((s) => s.databases)
@@ -33,6 +57,8 @@ export function CatalogTreeBrowser({
   const toggleNode = useCatalogStore((s) => s.toggleNode)
   const expanded = useUiStore((s) => s.catalogTreeExpanded)
   const toggleExpand = useUiStore((s) => s.toggleCatalogTreeNode)
+
+  const filterLower = filter?.trim().toLowerCase() ?? ""
 
   if (catalogs.length === 0) {
     return (
@@ -47,6 +73,8 @@ export function CatalogTreeBrowser({
       {catalogs.map((c) => {
         const cKey = c.name
         const cOpen = expanded[cKey] ?? false
+        const iconClass = catalogIconClass(c.connectorType ?? "")
+        const FolderIcon = cOpen ? FolderOpen : Folder
         return (
           <div key={cKey}>
             <button
@@ -59,14 +87,14 @@ export function CatalogTreeBrowser({
               aria-expanded={cOpen}
             >
               {cOpen ? (
-                <ChevronDown className="text-fg-faint size-3" />
+                <ChevronDown className="size-3 text-fg-faint" />
               ) : (
-                <ChevronRight className="text-fg-faint size-3" />
+                <ChevronRight className="size-3 text-fg-faint" />
               )}
-              <FolderOpen className="text-fr-amber size-3.5" />
-              <span className="font-mono">{c.name}</span>
+              <FolderIcon className={`size-3.5 ${iconClass}`} />
+              <span className="font-mono text-[12.5px]">{c.name}</span>
               <span className="ml-auto font-mono text-[10px] text-fg-faint">
-                {c.databaseCount} dbs
+                {c.databaseCount} db{c.databaseCount === 1 ? "" : "s"}
               </span>
             </button>
             {cOpen
@@ -77,7 +105,7 @@ export function CatalogTreeBrowser({
                     <div key={dbKey}>
                       <button
                         type="button"
-                        className="file-tree-row w-full text-left pl-5"
+                        className="file-tree-row w-full pl-5 text-left"
                         onClick={() => {
                           toggleExpand(dbKey)
                           toggleNode(dbKey, c.name, db.name)
@@ -85,47 +113,53 @@ export function CatalogTreeBrowser({
                         aria-expanded={dbOpen}
                       >
                         {dbOpen ? (
-                          <ChevronDown className="text-fg-faint size-3" />
+                          <ChevronDown className="size-3 text-fg-faint" />
                         ) : (
-                          <ChevronRight className="text-fg-faint size-3" />
+                          <ChevronRight className="size-3 text-fg-faint" />
                         )}
-                        <Database className="text-fr-amber size-3.5" />
+                        <Database className="size-3.5 text-fr-amber" />
                         <span className="font-mono">{db.name}</span>
                       </button>
                       {dbOpen
-                        ? (tables[dbKey] ?? []).map((t) => {
-                            const tKey = `${dbKey}/${t.name}`
-                            const isSelected =
-                              selected?.catalog === c.name &&
-                              selected?.database === db.name &&
-                              selected?.table === t.name
-                            return (
-                              <button
-                                key={tKey}
-                                type="button"
-                                className={`file-tree-row w-full text-left pl-10 ${isSelected ? "active" : ""}`}
-                                onClick={() =>
-                                  onSelect({
-                                    catalog: c.name,
-                                    database: db.name,
-                                    table: t.name,
-                                  })
-                                }
-                              >
-                                <Table
-                                  className={`size-3.5 ${isSelected ? "text-fr-coral" : "text-fg-faint"}`}
-                                />
-                                <span
-                                  className={`font-mono ${isSelected ? "text-fr-coral" : "text-fg"}`}
-                                >
-                                  {t.name}
-                                </span>
-                              </button>
+                        ? (tables[dbKey] ?? [])
+                            .filter(
+                              (t) =>
+                                filterLower === "" ||
+                                t.name.toLowerCase().includes(filterLower),
                             )
-                          })
+                            .map((t) => {
+                              const tKey = `${dbKey}/${t.name}`
+                              const isSelected =
+                                selected?.catalog === c.name &&
+                                selected?.database === db.name &&
+                                selected?.table === t.name
+                              return (
+                                <button
+                                  key={tKey}
+                                  type="button"
+                                  className={`file-tree-row w-full pl-10 text-left ${isSelected ? "active" : ""}`}
+                                  onClick={() =>
+                                    onSelect({
+                                      catalog: c.name,
+                                      database: db.name,
+                                      table: t.name,
+                                    })
+                                  }
+                                >
+                                  <Table
+                                    className={`size-3.5 ${isSelected ? "text-fr-coral" : "text-fr-sage"}`}
+                                  />
+                                  <span
+                                    className={`font-mono text-[12px] ${isSelected ? "text-fr-coral" : "text-fg"}`}
+                                  >
+                                    {t.name}
+                                  </span>
+                                </button>
+                              )
+                            })
                         : null}
                       {dbOpen && loadingNodes.has(dbKey) ? (
-                        <p className="pl-10 text-[10px] font-mono text-fg-faint">
+                        <p className="pl-10 font-mono text-[10px] text-fg-faint">
                           loading…
                         </p>
                       ) : null}
@@ -134,7 +168,7 @@ export function CatalogTreeBrowser({
                 })
               : null}
             {cOpen && loadingNodes.has(cKey) ? (
-              <p className="pl-5 text-[10px] font-mono text-fg-faint">
+              <p className="pl-5 font-mono text-[10px] text-fg-faint">
                 loading…
               </p>
             ) : null}
