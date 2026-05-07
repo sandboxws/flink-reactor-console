@@ -22,14 +22,18 @@ import {
   type ErrorGroup,
   type StatusIconState,
 } from "@flink-reactor/ui"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   ArrowUpDown,
+  BellOff,
+  BellPlus,
   CalendarClock,
   CheckCircle2,
   Download,
+  ExternalLink,
   Layers,
   Sliders,
+  Users,
   X,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
@@ -50,20 +54,117 @@ function timeAgo(date: Date | null | undefined): string {
   return `${Math.floor(hours / 24)}d`
 }
 
+function pad2(n: number): string {
+  return n.toString().padStart(2, "0")
+}
+
+function hhmmssms(d: Date): string {
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}.${d.getMilliseconds().toString().padStart(3, "0")}`
+}
+
 /**
- * Map a group's count + recency to a status-icon state.
+ * Tokenize a Java/Scala stack trace into colored spans.
  *
- * NOTE: never returns "resolved" — there is no backend resolution model
- * yet, and auto-resolving by age would silently hide legitimate ongoing
- * exception groups (the "logs page shows errors but errors page is empty"
- * bug). When a resolution action ships, this fn becomes a fallback for
- * groups the backend hasn't classified.
+ * Recognizes three line shapes:
+ *  - First line / "Caused by:" — `<class>: <message>` → exception class in
+ *    rose (active error tone), message in default fg.
+ *  - `at <fully.qualified.method>(<file>:<line>)` — keyword "at" dimmed,
+ *    method ref via `.tk-fn`, parenthesized location via `.tk-pun`.
+ *  - `... N more` and other tail markers — dimmed via `.tk-com`.
+ *
+ * Inline tokenizer (no parser dep) — exception traces are line-oriented
+ * and each line classifies independently.
+ */
+function StackTraceTokens({ text }: { text: string }) {
+  const lines = text.split("\n")
+  return (
+    <>
+      {lines.map((rawLine, i) => {
+        // biome-ignore lint/suspicious/noArrayIndexKey: positional line number
+        const key = i
+        const line = rawLine.replace(/\s+$/, "")
+        if (line.length === 0) return <div key={key}>&nbsp;</div>
+
+        // "  ... N more"
+        const moreMatch = line.match(/^(\s*)(\.\.\.\s+.*)$/)
+        if (moreMatch) {
+          return (
+            <div key={key}>
+              {moreMatch[1]}
+              <span className="tk-com">{moreMatch[2]}</span>
+            </div>
+          )
+        }
+
+        // "  at fully.qualified.method(File.java:123)"
+        const atMatch = line.match(/^(\s*)at\s+([^(]+)(\(.*\))?\s*$/)
+        if (atMatch) {
+          const indent = atMatch[1]
+          const target = atMatch[2]
+          const loc = atMatch[3] ?? ""
+          return (
+            <div key={key}>
+              {indent}
+              <span className="tk-com">at </span>
+              <span className="tk-fn">{target}</span>
+              {loc ? <span className="tk-pun">{loc}</span> : null}
+            </div>
+          )
+        }
+
+        // "Caused by: org.foo.Bar: message"
+        const causedMatch = line.match(/^(Caused by:|Suppressed:)\s*(.*)$/)
+        if (causedMatch) {
+          const head = causedMatch[1]
+          const rest = causedMatch[2]
+          const colonIdx = rest.indexOf(":")
+          const cls = colonIdx === -1 ? rest : rest.slice(0, colonIdx)
+          const msg = colonIdx === -1 ? "" : rest.slice(colonIdx)
+          return (
+            <div key={key}>
+              <span className="tk-key">{head} </span>
+              <span className="text-fr-rose">{cls}</span>
+              <span className="text-fg">{msg}</span>
+            </div>
+          )
+        }
+
+        // Header line: "org.foo.Bar: message"
+        const headMatch = line.match(/^([\w.$]+(?:Exception|Error|Throwable))(:.*)?$/)
+        if (headMatch) {
+          return (
+            <div key={key}>
+              <span className="text-fr-rose">{headMatch[1]}</span>
+              <span className="text-fg">{headMatch[2] ?? ""}</span>
+            </div>
+          )
+        }
+
+        // Default — render dim
+        return (
+          <div key={key} className="text-fg-muted">
+            {line}
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
+/**
+ * Map a group's recency to a status-icon state.
+ *
+ * Only two states are derivable without backend signals:
+ *  - `firing`: the group has occurred recently (not stale).
+ *  - `suppressed`: no occurrences in the last 24h.
+ *
+ * The other StatusIcon states (`acknowledged`, `in-progress`, `resolved`,
+ * `silenced`) all imply human action or a backend lifecycle we don't
+ * track yet. Using them off heuristic count thresholds is misleading
+ * (e.g. labelling a 15-count group "acknowledged" when nobody acked it).
  */
 function groupState(g: ErrorGroup): StatusIconState {
-  const minutesSinceLast = (Date.now() - g.lastSeen.getTime()) / 60000
-  if (g.count >= 50 || (g.count >= 10 && minutesSinceLast < 5)) return "firing"
-  if (g.count >= 5) return "acknowledged"
-  return "in-progress"
+  return isStale(g) ? "suppressed" : "firing"
 }
 
 /** A group with no occurrences in 24h — eligible for the optional "Hide stale" filter. */
@@ -275,15 +376,10 @@ function HubErrors() {
               {visibleGroups.map((g) => {
                 const state = groupState(g)
                 const isSelected = selected?.id === g.id
-                const stale = isStale(g)
-                const accent =
-                  state === "firing"
-                    ? "text-fr-rose"
-                    : state === "acknowledged"
-                      ? "text-fr-amber"
-                      : "text-fg-muted"
+                const stale = state === "suppressed"
+                const accent = stale ? "text-fg-muted" : "text-fr-rose"
                 const className =
-                  "grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer text-left w-full"
+                  "grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer text-left w-full transition-colors"
                 return (
                   <button
                     type="button"
@@ -292,10 +388,12 @@ function HubErrors() {
                     className={className}
                     style={
                       isSelected
-                        ? { background: "rgba(231,138,78,0.08)" }
-                        : state === "firing"
-                          ? { background: "rgba(231,138,78,0.04)" }
-                          : undefined
+                        ? {
+                            background: "rgba(231,138,78,0.06)",
+                            boxShadow:
+                              "inset 0 0 0 1px rgba(231,138,78,0.35)",
+                          }
+                        : undefined
                     }
                   >
                     <StatusIcon state={state} />
@@ -313,7 +411,7 @@ function HubErrors() {
                     </div>
                     <div className="text-right">
                       <div
-                        className={`font-mono text-[13px] ${state === "firing" ? "text-fr-rose font-semibold" : "text-fg"}`}
+                        className={`font-mono text-[13px] ${stale ? "text-fg-muted" : "text-fr-rose font-semibold"}`}
                       >
                         {g.count}
                       </div>
@@ -368,12 +466,7 @@ function ErrorDetailCard({
   onClose: () => void
 }) {
   const state = groupState(group)
-  const sevTone =
-    state === "firing"
-      ? "fail"
-      : state === "acknowledged"
-        ? "warn"
-        : "info"
+  const sevTone = state === "firing" ? "fail" : "muted"
 
   // Sparkbar bins: 24 hourly bins of group occurrences (newest on right).
   const bins = useMemo(() => {
@@ -386,6 +479,13 @@ function ErrorDetailCard({
     return buckets
   }, [group.occurrences])
   const maxBin = Math.max(1, ...bins)
+
+  // Most recent 4 occurrences, newest first.
+  const recentOccurrences = useMemo(() => {
+    return [...group.occurrences]
+      .sort((a, b) => b.getTime() - a.getTime())
+      .slice(0, 4)
+  }, [group.occurrences])
 
   return (
     <div className="glass-card-static p-5">
@@ -459,10 +559,90 @@ function ErrorDetailCard({
             Stack trace
           </div>
           <pre className="rounded bg-fr-bg/60 p-2.5 font-mono text-[11px] leading-relaxed text-fg-muted overflow-x-auto whitespace-pre max-h-72">
-            {group.sampleEntry.stackTrace}
+            <StackTraceTokens text={group.sampleEntry.stackTrace} />
           </pre>
         </>
       ) : null}
+
+      {/* ── Recent occurrences ──────────────────────────────── */}
+      <div className="my-4 border-t border-dash-border" />
+      <div className="mb-2 flex items-center justify-between">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-fg-faint">
+          Recent occurrences
+        </div>
+        <span className="font-mono text-[10px] text-fg-faint">
+          showing {recentOccurrences.length} of {group.count}
+        </span>
+      </div>
+      <ul className="space-y-1 font-mono text-[11.5px]">
+        {recentOccurrences.map((t, i) => {
+          const src =
+            group.affectedSources[i % Math.max(1, group.affectedSources.length)]
+          return (
+            <li
+              // biome-ignore lint/suspicious/noArrayIndexKey: positional in ordered list
+              key={i}
+              className="flex items-center gap-2 rounded px-2 py-1 bg-fr-bg/40"
+            >
+              <span className="text-fg-faint">
+                {hhmmssms(t)}
+              </span>
+              <span className="text-fr-rose font-semibold">ERROR</span>
+              <span className="text-fg-muted">{src?.label ?? "—"}</span>
+              <span className="ml-auto text-fg-faint">
+                {timeAgo(t)} ago
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+      <Link
+        to="/hub/logs"
+        className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-fr-coral hover:underline"
+      >
+        View all {group.count.toLocaleString()} in logs
+        <ExternalLink className="size-3" />
+      </Link>
+
+      {/* ── Action grid ──────────────────────────────────────── */}
+      <div className="my-4 border-t border-dash-border" />
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm w-full"
+          disabled
+          aria-label="Mute (mute backend not implemented)"
+        >
+          <BellOff />
+          Mute 1h
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm w-full"
+          disabled
+          aria-label="Assign (ownership not implemented)"
+        >
+          <Users />
+          Assign
+        </button>
+        <Link
+          to="/hub/logs"
+          className="btn btn-secondary btn-sm w-full"
+          aria-label="Open in logs"
+        >
+          <ExternalLink />
+          Open in logs
+        </Link>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm w-full"
+          disabled
+          aria-label="Create alert (alerting backend not implemented)"
+        >
+          <BellPlus />
+          Create alert
+        </button>
+      </div>
     </div>
   )
 }
