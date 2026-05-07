@@ -22,9 +22,12 @@ import {
 } from "@flink-reactor/ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
+  BellPlus,
   BookmarkPlus,
   Copy,
   Download,
+  ExternalLink,
+  Filter as FilterIcon,
   Pause,
   Play,
   Terminal,
@@ -339,7 +342,10 @@ function HubLogs() {
           <aside className="col-span-12 xl:col-span-4">
             <LogDetailCard
               entry={selected}
+              entries={filtered}
               onClose={() => setSelectedId(null)}
+              onSelect={setSelectedId}
+              onFilter={(token) => setQuery(token)}
             />
           </aside>
         ) : null}
@@ -398,11 +404,28 @@ function LogRow({
 
 function LogDetailCard({
   entry,
+  entries,
   onClose,
+  onSelect,
+  onFilter,
 }: {
   entry: LogEntry
+  entries: LogEntry[]
   onClose: () => void
+  onSelect: (id: string) => void
+  onFilter: (token: string) => void
 }) {
+  const idx = entries.findIndex((e) => e.id === entry.id)
+  const prev = idx > 0 ? entries[idx - 1] : null
+  const next = idx >= 0 && idx < entries.length - 1 ? entries[idx + 1] : null
+
+  const handleCopy = () => {
+    const text = entry.stackTrace
+      ? `${formatHHMMSSms(entry.timestamp)} ${entry.level} [${entry.source.label}] ${entry.message}\n${entry.stackTrace}`
+      : `${formatHHMMSSms(entry.timestamp)} ${entry.level} [${entry.source.label}] ${entry.message}`
+    void navigator.clipboard.writeText(text)
+  }
+
   return (
     <div className="glass-card-static p-4 sticky top-20">
       <div className="mb-3 flex items-center justify-between">
@@ -478,7 +501,101 @@ function LogDetailCard({
           </pre>
         </>
       ) : null}
+
+      {/* ── Action grid ──────────────────────────────────────── */}
+      <div className="my-3 border-t border-dash-border" />
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm w-full"
+          onClick={handleCopy}
+        >
+          <Copy />
+          Copy
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm w-full"
+          disabled
+          aria-label="Create alert (alerting backend not implemented)"
+        >
+          <BellPlus />
+          Alert
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm w-full"
+          onClick={() => onFilter(entry.source.label)}
+          title={`Filter the stream to ${entry.source.label}`}
+        >
+          <FilterIcon />
+          Filter
+        </button>
+        <Link
+          to="/hub/errors"
+          className="btn btn-secondary btn-sm w-full"
+          aria-label="Open the Errors page"
+        >
+          <ExternalLink />
+          Errors
+        </Link>
+      </div>
+
+      {/* ── Surrounding entries ──────────────────────────────── */}
+      {prev || next ? (
+        <>
+          <div className="my-3 border-t border-dash-border" />
+          <div className="text-[10px] font-mono uppercase tracking-wider text-fg-faint mb-2">
+            Surrounding
+          </div>
+          <div className="space-y-1 font-mono text-[11px]">
+            {prev ? (
+              <SurroundingRow entry={prev} onSelect={onSelect} />
+            ) : null}
+            <SurroundingRow entry={entry} current onSelect={onSelect} />
+            {next ? (
+              <SurroundingRow entry={next} onSelect={onSelect} />
+            ) : null}
+          </div>
+        </>
+      ) : null}
     </div>
+  )
+}
+
+function SurroundingRow({
+  entry,
+  current,
+  onSelect,
+}: {
+  entry: LogEntry
+  current?: boolean
+  onSelect: (id: string) => void
+}) {
+  const tone = LEVEL_TONE[entry.level]
+  const message =
+    entry.message.length > 60
+      ? `${entry.message.slice(0, 60)}…`
+      : entry.message
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(entry.id)}
+      className="block w-full text-left rounded px-2 py-1 hover:bg-dash-elevated/40 truncate"
+    >
+      <span className="text-fg-faint">{formatHHMMSSms(entry.timestamp)}</span>{" "}
+      <span
+        className={current ? "font-semibold" : ""}
+        style={{ color: tone }}
+      >
+        {entry.level}
+      </span>{" "}
+      <span className={current ? "text-fg" : "text-fg-muted"}>
+        {message}
+        {current ? " ←" : ""}
+      </span>
+    </button>
   )
 }
 
