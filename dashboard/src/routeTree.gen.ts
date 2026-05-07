@@ -18,6 +18,7 @@ import { Route as TaskManagersIndexRouteImport } from './routes/task-managers/in
 import { Route as SandboxIndexRouteImport } from './routes/sandbox/index'
 import { Route as MaterializedTablesIndexRouteImport } from './routes/materialized-tables/index'
 import { Route as InstrumentsIndexRouteImport } from './routes/instruments/index'
+import { Route as HubIndexRouteImport } from './routes/hub/index'
 import { Route as DeploymentsIndexRouteImport } from './routes/deployments/index'
 import { Route as CatalogsIndexRouteImport } from './routes/catalogs/index'
 import { Route as TaskManagersIdRouteImport } from './routes/task-managers/$id'
@@ -33,12 +34,40 @@ import { Route as InstrumentsInstrumentNameRouteImport } from './routes/instrume
 import { Route as InsightsMetricsRouteImport } from './routes/insights/metrics'
 import { Route as InsightsHealthRouteImport } from './routes/insights/health'
 import { Route as InsightsBottlenecksRouteImport } from './routes/insights/bottlenecks'
+import { Route as HubSqlExplorerRouteImport } from './routes/hub/sql-explorer'
+import { Route as HubSandboxRouteImport } from './routes/hub/sandbox'
+import { Route as HubLogsRouteImport } from './routes/hub/logs'
+import { Route as HubJobManagerRouteImport } from './routes/hub/job-manager'
+import { Route as HubErrorsRouteImport } from './routes/hub/errors'
+import { Route as Hub_shellTestRouteImport } from './routes/hub/__shell-test'
 import { Route as DeploymentsNameRouteImport } from './routes/deployments/$name'
 import { Route as CatalogsExploreRouteImport } from './routes/catalogs/explore'
 import { Route as CatalogsAvailableRouteImport } from './routes/catalogs/available'
 import { Route as InstrumentsInstrumentNameIndexRouteImport } from './routes/instruments/$instrumentName/index'
+import { Route as HubTaskManagersIndexRouteImport } from './routes/hub/task-managers/index'
+import { Route as HubMaterializedTablesIndexRouteImport } from './routes/hub/materialized-tables/index'
+import { Route as HubInstrumentsIndexRouteImport } from './routes/hub/instruments/index'
+import { Route as HubDeploymentsIndexRouteImport } from './routes/hub/deployments/index'
+import { Route as HubCatalogsIndexRouteImport } from './routes/hub/catalogs/index'
 import { Route as AdminSimulationsIndexRouteImport } from './routes/admin/simulations/index'
 import { Route as AdminBenchmarksIndexRouteImport } from './routes/admin/benchmarks/index'
+import { Route as HubTaskManagersIdRouteImport } from './routes/hub/task-managers/$id'
+import { Route as HubMonitoringCheckpointsRouteImport } from './routes/hub/monitoring/checkpoints'
+import { Route as HubMonitoringAlertsRouteImport } from './routes/hub/monitoring/alerts'
+import { Route as HubMaterializedTablesNameRouteImport } from './routes/hub/materialized-tables/$name'
+import { Route as HubJobsSubmitRouteImport } from './routes/hub/jobs/submit'
+import { Route as HubJobsRunningRouteImport } from './routes/hub/jobs/running'
+import { Route as HubJobsCompletedRouteImport } from './routes/hub/jobs/completed'
+import { Route as HubJobsIdRouteImport } from './routes/hub/jobs/$id'
+import { Route as HubInstrumentsSchemaRegistryRouteImport } from './routes/hub/instruments/schema-registry'
+import { Route as HubInstrumentsRedisRouteImport } from './routes/hub/instruments/redis'
+import { Route as HubInstrumentsFlussRouteImport } from './routes/hub/instruments/fluss'
+import { Route as HubInstrumentsDatabaseRouteImport } from './routes/hub/instruments/database'
+import { Route as HubInsightsMetricsRouteImport } from './routes/hub/insights/metrics'
+import { Route as HubInsightsHealthRouteImport } from './routes/hub/insights/health'
+import { Route as HubInsightsBottlenecksRouteImport } from './routes/hub/insights/bottlenecks'
+import { Route as HubDeploymentsNameRouteImport } from './routes/hub/deployments/$name'
+import { Route as HubAdminSimulationsRouteImport } from './routes/hub/admin/simulations'
 import { Route as AdminSimulationsRunIdRouteImport } from './routes/admin/simulations/$runId'
 import { Route as InstrumentsInstrumentNameSchemaRegistryIndexRouteImport } from './routes/instruments/$instrumentName/schema-registry/index'
 import { Route as InstrumentsInstrumentNameRedisIndexRouteImport } from './routes/instruments/$instrumentName/redis/index'
@@ -96,6 +125,11 @@ const MaterializedTablesIndexRoute = MaterializedTablesIndexRouteImport.update({
 const InstrumentsIndexRoute = InstrumentsIndexRouteImport.update({
   id: '/instruments/',
   path: '/instruments/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubIndexRoute = HubIndexRouteImport.update({
+  id: '/hub/',
+  path: '/hub/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeploymentsIndexRoute = DeploymentsIndexRouteImport.update({
@@ -174,6 +208,36 @@ const InsightsBottlenecksRoute = InsightsBottlenecksRouteImport.update({
   path: '/insights/bottlenecks',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HubSqlExplorerRoute = HubSqlExplorerRouteImport.update({
+  id: '/hub/sql-explorer',
+  path: '/hub/sql-explorer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubSandboxRoute = HubSandboxRouteImport.update({
+  id: '/hub/sandbox',
+  path: '/hub/sandbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubLogsRoute = HubLogsRouteImport.update({
+  id: '/hub/logs',
+  path: '/hub/logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubJobManagerRoute = HubJobManagerRouteImport.update({
+  id: '/hub/job-manager',
+  path: '/hub/job-manager',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubErrorsRoute = HubErrorsRouteImport.update({
+  id: '/hub/errors',
+  path: '/hub/errors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Hub_shellTestRoute = Hub_shellTestRouteImport.update({
+  id: '/hub/__shell-test',
+  path: '/hub',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeploymentsNameRoute = DeploymentsNameRouteImport.update({
   id: '/deployments/$name',
   path: '/deployments/$name',
@@ -195,6 +259,32 @@ const InstrumentsInstrumentNameIndexRoute =
     path: '/',
     getParentRoute: () => InstrumentsInstrumentNameRoute,
   } as any)
+const HubTaskManagersIndexRoute = HubTaskManagersIndexRouteImport.update({
+  id: '/hub/task-managers/',
+  path: '/hub/task-managers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubMaterializedTablesIndexRoute =
+  HubMaterializedTablesIndexRouteImport.update({
+    id: '/hub/materialized-tables/',
+    path: '/hub/materialized-tables/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsIndexRoute = HubInstrumentsIndexRouteImport.update({
+  id: '/hub/instruments/',
+  path: '/hub/instruments/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubDeploymentsIndexRoute = HubDeploymentsIndexRouteImport.update({
+  id: '/hub/deployments/',
+  path: '/hub/deployments/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubCatalogsIndexRoute = HubCatalogsIndexRouteImport.update({
+  id: '/hub/catalogs/',
+  path: '/hub/catalogs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSimulationsIndexRoute = AdminSimulationsIndexRouteImport.update({
   id: '/admin/simulations/',
   path: '/admin/simulations/',
@@ -203,6 +293,94 @@ const AdminSimulationsIndexRoute = AdminSimulationsIndexRouteImport.update({
 const AdminBenchmarksIndexRoute = AdminBenchmarksIndexRouteImport.update({
   id: '/admin/benchmarks/',
   path: '/admin/benchmarks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubTaskManagersIdRoute = HubTaskManagersIdRouteImport.update({
+  id: '/hub/task-managers/$id',
+  path: '/hub/task-managers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubMonitoringCheckpointsRoute =
+  HubMonitoringCheckpointsRouteImport.update({
+    id: '/hub/monitoring/checkpoints',
+    path: '/hub/monitoring/checkpoints',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubMonitoringAlertsRoute = HubMonitoringAlertsRouteImport.update({
+  id: '/hub/monitoring/alerts',
+  path: '/hub/monitoring/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubMaterializedTablesNameRoute =
+  HubMaterializedTablesNameRouteImport.update({
+    id: '/hub/materialized-tables/$name',
+    path: '/hub/materialized-tables/$name',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubJobsSubmitRoute = HubJobsSubmitRouteImport.update({
+  id: '/hub/jobs/submit',
+  path: '/hub/jobs/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubJobsRunningRoute = HubJobsRunningRouteImport.update({
+  id: '/hub/jobs/running',
+  path: '/hub/jobs/running',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubJobsCompletedRoute = HubJobsCompletedRouteImport.update({
+  id: '/hub/jobs/completed',
+  path: '/hub/jobs/completed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubJobsIdRoute = HubJobsIdRouteImport.update({
+  id: '/hub/jobs/$id',
+  path: '/hub/jobs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubInstrumentsSchemaRegistryRoute =
+  HubInstrumentsSchemaRegistryRouteImport.update({
+    id: '/hub/instruments/schema-registry',
+    path: '/hub/instruments/schema-registry',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsRedisRoute = HubInstrumentsRedisRouteImport.update({
+  id: '/hub/instruments/redis',
+  path: '/hub/instruments/redis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubInstrumentsFlussRoute = HubInstrumentsFlussRouteImport.update({
+  id: '/hub/instruments/fluss',
+  path: '/hub/instruments/fluss',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubInstrumentsDatabaseRoute = HubInstrumentsDatabaseRouteImport.update({
+  id: '/hub/instruments/database',
+  path: '/hub/instruments/database',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubInsightsMetricsRoute = HubInsightsMetricsRouteImport.update({
+  id: '/hub/insights/metrics',
+  path: '/hub/insights/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubInsightsHealthRoute = HubInsightsHealthRouteImport.update({
+  id: '/hub/insights/health',
+  path: '/hub/insights/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubInsightsBottlenecksRoute = HubInsightsBottlenecksRouteImport.update({
+  id: '/hub/insights/bottlenecks',
+  path: '/hub/insights/bottlenecks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubDeploymentsNameRoute = HubDeploymentsNameRouteImport.update({
+  id: '/hub/deployments/$name',
+  path: '/hub/deployments/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubAdminSimulationsRoute = HubAdminSimulationsRouteImport.update({
+  id: '/hub/admin/simulations',
+  path: '/hub/admin/simulations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSimulationsRunIdRoute = AdminSimulationsRunIdRouteImport.update({
@@ -292,6 +470,12 @@ export interface FileRoutesByFullPath {
   '/catalogs/available': typeof CatalogsAvailableRoute
   '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
+  '/hub': typeof Hub_shellTestRoute
+  '/hub/errors': typeof HubErrorsRoute
+  '/hub/job-manager': typeof HubJobManagerRoute
+  '/hub/logs': typeof HubLogsRoute
+  '/hub/sandbox': typeof HubSandboxRoute
+  '/hub/sql-explorer': typeof HubSqlExplorerRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
@@ -307,13 +491,36 @@ export interface FileRoutesByFullPath {
   '/task-managers/$id': typeof TaskManagersIdRoute
   '/catalogs/': typeof CatalogsIndexRoute
   '/deployments/': typeof DeploymentsIndexRoute
+  '/hub/': typeof HubIndexRoute
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
   '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
+  '/hub/admin/simulations': typeof HubAdminSimulationsRoute
+  '/hub/deployments/$name': typeof HubDeploymentsNameRoute
+  '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
+  '/hub/insights/health': typeof HubInsightsHealthRoute
+  '/hub/insights/metrics': typeof HubInsightsMetricsRoute
+  '/hub/instruments/database': typeof HubInstrumentsDatabaseRoute
+  '/hub/instruments/fluss': typeof HubInstrumentsFlussRoute
+  '/hub/instruments/redis': typeof HubInstrumentsRedisRoute
+  '/hub/instruments/schema-registry': typeof HubInstrumentsSchemaRegistryRoute
+  '/hub/jobs/$id': typeof HubJobsIdRoute
+  '/hub/jobs/completed': typeof HubJobsCompletedRoute
+  '/hub/jobs/running': typeof HubJobsRunningRoute
+  '/hub/jobs/submit': typeof HubJobsSubmitRoute
+  '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
+  '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
+  '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
+  '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks/': typeof AdminBenchmarksIndexRoute
   '/admin/simulations/': typeof AdminSimulationsIndexRoute
+  '/hub/catalogs/': typeof HubCatalogsIndexRoute
+  '/hub/deployments/': typeof HubDeploymentsIndexRoute
+  '/hub/instruments/': typeof HubInstrumentsIndexRoute
+  '/hub/materialized-tables/': typeof HubMaterializedTablesIndexRoute
+  '/hub/task-managers/': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
@@ -337,6 +544,12 @@ export interface FileRoutesByTo {
   '/catalogs/available': typeof CatalogsAvailableRoute
   '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
+  '/hub': typeof HubIndexRoute
+  '/hub/errors': typeof HubErrorsRoute
+  '/hub/job-manager': typeof HubJobManagerRoute
+  '/hub/logs': typeof HubLogsRoute
+  '/hub/sandbox': typeof HubSandboxRoute
+  '/hub/sql-explorer': typeof HubSqlExplorerRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
@@ -356,8 +569,30 @@ export interface FileRoutesByTo {
   '/sandbox': typeof SandboxIndexRoute
   '/task-managers': typeof TaskManagersIndexRoute
   '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
+  '/hub/admin/simulations': typeof HubAdminSimulationsRoute
+  '/hub/deployments/$name': typeof HubDeploymentsNameRoute
+  '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
+  '/hub/insights/health': typeof HubInsightsHealthRoute
+  '/hub/insights/metrics': typeof HubInsightsMetricsRoute
+  '/hub/instruments/database': typeof HubInstrumentsDatabaseRoute
+  '/hub/instruments/fluss': typeof HubInstrumentsFlussRoute
+  '/hub/instruments/redis': typeof HubInstrumentsRedisRoute
+  '/hub/instruments/schema-registry': typeof HubInstrumentsSchemaRegistryRoute
+  '/hub/jobs/$id': typeof HubJobsIdRoute
+  '/hub/jobs/completed': typeof HubJobsCompletedRoute
+  '/hub/jobs/running': typeof HubJobsRunningRoute
+  '/hub/jobs/submit': typeof HubJobsSubmitRoute
+  '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
+  '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
+  '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
+  '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks': typeof AdminBenchmarksIndexRoute
   '/admin/simulations': typeof AdminSimulationsIndexRoute
+  '/hub/catalogs': typeof HubCatalogsIndexRoute
+  '/hub/deployments': typeof HubDeploymentsIndexRoute
+  '/hub/instruments': typeof HubInstrumentsIndexRoute
+  '/hub/materialized-tables': typeof HubMaterializedTablesIndexRoute
+  '/hub/task-managers': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
@@ -382,6 +617,12 @@ export interface FileRoutesById {
   '/catalogs/available': typeof CatalogsAvailableRoute
   '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
+  '/hub/__shell-test': typeof Hub_shellTestRoute
+  '/hub/errors': typeof HubErrorsRoute
+  '/hub/job-manager': typeof HubJobManagerRoute
+  '/hub/logs': typeof HubLogsRoute
+  '/hub/sandbox': typeof HubSandboxRoute
+  '/hub/sql-explorer': typeof HubSqlExplorerRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
   '/insights/metrics': typeof InsightsMetricsRoute
@@ -397,13 +638,36 @@ export interface FileRoutesById {
   '/task-managers/$id': typeof TaskManagersIdRoute
   '/catalogs/': typeof CatalogsIndexRoute
   '/deployments/': typeof DeploymentsIndexRoute
+  '/hub/': typeof HubIndexRoute
   '/instruments/': typeof InstrumentsIndexRoute
   '/materialized-tables/': typeof MaterializedTablesIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
   '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
+  '/hub/admin/simulations': typeof HubAdminSimulationsRoute
+  '/hub/deployments/$name': typeof HubDeploymentsNameRoute
+  '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
+  '/hub/insights/health': typeof HubInsightsHealthRoute
+  '/hub/insights/metrics': typeof HubInsightsMetricsRoute
+  '/hub/instruments/database': typeof HubInstrumentsDatabaseRoute
+  '/hub/instruments/fluss': typeof HubInstrumentsFlussRoute
+  '/hub/instruments/redis': typeof HubInstrumentsRedisRoute
+  '/hub/instruments/schema-registry': typeof HubInstrumentsSchemaRegistryRoute
+  '/hub/jobs/$id': typeof HubJobsIdRoute
+  '/hub/jobs/completed': typeof HubJobsCompletedRoute
+  '/hub/jobs/running': typeof HubJobsRunningRoute
+  '/hub/jobs/submit': typeof HubJobsSubmitRoute
+  '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
+  '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
+  '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
+  '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks/': typeof AdminBenchmarksIndexRoute
   '/admin/simulations/': typeof AdminSimulationsIndexRoute
+  '/hub/catalogs/': typeof HubCatalogsIndexRoute
+  '/hub/deployments/': typeof HubDeploymentsIndexRoute
+  '/hub/instruments/': typeof HubInstrumentsIndexRoute
+  '/hub/materialized-tables/': typeof HubMaterializedTablesIndexRoute
+  '/hub/task-managers/': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
@@ -429,6 +693,12 @@ export interface FileRouteTypes {
     | '/catalogs/available'
     | '/catalogs/explore'
     | '/deployments/$name'
+    | '/hub'
+    | '/hub/errors'
+    | '/hub/job-manager'
+    | '/hub/logs'
+    | '/hub/sandbox'
+    | '/hub/sql-explorer'
     | '/insights/bottlenecks'
     | '/insights/health'
     | '/insights/metrics'
@@ -444,13 +714,36 @@ export interface FileRouteTypes {
     | '/task-managers/$id'
     | '/catalogs/'
     | '/deployments/'
+    | '/hub/'
     | '/instruments/'
     | '/materialized-tables/'
     | '/sandbox/'
     | '/task-managers/'
     | '/admin/simulations/$runId'
+    | '/hub/admin/simulations'
+    | '/hub/deployments/$name'
+    | '/hub/insights/bottlenecks'
+    | '/hub/insights/health'
+    | '/hub/insights/metrics'
+    | '/hub/instruments/database'
+    | '/hub/instruments/fluss'
+    | '/hub/instruments/redis'
+    | '/hub/instruments/schema-registry'
+    | '/hub/jobs/$id'
+    | '/hub/jobs/completed'
+    | '/hub/jobs/running'
+    | '/hub/jobs/submit'
+    | '/hub/materialized-tables/$name'
+    | '/hub/monitoring/alerts'
+    | '/hub/monitoring/checkpoints'
+    | '/hub/task-managers/$id'
     | '/admin/benchmarks/'
     | '/admin/simulations/'
+    | '/hub/catalogs/'
+    | '/hub/deployments/'
+    | '/hub/instruments/'
+    | '/hub/materialized-tables/'
+    | '/hub/task-managers/'
     | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
@@ -474,6 +767,12 @@ export interface FileRouteTypes {
     | '/catalogs/available'
     | '/catalogs/explore'
     | '/deployments/$name'
+    | '/hub'
+    | '/hub/errors'
+    | '/hub/job-manager'
+    | '/hub/logs'
+    | '/hub/sandbox'
+    | '/hub/sql-explorer'
     | '/insights/bottlenecks'
     | '/insights/health'
     | '/insights/metrics'
@@ -493,8 +792,30 @@ export interface FileRouteTypes {
     | '/sandbox'
     | '/task-managers'
     | '/admin/simulations/$runId'
+    | '/hub/admin/simulations'
+    | '/hub/deployments/$name'
+    | '/hub/insights/bottlenecks'
+    | '/hub/insights/health'
+    | '/hub/insights/metrics'
+    | '/hub/instruments/database'
+    | '/hub/instruments/fluss'
+    | '/hub/instruments/redis'
+    | '/hub/instruments/schema-registry'
+    | '/hub/jobs/$id'
+    | '/hub/jobs/completed'
+    | '/hub/jobs/running'
+    | '/hub/jobs/submit'
+    | '/hub/materialized-tables/$name'
+    | '/hub/monitoring/alerts'
+    | '/hub/monitoring/checkpoints'
+    | '/hub/task-managers/$id'
     | '/admin/benchmarks'
     | '/admin/simulations'
+    | '/hub/catalogs'
+    | '/hub/deployments'
+    | '/hub/instruments'
+    | '/hub/materialized-tables'
+    | '/hub/task-managers'
     | '/instruments/$instrumentName'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
@@ -518,6 +839,12 @@ export interface FileRouteTypes {
     | '/catalogs/available'
     | '/catalogs/explore'
     | '/deployments/$name'
+    | '/hub/__shell-test'
+    | '/hub/errors'
+    | '/hub/job-manager'
+    | '/hub/logs'
+    | '/hub/sandbox'
+    | '/hub/sql-explorer'
     | '/insights/bottlenecks'
     | '/insights/health'
     | '/insights/metrics'
@@ -533,13 +860,36 @@ export interface FileRouteTypes {
     | '/task-managers/$id'
     | '/catalogs/'
     | '/deployments/'
+    | '/hub/'
     | '/instruments/'
     | '/materialized-tables/'
     | '/sandbox/'
     | '/task-managers/'
     | '/admin/simulations/$runId'
+    | '/hub/admin/simulations'
+    | '/hub/deployments/$name'
+    | '/hub/insights/bottlenecks'
+    | '/hub/insights/health'
+    | '/hub/insights/metrics'
+    | '/hub/instruments/database'
+    | '/hub/instruments/fluss'
+    | '/hub/instruments/redis'
+    | '/hub/instruments/schema-registry'
+    | '/hub/jobs/$id'
+    | '/hub/jobs/completed'
+    | '/hub/jobs/running'
+    | '/hub/jobs/submit'
+    | '/hub/materialized-tables/$name'
+    | '/hub/monitoring/alerts'
+    | '/hub/monitoring/checkpoints'
+    | '/hub/task-managers/$id'
     | '/admin/benchmarks/'
     | '/admin/simulations/'
+    | '/hub/catalogs/'
+    | '/hub/deployments/'
+    | '/hub/instruments/'
+    | '/hub/materialized-tables/'
+    | '/hub/task-managers/'
     | '/instruments/$instrumentName/'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
@@ -564,6 +914,12 @@ export interface RootRouteChildren {
   CatalogsAvailableRoute: typeof CatalogsAvailableRoute
   CatalogsExploreRoute: typeof CatalogsExploreRoute
   DeploymentsNameRoute: typeof DeploymentsNameRoute
+  Hub_shellTestRoute: typeof Hub_shellTestRoute
+  HubErrorsRoute: typeof HubErrorsRoute
+  HubJobManagerRoute: typeof HubJobManagerRoute
+  HubLogsRoute: typeof HubLogsRoute
+  HubSandboxRoute: typeof HubSandboxRoute
+  HubSqlExplorerRoute: typeof HubSqlExplorerRoute
   InsightsBottlenecksRoute: typeof InsightsBottlenecksRoute
   InsightsHealthRoute: typeof InsightsHealthRoute
   InsightsMetricsRoute: typeof InsightsMetricsRoute
@@ -579,13 +935,36 @@ export interface RootRouteChildren {
   TaskManagersIdRoute: typeof TaskManagersIdRoute
   CatalogsIndexRoute: typeof CatalogsIndexRoute
   DeploymentsIndexRoute: typeof DeploymentsIndexRoute
+  HubIndexRoute: typeof HubIndexRoute
   InstrumentsIndexRoute: typeof InstrumentsIndexRoute
   MaterializedTablesIndexRoute: typeof MaterializedTablesIndexRoute
   SandboxIndexRoute: typeof SandboxIndexRoute
   TaskManagersIndexRoute: typeof TaskManagersIndexRoute
   AdminSimulationsRunIdRoute: typeof AdminSimulationsRunIdRoute
+  HubAdminSimulationsRoute: typeof HubAdminSimulationsRoute
+  HubDeploymentsNameRoute: typeof HubDeploymentsNameRoute
+  HubInsightsBottlenecksRoute: typeof HubInsightsBottlenecksRoute
+  HubInsightsHealthRoute: typeof HubInsightsHealthRoute
+  HubInsightsMetricsRoute: typeof HubInsightsMetricsRoute
+  HubInstrumentsDatabaseRoute: typeof HubInstrumentsDatabaseRoute
+  HubInstrumentsFlussRoute: typeof HubInstrumentsFlussRoute
+  HubInstrumentsRedisRoute: typeof HubInstrumentsRedisRoute
+  HubInstrumentsSchemaRegistryRoute: typeof HubInstrumentsSchemaRegistryRoute
+  HubJobsIdRoute: typeof HubJobsIdRoute
+  HubJobsCompletedRoute: typeof HubJobsCompletedRoute
+  HubJobsRunningRoute: typeof HubJobsRunningRoute
+  HubJobsSubmitRoute: typeof HubJobsSubmitRoute
+  HubMaterializedTablesNameRoute: typeof HubMaterializedTablesNameRoute
+  HubMonitoringAlertsRoute: typeof HubMonitoringAlertsRoute
+  HubMonitoringCheckpointsRoute: typeof HubMonitoringCheckpointsRoute
+  HubTaskManagersIdRoute: typeof HubTaskManagersIdRoute
   AdminBenchmarksIndexRoute: typeof AdminBenchmarksIndexRoute
   AdminSimulationsIndexRoute: typeof AdminSimulationsIndexRoute
+  HubCatalogsIndexRoute: typeof HubCatalogsIndexRoute
+  HubDeploymentsIndexRoute: typeof HubDeploymentsIndexRoute
+  HubInstrumentsIndexRoute: typeof HubInstrumentsIndexRoute
+  HubMaterializedTablesIndexRoute: typeof HubMaterializedTablesIndexRoute
+  HubTaskManagersIndexRoute: typeof HubTaskManagersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -651,6 +1030,13 @@ declare module '@tanstack/react-router' {
       path: '/instruments'
       fullPath: '/instruments/'
       preLoaderRoute: typeof InstrumentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/': {
+      id: '/hub/'
+      path: '/hub'
+      fullPath: '/hub/'
+      preLoaderRoute: typeof HubIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deployments/': {
@@ -758,6 +1144,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsBottlenecksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hub/sql-explorer': {
+      id: '/hub/sql-explorer'
+      path: '/hub/sql-explorer'
+      fullPath: '/hub/sql-explorer'
+      preLoaderRoute: typeof HubSqlExplorerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/sandbox': {
+      id: '/hub/sandbox'
+      path: '/hub/sandbox'
+      fullPath: '/hub/sandbox'
+      preLoaderRoute: typeof HubSandboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/logs': {
+      id: '/hub/logs'
+      path: '/hub/logs'
+      fullPath: '/hub/logs'
+      preLoaderRoute: typeof HubLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/job-manager': {
+      id: '/hub/job-manager'
+      path: '/hub/job-manager'
+      fullPath: '/hub/job-manager'
+      preLoaderRoute: typeof HubJobManagerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/errors': {
+      id: '/hub/errors'
+      path: '/hub/errors'
+      fullPath: '/hub/errors'
+      preLoaderRoute: typeof HubErrorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/__shell-test': {
+      id: '/hub/__shell-test'
+      path: '/hub'
+      fullPath: '/hub'
+      preLoaderRoute: typeof Hub_shellTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/deployments/$name': {
       id: '/deployments/$name'
       path: '/deployments/$name'
@@ -786,6 +1214,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstrumentsInstrumentNameIndexRouteImport
       parentRoute: typeof InstrumentsInstrumentNameRoute
     }
+    '/hub/task-managers/': {
+      id: '/hub/task-managers/'
+      path: '/hub/task-managers'
+      fullPath: '/hub/task-managers/'
+      preLoaderRoute: typeof HubTaskManagersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/materialized-tables/': {
+      id: '/hub/materialized-tables/'
+      path: '/hub/materialized-tables'
+      fullPath: '/hub/materialized-tables/'
+      preLoaderRoute: typeof HubMaterializedTablesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/': {
+      id: '/hub/instruments/'
+      path: '/hub/instruments'
+      fullPath: '/hub/instruments/'
+      preLoaderRoute: typeof HubInstrumentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/deployments/': {
+      id: '/hub/deployments/'
+      path: '/hub/deployments'
+      fullPath: '/hub/deployments/'
+      preLoaderRoute: typeof HubDeploymentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/catalogs/': {
+      id: '/hub/catalogs/'
+      path: '/hub/catalogs'
+      fullPath: '/hub/catalogs/'
+      preLoaderRoute: typeof HubCatalogsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/simulations/': {
       id: '/admin/simulations/'
       path: '/admin/simulations'
@@ -798,6 +1261,125 @@ declare module '@tanstack/react-router' {
       path: '/admin/benchmarks'
       fullPath: '/admin/benchmarks/'
       preLoaderRoute: typeof AdminBenchmarksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/task-managers/$id': {
+      id: '/hub/task-managers/$id'
+      path: '/hub/task-managers/$id'
+      fullPath: '/hub/task-managers/$id'
+      preLoaderRoute: typeof HubTaskManagersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/monitoring/checkpoints': {
+      id: '/hub/monitoring/checkpoints'
+      path: '/hub/monitoring/checkpoints'
+      fullPath: '/hub/monitoring/checkpoints'
+      preLoaderRoute: typeof HubMonitoringCheckpointsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/monitoring/alerts': {
+      id: '/hub/monitoring/alerts'
+      path: '/hub/monitoring/alerts'
+      fullPath: '/hub/monitoring/alerts'
+      preLoaderRoute: typeof HubMonitoringAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/materialized-tables/$name': {
+      id: '/hub/materialized-tables/$name'
+      path: '/hub/materialized-tables/$name'
+      fullPath: '/hub/materialized-tables/$name'
+      preLoaderRoute: typeof HubMaterializedTablesNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/jobs/submit': {
+      id: '/hub/jobs/submit'
+      path: '/hub/jobs/submit'
+      fullPath: '/hub/jobs/submit'
+      preLoaderRoute: typeof HubJobsSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/jobs/running': {
+      id: '/hub/jobs/running'
+      path: '/hub/jobs/running'
+      fullPath: '/hub/jobs/running'
+      preLoaderRoute: typeof HubJobsRunningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/jobs/completed': {
+      id: '/hub/jobs/completed'
+      path: '/hub/jobs/completed'
+      fullPath: '/hub/jobs/completed'
+      preLoaderRoute: typeof HubJobsCompletedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/jobs/$id': {
+      id: '/hub/jobs/$id'
+      path: '/hub/jobs/$id'
+      fullPath: '/hub/jobs/$id'
+      preLoaderRoute: typeof HubJobsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/schema-registry': {
+      id: '/hub/instruments/schema-registry'
+      path: '/hub/instruments/schema-registry'
+      fullPath: '/hub/instruments/schema-registry'
+      preLoaderRoute: typeof HubInstrumentsSchemaRegistryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/redis': {
+      id: '/hub/instruments/redis'
+      path: '/hub/instruments/redis'
+      fullPath: '/hub/instruments/redis'
+      preLoaderRoute: typeof HubInstrumentsRedisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/fluss': {
+      id: '/hub/instruments/fluss'
+      path: '/hub/instruments/fluss'
+      fullPath: '/hub/instruments/fluss'
+      preLoaderRoute: typeof HubInstrumentsFlussRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/database': {
+      id: '/hub/instruments/database'
+      path: '/hub/instruments/database'
+      fullPath: '/hub/instruments/database'
+      preLoaderRoute: typeof HubInstrumentsDatabaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/insights/metrics': {
+      id: '/hub/insights/metrics'
+      path: '/hub/insights/metrics'
+      fullPath: '/hub/insights/metrics'
+      preLoaderRoute: typeof HubInsightsMetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/insights/health': {
+      id: '/hub/insights/health'
+      path: '/hub/insights/health'
+      fullPath: '/hub/insights/health'
+      preLoaderRoute: typeof HubInsightsHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/insights/bottlenecks': {
+      id: '/hub/insights/bottlenecks'
+      path: '/hub/insights/bottlenecks'
+      fullPath: '/hub/insights/bottlenecks'
+      preLoaderRoute: typeof HubInsightsBottlenecksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/deployments/$name': {
+      id: '/hub/deployments/$name'
+      path: '/hub/deployments/$name'
+      fullPath: '/hub/deployments/$name'
+      preLoaderRoute: typeof HubDeploymentsNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/admin/simulations': {
+      id: '/hub/admin/simulations'
+      path: '/hub/admin/simulations'
+      fullPath: '/hub/admin/simulations'
+      preLoaderRoute: typeof HubAdminSimulationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/simulations/$runId': {
@@ -953,6 +1535,12 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogsAvailableRoute: CatalogsAvailableRoute,
   CatalogsExploreRoute: CatalogsExploreRoute,
   DeploymentsNameRoute: DeploymentsNameRoute,
+  Hub_shellTestRoute: Hub_shellTestRoute,
+  HubErrorsRoute: HubErrorsRoute,
+  HubJobManagerRoute: HubJobManagerRoute,
+  HubLogsRoute: HubLogsRoute,
+  HubSandboxRoute: HubSandboxRoute,
+  HubSqlExplorerRoute: HubSqlExplorerRoute,
   InsightsBottlenecksRoute: InsightsBottlenecksRoute,
   InsightsHealthRoute: InsightsHealthRoute,
   InsightsMetricsRoute: InsightsMetricsRoute,
@@ -968,13 +1556,36 @@ const rootRouteChildren: RootRouteChildren = {
   TaskManagersIdRoute: TaskManagersIdRoute,
   CatalogsIndexRoute: CatalogsIndexRoute,
   DeploymentsIndexRoute: DeploymentsIndexRoute,
+  HubIndexRoute: HubIndexRoute,
   InstrumentsIndexRoute: InstrumentsIndexRoute,
   MaterializedTablesIndexRoute: MaterializedTablesIndexRoute,
   SandboxIndexRoute: SandboxIndexRoute,
   TaskManagersIndexRoute: TaskManagersIndexRoute,
   AdminSimulationsRunIdRoute: AdminSimulationsRunIdRoute,
+  HubAdminSimulationsRoute: HubAdminSimulationsRoute,
+  HubDeploymentsNameRoute: HubDeploymentsNameRoute,
+  HubInsightsBottlenecksRoute: HubInsightsBottlenecksRoute,
+  HubInsightsHealthRoute: HubInsightsHealthRoute,
+  HubInsightsMetricsRoute: HubInsightsMetricsRoute,
+  HubInstrumentsDatabaseRoute: HubInstrumentsDatabaseRoute,
+  HubInstrumentsFlussRoute: HubInstrumentsFlussRoute,
+  HubInstrumentsRedisRoute: HubInstrumentsRedisRoute,
+  HubInstrumentsSchemaRegistryRoute: HubInstrumentsSchemaRegistryRoute,
+  HubJobsIdRoute: HubJobsIdRoute,
+  HubJobsCompletedRoute: HubJobsCompletedRoute,
+  HubJobsRunningRoute: HubJobsRunningRoute,
+  HubJobsSubmitRoute: HubJobsSubmitRoute,
+  HubMaterializedTablesNameRoute: HubMaterializedTablesNameRoute,
+  HubMonitoringAlertsRoute: HubMonitoringAlertsRoute,
+  HubMonitoringCheckpointsRoute: HubMonitoringCheckpointsRoute,
+  HubTaskManagersIdRoute: HubTaskManagersIdRoute,
   AdminBenchmarksIndexRoute: AdminBenchmarksIndexRoute,
   AdminSimulationsIndexRoute: AdminSimulationsIndexRoute,
+  HubCatalogsIndexRoute: HubCatalogsIndexRoute,
+  HubDeploymentsIndexRoute: HubDeploymentsIndexRoute,
+  HubInstrumentsIndexRoute: HubInstrumentsIndexRoute,
+  HubMaterializedTablesIndexRoute: HubMaterializedTablesIndexRoute,
+  HubTaskManagersIndexRoute: HubTaskManagersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

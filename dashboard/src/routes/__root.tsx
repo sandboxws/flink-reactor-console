@@ -29,6 +29,12 @@ function RootComponent() {
     document.title = titleFromPath(pathname)
   }, [pathname])
 
+  // Hub routes own their layout (HubShell). Skip the legacy Shell here so
+  // /hub/* renders inside its own top bar + sidebar, not the legacy chrome.
+  if (pathname === "/hub" || pathname.startsWith("/hub/")) {
+    return <Outlet />
+  }
+
   return (
     <Shell>
       <Outlet />

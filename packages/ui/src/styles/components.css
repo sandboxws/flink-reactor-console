@@ -132,7 +132,10 @@ html.light[data-palette="tokyo-night"] .source-badge {
   border: 1px solid rgba(212, 190, 152, 0.06);
   border-radius: 0.75rem;
   backdrop-filter: blur(12px);
-  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .glass-card:hover {
@@ -144,7 +147,9 @@ html.light[data-palette="tokyo-night"] .source-badge {
 html.light .glass-card {
   background: rgba(250, 246, 238, 0.8);
   border-color: var(--color-dash-border);
-  box-shadow: 0 1px 4px rgba(60, 56, 54, 0.10), 0 0 1px rgba(60, 56, 54, 0.06);
+  box-shadow:
+    0 1px 4px rgba(60, 56, 54, 0.1),
+    0 0 1px rgba(60, 56, 54, 0.06);
 }
 
 html.light .glass-card:hover {
@@ -308,13 +313,21 @@ html.light[data-palette="tokyo-night"] .data-row-selected {
 /* ── Accordion animations ──────────────────────────── */
 
 @keyframes accordion-down {
-  from { height: 0; }
-  to { height: var(--radix-accordion-content-height); }
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
 }
 
 @keyframes accordion-up {
-  from { height: var(--radix-accordion-content-height); }
-  to { height: 0; }
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
 }
 
 .animate-accordion-down {

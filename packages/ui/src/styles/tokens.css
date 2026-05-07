@@ -9,8 +9,27 @@
   --color-fr-bg: #101213;
   --color-fr-subtle: #141617;
   --color-fr-coral: #e78a4e;
-  --color-fr-purple: #a9b665;
   --color-fr-amber: #d8a657;
+  --color-fr-sage: #a9b665;
+  --color-fr-teal: #7daea3;
+  --color-fr-rose: #ea6962;
+  --color-fr-violet: #bb9af7;
+  /* Deprecated: fr-purple is an alias for fr-sage, kept for one release. */
+  --color-fr-purple: #a9b665;
+
+  /* Hub glow tints (used in box-shadow / outline) */
+  --color-fr-coral-glow: rgba(231, 138, 78, 0.6);
+  --color-fr-sage-glow: rgba(169, 182, 101, 0.7);
+  --color-fr-amber-glow: rgba(216, 166, 87, 0.6);
+  --color-fr-teal-glow: rgba(125, 174, 163, 0.5);
+  --color-fr-rose-glow: rgba(234, 105, 98, 0.5);
+
+  /* Hub heatmap intensity scale (5 levels, sage → coral) */
+  --color-hm-0: rgba(212, 190, 152, 0.04);
+  --color-hm-1: rgba(125, 174, 163, 0.35);
+  --color-hm-2: rgba(169, 182, 101, 0.55);
+  --color-hm-3: rgba(216, 166, 87, 0.75);
+  --color-hm-4: rgba(231, 138, 78, 0.95);
 
   /* Severity colors (Gruvpuccin palette) */
   --color-log-trace: #5a524c;

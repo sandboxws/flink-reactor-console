@@ -59,6 +59,7 @@ pnpm ui:benchmark                                # Re-run model comparison
 | **DropdownMenu** | `dropdown-menu.tsx` | Radix DropdownMenu: DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, etc. |
 | **Field** | `field.tsx` | Form field composition: Field, FieldLabel, FieldContent, FieldDescription, FieldError, FieldSet |
 | **HoverCard** | `hover-card.tsx` | Radix HoverCard: HoverCard, HoverCardTrigger, HoverCardContent |
+| **HubBreadcrumb** | `hub-breadcrumb.tsx` | Hub page-header breadcrumb. Crumbs `[{label, to?, mono?}]` with `/` separators. Last crumb is non-link. Pass `LinkComponent` for router-aware nav. |
 | **Input** | `input.tsx` | Standard `<input>` with theme styling |
 | **InputGroup** | `input-group.tsx` | Wraps Input with leading/trailing addons (icons, buttons, text) |
 | **Item** | `item.tsx` | Versatile list/card container: Item, ItemMedia, ItemContent, ItemTitle, ItemDescription, ItemActions |
@@ -80,12 +81,18 @@ pnpm ui:benchmark                                # Re-run model comparison
 
 ### Layout Components (`layout/`)
 
+> **Two layout systems coexist during the Hub migration.** `Shell`/`Sidebar`/`Header` serve the legacy `dashboard/src/routes/*` tree. `HubShell`/`HubTopBar`/`HubSidebar` serve `dashboard/src/routes/hub/*`. The cutover change (`fr-console-hub-cutover`) deletes the legacy set and renames the Hub set to drop the prefix.
+
 | Component | Props | Purpose |
 |-----------|-------|---------|
-| **Shell** | `sidebar`, `header`, `commandPalette`, `onCommandPalette` | Full-screen app shell. Handles Cmd+K/Ctrl+K shortcut. |
-| **Sidebar** | `navGroups: NavGroup[]`, `collapsed`, `activePath`, `LinkComponent`, `brandName` | Collapsible nav sidebar with grouped items. Pass custom `LinkComponent` for your router. |
-| **Header** | `breadcrumbs: Breadcrumb[]`, `rootLabel`, `rightContent` | Top bar with breadcrumb navigation. Use `breadcrumbFromPath(pathname)` helper. |
-| **CommandPalette** | `open`, `onClose`, `onNavigate`, `routes: CommandRoute[]` | Modal search palette for quick navigation. |
+| **Shell** (legacy) | `sidebar`, `header`, `commandPalette`, `onCommandPalette` | Full-screen app shell. Handles Cmd+K/Ctrl+K shortcut. |
+| **Sidebar** (legacy) | `navGroups: NavGroup[]`, `collapsed`, `activePath`, `LinkComponent`, `brandName` | Collapsible nav sidebar with grouped items. Pass custom `LinkComponent` for your router. |
+| **Header** (legacy) | `breadcrumbs: Breadcrumb[]`, `rootLabel`, `rightContent` | Top bar with breadcrumb navigation. Use `breadcrumbFromPath(pathname)` helper. |
+| **CommandPalette** (legacy) | `open`, `onClose`, `onNavigate`, `routes: CommandRoute[]` | Modal search palette for quick navigation. |
+| **HubShell** | `topBar`, `sidebar`, `rail?`, `children` | Hub shell. Composes top-bar + sidebar + main + optional right rail. |
+| **HubTopBar** | `cluster?`, `clusterSlot?`, `onClusterClick?`, `onSearchOpen?`, `LinkComponent?` | Hub top bar with brand glyph, cluster pill, search button (opens palette via `onSearchOpen`). Pass `clusterSlot` to wrap the pill in a custom Popover. |
+| **HubSidebar** | `sections: HubSidebarSection[]`, `activePath`, `LinkComponent` | 240px sectioned nav. Section headings render via `.section-heading`. |
+| **HubCommandPalette** | `open`, `onClose`, `onNavigate`, `routes: HubCommandRoute[]` | Rethemed cmdk dialog with grouped routes, hint kbd shortcuts, mono input, footer kbd hints. Use Cmd+K / Ctrl+K to toggle. |
 
 ### Shared Components (`shared/`)
 
@@ -117,6 +124,37 @@ pnpm ui:benchmark                                # Re-run model comparison
 - `.data-row` / `.data-row-selected` — Table row hover/selection states
 - `.scrollbar-hide` — Cross-browser scrollbar hiding
 
+## Hub CSS Classes (`styles/hub.css`) — separate import
+
+Hub-specific classes live in `hub.css` (NOT `components.css`) and are exported as `@flink-reactor/ui/styles/hub`. Apps must import them explicitly — they are not auto-included with `@flink-reactor/ui/styles`. This keeps the legacy bundle clean and lets the cutover change collapse `hub.css` → `components.css` atomically.
+
+| Class | Purpose |
+|---|---|
+| `.glass-card-static` | Container card without hover transform (Hub uses these for non-interactive surfaces) |
+| `.live-dot` | Pulsing status indicator |
+| `.sev-badge` | OK/WARN/FAIL/INFO/MUTED/CORAL pills (monospace) |
+| `.priority` / `.bar` | P5..P1 stacked-bar priority indicator |
+| `.status-icon` (+ state classes: `.firing`, `.acknowledged`, `.in-progress`, `.resolved`, `.suppressed`, `.silenced`) | 6 alert states with conic-gradient rings |
+| `.hm-0` … `.hm-4` | Heatmap intensity scale (sage low → coral high) |
+| `.diff-line` (+ `.added`, `.removed`, `.hunk`) | Diff rows. **No left-border accents** — uses background tint only. |
+| `.kanban-col` / `.kanban-card` / `.add-card` | Deployment board columns and tiles |
+| `.kpi-card` | Mono-styled metric card (used inside `<KpiCard>`) |
+| `.section-heading` | Sidebar group label / card section title |
+| `.cluster-selector` (+ `.env.prod`, `.env.stage`, `.env.dev`) | Top-bar cluster pill with environment color tint |
+| `.state-pill` (+ state modifiers) | Done/active/pending/failed deployment pills |
+| `.prop-chip` (+ `.active`) | Toggleable filter chip |
+| `.label-chip` | Static label badge |
+| `.tab` (+ `.active`) | Underlined sub-nav tab |
+| `.activity-entry` | Activity timeline row |
+| `.file-tree-row` | Catalog tree row |
+| `.log-viewer` / `.log-row` / `.log-level` | Hub log viewer (replaces legacy `.log-line`) |
+| `.code-viewer` / `.tk-key` / `.tk-str` / `.tk-num` / `.tk-com` / `.tk-typ` / `.tk-fn` / `.tk-pun` / `.tk-op` / `.tk-attr` | Faux syntax highlighting (no actual tokenizer) |
+| `.resource-bar` (+ `.seg.heap`, `.managed`, `.network`) | TaskManager memory bar |
+| `.sparkbar` | Simulation outcome sparkline |
+| `.health-ring` | Health page conic-gradient ring |
+| `.dot-grid` | Overview surface texture |
+| `.engine-callout` | Engine bars hover popover |
+
 ## Code Patterns
 
 1. **All components use `"use client"` directive** (React client components)
@@ -126,6 +164,35 @@ pnpm ui:benchmark                                # Re-run model comparison
 5. **No default exports** — all components use named exports
 6. **Unified Radix** — UI primitives use `import { X } from "radix-ui"` (unified package, not individual `@radix-ui/react-*`)
 7. **data-slot attributes** — Compound component sub-parts have `data-slot` attributes for CSS targeting
+
+## Hub Layout Conventions (P0-P5 migration)
+
+The Hub layout system follows additional rules on top of the patterns above. These rules are encoded in `dashboard/src/routes/hub/CLAUDE.md` and the `console-v2/CLAUDE.md` mockup contract.
+
+### Hard rules
+
+1. **No colored left-border accents on cards, rows, list items, or diff rows.** Status conveyed via pills, dots, background tints, or filled icons. The `.diff-line` styles are the canonical example (added → green-tinted background, NOT green left border).
+2. **`<HubShell>` always wraps the main column AND the optional right rail in a `display: grid` parent.** Required so `min-height: 100%` on the rail eliminates dead space below short main content.
+3. **Right rail is never empty.** Provide a fallback (job summary card, instrument summary, etc.) — never an empty column. The DAG-page whitespace bug came from violating this.
+4. **`LinkComponent` is required on `HubSidebar` and any nav primitive that emits anchors.** Never hardcode `<a href>` or import a router directly into `packages/ui` — keeps the package router-agnostic.
+5. **All hex values resolve through `var(--color-fr-*)`.** No literal hex in Hub CSS or component class strings. Audit on PRs.
+6. **Tailwind utility classes must be statically discoverable.** Templated class names like `text-${tone}` don't generate utilities. Use object lookups with full string values: `const TONE = { sage: "text-fr-sage", coral: "text-fr-coral" }`.
+7. **Token mirroring**: any new Hub token added to `packages/ui/src/styles/tokens.css` MUST also be mirrored into the dashboard's inline `@theme` block in `dashboard/src/global.css`. The dashboard does not consume `tokens.css` via CSS import — it uses Tailwind's `@theme` directive.
+
+### When adding a Hub primitive
+
+1. **Check console-v2 first.** If the visual exists in a static mockup, port it. Match pixel-for-pixel.
+2. **CSS class first, then React wrapper if stateful.** Pure-styling primitives stay as CSS classes (e.g., `.engine-callout`). React wrappers exist only when there's state, prop variation, or composition logic.
+3. **Add to `hub.css`, not `components.css`.** Until cutover.
+4. **Export from `src/index.ts` AND verify the dashboard imports work.** Both `packages/ui/package.json` exports field and `dashboard/global.css` need updating for new CSS files.
+5. **Run the sandbox.** `/hub/sandbox` should render every primitive. Add the new one there.
+
+### When working in `dashboard/src/routes/hub/`
+
+- Wrap content in `<HubShell topBar={...} sidebar={...} rail={...}>` — never compose `<Shell>` (legacy) and Hub innards.
+- Use the canonical sidebar sections from the mockups; don't reorder.
+- Force dark mode at the route boundary if mounting outside `__root.tsx` (Hub v1 is dark-only).
+- See `dashboard/src/routes/hub/CLAUDE.md` for the full Hub-route playbook.
 
 ## When Working on This Package
 
