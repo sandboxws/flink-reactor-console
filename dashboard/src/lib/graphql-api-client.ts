@@ -1771,6 +1771,118 @@ export async function fetchMetricSeries(params: {
 }
 
 // ---------------------------------------------------------------------------
+// Checkpoint history (paginated)
+// ---------------------------------------------------------------------------
+
+export type StoredCheckpoint = {
+  checkpointID: string
+  jid: string
+  cluster: string
+  status: string
+  isSavepoint: boolean
+  triggerTimestamp: string | null
+  latestAck: string | null
+  stateSize: string
+  endToEndDuration: string
+  processedData: string
+  persistedData: string
+  numSubtasks: number
+  numAckSubtasks: number
+  checkpointedSize: string | null
+  capturedAt: string
+}
+
+const CHECKPOINT_HISTORY_QUERY = gql`
+  query CheckpointHistory(
+    $filter: CheckpointHistoryFilter
+    $pagination: PaginationInput
+  ) {
+    checkpointHistory(filter: $filter, pagination: $pagination) {
+      edges {
+        cursor
+        node {
+          checkpointID
+          jid
+          cluster
+          status
+          isSavepoint
+          triggerTimestamp
+          latestAck
+          stateSize
+          endToEndDuration
+          processedData
+          persistedData
+          numSubtasks
+          numAckSubtasks
+          checkpointedSize
+          capturedAt
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+/**
+ * Fetch historical checkpoint records from the storage backend.
+ *
+ * Pages internally up to `maxRecords` so callers needing density (e.g. a
+ * 26-week heatmap) get the full window in one call. Returns an empty array
+ * when the storage backend is unavailable — caller decides whether to fall
+ * back to demo data or surface an error.
+ */
+export async function fetchCheckpointHistory(params: {
+  clusterID: string
+  jobID?: string
+  status?: string
+  after?: string
+  before?: string
+  /** Page size for each underlying request. Defaults to 200. */
+  pageSize?: number
+  /** Stop after this many records have been collected. Defaults to 2000. */
+  maxRecords?: number
+}): Promise<StoredCheckpoint[]> {
+  const pageSize = params.pageSize ?? 200
+  const maxRecords = params.maxRecords ?? 2000
+  const filter = {
+    clusterID: params.clusterID,
+    ...(params.jobID ? { jobID: params.jobID } : {}),
+    ...(params.status ? { status: params.status } : {}),
+    ...(params.after ? { after: params.after } : {}),
+    ...(params.before ? { before: params.before } : {}),
+  }
+
+  type Edge = { node: StoredCheckpoint; cursor: string }
+  type PageInfo = { hasNextPage: boolean; endCursor: string | null }
+  type Conn = { edges: Edge[]; pageInfo: PageInfo }
+
+  const out: StoredCheckpoint[] = []
+  let cursor: string | null = null
+  while (out.length < maxRecords) {
+    const variables: Record<string, unknown> = {
+      filter,
+      pagination: { first: pageSize, after: cursor },
+    }
+    const result = await graphqlClient
+      .query(CHECKPOINT_HISTORY_QUERY, variables)
+      .toPromise()
+    if (result.error) throw result.error
+    const conn = result.data?.checkpointHistory as Conn | undefined
+    if (!conn) break
+    for (const edge of conn.edges ?? []) {
+      out.push(edge.node)
+      if (out.length >= maxRecords) break
+    }
+    if (!conn.pageInfo?.hasNextPage || !conn.pageInfo.endCursor) break
+    cursor = conn.pageInfo.endCursor
+  }
+  return out
+}
+
+// ---------------------------------------------------------------------------
 // Simulations
 // ---------------------------------------------------------------------------
 

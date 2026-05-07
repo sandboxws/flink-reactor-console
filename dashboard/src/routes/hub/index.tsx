@@ -35,6 +35,8 @@ import {
 } from "lucide-react"
 import { useEffect, useMemo } from "react"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
+import { useCheckpointDensity } from "@/lib/hub/use-checkpoint-density"
+import { useEngineBarsData } from "@/lib/hub/use-engine-bars-data"
 import { useAlertsStore } from "@/stores/alerts-store"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -202,9 +204,14 @@ function HubOverview() {
     return rows.slice(0, 6).map((r) => r.row)
   }, [completedJobs, deployments, activeAlerts])
 
-  /* Engine bars chart — seeded random until `metricSeries` GraphQL is wired
-   * (follow-up: fr-server-XX-metric-subscription). */
-  const engineBars = useMemo(() => {
+  const clusterID = config?.clusters?.[0] ?? null
+
+  /* Engine bars — driven by `metricSeries` when the storage backend has
+   * `numRecordsOutPerSecond` data, otherwise falls back to seeded demo
+   * bars so the page never renders empty. The hook tells us via `empty`
+   * which case we're in. */
+  const liveEngineBars = useEngineBarsData(clusterID, { minutes: 38 })
+  const demoEngineBars = useMemo(() => {
     const seeded = (n: number) => {
       const x = Math.sin(n * 7.3) * 10000
       return x - Math.floor(x)
@@ -216,9 +223,20 @@ function HubOverview() {
       return { height, failed }
     })
   }, [])
+  /* Use live bars only when we got real data back; otherwise stay on demo
+   * regardless of whether the cause was empty storage or a network error. */
+  const useLiveEngineBars =
+    !liveEngineBars.loading &&
+    !liveEngineBars.empty &&
+    !liveEngineBars.error &&
+    liveEngineBars.bars.length > 0
+  const engineBars = useLiveEngineBars ? liveEngineBars.bars : demoEngineBars
+  const engineBarsAreDemo = !useLiveEngineBars
 
-  /* Heatmap demo data — seeded until checkpoint history aggregation is wired. */
-  const heatmapData = useMemo<HeatmapIntensity[]>(() => {
+  /* Heatmap — driven by `checkpointHistory` aggregated per local day.
+   * Falls back to seeded demo data when storage is empty/unavailable. */
+  const liveHeatmap = useCheckpointDensity(clusterID, { days: 26 * 7 })
+  const demoHeatmap = useMemo<HeatmapIntensity[]>(() => {
     const seeded = (n: number) => {
       const x = Math.sin(n * 13.7) * 10000
       return x - Math.floor(x)
@@ -232,6 +250,13 @@ function HubOverview() {
       return 4
     }) as HeatmapIntensity[]
   }, [])
+  const useLiveHeatmap =
+    !liveHeatmap.loading &&
+    !liveHeatmap.empty &&
+    !liveHeatmap.error &&
+    liveHeatmap.data.length > 0
+  const heatmapData = useLiveHeatmap ? liveHeatmap.data : demoHeatmap
+  const heatmapIsDemo = !useLiveHeatmap
 
   const flinkVersion = overview?.flinkVersion ?? "—"
   const clusterName = config?.clusterDisplayName ?? "cluster"
@@ -404,7 +429,20 @@ function HubOverview() {
                   <h3 className="font-sans text-[14px] font-medium text-zinc-100">
                     Streaming engine
                   </h3>
-                  <span className="sev-badge muted">demo data</span>
+                  {engineBarsAreDemo ? (
+                    <span
+                      className="sev-badge muted"
+                      title={
+                        liveEngineBars.error
+                          ? `metric fetch failed: ${liveEngineBars.error}`
+                          : "no numRecordsOutPerSecond series in storage yet"
+                      }
+                    >
+                      demo data
+                    </span>
+                  ) : (
+                    <span className="sev-badge ok">live</span>
+                  )}
                 </div>
                 <p className="mt-0.5 text-[11px] text-fg-muted">
                   Throughput · last 38 minutes · sage = success, coral = failed
@@ -689,7 +727,19 @@ function HubOverview() {
           <div className="mt-3 flex items-center justify-between text-[10px] font-mono text-fg-faint">
             <span>26 weeks ago</span>
             <span>
-              demo · wire to <code>checkpointHistory</code> in P3
+              {heatmapIsDemo ? (
+                <span
+                  title={
+                    liveHeatmap.error
+                      ? `checkpointHistory failed: ${liveHeatmap.error}`
+                      : "no checkpoint history in storage yet"
+                  }
+                >
+                  demo · awaiting <code>checkpointHistory</code> data
+                </span>
+              ) : (
+                <span>live · refreshes every 5m</span>
+              )}
             </span>
             <span>now</span>
           </div>
