@@ -17,10 +17,8 @@ import {
   Code2,
   Cpu,
   Database,
-  FileJson,
   FolderTree,
   GitFork,
-  HardDrive,
   HeartPulse,
   Layers,
   LayoutDashboard,
@@ -110,45 +108,23 @@ export const HUB_SIDEBAR_SECTIONS: HubSidebarSection[] = [
   {
     label: "Tools",
     items: [
-      { label: "Sandbox", href: "/hub/sandbox", icon: Code2 },
+      { label: "Sandbox", href: "/hub/sandbox/editor", icon: Code2 },
       {
         label: "Simulations",
         href: "/hub/admin/simulations",
         icon: Activity,
+      },
+      {
+        label: "Benchmarks",
+        href: "/hub/admin/benchmarks",
+        icon: BarChart3,
       },
     ],
   },
   {
     label: "Instruments",
     items: [
-      {
-        label: "Fluss",
-        href: "/hub/instruments/fluss",
-        icon: Layers,
-        count: "✓",
-        countTone: "sage",
-      },
-      {
-        label: "Redis",
-        href: "/hub/instruments/redis",
-        icon: Database,
-        count: "✓",
-        countTone: "sage",
-      },
-      {
-        label: "Schema reg.",
-        href: "/hub/instruments/schema-registry",
-        icon: FileJson,
-        count: "⚠",
-        countTone: "amber",
-      },
-      {
-        label: "Database",
-        href: "/hub/instruments/database",
-        icon: HardDrive,
-        count: "✓",
-        countTone: "sage",
-      },
+      { label: "All instruments", href: "/hub/instruments", icon: Layers },
       { label: "Add instrument", href: "/hub/instruments", icon: Plus },
     ],
   },

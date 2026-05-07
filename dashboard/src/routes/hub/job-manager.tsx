@@ -6,20 +6,20 @@
  * primitive. Active tab is encoded in `?tab=...` so the URL is shareable;
  * default tab is Config without auto-rewriting the URL.
  *
- * The Profiler tab is a placeholder per the P3 spec — real flame graph
- * lands in P4 (`fr-console-hub-tools-instruments`).
+ * The Profiler tab renders `<HubFlamegraph>` for any (job, vertex) the
+ * user picks — the underlying `flamegraph(jobId, vertexId, type)` query
+ * was wired in P4 (`fr-console-hub-tools-instruments`).
  */
 
 import {
-  EmptyState,
   formatBytes,
   HubBreadcrumb,
   TextViewer,
   ThreadDumpViewer,
 } from "@flink-reactor/ui"
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
-import { Activity } from "lucide-react"
 import { useEffect } from "react"
+import { ProfilerPicker } from "@/components/hub/tools/flamegraph/profiler-picker"
 import {
   JM_TABS,
   type JmTab,
@@ -116,13 +116,7 @@ function Tab({ tab, jobManager }: TabProps) {
     case "threads":
       return <ThreadDumpViewer dump={jobManager.threadDump} />
     case "profiler":
-      return (
-        <EmptyState
-          icon={Activity}
-          message="Profiler enabled in next phase"
-          description="Continuous profiling lands with the instruments subsystem in P4."
-        />
-      )
+      return <ProfilerPicker />
   }
 }
 

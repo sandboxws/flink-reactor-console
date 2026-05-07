@@ -1,9 +1,12 @@
 /**
  * Hub Foundation Sandbox — kitchen-sink page rendering every primitive
- * with all variants. Reachable only at /hub/sandbox; not in any sidebar.
+ * with all variants. Reachable only at /hub/primitive-sandbox; not in
+ * any sidebar.
  *
- * This page is dev/designer-facing. It exercises tokens, CSS classes, and
- * React primitives shipped in the foundation PR (fr-console-03-hub-foundation).
+ * Renamed from /hub/sandbox in P4 (`fr-console-hub-tools-instruments`) to
+ * free up `/hub/sandbox/*` for the user-facing DSL editor at
+ * `/hub/sandbox/editor`. A transient redirect from `/hub/sandbox` lives at
+ * `routes/hub/sandbox/index.tsx` for one release; remove at cutover.
  */
 
 import {
@@ -1035,6 +1038,6 @@ function HubSandbox() {
   )
 }
 
-export const Route = createFileRoute("/hub/sandbox")({
+export const Route = createFileRoute("/hub/primitive-sandbox")({
   component: HubSandbox,
 })

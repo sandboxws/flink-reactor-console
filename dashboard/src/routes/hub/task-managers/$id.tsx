@@ -24,6 +24,7 @@ import {
 } from "@flink-reactor/ui"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import {
+  Activity,
   AlertTriangle,
   HardDrive,
   LineChart,
@@ -36,6 +37,7 @@ import {
   X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { ProfilerPicker } from "@/components/hub/tools/flamegraph/profiler-picker"
 import { TmLogsTab } from "@/components/task-managers/tm-logs-tab"
 import { TmMetricsTab } from "@/components/task-managers/tm-metrics-tab"
 import { TmStdoutTab } from "@/components/task-managers/tm-stdout-tab"
@@ -271,6 +273,10 @@ function HubTmContent({
             <Terminal />
             <span>Threads</span>
           </TabsTrigger>
+          <TabsTrigger value="profiler" className="tab">
+            <Activity />
+            <span>Profiler</span>
+          </TabsTrigger>
           <TabsTrigger value="config" className="tab">
             <SlidersHorizontal />
             <span>Config</span>
@@ -411,6 +417,21 @@ function HubTmContent({
         <TabsContent value="threads" className="mt-6 outline-none">
           <div className="glass-card-static p-5">
             <LazyThreadDumpTab tmId={tm.id} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="profiler" className="mt-6 outline-none">
+          <div className="glass-card-static p-5">
+            <ProfilerPicker
+              vertexFilter={(vid) => {
+                const ids = new Set(
+                  tm.allocatedSlots
+                    .map((s) => (s as { vertexId?: string }).vertexId)
+                    .filter((v): v is string => typeof v === "string"),
+                )
+                return ids.size === 0 ? true : ids.has(vid)
+              }}
+            />
           </div>
         </TabsContent>
 

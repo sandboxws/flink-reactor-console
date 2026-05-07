@@ -152,21 +152,41 @@ This applies to Tailwind utilities (`text-*`, `bg-*`, `border-*`). It does **not
 
 ```
 dashboard/src/routes/hub/
-├── CLAUDE.md             ← this file
-├── sandbox.tsx           ← /hub/sandbox — designer kitchen-sink (P0 foundation)
-└── (future)
-    ├── overview.tsx      ← /hub (P2)
-    ├── jobs/             ← /hub/jobs/* (P2)
-    ├── task-managers/    ← /hub/task-managers/* (P2)
-    ├── monitoring/       ← /hub/monitoring/* (P3)
-    ├── insights/         ← /hub/insights/* (P3)
-    ├── deployments/      ← /hub/deployments/* (P3)
-    ├── materialized-tables/  (P3)
-    ├── catalogs/         (P3)
-    ├── sandbox/          ← Note: route name conflicts with /hub/sandbox kitchen-sink. Rename one before P4.
-    ├── instruments/      ← /hub/instruments/* (P4)
-    └── ...
+├── CLAUDE.md                           ← this file
+├── __shell-test.tsx                    ← /hub/__shell-test — chrome sandbox (P1)
+├── primitive-sandbox.tsx               ← /hub/primitive-sandbox — designer kitchen-sink (renamed from /hub/sandbox in P4)
+├── index.tsx                           ← /hub overview (P2)
+├── job-manager.tsx                     ← /hub/job-manager (P2; profiler tab wired in P4)
+├── errors.tsx                          ← /hub/errors (P3)
+├── logs.tsx                            ← /hub/logs (P3)
+├── sandbox/
+│   ├── index.tsx                       ← /hub/sandbox → redirect to /hub/primitive-sandbox (transient, P4)
+│   └── editor.tsx                      ← /hub/sandbox/editor — DSL editor (P4)
+├── jobs/{$id,running,completed,submit}.tsx
+├── task-managers/{index,$id}.tsx       ← TM detail Profiler tab wired in P4
+├── deployments/{index,$name}.tsx
+├── materialized-tables/{index,$name}.tsx
+├── catalogs/index.tsx
+├── monitoring/{alerts,checkpoints}.tsx
+├── insights/{health,metrics,bottlenecks}.tsx
+├── admin/
+│   ├── simulations/{index,$runId}.tsx  (P4)
+│   └── benchmarks/index.tsx            (P4)
+├── instruments/
+│   ├── index.tsx                       ← grid of registered instruments (P4)
+│   └── $instrumentName/
+│       ├── fluss/{index,table,health}.tsx
+│       ├── redis/{index,key,server}.tsx
+│       ├── schema-registry/{index,subject,compatibility}.tsx
+│       │                               └── subject.tsx hosts the SchemaDiffViewer
+│       └── database/{index,query,table}.tsx
+└── sql-explorer.tsx                    ← /hub/sql-explorer — full-bleed 3-column workspace (P4)
 ```
+
+Notable cross-cuts (P4 — `fr-console-hub-tools-instruments`):
+- `<HubFlamegraph>` lives in `components/hub/tools/flamegraph/` and is consumed by both the JM Profiler tab and the TM-detail Profiler tab via `<ProfilerPicker>`.
+- `<SchemaDiffViewer>` lives in `components/hub/tools/diff/` and composes the foundation `<DiffViewer>` over two parallel `schemaDetail` queries.
+- `<SqlExplorer>` lives in `components/hub/tools/sql-explorer/` and reuses the legacy `useCatalogExploreStore` for SQL Gateway execution.
 
 ## Related
 

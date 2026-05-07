@@ -1,16 +1,43 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { HubComingSoon } from "@/lib/hub/hub-coming-soon"
+/**
+ * Hub SQL Explorer — /hub/sql-explorer.
+ *
+ * Full-bleed 3-column workspace (saved queries / editor + results /
+ * schema navigator). Initial SQL can be passed via `?q=<base64>` for
+ * shareable links from the editor's Share button.
+ */
 
-function HubSqlExplorer() {
+import { createFileRoute, useSearch } from "@tanstack/react-router"
+import { SqlExplorer } from "@/components/hub/tools/sql-explorer/sql-explorer"
+import { HubAppShell } from "@/lib/hub/hub-app-shell"
+import { PageFullBleed } from "@/lib/hub/page-full-bleed"
+
+interface SqlExplorerSearch {
+  q?: string
+}
+
+function HubSqlExplorerPage() {
+  const { q } = useSearch({ from: "/hub/sql-explorer" })
+  const initialSql = q ? safeB64Decode(q) : undefined
   return (
-    <HubComingSoon
-      crumbs={[{ label: "SQL explorer" }]}
-      phase="P4"
-      description="3-column workspace — saved queries (left), CodeMirror SQL editor (center), schema navigator (right). Run via the existing SQL Gateway store; results table below."
-    />
+    <HubAppShell>
+      <PageFullBleed>
+        <SqlExplorer initialSql={initialSql} />
+      </PageFullBleed>
+    </HubAppShell>
   )
 }
 
+function safeB64Decode(encoded: string): string | undefined {
+  try {
+    return decodeURIComponent(escape(atob(encoded)))
+  } catch {
+    return undefined
+  }
+}
+
 export const Route = createFileRoute("/hub/sql-explorer")({
-  component: HubSqlExplorer,
+  validateSearch: (search: Record<string, unknown>): SqlExplorerSearch => ({
+    q: typeof search.q === "string" ? search.q : undefined,
+  }),
+  component: HubSqlExplorerPage,
 })

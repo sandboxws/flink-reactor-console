@@ -35,7 +35,7 @@ import { Route as InsightsMetricsRouteImport } from './routes/insights/metrics'
 import { Route as InsightsHealthRouteImport } from './routes/insights/health'
 import { Route as InsightsBottlenecksRouteImport } from './routes/insights/bottlenecks'
 import { Route as HubSqlExplorerRouteImport } from './routes/hub/sql-explorer'
-import { Route as HubSandboxRouteImport } from './routes/hub/sandbox'
+import { Route as HubPrimitiveSandboxRouteImport } from './routes/hub/primitive-sandbox'
 import { Route as HubLogsRouteImport } from './routes/hub/logs'
 import { Route as HubJobManagerRouteImport } from './routes/hub/job-manager'
 import { Route as HubErrorsRouteImport } from './routes/hub/errors'
@@ -45,6 +45,7 @@ import { Route as CatalogsExploreRouteImport } from './routes/catalogs/explore'
 import { Route as CatalogsAvailableRouteImport } from './routes/catalogs/available'
 import { Route as InstrumentsInstrumentNameIndexRouteImport } from './routes/instruments/$instrumentName/index'
 import { Route as HubTaskManagersIndexRouteImport } from './routes/hub/task-managers/index'
+import { Route as HubSandboxIndexRouteImport } from './routes/hub/sandbox/index'
 import { Route as HubMaterializedTablesIndexRouteImport } from './routes/hub/materialized-tables/index'
 import { Route as HubInstrumentsIndexRouteImport } from './routes/hub/instruments/index'
 import { Route as HubDeploymentsIndexRouteImport } from './routes/hub/deployments/index'
@@ -52,6 +53,7 @@ import { Route as HubCatalogsIndexRouteImport } from './routes/hub/catalogs/inde
 import { Route as AdminSimulationsIndexRouteImport } from './routes/admin/simulations/index'
 import { Route as AdminBenchmarksIndexRouteImport } from './routes/admin/benchmarks/index'
 import { Route as HubTaskManagersIdRouteImport } from './routes/hub/task-managers/$id'
+import { Route as HubSandboxEditorRouteImport } from './routes/hub/sandbox/editor'
 import { Route as HubMonitoringCheckpointsRouteImport } from './routes/hub/monitoring/checkpoints'
 import { Route as HubMonitoringAlertsRouteImport } from './routes/hub/monitoring/alerts'
 import { Route as HubMaterializedTablesNameRouteImport } from './routes/hub/materialized-tables/$name'
@@ -59,20 +61,17 @@ import { Route as HubJobsSubmitRouteImport } from './routes/hub/jobs/submit'
 import { Route as HubJobsRunningRouteImport } from './routes/hub/jobs/running'
 import { Route as HubJobsCompletedRouteImport } from './routes/hub/jobs/completed'
 import { Route as HubJobsIdRouteImport } from './routes/hub/jobs/$id'
-import { Route as HubInstrumentsSchemaRegistryRouteImport } from './routes/hub/instruments/schema-registry'
-import { Route as HubInstrumentsRedisRouteImport } from './routes/hub/instruments/redis'
-import { Route as HubInstrumentsFlussRouteImport } from './routes/hub/instruments/fluss'
-import { Route as HubInstrumentsDatabaseRouteImport } from './routes/hub/instruments/database'
 import { Route as HubInsightsMetricsRouteImport } from './routes/hub/insights/metrics'
 import { Route as HubInsightsHealthRouteImport } from './routes/hub/insights/health'
 import { Route as HubInsightsBottlenecksRouteImport } from './routes/hub/insights/bottlenecks'
 import { Route as HubDeploymentsNameRouteImport } from './routes/hub/deployments/$name'
-import { Route as HubAdminSimulationsRouteImport } from './routes/hub/admin/simulations'
 import { Route as AdminSimulationsRunIdRouteImport } from './routes/admin/simulations/$runId'
 import { Route as InstrumentsInstrumentNameSchemaRegistryIndexRouteImport } from './routes/instruments/$instrumentName/schema-registry/index'
 import { Route as InstrumentsInstrumentNameRedisIndexRouteImport } from './routes/instruments/$instrumentName/redis/index'
 import { Route as InstrumentsInstrumentNameFlussIndexRouteImport } from './routes/instruments/$instrumentName/fluss/index'
 import { Route as InstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/instruments/$instrumentName/database/index'
+import { Route as HubAdminSimulationsIndexRouteImport } from './routes/hub/admin/simulations/index'
+import { Route as HubAdminBenchmarksIndexRouteImport } from './routes/hub/admin/benchmarks/index'
 import { Route as InstrumentsInstrumentNameSchemaRegistrySubjectRouteImport } from './routes/instruments/$instrumentName/schema-registry/subject'
 import { Route as InstrumentsInstrumentNameSchemaRegistryCompatibilityRouteImport } from './routes/instruments/$instrumentName/schema-registry/compatibility'
 import { Route as InstrumentsInstrumentNameRedisServerRouteImport } from './routes/instruments/$instrumentName/redis/server'
@@ -81,6 +80,19 @@ import { Route as InstrumentsInstrumentNameFlussTableRouteImport } from './route
 import { Route as InstrumentsInstrumentNameFlussHealthRouteImport } from './routes/instruments/$instrumentName/fluss/health'
 import { Route as InstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/instruments/$instrumentName/database/table'
 import { Route as InstrumentsInstrumentNameDatabaseQueryRouteImport } from './routes/instruments/$instrumentName/database/query'
+import { Route as HubAdminSimulationsRunIdRouteImport } from './routes/hub/admin/simulations/$runId'
+import { Route as HubInstrumentsInstrumentNameSchemaRegistryIndexRouteImport } from './routes/hub/instruments/$instrumentName/schema-registry/index'
+import { Route as HubInstrumentsInstrumentNameRedisIndexRouteImport } from './routes/hub/instruments/$instrumentName/redis/index'
+import { Route as HubInstrumentsInstrumentNameFlussIndexRouteImport } from './routes/hub/instruments/$instrumentName/fluss/index'
+import { Route as HubInstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/hub/instruments/$instrumentName/database/index'
+import { Route as HubInstrumentsInstrumentNameSchemaRegistrySubjectRouteImport } from './routes/hub/instruments/$instrumentName/schema-registry/subject'
+import { Route as HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRouteImport } from './routes/hub/instruments/$instrumentName/schema-registry/compatibility'
+import { Route as HubInstrumentsInstrumentNameRedisServerRouteImport } from './routes/hub/instruments/$instrumentName/redis/server'
+import { Route as HubInstrumentsInstrumentNameRedisKeyRouteImport } from './routes/hub/instruments/$instrumentName/redis/key'
+import { Route as HubInstrumentsInstrumentNameFlussTableRouteImport } from './routes/hub/instruments/$instrumentName/fluss/table'
+import { Route as HubInstrumentsInstrumentNameFlussHealthRouteImport } from './routes/hub/instruments/$instrumentName/fluss/health'
+import { Route as HubInstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/hub/instruments/$instrumentName/database/table'
+import { Route as HubInstrumentsInstrumentNameDatabaseQueryRouteImport } from './routes/hub/instruments/$instrumentName/database/query'
 
 const OverviewRoute = OverviewRouteImport.update({
   id: '/overview',
@@ -213,9 +225,9 @@ const HubSqlExplorerRoute = HubSqlExplorerRouteImport.update({
   path: '/hub/sql-explorer',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HubSandboxRoute = HubSandboxRouteImport.update({
-  id: '/hub/sandbox',
-  path: '/hub/sandbox',
+const HubPrimitiveSandboxRoute = HubPrimitiveSandboxRouteImport.update({
+  id: '/hub/primitive-sandbox',
+  path: '/hub/primitive-sandbox',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HubLogsRoute = HubLogsRouteImport.update({
@@ -264,6 +276,11 @@ const HubTaskManagersIndexRoute = HubTaskManagersIndexRouteImport.update({
   path: '/hub/task-managers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HubSandboxIndexRoute = HubSandboxIndexRouteImport.update({
+  id: '/hub/sandbox/',
+  path: '/hub/sandbox/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HubMaterializedTablesIndexRoute =
   HubMaterializedTablesIndexRouteImport.update({
     id: '/hub/materialized-tables/',
@@ -298,6 +315,11 @@ const AdminBenchmarksIndexRoute = AdminBenchmarksIndexRouteImport.update({
 const HubTaskManagersIdRoute = HubTaskManagersIdRouteImport.update({
   id: '/hub/task-managers/$id',
   path: '/hub/task-managers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubSandboxEditorRoute = HubSandboxEditorRouteImport.update({
+  id: '/hub/sandbox/editor',
+  path: '/hub/sandbox/editor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HubMonitoringCheckpointsRoute =
@@ -337,27 +359,6 @@ const HubJobsIdRoute = HubJobsIdRouteImport.update({
   path: '/hub/jobs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HubInstrumentsSchemaRegistryRoute =
-  HubInstrumentsSchemaRegistryRouteImport.update({
-    id: '/hub/instruments/schema-registry',
-    path: '/hub/instruments/schema-registry',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const HubInstrumentsRedisRoute = HubInstrumentsRedisRouteImport.update({
-  id: '/hub/instruments/redis',
-  path: '/hub/instruments/redis',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HubInstrumentsFlussRoute = HubInstrumentsFlussRouteImport.update({
-  id: '/hub/instruments/fluss',
-  path: '/hub/instruments/fluss',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HubInstrumentsDatabaseRoute = HubInstrumentsDatabaseRouteImport.update({
-  id: '/hub/instruments/database',
-  path: '/hub/instruments/database',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HubInsightsMetricsRoute = HubInsightsMetricsRouteImport.update({
   id: '/hub/insights/metrics',
   path: '/hub/insights/metrics',
@@ -376,11 +377,6 @@ const HubInsightsBottlenecksRoute = HubInsightsBottlenecksRouteImport.update({
 const HubDeploymentsNameRoute = HubDeploymentsNameRouteImport.update({
   id: '/hub/deployments/$name',
   path: '/hub/deployments/$name',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HubAdminSimulationsRoute = HubAdminSimulationsRouteImport.update({
-  id: '/hub/admin/simulations',
-  path: '/hub/admin/simulations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSimulationsRunIdRoute = AdminSimulationsRunIdRouteImport.update({
@@ -412,6 +408,17 @@ const InstrumentsInstrumentNameDatabaseIndexRoute =
     path: '/database/',
     getParentRoute: () => InstrumentsInstrumentNameRoute,
   } as any)
+const HubAdminSimulationsIndexRoute =
+  HubAdminSimulationsIndexRouteImport.update({
+    id: '/hub/admin/simulations/',
+    path: '/hub/admin/simulations/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubAdminBenchmarksIndexRoute = HubAdminBenchmarksIndexRouteImport.update({
+  id: '/hub/admin/benchmarks/',
+  path: '/hub/admin/benchmarks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InstrumentsInstrumentNameSchemaRegistrySubjectRoute =
   InstrumentsInstrumentNameSchemaRegistrySubjectRouteImport.update({
     id: '/schema-registry/subject',
@@ -460,6 +467,84 @@ const InstrumentsInstrumentNameDatabaseQueryRoute =
     path: '/database/query',
     getParentRoute: () => InstrumentsInstrumentNameRoute,
   } as any)
+const HubAdminSimulationsRunIdRoute =
+  HubAdminSimulationsRunIdRouteImport.update({
+    id: '/hub/admin/simulations/$runId',
+    path: '/hub/admin/simulations/$runId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameSchemaRegistryIndexRoute =
+  HubInstrumentsInstrumentNameSchemaRegistryIndexRouteImport.update({
+    id: '/hub/instruments/$instrumentName/schema-registry/',
+    path: '/hub/instruments/$instrumentName/schema-registry/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameRedisIndexRoute =
+  HubInstrumentsInstrumentNameRedisIndexRouteImport.update({
+    id: '/hub/instruments/$instrumentName/redis/',
+    path: '/hub/instruments/$instrumentName/redis/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameFlussIndexRoute =
+  HubInstrumentsInstrumentNameFlussIndexRouteImport.update({
+    id: '/hub/instruments/$instrumentName/fluss/',
+    path: '/hub/instruments/$instrumentName/fluss/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameDatabaseIndexRoute =
+  HubInstrumentsInstrumentNameDatabaseIndexRouteImport.update({
+    id: '/hub/instruments/$instrumentName/database/',
+    path: '/hub/instruments/$instrumentName/database/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute =
+  HubInstrumentsInstrumentNameSchemaRegistrySubjectRouteImport.update({
+    id: '/hub/instruments/$instrumentName/schema-registry/subject',
+    path: '/hub/instruments/$instrumentName/schema-registry/subject',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute =
+  HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRouteImport.update({
+    id: '/hub/instruments/$instrumentName/schema-registry/compatibility',
+    path: '/hub/instruments/$instrumentName/schema-registry/compatibility',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameRedisServerRoute =
+  HubInstrumentsInstrumentNameRedisServerRouteImport.update({
+    id: '/hub/instruments/$instrumentName/redis/server',
+    path: '/hub/instruments/$instrumentName/redis/server',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameRedisKeyRoute =
+  HubInstrumentsInstrumentNameRedisKeyRouteImport.update({
+    id: '/hub/instruments/$instrumentName/redis/key',
+    path: '/hub/instruments/$instrumentName/redis/key',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameFlussTableRoute =
+  HubInstrumentsInstrumentNameFlussTableRouteImport.update({
+    id: '/hub/instruments/$instrumentName/fluss/table',
+    path: '/hub/instruments/$instrumentName/fluss/table',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameFlussHealthRoute =
+  HubInstrumentsInstrumentNameFlussHealthRouteImport.update({
+    id: '/hub/instruments/$instrumentName/fluss/health',
+    path: '/hub/instruments/$instrumentName/fluss/health',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameDatabaseTableRoute =
+  HubInstrumentsInstrumentNameDatabaseTableRouteImport.update({
+    id: '/hub/instruments/$instrumentName/database/table',
+    path: '/hub/instruments/$instrumentName/database/table',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameDatabaseQueryRoute =
+  HubInstrumentsInstrumentNameDatabaseQueryRouteImport.update({
+    id: '/hub/instruments/$instrumentName/database/query',
+    path: '/hub/instruments/$instrumentName/database/query',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -474,7 +559,7 @@ export interface FileRoutesByFullPath {
   '/hub/errors': typeof HubErrorsRoute
   '/hub/job-manager': typeof HubJobManagerRoute
   '/hub/logs': typeof HubLogsRoute
-  '/hub/sandbox': typeof HubSandboxRoute
+  '/hub/primitive-sandbox': typeof HubPrimitiveSandboxRoute
   '/hub/sql-explorer': typeof HubSqlExplorerRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
@@ -497,15 +582,10 @@ export interface FileRoutesByFullPath {
   '/sandbox/': typeof SandboxIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
   '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
-  '/hub/admin/simulations': typeof HubAdminSimulationsRoute
   '/hub/deployments/$name': typeof HubDeploymentsNameRoute
   '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
   '/hub/insights/health': typeof HubInsightsHealthRoute
   '/hub/insights/metrics': typeof HubInsightsMetricsRoute
-  '/hub/instruments/database': typeof HubInstrumentsDatabaseRoute
-  '/hub/instruments/fluss': typeof HubInstrumentsFlussRoute
-  '/hub/instruments/redis': typeof HubInstrumentsRedisRoute
-  '/hub/instruments/schema-registry': typeof HubInstrumentsSchemaRegistryRoute
   '/hub/jobs/$id': typeof HubJobsIdRoute
   '/hub/jobs/completed': typeof HubJobsCompletedRoute
   '/hub/jobs/running': typeof HubJobsRunningRoute
@@ -513,6 +593,7 @@ export interface FileRoutesByFullPath {
   '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
+  '/hub/sandbox/editor': typeof HubSandboxEditorRoute
   '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks/': typeof AdminBenchmarksIndexRoute
   '/admin/simulations/': typeof AdminSimulationsIndexRoute
@@ -520,8 +601,10 @@ export interface FileRoutesByFullPath {
   '/hub/deployments/': typeof HubDeploymentsIndexRoute
   '/hub/instruments/': typeof HubInstrumentsIndexRoute
   '/hub/materialized-tables/': typeof HubMaterializedTablesIndexRoute
+  '/hub/sandbox/': typeof HubSandboxIndexRoute
   '/hub/task-managers/': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
+  '/hub/admin/simulations/$runId': typeof HubAdminSimulationsRunIdRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/fluss/health': typeof InstrumentsInstrumentNameFlussHealthRoute
@@ -530,10 +613,24 @@ export interface FileRoutesByFullPath {
   '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
   '/instruments/$instrumentName/schema-registry/compatibility': typeof InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
   '/instruments/$instrumentName/schema-registry/subject': typeof InstrumentsInstrumentNameSchemaRegistrySubjectRoute
+  '/hub/admin/benchmarks/': typeof HubAdminBenchmarksIndexRoute
+  '/hub/admin/simulations/': typeof HubAdminSimulationsIndexRoute
   '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
   '/instruments/$instrumentName/fluss/': typeof InstrumentsInstrumentNameFlussIndexRoute
   '/instruments/$instrumentName/redis/': typeof InstrumentsInstrumentNameRedisIndexRoute
   '/instruments/$instrumentName/schema-registry/': typeof InstrumentsInstrumentNameSchemaRegistryIndexRoute
+  '/hub/instruments/$instrumentName/database/query': typeof HubInstrumentsInstrumentNameDatabaseQueryRoute
+  '/hub/instruments/$instrumentName/database/table': typeof HubInstrumentsInstrumentNameDatabaseTableRoute
+  '/hub/instruments/$instrumentName/fluss/health': typeof HubInstrumentsInstrumentNameFlussHealthRoute
+  '/hub/instruments/$instrumentName/fluss/table': typeof HubInstrumentsInstrumentNameFlussTableRoute
+  '/hub/instruments/$instrumentName/redis/key': typeof HubInstrumentsInstrumentNameRedisKeyRoute
+  '/hub/instruments/$instrumentName/redis/server': typeof HubInstrumentsInstrumentNameRedisServerRoute
+  '/hub/instruments/$instrumentName/schema-registry/compatibility': typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
+  '/hub/instruments/$instrumentName/schema-registry/subject': typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute
+  '/hub/instruments/$instrumentName/database/': typeof HubInstrumentsInstrumentNameDatabaseIndexRoute
+  '/hub/instruments/$instrumentName/fluss/': typeof HubInstrumentsInstrumentNameFlussIndexRoute
+  '/hub/instruments/$instrumentName/redis/': typeof HubInstrumentsInstrumentNameRedisIndexRoute
+  '/hub/instruments/$instrumentName/schema-registry/': typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -548,7 +645,7 @@ export interface FileRoutesByTo {
   '/hub/errors': typeof HubErrorsRoute
   '/hub/job-manager': typeof HubJobManagerRoute
   '/hub/logs': typeof HubLogsRoute
-  '/hub/sandbox': typeof HubSandboxRoute
+  '/hub/primitive-sandbox': typeof HubPrimitiveSandboxRoute
   '/hub/sql-explorer': typeof HubSqlExplorerRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
@@ -569,15 +666,10 @@ export interface FileRoutesByTo {
   '/sandbox': typeof SandboxIndexRoute
   '/task-managers': typeof TaskManagersIndexRoute
   '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
-  '/hub/admin/simulations': typeof HubAdminSimulationsRoute
   '/hub/deployments/$name': typeof HubDeploymentsNameRoute
   '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
   '/hub/insights/health': typeof HubInsightsHealthRoute
   '/hub/insights/metrics': typeof HubInsightsMetricsRoute
-  '/hub/instruments/database': typeof HubInstrumentsDatabaseRoute
-  '/hub/instruments/fluss': typeof HubInstrumentsFlussRoute
-  '/hub/instruments/redis': typeof HubInstrumentsRedisRoute
-  '/hub/instruments/schema-registry': typeof HubInstrumentsSchemaRegistryRoute
   '/hub/jobs/$id': typeof HubJobsIdRoute
   '/hub/jobs/completed': typeof HubJobsCompletedRoute
   '/hub/jobs/running': typeof HubJobsRunningRoute
@@ -585,6 +677,7 @@ export interface FileRoutesByTo {
   '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
+  '/hub/sandbox/editor': typeof HubSandboxEditorRoute
   '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks': typeof AdminBenchmarksIndexRoute
   '/admin/simulations': typeof AdminSimulationsIndexRoute
@@ -592,8 +685,10 @@ export interface FileRoutesByTo {
   '/hub/deployments': typeof HubDeploymentsIndexRoute
   '/hub/instruments': typeof HubInstrumentsIndexRoute
   '/hub/materialized-tables': typeof HubMaterializedTablesIndexRoute
+  '/hub/sandbox': typeof HubSandboxIndexRoute
   '/hub/task-managers': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName': typeof InstrumentsInstrumentNameIndexRoute
+  '/hub/admin/simulations/$runId': typeof HubAdminSimulationsRunIdRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/fluss/health': typeof InstrumentsInstrumentNameFlussHealthRoute
@@ -602,10 +697,24 @@ export interface FileRoutesByTo {
   '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
   '/instruments/$instrumentName/schema-registry/compatibility': typeof InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
   '/instruments/$instrumentName/schema-registry/subject': typeof InstrumentsInstrumentNameSchemaRegistrySubjectRoute
+  '/hub/admin/benchmarks': typeof HubAdminBenchmarksIndexRoute
+  '/hub/admin/simulations': typeof HubAdminSimulationsIndexRoute
   '/instruments/$instrumentName/database': typeof InstrumentsInstrumentNameDatabaseIndexRoute
   '/instruments/$instrumentName/fluss': typeof InstrumentsInstrumentNameFlussIndexRoute
   '/instruments/$instrumentName/redis': typeof InstrumentsInstrumentNameRedisIndexRoute
   '/instruments/$instrumentName/schema-registry': typeof InstrumentsInstrumentNameSchemaRegistryIndexRoute
+  '/hub/instruments/$instrumentName/database/query': typeof HubInstrumentsInstrumentNameDatabaseQueryRoute
+  '/hub/instruments/$instrumentName/database/table': typeof HubInstrumentsInstrumentNameDatabaseTableRoute
+  '/hub/instruments/$instrumentName/fluss/health': typeof HubInstrumentsInstrumentNameFlussHealthRoute
+  '/hub/instruments/$instrumentName/fluss/table': typeof HubInstrumentsInstrumentNameFlussTableRoute
+  '/hub/instruments/$instrumentName/redis/key': typeof HubInstrumentsInstrumentNameRedisKeyRoute
+  '/hub/instruments/$instrumentName/redis/server': typeof HubInstrumentsInstrumentNameRedisServerRoute
+  '/hub/instruments/$instrumentName/schema-registry/compatibility': typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
+  '/hub/instruments/$instrumentName/schema-registry/subject': typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute
+  '/hub/instruments/$instrumentName/database': typeof HubInstrumentsInstrumentNameDatabaseIndexRoute
+  '/hub/instruments/$instrumentName/fluss': typeof HubInstrumentsInstrumentNameFlussIndexRoute
+  '/hub/instruments/$instrumentName/redis': typeof HubInstrumentsInstrumentNameRedisIndexRoute
+  '/hub/instruments/$instrumentName/schema-registry': typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -621,7 +730,7 @@ export interface FileRoutesById {
   '/hub/errors': typeof HubErrorsRoute
   '/hub/job-manager': typeof HubJobManagerRoute
   '/hub/logs': typeof HubLogsRoute
-  '/hub/sandbox': typeof HubSandboxRoute
+  '/hub/primitive-sandbox': typeof HubPrimitiveSandboxRoute
   '/hub/sql-explorer': typeof HubSqlExplorerRoute
   '/insights/bottlenecks': typeof InsightsBottlenecksRoute
   '/insights/health': typeof InsightsHealthRoute
@@ -644,15 +753,10 @@ export interface FileRoutesById {
   '/sandbox/': typeof SandboxIndexRoute
   '/task-managers/': typeof TaskManagersIndexRoute
   '/admin/simulations/$runId': typeof AdminSimulationsRunIdRoute
-  '/hub/admin/simulations': typeof HubAdminSimulationsRoute
   '/hub/deployments/$name': typeof HubDeploymentsNameRoute
   '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
   '/hub/insights/health': typeof HubInsightsHealthRoute
   '/hub/insights/metrics': typeof HubInsightsMetricsRoute
-  '/hub/instruments/database': typeof HubInstrumentsDatabaseRoute
-  '/hub/instruments/fluss': typeof HubInstrumentsFlussRoute
-  '/hub/instruments/redis': typeof HubInstrumentsRedisRoute
-  '/hub/instruments/schema-registry': typeof HubInstrumentsSchemaRegistryRoute
   '/hub/jobs/$id': typeof HubJobsIdRoute
   '/hub/jobs/completed': typeof HubJobsCompletedRoute
   '/hub/jobs/running': typeof HubJobsRunningRoute
@@ -660,6 +764,7 @@ export interface FileRoutesById {
   '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
+  '/hub/sandbox/editor': typeof HubSandboxEditorRoute
   '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks/': typeof AdminBenchmarksIndexRoute
   '/admin/simulations/': typeof AdminSimulationsIndexRoute
@@ -667,8 +772,10 @@ export interface FileRoutesById {
   '/hub/deployments/': typeof HubDeploymentsIndexRoute
   '/hub/instruments/': typeof HubInstrumentsIndexRoute
   '/hub/materialized-tables/': typeof HubMaterializedTablesIndexRoute
+  '/hub/sandbox/': typeof HubSandboxIndexRoute
   '/hub/task-managers/': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
+  '/hub/admin/simulations/$runId': typeof HubAdminSimulationsRunIdRoute
   '/instruments/$instrumentName/database/query': typeof InstrumentsInstrumentNameDatabaseQueryRoute
   '/instruments/$instrumentName/database/table': typeof InstrumentsInstrumentNameDatabaseTableRoute
   '/instruments/$instrumentName/fluss/health': typeof InstrumentsInstrumentNameFlussHealthRoute
@@ -677,10 +784,24 @@ export interface FileRoutesById {
   '/instruments/$instrumentName/redis/server': typeof InstrumentsInstrumentNameRedisServerRoute
   '/instruments/$instrumentName/schema-registry/compatibility': typeof InstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
   '/instruments/$instrumentName/schema-registry/subject': typeof InstrumentsInstrumentNameSchemaRegistrySubjectRoute
+  '/hub/admin/benchmarks/': typeof HubAdminBenchmarksIndexRoute
+  '/hub/admin/simulations/': typeof HubAdminSimulationsIndexRoute
   '/instruments/$instrumentName/database/': typeof InstrumentsInstrumentNameDatabaseIndexRoute
   '/instruments/$instrumentName/fluss/': typeof InstrumentsInstrumentNameFlussIndexRoute
   '/instruments/$instrumentName/redis/': typeof InstrumentsInstrumentNameRedisIndexRoute
   '/instruments/$instrumentName/schema-registry/': typeof InstrumentsInstrumentNameSchemaRegistryIndexRoute
+  '/hub/instruments/$instrumentName/database/query': typeof HubInstrumentsInstrumentNameDatabaseQueryRoute
+  '/hub/instruments/$instrumentName/database/table': typeof HubInstrumentsInstrumentNameDatabaseTableRoute
+  '/hub/instruments/$instrumentName/fluss/health': typeof HubInstrumentsInstrumentNameFlussHealthRoute
+  '/hub/instruments/$instrumentName/fluss/table': typeof HubInstrumentsInstrumentNameFlussTableRoute
+  '/hub/instruments/$instrumentName/redis/key': typeof HubInstrumentsInstrumentNameRedisKeyRoute
+  '/hub/instruments/$instrumentName/redis/server': typeof HubInstrumentsInstrumentNameRedisServerRoute
+  '/hub/instruments/$instrumentName/schema-registry/compatibility': typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
+  '/hub/instruments/$instrumentName/schema-registry/subject': typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute
+  '/hub/instruments/$instrumentName/database/': typeof HubInstrumentsInstrumentNameDatabaseIndexRoute
+  '/hub/instruments/$instrumentName/fluss/': typeof HubInstrumentsInstrumentNameFlussIndexRoute
+  '/hub/instruments/$instrumentName/redis/': typeof HubInstrumentsInstrumentNameRedisIndexRoute
+  '/hub/instruments/$instrumentName/schema-registry/': typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -697,7 +818,7 @@ export interface FileRouteTypes {
     | '/hub/errors'
     | '/hub/job-manager'
     | '/hub/logs'
-    | '/hub/sandbox'
+    | '/hub/primitive-sandbox'
     | '/hub/sql-explorer'
     | '/insights/bottlenecks'
     | '/insights/health'
@@ -720,15 +841,10 @@ export interface FileRouteTypes {
     | '/sandbox/'
     | '/task-managers/'
     | '/admin/simulations/$runId'
-    | '/hub/admin/simulations'
     | '/hub/deployments/$name'
     | '/hub/insights/bottlenecks'
     | '/hub/insights/health'
     | '/hub/insights/metrics'
-    | '/hub/instruments/database'
-    | '/hub/instruments/fluss'
-    | '/hub/instruments/redis'
-    | '/hub/instruments/schema-registry'
     | '/hub/jobs/$id'
     | '/hub/jobs/completed'
     | '/hub/jobs/running'
@@ -736,6 +852,7 @@ export interface FileRouteTypes {
     | '/hub/materialized-tables/$name'
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
+    | '/hub/sandbox/editor'
     | '/hub/task-managers/$id'
     | '/admin/benchmarks/'
     | '/admin/simulations/'
@@ -743,8 +860,10 @@ export interface FileRouteTypes {
     | '/hub/deployments/'
     | '/hub/instruments/'
     | '/hub/materialized-tables/'
+    | '/hub/sandbox/'
     | '/hub/task-managers/'
     | '/instruments/$instrumentName/'
+    | '/hub/admin/simulations/$runId'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/fluss/health'
@@ -753,10 +872,24 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName/redis/server'
     | '/instruments/$instrumentName/schema-registry/compatibility'
     | '/instruments/$instrumentName/schema-registry/subject'
+    | '/hub/admin/benchmarks/'
+    | '/hub/admin/simulations/'
     | '/instruments/$instrumentName/database/'
     | '/instruments/$instrumentName/fluss/'
     | '/instruments/$instrumentName/redis/'
     | '/instruments/$instrumentName/schema-registry/'
+    | '/hub/instruments/$instrumentName/database/query'
+    | '/hub/instruments/$instrumentName/database/table'
+    | '/hub/instruments/$instrumentName/fluss/health'
+    | '/hub/instruments/$instrumentName/fluss/table'
+    | '/hub/instruments/$instrumentName/redis/key'
+    | '/hub/instruments/$instrumentName/redis/server'
+    | '/hub/instruments/$instrumentName/schema-registry/compatibility'
+    | '/hub/instruments/$instrumentName/schema-registry/subject'
+    | '/hub/instruments/$instrumentName/database/'
+    | '/hub/instruments/$instrumentName/fluss/'
+    | '/hub/instruments/$instrumentName/redis/'
+    | '/hub/instruments/$instrumentName/schema-registry/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -771,7 +904,7 @@ export interface FileRouteTypes {
     | '/hub/errors'
     | '/hub/job-manager'
     | '/hub/logs'
-    | '/hub/sandbox'
+    | '/hub/primitive-sandbox'
     | '/hub/sql-explorer'
     | '/insights/bottlenecks'
     | '/insights/health'
@@ -792,15 +925,10 @@ export interface FileRouteTypes {
     | '/sandbox'
     | '/task-managers'
     | '/admin/simulations/$runId'
-    | '/hub/admin/simulations'
     | '/hub/deployments/$name'
     | '/hub/insights/bottlenecks'
     | '/hub/insights/health'
     | '/hub/insights/metrics'
-    | '/hub/instruments/database'
-    | '/hub/instruments/fluss'
-    | '/hub/instruments/redis'
-    | '/hub/instruments/schema-registry'
     | '/hub/jobs/$id'
     | '/hub/jobs/completed'
     | '/hub/jobs/running'
@@ -808,6 +936,7 @@ export interface FileRouteTypes {
     | '/hub/materialized-tables/$name'
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
+    | '/hub/sandbox/editor'
     | '/hub/task-managers/$id'
     | '/admin/benchmarks'
     | '/admin/simulations'
@@ -815,8 +944,10 @@ export interface FileRouteTypes {
     | '/hub/deployments'
     | '/hub/instruments'
     | '/hub/materialized-tables'
+    | '/hub/sandbox'
     | '/hub/task-managers'
     | '/instruments/$instrumentName'
+    | '/hub/admin/simulations/$runId'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/fluss/health'
@@ -825,10 +956,24 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName/redis/server'
     | '/instruments/$instrumentName/schema-registry/compatibility'
     | '/instruments/$instrumentName/schema-registry/subject'
+    | '/hub/admin/benchmarks'
+    | '/hub/admin/simulations'
     | '/instruments/$instrumentName/database'
     | '/instruments/$instrumentName/fluss'
     | '/instruments/$instrumentName/redis'
     | '/instruments/$instrumentName/schema-registry'
+    | '/hub/instruments/$instrumentName/database/query'
+    | '/hub/instruments/$instrumentName/database/table'
+    | '/hub/instruments/$instrumentName/fluss/health'
+    | '/hub/instruments/$instrumentName/fluss/table'
+    | '/hub/instruments/$instrumentName/redis/key'
+    | '/hub/instruments/$instrumentName/redis/server'
+    | '/hub/instruments/$instrumentName/schema-registry/compatibility'
+    | '/hub/instruments/$instrumentName/schema-registry/subject'
+    | '/hub/instruments/$instrumentName/database'
+    | '/hub/instruments/$instrumentName/fluss'
+    | '/hub/instruments/$instrumentName/redis'
+    | '/hub/instruments/$instrumentName/schema-registry'
   id:
     | '__root__'
     | '/'
@@ -843,7 +988,7 @@ export interface FileRouteTypes {
     | '/hub/errors'
     | '/hub/job-manager'
     | '/hub/logs'
-    | '/hub/sandbox'
+    | '/hub/primitive-sandbox'
     | '/hub/sql-explorer'
     | '/insights/bottlenecks'
     | '/insights/health'
@@ -866,15 +1011,10 @@ export interface FileRouteTypes {
     | '/sandbox/'
     | '/task-managers/'
     | '/admin/simulations/$runId'
-    | '/hub/admin/simulations'
     | '/hub/deployments/$name'
     | '/hub/insights/bottlenecks'
     | '/hub/insights/health'
     | '/hub/insights/metrics'
-    | '/hub/instruments/database'
-    | '/hub/instruments/fluss'
-    | '/hub/instruments/redis'
-    | '/hub/instruments/schema-registry'
     | '/hub/jobs/$id'
     | '/hub/jobs/completed'
     | '/hub/jobs/running'
@@ -882,6 +1022,7 @@ export interface FileRouteTypes {
     | '/hub/materialized-tables/$name'
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
+    | '/hub/sandbox/editor'
     | '/hub/task-managers/$id'
     | '/admin/benchmarks/'
     | '/admin/simulations/'
@@ -889,8 +1030,10 @@ export interface FileRouteTypes {
     | '/hub/deployments/'
     | '/hub/instruments/'
     | '/hub/materialized-tables/'
+    | '/hub/sandbox/'
     | '/hub/task-managers/'
     | '/instruments/$instrumentName/'
+    | '/hub/admin/simulations/$runId'
     | '/instruments/$instrumentName/database/query'
     | '/instruments/$instrumentName/database/table'
     | '/instruments/$instrumentName/fluss/health'
@@ -899,10 +1042,24 @@ export interface FileRouteTypes {
     | '/instruments/$instrumentName/redis/server'
     | '/instruments/$instrumentName/schema-registry/compatibility'
     | '/instruments/$instrumentName/schema-registry/subject'
+    | '/hub/admin/benchmarks/'
+    | '/hub/admin/simulations/'
     | '/instruments/$instrumentName/database/'
     | '/instruments/$instrumentName/fluss/'
     | '/instruments/$instrumentName/redis/'
     | '/instruments/$instrumentName/schema-registry/'
+    | '/hub/instruments/$instrumentName/database/query'
+    | '/hub/instruments/$instrumentName/database/table'
+    | '/hub/instruments/$instrumentName/fluss/health'
+    | '/hub/instruments/$instrumentName/fluss/table'
+    | '/hub/instruments/$instrumentName/redis/key'
+    | '/hub/instruments/$instrumentName/redis/server'
+    | '/hub/instruments/$instrumentName/schema-registry/compatibility'
+    | '/hub/instruments/$instrumentName/schema-registry/subject'
+    | '/hub/instruments/$instrumentName/database/'
+    | '/hub/instruments/$instrumentName/fluss/'
+    | '/hub/instruments/$instrumentName/redis/'
+    | '/hub/instruments/$instrumentName/schema-registry/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -918,7 +1075,7 @@ export interface RootRouteChildren {
   HubErrorsRoute: typeof HubErrorsRoute
   HubJobManagerRoute: typeof HubJobManagerRoute
   HubLogsRoute: typeof HubLogsRoute
-  HubSandboxRoute: typeof HubSandboxRoute
+  HubPrimitiveSandboxRoute: typeof HubPrimitiveSandboxRoute
   HubSqlExplorerRoute: typeof HubSqlExplorerRoute
   InsightsBottlenecksRoute: typeof InsightsBottlenecksRoute
   InsightsHealthRoute: typeof InsightsHealthRoute
@@ -941,15 +1098,10 @@ export interface RootRouteChildren {
   SandboxIndexRoute: typeof SandboxIndexRoute
   TaskManagersIndexRoute: typeof TaskManagersIndexRoute
   AdminSimulationsRunIdRoute: typeof AdminSimulationsRunIdRoute
-  HubAdminSimulationsRoute: typeof HubAdminSimulationsRoute
   HubDeploymentsNameRoute: typeof HubDeploymentsNameRoute
   HubInsightsBottlenecksRoute: typeof HubInsightsBottlenecksRoute
   HubInsightsHealthRoute: typeof HubInsightsHealthRoute
   HubInsightsMetricsRoute: typeof HubInsightsMetricsRoute
-  HubInstrumentsDatabaseRoute: typeof HubInstrumentsDatabaseRoute
-  HubInstrumentsFlussRoute: typeof HubInstrumentsFlussRoute
-  HubInstrumentsRedisRoute: typeof HubInstrumentsRedisRoute
-  HubInstrumentsSchemaRegistryRoute: typeof HubInstrumentsSchemaRegistryRoute
   HubJobsIdRoute: typeof HubJobsIdRoute
   HubJobsCompletedRoute: typeof HubJobsCompletedRoute
   HubJobsRunningRoute: typeof HubJobsRunningRoute
@@ -957,6 +1109,7 @@ export interface RootRouteChildren {
   HubMaterializedTablesNameRoute: typeof HubMaterializedTablesNameRoute
   HubMonitoringAlertsRoute: typeof HubMonitoringAlertsRoute
   HubMonitoringCheckpointsRoute: typeof HubMonitoringCheckpointsRoute
+  HubSandboxEditorRoute: typeof HubSandboxEditorRoute
   HubTaskManagersIdRoute: typeof HubTaskManagersIdRoute
   AdminBenchmarksIndexRoute: typeof AdminBenchmarksIndexRoute
   AdminSimulationsIndexRoute: typeof AdminSimulationsIndexRoute
@@ -964,7 +1117,23 @@ export interface RootRouteChildren {
   HubDeploymentsIndexRoute: typeof HubDeploymentsIndexRoute
   HubInstrumentsIndexRoute: typeof HubInstrumentsIndexRoute
   HubMaterializedTablesIndexRoute: typeof HubMaterializedTablesIndexRoute
+  HubSandboxIndexRoute: typeof HubSandboxIndexRoute
   HubTaskManagersIndexRoute: typeof HubTaskManagersIndexRoute
+  HubAdminSimulationsRunIdRoute: typeof HubAdminSimulationsRunIdRoute
+  HubAdminBenchmarksIndexRoute: typeof HubAdminBenchmarksIndexRoute
+  HubAdminSimulationsIndexRoute: typeof HubAdminSimulationsIndexRoute
+  HubInstrumentsInstrumentNameDatabaseQueryRoute: typeof HubInstrumentsInstrumentNameDatabaseQueryRoute
+  HubInstrumentsInstrumentNameDatabaseTableRoute: typeof HubInstrumentsInstrumentNameDatabaseTableRoute
+  HubInstrumentsInstrumentNameFlussHealthRoute: typeof HubInstrumentsInstrumentNameFlussHealthRoute
+  HubInstrumentsInstrumentNameFlussTableRoute: typeof HubInstrumentsInstrumentNameFlussTableRoute
+  HubInstrumentsInstrumentNameRedisKeyRoute: typeof HubInstrumentsInstrumentNameRedisKeyRoute
+  HubInstrumentsInstrumentNameRedisServerRoute: typeof HubInstrumentsInstrumentNameRedisServerRoute
+  HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute: typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
+  HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute: typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute
+  HubInstrumentsInstrumentNameDatabaseIndexRoute: typeof HubInstrumentsInstrumentNameDatabaseIndexRoute
+  HubInstrumentsInstrumentNameFlussIndexRoute: typeof HubInstrumentsInstrumentNameFlussIndexRoute
+  HubInstrumentsInstrumentNameRedisIndexRoute: typeof HubInstrumentsInstrumentNameRedisIndexRoute
+  HubInstrumentsInstrumentNameSchemaRegistryIndexRoute: typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1151,11 +1320,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubSqlExplorerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/hub/sandbox': {
-      id: '/hub/sandbox'
-      path: '/hub/sandbox'
-      fullPath: '/hub/sandbox'
-      preLoaderRoute: typeof HubSandboxRouteImport
+    '/hub/primitive-sandbox': {
+      id: '/hub/primitive-sandbox'
+      path: '/hub/primitive-sandbox'
+      fullPath: '/hub/primitive-sandbox'
+      preLoaderRoute: typeof HubPrimitiveSandboxRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/logs': {
@@ -1221,6 +1390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubTaskManagersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hub/sandbox/': {
+      id: '/hub/sandbox/'
+      path: '/hub/sandbox'
+      fullPath: '/hub/sandbox/'
+      preLoaderRoute: typeof HubSandboxIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hub/materialized-tables/': {
       id: '/hub/materialized-tables/'
       path: '/hub/materialized-tables'
@@ -1268,6 +1444,13 @@ declare module '@tanstack/react-router' {
       path: '/hub/task-managers/$id'
       fullPath: '/hub/task-managers/$id'
       preLoaderRoute: typeof HubTaskManagersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/sandbox/editor': {
+      id: '/hub/sandbox/editor'
+      path: '/hub/sandbox/editor'
+      fullPath: '/hub/sandbox/editor'
+      preLoaderRoute: typeof HubSandboxEditorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/monitoring/checkpoints': {
@@ -1319,34 +1502,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubJobsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/hub/instruments/schema-registry': {
-      id: '/hub/instruments/schema-registry'
-      path: '/hub/instruments/schema-registry'
-      fullPath: '/hub/instruments/schema-registry'
-      preLoaderRoute: typeof HubInstrumentsSchemaRegistryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hub/instruments/redis': {
-      id: '/hub/instruments/redis'
-      path: '/hub/instruments/redis'
-      fullPath: '/hub/instruments/redis'
-      preLoaderRoute: typeof HubInstrumentsRedisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hub/instruments/fluss': {
-      id: '/hub/instruments/fluss'
-      path: '/hub/instruments/fluss'
-      fullPath: '/hub/instruments/fluss'
-      preLoaderRoute: typeof HubInstrumentsFlussRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hub/instruments/database': {
-      id: '/hub/instruments/database'
-      path: '/hub/instruments/database'
-      fullPath: '/hub/instruments/database'
-      preLoaderRoute: typeof HubInstrumentsDatabaseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/hub/insights/metrics': {
       id: '/hub/insights/metrics'
       path: '/hub/insights/metrics'
@@ -1373,13 +1528,6 @@ declare module '@tanstack/react-router' {
       path: '/hub/deployments/$name'
       fullPath: '/hub/deployments/$name'
       preLoaderRoute: typeof HubDeploymentsNameRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hub/admin/simulations': {
-      id: '/hub/admin/simulations'
-      path: '/hub/admin/simulations'
-      fullPath: '/hub/admin/simulations'
-      preLoaderRoute: typeof HubAdminSimulationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/simulations/$runId': {
@@ -1416,6 +1564,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/instruments/$instrumentName/database/'
       preLoaderRoute: typeof InstrumentsInstrumentNameDatabaseIndexRouteImport
       parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
+    '/hub/admin/simulations/': {
+      id: '/hub/admin/simulations/'
+      path: '/hub/admin/simulations'
+      fullPath: '/hub/admin/simulations/'
+      preLoaderRoute: typeof HubAdminSimulationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/admin/benchmarks/': {
+      id: '/hub/admin/benchmarks/'
+      path: '/hub/admin/benchmarks'
+      fullPath: '/hub/admin/benchmarks/'
+      preLoaderRoute: typeof HubAdminBenchmarksIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/instruments/$instrumentName/schema-registry/subject': {
       id: '/instruments/$instrumentName/schema-registry/subject'
@@ -1472,6 +1634,97 @@ declare module '@tanstack/react-router' {
       fullPath: '/instruments/$instrumentName/database/query'
       preLoaderRoute: typeof InstrumentsInstrumentNameDatabaseQueryRouteImport
       parentRoute: typeof InstrumentsInstrumentNameRoute
+    }
+    '/hub/admin/simulations/$runId': {
+      id: '/hub/admin/simulations/$runId'
+      path: '/hub/admin/simulations/$runId'
+      fullPath: '/hub/admin/simulations/$runId'
+      preLoaderRoute: typeof HubAdminSimulationsRunIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/schema-registry/': {
+      id: '/hub/instruments/$instrumentName/schema-registry/'
+      path: '/hub/instruments/$instrumentName/schema-registry'
+      fullPath: '/hub/instruments/$instrumentName/schema-registry/'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/redis/': {
+      id: '/hub/instruments/$instrumentName/redis/'
+      path: '/hub/instruments/$instrumentName/redis'
+      fullPath: '/hub/instruments/$instrumentName/redis/'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameRedisIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/fluss/': {
+      id: '/hub/instruments/$instrumentName/fluss/'
+      path: '/hub/instruments/$instrumentName/fluss'
+      fullPath: '/hub/instruments/$instrumentName/fluss/'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameFlussIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/database/': {
+      id: '/hub/instruments/$instrumentName/database/'
+      path: '/hub/instruments/$instrumentName/database'
+      fullPath: '/hub/instruments/$instrumentName/database/'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameDatabaseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/schema-registry/subject': {
+      id: '/hub/instruments/$instrumentName/schema-registry/subject'
+      path: '/hub/instruments/$instrumentName/schema-registry/subject'
+      fullPath: '/hub/instruments/$instrumentName/schema-registry/subject'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/schema-registry/compatibility': {
+      id: '/hub/instruments/$instrumentName/schema-registry/compatibility'
+      path: '/hub/instruments/$instrumentName/schema-registry/compatibility'
+      fullPath: '/hub/instruments/$instrumentName/schema-registry/compatibility'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/redis/server': {
+      id: '/hub/instruments/$instrumentName/redis/server'
+      path: '/hub/instruments/$instrumentName/redis/server'
+      fullPath: '/hub/instruments/$instrumentName/redis/server'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameRedisServerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/redis/key': {
+      id: '/hub/instruments/$instrumentName/redis/key'
+      path: '/hub/instruments/$instrumentName/redis/key'
+      fullPath: '/hub/instruments/$instrumentName/redis/key'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameRedisKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/fluss/table': {
+      id: '/hub/instruments/$instrumentName/fluss/table'
+      path: '/hub/instruments/$instrumentName/fluss/table'
+      fullPath: '/hub/instruments/$instrumentName/fluss/table'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameFlussTableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/fluss/health': {
+      id: '/hub/instruments/$instrumentName/fluss/health'
+      path: '/hub/instruments/$instrumentName/fluss/health'
+      fullPath: '/hub/instruments/$instrumentName/fluss/health'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameFlussHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/database/table': {
+      id: '/hub/instruments/$instrumentName/database/table'
+      path: '/hub/instruments/$instrumentName/database/table'
+      fullPath: '/hub/instruments/$instrumentName/database/table'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameDatabaseTableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/database/query': {
+      id: '/hub/instruments/$instrumentName/database/query'
+      path: '/hub/instruments/$instrumentName/database/query'
+      fullPath: '/hub/instruments/$instrumentName/database/query'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameDatabaseQueryRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -1539,7 +1792,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubErrorsRoute: HubErrorsRoute,
   HubJobManagerRoute: HubJobManagerRoute,
   HubLogsRoute: HubLogsRoute,
-  HubSandboxRoute: HubSandboxRoute,
+  HubPrimitiveSandboxRoute: HubPrimitiveSandboxRoute,
   HubSqlExplorerRoute: HubSqlExplorerRoute,
   InsightsBottlenecksRoute: InsightsBottlenecksRoute,
   InsightsHealthRoute: InsightsHealthRoute,
@@ -1562,15 +1815,10 @@ const rootRouteChildren: RootRouteChildren = {
   SandboxIndexRoute: SandboxIndexRoute,
   TaskManagersIndexRoute: TaskManagersIndexRoute,
   AdminSimulationsRunIdRoute: AdminSimulationsRunIdRoute,
-  HubAdminSimulationsRoute: HubAdminSimulationsRoute,
   HubDeploymentsNameRoute: HubDeploymentsNameRoute,
   HubInsightsBottlenecksRoute: HubInsightsBottlenecksRoute,
   HubInsightsHealthRoute: HubInsightsHealthRoute,
   HubInsightsMetricsRoute: HubInsightsMetricsRoute,
-  HubInstrumentsDatabaseRoute: HubInstrumentsDatabaseRoute,
-  HubInstrumentsFlussRoute: HubInstrumentsFlussRoute,
-  HubInstrumentsRedisRoute: HubInstrumentsRedisRoute,
-  HubInstrumentsSchemaRegistryRoute: HubInstrumentsSchemaRegistryRoute,
   HubJobsIdRoute: HubJobsIdRoute,
   HubJobsCompletedRoute: HubJobsCompletedRoute,
   HubJobsRunningRoute: HubJobsRunningRoute,
@@ -1578,6 +1826,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubMaterializedTablesNameRoute: HubMaterializedTablesNameRoute,
   HubMonitoringAlertsRoute: HubMonitoringAlertsRoute,
   HubMonitoringCheckpointsRoute: HubMonitoringCheckpointsRoute,
+  HubSandboxEditorRoute: HubSandboxEditorRoute,
   HubTaskManagersIdRoute: HubTaskManagersIdRoute,
   AdminBenchmarksIndexRoute: AdminBenchmarksIndexRoute,
   AdminSimulationsIndexRoute: AdminSimulationsIndexRoute,
@@ -1585,7 +1834,35 @@ const rootRouteChildren: RootRouteChildren = {
   HubDeploymentsIndexRoute: HubDeploymentsIndexRoute,
   HubInstrumentsIndexRoute: HubInstrumentsIndexRoute,
   HubMaterializedTablesIndexRoute: HubMaterializedTablesIndexRoute,
+  HubSandboxIndexRoute: HubSandboxIndexRoute,
   HubTaskManagersIndexRoute: HubTaskManagersIndexRoute,
+  HubAdminSimulationsRunIdRoute: HubAdminSimulationsRunIdRoute,
+  HubAdminBenchmarksIndexRoute: HubAdminBenchmarksIndexRoute,
+  HubAdminSimulationsIndexRoute: HubAdminSimulationsIndexRoute,
+  HubInstrumentsInstrumentNameDatabaseQueryRoute:
+    HubInstrumentsInstrumentNameDatabaseQueryRoute,
+  HubInstrumentsInstrumentNameDatabaseTableRoute:
+    HubInstrumentsInstrumentNameDatabaseTableRoute,
+  HubInstrumentsInstrumentNameFlussHealthRoute:
+    HubInstrumentsInstrumentNameFlussHealthRoute,
+  HubInstrumentsInstrumentNameFlussTableRoute:
+    HubInstrumentsInstrumentNameFlussTableRoute,
+  HubInstrumentsInstrumentNameRedisKeyRoute:
+    HubInstrumentsInstrumentNameRedisKeyRoute,
+  HubInstrumentsInstrumentNameRedisServerRoute:
+    HubInstrumentsInstrumentNameRedisServerRoute,
+  HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute:
+    HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute,
+  HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute:
+    HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute,
+  HubInstrumentsInstrumentNameDatabaseIndexRoute:
+    HubInstrumentsInstrumentNameDatabaseIndexRoute,
+  HubInstrumentsInstrumentNameFlussIndexRoute:
+    HubInstrumentsInstrumentNameFlussIndexRoute,
+  HubInstrumentsInstrumentNameRedisIndexRoute:
+    HubInstrumentsInstrumentNameRedisIndexRoute,
+  HubInstrumentsInstrumentNameSchemaRegistryIndexRoute:
+    HubInstrumentsInstrumentNameSchemaRegistryIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

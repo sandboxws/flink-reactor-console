@@ -12,10 +12,8 @@ import {
   Code2,
   Cpu,
   Database,
-  FileJson,
   FolderTree,
   GitFork,
-  HardDrive,
   HeartPulse,
   Layers,
   LayoutDashboard,
@@ -151,11 +149,11 @@ export const HUB_COMMAND_ROUTES: HubCommandRoute[] = [
 
   // Tools
   {
-    label: "Sandbox (kitchen sink)",
-    href: "/hub/sandbox",
+    label: "DSL editor",
+    href: "/hub/sandbox/editor",
     icon: Code2,
     group: "Tools",
-    sublabel: "/hub/sandbox",
+    sublabel: "/hub/sandbox/editor",
   },
   {
     label: "Simulations",
@@ -163,30 +161,25 @@ export const HUB_COMMAND_ROUTES: HubCommandRoute[] = [
     icon: Activity,
     group: "Tools",
   },
+  {
+    label: "Benchmarks",
+    href: "/hub/admin/benchmarks",
+    icon: Activity,
+    group: "Tools",
+  },
+  {
+    label: "Primitive sandbox (designers)",
+    href: "/hub/primitive-sandbox",
+    icon: Code2,
+    group: "Tools",
+    sublabel: "/hub/primitive-sandbox",
+  },
 
   // Instruments
   {
-    label: "Fluss",
-    href: "/hub/instruments/fluss",
+    label: "All instruments",
+    href: "/hub/instruments",
     icon: Layers,
-    group: "Instruments",
-  },
-  {
-    label: "Redis",
-    href: "/hub/instruments/redis",
-    icon: Database,
-    group: "Instruments",
-  },
-  {
-    label: "Schema registry",
-    href: "/hub/instruments/schema-registry",
-    icon: FileJson,
-    group: "Instruments",
-  },
-  {
-    label: "Database",
-    href: "/hub/instruments/database",
-    icon: HardDrive,
     group: "Instruments",
   },
 ]

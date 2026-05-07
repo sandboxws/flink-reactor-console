@@ -327,9 +327,9 @@ function HubOverview() {
           <Upload className="shrink-0" />
           Submit JAR
         </Link>
-        <Link to="/hub/sandbox" className="nav-item w-full">
+        <Link to="/hub/sandbox/editor" className="nav-item w-full">
           <Code2 className="shrink-0" />
-          Open sandbox
+          Open DSL editor
         </Link>
         <Link to="/hub/sql-explorer" className="nav-item w-full">
           <SearchCode className="shrink-0" />

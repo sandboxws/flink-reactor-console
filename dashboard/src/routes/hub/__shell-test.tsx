@@ -1,7 +1,7 @@
 /**
  * Hub Shell Sandbox — exercises the wired-up HubAppShell with empty content.
  *
- * Differs from /hub/sandbox (kitchen-sink primitives) in that this page is
+ * Differs from /hub/primitive-sandbox (kitchen-sink primitives) in that this page is
  * about the *chrome*: live cluster selector, real cluster list from
  * useConfigStore, command palette via Cmd+K, breadcrumb component preview.
  *
@@ -71,7 +71,7 @@ function HubShellTest() {
       <HubBreadcrumb
         crumbs={[
           { label: "Hub", to: "/hub" },
-          { label: "Tools", to: "/hub/sandbox" },
+          { label: "Tools", to: "/hub/sandbox/editor" },
           { label: "Shell sandbox" },
         ]}
         LinkComponent={HubLink}
