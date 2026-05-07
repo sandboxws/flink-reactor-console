@@ -379,7 +379,7 @@ function HubErrors() {
                 const stale = state === "suppressed"
                 const accent = stale ? "text-fg-muted" : "text-fr-rose"
                 const className =
-                  "grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer text-left w-full transition-colors"
+                  "grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border/40 last:border-b-0 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer text-left w-full transition-colors"
                 return (
                   <button
                     type="button"
@@ -388,11 +388,7 @@ function HubErrors() {
                     className={className}
                     style={
                       isSelected
-                        ? {
-                            background: "rgba(231,138,78,0.06)",
-                            boxShadow:
-                              "inset 0 0 0 1px rgba(231,138,78,0.35)",
-                          }
+                        ? { background: "rgba(231,138,78,0.10)" }
                         : undefined
                     }
                   >
