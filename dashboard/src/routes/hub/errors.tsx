@@ -50,13 +50,25 @@ function timeAgo(date: Date | null | undefined): string {
   return `${Math.floor(hours / 24)}d`
 }
 
-/** Map a group's age + count to a status-icon state. Newer + frequent = firing. */
+/**
+ * Map a group's count + recency to a status-icon state.
+ *
+ * NOTE: never returns "resolved" — there is no backend resolution model
+ * yet, and auto-resolving by age would silently hide legitimate ongoing
+ * exception groups (the "logs page shows errors but errors page is empty"
+ * bug). When a resolution action ships, this fn becomes a fallback for
+ * groups the backend hasn't classified.
+ */
 function groupState(g: ErrorGroup): StatusIconState {
   const minutesSinceLast = (Date.now() - g.lastSeen.getTime()) / 60000
-  if (minutesSinceLast > 60) return "resolved"
-  if (g.count >= 50) return "firing"
+  if (g.count >= 50 || (g.count >= 10 && minutesSinceLast < 5)) return "firing"
   if (g.count >= 5) return "acknowledged"
   return "in-progress"
+}
+
+/** A group with no occurrences in 24h — eligible for the optional "Hide stale" filter. */
+function isStale(g: ErrorGroup): boolean {
+  return Date.now() - g.lastSeen.getTime() > 24 * 60 * 60 * 1000
 }
 
 type SortKey = "lastSeen" | "count" | "firstSeen"
@@ -73,7 +85,7 @@ function HubErrors() {
 
   const [sortKey, setSortKey] = useState<SortKey>("lastSeen")
   const [sortDesc, setSortDesc] = useState(true)
-  const [showResolved, setShowResolved] = useState(false)
+  const [hideStale, setHideStale] = useState(false)
 
   useEffect(() => {
     initialize()
@@ -94,9 +106,7 @@ function HubErrors() {
   const groupArray = useMemo(() => Array.from(groups.values()), [groups])
 
   const visibleGroups = useMemo(() => {
-    const filtered = showResolved
-      ? groupArray
-      : groupArray.filter((g) => groupState(g) !== "resolved")
+    const filtered = hideStale ? groupArray.filter((g) => !isStale(g)) : groupArray
     const sorted = [...filtered].sort((a, b) => {
       let aV = 0
       let bV = 0
@@ -118,7 +128,7 @@ function HubErrors() {
       return sortDesc ? bV - aV : aV - bV
     })
     return sorted
-  }, [groupArray, sortKey, sortDesc, showResolved])
+  }, [groupArray, sortKey, sortDesc, hideStale])
 
   const selected = useMemo(
     () =>
@@ -207,11 +217,12 @@ function HubErrors() {
         <PropChip icon={Sliders}>Group by exception</PropChip>
         <button
           type="button"
-          onClick={() => setShowResolved((v) => !v)}
-          className={`prop-chip ${showResolved ? "active" : ""}`}
+          onClick={() => setHideStale((v) => !v)}
+          className={`prop-chip ${hideStale ? "active" : ""}`}
+          title="Hide groups with no occurrences in the last 24 hours"
         >
           <CheckCircle2 className="size-3.5" />
-          {showResolved ? "Hide resolved" : "Show resolved"}
+          {hideStale ? "Stale hidden" : "Hide stale (>24h)"}
         </button>
         <div className="ml-auto flex items-center gap-2">
           <button
@@ -241,13 +252,12 @@ function HubErrors() {
         <div className="glass-card-static p-12 text-center">
           <CheckCircle2 className="mx-auto size-6 text-fr-sage" />
           <h2 className="mt-3 text-[14px] font-medium text-zinc-100">
-            All clear
+            {groupArray.length === 0 ? "All clear" : "No matches"}
           </h2>
           <p className="mt-1 text-[12px] text-fg-muted">
-            No exception groups in the current window.
-            {!showResolved
-              ? " (Resolved groups are hidden — toggle the chip to view them.)"
-              : ""}
+            {groupArray.length === 0
+              ? "No exception groups have been observed in the current window."
+              : `${groupArray.length} group${groupArray.length === 1 ? "" : "s"} hidden by the "Hide stale" filter — toggle the chip to show them.`}
           </p>
         </div>
       ) : (
@@ -265,14 +275,13 @@ function HubErrors() {
               {visibleGroups.map((g) => {
                 const state = groupState(g)
                 const isSelected = selected?.id === g.id
+                const stale = isStale(g)
                 const accent =
                   state === "firing"
                     ? "text-fr-rose"
                     : state === "acknowledged"
                       ? "text-fr-amber"
-                      : state === "resolved"
-                        ? "text-fr-sage"
-                        : "text-fg-muted"
+                      : "text-fg-muted"
                 const className =
                   "grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border/40 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer text-left w-full"
                 return (
@@ -309,7 +318,7 @@ function HubErrors() {
                         {g.count}
                       </div>
                       <div className="font-mono text-[10px] text-fg-faint">
-                        {state === "resolved" ? "resolved" : "active"}
+                        {stale ? "stale" : "active"}
                       </div>
                     </div>
                     <div className="text-right font-mono text-[11px]">
@@ -330,7 +339,7 @@ function HubErrors() {
                 Showing {visibleGroups.length} of {groupArray.length} groups
               </span>
               <span>
-                {showResolved ? "all states" : "active only"} · sort: {sortKey}{" "}
+                {hideStale ? "stale hidden" : "all groups"} · sort: {sortKey}{" "}
                 {sortDesc ? "desc" : "asc"}
               </span>
             </div>
@@ -364,9 +373,7 @@ function ErrorDetailCard({
       ? "fail"
       : state === "acknowledged"
         ? "warn"
-        : state === "resolved"
-          ? "ok"
-          : "info"
+        : "info"
 
   // Sparkbar bins: 24 hourly bins of group occurrences (newest on right).
   const bins = useMemo(() => {
