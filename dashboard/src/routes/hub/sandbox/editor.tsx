@@ -1,20 +1,28 @@
 /**
  * Hub DSL editor — /hub/sandbox/editor.
  *
- * Full-bleed 2-column layout: CodeMirror DSL editor on the left, live
- * synthesis (SQL / CRD / plan) on the right. Both panes read/write a
- * shared `useSandboxStore`; the editor debounces synthesis at ~300ms
- * (handled inside `<SandboxEditor>`).
+ * Mirrors `console-v2/sandbox.html` exactly:
+ *   ┌── Hub topbar (provided by HubAppShell) ────────────────────────┐
+ *   ├── Hub sidebar │ ┌── DSL sandbox header ──────────────────────┐ │
+ *   │               │ │ title · version · scratch · status · btns  │ │
+ *   │               │ ├────────────┬─────────────┬─────────────────┤ │
+ *   │               │ │ scratch    │ editor +    │ validation +    │ │
+ *   │               │ │ pads,      │ preview     │ simulate +      │ │
+ *   │               │ │ templates, │ tabs        │ AI assist       │ │
+ *   │               │ │ imports    │             │                 │ │
+ *   │               │ └────────────┴─────────────┴─────────────────┘ │
+ *   └─────────────────────────────────────────────────────────────────┘
+ *
+ * The 3-column workspace runs full-bleed inside main (escaping the
+ * default `px-8 py-6` padding via `<PageFullBleed>`); the Hub topbar
+ * and sidebar from `<HubAppShell>` remain visible.
  */
 
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@flink-reactor/ui"
 import { createFileRoute } from "@tanstack/react-router"
 import { DslEditorPane } from "@/components/hub/tools/dsl-editor-pane"
-import { PlanGraphPreview } from "@/components/hub/tools/plan-graph-preview"
+import { DslSandboxHeader } from "@/components/hub/tools/dsl-sandbox-header"
+import { DslSandboxRail } from "@/components/hub/tools/dsl-sandbox-rail"
+import { DslSandboxSidebar } from "@/components/hub/tools/dsl-sandbox-sidebar"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { PageFullBleed } from "@/lib/hub/page-full-bleed"
 
@@ -22,15 +30,12 @@ function HubSandboxEditor() {
   return (
     <HubAppShell>
       <PageFullBleed>
-        <ResizablePanelGroup orientation="horizontal" className="flex-1">
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <DslEditorPane />
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={50} minSize={25}>
-            <PlanGraphPreview />
-          </ResizablePanel>
-        </ResizablePanelGroup>
+        <DslSandboxHeader />
+        <div className="grid min-h-0 flex-1 grid-cols-[260px_1fr_360px]">
+          <DslSandboxSidebar />
+          <DslEditorPane />
+          <DslSandboxRail />
+        </div>
       </PageFullBleed>
     </HubAppShell>
   )
