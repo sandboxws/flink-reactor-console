@@ -1404,6 +1404,27 @@
   border-bottom: 0;
 }
 
+/* ── Task-manager table rows (task-managers list) ───────────────────── */
+
+.tm-row {
+  display: grid;
+  grid-template-columns: 18px 140px 1fr 90px 90px 100px 80px 32px;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--color-dash-border);
+  font-size: 12.5px;
+  transition: background 0.12s;
+  text-decoration: none;
+  color: inherit;
+}
+.tm-row:hover {
+  background: rgba(231, 138, 78, 0.04);
+}
+.tm-row:last-child {
+  border-bottom: 0;
+}
+
 .tab.active,
 .tab[data-state="active"] {
   color: var(--color-fr-coral);
