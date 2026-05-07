@@ -16,9 +16,9 @@
 import {
   HubBreadcrumb,
   LiveDot,
-  PropChip,
   type LogEntry,
   type LogLevel,
+  PropChip,
 } from "@flink-reactor/ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
@@ -208,7 +208,9 @@ function HubLogs() {
                 style={{ background: tone }}
               />
               {level}
-              <span className="count">{levelCounts[level].toLocaleString()}</span>
+              <span className="count">
+                {levelCounts[level].toLocaleString()}
+              </span>
             </button>
           )
         })}
@@ -252,11 +254,7 @@ function HubLogs() {
       {/* ── 2-pane layout ──────────────────────────────────────── */}
       <section className="grid grid-cols-12 gap-4">
         {/* Log stream */}
-        <div
-          className={
-            selected ? "col-span-12 xl:col-span-8" : "col-span-12"
-          }
-        >
+        <div className={selected ? "col-span-12 xl:col-span-8" : "col-span-12"}>
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono text-fg-muted">
@@ -549,13 +547,9 @@ function LogDetailCard({
             Surrounding
           </div>
           <div className="space-y-1 font-mono text-[11px]">
-            {prev ? (
-              <SurroundingRow entry={prev} onSelect={onSelect} />
-            ) : null}
+            {prev ? <SurroundingRow entry={prev} onSelect={onSelect} /> : null}
             <SurroundingRow entry={entry} current onSelect={onSelect} />
-            {next ? (
-              <SurroundingRow entry={next} onSelect={onSelect} />
-            ) : null}
+            {next ? <SurroundingRow entry={next} onSelect={onSelect} /> : null}
           </div>
         </>
       ) : null}
@@ -574,9 +568,7 @@ function SurroundingRow({
 }) {
   const tone = LEVEL_TONE[entry.level]
   const message =
-    entry.message.length > 60
-      ? `${entry.message.slice(0, 60)}…`
-      : entry.message
+    entry.message.length > 60 ? `${entry.message.slice(0, 60)}…` : entry.message
 
   return (
     <button
@@ -585,10 +577,7 @@ function SurroundingRow({
       className="block w-full text-left rounded px-2 py-1 hover:bg-dash-elevated/40 truncate"
     >
       <span className="text-fg-faint">{formatHHMMSSms(entry.timestamp)}</span>{" "}
-      <span
-        className={current ? "font-semibold" : ""}
-        style={{ color: tone }}
-      >
+      <span className={current ? "font-semibold" : ""} style={{ color: tone }}>
         {entry.level}
       </span>{" "}
       <span className={current ? "text-fg" : "text-fg-muted"}>

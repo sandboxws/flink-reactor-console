@@ -8,6 +8,12 @@
  * to a follow-up styling change (called out in the P2 spec).
  */
 
+import type {
+  FlinkJob,
+  LogFileEntry,
+  TaskManager,
+  ThreadDumpInfo,
+} from "@flink-reactor/ui"
 import {
   formatBytes,
   HubBreadcrumb,
@@ -15,12 +21,6 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@flink-reactor/ui"
-import type {
-  FlinkJob,
-  LogFileEntry,
-  TaskManager,
-  ThreadDumpInfo,
 } from "@flink-reactor/ui"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import {
@@ -285,10 +285,7 @@ function HubTmContent({
                 <h3 className="font-sans text-[14px] font-medium text-zinc-100 mb-4">
                   Memory breakdown
                 </h3>
-                <div
-                  className="resource-bar mb-3"
-                  style={{ height: 18 }}
-                >
+                <div className="resource-bar mb-3" style={{ height: 18 }}>
                   <div className="seg heap" style={{ width: `${heapPctP}%` }} />
                   <div
                     className="seg managed"
@@ -311,11 +308,7 @@ function HubTmContent({
                     total={tm.metrics.heapMax}
                     pct={heapPctP}
                     tone={
-                      heapPct >= 90
-                        ? "rose"
-                        : heapPct >= 75
-                          ? "amber"
-                          : "sage"
+                      heapPct >= 90 ? "rose" : heapPct >= 75 ? "amber" : "sage"
                     }
                   />
                   <MemorySegmentLabel
@@ -364,8 +357,8 @@ function HubTmContent({
                       >
                         <span className="text-fg">{gc.name}</span>
                         <span className="text-fg-muted">
-                          {gc.count} collections ·{" "}
-                          {(gc.time / 1000).toFixed(1)}s total
+                          {gc.count} collections · {(gc.time / 1000).toFixed(1)}
+                          s total
                         </span>
                       </li>
                     ))}
@@ -381,9 +374,7 @@ function HubTmContent({
             <div className="col-span-12 lg:col-span-4 space-y-4">
               <TmPropertiesCard tm={tm} />
               <HostedPipelinesCard tm={tm} runningJobs={runningJobs} />
-              {heapPct >= 75 ? (
-                <ActiveAlertCard heapPct={heapPct} />
-              ) : null}
+              {heapPct >= 75 ? <ActiveAlertCard heapPct={heapPct} /> : null}
             </div>
           </section>
         </TabsContent>
@@ -515,7 +506,9 @@ function HostedPipelinesCard({
 
   return (
     <div className="glass-card-static p-5">
-      <h3 className="section-heading mb-3">Hosted pipelines ({hosted.length})</h3>
+      <h3 className="section-heading mb-3">
+        Hosted pipelines ({hosted.length})
+      </h3>
       {hosted.length === 0 ? (
         <p className="text-[12px] text-fg-muted">
           No pipelines are currently allocated to this task manager.
@@ -610,9 +603,7 @@ function LazyTextTab({
   }, [tabId, load])
 
   if (text === null) {
-    return (
-      <p className="text-[12px] font-mono text-fg-muted">Loading…</p>
-    )
+    return <p className="text-[12px] font-mono text-fg-muted">Loading…</p>
   }
   if (error) {
     return <p className="text-[12px] text-fr-rose">{error}</p>

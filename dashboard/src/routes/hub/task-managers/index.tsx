@@ -12,14 +12,14 @@
  * dedicated start-time field exists on the TaskManager type.
  */
 
+import type { TaskManager } from "@flink-reactor/ui"
 import {
+  formatBytes,
   HubBreadcrumb,
   KpiCard,
   LiveDot,
   PropChip,
-  formatBytes,
 } from "@flink-reactor/ui"
-import type { TaskManager } from "@flink-reactor/ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   ArrowUpDown,
@@ -120,19 +120,21 @@ function HubTaskManagers() {
       let bV = 0
       switch (sortKey) {
         case "id":
-          return sortDesc
-            ? b.id.localeCompare(a.id)
-            : a.id.localeCompare(b.id)
+          return sortDesc ? b.id.localeCompare(a.id) : a.id.localeCompare(b.id)
         case "slots": {
-          const aPct = a.slotsTotal === 0 ? 0 : (a.slotsTotal - a.slotsFree) / a.slotsTotal
-          const bPct = b.slotsTotal === 0 ? 0 : (b.slotsTotal - b.slotsFree) / b.slotsTotal
+          const aPct =
+            a.slotsTotal === 0 ? 0 : (a.slotsTotal - a.slotsFree) / a.slotsTotal
+          const bPct =
+            b.slotsTotal === 0 ? 0 : (b.slotsTotal - b.slotsFree) / b.slotsTotal
           aV = aPct
           bV = bPct
           break
         }
         case "heap":
-          aV = a.metrics.heapMax === 0 ? 0 : a.metrics.heapUsed / a.metrics.heapMax
-          bV = b.metrics.heapMax === 0 ? 0 : b.metrics.heapUsed / b.metrics.heapMax
+          aV =
+            a.metrics.heapMax === 0 ? 0 : a.metrics.heapUsed / a.metrics.heapMax
+          bV =
+            b.metrics.heapMax === 0 ? 0 : b.metrics.heapUsed / b.metrics.heapMax
           break
         case "uptime":
           aV = a.lastHeartbeat.getTime()
@@ -160,7 +162,9 @@ function HubTaskManagers() {
     () => taskManagers.reduce((s, tm) => s + tm.metrics.managedMemoryUsed, 0),
     [taskManagers],
   )
-  const alertCount = taskManagers.filter((tm) => tmAlertTone(tm) === "amber").length
+  const alertCount = taskManagers.filter(
+    (tm) => tmAlertTone(tm) === "amber",
+  ).length
 
   const slotsUsedPct =
     overview && overview.totalTaskSlots > 0
@@ -226,9 +230,7 @@ function HubTaskManagers() {
           label="Active TMs"
           value={taskManagers.length}
           sub={
-            overview
-              ? `${overview.taskManagerCount} reported by JM`
-              : undefined
+            overview ? `${overview.taskManagerCount} reported by JM` : undefined
           }
         />
         <KpiCard
@@ -380,9 +382,7 @@ function HubTaskManagers() {
               · {formatBytes(totalHeap)} heap
             </span>
             <span>
-              {alertCount > 0
-                ? `${alertCount} alerting · `
-                : ""}
+              {alertCount > 0 ? `${alertCount} alerting · ` : ""}
               last update {lastUpdated ? timeAgo(lastUpdated) : "—"} ago
             </span>
           </div>
@@ -402,11 +402,7 @@ function TmRow({ tm }: { tm: TaskManager }) {
   const shortId = tm.id.length > 16 ? `${tm.id.slice(0, 16)}…` : tm.id
 
   return (
-    <Link
-      to="/hub/task-managers/$id"
-      params={{ id: tm.id }}
-      className="tm-row"
-    >
+    <Link to="/hub/task-managers/$id" params={{ id: tm.id }} className="tm-row">
       <span className={tone === "amber" ? "live-dot amber" : "live-dot"} />
       <div>
         <div className="font-mono text-zinc-100 truncate">{shortId}</div>

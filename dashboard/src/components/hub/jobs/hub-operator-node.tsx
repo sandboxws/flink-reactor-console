@@ -65,9 +65,7 @@ function vertexKind(name: string): Kind {
   return "op"
 }
 
-function splitName(
-  name: string,
-): { prefix: string | null; rest: string } {
+function splitName(name: string): { prefix: string | null; rest: string } {
   const m = name?.match(/^([A-Z][a-zA-Z]+:)\s*(.*)$/)
   if (m) return { prefix: m[1], rest: m[2] }
   return { prefix: null, rest: name }
@@ -75,14 +73,18 @@ function splitName(
 
 // ─── Backpressure severity from busy ms/s ────────────────────────────
 
-function bpLevel(busyMsPerS: number | null | undefined): "ok" | "warn" | "crit" {
+function bpLevel(
+  busyMsPerS: number | null | undefined,
+): "ok" | "warn" | "crit" {
   if (busyMsPerS == null) return "ok"
   if (busyMsPerS >= 600) return "crit"
   if (busyMsPerS >= 300) return "warn"
   return "ok"
 }
 
-function bpColor(busyMsPerS: number | null | undefined): "sage" | "amber" | "rose" {
+function bpColor(
+  busyMsPerS: number | null | undefined,
+): "sage" | "amber" | "rose" {
   const lvl = bpLevel(busyMsPerS)
   return lvl === "crit" ? "rose" : lvl === "warn" ? "amber" : "sage"
 }
@@ -222,11 +224,45 @@ export function HubOperatorNode({
       ? v.tasks
       : (() => {
           const total = v.parallelism || 1
-          if (statusKey === "failed") return { pending: 0, running: 0, finished: 0, canceling: 0, failed: total }
-          if (statusKey === "finished") return { pending: 0, running: 0, finished: total, canceling: 0, failed: 0 }
-          if (statusKey === "canceled") return { pending: 0, running: 0, finished: 0, canceling: total, failed: 0 }
-          if (statusKey === "created") return { pending: total, running: 0, finished: 0, canceling: 0, failed: 0 }
-          return { pending: 0, running: total, finished: 0, canceling: 0, failed: 0 }
+          if (statusKey === "failed")
+            return {
+              pending: 0,
+              running: 0,
+              finished: 0,
+              canceling: 0,
+              failed: total,
+            }
+          if (statusKey === "finished")
+            return {
+              pending: 0,
+              running: 0,
+              finished: total,
+              canceling: 0,
+              failed: 0,
+            }
+          if (statusKey === "canceled")
+            return {
+              pending: 0,
+              running: 0,
+              finished: 0,
+              canceling: total,
+              failed: 0,
+            }
+          if (statusKey === "created")
+            return {
+              pending: total,
+              running: 0,
+              finished: 0,
+              canceling: 0,
+              failed: 0,
+            }
+          return {
+            pending: 0,
+            running: total,
+            finished: 0,
+            canceling: 0,
+            failed: 0,
+          }
         })()
   const totalTasks = TASK_KEYS.reduce((s, k) => s + tasks[k], 0)
 
@@ -235,61 +271,59 @@ export function HubOperatorNode({
       <Handle type="target" position={Position.Left} />
       {/* Header row */}
       <div className="head">
-          <Icon />
-          <div className="name" title={v.name}>
-            {prefix ? <span className="prefix">{prefix} </span> : null}
-            {rest}
-          </div>
-          <span className={`pill ${statusKey}`}>
-            {statusKey === "running" ? <span className="live-dot" /> : null}
-            {statusLabel}
-          </span>
+        <Icon />
+        <div className="name" title={v.name}>
+          {prefix ? <span className="prefix">{prefix} </span> : null}
+          {rest}
         </div>
+        <span className={`pill ${statusKey}`}>
+          {statusKey === "running" ? <span className="live-dot" /> : null}
+          {statusLabel}
+        </span>
+      </div>
 
-        {/* 4×2 metrics grid */}
-        <div className="metrics">
-          <Metric label="parallelism" value={`×${v.parallelism || 1}`} />
-          <Metric label="records in" value={fmtCount(v.metrics.recordsIn)} />
-          <Metric label="records out" value={fmtCount(v.metrics.recordsOut)} />
-          <Metric
-            label="duration"
-            value={fmtDuration(v.duration)}
-            tone="muted"
-          />
-          <Metric
-            label="bytes in"
-            value={fmtBytes(v.metrics.bytesIn)}
-            tone="muted"
-          />
-          <Metric
-            label="bytes out"
-            value={fmtBytes(v.metrics.bytesOut)}
-            tone="muted"
-          />
-          <Metric
-            label="busy"
-            value={fmtMsPerS(v.metrics.busyTimeMsPerSecond)}
-            tone={bpColor(v.metrics.busyTimeMsPerSecond)}
-          />
-          <Metric
-            label="backpressure"
-            value={fmtMsPerS(v.metrics.backPressuredTimeMsPerSecond)}
-            tone={bpColor(v.metrics.backPressuredTimeMsPerSecond)}
-          />
-        </div>
+      {/* 4×2 metrics grid */}
+      <div className="metrics">
+        <Metric label="parallelism" value={`×${v.parallelism || 1}`} />
+        <Metric label="records in" value={fmtCount(v.metrics.recordsIn)} />
+        <Metric label="records out" value={fmtCount(v.metrics.recordsOut)} />
+        <Metric label="duration" value={fmtDuration(v.duration)} tone="muted" />
+        <Metric
+          label="bytes in"
+          value={fmtBytes(v.metrics.bytesIn)}
+          tone="muted"
+        />
+        <Metric
+          label="bytes out"
+          value={fmtBytes(v.metrics.bytesOut)}
+          tone="muted"
+        />
+        <Metric
+          label="busy"
+          value={fmtMsPerS(v.metrics.busyTimeMsPerSecond)}
+          tone={bpColor(v.metrics.busyTimeMsPerSecond)}
+        />
+        <Metric
+          label="backpressure"
+          value={fmtMsPerS(v.metrics.backPressuredTimeMsPerSecond)}
+          tone={bpColor(v.metrics.backPressuredTimeMsPerSecond)}
+        />
+      </div>
 
-        {/* Task bar */}
-        <div className="task-bar" title={`${totalTasks} subtasks`}>
-          {TASK_KEYS.map((k) =>
-            tasks[k] ? (
-              <div
-                key={k}
-                className={`seg ${TASK_CSS_CLASS[k]}`}
-                style={{ width: `${(tasks[k] / Math.max(1, totalTasks)) * 100}%` }}
-              />
-            ) : null,
-          )}
-        </div>
+      {/* Task bar */}
+      <div className="task-bar" title={`${totalTasks} subtasks`}>
+        {TASK_KEYS.map((k) =>
+          tasks[k] ? (
+            <div
+              key={k}
+              className={`seg ${TASK_CSS_CLASS[k]}`}
+              style={{
+                width: `${(tasks[k] / Math.max(1, totalTasks)) * 100}%`,
+              }}
+            />
+          ) : null,
+        )}
+      </div>
       <Handle type="source" position={Position.Right} />
     </div>
   )

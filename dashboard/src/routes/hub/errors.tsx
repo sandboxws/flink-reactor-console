@@ -15,11 +15,11 @@
  */
 
 import {
+  type ErrorGroup,
   HubBreadcrumb,
   KpiCard,
   PropChip,
   StatusIcon,
-  type ErrorGroup,
   type StatusIconState,
 } from "@flink-reactor/ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
@@ -130,7 +130,9 @@ function StackTraceTokens({ text }: { text: string }) {
         }
 
         // Header line: "org.foo.Bar: message"
-        const headMatch = line.match(/^([\w.$]+(?:Exception|Error|Throwable))(:.*)?$/)
+        const headMatch = line.match(
+          /^([\w.$]+(?:Exception|Error|Throwable))(:.*)?$/,
+        )
         if (headMatch) {
           return (
             <div key={key}>
@@ -207,7 +209,9 @@ function HubErrors() {
   const groupArray = useMemo(() => Array.from(groups.values()), [groups])
 
   const visibleGroups = useMemo(() => {
-    const filtered = hideStale ? groupArray.filter((g) => !isStale(g)) : groupArray
+    const filtered = hideStale
+      ? groupArray.filter((g) => !isStale(g))
+      : groupArray
     const sorted = [...filtered].sort((a, b) => {
       let aV = 0
       let bV = 0
@@ -233,9 +237,7 @@ function HubErrors() {
 
   const selected = useMemo(
     () =>
-      selectedGroupId
-        ? groupArray.find((g) => g.id === selectedGroupId)
-        : null,
+      selectedGroupId ? groupArray.find((g) => g.id === selectedGroupId) : null,
     [selectedGroupId, groupArray],
   )
 
@@ -331,7 +333,11 @@ function HubErrors() {
             className="btn btn-ghost btn-sm"
             onClick={() => {
               setSortKey((k) =>
-                k === "lastSeen" ? "count" : k === "count" ? "firstSeen" : "lastSeen",
+                k === "lastSeen"
+                  ? "count"
+                  : k === "count"
+                    ? "firstSeen"
+                    : "lastSeen",
               )
             }}
           >
@@ -364,7 +370,9 @@ function HubErrors() {
       ) : (
         <section className="grid grid-cols-12 gap-5">
           {/* Group list */}
-          <div className={selected ? "col-span-12 xl:col-span-7" : "col-span-12"}>
+          <div
+            className={selected ? "col-span-12 xl:col-span-7" : "col-span-12"}
+          >
             <div className="glass-card-static overflow-hidden">
               <div className="grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
                 <span>Sev</span>
@@ -510,7 +518,10 @@ function ErrorDetailCard({
       </h3>
 
       <div className="mt-4 grid grid-cols-3 gap-3 text-[11px]">
-        <DetailKV label="First seen" value={`${timeAgo(group.firstSeen)} ago`} />
+        <DetailKV
+          label="First seen"
+          value={`${timeAgo(group.firstSeen)} ago`}
+        />
         <DetailKV label="Last seen" value={`${timeAgo(group.lastSeen)} ago`} />
         <DetailKV label="Hosts" value={`${group.affectedSources.length}`} />
       </div>
@@ -525,8 +536,13 @@ function ErrorDetailCard({
           <span
             // biome-ignore lint/suspicious/noArrayIndexKey: positional bucket
             key={i}
-            className={count === 0 ? "skip" : count > maxBin / 2 ? "fail" : "run"}
-            style={{ height: `${(count / maxBin) * 100}%`, opacity: count === 0 ? 0.3 : 0.9 }}
+            className={
+              count === 0 ? "skip" : count > maxBin / 2 ? "fail" : "run"
+            }
+            style={{
+              height: `${(count / maxBin) * 100}%`,
+              opacity: count === 0 ? 0.3 : 0.9,
+            }}
             title={`${23 - i}h ago: ${count}`}
           />
         ))}
@@ -580,14 +596,10 @@ function ErrorDetailCard({
               key={i}
               className="flex items-center gap-2 rounded px-2 py-1 bg-fr-bg/40"
             >
-              <span className="text-fg-faint">
-                {hhmmssms(t)}
-              </span>
+              <span className="text-fg-faint">{hhmmssms(t)}</span>
               <span className="text-fr-rose font-semibold">ERROR</span>
               <span className="text-fg-muted">{src?.label ?? "—"}</span>
-              <span className="ml-auto text-fg-faint">
-                {timeAgo(t)} ago
-              </span>
+              <span className="ml-auto text-fg-faint">{timeAgo(t)} ago</span>
             </li>
           )
         })}

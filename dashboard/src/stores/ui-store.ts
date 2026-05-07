@@ -89,6 +89,8 @@ interface UiState {
   theme: Theme
   /** Current color palette (Gruvpuccin or Tokyo Night). */
   palette: Palette
+  /** Expanded keys for the Hub catalog tree browser, keyed by node path. */
+  catalogTreeExpanded: Record<string, boolean>
 }
 
 interface UiActions {
@@ -110,6 +112,8 @@ interface UiActions {
   toggleTheme: () => void
   /** Set the color palette (persists to localStorage). */
   setPalette: (palette: Palette) => void
+  /** Toggle a catalog tree node's expansion state. */
+  toggleCatalogTreeNode: (key: string) => void
 }
 
 export type UiStore = UiState & UiActions
@@ -122,6 +126,7 @@ export const useUiStore = create<UiStore>((set) => ({
   timestampFormat: "time",
   theme: getStoredTheme(),
   palette: getStoredPalette(),
+  catalogTreeExpanded: {},
 
   toggleSidebar: () => {
     set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }))
@@ -162,5 +167,14 @@ export const useUiStore = create<UiStore>((set) => ({
   setPalette: (palette: Palette) => {
     applyPalette(palette)
     set({ palette })
+  },
+
+  toggleCatalogTreeNode: (key: string) => {
+    set((state) => ({
+      catalogTreeExpanded: {
+        ...state.catalogTreeExpanded,
+        [key]: !state.catalogTreeExpanded[key],
+      },
+    }))
   },
 }))
