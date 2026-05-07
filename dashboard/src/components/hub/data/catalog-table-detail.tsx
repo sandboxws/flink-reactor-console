@@ -22,6 +22,7 @@ import {
   Table as TableIcon,
 } from "lucide-react"
 import { useState } from "react"
+import { SqlCodeViewer } from "@/components/shared/sql-code-viewer"
 import type { CatalogInfo, ColumnInfo } from "@/lib/graphql-api-client"
 
 interface CatalogTableDetailProps {
@@ -286,9 +287,9 @@ function DdlTab({
   }
   return (
     <div className="glass-card-static overflow-hidden">
-      <pre className="code-viewer max-h-[480px] overflow-auto p-4 font-mono text-[11.5px] whitespace-pre-wrap">
-        {ddl}
-      </pre>
+      <div className="h-[480px]">
+        <SqlCodeViewer value={ddl} />
+      </div>
     </div>
   )
 }
