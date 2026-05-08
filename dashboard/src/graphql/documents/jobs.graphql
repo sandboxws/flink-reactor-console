@@ -217,6 +217,11 @@ query JobDetail($id: ID!, $cluster: String) {
         value
       }
     }
+    metrics {
+      recordsInPerSecond
+      recordsOutPerSecond
+    }
+    watermarkLag
   }
 }
 

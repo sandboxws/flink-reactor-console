@@ -454,6 +454,7 @@ type ComplexityRoot struct {
 		Exceptions       func(childComplexity int) int
 		ID               func(childComplexity int) int
 		JobConfig        func(childComplexity int) int
+		Metrics          func(childComplexity int) int
 		Name             func(childComplexity int) int
 		Now              func(childComplexity int) int
 		Plan             func(childComplexity int) int
@@ -462,6 +463,7 @@ type ComplexityRoot struct {
 		State            func(childComplexity int) int
 		VertexDetails    func(childComplexity int) int
 		Vertices         func(childComplexity int) int
+		WatermarkLag     func(childComplexity int) int
 		Watermarks       func(childComplexity int) int
 	}
 
@@ -501,6 +503,11 @@ type ComplexityRoot struct {
 		Config      func(childComplexity int) int
 		Environment func(childComplexity int) int
 		Metrics     func(childComplexity int) int
+	}
+
+	JobMetrics struct {
+		RecordsInPerSecond  func(childComplexity int) int
+		RecordsOutPerSecond func(childComplexity int) int
 	}
 
 	JobOverview struct {
@@ -2750,6 +2757,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobDetail.JobConfig(childComplexity), true
+	case "JobDetail.metrics":
+		if e.ComplexityRoot.JobDetail.Metrics == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobDetail.Metrics(childComplexity), true
 	case "JobDetail.name":
 		if e.ComplexityRoot.JobDetail.Name == nil {
 			break
@@ -2798,6 +2811,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobDetail.Vertices(childComplexity), true
+	case "JobDetail.watermarkLag":
+		if e.ComplexityRoot.JobDetail.WatermarkLag == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobDetail.WatermarkLag(childComplexity), true
 	case "JobDetail.watermarks":
 		if e.ComplexityRoot.JobDetail.Watermarks == nil {
 			break
@@ -2947,6 +2966,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobManagerDetail.Metrics(childComplexity), true
+
+	case "JobMetrics.recordsInPerSecond":
+		if e.ComplexityRoot.JobMetrics.RecordsInPerSecond == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobMetrics.RecordsInPerSecond(childComplexity), true
+	case "JobMetrics.recordsOutPerSecond":
+		if e.ComplexityRoot.JobMetrics.RecordsOutPerSecond == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobMetrics.RecordsOutPerSecond(childComplexity), true
 
 	case "JobOverview.duration":
 		if e.ComplexityRoot.JobOverview.Duration == nil {
@@ -6863,6 +6895,14 @@ type JobConfig {
   userConfig: [ConfigEntry!]!
 }
 
+"""Job-level rate metrics, aggregated from source/sink vertices."""
+type JobMetrics {
+  """Records-per-second emitted by source vertices (job-wide input throughput)."""
+  recordsInPerSecond: Float!
+  """Records-per-second consumed by sink vertices (job-wide output throughput)."""
+  recordsOutPerSecond: Float!
+}
+
 type JobDetail {
   id: ID!
   name: String!
@@ -6881,6 +6921,15 @@ type JobDetail {
   watermarks: [VertexWatermarks!]
   backPressure: [VertexBackPressure!]
   accumulators: [VertexAccumulators!]
+  """Job-wide throughput rates derived from source/sink vertex metrics."""
+  metrics: JobMetrics
+  """
+  Watermark lag in milliseconds (` + "`" + `now - min subtask watermark` + "`" + `).
+  Encoded as a string (Long) to safely represent very large lags.
+  Null when no valid watermarks are reported (e.g. batch jobs, or before
+  any source has emitted a watermark).
+  """
+  watermarkLag: String
 }
 
 type VertexWatermarks {
@@ -16820,6 +16869,70 @@ func (ec *executionContext) fieldContext_JobDetail_accumulators(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _JobDetail_metrics(ctx context.Context, field graphql.CollectedField, obj *model.JobDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobDetail_metrics,
+		func(ctx context.Context) (any, error) {
+			return obj.Metrics, nil
+		},
+		nil,
+		ec.marshalOJobMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobMetrics,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobDetail_metrics(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "recordsInPerSecond":
+				return ec.fieldContext_JobMetrics_recordsInPerSecond(ctx, field)
+			case "recordsOutPerSecond":
+				return ec.fieldContext_JobMetrics_recordsOutPerSecond(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobMetrics", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobDetail_watermarkLag(ctx context.Context, field graphql.CollectedField, obj *model.JobDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobDetail_watermarkLag,
+		func(ctx context.Context) (any, error) {
+			return obj.WatermarkLag, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobDetail_watermarkLag(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobDetail_sourcesAndSinks(ctx context.Context, field graphql.CollectedField, obj *model.JobDetail) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -17589,6 +17702,64 @@ func (ec *executionContext) fieldContext_JobManagerDetail_metrics(_ context.Cont
 				return ec.fieldContext_MetricEntry_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MetricEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobMetrics_recordsInPerSecond(ctx context.Context, field graphql.CollectedField, obj *model.JobMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobMetrics_recordsInPerSecond,
+		func(ctx context.Context) (any, error) {
+			return obj.RecordsInPerSecond, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobMetrics_recordsInPerSecond(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobMetrics_recordsOutPerSecond(ctx context.Context, field graphql.CollectedField, obj *model.JobMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobMetrics_recordsOutPerSecond,
+		func(ctx context.Context) (any, error) {
+			return obj.RecordsOutPerSecond, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobMetrics_recordsOutPerSecond(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23070,6 +23241,10 @@ func (ec *executionContext) fieldContext_Query_job(ctx context.Context, field gr
 				return ec.fieldContext_JobDetail_backPressure(ctx, field)
 			case "accumulators":
 				return ec.fieldContext_JobDetail_accumulators(ctx, field)
+			case "metrics":
+				return ec.fieldContext_JobDetail_metrics(ctx, field)
+			case "watermarkLag":
+				return ec.fieldContext_JobDetail_watermarkLag(ctx, field)
 			case "sourcesAndSinks":
 				return ec.fieldContext_JobDetail_sourcesAndSinks(ctx, field)
 			}
@@ -36475,6 +36650,10 @@ func (ec *executionContext) _JobDetail(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._JobDetail_backPressure(ctx, field, obj)
 		case "accumulators":
 			out.Values[i] = ec._JobDetail_accumulators(ctx, field, obj)
+		case "metrics":
+			out.Values[i] = ec._JobDetail_metrics(ctx, field, obj)
+		case "watermarkLag":
+			out.Values[i] = ec._JobDetail_watermarkLag(ctx, field, obj)
 		case "sourcesAndSinks":
 			out.Values[i] = ec._JobDetail_sourcesAndSinks(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -36750,6 +36929,50 @@ func (ec *executionContext) _JobManagerDetail(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._JobManagerDetail_environment(ctx, field, obj)
 		case "metrics":
 			out.Values[i] = ec._JobManagerDetail_metrics(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var jobMetricsImplementors = []string{"JobMetrics"}
+
+func (ec *executionContext) _JobMetrics(ctx context.Context, sel ast.SelectionSet, obj *model.JobMetrics) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobMetricsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobMetrics")
+		case "recordsInPerSecond":
+			out.Values[i] = ec._JobMetrics_recordsInPerSecond(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "recordsOutPerSecond":
+			out.Values[i] = ec._JobMetrics_recordsOutPerSecond(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -45488,6 +45711,13 @@ func (ec *executionContext) unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandbox
 	}
 	res, err := ec.unmarshalInputJobHistoryFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOJobMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobMetrics(ctx context.Context, sel ast.SelectionSet, v *model.JobMetrics) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._JobMetrics(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {

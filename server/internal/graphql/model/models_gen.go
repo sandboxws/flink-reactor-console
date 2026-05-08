@@ -528,6 +528,13 @@ type JobDetail struct {
 	Watermarks       []*VertexWatermarks   `json:"watermarks,omitempty"`
 	BackPressure     []*VertexBackPressure `json:"backPressure,omitempty"`
 	Accumulators     []*VertexAccumulators `json:"accumulators,omitempty"`
+	// Job-wide throughput rates derived from source/sink vertex metrics.
+	Metrics *JobMetrics `json:"metrics,omitempty"`
+	// Watermark lag in milliseconds (`now - min subtask watermark`).
+	// Encoded as a string (Long) to safely represent very large lags.
+	// Null when no valid watermarks are reported (e.g. batch jobs, or before
+	// any source has emitted a watermark).
+	WatermarkLag *string `json:"watermarkLag,omitempty"`
 	// Detected sources and sinks for this job
 	SourcesAndSinks []*JobConnector `json:"sourcesAndSinks"`
 }
@@ -595,6 +602,14 @@ type JobManagerDetail struct {
 	Config      []*JMConfigEntry `json:"config"`
 	Environment *JMEnvironment   `json:"environment,omitempty"`
 	Metrics     []*MetricEntry   `json:"metrics"`
+}
+
+// Job-level rate metrics, aggregated from source/sink vertices.
+type JobMetrics struct {
+	// Records-per-second emitted by source vertices (job-wide input throughput).
+	RecordsInPerSecond float64 `json:"recordsInPerSecond"`
+	// Records-per-second consumed by sink vertices (job-wide output throughput).
+	RecordsOutPerSecond float64 `json:"recordsOutPerSecond"`
 }
 
 type JobOverview struct {

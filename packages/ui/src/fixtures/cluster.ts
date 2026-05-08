@@ -177,6 +177,8 @@ export function createFlinkJob(overrides?: Partial<FlinkJob>): FlinkJob {
         metrics: { recordsRead: 0, recordsWritten: 480_000, bytesRead: 0, bytesWritten: 190_000_000 },
       }),
     ],
+    throughput: { recordsInPerSecond: 12_400, recordsOutPerSecond: 12_350 },
+    watermarkLag: 1_200,
     ...overrides,
   }
 }

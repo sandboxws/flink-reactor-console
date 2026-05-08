@@ -244,6 +244,14 @@ type JobConfig {
   userConfig: [ConfigEntry!]!
 }
 
+"""Job-level rate metrics, aggregated from source/sink vertices."""
+type JobMetrics {
+  """Records-per-second emitted by source vertices (job-wide input throughput)."""
+  recordsInPerSecond: Float!
+  """Records-per-second consumed by sink vertices (job-wide output throughput)."""
+  recordsOutPerSecond: Float!
+}
+
 type JobDetail {
   id: ID!
   name: String!
@@ -262,6 +270,15 @@ type JobDetail {
   watermarks: [VertexWatermarks!]
   backPressure: [VertexBackPressure!]
   accumulators: [VertexAccumulators!]
+  """Job-wide throughput rates derived from source/sink vertex metrics."""
+  metrics: JobMetrics
+  """
+  Watermark lag in milliseconds (`now - min subtask watermark`).
+  Encoded as a string (Long) to safely represent very large lags.
+  Null when no valid watermarks are reported (e.g. batch jobs, or before
+  any source has emitted a watermark).
+  """
+  watermarkLag: String
 }
 
 type VertexWatermarks {

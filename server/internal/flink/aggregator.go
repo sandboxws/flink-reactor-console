@@ -80,6 +80,17 @@ var vertexMetricIDs = []string{
 // VertexMetricQuery is the pre-joined query string for vertex metrics.
 var VertexMetricQuery = strings.Join(vertexMetricIDs, ",")
 
+// Vertex rate metric IDs fetched per vertex during JobDetail aggregation.
+// Smaller set than VertexMetricQuery — we only need the per-second rates
+// to compute job-level throughput.
+var vertexRateMetricIDs = []string{
+	"numRecordsInPerSecond",
+	"numRecordsOutPerSecond",
+}
+
+// VertexRateMetricQuery is the pre-joined query string for vertex rate metrics.
+var VertexRateMetricQuery = strings.Join(vertexRateMetricIDs, ",")
+
 // JobDetailAggregate holds the result of a two-phase job detail aggregation.
 type JobDetailAggregate struct {
 	Job              *JobDetail
@@ -91,6 +102,10 @@ type JobDetailAggregate struct {
 	Watermarks       map[string]Watermarks
 	BackPressure     map[string]*BackPressure
 	Accumulators     map[string]*Accumulators
+	// VertexRates holds per-vertex per-second rate metrics aggregated across
+	// the vertex's subtasks (numRecordsInPerSecond / numRecordsOutPerSecond),
+	// used to compute job-level throughput. Keyed by vertex ID.
+	VertexRates map[string][]AggregatedSubtaskMetric
 }
 
 // TMDetailAggregate holds the result of a TM detail aggregation.
@@ -191,6 +206,7 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 		watermarks   = make(map[string]Watermarks, len(vertexIDs))
 		backpressure = make(map[string]*BackPressure, len(vertexIDs))
 		accumulators = make(map[string]*Accumulators, len(vertexIDs))
+		vertexRates  = make(map[string][]AggregatedSubtaskMetric, len(vertexIDs))
 	)
 
 	g2 := new(errgroup.Group)
@@ -249,6 +265,22 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 			mu.Unlock()
 			return nil
 		})
+
+		// Per-vertex rate metrics — supplementary: fallback to empty.
+		// Uses the /subtasks/metrics endpoint which returns values aggregated
+		// across all subtasks (sum/min/max/avg/skew). Used to compute
+		// job-level throughput from the `sum` field.
+		g2.Go(func() error {
+			var rates []AggregatedSubtaskMetric
+			url := fmt.Sprintf("/jobs/%s/vertices/%s/subtasks/metrics?get=%s", jobID, vid, VertexRateMetricQuery)
+			if err := a.client.GetJSON(ctx, url, &rates); err != nil {
+				rates = nil
+			}
+			mu.Lock()
+			vertexRates[vid] = rates
+			mu.Unlock()
+			return nil
+		})
 	}
 
 	if err := g2.Wait(); err != nil {
@@ -265,6 +297,7 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 		Watermarks:       watermarks,
 		BackPressure:     backpressure,
 		Accumulators:     accumulators,
+		VertexRates:      vertexRates,
 	}, nil
 }
 

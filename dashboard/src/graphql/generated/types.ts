@@ -260,6 +260,12 @@ export type CompatibilityResult = {
   messages: Array<Scalars['String']['output']>;
 };
 
+export type ConfigEntry = {
+  __typename?: 'ConfigEntry';
+  key: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
 /** I/O throughput metrics for a connector */
 export type ConnectorMetrics = {
   __typename?: 'ConnectorMetrics';
@@ -449,6 +455,59 @@ export type FlinkFeatures = {
   webSubmit: Scalars['Boolean']['output'];
 };
 
+/** Fields of a single column in a Fluss table schema. */
+export type FlussSchemaField = {
+  __typename?: 'FlussSchemaField';
+  comment: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  nullable: Scalars['Boolean']['output'];
+  type: Scalars['String']['output'];
+};
+
+/**
+ * Full metadata for a single Fluss table — schema, bucket configuration,
+ * connector properties, last-update timestamp.
+ */
+export type FlussTableMetadata = {
+  __typename?: 'FlussTableMetadata';
+  bucketCount: Scalars['Int']['output'];
+  bucketKey: Array<Scalars['String']['output']>;
+  comment: Scalars['String']['output'];
+  database: Scalars['String']['output'];
+  lastUpdatedMs: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  primaryKey: Array<Scalars['String']['output']>;
+  properties: Scalars['JSON']['output'];
+  schema: Array<FlussSchemaField>;
+  tableType: Scalars['String']['output'];
+};
+
+/**
+ * A Fluss table at the summary granularity returned by `flussTables`.
+ * The `tableType` is either "PrimaryKey" (KV-style upsert) or "Log" (append-only).
+ */
+export type FlussTableSummary = {
+  __typename?: 'FlussTableSummary';
+  bucketCount: Scalars['Int']['output'];
+  bucketKey: Array<Scalars['String']['output']>;
+  database: Scalars['String']['output'];
+  lastUpdatedMs: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  primaryKey: Array<Scalars['String']['output']>;
+  tableType: Scalars['String']['output'];
+};
+
+/**
+ * Health of a single TabletServer in the Fluss cluster. `leadership` is the
+ * number of bucket leaderships the server currently holds.
+ */
+export type FlussTabletServerHealth = {
+  __typename?: 'FlussTabletServerHealth';
+  alive: Scalars['Boolean']['output'];
+  leadership: Scalars['Int']['output'];
+  server: Scalars['String']['output'];
+};
+
 /** Information about a registered infrastructure instrument. */
 export type InstrumentInfo = {
   __typename?: 'InstrumentInfo';
@@ -505,6 +564,17 @@ export type JarUploadResult = {
   status: Scalars['String']['output'];
 };
 
+export type JobConfig = {
+  __typename?: 'JobConfig';
+  executionMode: Scalars['String']['output'];
+  jid: Scalars['String']['output'];
+  jobParallelism: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  objectReuseMode: Scalars['Boolean']['output'];
+  restartStrategy: Scalars['String']['output'];
+  userConfig: Array<ConfigEntry>;
+};
+
 /** Detected source or sink connector for a job */
 export type JobConnector = {
   __typename?: 'JobConnector';
@@ -536,6 +606,9 @@ export type JobDetail = {
   endTime: Scalars['String']['output'];
   exceptions: Array<ExceptionEntry>;
   id: Scalars['ID']['output'];
+  jobConfig: Maybe<JobConfig>;
+  /** Job-wide throughput rates derived from source/sink vertex metrics. */
+  metrics: Maybe<JobMetrics>;
   name: Scalars['String']['output'];
   now: Scalars['String']['output'];
   plan: JobPlan;
@@ -545,6 +618,13 @@ export type JobDetail = {
   state: Scalars['String']['output'];
   vertexDetails: Maybe<Array<VertexDetail>>;
   vertices: Array<JobVertex>;
+  /**
+   * Watermark lag in milliseconds (`now - min subtask watermark`).
+   * Encoded as a string (Long) to safely represent very large lags.
+   * Null when no valid watermarks are reported (e.g. batch jobs, or before
+   * any source has emitted a watermark).
+   */
+  watermarkLag: Maybe<Scalars['String']['output']>;
   watermarks: Maybe<Array<VertexWatermarks>>;
 };
 
@@ -624,6 +704,15 @@ export type JobManagerDetail = {
   config: Array<JmConfigEntry>;
   environment: Maybe<JmEnvironment>;
   metrics: Array<MetricEntry>;
+};
+
+/** Job-level rate metrics, aggregated from source/sink vertices. */
+export type JobMetrics = {
+  __typename?: 'JobMetrics';
+  /** Records-per-second emitted by source vertices (job-wide input throughput). */
+  recordsInPerSecond: Scalars['Float']['output'];
+  /** Records-per-second consumed by sink vertices (job-wide output throughput). */
+  recordsOutPerSecond: Scalars['Float']['output'];
 };
 
 export type JobOverview = {
@@ -1078,6 +1167,17 @@ export type Query = {
   flamegraph: Flamegraph;
   /** Get Flink cluster configuration */
   flinkConfig: FlinkConfig;
+  /** List every database registered in the Fluss cluster. */
+  flussDatabases: Array<Scalars['String']['output']>;
+  /** Get the full metadata for a single Fluss table. */
+  flussTable: FlussTableMetadata;
+  /** List the tables in a Fluss database with summary metadata. */
+  flussTables: Array<FlussTableSummary>;
+  /**
+   * List the TabletServers in the Fluss cluster with their alive status and
+   * leadership counts.
+   */
+  flussTabletServers: Array<FlussTabletServerHealth>;
   health: Scalars['Boolean']['output'];
   /** List all registered instruments with their health status and capabilities. */
   instruments: Array<InstrumentInfo>;
@@ -1264,6 +1364,29 @@ export type QueryFlamegraphArgs = {
 
 export type QueryFlinkConfigArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryFlussDatabasesArgs = {
+  instrument: Scalars['String']['input'];
+};
+
+
+export type QueryFlussTableArgs = {
+  database: Scalars['String']['input'];
+  instrument: Scalars['String']['input'];
+  table: Scalars['String']['input'];
+};
+
+
+export type QueryFlussTablesArgs = {
+  database: Scalars['String']['input'];
+  instrument: Scalars['String']['input'];
+};
+
+
+export type QueryFlussTabletServersArgs = {
+  instrument: Scalars['String']['input'];
 };
 
 
@@ -2079,7 +2202,7 @@ export type JobDetailQueryVariables = Exact<{
 }>;
 
 
-export type JobDetailQuery = { __typename?: 'Query', job: { __typename?: 'JobDetail', id: string, name: string, state: string, startTime: string, endTime: string, duration: string, now: string, vertices: Array<{ __typename?: 'JobVertex', id: string, name: string, maxParallelism: number, parallelism: number, status: string, startTime: string, endTime: string, duration: string, tasks: { __typename?: 'TaskCounts', created: number, scheduled: number, deploying: number, running: number, finished: number, canceling: number, canceled: number, failed: number, reconciling: number, initializing: number }, metrics: { __typename?: 'VertexMetrics', readBytes: string, readBytesComplete: boolean, writeBytes: string, writeBytesComplete: boolean, readRecords: string, readRecordsComplete: boolean, writeRecords: string, writeRecordsComplete: boolean, accumulatedBackpressured: string, accumulatedIdle: string, accumulatedBusy: string } }>, plan: { __typename?: 'JobPlan', jid: string, name: string, type: string, nodes: Array<{ __typename?: 'PlanNode', id: string, parallelism: number, operator: string, operatorStrategy: string, description: string, inputs: Array<{ __typename?: 'PlanNodeInput', num: number, id: string, shipStrategy: string, exchange: string }> | null }> }, exceptions: Array<{ __typename?: 'ExceptionEntry', exceptionName: string, stacktrace: string, timestamp: string, taskName: string | null, endpoint: string | null, taskManagerId: string | null }>, checkpoints: { __typename?: 'CheckpointStats', counts: { __typename?: 'CheckpointCounts', completed: number, inProgress: number, failed: number, total: number, restored: number }, history: Array<{ __typename?: 'CheckpointHistoryEntry', id: string, status: string, isSavepoint: boolean, triggerTimestamp: string, latestAckTimestamp: string, stateSize: string, endToEndDuration: string, processedData: string, persistedData: string, numSubtasks: number, numAcknowledgedSubtasks: number, checkpointedSize: string | null }>, summary: { __typename?: 'CheckpointSummary', stateSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, endToEndDuration: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, checkpointedSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null } | null, latest: { __typename?: 'CheckpointLatest', completed: { __typename?: 'CheckpointHistoryEntry', id: string, status: string, triggerTimestamp: string, stateSize: string, endToEndDuration: string } | null, restored: { __typename?: 'CheckpointRestoredInfo', id: string, restoreTimestamp: string, isSavepoint: boolean, externalPath: string | null } | null } | null } | null, checkpointConfig: { __typename?: 'CheckpointConfig', mode: string, interval: string, timeout: string, minPause: string, maxConcurrent: number, externalizedEnabled: boolean, externalizedDeleteOnCancellation: boolean, unalignedCheckpoints: boolean } | null, vertexDetails: Array<{ __typename?: 'VertexDetail', id: string, name: string, parallelism: number, now: string, subtasks: Array<{ __typename?: 'SubtaskInfo', subtask: number, status: string, attempt: number, endpoint: string, startTime: string, endTime: string, duration: string, taskManagerId: string, metrics: { __typename?: 'VertexMetrics', readBytes: string, readBytesComplete: boolean, writeBytes: string, writeBytesComplete: boolean, readRecords: string, readRecordsComplete: boolean, writeRecords: string, writeRecordsComplete: boolean, accumulatedBackpressured: string, accumulatedIdle: string, accumulatedBusy: string } }> }> | null, watermarks: Array<{ __typename?: 'VertexWatermarks', vertexId: string, watermarks: Array<{ __typename?: 'WatermarkEntry', id: string, value: string }> }> | null, backPressure: Array<{ __typename?: 'VertexBackPressure', vertexId: string, backPressure: { __typename?: 'BackPressureInfo', status: string, backpressureLevel: string, endTimestamp: string, subtasks: Array<{ __typename?: 'SubtaskBackPressure', subtask: number, attemptNumber: number, backpressureLevel: string, ratio: number, busyRatio: number, idleRatio: number }> } }> | null, accumulators: Array<{ __typename?: 'VertexAccumulators', vertexId: string, accumulators: Array<{ __typename?: 'UserAccumulator', name: string, type: string, value: string }> }> | null } };
+export type JobDetailQuery = { __typename?: 'Query', job: { __typename?: 'JobDetail', id: string, name: string, state: string, startTime: string, endTime: string, duration: string, now: string, watermarkLag: string | null, vertices: Array<{ __typename?: 'JobVertex', id: string, name: string, maxParallelism: number, parallelism: number, status: string, startTime: string, endTime: string, duration: string, tasks: { __typename?: 'TaskCounts', created: number, scheduled: number, deploying: number, running: number, finished: number, canceling: number, canceled: number, failed: number, reconciling: number, initializing: number }, metrics: { __typename?: 'VertexMetrics', readBytes: string, readBytesComplete: boolean, writeBytes: string, writeBytesComplete: boolean, readRecords: string, readRecordsComplete: boolean, writeRecords: string, writeRecordsComplete: boolean, accumulatedBackpressured: string, accumulatedIdle: string, accumulatedBusy: string } }>, plan: { __typename?: 'JobPlan', jid: string, name: string, type: string, nodes: Array<{ __typename?: 'PlanNode', id: string, parallelism: number, operator: string, operatorStrategy: string, description: string, inputs: Array<{ __typename?: 'PlanNodeInput', num: number, id: string, shipStrategy: string, exchange: string }> | null }> }, exceptions: Array<{ __typename?: 'ExceptionEntry', exceptionName: string, stacktrace: string, timestamp: string, taskName: string | null, endpoint: string | null, taskManagerId: string | null }>, checkpoints: { __typename?: 'CheckpointStats', counts: { __typename?: 'CheckpointCounts', completed: number, inProgress: number, failed: number, total: number, restored: number }, history: Array<{ __typename?: 'CheckpointHistoryEntry', id: string, status: string, isSavepoint: boolean, triggerTimestamp: string, latestAckTimestamp: string, stateSize: string, endToEndDuration: string, processedData: string, persistedData: string, numSubtasks: number, numAcknowledgedSubtasks: number, checkpointedSize: string | null }>, summary: { __typename?: 'CheckpointSummary', stateSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, endToEndDuration: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, checkpointedSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null } | null, latest: { __typename?: 'CheckpointLatest', completed: { __typename?: 'CheckpointHistoryEntry', id: string, status: string, triggerTimestamp: string, stateSize: string, endToEndDuration: string } | null, restored: { __typename?: 'CheckpointRestoredInfo', id: string, restoreTimestamp: string, isSavepoint: boolean, externalPath: string | null } | null } | null } | null, checkpointConfig: { __typename?: 'CheckpointConfig', mode: string, interval: string, timeout: string, minPause: string, maxConcurrent: number, externalizedEnabled: boolean, externalizedDeleteOnCancellation: boolean, unalignedCheckpoints: boolean } | null, vertexDetails: Array<{ __typename?: 'VertexDetail', id: string, name: string, parallelism: number, now: string, subtasks: Array<{ __typename?: 'SubtaskInfo', subtask: number, status: string, attempt: number, endpoint: string, startTime: string, endTime: string, duration: string, taskManagerId: string, metrics: { __typename?: 'VertexMetrics', readBytes: string, readBytesComplete: boolean, writeBytes: string, writeBytesComplete: boolean, readRecords: string, readRecordsComplete: boolean, writeRecords: string, writeRecordsComplete: boolean, accumulatedBackpressured: string, accumulatedIdle: string, accumulatedBusy: string } }> }> | null, watermarks: Array<{ __typename?: 'VertexWatermarks', vertexId: string, watermarks: Array<{ __typename?: 'WatermarkEntry', id: string, value: string }> }> | null, backPressure: Array<{ __typename?: 'VertexBackPressure', vertexId: string, backPressure: { __typename?: 'BackPressureInfo', status: string, backpressureLevel: string, endTimestamp: string, subtasks: Array<{ __typename?: 'SubtaskBackPressure', subtask: number, attemptNumber: number, backpressureLevel: string, ratio: number, busyRatio: number, idleRatio: number }> } }> | null, accumulators: Array<{ __typename?: 'VertexAccumulators', vertexId: string, accumulators: Array<{ __typename?: 'UserAccumulator', name: string, type: string, value: string }> }> | null, metrics: { __typename?: 'JobMetrics', recordsInPerSecond: number, recordsOutPerSecond: number } | null } };
 
 export type CancelJobMutationVariables = Exact<{
   id: Scalars['ID']['input'];

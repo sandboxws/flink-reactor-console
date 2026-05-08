@@ -241,3 +241,16 @@ type MetricItem struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
 }
+
+// AggregatedSubtaskMetric represents one row from
+// GET /jobs/:jid/vertices/:vid/subtasks/metrics — the same metric IDs as the
+// per-subtask metrics endpoint, but aggregated across all subtasks. `Skew` is
+// (max - avg) / avg and useful as a free imbalance signal.
+type AggregatedSubtaskMetric struct {
+	ID   string  `json:"id"`
+	Min  float64 `json:"min"`
+	Max  float64 `json:"max"`
+	Avg  float64 `json:"avg"`
+	Sum  float64 `json:"sum"`
+	Skew float64 `json:"skew"`
+}

@@ -38,6 +38,19 @@ docker-minikube:
         --build-context instruments=../../flink-reactor-instruments/server \
         -t reactor-server .
 
+# Run the reactor-server container against a host-side Flink. Override port via
+# `just docker-run 9090`, or Flink URL via `FLINK_REST_URL=... just docker-run`.
+docker-run port="8080":
+    docker run --rm -it \
+        --name reactor-server \
+        -p {{port}}:8080 \
+        --add-host=host.docker.internal:host-gateway \
+        -e REACTOR_ENV=${REACTOR_ENV:-development} \
+        -e FLINK_REST_URL=${FLINK_REST_URL:-http://host.docker.internal:8081} \
+        -e FLINK_SQL_GATEWAY_URL=${FLINK_SQL_GATEWAY_URL:-http://host.docker.internal:8083} \
+        ${FLINK_AUTH_TOKEN:+-e FLINK_AUTH_TOKEN=$FLINK_AUTH_TOKEN} \
+        reactor-server
+
 # Run tests with coverage
 coverage:
     go test -coverprofile=coverage.out ./...

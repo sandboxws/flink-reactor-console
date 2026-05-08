@@ -2,7 +2,10 @@ package graphql
 
 import (
 	"fmt"
+	"math"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/connector"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
@@ -163,7 +166,117 @@ func mapJobDetailAggregate(agg *flink.JobDetailAggregate) *model.JobDetail {
 		Watermarks:       watermarks,
 		BackPressure:     backPressure,
 		Accumulators:     accumulators,
+		Metrics:          computeJobMetrics(agg),
+		WatermarkLag:     computeWatermarkLag(agg),
 	}
+}
+
+// computeJobMetrics aggregates per-vertex per-second rates into job-level
+// throughput. recordsInPerSecond is the sum of numRecordsOutPerSecond across
+// source vertices (records flowing into the pipeline); recordsOutPerSecond
+// is the sum of numRecordsInPerSecond across sink vertices (records reaching
+// the pipeline's terminal stage). Returns nil when no rate data is available.
+func computeJobMetrics(agg *flink.JobDetailAggregate) *model.JobMetrics {
+	if agg == nil || agg.Job == nil || len(agg.VertexRates) == 0 {
+		return nil
+	}
+
+	sourceIDs, sinkIDs := classifyVertices(&agg.Job.Plan)
+
+	var inRate, outRate float64
+	for _, vid := range sourceIDs {
+		inRate += extractAggSum(agg.VertexRates[vid], "numRecordsOutPerSecond")
+	}
+	for _, vid := range sinkIDs {
+		outRate += extractAggSum(agg.VertexRates[vid], "numRecordsInPerSecond")
+	}
+
+	return &model.JobMetrics{
+		RecordsInPerSecond:  inRate,
+		RecordsOutPerSecond: outRate,
+	}
+}
+
+// classifyVertices walks the plan to identify source and sink vertex IDs.
+// Sources have no inputs. Sinks are vertices that no other vertex references
+// as an input, OR whose operator label starts with "Sink:".
+func classifyVertices(plan *flink.JobPlan) (sources, sinks []string) {
+	if plan == nil || len(plan.Nodes) == 0 {
+		return nil, nil
+	}
+
+	referenced := make(map[string]bool, len(plan.Nodes))
+	for _, n := range plan.Nodes {
+		for _, in := range n.Inputs {
+			referenced[in.ID] = true
+		}
+	}
+
+	for _, n := range plan.Nodes {
+		if len(n.Inputs) == 0 {
+			sources = append(sources, n.ID)
+		}
+		if !referenced[n.ID] || strings.HasPrefix(strings.TrimSpace(n.Operator), "Sink:") {
+			sinks = append(sinks, n.ID)
+		}
+	}
+	return sources, sinks
+}
+
+// extractAggSum returns the `sum` of the named aggregated subtask metric (the
+// total across all subtasks of a vertex). Returns 0 when the metric is missing
+// or the value is non-finite.
+func extractAggSum(items []flink.AggregatedSubtaskMetric, id string) float64 {
+	for _, m := range items {
+		if m.ID != id {
+			continue
+		}
+		if math.IsNaN(m.Sum) || math.IsInf(m.Sum, 0) {
+			return 0
+		}
+		return m.Sum
+	}
+	return 0
+}
+
+// computeWatermarkLag returns `now - min subtask watermark` (in ms),
+// stringified as a Long. Filters Flink's sentinel values
+// (Long.MIN_VALUE = "no watermark", Long.MAX_VALUE = "end of stream")
+// and zero. Returns nil when no valid watermark exists.
+func computeWatermarkLag(agg *flink.JobDetailAggregate) *string {
+	if agg == nil || agg.Job == nil || len(agg.Watermarks) == 0 {
+		return nil
+	}
+
+	const (
+		longMin int64 = math.MinInt64
+		longMax int64 = math.MaxInt64
+	)
+
+	var minWatermark int64 = longMax
+	found := false
+	for _, entries := range agg.Watermarks {
+		for _, e := range entries {
+			v, err := strconv.ParseInt(e.Value, 10, 64)
+			if err != nil || v <= 0 || v == longMin || v == longMax {
+				continue
+			}
+			if v < minWatermark {
+				minWatermark = v
+				found = true
+			}
+		}
+	}
+	if !found {
+		return nil
+	}
+
+	lag := agg.Job.Now - minWatermark
+	if lag < 0 {
+		lag = 0
+	}
+	s := strconv.FormatInt(lag, 10)
+	return &s
 }
 
 // mapJobConfig converts the Flink JobConfig (raw /jobs/:id/config response) into a

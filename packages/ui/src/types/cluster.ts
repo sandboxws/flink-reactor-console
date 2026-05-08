@@ -291,6 +291,18 @@ export type FlinkJob = {
   /** Per-vertex user accumulators, keyed by vertex ID. */
   accumulators: Record<string, UserAccumulator[]>
   sourcesAndSinks: JobConnector[]
+  /** Job-wide records-per-second rates aggregated from source/sink vertices. Null when unavailable. */
+  throughput: JobThroughput | null
+  /** Watermark lag in ms (`now - min subtask watermark`). Null when no valid watermark exists. */
+  watermarkLag: number | null
+}
+
+/** Job-wide records-per-second rates derived from source/sink vertex metrics. */
+export type JobThroughput = {
+  /** Records-per-second emitted by source vertices (pipeline input). */
+  recordsInPerSecond: number
+  /** Records-per-second consumed by sink vertices (pipeline output). */
+  recordsOutPerSecond: number
 }
 
 // --- Task Manager types ---

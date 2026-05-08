@@ -178,6 +178,8 @@ const JOB_DETAIL_QUERY = gql`
         vertexId vertexName connectorType role resource confidence detectionMethod
         metrics { recordsRead recordsWritten bytesRead bytesWritten }
       }
+      metrics { recordsInPerSecond recordsOutPerSecond }
+      watermarkLag
     }
   }
 `
@@ -418,6 +420,8 @@ function mapJobOverview(j: any): FlinkJob {
     backpressure: {},
     accumulators: {},
     sourcesAndSinks: [],
+    throughput: null,
+    watermarkLag: null,
   }
 }
 
@@ -1008,6 +1012,14 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
           : null,
       }),
     ),
+    throughput: j.metrics
+      ? {
+          recordsInPerSecond: j.metrics.recordsInPerSecond,
+          recordsOutPerSecond: j.metrics.recordsOutPerSecond,
+        }
+      : null,
+    watermarkLag:
+      j.watermarkLag != null ? parseI64(j.watermarkLag) : null,
   }
 }
 
