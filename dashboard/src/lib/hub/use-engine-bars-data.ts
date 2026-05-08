@@ -32,6 +32,10 @@ import {
 export type EngineBar = {
   /** Bar height in pixels (0..180). */
   height: number
+  /** Raw peak value within the bucket (e.g. peak rec/s). 0 when the bucket had no points. */
+  value: number
+  /** Start of the 1-minute bucket. */
+  bucketStart: Date
   /** Whether this bucket overlaps a failed checkpoint. */
   failed: boolean
 }
@@ -136,11 +140,15 @@ export function useEngineBarsData(
 
         // Quantize the window start to the minute boundary so bar i always
         // represents [start + i*60s, start + (i+1)*60s).
-        const windowStart =
-          Math.floor(after.getTime() / 60_000) * 60_000
+        const windowStart = Math.floor(after.getTime() / 60_000) * 60_000
         const raw = bucketizeMax(series, windowStart, minutes)
         const heights = scaleHeights(raw, DEFAULT_HEIGHT_PX)
-        const bars: EngineBar[] = heights.map((h) => ({ height: h, failed: false }))
+        const bars: EngineBar[] = heights.map((h, i) => ({
+          height: h,
+          value: raw[i],
+          bucketStart: new Date(windowStart + i * 60_000),
+          failed: false,
+        }))
 
         if (raw.every((v) => v === 0)) {
           setEmpty(true)

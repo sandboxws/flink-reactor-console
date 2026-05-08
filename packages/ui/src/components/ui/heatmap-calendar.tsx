@@ -9,10 +9,17 @@ interface HeatmapCalendarProps extends React.HTMLAttributes<HTMLDivElement> {
   data: HeatmapIntensity[]
   /** Number of week columns. Defaults to 26 (~6 months). */
   weeks?: number
-  /** Pixel size for each cell square. */
+  /** Pixel size for each cell square. Ignored when `fill` is true. */
   cellSize?: number
   /** Pixel gap between cells (and columns). */
   cellGap?: number
+  /**
+   * When true, the heatmap stretches to fill its parent's width: columns
+   * become `1fr` each and cells use `aspect-square` so they remain square
+   * but grow with the container. Use this inside cards that should not
+   * have empty horizontal whitespace.
+   */
+  fill?: boolean
 }
 
 /** Renders weeks columns of 7 day cells. Older data is left, newer is right. */
@@ -21,6 +28,7 @@ function HeatmapCalendar({
   weeks = 26,
   cellSize = 12,
   cellGap = 3,
+  fill = false,
   className,
   style,
   ...props
@@ -40,6 +48,39 @@ function HeatmapCalendar({
   const columns: HeatmapIntensity[][] = []
   for (let w = 0; w < weeks; w++) {
     columns.push(padded.slice(w * 7, (w + 1) * 7))
+  }
+
+  if (fill) {
+    return (
+      <div
+        className={cn("grid w-full", className)}
+        style={{
+          gap: cellGap,
+          gridTemplateColumns: `repeat(${weeks}, minmax(0, 1fr))`,
+          ...style,
+        }}
+        {...props}
+      >
+        {columns.map((col, ci) => (
+          <div
+            key={ci}
+            className="grid"
+            style={{
+              gap: cellGap,
+              gridTemplateRows: "repeat(7, minmax(0, 1fr))",
+            }}
+          >
+            {col.map((intensity, di) => (
+              <span
+                key={di}
+                className={cn(`hm-${intensity}`, "rounded-sm aspect-square")}
+                aria-hidden="true"
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    )
   }
 
   return (

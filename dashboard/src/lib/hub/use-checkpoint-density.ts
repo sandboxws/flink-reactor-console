@@ -11,20 +11,23 @@
  *    with the user's "today is on the right" expectation. Server returns
  *    RFC3339 timestamps; we convert with `toLocaleDateString` keyed on
  *    YYYY-MM-DD via toISOString, then offset.
- *  - Intensity thresholds (0/1-2/3-5/6-10/11+) are bucketed off raw
- *    counts. A more sophisticated mapping could log-scale, but raw
- *    counts read more honestly for ops users who want "how many today".
+ *  - Intensity is computed from QUARTILES of non-zero day counts in the
+ *    window — not fixed thresholds. This self-calibrates to whatever
+ *    cadence the live job runs at: a job checkpointing once a minute
+ *    (~1440/day) and a job checkpointing once an hour (~24/day) both
+ *    produce a varied 0..4 distribution rather than saturating at 4.
+ *    A zero-count day is always intensity 0.
  *  - Failed checkpoints count the same as successful ones — the heatmap
  *    is a density signal, not a health signal. (A red overlay for
  *    failed-dominated days would be a nice future enhancement.)
  */
 
+import type { HeatmapIntensity } from "@flink-reactor/ui"
 import { useEffect, useState } from "react"
 import {
   fetchCheckpointHistory,
   type StoredCheckpoint,
 } from "@/lib/graphql-api-client"
-import type { HeatmapIntensity } from "@flink-reactor/ui"
 
 export type CheckpointDensityResult = {
   data: HeatmapIntensity[]
@@ -36,13 +39,24 @@ export type CheckpointDensityResult = {
   error: string | null
 }
 
-/** Convert a count to a 5-step intensity. Tuned for typical Flink checkpoint cadence. */
-function countToIntensity(count: number): HeatmapIntensity {
-  if (count === 0) return 0
-  if (count <= 2) return 1
-  if (count <= 5) return 2
-  if (count <= 10) return 3
-  return 4
+/**
+ * Map a series of per-day counts to 5-step intensities using quartiles of
+ * the non-zero counts. Self-calibrates to the job's cadence so the heatmap
+ * is always visually varied rather than saturating one direction.
+ */
+function quantileIntensities(counts: number[]): HeatmapIntensity[] {
+  const nonZero = counts.filter((c) => c > 0).sort((a, b) => a - b)
+  if (nonZero.length === 0) return counts.map(() => 0) as HeatmapIntensity[]
+  const q1 = nonZero[Math.floor(nonZero.length * 0.25)]
+  const q2 = nonZero[Math.floor(nonZero.length * 0.5)]
+  const q3 = nonZero[Math.floor(nonZero.length * 0.75)]
+  return counts.map((c) => {
+    if (c === 0) return 0
+    if (c <= q1) return 1
+    if (c <= q2) return 2
+    if (c <= q3) return 3
+    return 4
+  }) as HeatmapIntensity[]
 }
 
 /** Return YYYY-MM-DD in the BROWSER's local timezone for consistent day bucketing. */
@@ -78,7 +92,8 @@ function aggregate(
     const key = localDayKey(parsed)
     counts.set(key, (counts.get(key) ?? 0) + 1)
   }
-  return dayKeys.map((k) => countToIntensity(counts.get(k) ?? 0))
+  const counted = dayKeys.map((k) => counts.get(k) ?? 0)
+  return quantileIntensities(counted)
 }
 
 export function useCheckpointDensity(

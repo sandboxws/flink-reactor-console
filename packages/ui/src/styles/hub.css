@@ -1613,6 +1613,11 @@
   background: var(--color-fr-sage);
   border-radius: 999px;
   bottom: -3px;
-  right: 8px;
+  left: 50%;
+  margin-left: -3px;
   box-shadow: 0 0 6px var(--color-fr-sage-glow);
+}
+.engine-callout.failed::after {
+  background: var(--color-fr-coral);
+  box-shadow: 0 0 6px var(--color-fr-coral-glow, rgba(234, 105, 98, 0.6));
 }

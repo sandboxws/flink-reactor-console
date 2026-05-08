@@ -2,7 +2,7 @@
 "use client"
 
 import { Bell, Search, Sparkles } from "lucide-react"
-import type { ComponentType } from "react"
+import { type ComponentType, useEffect, useState } from "react"
 import { BrandGlyph } from "../components/ui/brand-glyph"
 import {
   type ClusterEnv,
@@ -68,10 +68,21 @@ function HubTopBar({
   LinkComponent = DefaultLink,
   className,
 }: HubTopBarProps) {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 flex h-14 items-center gap-5 border-b border-dash-border bg-fr-bg/95 px-6 backdrop-blur-md",
+        "sticky top-0 z-40 flex h-14 items-center gap-5 px-6 border-b transition-[background-color,backdrop-filter,box-shadow,border-color] duration-200",
+        scrolled
+          ? "bg-fr-bg/70 backdrop-blur-xl border-dash-border shadow-[0_2px_12px_rgba(0,0,0,0.35)]"
+          : "bg-fr-bg/40 backdrop-blur-md border-transparent",
         className,
       )}
     >

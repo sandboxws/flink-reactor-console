@@ -7,7 +7,22 @@
  * trend sparklines. Lazy-loads checkpoint and subtask detail via GraphQL on demand.
  */
 
-import { Badge, EmptyState, formatBytes, formatDuration, Spinner } from "@flink-reactor/ui"
+import type {
+  Checkpoint,
+  CheckpointConfig,
+  CheckpointCounts,
+  CheckpointDetail,
+  CheckpointLatest,
+  CheckpointStatus,
+  CheckpointSubtaskStats,
+} from "@flink-reactor/ui"
+import {
+  Badge,
+  EmptyState,
+  formatBytes,
+  formatDuration,
+  Spinner,
+} from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
   AlertTriangle,
@@ -21,15 +36,6 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
-import type {
-  Checkpoint,
-  CheckpointConfig,
-  CheckpointCounts,
-  CheckpointDetail,
-  CheckpointLatest,
-  CheckpointStatus,
-  CheckpointSubtaskStats,
-} from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 import {
   fetchCheckpointDetail,
@@ -264,7 +270,7 @@ function ExpandableOperatorRow({
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={8} className="bg-dash-surface/50 px-0 py-0">
+          <td colSpan={8} className="bg-dash-surface px-0 py-0">
             {error && (
               <div className="flex items-center gap-2 px-6 py-3 text-xs text-job-failed">
                 <AlertTriangle className="size-3" />
@@ -277,31 +283,31 @@ function ExpandableOperatorRow({
                 <table className="mb-2 w-full text-[11px]">
                   <thead>
                     <tr className="border-b border-dash-border/30">
-                      <th className="px-2 py-1 text-left font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-left font-medium text-fg-faint">
                         Summary
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Duration
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Ckpt Size
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Full Size
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Sync
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Async
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Data
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Alignment
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Start Delay
                       </th>
                     </tr>
@@ -349,37 +355,37 @@ function ExpandableOperatorRow({
                 <table className="w-full text-[11px]">
                   <thead>
                     <tr className="border-b border-dash-border/30">
-                      <th className="px-2 py-1 text-left font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-left font-medium text-fg-faint">
                         #
                       </th>
-                      <th className="px-2 py-1 text-left font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-left font-medium text-fg-faint">
                         Ack Time
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Duration
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Ckpt Size
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Full Size
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Sync
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Async
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Data
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Alignment
                       </th>
-                      <th className="px-2 py-1 text-right font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-right font-medium text-fg-faint">
                         Start Delay
                       </th>
-                      <th className="px-2 py-1 text-center font-medium text-zinc-600">
+                      <th className="px-2 py-1 text-center font-medium text-fg-faint">
                         Unaligned
                       </th>
                     </tr>

@@ -9,7 +9,8 @@
 
 import { HubBreadcrumb, LiveDot } from "@flink-reactor/ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useEffect, useMemo } from "react"
+import { format } from "date-fns"
+import { useEffect, useMemo, useState } from "react"
 import { CheckpointDensityHeatmap } from "@/components/hub/checkpoints/checkpoint-density-heatmap"
 import { SavepointsList } from "@/components/hub/checkpoints/savepoints-list"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
@@ -93,11 +94,15 @@ function HubMonitoringCheckpoints() {
       const x = Math.sin(n * 7.3) * 10000
       return x - Math.floor(x)
     }
+    const windowStart = Math.floor((Date.now() - 38 * 60_000) / 60_000) * 60_000
     return Array.from({ length: 38 }, (_, i) => {
       const r = seeded(i + 1)
-      const height = 30 + r * 130
-      const failed = i % 9 === 3 || i % 11 === 7
-      return { height, failed }
+      return {
+        height: 30 + r * 130,
+        value: Math.round(r * 5000),
+        bucketStart: new Date(windowStart + i * 60_000),
+        failed: i % 9 === 3 || i % 11 === 7,
+      }
     })
   }, [])
   const useLiveBars =
@@ -106,6 +111,7 @@ function HubMonitoringCheckpoints() {
     !liveBars.error &&
     liveBars.bars.length > 0
   const bars = useLiveBars ? liveBars.bars : demoBars
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
   const recentEvents = useMemo(() => {
     return summaries
@@ -195,40 +201,61 @@ function HubMonitoringCheckpoints() {
                 {useLiveBars ? "Live" : "Demo"}
               </span>
             </div>
-            <svg
-              viewBox="0 0 600 180"
-              preserveAspectRatio="none"
-              className="h-44 w-full"
-              role="img"
-              aria-label="Checkpoint outcome bars over the last 38 minutes"
-            >
-              <g stroke="rgba(212,190,152,0.06)" strokeWidth="1">
-                <line x1="0" y1="45" x2="600" y2="45" />
-                <line x1="0" y1="90" x2="600" y2="90" />
-                <line x1="0" y1="135" x2="600" y2="135" />
-              </g>
-              <g>
-                {bars.map((bar, i) => {
-                  const x = (i / bars.length) * 600
-                  const w = 600 / bars.length - 2
-                  const y = 180 - bar.height
-                  const fill = bar.failed
-                    ? "var(--color-fr-coral)"
-                    : "var(--color-fr-sage)"
-                  return (
-                    <rect
-                      key={i}
-                      x={x}
-                      y={y}
-                      width={w}
-                      height={bar.height}
-                      fill={fill}
-                      opacity={0.7}
-                    />
-                  )
-                })}
-              </g>
-            </svg>
+            <div className="relative" onMouseLeave={() => setHoverIdx(null)}>
+              <svg
+                viewBox="0 0 600 180"
+                preserveAspectRatio="none"
+                className="h-44 w-full"
+                role="img"
+                aria-label="Checkpoint outcome bars over the last 38 minutes"
+              >
+                <g stroke="rgba(212,190,152,0.06)" strokeWidth="1">
+                  <line x1="0" y1="45" x2="600" y2="45" />
+                  <line x1="0" y1="90" x2="600" y2="90" />
+                  <line x1="0" y1="135" x2="600" y2="135" />
+                </g>
+                <g>
+                  {bars.map((bar, i) => {
+                    const x = (i / bars.length) * 600
+                    const w = 600 / bars.length - 2
+                    const y = 180 - bar.height
+                    const fill = bar.failed
+                      ? "var(--color-fr-coral)"
+                      : "var(--color-fr-sage)"
+                    const active = hoverIdx === i
+                    return (
+                      <rect
+                        key={i}
+                        x={x}
+                        y={y}
+                        width={w}
+                        height={bar.height}
+                        fill={fill}
+                        opacity={active ? 1 : 0.7}
+                        onMouseEnter={() => setHoverIdx(i)}
+                      />
+                    )
+                  })}
+                </g>
+              </svg>
+              {hoverIdx != null && bars[hoverIdx] ? (
+                <div
+                  className={`engine-callout pointer-events-none whitespace-nowrap${
+                    bars[hoverIdx].failed ? " failed" : ""
+                  }`}
+                  style={{
+                    left: `${((hoverIdx + 0.5) / bars.length) * 100}%`,
+                    top: `${((180 - bars[hoverIdx].height) / 180) * 100}%`,
+                    transform: "translate(-50%, calc(-100% - 8px))",
+                  }}
+                >
+                  <div className="text-fg-faint">
+                    {format(bars[hoverIdx].bucketStart, "HH:mm")}
+                  </div>
+                  <div>{compactCount(bars[hoverIdx].value)} rec/s</div>
+                </div>
+              ) : null}
+            </div>
           </section>
 
           <section className="grid grid-cols-12 gap-5">

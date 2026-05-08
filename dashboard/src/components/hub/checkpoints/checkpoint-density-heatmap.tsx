@@ -42,14 +42,16 @@ export function CheckpointDensityHeatmap({
 
   return (
     <>
-      <HeatmapCalendar data={data} weeks={weeks} />
-      <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-fg-faint">
+      <HeatmapCalendar data={data} weeks={weeks} fill />
+      <div className="mt-5 flex items-center gap-2 border-t border-dash-border/40 pt-3 text-[10px] font-mono text-fg-faint">
         <span>less</span>
-        <span className="hm-0 inline-block size-3 rounded-sm" />
-        <span className="hm-1 inline-block size-3 rounded-sm" />
-        <span className="hm-2 inline-block size-3 rounded-sm" />
-        <span className="hm-3 inline-block size-3 rounded-sm" />
-        <span className="hm-4 inline-block size-3 rounded-sm" />
+        <span className="ml-auto inline-flex items-center gap-1">
+          <span className="hm-0 inline-block size-3 rounded-sm" />
+          <span className="hm-1 inline-block size-3 rounded-sm" />
+          <span className="hm-2 inline-block size-3 rounded-sm" />
+          <span className="hm-3 inline-block size-3 rounded-sm" />
+          <span className="hm-4 inline-block size-3 rounded-sm" />
+        </span>
         <span>more</span>
       </div>
       {useLive ? null : (
