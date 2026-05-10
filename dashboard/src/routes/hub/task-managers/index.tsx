@@ -12,7 +12,6 @@
  * dedicated start-time field exists on the TaskManager type.
  */
 
-import type { TaskManager } from "@flink-reactor/ui"
 import {
   formatBytes,
   HubBreadcrumb,
@@ -20,16 +19,16 @@ import {
   LiveDot,
   PropChip,
 } from "@flink-reactor/ui"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import {
   ArrowUpDown,
   Filter,
   MoreHorizontal,
-  MoreVertical,
   Plus,
   PlusCircle,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { tmAlertTone, TmRow } from "@/components/hub/task-managers/tm-row"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -48,42 +47,6 @@ function timeAgo(date: Date | string | null | undefined): string {
 }
 
 type SortKey = "id" | "slots" | "heap" | "uptime"
-
-/** Slice TM physical memory into heap / managed / network / free percentages. */
-function memorySegments(tm: TaskManager): {
-  heapPct: number
-  managedPct: number
-  networkPct: number
-  freePct: number
-  heap: number
-  managed: number
-  network: number
-} {
-  const heap = tm.metrics.heapUsed
-  const managed = tm.metrics.managedMemoryUsed
-  const network = tm.metrics.nettyShuffleMemoryUsed
-  const total = Math.max(1, tm.physicalMemory)
-
-  const heapPct = (heap / total) * 100
-  const managedPct = (managed / total) * 100
-  const networkPct = (network / total) * 100
-  const freePct = Math.max(0, 100 - heapPct - managedPct - networkPct)
-
-  return { heapPct, managedPct, networkPct, freePct, heap, managed, network }
-}
-
-/** Color the slot-utilization sub-label by pressure threshold. */
-function slotUtilTone(pct: number): string {
-  if (pct >= 95) return "text-fr-amber"
-  if (pct >= 80) return "text-fr-sage"
-  return "text-fg-muted"
-}
-
-/** Color the live-dot by heap pressure (amber when ≥85% of physical). */
-function tmAlertTone(tm: TaskManager): "sage" | "amber" {
-  const heapPct = (tm.metrics.heapUsed / Math.max(1, tm.physicalMemory)) * 100
-  return heapPct >= 85 ? "amber" : "sage"
-}
 
 function HubTaskManagers() {
   const initialize = useClusterStore((s) => s.initialize)
@@ -389,78 +352,6 @@ function HubTaskManagers() {
         </div>
       )}
     </HubAppShell>
-  )
-}
-
-function TmRow({ tm }: { tm: TaskManager }) {
-  const { heapPct, managedPct, networkPct, freePct, heap, managed, network } =
-    memorySegments(tm)
-  const slotsUsed = tm.slotsTotal - tm.slotsFree
-  const slotPct =
-    tm.slotsTotal === 0 ? 0 : Math.round((slotsUsed / tm.slotsTotal) * 100)
-  const tone = tmAlertTone(tm)
-  const shortId = tm.id.length > 16 ? `${tm.id.slice(0, 16)}…` : tm.id
-
-  return (
-    <Link to="/hub/task-managers/$id" params={{ id: tm.id }} className="tm-row">
-      <span className={tone === "amber" ? "live-dot amber" : "live-dot"} />
-      <div>
-        <div className="font-mono text-zinc-100 truncate">{shortId}</div>
-        <div className="font-mono text-[10px] text-fg-faint truncate">
-          {tm.path || `port ${tm.dataPort}`}
-        </div>
-      </div>
-      <div>
-        <div className="resource-bar mb-1">
-          <div className="seg heap" style={{ width: `${heapPct}%` }} />
-          <div className="seg managed" style={{ width: `${managedPct}%` }} />
-          <div className="seg network" style={{ width: `${networkPct}%` }} />
-          <div className="seg free" style={{ width: `${freePct}%` }} />
-        </div>
-        <div className="flex items-center gap-3 text-[10px] font-mono text-fg-faint">
-          <span>
-            <span className="inline-block size-2 rounded-sm bg-fr-sage mr-1" />
-            heap {formatBytes(heap)}
-          </span>
-          <span>
-            <span className="inline-block size-2 rounded-sm bg-fr-amber mr-1" />
-            managed {formatBytes(managed)}
-          </span>
-          <span>
-            <span className="inline-block size-2 rounded-sm bg-fr-teal mr-1" />
-            net {formatBytes(network)}
-          </span>
-        </div>
-      </div>
-      <div className="text-right">
-        <div className="font-mono text-[14px] text-zinc-100">
-          {slotsUsed}/{tm.slotsTotal}
-        </div>
-        <div className={`font-mono text-[10px] ${slotUtilTone(slotPct)}`}>
-          {slotPct}%
-        </div>
-      </div>
-      <div className="text-right">
-        <div className="font-mono">{slotsUsed}</div>
-      </div>
-      <div className="text-right">
-        <div className="font-mono">{formatBytes(network)}</div>
-      </div>
-      <div className="text-right font-mono text-[11px] text-fg-faint">
-        {timeAgo(tm.lastHeartbeat)} ago
-      </div>
-      <button
-        type="button"
-        className="text-fg-faint hover:text-fr-coral"
-        aria-label="Task manager actions"
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-        }}
-      >
-        <MoreVertical className="size-3.5" />
-      </button>
-    </Link>
   )
 }
 

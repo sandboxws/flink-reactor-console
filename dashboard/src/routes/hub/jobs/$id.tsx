@@ -14,7 +14,6 @@
 
 import {
   HubBreadcrumb,
-  KpiCard,
   LiveDot,
   Tabs,
   TabsContent,
@@ -37,6 +36,7 @@ import {
   Square,
 } from "lucide-react"
 import { lazy, Suspense, useEffect, useMemo, useState } from "react"
+import { JobKpiStrip } from "@/components/hub/jobs/job-kpi-strip"
 import { CheckpointsTab } from "@/components/jobs/detail/checkpoints-tab"
 import { ConfigurationTab } from "@/components/jobs/detail/configuration-tab"
 import { ExceptionsTab } from "@/components/jobs/detail/exceptions-tab"
@@ -88,10 +88,6 @@ function HubJobDetail() {
   const isRunning = job
     ? ["RUNNING", "CREATED", "RESTARTING", "RECONCILING"].includes(job.status)
     : false
-  const totalTasks = job
-    ? Object.values(job.tasks).reduce((a, b) => a + b, 0)
-    : 0
-  const lastCheckpoint = job?.checkpoints[0]
   const vertexNames = useMemo(() => {
     const map: Record<string, string> = {}
     for (const v of job?.plan?.vertices ?? []) map[v.id] = v.name
@@ -224,58 +220,7 @@ function HubJobDetail() {
       </div>
 
       {/* ── KPI strip ───────────────────────────────────────────── */}
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-6">
-        <KpiCard
-          label="Throughput"
-          liveDot="sage"
-          value={
-            <span>
-              —<span className="text-[10px] text-fg-muted">M/s</span>
-            </span>
-          }
-        />
-        <KpiCard
-          label="Watermark"
-          value={
-            <span>
-              —<span className="text-[10px] text-fg-muted">ms</span>
-            </span>
-          }
-        />
-        <KpiCard
-          label="Tasks"
-          value={totalTasks}
-          sub={`${job.tasks.running} running`}
-        />
-        <KpiCard label="Parallelism" value={job.parallelism} />
-        <KpiCard
-          label="Last ckpt"
-          value={
-            lastCheckpoint?.duration != null ? (
-              <span>
-                {lastCheckpoint.duration}
-                <span className="text-[10px] text-fg-muted">ms</span>
-              </span>
-            ) : (
-              "—"
-            )
-          }
-          sub={
-            lastCheckpoint?.triggerTimestamp
-              ? timeAgo(lastCheckpoint.triggerTimestamp)
-              : undefined
-          }
-        />
-        <KpiCard
-          label="Checkpoints"
-          value={job.checkpointCounts?.completed ?? 0}
-          sub={
-            job.checkpointCounts?.failed
-              ? `${job.checkpointCounts.failed} failed`
-              : undefined
-          }
-        />
-      </div>
+      <JobKpiStrip job={job} />
 
       {/* ── Tabs ────────────────────────────────────────────────── */}
       <Tabs

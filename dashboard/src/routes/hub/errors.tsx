@@ -37,6 +37,11 @@ import {
   X,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { ErrorGroupList } from "@/components/hub/errors/error-group-list"
+import {
+  groupState,
+  isStale,
+} from "@/components/hub/errors/error-group-state"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -151,27 +156,6 @@ function StackTraceTokens({ text }: { text: string }) {
       })}
     </>
   )
-}
-
-/**
- * Map a group's recency to a status-icon state.
- *
- * Only two states are derivable without backend signals:
- *  - `firing`: the group has occurred recently (not stale).
- *  - `suppressed`: no occurrences in the last 24h.
- *
- * The other StatusIcon states (`acknowledged`, `in-progress`, `resolved`,
- * `silenced`) all imply human action or a backend lifecycle we don't
- * track yet. Using them off heuristic count thresholds is misleading
- * (e.g. labelling a 15-count group "acknowledged" when nobody acked it).
- */
-function groupState(g: ErrorGroup): StatusIconState {
-  return isStale(g) ? "suppressed" : "firing"
-}
-
-/** A group with no occurrences in 24h — eligible for the optional "Hide stale" filter. */
-function isStale(g: ErrorGroup): boolean {
-  return Date.now() - g.lastSeen.getTime() > 24 * 60 * 60 * 1000
 }
 
 type SortKey = "lastSeen" | "count" | "firstSeen"
@@ -373,69 +357,11 @@ function HubErrors() {
           <div
             className={selected ? "col-span-12 xl:col-span-7" : "col-span-12"}
           >
-            <div className="glass-card-static overflow-hidden">
-              <div className="grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
-                <span>Sev</span>
-                <span>Exception · source</span>
-                <span className="text-right">Occurrences</span>
-                <span className="text-right">Last seen</span>
-                <span className="text-right">Hosts</span>
-              </div>
-              {visibleGroups.map((g) => {
-                const state = groupState(g)
-                const isSelected = selected?.id === g.id
-                const stale = state === "suppressed"
-                const accent = stale ? "text-fg-muted" : "text-fr-rose"
-                const className =
-                  "grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border/40 last:border-b-0 px-4 py-3 hover:bg-dash-elevated/30 cursor-pointer text-left w-full transition-colors"
-                return (
-                  <button
-                    type="button"
-                    key={g.id}
-                    onClick={() => selectGroup(g.id)}
-                    className={className}
-                    style={
-                      isSelected
-                        ? { background: "rgba(231,138,78,0.10)" }
-                        : undefined
-                    }
-                  >
-                    <StatusIcon state={state} />
-                    <div className="min-w-0">
-                      <div className="font-mono text-[12px] text-fg truncate">
-                        <span className={accent}>{g.exceptionClass}</span>
-                        {g.message ? `: ${g.message}` : ""}
-                      </div>
-                      <div className="mt-0.5 text-[11px] text-fg-muted truncate">
-                        {g.affectedSources[0]?.label ?? "unknown source"}
-                        {g.affectedSources.length > 1
-                          ? ` · +${g.affectedSources.length - 1} more`
-                          : ""}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div
-                        className={`font-mono text-[13px] ${stale ? "text-fg-muted" : "text-fr-rose font-semibold"}`}
-                      >
-                        {g.count}
-                      </div>
-                      <div className="font-mono text-[10px] text-fg-faint">
-                        {stale ? "stale" : "active"}
-                      </div>
-                    </div>
-                    <div className="text-right font-mono text-[11px]">
-                      <div className="text-fg">{timeAgo(g.lastSeen)} ago</div>
-                      <div className="text-fg-faint">
-                        first {timeAgo(g.firstSeen)} ago
-                      </div>
-                    </div>
-                    <div className="text-right font-mono text-[11px] text-fg-muted">
-                      {g.affectedSources.length}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
+            <ErrorGroupList
+              groups={visibleGroups}
+              selectedId={selected?.id ?? null}
+              onSelect={selectGroup}
+            />
             <div className="mt-3 flex items-center justify-between text-[11px] text-fg-faint font-mono">
               <span>
                 Showing {visibleGroups.length} of {groupArray.length} groups

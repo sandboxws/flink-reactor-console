@@ -116,7 +116,8 @@ src/
 │   ├── overview/                       # StatCard, SlotUtilization, JobStatusSummary, JobList
 │   ├── jobs/                           # JobsTable, JobStatusBadge, TaskCountsBar
 │   ├── jobs/detail/                    # JobGraph, OperatorNode, StrategyEdge, 7 tab components
-│   ├── task-managers/                  # TaskManagerList, MemoryBar, TM tabs
+│   ├── task-managers/                  # TaskManagerList, MemoryBar, TM tabs (legacy)
+│   ├── hub/task-managers/               # Hub TM tabs: TmMemoryBar, TmRow, TmOverviewTabHub + sub-cards (memory model, advanced stats, resources, log list)
 │   ├── job-manager/                    # JM tabs (config, metrics, logs, stdout, classpath, JVM, threads, profiler)
 │   ├── logs/                           # LogExplorer, LogList, LogToolbar, LogDetailPanel, LogHistogram
 │   ├── errors/                         # ErrorExplorer, ErrorGroupList, StackTrace

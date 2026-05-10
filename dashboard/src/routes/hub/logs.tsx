@@ -18,7 +18,6 @@ import {
   LiveDot,
   type LogEntry,
   type LogLevel,
-  PropChip,
 } from "@flink-reactor/ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
@@ -34,21 +33,18 @@ import {
   X,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import {
+  formatHHMMSSms,
+  HubLogViewer,
+} from "@/components/hub/logs/hub-log-viewer"
+import {
+  LEVEL_TONE,
+  LogFilterRail,
+} from "@/components/hub/logs/log-filter-rail"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useLogStore } from "@/stores/log-store"
-
-const LEVELS: LogLevel[] = ["INFO", "WARN", "ERROR", "DEBUG", "TRACE"]
-
-/** Color tokens per level for the log-row chips and detail accent. */
-const LEVEL_TONE: Record<LogLevel, string> = {
-  INFO: "#7daea3", // teal (sage-info)
-  WARN: "#d8a657", // amber
-  ERROR: "#ea6962", // rose
-  DEBUG: "#7c7269", // dim
-  TRACE: "#5a524c", // faint
-}
 
 function timeAgo(date: Date | null | undefined): string {
   if (!date) return "—"
@@ -57,14 +53,6 @@ function timeAgo(date: Date | null | undefined): string {
   const minutes = Math.floor(seconds / 60)
   if (minutes < 60) return `${minutes}m`
   return `${Math.floor(minutes / 60)}h`
-}
-
-function pad2(n: number): string {
-  return n.toString().padStart(2, "0")
-}
-
-function formatHHMMSSms(d: Date): string {
-  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}.${d.getMilliseconds().toString().padStart(3, "0")}`
 }
 
 function HubLogs() {
@@ -182,58 +170,16 @@ function HubLogs() {
       </div>
 
       {/* ── Filter chip bar ────────────────────────────────────── */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <PropChip active>All sources</PropChip>
-        {LEVELS.map((level) => {
-          const tone = LEVEL_TONE[level]
-          const isActive = activeLevels.has(level)
-          return (
-            <button
-              key={level}
-              type="button"
-              onClick={() => toggleLevel(level)}
-              className={`prop-chip ${isActive ? "active" : ""}`}
-              style={
-                isActive
-                  ? {
-                      color: tone,
-                      borderColor: `${tone}66`,
-                      background: `${tone}11`,
-                    }
-                  : undefined
-              }
-            >
-              <span
-                className="size-1.5 rounded-full"
-                style={{ background: tone }}
-              />
-              {level}
-              <span className="count">
-                {levelCounts[level].toLocaleString()}
-              </span>
-            </button>
-          )
-        })}
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm ml-auto"
-          onClick={() => {
-            setQuery("")
-            setActiveLevels(new Set(["INFO", "WARN", "ERROR"]))
-          }}
-        >
-          <X />
-          Clear
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          onClick={clearLogs}
-          aria-label="Clear log buffer"
-        >
-          Clear buffer
-        </button>
-      </div>
+      <LogFilterRail
+        activeLevels={activeLevels}
+        onToggleLevel={toggleLevel}
+        levelCounts={levelCounts}
+        onClearFilters={() => {
+          setQuery("")
+          setActiveLevels(new Set(["INFO", "WARN", "ERROR"]))
+        }}
+        onClearBuffer={clearLogs}
+      />
 
       {/* ── Search bar ─────────────────────────────────────────── */}
       <div className="mb-4 flex items-center gap-2 rounded-lg border border-dash-border bg-fr-subtle/50 px-3 py-2">
@@ -304,20 +250,11 @@ function HubLogs() {
                 : "No log entries match the current filters."}
             </div>
           ) : (
-            <div
-              className="log-viewer"
-              style={{ maxHeight: "64vh", overflow: "auto" }}
-            >
-              {filtered.slice(-500).map((entry, i) => (
-                <LogRow
-                  key={entry.id}
-                  index={i + 1}
-                  entry={entry}
-                  selected={selected?.id === entry.id}
-                  onSelect={() => setSelectedId(entry.id)}
-                />
-              ))}
-            </div>
+            <HubLogViewer
+              entries={filtered}
+              selectedId={selected?.id ?? null}
+              onSelect={setSelectedId}
+            />
           )}
 
           <div className="mt-3 flex items-center justify-between text-[11px] text-fg-faint font-mono">
@@ -349,54 +286,6 @@ function HubLogs() {
         ) : null}
       </section>
     </HubAppShell>
-  )
-}
-
-function LogRow({
-  index,
-  entry,
-  selected,
-  onSelect,
-}: {
-  index: number
-  entry: LogEntry
-  selected: boolean
-  onSelect: () => void
-}) {
-  const level = entry.level.toLowerCase()
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          onSelect()
-        }
-      }}
-      className="log-row cursor-pointer"
-      style={
-        selected
-          ? { background: "rgba(231,138,78,0.08)" }
-          : entry.level === "ERROR"
-            ? { background: "rgba(234,105,98,0.04)" }
-            : undefined
-      }
-    >
-      <span className="log-num">{index}</span>
-      <span className="log-time">{formatHHMMSSms(entry.timestamp)}</span>
-      <span className={`log-level ${level}`}>{entry.level}</span>
-      <span className={`log-msg ${level}`}>
-        <span className="text-fg-faint">[{entry.source.label}]</span>{" "}
-        {entry.loggerShort ? (
-          <>
-            <span className="text-fg-faint">{entry.loggerShort}</span> —{" "}
-          </>
-        ) : null}
-        {entry.message}
-      </span>
-    </div>
   )
 }
 
