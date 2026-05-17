@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest"
 import { resolveConnectors } from "@/codegen/connector-resolver.js"
-import { generateCrd } from "@/codegen/crd-generator.js"
+import { assertFlinkDeployment, generateCrd } from "@/codegen/crd-generator.js"
 import { generatePipelineYaml } from "@/codegen/pipeline-yaml-generator.js"
 import { generateSql } from "@/codegen/sql/sql-generator.js"
 import { resetNodeIdCounter } from "@/core/jsx-runtime.js"
@@ -95,6 +95,7 @@ describe("pg-fluss-paimon-ingest (Pipeline-YAML branch)", () => {
       commitMode: "latency",
     })
     const crd = generateCrd(node, { flinkVersion: FLINK_VERSION })
+    assertFlinkDeployment(crd)
     expect(
       crd.spec.flinkConfiguration["execution.checkpointing.interval"],
     ).toBe("2000")

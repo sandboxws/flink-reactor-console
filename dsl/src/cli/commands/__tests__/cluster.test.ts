@@ -1,5 +1,13 @@
 import { Command } from "commander"
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi,
+} from "vitest"
 import { isClusterRunning } from "@/cli/cluster/health-check.js"
 import {
   SqlGatewayClient,
@@ -94,7 +102,7 @@ INSERT INTO t SELECT 1;
 
 describe("SqlGatewayClient", () => {
   let client: SqlGatewayClient
-  let fetchSpy: ReturnType<typeof vi.spyOn>
+  let fetchSpy: MockInstance<typeof fetch>
 
   beforeEach(() => {
     client = new SqlGatewayClient("http://localhost:8083")
@@ -178,7 +186,7 @@ describe("SqlGatewayClient", () => {
 // ── isClusterRunning ────────────────────────────────────────────────
 
 describe("isClusterRunning", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>
+  let fetchSpy: MockInstance<typeof fetch>
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, "fetch")

@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import {
+  asFlinkDeployment,
+  assertFlinkDeployment,
+} from "@/codegen/crd-generator.js"
 import { synthesizeApp } from "@/core/app.js"
 import {
   createElement,
@@ -57,6 +61,7 @@ describe("loggingPlugin", () => {
       const pipeline = buildPipeline()
 
       const transformed = plugin.transformTree?.(pipeline)
+      if (!transformed) throw new Error("expected transformTree to be defined")
 
       // Pipeline itself should NOT be annotated
       expect(transformed.props._logging).toBeUndefined()
@@ -78,6 +83,7 @@ describe("loggingPlugin", () => {
       const pipeline = buildPipeline()
 
       const transformed = plugin.transformTree?.(pipeline)
+      if (!transformed) throw new Error("expected transformTree to be defined")
 
       const annotated = findNodes(transformed, (n) => n.props._logging != null)
       // Only Source nodes should be annotated
@@ -91,6 +97,7 @@ describe("loggingPlugin", () => {
       const pipeline = buildPipeline()
 
       const transformed = plugin.transformTree?.(pipeline)
+      if (!transformed) throw new Error("expected transformTree to be defined")
 
       const annotated = findNodes(transformed, (n) => n.props._logging != null)
       expect(annotated.length).toBeGreaterThan(0)
@@ -109,6 +116,7 @@ describe("loggingPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
 
       expect(result.crd.spec.flinkConfiguration["rootLogger.level"]).toBe(
         "WARN",
@@ -125,6 +133,7 @@ describe("loggingPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["logger.org_apache_flink_streaming.name"]).toBe(
@@ -140,6 +149,7 @@ describe("loggingPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
 
       expect(
         result.crd.metadata.annotations?.["flink-reactor.io/logging-tag"],
@@ -162,7 +172,9 @@ describe("loggingPlugin", () => {
 
       expect(result.pipelines).toHaveLength(1)
       expect(
-        result.pipelines[0].crd.spec.flinkConfiguration["rootLogger.level"],
+        asFlinkDeployment(result.pipelines[0].crd).spec.flinkConfiguration[
+          "rootLogger.level"
+        ],
       ).toBe("DEBUG")
     })
 

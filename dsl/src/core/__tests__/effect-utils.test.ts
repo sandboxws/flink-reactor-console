@@ -68,7 +68,6 @@ describe("toValidationEffect", () => {
         severity: "warning",
         message: "unused field",
         nodeId: "n1",
-        ruleId: "r1",
       },
     ]
     const result = runSync(toValidationEffect(diagnostics))
@@ -87,9 +86,8 @@ describe("toValidationEffect", () => {
         severity: "error",
         message: "type mismatch",
         nodeId: "n1",
-        ruleId: "r1",
       },
-      { severity: "warning", message: "unused", nodeId: "n2", ruleId: "r2" },
+      { severity: "warning", message: "unused", nodeId: "n2" },
     ]
     const effect = toValidationEffect(diagnostics)
     const result = await Effect.runPromise(

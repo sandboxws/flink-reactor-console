@@ -60,7 +60,7 @@ describe("determinism: synth() output is bit-stable across runs", () => {
 
 describe("determinism: synthesizeApp output is bit-stable across runs", () => {
   it("identical pipelineManifest + tapManifest across two synthesize calls", async () => {
-    const mod = await import(`../../examples/13-simple-etl/after.tsx`)
+    const mod = await import(`../../examples/${"13-simple-etl"}/after.tsx`)
     const fixedTime = "2026-04-27T12:00:00.000Z"
     resetNodeIdCounter()
     const a = synthesizeApp(
@@ -78,7 +78,9 @@ describe("determinism: synthesizeApp output is bit-stable across runs", () => {
   it("default sentinel keeps output deterministic without an explicit synthesizedAt", async () => {
     // No synthesizedAt → both runs use the sentinel ("1970-01-01…").
     // The hash should match across consecutive calls.
-    const mod = await import(`../../examples/01-simple-source-sink/after.tsx`)
+    const mod = await import(
+      `../../examples/${"01-simple-source-sink"}/after.tsx`
+    )
     resetNodeIdCounter()
     const a = synthesizeApp({ name: "test", children: mod.default })
     resetNodeIdCounter()
@@ -91,7 +93,7 @@ describe("determinism: synthesizeApp output is bit-stable across runs", () => {
 
 describe("determinism: generateSql is reentrant-safe across calls", () => {
   it("two sequential generateSql calls produce identical output", async () => {
-    const mod = await import(`../../examples/03-group-aggregate/after.tsx`)
+    const mod = await import(`../../examples/${"03-group-aggregate"}/after.tsx`)
     resetNodeIdCounter()
     const a = generateSql(mod.default)
     resetNodeIdCounter()

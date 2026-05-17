@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest"
 import {
+  assertFlinkDeployment,
   collectSecretRefs,
   generateCrd,
   generateCrdYaml,
@@ -75,6 +76,7 @@ describe("CRD generation: streaming pipeline", () => {
     })
 
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
 
     expect(crd.apiVersion).toBe("flink.apache.org/v1beta1")
     expect(crd.kind).toBe("FlinkDeployment")
@@ -152,6 +154,7 @@ describe("CRD generation: batch mode pipeline", () => {
     })
 
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     expect(crd.spec.flinkConfiguration["execution.runtime-mode"]).toBe("BATCH")
   })
 
@@ -189,6 +192,7 @@ describe("CRD generation: state TTL", () => {
     })
 
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     expect(crd.spec.flinkConfiguration["table.exec.state.ttl"]).toBe("1800000")
   })
 })
@@ -204,6 +208,7 @@ describe("CRD generation: restart strategy", () => {
     })
 
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     expect(crd.spec.flinkConfiguration["restart-strategy.type"]).toBe(
       "fixed-delay",
     )
@@ -223,6 +228,7 @@ describe("CRD generation: restart strategy", () => {
     })
 
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     expect(crd.spec.flinkConfiguration["restart-strategy.type"]).toBe(
       "no-restart",
     )
@@ -243,6 +249,7 @@ describe("CRD generation: flinkConfig passthrough", () => {
     })
 
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     expect(crd.spec.flinkConfiguration["taskmanager.numberOfTaskSlots"]).toBe(
       "4",
     )
@@ -261,6 +268,7 @@ describe("CRD generation: custom options", () => {
       flinkVersion: "2.0",
       flinkImage: "registry.internal.com/flink:2.0-custom",
     })
+    assertFlinkDeployment(crd)
     expect(crd.spec.image).toBe("registry.internal.com/flink:2.0-custom")
   })
 
@@ -271,6 +279,7 @@ describe("CRD generation: custom options", () => {
       jobManager: { resource: { cpu: "2", memory: "2048m" }, replicas: 1 },
       taskManager: { resource: { cpu: "4", memory: "4096m" }, replicas: 3 },
     })
+    assertFlinkDeployment(crd)
 
     expect(crd.spec.jobManager.resource.cpu).toBe("2")
     expect(crd.spec.jobManager.resource.memory).toBe("2048m")
@@ -285,6 +294,7 @@ describe("CRD generation: custom options", () => {
       jarUri: "local:///opt/flink/usrlib/custom-runner.jar",
       jarArgs: ["--sql-file", "/opt/flink/usrlib/pipeline.sql"],
     })
+    assertFlinkDeployment(crd)
 
     expect(crd.spec.job.jarURI).toBe(
       "local:///opt/flink/usrlib/custom-runner.jar",
@@ -302,6 +312,7 @@ describe("CRD generation: custom options", () => {
       labels: { "app.kubernetes.io/name": "test" },
       annotations: { team: "data-platform" },
     })
+    assertFlinkDeployment(crd)
 
     expect(crd.metadata.labels).toEqual({ "app.kubernetes.io/name": "test" })
     expect(crd.metadata.annotations).toEqual({ team: "data-platform" })
@@ -314,6 +325,7 @@ describe("CRD generation: Flink version mapping", () => {
   it("maps 1.20 correctly", () => {
     const pipeline = Pipeline({ name: "test", children: [] })
     const crd = generateCrd(pipeline, { flinkVersion: "1.20" })
+    assertFlinkDeployment(crd)
     expect(crd.spec.flinkVersion).toBe("v1_20")
     expect(crd.spec.image).toBe("flink:1.20")
   })
@@ -321,6 +333,7 @@ describe("CRD generation: Flink version mapping", () => {
   it("maps 2.2 correctly", () => {
     const pipeline = Pipeline({ name: "test", children: [] })
     const crd = generateCrd(pipeline, { flinkVersion: "2.2" })
+    assertFlinkDeployment(crd)
     expect(crd.spec.flinkVersion).toBe("v2_2")
     expect(crd.spec.image).toBe("flink:2.2")
   })
@@ -337,6 +350,7 @@ describe("CRD generation: Flink 1.20 config normalization", () => {
     })
 
     const crd = generateCrd(pipeline, { flinkVersion: "1.20" })
+    assertFlinkDeployment(crd)
     // state.backend.type is normalized to state.backend for 1.20
     expect(crd.spec.flinkConfiguration["state.backend"]).toBe("rocksdb")
   })
@@ -376,17 +390,17 @@ describe("CRD generation: Flink CDC Pipeline Connector variant", () => {
 
   it("uses flink-cdc-cli.jar as the default jarURI", () => {
     const crd = generateCrd(buildCdcPipeline(), { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     expect(crd.kind).toBe("FlinkDeployment")
-    // biome-ignore lint/suspicious/noExplicitAny: test introspection
-    expect((crd as any).spec.job.jarURI).toBe(
+    expect(crd.spec.job.jarURI).toBe(
       "local:///opt/flink-cdc/lib/flink-cdc-cli.jar",
     )
   })
 
   it("passes --pipeline /etc/flink-cdc/pipeline.yaml as job args", () => {
     const crd = generateCrd(buildCdcPipeline(), { flinkVersion: "2.0" })
-    // biome-ignore lint/suspicious/noExplicitAny: test introspection
-    expect((crd as any).spec.job.args).toEqual([
+    assertFlinkDeployment(crd)
+    expect(crd.spec.job.args).toEqual([
       "--pipeline",
       "/etc/flink-cdc/pipeline.yaml",
     ])
@@ -394,8 +408,8 @@ describe("CRD generation: Flink CDC Pipeline Connector variant", () => {
 
   it("mounts the pipeline ConfigMap via a podTemplate volume", () => {
     const crd = generateCrd(buildCdcPipeline(), { flinkVersion: "2.0" })
-    // biome-ignore lint/suspicious/noExplicitAny: test introspection
-    const pod = (crd as any).spec.podTemplate
+    assertFlinkDeployment(crd)
+    const pod = crd.spec.podTemplate as any
     expect(pod).toBeDefined()
     expect(pod.spec.volumes).toEqual([
       {
@@ -410,8 +424,8 @@ describe("CRD generation: Flink CDC Pipeline Connector variant", () => {
 
   it("wires SecretRefs as individual env entries with secretKeyRef", () => {
     const crd = generateCrd(buildCdcPipeline(), { flinkVersion: "2.0" })
-    // biome-ignore lint/suspicious/noExplicitAny: test introspection
-    const env = (crd as any).spec.podTemplate.spec.containers[0].env
+    assertFlinkDeployment(crd)
+    const env = (crd.spec.podTemplate as any).spec.containers[0].env
     expect(env).toEqual([
       {
         name: "PG_PRIMARY_PASSWORD",
@@ -539,7 +553,8 @@ describe("sourceSql → pipeline.global-job-parameters[pipeline.sql.b64]", () =>
     const crd = generateCrd(pipeline, {
       flinkVersion: "2.0",
       sourceSql: sqlText,
-    }) as { spec: { flinkConfiguration: Record<string, string> } }
+    })
+    assertFlinkDeployment(crd)
 
     const params = crd.spec.flinkConfiguration["pipeline.global-job-parameters"]
     expect(params).toBeDefined()
@@ -566,7 +581,8 @@ describe("sourceSql → pipeline.global-job-parameters[pipeline.sql.b64]", () =>
     const crd = generateCrd(pipeline, {
       flinkVersion: "2.0",
       sourceSql: "INSERT INTO out SELECT * FROM orders;",
-    }) as { spec: { flinkConfiguration: Record<string, string> } }
+    })
+    assertFlinkDeployment(crd)
 
     const params = crd.spec.flinkConfiguration["pipeline.global-job-parameters"]
     expect(params).toContain("tenant:acme")
@@ -594,7 +610,8 @@ describe("sourceSql → pipeline.global-job-parameters[pipeline.sql.b64]", () =>
     const crd = generateCrd(pipeline, {
       flinkVersion: "2.0",
       sourceSql: "INSERT INTO out SELECT * FROM orders;",
-    }) as { spec: { flinkConfiguration: Record<string, string> } }
+    })
+    assertFlinkDeployment(crd)
 
     expect(crd.spec.flinkConfiguration["pipeline.global-job-parameters"]).toBe(
       "pipeline.sql.b64:CUSTOM",
@@ -610,9 +627,8 @@ describe("sourceSql → pipeline.global-job-parameters[pipeline.sql.b64]", () =>
     const sink = KafkaSink({ topic: "out", children: [source] })
     const pipeline = Pipeline({ name: "without-sql", children: [sink] })
 
-    const noOpt = generateCrd(pipeline, { flinkVersion: "2.0" }) as {
-      spec: { flinkConfiguration: Record<string, string> }
-    }
+    const noOpt = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(noOpt)
     expect(
       noOpt.spec.flinkConfiguration["pipeline.global-job-parameters"],
     ).toBeUndefined()
@@ -620,7 +636,8 @@ describe("sourceSql → pipeline.global-job-parameters[pipeline.sql.b64]", () =>
     const emptyOpt = generateCrd(pipeline, {
       flinkVersion: "2.0",
       sourceSql: "   \n\t  ",
-    }) as { spec: { flinkConfiguration: Record<string, string> } }
+    })
+    assertFlinkDeployment(emptyOpt)
     expect(
       emptyOpt.spec.flinkConfiguration["pipeline.global-job-parameters"],
     ).toBeUndefined()
@@ -649,6 +666,7 @@ describe("toYaml: round-trips through parse", () => {
       children: [sink],
     })
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     const yaml = generateCrdYaml(pipeline, { flinkVersion: "2.0" })
     const reparsed = parse(yaml)
     expect(reparsed).toEqual(JSON.parse(JSON.stringify(crd)))

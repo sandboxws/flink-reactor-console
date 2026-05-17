@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import {
+  asFlinkDeployment,
+  assertFlinkDeployment,
+} from "@/codegen/crd-generator.js"
 import { synthesizeApp } from "@/core/app.js"
 import {
   createElement,
@@ -80,6 +84,7 @@ describe("all three built-in plugins composed", () => {
   it("combines all CRD configuration keys", () => {
     const pipeline = buildPipeline()
     const result = synth(pipeline, { plugins: allPlugins })
+    assertFlinkDeployment(result.crd)
     const config = result.crd.spec.flinkConfiguration
 
     // From logging plugin
@@ -99,6 +104,7 @@ describe("all three built-in plugins composed", () => {
   it("combines all metadata annotations", () => {
     const pipeline = buildPipeline()
     const result = synth(pipeline, { plugins: allPlugins })
+    assertFlinkDeployment(result.crd)
     const annotations = result.crd.metadata.annotations!
 
     // From logging plugin
@@ -130,7 +136,8 @@ describe("all three built-in plugins composed", () => {
     )
 
     expect(result.pipelines).toHaveLength(1)
-    const config = result.pipelines[0].crd.spec.flinkConfiguration
+    const config = asFlinkDeployment(result.pipelines[0].crd).spec
+      .flinkConfiguration
 
     // Verify all three plugins contributed
     expect(config["rootLogger.level"]).toBe("DEBUG")

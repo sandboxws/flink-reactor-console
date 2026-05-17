@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import {
+  asFlinkDeployment,
+  assertFlinkDeployment,
+} from "@/codegen/crd-generator.js"
 import { synthesizeApp } from "@/core/app.js"
 import {
   createElement,
@@ -134,6 +138,7 @@ describe("errorHandlingPlugin", () => {
       const pipeline = buildUnprotectedPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["restart-strategy.type"]).toBe("fixed-delay")
@@ -152,6 +157,7 @@ describe("errorHandlingPlugin", () => {
       const pipeline = buildUnprotectedPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["restart-strategy.fixed-delay.attempts"]).toBe("10")
@@ -167,6 +173,7 @@ describe("errorHandlingPlugin", () => {
       const pipeline = buildUnprotectedPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["restart-strategy.type"]).toBe("failure-rate")
@@ -191,6 +198,7 @@ describe("errorHandlingPlugin", () => {
       const pipeline = buildUnprotectedPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(
@@ -211,6 +219,7 @@ describe("errorHandlingPlugin", () => {
       const pipeline = buildUnprotectedPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["restart-strategy.type"]).toBe("exponential-delay")
@@ -245,6 +254,7 @@ describe("errorHandlingPlugin", () => {
       const pipeline = buildUnprotectedPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["restart-strategy.exponential-delay.initial-backoff"]).toBe(
@@ -273,6 +283,7 @@ describe("errorHandlingPlugin", () => {
       const pipeline = buildUnprotectedPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       expect(
         result.crd.metadata.annotations?.["flink-reactor.io/restart-strategy"],
       ).toBe("failure-rate")
@@ -293,7 +304,7 @@ describe("errorHandlingPlugin", () => {
 
       expect(result.pipelines).toHaveLength(1)
       expect(
-        result.pipelines[0].crd.spec.flinkConfiguration[
+        asFlinkDeployment(result.pipelines[0].crd).spec.flinkConfiguration[
           "restart-strategy.type"
         ],
       ).toBe("fixed-delay")

@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import {
+  asFlinkDeployment,
+  assertFlinkDeployment,
+} from "@/codegen/crd-generator.js"
 import { synthesizeApp } from "@/core/app.js"
 import {
   createElement,
@@ -51,6 +55,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["metrics.reporter.prometheus.factory.class"]).toBe(
@@ -66,6 +71,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       expect(
         result.crd.spec.flinkConfiguration["metrics.reporter.prometheus.port"],
       ).toBe("9999")
@@ -78,6 +84,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["metrics.reporter.slf4j.factory.class"]).toBe(
@@ -93,6 +100,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       expect(
         result.crd.spec.flinkConfiguration["metrics.reporter.slf4j.interval"],
       ).toBe("30s")
@@ -105,6 +113,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       expect(config["metrics.reporter.jmx.factory.class"]).toBe(
@@ -126,6 +135,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       const config = result.crd.spec.flinkConfiguration
 
       // All three reporters should be configured
@@ -149,6 +159,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       expect(
         result.crd.spec.flinkConfiguration["metrics.scope.delimiter"],
       ).toBe("_")
@@ -162,6 +173,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       expect(
         result.crd.spec.flinkConfiguration["metrics.latency.interval"],
       ).toBe("5000")
@@ -175,6 +187,7 @@ describe("metricsPlugin", () => {
       const pipeline = buildPipeline()
 
       const result = synth(pipeline, { plugins: [plugin] })
+      assertFlinkDeployment(result.crd)
       expect(
         result.crd.spec.flinkConfiguration["metrics.latency.interval"],
       ).toBe("0")
@@ -194,7 +207,8 @@ describe("metricsPlugin", () => {
       )
 
       expect(result.pipelines).toHaveLength(1)
-      const config = result.pipelines[0].crd.spec.flinkConfiguration
+      const config = asFlinkDeployment(result.pipelines[0].crd).spec
+        .flinkConfiguration
       expect(config["metrics.reporter.prometheus.factory.class"]).toBeDefined()
     })
 

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import { asFlinkDeployment } from "@/codegen/crd-generator.js"
 import { synthesizeApp } from "@/core/app.js"
 import { defineConfig } from "@/core/config.js"
 import {
@@ -69,7 +70,9 @@ describe("plugin integration with synthesizeApp", () => {
       { plugins: [addParallelismPlugin] },
     )
 
-    expect(result.pipelines[0].crd.spec.job.parallelism).toBe(4)
+    expect(
+      asFlinkDeployment(result.pipelines[0].crd).spec.job.parallelism,
+    ).toBe(4)
   })
 
   it("applies CRD transformer plugin", () => {

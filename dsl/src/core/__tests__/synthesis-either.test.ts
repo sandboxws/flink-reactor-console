@@ -38,19 +38,16 @@ function buildPipeline() {
     topic: "output",
     bootstrapServers: "kafka:9092",
     format: "json",
-    schema: TestSchema,
   })
-  const filter = Filter({ condition: "`id` > 0" }, sink)
-  const source = KafkaSource(
-    {
-      topic: "input",
-      bootstrapServers: "kafka:9092",
-      format: "json",
-      schema: TestSchema,
-    },
-    filter,
-  )
-  return Pipeline({ name: "test-pipeline" }, source)
+  const filter = Filter({ condition: "`id` > 0", children: sink })
+  const source = KafkaSource({
+    topic: "input",
+    bootstrapServers: "kafka:9092",
+    format: "json",
+    schema: TestSchema,
+    children: filter,
+  })
+  return Pipeline({ name: "test-pipeline", children: source })
 }
 
 // ── Task 8: topologicalSort Either path ──────────────────────────────

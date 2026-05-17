@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import {
+  asFlinkDeployment,
+  assertFlinkDeployment,
+} from "@/codegen/crd-generator.js"
 import { Pipeline } from "@/components/pipeline.js"
 import { KafkaSink } from "@/components/sinks.js"
 import { KafkaSource } from "@/components/sources.js"
@@ -119,9 +123,13 @@ describe("5.1: FlinkReactorApp with 2 pipelines", () => {
 
     // Each pipeline has its own CRD
     expect(result.pipelines[0].crd.metadata.name).toBe("order-ingestion")
-    expect(result.pipelines[0].crd.spec.job.parallelism).toBe(4)
+    expect(
+      asFlinkDeployment(result.pipelines[0].crd).spec.job.parallelism,
+    ).toBe(4)
     expect(result.pipelines[1].crd.metadata.name).toBe("event-analytics")
-    expect(result.pipelines[1].crd.spec.job.parallelism).toBe(2)
+    expect(
+      asFlinkDeployment(result.pipelines[1].crd).spec.job.parallelism,
+    ).toBe(2)
   })
 
   it("propagates shared infra bootstrapServers to Kafka components", () => {
@@ -168,9 +176,13 @@ describe("5.2: EnvironmentConfig overrides pipeline parallelism", () => {
     )
 
     // order-ingestion: named override → 16
-    expect(result.pipelines[0].crd.spec.job.parallelism).toBe(16)
+    expect(
+      asFlinkDeployment(result.pipelines[0].crd).spec.job.parallelism,
+    ).toBe(16)
     // event-analytics: wildcard override → 8
-    expect(result.pipelines[1].crd.spec.job.parallelism).toBe(8)
+    expect(
+      asFlinkDeployment(result.pipelines[1].crd).spec.job.parallelism,
+    ).toBe(8)
   })
 })
 
@@ -197,7 +209,9 @@ describe("5.3: Configuration cascade priority", () => {
     )
 
     // Pipeline prop (2) wins over env override (8)
-    expect(result.pipelines[0].crd.spec.job.parallelism).toBe(2)
+    expect(
+      asFlinkDeployment(result.pipelines[0].crd).spec.job.parallelism,
+    ).toBe(2)
   })
 
   it("env override wins when no pipeline prop", () => {
@@ -218,7 +232,9 @@ describe("5.3: Configuration cascade priority", () => {
       { env },
     )
 
-    expect(result.pipelines[0].crd.spec.job.parallelism).toBe(8)
+    expect(
+      asFlinkDeployment(result.pipelines[0].crd).spec.job.parallelism,
+    ).toBe(8)
   })
 
   it("falls back to Flink default (1) when nothing set", () => {
@@ -230,7 +246,9 @@ describe("5.3: Configuration cascade priority", () => {
     })
 
     // Default from CRD generator is 1
-    expect(result.pipelines[0].crd.spec.job.parallelism).toBe(1)
+    expect(
+      asFlinkDeployment(result.pipelines[0].crd).spec.job.parallelism,
+    ).toBe(1)
   })
 })
 
@@ -256,8 +274,12 @@ describe("5.4: Wildcard override applies to all pipelines", () => {
       { env },
     )
 
-    expect(result.pipelines[0].crd.spec.job.parallelism).toBe(4)
-    expect(result.pipelines[1].crd.spec.job.parallelism).toBe(4)
+    expect(
+      asFlinkDeployment(result.pipelines[0].crd).spec.job.parallelism,
+    ).toBe(4)
+    expect(
+      asFlinkDeployment(result.pipelines[1].crd).spec.job.parallelism,
+    ).toBe(4)
   })
 
   it("named override takes priority over wildcard", () => {
@@ -281,9 +303,13 @@ describe("5.4: Wildcard override applies to all pipelines", () => {
     )
 
     // order-ingestion gets wildcard: 4
-    expect(result.pipelines[0].crd.spec.job.parallelism).toBe(4)
+    expect(
+      asFlinkDeployment(result.pipelines[0].crd).spec.job.parallelism,
+    ).toBe(4)
     // event-analytics gets named override: 12
-    expect(result.pipelines[1].crd.spec.job.parallelism).toBe(12)
+    expect(
+      asFlinkDeployment(result.pipelines[1].crd).spec.job.parallelism,
+    ).toBe(12)
   })
 })
 
@@ -294,6 +320,7 @@ describe("5.5: synth() test helper", () => {
     const pipeline = buildOrderPipeline({ parallelism: 4 })
 
     const result = synth(pipeline)
+    assertFlinkDeployment(result.crd)
 
     expect(result.sql).toContain("CREATE TABLE")
     expect(result.sql).toContain("orders")
@@ -326,6 +353,7 @@ describe("5.5: synth() test helper", () => {
     })
 
     const result = synth(pipeline)
+    assertFlinkDeployment(result.crd)
     expect(result.sql).toMatchSnapshot()
     expect(result.crd).toMatchSnapshot()
   })
@@ -334,6 +362,7 @@ describe("5.5: synth() test helper", () => {
     const pipeline = buildOrderPipeline({ parallelism: 1 })
 
     const result = synth(pipeline, { flinkVersion: "1.20" })
+    assertFlinkDeployment(result.crd)
 
     expect(result.crd.spec.flinkVersion).toBe("v1_20")
     expect(result.crd.spec.image).toBe("flink:1.20")
@@ -474,6 +503,7 @@ describe("5.7: defineConfig()", () => {
     })
 
     const infra = config.toInfraConfig?.()
+    if (!infra) throw new Error("expected toInfraConfig to be defined")
     expect(infra.kafka?.bootstrapServers).toBe("localhost:9092")
     expect(infra.kubernetes?.namespace).toBe("default")
     expect(infra.connectors?.delivery).toBe("custom-image")

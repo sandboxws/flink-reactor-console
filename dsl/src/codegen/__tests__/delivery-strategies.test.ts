@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest"
 import type { ResolvedJar } from "@/codegen/connector-resolver.js"
 import { resolveConnectors } from "@/codegen/connector-resolver.js"
-import { generateCrd } from "@/codegen/crd-generator.js"
+import { assertFlinkDeployment, generateCrd } from "@/codegen/crd-generator.js"
 import {
   applyInitContainerPatch,
   applyMavenMirror,
@@ -118,6 +118,7 @@ describe("init-container delivery", () => {
     })
 
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     const jars = makeTestJars()
     const patch = generateInitContainerPatch(jars)
     const patched = applyInitContainerPatch(crd, patch)
@@ -189,6 +190,7 @@ describe("air-gapped: private registry", () => {
   it("prefixes image with registry", () => {
     const pipeline = Pipeline({ name: "test", children: [] })
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     const patched = applyPrivateRegistry(crd, "registry.internal.com")
 
     expect(patched.spec.image).toBe("registry.internal.com/flink:2.0")
@@ -197,6 +199,7 @@ describe("air-gapped: private registry", () => {
   it("adds imagePullSecrets when provided", () => {
     const pipeline = Pipeline({ name: "test", children: [] })
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
     const patched = applyPrivateRegistry(
       crd,
       "registry.internal.com",
@@ -236,6 +239,7 @@ describe("end-to-end: resolve + init-container delivery", () => {
 
     // Generate CRD
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
 
     // Apply delivery
     const patch = generateInitContainerPatch(resolved.jars)

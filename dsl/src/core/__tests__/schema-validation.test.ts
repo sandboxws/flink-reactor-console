@@ -47,7 +47,6 @@ function makeSink() {
     topic: "output",
     bootstrapServers: "kafka:9092",
     format: "json",
-    schema: TestSchema,
   })
 }
 

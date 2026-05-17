@@ -1,4 +1,4 @@
-import { Cause } from "effect"
+import { Cause, FiberId } from "effect"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   CliError,
@@ -247,7 +247,7 @@ describe("renderCause", () => {
   })
 
   it("renders interruption with exit code 130", () => {
-    const cause = Cause.interrupt("fiber-1")
+    const cause = Cause.interrupt(FiberId.runtime(1, 0))
 
     const exitCode = renderCause(cause)
     expect(exitCode).toBe(130)

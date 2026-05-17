@@ -5,7 +5,9 @@ import type { RawOpenSessionResponse } from "../types.js"
 
 // ── Mock fetch ──────────────────────────────────────────────────────────────
 
-let mockFetch: ReturnType<typeof vi.fn>
+let mockFetch: ReturnType<
+  typeof vi.fn<(url: string, init?: RequestInit) => Promise<unknown>>
+>
 let sessionCounter: number
 
 beforeEach(() => {
@@ -108,8 +110,7 @@ describe("Effect-based SessionPool", () => {
 
       // openSession should have been called only once
       const openCalls = mockFetch.mock.calls.filter(
-        ([, init]: [string, RequestInit | undefined]) =>
-          init?.method === "POST",
+        (call) => (call[1] as RequestInit | undefined)?.method === "POST",
       )
       expect(openCalls).toHaveLength(1)
 
@@ -202,8 +203,7 @@ describe("Effect-based SessionPool", () => {
 
       // closeSession should have been called for both
       const deleteCalls = mockFetch.mock.calls.filter(
-        ([, init]: [string, RequestInit | undefined]) =>
-          init?.method === "DELETE",
+        (call) => (call[1] as RequestInit | undefined)?.method === "DELETE",
       )
       expect(deleteCalls).toHaveLength(2)
 
