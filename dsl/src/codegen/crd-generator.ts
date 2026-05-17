@@ -132,6 +132,28 @@ export function getFlinkConfiguration(
   return crd.spec.template.spec.flinkConfiguration
 }
 
+/**
+ * Narrow an AnyFlinkCrd to FlinkDeploymentCrd, throwing on mismatch.
+ * Used by tests and code paths that only handle the FlinkDeployment variant.
+ */
+export function assertFlinkDeployment(
+  crd: AnyFlinkCrd,
+): asserts crd is FlinkDeploymentCrd {
+  if (crd.kind !== "FlinkDeployment") {
+    throw new Error(`Expected FlinkDeployment CRD, got ${crd.kind}`)
+  }
+}
+
+/**
+ * Inline-friendly variant of `assertFlinkDeployment`: throws on mismatch
+ * and returns the narrowed CRD. Use when the source expression isn't
+ * stable enough for TS to narrow in place (e.g. `arr[i].crd`).
+ */
+export function asFlinkDeployment(crd: AnyFlinkCrd): FlinkDeploymentCrd {
+  assertFlinkDeployment(crd)
+  return crd
+}
+
 /** Return a new CRD with updated flinkConfiguration */
 export function withFlinkConfiguration(
   crd: AnyFlinkCrd,
