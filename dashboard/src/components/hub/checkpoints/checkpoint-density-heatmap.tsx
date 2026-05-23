@@ -1,12 +1,15 @@
 /**
  * Hub-styled wrapper around <HeatmapCalendar> for checkpoint density.
  *
- * Renders the 26-week calendar with the standard "less / more" legend strip
- * and fall-back-to-demo-data behavior driven by `useCheckpointDensity`.
+ * Renders three explicit states from `useCheckpointDensity`:
+ *  - `loading`: heatmap dimmed at low opacity, "loading" footer
+ *  - `empty`: "No checkpoints in window" overlay
+ *  - live: real intensities with a "live" footer
+ *
+ * No seeded fallback — the surface tells the truth about backing data.
  */
 
 import { HeatmapCalendar, type HeatmapIntensity } from "@flink-reactor/ui"
-import { useMemo } from "react"
 import { useCheckpointDensity } from "@/lib/hub/use-checkpoint-density"
 import { useConfigStore } from "@/stores/config-store"
 
@@ -21,28 +24,43 @@ export function CheckpointDensityHeatmap({
   const clusterID = config?.clusters?.[0] ?? null
   const live = useCheckpointDensity(clusterID, { days: weeks * 7 })
 
-  const demo = useMemo<HeatmapIntensity[]>(() => {
-    const seeded = (n: number) => {
-      const x = Math.sin(n * 13.7) * 10000
-      return x - Math.floor(x)
-    }
-    return Array.from({ length: weeks * 7 }, (_, i) => {
-      const r = seeded(i + 1)
-      if (r < 0.25) return 0
-      if (r < 0.5) return 1
-      if (r < 0.72) return 2
-      if (r < 0.9) return 3
-      return 4
-    }) as HeatmapIntensity[]
-  }, [weeks])
+  const showEmptyOverlay = !live.loading && (live.empty || live.error !== null)
+  const showErrorOverlay = !!live.error && !live.loading
 
-  const useLive =
-    !live.loading && !live.empty && !live.error && live.data.length > 0
-  const data = useLive ? live.data : demo
+  const footerText = live.loading
+    ? "loading checkpoint history…"
+    : showErrorOverlay
+      ? `checkpointHistory failed: ${live.error}`
+      : showEmptyOverlay
+        ? "no checkpoints in window"
+        : "live"
+
+  // Pad to a full grid so the calendar always renders cells under the overlay.
+  const safeData: HeatmapIntensity[] =
+    live.data.length === weeks * 7
+      ? live.data
+      : (Array.from({ length: weeks * 7 }, () => 0) as HeatmapIntensity[])
 
   return (
     <>
-      <HeatmapCalendar data={data} weeks={weeks} fill />
+      <div className="relative">
+        <div
+          style={{
+            opacity: live.loading || showEmptyOverlay ? 0.25 : 1,
+          }}
+        >
+          <HeatmapCalendar data={safeData} weeks={weeks} fill />
+        </div>
+        {showEmptyOverlay ? (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <span className="text-[11px] font-mono text-fg-muted">
+              {showErrorOverlay
+                ? "Failed to load checkpoint history"
+                : "No checkpoints in window"}
+            </span>
+          </div>
+        ) : null}
+      </div>
       <div className="mt-5 flex items-center gap-2 border-t border-dash-border/40 pt-3 text-[10px] font-mono text-fg-faint">
         <span>less</span>
         <span className="ml-auto inline-flex items-center gap-1">
@@ -54,11 +72,12 @@ export function CheckpointDensityHeatmap({
         </span>
         <span>more</span>
       </div>
-      {useLive ? null : (
-        <p className="mt-2 text-[10px] font-mono text-fg-faint">
-          demo data — awaiting <code>checkpointHistory</code>
-        </p>
-      )}
+      <p
+        className="mt-2 text-[10px] font-mono text-fg-faint"
+        title={live.error ?? undefined}
+      >
+        {footerText}
+      </p>
     </>
   )
 }

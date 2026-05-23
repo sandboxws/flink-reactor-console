@@ -3,8 +3,9 @@
  *
  * Mirrors `console-v2/checkpoints.html`: KPI strip, engine-bars chart by state,
  * recent checkpoint events table, density heatmap, per-pipeline summary,
- * and savepoints list. Reads from `useCheckpointAnalyticsStore` plus
- * `useClusterStore` and `useEngineBarsData` (live → demo fallback).
+ * and savepoints list. Bars come from `useEngineBarsData` (metricSeries)
+ * with per-minute failure overlay from `useCheckpointFailureBuckets`
+ * (checkpointHistory). No seeded fallbacks — empty states render explicitly.
  */
 
 import { HubBreadcrumb, LiveDot } from "@flink-reactor/ui"
@@ -15,7 +16,11 @@ import { CheckpointDensityHeatmap } from "@/components/hub/checkpoints/checkpoin
 import { SavepointsList } from "@/components/hub/checkpoints/savepoints-list"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
-import { useEngineBarsData } from "@/lib/hub/use-engine-bars-data"
+import { useCheckpointFailureBuckets } from "@/lib/hub/use-checkpoint-failure-buckets"
+import {
+  type EngineBar,
+  useEngineBarsData,
+} from "@/lib/hub/use-engine-bars-data"
 import {
   type JobCheckpointSummary,
   useCheckpointAnalyticsStore,
@@ -70,6 +75,7 @@ function HubMonitoringCheckpoints() {
   const config = useConfigStore((s) => s.config)
   const clusterID = config?.clusters?.[0] ?? null
   const liveBars = useEngineBarsData(clusterID, { minutes: 38 })
+  const failureBuckets = useCheckpointFailureBuckets(clusterID, { minutes: 38 })
 
   useEffect(() => {
     initCluster()
@@ -89,28 +95,21 @@ function HubMonitoringCheckpoints() {
     stopPolling,
   ])
 
-  const demoBars = useMemo(() => {
-    const seeded = (n: number) => {
-      const x = Math.sin(n * 7.3) * 10000
-      return x - Math.floor(x)
-    }
-    const windowStart = Math.floor((Date.now() - 38 * 60_000) / 60_000) * 60_000
-    return Array.from({ length: 38 }, (_, i) => {
-      const r = seeded(i + 1)
-      return {
-        height: 30 + r * 130,
-        value: Math.round(r * 5000),
-        bucketStart: new Date(windowStart + i * 60_000),
-        failed: i % 9 === 3 || i % 11 === 7,
-      }
-    })
-  }, [])
-  const useLiveBars =
-    !liveBars.loading &&
-    !liveBars.empty &&
-    !liveBars.error &&
-    liveBars.bars.length > 0
-  const bars = useLiveBars ? liveBars.bars : demoBars
+  // Merge per-minute failure counts into the engine bars. The failure map
+  // keys (floor-to-minute ms epoch) align with each bar's `bucketStart`.
+  const bars: EngineBar[] = useMemo(() => {
+    if (failureBuckets.buckets.size === 0) return liveBars.bars
+    return liveBars.bars.map((bar) => ({
+      ...bar,
+      failed: (failureBuckets.buckets.get(bar.bucketStart.getTime()) ?? 0) > 0,
+    }))
+  }, [liveBars.bars, failureBuckets.buckets])
+
+  const barsLoading = liveBars.loading
+  const barsEmpty =
+    !liveBars.loading && (liveBars.empty || liveBars.bars.length === 0)
+  const barsErrorMessage = liveBars.error
+
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
   const recentEvents = useMemo(() => {
@@ -196,10 +195,25 @@ function HubMonitoringCheckpoints() {
                   sage = success, coral = failed
                 </p>
               </div>
-              <span className="sev-badge ok inline-flex items-center gap-1.5">
-                <LiveDot />
-                {useLiveBars ? "Live" : "Demo"}
-              </span>
+              {barsLoading ? (
+                <span className="sev-badge muted">loading</span>
+              ) : barsErrorMessage ? (
+                <span className="sev-badge fail" title={barsErrorMessage}>
+                  error
+                </span>
+              ) : barsEmpty ? (
+                <span
+                  className="sev-badge muted"
+                  title="no numRecordsOutPerSecond series in storage yet"
+                >
+                  no data yet
+                </span>
+              ) : (
+                <span className="sev-badge ok inline-flex items-center gap-1.5">
+                  <LiveDot />
+                  Live
+                </span>
+              )}
             </div>
             <div className="relative" onMouseLeave={() => setHoverIdx(null)}>
               <svg
@@ -214,31 +228,63 @@ function HubMonitoringCheckpoints() {
                   <line x1="0" y1="90" x2="600" y2="90" />
                   <line x1="0" y1="135" x2="600" y2="135" />
                 </g>
-                <g>
-                  {bars.map((bar, i) => {
-                    const x = (i / bars.length) * 600
-                    const w = 600 / bars.length - 2
-                    const y = 180 - bar.height
-                    const fill = bar.failed
-                      ? "var(--color-fr-coral)"
-                      : "var(--color-fr-sage)"
-                    const active = hoverIdx === i
-                    return (
-                      <rect
-                        key={i}
-                        x={x}
-                        y={y}
-                        width={w}
-                        height={bar.height}
-                        fill={fill}
-                        opacity={active ? 1 : 0.7}
-                        onMouseEnter={() => setHoverIdx(i)}
-                      />
-                    )
-                  })}
-                </g>
+                {barsLoading ? (
+                  <g opacity={0.3}>
+                    {Array.from({ length: 38 }, (_, i) => {
+                      const x = (i / 38) * 600
+                      const w = 600 / 38 - 2
+                      return (
+                        <rect
+                          // biome-ignore lint/suspicious/noArrayIndexKey: positional skeleton
+                          key={i}
+                          x={x}
+                          y={150}
+                          width={w}
+                          height={30}
+                          fill="var(--color-fr-sage)"
+                          opacity={0.4}
+                        />
+                      )
+                    })}
+                  </g>
+                ) : (
+                  <g>
+                    {bars.map((bar, i) => {
+                      const x = (i / Math.max(bars.length, 1)) * 600
+                      const w = 600 / Math.max(bars.length, 1) - 2
+                      const y = 180 - bar.height
+                      const fill = bar.failed
+                        ? "var(--color-fr-coral)"
+                        : "var(--color-fr-sage)"
+                      const active = hoverIdx === i
+                      return (
+                        <rect
+                          // biome-ignore lint/suspicious/noArrayIndexKey: positional bar
+                          key={i}
+                          x={x}
+                          y={y}
+                          width={w}
+                          height={bar.height}
+                          fill={fill}
+                          opacity={active ? 1 : 0.7}
+                          onMouseEnter={() => setHoverIdx(i)}
+                        />
+                      )
+                    })}
+                  </g>
+                )}
               </svg>
-              {hoverIdx != null && bars[hoverIdx] ? (
+              {barsEmpty ? (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <span className="text-[11px] font-mono text-fg-muted">
+                    Collecting metrics — first bars appear after ~60s
+                  </span>
+                </div>
+              ) : null}
+              {!barsLoading &&
+              !barsEmpty &&
+              hoverIdx != null &&
+              bars[hoverIdx] ? (
                 <div
                   className={`engine-callout pointer-events-none whitespace-nowrap${
                     bars[hoverIdx].failed ? " failed" : ""
