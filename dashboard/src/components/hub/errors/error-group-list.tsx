@@ -7,6 +7,7 @@
  */
 
 import { type ErrorGroup, StatusIcon } from "@flink-reactor/ui"
+import { useMemo } from "react"
 import { groupState } from "./error-group-state"
 
 interface ErrorGroupListProps {
@@ -31,6 +32,10 @@ export function ErrorGroupList({
   selectedId,
   onSelect,
 }: ErrorGroupListProps) {
+  const sorted = useMemo(
+    () => [...groups].sort((a, b) => b.count - a.count),
+    [groups],
+  )
   return (
     <div className="glass-card-static overflow-hidden">
       <div className="grid grid-cols-[36px_1fr_120px_120px_60px] items-center gap-3 border-b border-dash-border px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-fg-faint">
@@ -40,7 +45,7 @@ export function ErrorGroupList({
         <span className="text-right">Last seen</span>
         <span className="text-right">Hosts</span>
       </div>
-      {groups.map((g) => {
+      {sorted.map((g) => {
         const state = groupState(g)
         const isSelected = selectedId === g.id
         const stale = state === "suppressed"

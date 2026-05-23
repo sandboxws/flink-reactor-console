@@ -1,4 +1,4 @@
-/** Circular health score gauge — radial progress indicator for 0-100 scores. */
+/** Health score bar — number + horizontal bar with threshold coloring. */
 "use client"
 
 function scoreColor(score: number): string {
@@ -7,82 +7,41 @@ function scoreColor(score: number): string {
   return "var(--color-job-failed)"
 }
 
-/** SVG radial gauge that visualizes a 0-100 health score with color-coded thresholds (green/amber/red). */
 export function HealthScoreGauge({
   score,
-  size = 200,
-  strokeWidth = 12,
+  size: _size,
+  strokeWidth: _strokeWidth,
 }: {
   score: number
+  /** @deprecated No longer used — kept for API compatibility. */
   size?: number
+  /** @deprecated No longer used — kept for API compatibility. */
   strokeWidth?: number
 }) {
-  const radius = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * radius
-  const progress = Math.max(0, Math.min(100, score)) / 100
-  const dashOffset = circumference * (1 - progress)
-  const color = scoreColor(score)
-  const center = size / 2
+  void _size
+  void _strokeWidth
+  const clamped = Math.max(0, Math.min(100, score))
+  const color = scoreColor(clamped)
 
   return (
-    <div className="flex flex-col items-center">
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="drop-shadow-lg"
-        role="img"
-        aria-label={`Health score: ${Math.round(score)} out of 100`}
+    <div
+      className="flex flex-col items-center gap-1.5"
+      role="img"
+      aria-label={`Health score: ${Math.round(clamped)} out of 100`}
+    >
+      <span
+        className="font-mono text-[28px] font-bold leading-none"
+        style={{ color }}
       >
-        {/* Background circle */}
-        <circle
-          cx={center}
-          cy={center}
-          r={radius}
-          fill="none"
-          stroke="var(--color-dash-border)"
-          strokeWidth={strokeWidth}
+        {Math.round(clamped)}
+      </span>
+      <div className="h-1.5 w-20 rounded-full bg-dash-border overflow-hidden">
+        <div
+          className="h-full rounded-full"
+          style={{ width: `${clamped}%`, backgroundColor: color }}
         />
-        {/* Foreground arc */}
-        <circle
-          cx={center}
-          cy={center}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${center} ${center})`}
-          className="transition-all duration-700 ease-out"
-        />
-        {/* Score text */}
-        <text
-          x={center}
-          y={center - 8}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fill={color}
-          fontSize={size * 0.22}
-          fontWeight="700"
-          className="transition-colors duration-700"
-        >
-          {Math.round(score)}
-        </text>
-        <text
-          x={center}
-          y={center + size * 0.12}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fill="var(--color-fg-dim)"
-          fontSize={size * 0.07}
-          fontWeight="500"
-          letterSpacing="0.05em"
-        >
-          HEALTH SCORE
-        </text>
-      </svg>
+      </div>
+      <span className="text-[10px] font-mono text-fg-dim">/ 100</span>
     </div>
   )
 }

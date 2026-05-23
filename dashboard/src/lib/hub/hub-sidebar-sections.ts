@@ -2,9 +2,7 @@
  *  Mirrors console-v2/overview.html exactly: 8 sections, specific icons,
  *  instrument health glyphs (✓/⚠).
  *
- *  Counts shown here are the mockup's demo numbers. Future routes will
- *  replace them via `withCounts(useClusterStore(...))` (or similar) when
- *  live counts are wired in P2. */
+ *  Badge counts are injected at runtime by HubAppShell from Zustand stores. */
 
 import type { HubSidebarSection } from "@flink-reactor/ui"
 import {
@@ -39,14 +37,13 @@ export const HUB_SIDEBAR_SECTIONS: HubSidebarSection[] = [
   {
     label: "Jobs",
     items: [
-      { label: "Running", href: "/hub/jobs/running", icon: Play, count: 5 },
+      { label: "Running", href: "/hub/jobs/running", icon: Play },
       { label: "Completed", href: "/hub/jobs/completed", icon: CheckCircle2 },
       { label: "Submit", href: "/hub/jobs/submit", icon: Upload },
       {
         label: "Deployments",
         href: "/hub/deployments",
         icon: ArrowLeftRight,
-        count: 3,
       },
     ],
   },
@@ -57,7 +54,6 @@ export const HUB_SIDEBAR_SECTIONS: HubSidebarSection[] = [
         label: "Task managers",
         href: "/hub/task-managers",
         icon: Server,
-        count: 8,
       },
       { label: "Job manager", href: "/hub/job-manager", icon: Cpu },
     ],
@@ -76,8 +72,6 @@ export const HUB_SIDEBAR_SECTIONS: HubSidebarSection[] = [
         label: "Alerts",
         href: "/hub/monitoring/alerts",
         icon: BellRing,
-        count: 7,
-        countTone: "coral",
       },
       {
         label: "Checkpoints",

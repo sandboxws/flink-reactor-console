@@ -60,9 +60,8 @@ export function TopPipelinesGrid({
                   evt/s
                 </span>
               </div>
-              <div className="mt-2 h-3 w-full">
-                <FlatSparkline />
-              </div>
+              {/* Sparkline placeholder removed — wire real per-job throughput
+                 history when fr-console-v2-server-job-throughput-rollup lands. */}
               <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-fg-faint">
                 <span>
                   {Object.values(job.tasks).reduce((a, b) => a + b, 0)} tasks
@@ -77,23 +76,3 @@ export function TopPipelinesGrid({
   )
 }
 
-/** Flat baseline sparkline placeholder until per-job throughput history lands. */
-function FlatSparkline() {
-  return (
-    <svg
-      viewBox="0 0 100 18"
-      preserveAspectRatio="none"
-      className="h-3 w-full"
-      role="img"
-      aria-label="throughput sparkline (placeholder)"
-    >
-      <polyline
-        points="0,9 10,9 20,9 30,9 40,9 50,9 60,9 70,9 80,9 90,9 100,9"
-        fill="none"
-        stroke="var(--color-fr-sage)"
-        strokeWidth="1.2"
-        opacity="0.4"
-      />
-    </svg>
-  )
-}

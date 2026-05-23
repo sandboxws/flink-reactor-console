@@ -61,7 +61,7 @@
     "codemirror": "^6.0.2",
     "date-fns": "^4.1.0",
     "graphql": "^16.13.1",
-    "graphql-ws": "^5.16.0",
+    "graphql-ws": "^6.0.7",
     "lucide-react": "^0.563.0",
     "motion": "^12.36.0",
     "radix-ui": "^1.4.3",

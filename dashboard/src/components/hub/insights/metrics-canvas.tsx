@@ -8,7 +8,6 @@
 import {
   Area,
   AreaChart,
-  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -26,7 +25,6 @@ interface MetricsCanvasProps {
   height?: number
 }
 
-const TOKEN_GRID = "rgba(212,190,152,0.08)"
 const TOKEN_AXIS = "var(--color-fg-faint)"
 const TOKEN_TOOLTIP_BG = "var(--color-dash-panel)"
 const TOKEN_TOOLTIP_BORDER = "var(--color-dash-border)"
@@ -49,7 +47,8 @@ export function MetricsCanvas({
               <stop offset="100%" stopColor={color} stopOpacity={0.04} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke={TOKEN_GRID} vertical={false} />
+          {/* CartesianGrid removed — Y-axis ticks serve as the sole Y reference.
+             Tufte principle 3: erase non-data ink. */}
           <XAxis
             dataKey="t"
             tickFormatter={(t: number) =>

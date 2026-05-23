@@ -9,7 +9,9 @@
  * server/internal/graphql/mappers.go (computeJobMetrics, computeWatermarkLag).
  */
 
-import { type FlinkJob, KpiCard } from "@flink-reactor/ui"
+import { type FlinkJob, KpiCard, Sparkline } from "@flink-reactor/ui"
+import { useEffect, useRef } from "react"
+import { useSparklineBuffer } from "@/lib/hub/use-sparkline-buffer"
 
 interface JobKpiStripProps {
   job: FlinkJob
@@ -51,6 +53,24 @@ export function JobKpiStrip({ job }: JobKpiStripProps) {
 
   const throughputIn = job.throughput?.recordsInPerSecond ?? null
   const throughputOut = job.throughput?.recordsOutPerSecond ?? null
+
+  const throughputSpark = useSparklineBuffer(30)
+  const watermarkSpark = useSparklineBuffer(30)
+  const prevThroughputRef = useRef<number | null>(null)
+  const prevWatermarkRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (throughputIn !== prevThroughputRef.current) {
+      prevThroughputRef.current = throughputIn
+      throughputSpark.push(throughputIn)
+    }
+  }, [throughputIn, throughputSpark])
+  useEffect(() => {
+    const lag = job.watermarkLag ?? null
+    if (lag !== prevWatermarkRef.current) {
+      prevWatermarkRef.current = lag
+      watermarkSpark.push(lag)
+    }
+  }, [job.watermarkLag, watermarkSpark])
   const inFmt =
     throughputIn != null ? formatRate(throughputIn) : { value: "—", unit: "/s" }
   const outSub =
@@ -75,7 +95,16 @@ export function JobKpiStrip({ job }: JobKpiStripProps) {
           </span>
         }
         sub={outSub}
-      />
+      >
+        {throughputSpark.points.length >= 2 ? (
+          <Sparkline
+            points={throughputSpark.points}
+            color="var(--color-fr-sage)"
+            height={24}
+            className="mt-1.5 w-full"
+          />
+        ) : null}
+      </KpiCard>
       <KpiCard
         label="Watermark"
         value={
@@ -85,7 +114,16 @@ export function JobKpiStrip({ job }: JobKpiStripProps) {
           </span>
         }
         sub={job.watermarkLag != null ? "lag" : undefined}
-      />
+      >
+        {watermarkSpark.points.length >= 2 ? (
+          <Sparkline
+            points={watermarkSpark.points}
+            color="var(--color-fr-amber)"
+            height={24}
+            className="mt-1.5 w-full"
+          />
+        ) : null}
+      </KpiCard>
       <KpiCard
         label="Tasks"
         value={totalTasks}

@@ -11,7 +11,7 @@
  * reported metrics yet; never as a placeholder when real data is available.
  */
 
-import { LiveDot } from "@flink-reactor/ui"
+import { LiveDot, Sparkline } from "@flink-reactor/ui"
 
 interface OverviewKpiQuadProps {
   /** Number of running pipelines, used for the throughput live-dot caption. */
@@ -31,6 +31,10 @@ interface OverviewKpiQuadProps {
   jobsRunning: number
   jobsFinished: number
   jobsFailed: number
+  /** Recent throughput samples for the sparkline (newest last). */
+  throughputHistory?: number[]
+  /** Recent watermark lag samples for the sparkline (newest last). */
+  watermarkLagHistory?: number[]
 }
 
 /** Format a per-second rate as a compact human-readable value. */
@@ -60,6 +64,8 @@ export function OverviewKpiQuad({
   jobsRunning,
   jobsFinished,
   jobsFailed,
+  throughputHistory,
+  watermarkLagHistory,
 }: OverviewKpiQuadProps) {
   const lag = formatLag(watermarkLagMs)
   return (
@@ -75,6 +81,13 @@ export function OverviewKpiQuad({
           live across {runningJobsCount} pipeline
           {runningJobsCount === 1 ? "" : "s"}
         </div>
+        {throughputHistory && throughputHistory.length >= 2 ? (
+          <Sparkline
+            points={throughputHistory}
+            color="var(--color-fr-sage)"
+            className="mt-2 w-full"
+          />
+        ) : null}
       </div>
       <div className="kpi-card">
         <div className="kpi-label">Watermark lag</div>
@@ -91,6 +104,13 @@ export function OverviewKpiQuad({
             ? "no watermark signal"
             : "worst across sources"}
         </div>
+        {watermarkLagHistory && watermarkLagHistory.length >= 2 ? (
+          <Sparkline
+            points={watermarkLagHistory}
+            color="var(--color-fr-amber)"
+            className="mt-2 w-full"
+          />
+        ) : null}
       </div>
       <div className="kpi-card">
         <div className="kpi-label">Active reactors</div>

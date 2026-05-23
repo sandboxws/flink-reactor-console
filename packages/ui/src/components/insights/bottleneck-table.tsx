@@ -23,21 +23,6 @@ function bpLabel(factor: number): { label: string; color: string } {
   return { label: "high", color: "text-job-failed" }
 }
 
-const severityBadge: Record<string, { label: string; className: string }> = {
-  low: {
-    label: "Low",
-    className: "bg-job-running/10 text-job-running border-job-running/30",
-  },
-  medium: {
-    label: "Medium",
-    className: "bg-fr-amber/10 text-fr-amber border-fr-amber/30",
-  },
-  high: {
-    label: "High",
-    className: "bg-job-failed/10 text-job-failed border-job-failed/30",
-  },
-}
-
 function scoreBarColor(score: number): string {
   if (score <= 30) return "bg-job-running"
   if (score <= 60) return "bg-fr-amber"
@@ -158,13 +143,11 @@ export function BottleneckTable({ scores }: BottleneckTableProps) {
                 Score <SortIcon col="score" />
               </button>
             </TableHead>
-            <TableHead>Severity</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {sorted.map((s) => {
             const bp = bpLabel(s.factors.backpressure)
-            const badge = severityBadge[s.severity]
             return (
               <TableRow
                 key={`${s.jobId}-${s.vertexId}`}
@@ -202,16 +185,6 @@ export function BottleneckTable({ scores }: BottleneckTableProps) {
                       {s.score}
                     </span>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <span
-                    className={cn(
-                      "rounded-full border px-2 py-0.5 text-[10px] font-medium",
-                      badge.className,
-                    )}
-                  >
-                    {badge.label}
-                  </span>
                 </TableCell>
               </TableRow>
             )

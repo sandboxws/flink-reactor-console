@@ -22,7 +22,7 @@ import {
   Upload,
   XCircle,
 } from "lucide-react"
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import {
   ActivityFeed,
   type ActivityRow,
@@ -38,6 +38,7 @@ import { useCheckpointDensity } from "@/lib/hub/use-checkpoint-density"
 import { useClusterRates } from "@/lib/hub/use-cluster-rates"
 import { useEngineBarsLive } from "@/lib/hub/use-engine-bars-live"
 import { useMetricStream } from "@/lib/hub/use-metric-stream"
+import { useSparklineBuffer } from "@/lib/hub/use-sparkline-buffer"
 import { useAlertsStore } from "@/stores/alerts-store"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -220,6 +221,23 @@ function HubOverview() {
   }
   const rates = liveRates
 
+  const throughputSpark = useSparklineBuffer(30)
+  const watermarkSpark = useSparklineBuffer(30)
+  const prevThroughputRef = useRef<number | null>(null)
+  const prevWatermarkRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (rates.throughput !== prevThroughputRef.current) {
+      prevThroughputRef.current = rates.throughput
+      throughputSpark.push(rates.throughput)
+    }
+  }, [rates.throughput, throughputSpark])
+  useEffect(() => {
+    if (rates.watermarkLagMs !== prevWatermarkRef.current) {
+      prevWatermarkRef.current = rates.watermarkLagMs
+      watermarkSpark.push(rates.watermarkLagMs)
+    }
+  }, [rates.watermarkLagMs, watermarkSpark])
+
   const flinkVersion = overview?.flinkVersion ?? "—"
   const clusterName = config?.clusterDisplayName ?? "cluster"
   const slotsTotal = overview?.totalTaskSlots ?? 0
@@ -349,6 +367,8 @@ function HubOverview() {
           jobsRunning={overview?.runningJobs ?? 0}
           jobsFinished={overview?.finishedJobs ?? 0}
           jobsFailed={overview?.failedJobs ?? 0}
+          throughputHistory={throughputSpark.points}
+          watermarkLagHistory={watermarkSpark.points}
         />
         <EngineBarsChart
           bars={engineBars.bars}

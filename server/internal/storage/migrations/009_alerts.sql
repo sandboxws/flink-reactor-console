@@ -51,6 +51,7 @@ CREATE INDEX IF NOT EXISTS idx_alert_acks_instance ON alert_acknowledgements (in
 
 -- LISTEN/NOTIFY channel for cross-replica subscription fan-out.
 -- Payload format: '{"instance_id":<n>,"state":"<state>"}'
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION fn_alert_state_change_notify() RETURNS trigger AS $$
 BEGIN
     PERFORM pg_notify(
@@ -64,6 +65,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
 
 CREATE TRIGGER trg_alert_instances_notify
     AFTER INSERT OR UPDATE OF state ON alert_instances

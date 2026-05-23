@@ -1,9 +1,9 @@
 /**
  * Hub SQL Explorer — /hub/sql-explorer.
  *
- * Full-bleed 3-column workspace (saved queries / editor + results /
- * schema navigator). Initial SQL can be passed via `?q=<base64>` for
- * shareable links from the editor's Share button.
+ * Full-bleed 2-column workspace (saved queries / editor + results).
+ * Initial SQL can be passed via `?q=<base64>` for shareable links
+ * from the editor's Share button.
  */
 
 import { createFileRoute, useSearch } from "@tanstack/react-router"

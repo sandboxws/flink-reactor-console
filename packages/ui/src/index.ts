@@ -253,6 +253,10 @@ export {
   KpiCard,
   type KpiCardProps,
 } from "./components/ui/kpi-card"
+export {
+  Sparkline,
+  type SparklineProps,
+} from "./components/ui/sparkline"
 export { Label } from "./components/ui/label"
 export {
   LiveDot,

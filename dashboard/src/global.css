@@ -428,8 +428,8 @@ html.light[data-palette="tokyo-night"] {
 }
 
 .glass-card:hover {
-  border-color: rgba(231, 138, 78, 0.25);
-  box-shadow: 0 0 24px rgba(231, 138, 78, 0.06);
+  border-color: rgba(212, 190, 152, 0.15);
+  box-shadow: 0 0 24px rgba(212, 190, 152, 0.04);
 }
 
 .log-line-selected {

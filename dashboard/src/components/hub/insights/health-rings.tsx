@@ -1,10 +1,9 @@
 /**
- * Health rings hero — concentric SVG rings with a centered percentage label.
+ * Health bars hero — number + horizontal bar per health dimension.
  *
- * Renders a single ring per `HealthRing` value. Used for cluster overall
+ * Renders one bar per `HealthRing` value. Used for cluster overall
  * health, pipeline health, resource pressure, and instrument health on the
- * insights/health page. Each ring color is selected via threshold (sage /
- * amber / rose) so the viewer can scan health at a glance.
+ * insights/health page. Bar color follows threshold (sage/amber/rose).
  */
 
 interface HealthRing {
@@ -27,40 +26,29 @@ export function HealthRings({ rings }: HealthRingsProps) {
   return (
     <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {rings.map((r) => {
-        const dash = (r.value / 100) * 264 // circumference for r=42
-        const color = ringColor(r.value)
+        const clamped = Math.max(0, Math.min(100, r.value))
+        const color = ringColor(clamped)
         return (
-          <div key={r.label} className="kpi-card flex items-center gap-4">
-            <div className="health-ring">
-              <svg viewBox="0 0 100 100" aria-label={`${r.label} ${r.value}%`}>
-                <title>{`${r.label} health: ${r.value}%`}</title>
-                <circle
-                  className="ring-bg"
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  strokeWidth="8"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  strokeWidth="8"
-                  fill="none"
-                  stroke={color}
-                  strokeDasharray={`${dash} 264`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="ring-label">{Math.round(r.value)}%</div>
+          <div
+            key={r.label}
+            className="kpi-card"
+            role="img"
+            aria-label={`${r.label} health: ${Math.round(clamped)}%`}
+          >
+            <div className="kpi-label">{r.label}</div>
+            <div className="kpi-value flex items-baseline gap-1">
+              <span style={{ color }}>{Math.round(clamped)}</span>
+              <span className="text-[12px] text-fg-muted font-normal">%</span>
             </div>
-            <div>
-              <div className="kpi-label">{r.label}</div>
-              {r.sub ? (
-                <div className="text-[12px] text-fg-muted">{r.sub}</div>
-              ) : null}
+            <div className="mt-1.5 h-1.5 w-full rounded-full bg-dash-border overflow-hidden">
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${clamped}%`, backgroundColor: color }}
+              />
             </div>
+            {r.sub ? (
+              <div className="kpi-sub mt-1.5">{r.sub}</div>
+            ) : null}
           </div>
         )
       })}

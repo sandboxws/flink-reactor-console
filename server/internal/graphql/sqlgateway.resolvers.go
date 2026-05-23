@@ -76,6 +76,7 @@ func (r *mutationResolver) SubmitStatement(ctx context.Context, sessionHandle st
 		"statement": statement,
 		"executionConfig": map[string]string{
 			"pipeline.global-job-parameters": "pipeline.sql.b64:" + stmtB64,
+			"execution.runtime-mode":         "AUTOMATIC",
 		},
 	}
 	path := fmt.Sprintf("/v3/sessions/%s/statements", sessionHandle)

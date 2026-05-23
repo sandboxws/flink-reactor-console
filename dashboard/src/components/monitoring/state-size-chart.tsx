@@ -19,16 +19,16 @@ import {
 import { cn } from "@/lib/cn"
 import type { JobCheckpointSummary } from "@/stores/checkpoint-analytics-store"
 
-/** Rotating color palette for per-job chart series. */
+/** Accent + gray palette: first job gets the accent, others fade to context. */
 const JOB_COLORS = [
   "var(--color-fr-coral)",
-  "var(--color-fr-purple)",
-  "var(--color-job-running)",
-  "var(--color-fr-amber)",
-  "var(--color-job-finished)",
-  "#e879f9", // fuchsia
-  "#38bdf8", // sky
-  "#a3e635", // lime
+  "rgba(212,190,152,0.5)",
+  "rgba(212,190,152,0.35)",
+  "rgba(212,190,152,0.25)",
+  "rgba(212,190,152,0.18)",
+  "rgba(212,190,152,0.14)",
+  "rgba(212,190,152,0.10)",
+  "rgba(212,190,152,0.08)",
 ]
 
 /** Formats a Date to locale "HH:MM" time string. */

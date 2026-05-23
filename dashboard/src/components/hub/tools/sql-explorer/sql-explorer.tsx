@@ -1,9 +1,8 @@
 /**
- * SQL Explorer shell — 3-column full-bleed workspace.
+ * SQL Explorer shell — 2-column full-bleed workspace.
  *
  * Left:   `<SavedQueriesPane>` (localStorage-backed bookmarks)
  * Center: CodeMirror SQL editor + result table
- * Right:  `<SchemaNavigatorPane>` (catalog tree)
  *
  * Run, Save, and Share live on the editor toolbar. Share copies a URL
  * with the SQL encoded as `?q=<base64>` so it can be pasted into Slack /
@@ -23,6 +22,7 @@ import {
 } from "@codemirror/view"
 import { Bookmark, Link2, Play, Square } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { QueryTemplateDialog } from "./query-template-dialog"
 import {
   createThemeCompartment,
   getActiveTheme,
@@ -34,7 +34,6 @@ import {
   SavedQueriesPane,
   type SavedQuery,
 } from "./saved-queries-pane"
-import { SchemaNavigatorPane } from "./schema-navigator-pane"
 
 const themeCompartment = createThemeCompartment()
 
@@ -86,7 +85,7 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
   useEffect(() => {
     if (!containerRef.current) return
     const state = EditorState.create({
-      doc: sql$,
+      doc: useCatalogExploreStore.getState().sql,
       extensions: [
         lineNumbers(),
         highlightActiveLine(),
@@ -120,7 +119,7 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
       view.destroy()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sql$])
+  }, [])
 
   // Sync external value changes (e.g., loading a saved query)
   useEffect(() => {
@@ -142,23 +141,6 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
     },
     [setSql],
   )
-
-  const onPickTable = useCallback((qualifiedName: string) => {
-    const view = viewRef.current
-    if (!view) return
-    // Insert at cursor; if editor is empty, prefill SELECT.
-    const current = view.state.doc.toString()
-    const insert =
-      current.trim() === ""
-        ? `SELECT * FROM ${qualifiedName} LIMIT 100`
-        : qualifiedName
-    const sel = view.state.selection.main
-    view.dispatch({
-      changes: { from: sel.from, to: sel.to, insert },
-      selection: { anchor: sel.from + insert.length },
-    })
-    view.focus()
-  }, [])
 
   const save = () => {
     const text = sql$.trim()
@@ -190,7 +172,7 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[260px,1fr,280px]">
+    <div className="grid h-full min-h-0 grid-cols-[260px,1fr]">
       <SavedQueriesPane saved={saved} setSaved={setSaved} onLoad={onLoad} />
 
       <div className="flex h-full min-h-0 flex-col">
@@ -199,6 +181,7 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
             SQL editor
           </span>
           <div className="flex items-center gap-2">
+            <QueryTemplateDialog onSelect={onLoad} />
             <button
               type="button"
               onClick={save}
@@ -257,8 +240,6 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
           </div>
         ) : null}
       </div>
-
-      <SchemaNavigatorPane onPick={onPickTable} />
     </div>
   )
 }

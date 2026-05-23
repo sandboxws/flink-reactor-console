@@ -19,6 +19,9 @@ import {
 import { useNavigate, useRouterState } from "@tanstack/react-router"
 import { Check } from "lucide-react"
 import { useEffect, useMemo } from "react"
+import { useAlertsStore } from "@/stores/alerts-store"
+import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
+import { useClusterStore } from "@/stores/cluster-store"
 import { useConfigStore } from "@/stores/config-store"
 import { clusterEnv, useHubStore } from "@/stores/hub-store"
 import { HUB_COMMAND_ROUTES } from "./hub-command-routes"
@@ -46,12 +49,50 @@ export function HubAppShell({ children, rail, dotGrid }: HubAppShellProps) {
   const closeCommandPalette = useHubStore((s) => s.closeCommandPalette)
   const toggleCommandPalette = useHubStore((s) => s.toggleCommandPalette)
 
-  /* Force dark mode and ensure config is loaded. */
+  const initCluster = useClusterStore((s) => s.initialize)
+  const runningCount = useClusterStore((s) => s.runningJobs.length)
+  const tmCount = useClusterStore((s) => s.taskManagers.length)
+  const clusterLoaded = useClusterStore((s) => s.lastUpdated !== null)
+  const deploymentCount = useBgDeploymentStore((s) => s.deployments.length)
+  const fetchDeployments = useBgDeploymentStore((s) => s.fetchDeployments)
+  const alertCount = useAlertsStore((s) => s.activeAlerts.length)
+  const initAlerts = useAlertsStore((s) => s.initialize)
+
+  /* Force dark mode, ensure config + sidebar-count stores are loaded. */
   useEffect(() => {
     document.documentElement.classList.add("dark")
     document.documentElement.removeAttribute("data-palette")
     fetchConfig()
-  }, [fetchConfig])
+    initCluster()
+    initAlerts()
+    fetchDeployments()
+  }, [fetchConfig, initCluster, initAlerts, fetchDeployments])
+
+  const sidebarSections = useMemo(
+    () =>
+      HUB_SIDEBAR_SECTIONS.map((section) => ({
+        ...section,
+        items: section.items.map((item) => {
+          switch (item.href) {
+            case "/hub/jobs/running":
+              return { ...item, count: clusterLoaded ? runningCount : undefined }
+            case "/hub/deployments":
+              return { ...item, count: deploymentCount || undefined }
+            case "/hub/task-managers":
+              return { ...item, count: clusterLoaded ? tmCount : undefined }
+            case "/hub/monitoring/alerts":
+              return {
+                ...item,
+                count: alertCount || undefined,
+                countTone: alertCount ? ("coral" as const) : undefined,
+              }
+            default:
+              return item
+          }
+        }),
+      })),
+    [runningCount, tmCount, clusterLoaded, deploymentCount, alertCount],
+  )
 
   /* Cmd+K / Ctrl+K toggles the command palette; "/" opens it (Linear-style)
    *  unless an input/textarea is focused. */
@@ -93,7 +134,7 @@ export function HubAppShell({ children, rail, dotGrid }: HubAppShellProps) {
   return (
     <>
       <HubShell
-        sidebarSections={HUB_SIDEBAR_SECTIONS}
+        sidebarSections={sidebarSections}
         activePath={pathname}
         LinkComponent={HubLink}
         dotGrid={dotGrid}
