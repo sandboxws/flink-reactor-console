@@ -16,6 +16,7 @@ import (
 	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
 	redisinst "github.com/sandboxws/flink-reactor-instruments/redis"
 	srinst "github.com/sandboxws/flink-reactor-instruments/schemaregistry"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/alerts"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
@@ -136,6 +137,14 @@ func run() int {
 		serverOpts = append(serverOpts, server.WithSimulationEngine(simEngine))
 	}
 
+	// Initialize alerts engine if storage is enabled.
+	var alertEngine *alerts.Engine
+	if stores != nil {
+		alertEngine = alerts.NewEngine(stores, manager, 0, logger)
+		alertEngine.Start(ctx)
+		serverOpts = append(serverOpts, server.WithAlertEngine(alertEngine))
+	}
+
 	if cfg.Flink.InitSQLPath != "" {
 		serverOpts = append(serverOpts, server.WithInitSQLPath(cfg.Flink.InitSQLPath))
 	}
@@ -163,6 +172,11 @@ func run() int {
 	// Stop background syncer.
 	if syncer != nil {
 		syncer.Stop()
+	}
+
+	// Stop alerts engine.
+	if alertEngine != nil {
+		alertEngine.Stop()
 	}
 
 	// Shutdown instruments.

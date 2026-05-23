@@ -15,6 +15,95 @@ export type Scalars = {
   JSON: { input: Record<string, unknown>; output: Record<string, unknown>; }
 };
 
+/** Acknowledgement record for an alert instance. */
+export type AlertAck = {
+  __typename?: 'AlertAck';
+  ackAt: Scalars['String']['output'];
+  ackBy: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  instanceId: Scalars['ID']['output'];
+  note: Scalars['String']['output'];
+};
+
+/** Structured condition payload stored on an alert rule. */
+export type AlertCondition = {
+  __typename?: 'AlertCondition';
+  threshold: Scalars['Float']['output'];
+  type: AlertConditionType;
+  windowSec: Maybe<Scalars['Int']['output']>;
+};
+
+export type AlertConditionInput = {
+  threshold: Scalars['Float']['input'];
+  type: AlertConditionType;
+  windowSec: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** Alert rule condition type. v1 enum. */
+export type AlertConditionType =
+  | 'BACKPRESSURE'
+  | 'CHECKPOINT_FAILURE'
+  | 'SLOT_EXHAUSTION'
+  | 'TM_LOST'
+  | 'TM_MEMORY';
+
+export type AlertHistoryFilterInput = {
+  after: InputMaybe<Scalars['String']['input']>;
+  before: InputMaybe<Scalars['String']['input']>;
+  limit: InputMaybe<Scalars['Int']['input']>;
+  offset: InputMaybe<Scalars['Int']['input']>;
+  ruleId: InputMaybe<Scalars['ID']['input']>;
+  state: InputMaybe<AlertState>;
+};
+
+export type AlertHistoryPage = {
+  __typename?: 'AlertHistoryPage';
+  instances: Array<AlertInstance>;
+  total: Scalars['Int']['output'];
+};
+
+/** A single firing/acknowledged/resolved alert occurrence. */
+export type AlertInstance = {
+  __typename?: 'AlertInstance';
+  contextJson: Scalars['String']['output'];
+  currentValue: Maybe<Scalars['Float']['output']>;
+  dedupKey: Scalars['String']['output'];
+  firedAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lastSeenAt: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  resolvedAt: Maybe<Scalars['String']['output']>;
+  rule: Maybe<AlertRule>;
+  ruleId: Scalars['ID']['output'];
+  state: AlertState;
+};
+
+/** A configured alert rule. */
+export type AlertRule = {
+  __typename?: 'AlertRule';
+  condition: AlertCondition;
+  createdAt: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['ID']['output'];
+  isPreset: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  owner: Scalars['String']['output'];
+  severity: AlertSeverity;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type AlertSeverity =
+  | 'critical'
+  | 'info'
+  | 'warning';
+
+export type AlertState =
+  | 'ACKNOWLEDGED'
+  | 'FIRING'
+  | 'RESOLVED'
+  | 'SILENCED';
+
 export type AllocatedSlot = {
   __typename?: 'AllocatedSlot';
   index: Scalars['Int']['output'];
@@ -283,6 +372,15 @@ export type ConnectorMetrics = {
   recordsRead: Scalars['String']['output'];
   /** Records written (for sinks) */
   recordsWritten: Scalars['String']['output'];
+};
+
+export type CreateAlertRuleInput = {
+  condition: AlertConditionInput;
+  description: InputMaybe<Scalars['String']['input']>;
+  enabled: InputMaybe<Scalars['Boolean']['input']>;
+  name: Scalars['String']['input'];
+  owner: InputMaybe<Scalars['String']['input']>;
+  severity: AlertSeverity;
 };
 
 export type DashboardConfig = {
@@ -926,6 +1024,8 @@ export type MetricTimeSeries = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Acknowledge a FIRING instance; transitions state to ACKNOWLEDGED. */
+  acknowledgeAlert: AlertInstance;
   /** Cancel a running job */
   cancelJob: CancelJobResult;
   /**
@@ -935,8 +1035,10 @@ export type Mutation = {
   checkSchemaCompatibility: CompatibilityResult;
   /** Close a SQL Gateway session */
   closeSQLSession: SqlCloseResult;
+  createAlertRule: AlertRule;
   /** Create a new SQL Gateway session */
   createSQLSession: SqlSessionResult;
+  deleteAlertRule: DeleteResult;
   /** Delete an uploaded JAR */
   deleteJar: DeleteResult;
   /**
@@ -952,12 +1054,16 @@ export type Mutation = {
   refreshMaterializedTable: MaterializedTable;
   /** Rescale a running job to a new parallelism */
   rescaleJob: RescaleResult;
+  /** Manually resolve an instance (works from any state). */
+  resolveAlert: AlertInstance;
   /** Resume a materialized table's refresh */
   resumeMaterializedTable: MaterializedTable;
   /** Run an uploaded JAR to submit a job */
   runJar: JarRunResult;
   /** Run a simulation scenario */
   runSimulation: SimulationRun;
+  /** Mark an instance as SILENCED (suppresses repeat firings until resolved). */
+  silenceAlert: AlertInstance;
   /** Stop a running job with a savepoint (graceful shutdown) */
   stopJobWithSavepoint: SavepointTriggerResult;
   /** Stop a running simulation */
@@ -968,6 +1074,13 @@ export type Mutation = {
   suspendMaterializedTable: MaterializedTable;
   /** Trigger a savepoint for a running job */
   triggerSavepoint: SavepointTriggerResult;
+  updateAlertRule: AlertRule;
+};
+
+
+export type MutationAcknowledgeAlertArgs = {
+  id: Scalars['ID']['input'];
+  note: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -991,8 +1104,18 @@ export type MutationCloseSqlSessionArgs = {
 };
 
 
+export type MutationCreateAlertRuleArgs = {
+  input: CreateAlertRuleInput;
+};
+
+
 export type MutationCreateSqlSessionArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationDeleteAlertRuleArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1037,6 +1160,11 @@ export type MutationRescaleJobArgs = {
 };
 
 
+export type MutationResolveAlertArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationResumeMaterializedTableArgs = {
   catalog: Scalars['String']['input'];
   cluster: InputMaybe<Scalars['String']['input']>;
@@ -1057,6 +1185,11 @@ export type MutationRunJarArgs = {
 
 export type MutationRunSimulationArgs = {
   input: SimulationInput;
+};
+
+
+export type MutationSilenceAlertArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1090,6 +1223,12 @@ export type MutationTriggerSavepointArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
   jobId: Scalars['ID']['input'];
   targetDirectory: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateAlertRuleArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateAlertRuleInput;
 };
 
 /** Sorting configuration for query results. */
@@ -1144,6 +1283,14 @@ export type PreflightCheck = {
 
 export type Query = {
   __typename?: 'Query';
+  /** All currently FIRING or ACKNOWLEDGED instances. */
+  activeAlerts: Array<AlertInstance>;
+  /** Paginated historical alert instances. */
+  alertHistory: AlertHistoryPage;
+  /** A single rule by ID. */
+  alertRule: Maybe<AlertRule>;
+  /** All configured alert rules. */
+  alertRules: Array<AlertRule>;
   blueGreenDeployment: Maybe<BlueGreenDeployment>;
   blueGreenDeploymentConfigDiff: BlueGreenConfigDiff;
   blueGreenDeployments: Array<BlueGreenDeployment>;
@@ -1280,6 +1427,21 @@ export type Query = {
   taskManagers: Array<TaskManagerOverview>;
   /** Get vertex detail with subtask info */
   vertexDetail: VertexDetail;
+};
+
+
+export type QueryAlertHistoryArgs = {
+  filter: InputMaybe<AlertHistoryFilterInput>;
+};
+
+
+export type QueryAlertRuleArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryAlertRulesArgs = {
+  enabledOnly: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1919,6 +2081,10 @@ export type StoredException = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  /** Emits an AlertInstance whenever a new instance opens. */
+  alertFired: AlertInstance;
+  /** Emits an AlertInstance whenever an instance transitions to RESOLVED. */
+  alertResolved: AlertInstance;
   blueGreenStateChanged: BlueGreenDeployment;
   /**
    * Emits a JobStatusEvent whenever any Flink job's status changes.
@@ -2097,6 +2263,15 @@ export type TimestampEntry = {
   value: Scalars['String']['output'];
 };
 
+export type UpdateAlertRuleInput = {
+  condition: AlertConditionInput;
+  description: InputMaybe<Scalars['String']['input']>;
+  enabled: Scalars['Boolean']['input'];
+  name: Scalars['String']['input'];
+  owner: InputMaybe<Scalars['String']['input']>;
+  severity: AlertSeverity;
+};
+
 export type UserAccumulator = {
   __typename?: 'UserAccumulator';
   name: Scalars['String']['output'];
@@ -2151,6 +2326,85 @@ export type WatermarkEntry = {
   id: Scalars['String']['output'];
   value: Scalars['String']['output'];
 };
+
+export type AlertConditionFieldsFragment = { __typename?: 'AlertCondition', type: AlertConditionType, threshold: number, windowSec: number | null };
+
+export type AlertRuleFieldsFragment = { __typename?: 'AlertRule', id: string, name: string, description: string, severity: AlertSeverity, owner: string, isPreset: boolean, enabled: boolean, createdAt: string, updatedAt: string, condition: { __typename?: 'AlertCondition', type: AlertConditionType, threshold: number, windowSec: number | null } };
+
+export type AlertInstanceFieldsFragment = { __typename?: 'AlertInstance', id: string, ruleId: string, state: AlertState, dedupKey: string, firedAt: string, lastSeenAt: string, resolvedAt: string | null, currentValue: number | null, message: string, contextJson: string };
+
+export type AlertRulesQueryVariables = Exact<{
+  enabledOnly: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type AlertRulesQuery = { __typename?: 'Query', alertRules: Array<{ __typename?: 'AlertRule', id: string, name: string, description: string, severity: AlertSeverity, owner: string, isPreset: boolean, enabled: boolean, createdAt: string, updatedAt: string, condition: { __typename?: 'AlertCondition', type: AlertConditionType, threshold: number, windowSec: number | null } }> };
+
+export type ActiveAlertsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActiveAlertsQuery = { __typename?: 'Query', activeAlerts: Array<{ __typename?: 'AlertInstance', id: string, ruleId: string, state: AlertState, dedupKey: string, firedAt: string, lastSeenAt: string, resolvedAt: string | null, currentValue: number | null, message: string, contextJson: string }> };
+
+export type AlertHistoryQueryVariables = Exact<{
+  filter: InputMaybe<AlertHistoryFilterInput>;
+}>;
+
+
+export type AlertHistoryQuery = { __typename?: 'Query', alertHistory: { __typename?: 'AlertHistoryPage', total: number, instances: Array<{ __typename?: 'AlertInstance', id: string, ruleId: string, state: AlertState, dedupKey: string, firedAt: string, lastSeenAt: string, resolvedAt: string | null, currentValue: number | null, message: string, contextJson: string }> } };
+
+export type CreateAlertRuleMutationVariables = Exact<{
+  input: CreateAlertRuleInput;
+}>;
+
+
+export type CreateAlertRuleMutation = { __typename?: 'Mutation', createAlertRule: { __typename?: 'AlertRule', id: string, name: string, description: string, severity: AlertSeverity, owner: string, isPreset: boolean, enabled: boolean, createdAt: string, updatedAt: string, condition: { __typename?: 'AlertCondition', type: AlertConditionType, threshold: number, windowSec: number | null } } };
+
+export type UpdateAlertRuleMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateAlertRuleInput;
+}>;
+
+
+export type UpdateAlertRuleMutation = { __typename?: 'Mutation', updateAlertRule: { __typename?: 'AlertRule', id: string, name: string, description: string, severity: AlertSeverity, owner: string, isPreset: boolean, enabled: boolean, createdAt: string, updatedAt: string, condition: { __typename?: 'AlertCondition', type: AlertConditionType, threshold: number, windowSec: number | null } } };
+
+export type DeleteAlertRuleMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteAlertRuleMutation = { __typename?: 'Mutation', deleteAlertRule: { __typename?: 'DeleteResult', success: boolean } };
+
+export type AcknowledgeAlertMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  note: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type AcknowledgeAlertMutation = { __typename?: 'Mutation', acknowledgeAlert: { __typename?: 'AlertInstance', id: string, ruleId: string, state: AlertState, dedupKey: string, firedAt: string, lastSeenAt: string, resolvedAt: string | null, currentValue: number | null, message: string, contextJson: string } };
+
+export type SilenceAlertMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type SilenceAlertMutation = { __typename?: 'Mutation', silenceAlert: { __typename?: 'AlertInstance', id: string, ruleId: string, state: AlertState, dedupKey: string, firedAt: string, lastSeenAt: string, resolvedAt: string | null, currentValue: number | null, message: string, contextJson: string } };
+
+export type ResolveAlertMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type ResolveAlertMutation = { __typename?: 'Mutation', resolveAlert: { __typename?: 'AlertInstance', id: string, ruleId: string, state: AlertState, dedupKey: string, firedAt: string, lastSeenAt: string, resolvedAt: string | null, currentValue: number | null, message: string, contextJson: string } };
+
+export type AlertFiredSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AlertFiredSubscription = { __typename?: 'Subscription', alertFired: { __typename?: 'AlertInstance', id: string, ruleId: string, state: AlertState, dedupKey: string, firedAt: string, lastSeenAt: string, resolvedAt: string | null, currentValue: number | null, message: string, contextJson: string } };
+
+export type AlertResolvedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AlertResolvedSubscription = { __typename?: 'Subscription', alertResolved: { __typename?: 'AlertInstance', id: string, ruleId: string, state: AlertState, dedupKey: string, firedAt: string, lastSeenAt: string, resolvedAt: string | null, currentValue: number | null, message: string, contextJson: string } };
 
 export type CheckpointDetailQueryVariables = Exact<{
   jobId: Scalars['ID']['input'];

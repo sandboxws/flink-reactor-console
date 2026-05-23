@@ -36,6 +36,52 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AlertAck struct {
+		AckAt      func(childComplexity int) int
+		AckBy      func(childComplexity int) int
+		ID         func(childComplexity int) int
+		InstanceID func(childComplexity int) int
+		Note       func(childComplexity int) int
+	}
+
+	AlertCondition struct {
+		Threshold func(childComplexity int) int
+		Type      func(childComplexity int) int
+		WindowSec func(childComplexity int) int
+	}
+
+	AlertHistoryPage struct {
+		Instances func(childComplexity int) int
+		Total     func(childComplexity int) int
+	}
+
+	AlertInstance struct {
+		ContextJSON  func(childComplexity int) int
+		CurrentValue func(childComplexity int) int
+		DedupKey     func(childComplexity int) int
+		FiredAt      func(childComplexity int) int
+		ID           func(childComplexity int) int
+		LastSeenAt   func(childComplexity int) int
+		Message      func(childComplexity int) int
+		ResolvedAt   func(childComplexity int) int
+		Rule         func(childComplexity int) int
+		RuleID       func(childComplexity int) int
+		State        func(childComplexity int) int
+	}
+
+	AlertRule struct {
+		Condition   func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Description func(childComplexity int) int
+		Enabled     func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IsPreset    func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Owner       func(childComplexity int) int
+		Severity    func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+	}
+
 	AllocatedSlot struct {
 		Index    func(childComplexity int) int
 		JobID    func(childComplexity int) int
@@ -655,24 +701,30 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AcknowledgeAlert         func(childComplexity int, id string, note *string) int
 		CancelJob                func(childComplexity int, id string, cluster *string) int
 		CheckSchemaCompatibility func(childComplexity int, instrument string, subject string, schema string, schemaType string) int
 		CloseSQLSession          func(childComplexity int, sessionHandle string, cluster *string) int
+		CreateAlertRule          func(childComplexity int, input model.CreateAlertRuleInput) int
 		CreateSQLSession         func(childComplexity int, cluster *string) int
+		DeleteAlertRule          func(childComplexity int, id string) int
 		DeleteJar                func(childComplexity int, id string, cluster *string) int
 		ExecuteDatabaseQuery     func(childComplexity int, instrument string, sql string) int
 		ExplainStatement         func(childComplexity int, sessionHandle string, statement string, cluster *string) int
 		FetchSQLResults          func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
 		RefreshMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
 		RescaleJob               func(childComplexity int, jobID string, newParallelism int, cluster *string) int
+		ResolveAlert             func(childComplexity int, id string) int
 		ResumeMaterializedTable  func(childComplexity int, name string, catalog string, cluster *string) int
 		RunJar                   func(childComplexity int, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
 		RunSimulation            func(childComplexity int, input model.SimulationInput) int
+		SilenceAlert             func(childComplexity int, id string) int
 		StopJobWithSavepoint     func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
 		StopSimulation           func(childComplexity int, runID string) int
 		SubmitStatement          func(childComplexity int, sessionHandle string, statement string, cluster *string) int
 		SuspendMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
 		TriggerSavepoint         func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
+		UpdateAlertRule          func(childComplexity int, id string, input model.UpdateAlertRuleInput) int
 	}
 
 	PlanNode struct {
@@ -701,6 +753,10 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		ActiveAlerts                  func(childComplexity int) int
+		AlertHistory                  func(childComplexity int, filter *model.AlertHistoryFilterInput) int
+		AlertRule                     func(childComplexity int, id string) int
+		AlertRules                    func(childComplexity int, enabledOnly *bool) int
 		BlueGreenDeployment           func(childComplexity int, name string, namespace *string, cluster *string) int
 		BlueGreenDeploymentConfigDiff func(childComplexity int, name string, namespace *string, cluster *string) int
 		BlueGreenDeployments          func(childComplexity int, cluster *string, namespace *string) int
@@ -967,6 +1023,8 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
+		AlertFired            func(childComplexity int) int
+		AlertResolved         func(childComplexity int) int
 		BlueGreenStateChanged func(childComplexity int, cluster *string, namespace *string) int
 		JobStatusChanged      func(childComplexity int, cluster *string) int
 		SQLResults            func(childComplexity int, cluster *string, sessionHandle string, operationHandle string) int
@@ -1150,6 +1208,12 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	CreateAlertRule(ctx context.Context, input model.CreateAlertRuleInput) (*model.AlertRule, error)
+	UpdateAlertRule(ctx context.Context, id string, input model.UpdateAlertRuleInput) (*model.AlertRule, error)
+	DeleteAlertRule(ctx context.Context, id string) (*model.DeleteResult, error)
+	AcknowledgeAlert(ctx context.Context, id string, note *string) (*model.AlertInstance, error)
+	SilenceAlert(ctx context.Context, id string) (*model.AlertInstance, error)
+	ResolveAlert(ctx context.Context, id string) (*model.AlertInstance, error)
 	ExecuteDatabaseQuery(ctx context.Context, instrument string, sql string) (*model.DatabaseQueryResult, error)
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
 	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
@@ -1172,6 +1236,10 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Health(ctx context.Context) (bool, error)
 	Clusters(ctx context.Context) ([]*model.ClusterInfo, error)
+	AlertRules(ctx context.Context, enabledOnly *bool) ([]*model.AlertRule, error)
+	AlertRule(ctx context.Context, id string) (*model.AlertRule, error)
+	ActiveAlerts(ctx context.Context) ([]*model.AlertInstance, error)
+	AlertHistory(ctx context.Context, filter *model.AlertHistoryFilterInput) (*model.AlertHistoryPage, error)
 	BlueGreenDeployments(ctx context.Context, cluster *string, namespace *string) ([]*model.BlueGreenDeployment, error)
 	BlueGreenDeployment(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenDeployment, error)
 	BlueGreenDeploymentConfigDiff(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenConfigDiff, error)
@@ -1238,6 +1306,8 @@ type QueryResolver interface {
 	TaskManagerStderr(ctx context.Context, id string, cluster *string) (string, error)
 }
 type SubscriptionResolver interface {
+	AlertFired(ctx context.Context) (<-chan *model.AlertInstance, error)
+	AlertResolved(ctx context.Context) (<-chan *model.AlertInstance, error)
 	BlueGreenStateChanged(ctx context.Context, cluster *string, namespace *string) (<-chan *model.BlueGreenDeployment, error)
 	JobStatusChanged(ctx context.Context, cluster *string) (<-chan *model.JobStatusEvent, error)
 	SQLResults(ctx context.Context, cluster *string, sessionHandle string, operationHandle string) (<-chan *model.SQLResultBatch, error)
@@ -1256,6 +1326,197 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	ec := newExecutionContext(nil, e, nil)
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AlertAck.ackAt":
+		if e.ComplexityRoot.AlertAck.AckAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertAck.AckAt(childComplexity), true
+	case "AlertAck.ackBy":
+		if e.ComplexityRoot.AlertAck.AckBy == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertAck.AckBy(childComplexity), true
+	case "AlertAck.id":
+		if e.ComplexityRoot.AlertAck.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertAck.ID(childComplexity), true
+	case "AlertAck.instanceId":
+		if e.ComplexityRoot.AlertAck.InstanceID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertAck.InstanceID(childComplexity), true
+	case "AlertAck.note":
+		if e.ComplexityRoot.AlertAck.Note == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertAck.Note(childComplexity), true
+
+	case "AlertCondition.threshold":
+		if e.ComplexityRoot.AlertCondition.Threshold == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertCondition.Threshold(childComplexity), true
+	case "AlertCondition.type":
+		if e.ComplexityRoot.AlertCondition.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertCondition.Type(childComplexity), true
+	case "AlertCondition.windowSec":
+		if e.ComplexityRoot.AlertCondition.WindowSec == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertCondition.WindowSec(childComplexity), true
+
+	case "AlertHistoryPage.instances":
+		if e.ComplexityRoot.AlertHistoryPage.Instances == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertHistoryPage.Instances(childComplexity), true
+	case "AlertHistoryPage.total":
+		if e.ComplexityRoot.AlertHistoryPage.Total == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertHistoryPage.Total(childComplexity), true
+
+	case "AlertInstance.contextJson":
+		if e.ComplexityRoot.AlertInstance.ContextJSON == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.ContextJSON(childComplexity), true
+	case "AlertInstance.currentValue":
+		if e.ComplexityRoot.AlertInstance.CurrentValue == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.CurrentValue(childComplexity), true
+	case "AlertInstance.dedupKey":
+		if e.ComplexityRoot.AlertInstance.DedupKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.DedupKey(childComplexity), true
+	case "AlertInstance.firedAt":
+		if e.ComplexityRoot.AlertInstance.FiredAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.FiredAt(childComplexity), true
+	case "AlertInstance.id":
+		if e.ComplexityRoot.AlertInstance.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.ID(childComplexity), true
+	case "AlertInstance.lastSeenAt":
+		if e.ComplexityRoot.AlertInstance.LastSeenAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.LastSeenAt(childComplexity), true
+	case "AlertInstance.message":
+		if e.ComplexityRoot.AlertInstance.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.Message(childComplexity), true
+	case "AlertInstance.resolvedAt":
+		if e.ComplexityRoot.AlertInstance.ResolvedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.ResolvedAt(childComplexity), true
+	case "AlertInstance.rule":
+		if e.ComplexityRoot.AlertInstance.Rule == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.Rule(childComplexity), true
+	case "AlertInstance.ruleId":
+		if e.ComplexityRoot.AlertInstance.RuleID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.RuleID(childComplexity), true
+	case "AlertInstance.state":
+		if e.ComplexityRoot.AlertInstance.State == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertInstance.State(childComplexity), true
+
+	case "AlertRule.condition":
+		if e.ComplexityRoot.AlertRule.Condition == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.Condition(childComplexity), true
+	case "AlertRule.createdAt":
+		if e.ComplexityRoot.AlertRule.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.CreatedAt(childComplexity), true
+	case "AlertRule.description":
+		if e.ComplexityRoot.AlertRule.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.Description(childComplexity), true
+	case "AlertRule.enabled":
+		if e.ComplexityRoot.AlertRule.Enabled == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.Enabled(childComplexity), true
+	case "AlertRule.id":
+		if e.ComplexityRoot.AlertRule.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.ID(childComplexity), true
+	case "AlertRule.isPreset":
+		if e.ComplexityRoot.AlertRule.IsPreset == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.IsPreset(childComplexity), true
+	case "AlertRule.name":
+		if e.ComplexityRoot.AlertRule.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.Name(childComplexity), true
+	case "AlertRule.owner":
+		if e.ComplexityRoot.AlertRule.Owner == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.Owner(childComplexity), true
+	case "AlertRule.severity":
+		if e.ComplexityRoot.AlertRule.Severity == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.Severity(childComplexity), true
+	case "AlertRule.updatedAt":
+		if e.ComplexityRoot.AlertRule.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AlertRule.UpdatedAt(childComplexity), true
 
 	case "AllocatedSlot.index":
 		if e.ComplexityRoot.AllocatedSlot.Index == nil {
@@ -3554,6 +3815,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.MetricTimeSeries.SourceType(childComplexity), true
 
+	case "Mutation.acknowledgeAlert":
+		if e.ComplexityRoot.Mutation.AcknowledgeAlert == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_acknowledgeAlert_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.AcknowledgeAlert(childComplexity, args["id"].(string), args["note"].(*string)), true
 	case "Mutation.cancelJob":
 		if e.ComplexityRoot.Mutation.CancelJob == nil {
 			break
@@ -3587,6 +3859,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CloseSQLSession(childComplexity, args["sessionHandle"].(string), args["cluster"].(*string)), true
+	case "Mutation.createAlertRule":
+		if e.ComplexityRoot.Mutation.CreateAlertRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAlertRule_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CreateAlertRule(childComplexity, args["input"].(model.CreateAlertRuleInput)), true
 	case "Mutation.createSQLSession":
 		if e.ComplexityRoot.Mutation.CreateSQLSession == nil {
 			break
@@ -3598,6 +3881,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CreateSQLSession(childComplexity, args["cluster"].(*string)), true
+	case "Mutation.deleteAlertRule":
+		if e.ComplexityRoot.Mutation.DeleteAlertRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteAlertRule_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeleteAlertRule(childComplexity, args["id"].(string)), true
 	case "Mutation.deleteJar":
 		if e.ComplexityRoot.Mutation.DeleteJar == nil {
 			break
@@ -3664,6 +3958,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RescaleJob(childComplexity, args["jobId"].(string), args["newParallelism"].(int), args["cluster"].(*string)), true
+	case "Mutation.resolveAlert":
+		if e.ComplexityRoot.Mutation.ResolveAlert == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resolveAlert_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ResolveAlert(childComplexity, args["id"].(string)), true
 	case "Mutation.resumeMaterializedTable":
 		if e.ComplexityRoot.Mutation.ResumeMaterializedTable == nil {
 			break
@@ -3697,6 +4002,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RunSimulation(childComplexity, args["input"].(model.SimulationInput)), true
+	case "Mutation.silenceAlert":
+		if e.ComplexityRoot.Mutation.SilenceAlert == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_silenceAlert_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SilenceAlert(childComplexity, args["id"].(string)), true
 	case "Mutation.stopJobWithSavepoint":
 		if e.ComplexityRoot.Mutation.StopJobWithSavepoint == nil {
 			break
@@ -3752,6 +4068,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.TriggerSavepoint(childComplexity, args["jobId"].(string), args["targetDirectory"].(*string), args["cluster"].(*string)), true
+	case "Mutation.updateAlertRule":
+		if e.ComplexityRoot.Mutation.UpdateAlertRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAlertRule_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdateAlertRule(childComplexity, args["id"].(string), args["input"].(model.UpdateAlertRuleInput)), true
 
 	case "PlanNode.description":
 		if e.ComplexityRoot.PlanNode.Description == nil {
@@ -3852,6 +4179,45 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PreflightCheck.Status(childComplexity), true
 
+	case "Query.activeAlerts":
+		if e.ComplexityRoot.Query.ActiveAlerts == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.ActiveAlerts(childComplexity), true
+	case "Query.alertHistory":
+		if e.ComplexityRoot.Query.AlertHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_alertHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.AlertHistory(childComplexity, args["filter"].(*model.AlertHistoryFilterInput)), true
+	case "Query.alertRule":
+		if e.ComplexityRoot.Query.AlertRule == nil {
+			break
+		}
+
+		args, err := ec.field_Query_alertRule_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.AlertRule(childComplexity, args["id"].(string)), true
+	case "Query.alertRules":
+		if e.ComplexityRoot.Query.AlertRules == nil {
+			break
+		}
+
+		args, err := ec.field_Query_alertRules_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.AlertRules(childComplexity, args["enabledOnly"].(*bool)), true
 	case "Query.blueGreenDeployment":
 		if e.ComplexityRoot.Query.BlueGreenDeployment == nil {
 			break
@@ -5275,6 +5641,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.StoredException.Timestamp(childComplexity), true
 
+	case "Subscription.alertFired":
+		if e.ComplexityRoot.Subscription.AlertFired == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Subscription.AlertFired(childComplexity), true
+	case "Subscription.alertResolved":
+		if e.ComplexityRoot.Subscription.AlertResolved == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Subscription.AlertResolved(childComplexity), true
 	case "Subscription.blueGreenStateChanged":
 		if e.ComplexityRoot.Subscription.BlueGreenStateChanged == nil {
 			break
@@ -6016,7 +6394,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAlertConditionInput,
+		ec.unmarshalInputAlertHistoryFilterInput,
 		ec.unmarshalInputCheckpointHistoryFilter,
+		ec.unmarshalInputCreateAlertRuleInput,
 		ec.unmarshalInputExceptionHistoryFilter,
 		ec.unmarshalInputJobHistoryFilter,
 		ec.unmarshalInputMetricHistoryFilter,
@@ -6024,6 +6405,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputOrderByInput,
 		ec.unmarshalInputPaginationInput,
 		ec.unmarshalInputSimulationInput,
+		ec.unmarshalInputUpdateAlertRuleInput,
 	)
 	first := true
 
@@ -6116,6 +6498,160 @@ func newExecutionContext(
 }
 
 var sources = []*ast.Source{
+	{Name: "../schema/alerts.graphqls", Input: `# Server-side alerts engine: rules, instances, mutations, subscriptions.
+
+"""
+Alert rule condition type. v1 enum.
+"""
+enum AlertConditionType {
+  SLOT_EXHAUSTION
+  BACKPRESSURE
+  CHECKPOINT_FAILURE
+  TM_MEMORY
+  TM_LOST
+}
+
+enum AlertSeverity {
+  info
+  warning
+  critical
+}
+
+enum AlertState {
+  FIRING
+  ACKNOWLEDGED
+  SILENCED
+  RESOLVED
+}
+
+"""
+Structured condition payload stored on an alert rule.
+"""
+type AlertCondition {
+  type: AlertConditionType!
+  threshold: Float!
+  windowSec: Int
+}
+
+"""
+A configured alert rule.
+"""
+type AlertRule {
+  id: ID!
+  name: String!
+  description: String!
+  condition: AlertCondition!
+  severity: AlertSeverity!
+  owner: String!
+  isPreset: Boolean!
+  enabled: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""
+A single firing/acknowledged/resolved alert occurrence.
+"""
+type AlertInstance {
+  id: ID!
+  ruleId: ID!
+  rule: AlertRule
+  state: AlertState!
+  dedupKey: String!
+  firedAt: String!
+  lastSeenAt: String!
+  resolvedAt: String
+  currentValue: Float
+  message: String!
+  contextJson: String!
+}
+
+"""
+Acknowledgement record for an alert instance.
+"""
+type AlertAck {
+  id: ID!
+  instanceId: ID!
+  ackBy: String!
+  ackAt: String!
+  note: String!
+}
+
+input AlertConditionInput {
+  type: AlertConditionType!
+  threshold: Float!
+  windowSec: Int
+}
+
+input CreateAlertRuleInput {
+  name: String!
+  description: String
+  condition: AlertConditionInput!
+  severity: AlertSeverity!
+  owner: String
+  enabled: Boolean
+}
+
+input UpdateAlertRuleInput {
+  name: String!
+  description: String
+  condition: AlertConditionInput!
+  severity: AlertSeverity!
+  owner: String
+  enabled: Boolean!
+}
+
+input AlertHistoryFilterInput {
+  ruleId: ID
+  state: AlertState
+  after: String
+  before: String
+  limit: Int
+  offset: Int
+}
+
+type AlertHistoryPage {
+  instances: [AlertInstance!]!
+  total: Int!
+}
+
+extend type Query {
+  """All configured alert rules."""
+  alertRules(enabledOnly: Boolean): [AlertRule!]!
+
+  """A single rule by ID."""
+  alertRule(id: ID!): AlertRule
+
+  """All currently FIRING or ACKNOWLEDGED instances."""
+  activeAlerts: [AlertInstance!]!
+
+  """Paginated historical alert instances."""
+  alertHistory(filter: AlertHistoryFilterInput): AlertHistoryPage!
+}
+
+extend type Mutation {
+  createAlertRule(input: CreateAlertRuleInput!): AlertRule!
+  updateAlertRule(id: ID!, input: UpdateAlertRuleInput!): AlertRule!
+  deleteAlertRule(id: ID!): DeleteResult!
+
+  """Acknowledge a FIRING instance; transitions state to ACKNOWLEDGED."""
+  acknowledgeAlert(id: ID!, note: String): AlertInstance!
+
+  """Mark an instance as SILENCED (suppresses repeat firings until resolved)."""
+  silenceAlert(id: ID!): AlertInstance!
+
+  """Manually resolve an instance (works from any state)."""
+  resolveAlert(id: ID!): AlertInstance!
+}
+
+extend type Subscription {
+  """Emits an AlertInstance whenever a new instance opens."""
+  alertFired: AlertInstance!
+
+  """Emits an AlertInstance whenever an instance transitions to RESOLVED."""
+  alertResolved: AlertInstance!
+}
+`, BuiltIn: false},
 	{Name: "../schema/bluegreen.graphqls", Input: `enum BlueGreenState {
   INITIALIZING_BLUE
   ACTIVE_BLUE
@@ -7952,6 +8488,22 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_acknowledgeAlert_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "note", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["note"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_cancelJob_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8010,6 +8562,17 @@ func (ec *executionContext) field_Mutation_closeSQLSession_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createAlertRule_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCreateAlertRuleInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createSQLSession_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8018,6 +8581,17 @@ func (ec *executionContext) field_Mutation_createSQLSession_args(ctx context.Con
 		return nil, err
 	}
 	args["cluster"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteAlertRule_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -8142,6 +8716,17 @@ func (ec *executionContext) field_Mutation_rescaleJob_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_resolveAlert_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_resumeMaterializedTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8212,6 +8797,17 @@ func (ec *executionContext) field_Mutation_runSimulation_args(ctx context.Contex
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_silenceAlert_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -8310,6 +8906,22 @@ func (ec *executionContext) field_Mutation_triggerSavepoint_args(ctx context.Con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateAlertRule_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUpdateAlertRuleInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8318,6 +8930,39 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_alertHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOAlertHistoryFilterInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryFilterInput)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_alertRule_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_alertRules_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "enabledOnly", ec.unmarshalOBoolean2ᚖbool)
+	if err != nil {
+		return nil, err
+	}
+	args["enabledOnly"] = arg0
 	return args, nil
 }
 
@@ -9352,6 +9997,959 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AlertAck_id(ctx context.Context, field graphql.CollectedField, obj *model.AlertAck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertAck_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertAck_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertAck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertAck_instanceId(ctx context.Context, field graphql.CollectedField, obj *model.AlertAck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertAck_instanceId,
+		func(ctx context.Context) (any, error) {
+			return obj.InstanceID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertAck_instanceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertAck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertAck_ackBy(ctx context.Context, field graphql.CollectedField, obj *model.AlertAck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertAck_ackBy,
+		func(ctx context.Context) (any, error) {
+			return obj.AckBy, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertAck_ackBy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertAck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertAck_ackAt(ctx context.Context, field graphql.CollectedField, obj *model.AlertAck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertAck_ackAt,
+		func(ctx context.Context) (any, error) {
+			return obj.AckAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertAck_ackAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertAck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertAck_note(ctx context.Context, field graphql.CollectedField, obj *model.AlertAck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertAck_note,
+		func(ctx context.Context) (any, error) {
+			return obj.Note, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertAck_note(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertAck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertCondition_type(ctx context.Context, field graphql.CollectedField, obj *model.AlertCondition) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertCondition_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertCondition_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertCondition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AlertConditionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertCondition_threshold(ctx context.Context, field graphql.CollectedField, obj *model.AlertCondition) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertCondition_threshold,
+		func(ctx context.Context) (any, error) {
+			return obj.Threshold, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertCondition_threshold(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertCondition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertCondition_windowSec(ctx context.Context, field graphql.CollectedField, obj *model.AlertCondition) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertCondition_windowSec,
+		func(ctx context.Context) (any, error) {
+			return obj.WindowSec, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertCondition_windowSec(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertCondition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertHistoryPage_instances(ctx context.Context, field graphql.CollectedField, obj *model.AlertHistoryPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertHistoryPage_instances,
+		func(ctx context.Context) (any, error) {
+			return obj.Instances, nil
+		},
+		nil,
+		ec.marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertHistoryPage_instances(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertHistoryPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertInstance_id(ctx, field)
+			case "ruleId":
+				return ec.fieldContext_AlertInstance_ruleId(ctx, field)
+			case "rule":
+				return ec.fieldContext_AlertInstance_rule(ctx, field)
+			case "state":
+				return ec.fieldContext_AlertInstance_state(ctx, field)
+			case "dedupKey":
+				return ec.fieldContext_AlertInstance_dedupKey(ctx, field)
+			case "firedAt":
+				return ec.fieldContext_AlertInstance_firedAt(ctx, field)
+			case "lastSeenAt":
+				return ec.fieldContext_AlertInstance_lastSeenAt(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_AlertInstance_resolvedAt(ctx, field)
+			case "currentValue":
+				return ec.fieldContext_AlertInstance_currentValue(ctx, field)
+			case "message":
+				return ec.fieldContext_AlertInstance_message(ctx, field)
+			case "contextJson":
+				return ec.fieldContext_AlertInstance_contextJson(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertInstance", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertHistoryPage_total(ctx context.Context, field graphql.CollectedField, obj *model.AlertHistoryPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertHistoryPage_total,
+		func(ctx context.Context) (any, error) {
+			return obj.Total, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertHistoryPage_total(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertHistoryPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_id(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_ruleId(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_ruleId,
+		func(ctx context.Context) (any, error) {
+			return obj.RuleID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_ruleId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_rule(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_rule,
+		func(ctx context.Context) (any, error) {
+			return obj.Rule, nil
+		},
+		nil,
+		ec.marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_rule(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertRule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AlertRule_name(ctx, field)
+			case "description":
+				return ec.fieldContext_AlertRule_description(ctx, field)
+			case "condition":
+				return ec.fieldContext_AlertRule_condition(ctx, field)
+			case "severity":
+				return ec.fieldContext_AlertRule_severity(ctx, field)
+			case "owner":
+				return ec.fieldContext_AlertRule_owner(ctx, field)
+			case "isPreset":
+				return ec.fieldContext_AlertRule_isPreset(ctx, field)
+			case "enabled":
+				return ec.fieldContext_AlertRule_enabled(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AlertRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_AlertRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertRule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_state(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_state,
+		func(ctx context.Context) (any, error) {
+			return obj.State, nil
+		},
+		nil,
+		ec.marshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_state(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AlertState does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_dedupKey(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_dedupKey,
+		func(ctx context.Context) (any, error) {
+			return obj.DedupKey, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_dedupKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_firedAt(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_firedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.FiredAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_firedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_lastSeenAt(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_lastSeenAt,
+		func(ctx context.Context) (any, error) {
+			return obj.LastSeenAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_lastSeenAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_resolvedAt(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_resolvedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.ResolvedAt, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_resolvedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_currentValue(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_currentValue,
+		func(ctx context.Context) (any, error) {
+			return obj.CurrentValue, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_currentValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_message(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertInstance_contextJson(ctx context.Context, field graphql.CollectedField, obj *model.AlertInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertInstance_contextJson,
+		func(ctx context.Context) (any, error) {
+			return obj.ContextJSON, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertInstance_contextJson(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_id(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_name(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_description(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_description,
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_condition(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_condition,
+		func(ctx context.Context) (any, error) {
+			return obj.Condition, nil
+		},
+		nil,
+		ec.marshalNAlertCondition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertCondition,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_condition(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_AlertCondition_type(ctx, field)
+			case "threshold":
+				return ec.fieldContext_AlertCondition_threshold(ctx, field)
+			case "windowSec":
+				return ec.fieldContext_AlertCondition_windowSec(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertCondition", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_severity(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_severity,
+		func(ctx context.Context) (any, error) {
+			return obj.Severity, nil
+		},
+		nil,
+		ec.marshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_severity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AlertSeverity does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_owner(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_owner,
+		func(ctx context.Context) (any, error) {
+			return obj.Owner, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_owner(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_isPreset(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_isPreset,
+		func(ctx context.Context) (any, error) {
+			return obj.IsPreset, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_isPreset(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_enabled(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_enabled,
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertRule_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.AlertRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertRule_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AlertRule_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _AllocatedSlot_index(ctx context.Context, field graphql.CollectedField, obj *model.AllocatedSlot) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
@@ -20788,6 +22386,372 @@ func (ec *executionContext) fieldContext_MetricTimeSeries_points(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createAlertRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createAlertRule,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CreateAlertRule(ctx, fc.Args["input"].(model.CreateAlertRuleInput))
+		},
+		nil,
+		ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createAlertRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertRule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AlertRule_name(ctx, field)
+			case "description":
+				return ec.fieldContext_AlertRule_description(ctx, field)
+			case "condition":
+				return ec.fieldContext_AlertRule_condition(ctx, field)
+			case "severity":
+				return ec.fieldContext_AlertRule_severity(ctx, field)
+			case "owner":
+				return ec.fieldContext_AlertRule_owner(ctx, field)
+			case "isPreset":
+				return ec.fieldContext_AlertRule_isPreset(ctx, field)
+			case "enabled":
+				return ec.fieldContext_AlertRule_enabled(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AlertRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_AlertRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createAlertRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateAlertRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateAlertRule,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdateAlertRule(ctx, fc.Args["id"].(string), fc.Args["input"].(model.UpdateAlertRuleInput))
+		},
+		nil,
+		ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateAlertRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertRule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AlertRule_name(ctx, field)
+			case "description":
+				return ec.fieldContext_AlertRule_description(ctx, field)
+			case "condition":
+				return ec.fieldContext_AlertRule_condition(ctx, field)
+			case "severity":
+				return ec.fieldContext_AlertRule_severity(ctx, field)
+			case "owner":
+				return ec.fieldContext_AlertRule_owner(ctx, field)
+			case "isPreset":
+				return ec.fieldContext_AlertRule_isPreset(ctx, field)
+			case "enabled":
+				return ec.fieldContext_AlertRule_enabled(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AlertRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_AlertRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateAlertRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteAlertRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteAlertRule,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeleteAlertRule(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNDeleteResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteAlertRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "success":
+				return ec.fieldContext_DeleteResult_success(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeleteResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteAlertRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_acknowledgeAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_acknowledgeAlert,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().AcknowledgeAlert(ctx, fc.Args["id"].(string), fc.Args["note"].(*string))
+		},
+		nil,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_acknowledgeAlert(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertInstance_id(ctx, field)
+			case "ruleId":
+				return ec.fieldContext_AlertInstance_ruleId(ctx, field)
+			case "rule":
+				return ec.fieldContext_AlertInstance_rule(ctx, field)
+			case "state":
+				return ec.fieldContext_AlertInstance_state(ctx, field)
+			case "dedupKey":
+				return ec.fieldContext_AlertInstance_dedupKey(ctx, field)
+			case "firedAt":
+				return ec.fieldContext_AlertInstance_firedAt(ctx, field)
+			case "lastSeenAt":
+				return ec.fieldContext_AlertInstance_lastSeenAt(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_AlertInstance_resolvedAt(ctx, field)
+			case "currentValue":
+				return ec.fieldContext_AlertInstance_currentValue(ctx, field)
+			case "message":
+				return ec.fieldContext_AlertInstance_message(ctx, field)
+			case "contextJson":
+				return ec.fieldContext_AlertInstance_contextJson(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertInstance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_acknowledgeAlert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_silenceAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_silenceAlert,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SilenceAlert(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_silenceAlert(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertInstance_id(ctx, field)
+			case "ruleId":
+				return ec.fieldContext_AlertInstance_ruleId(ctx, field)
+			case "rule":
+				return ec.fieldContext_AlertInstance_rule(ctx, field)
+			case "state":
+				return ec.fieldContext_AlertInstance_state(ctx, field)
+			case "dedupKey":
+				return ec.fieldContext_AlertInstance_dedupKey(ctx, field)
+			case "firedAt":
+				return ec.fieldContext_AlertInstance_firedAt(ctx, field)
+			case "lastSeenAt":
+				return ec.fieldContext_AlertInstance_lastSeenAt(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_AlertInstance_resolvedAt(ctx, field)
+			case "currentValue":
+				return ec.fieldContext_AlertInstance_currentValue(ctx, field)
+			case "message":
+				return ec.fieldContext_AlertInstance_message(ctx, field)
+			case "contextJson":
+				return ec.fieldContext_AlertInstance_contextJson(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertInstance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_silenceAlert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_resolveAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_resolveAlert,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ResolveAlert(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_resolveAlert(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertInstance_id(ctx, field)
+			case "ruleId":
+				return ec.fieldContext_AlertInstance_ruleId(ctx, field)
+			case "rule":
+				return ec.fieldContext_AlertInstance_rule(ctx, field)
+			case "state":
+				return ec.fieldContext_AlertInstance_state(ctx, field)
+			case "dedupKey":
+				return ec.fieldContext_AlertInstance_dedupKey(ctx, field)
+			case "firedAt":
+				return ec.fieldContext_AlertInstance_firedAt(ctx, field)
+			case "lastSeenAt":
+				return ec.fieldContext_AlertInstance_lastSeenAt(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_AlertInstance_resolvedAt(ctx, field)
+			case "currentValue":
+				return ec.fieldContext_AlertInstance_currentValue(ctx, field)
+			case "message":
+				return ec.fieldContext_AlertInstance_message(ctx, field)
+			case "contextJson":
+				return ec.fieldContext_AlertInstance_contextJson(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertInstance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_resolveAlert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_executeDatabaseQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -22218,6 +24182,232 @@ func (ec *executionContext) fieldContext_Query_clusters(_ context.Context, field
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClusterInfo", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_alertRules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_alertRules,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().AlertRules(ctx, fc.Args["enabledOnly"].(*bool))
+		},
+		nil,
+		ec.marshalNAlertRule2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRuleᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_alertRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertRule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AlertRule_name(ctx, field)
+			case "description":
+				return ec.fieldContext_AlertRule_description(ctx, field)
+			case "condition":
+				return ec.fieldContext_AlertRule_condition(ctx, field)
+			case "severity":
+				return ec.fieldContext_AlertRule_severity(ctx, field)
+			case "owner":
+				return ec.fieldContext_AlertRule_owner(ctx, field)
+			case "isPreset":
+				return ec.fieldContext_AlertRule_isPreset(ctx, field)
+			case "enabled":
+				return ec.fieldContext_AlertRule_enabled(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AlertRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_AlertRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_alertRules_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_alertRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_alertRule,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().AlertRule(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_alertRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertRule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AlertRule_name(ctx, field)
+			case "description":
+				return ec.fieldContext_AlertRule_description(ctx, field)
+			case "condition":
+				return ec.fieldContext_AlertRule_condition(ctx, field)
+			case "severity":
+				return ec.fieldContext_AlertRule_severity(ctx, field)
+			case "owner":
+				return ec.fieldContext_AlertRule_owner(ctx, field)
+			case "isPreset":
+				return ec.fieldContext_AlertRule_isPreset(ctx, field)
+			case "enabled":
+				return ec.fieldContext_AlertRule_enabled(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AlertRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_AlertRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_alertRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_activeAlerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_activeAlerts,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().ActiveAlerts(ctx)
+		},
+		nil,
+		ec.marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_activeAlerts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertInstance_id(ctx, field)
+			case "ruleId":
+				return ec.fieldContext_AlertInstance_ruleId(ctx, field)
+			case "rule":
+				return ec.fieldContext_AlertInstance_rule(ctx, field)
+			case "state":
+				return ec.fieldContext_AlertInstance_state(ctx, field)
+			case "dedupKey":
+				return ec.fieldContext_AlertInstance_dedupKey(ctx, field)
+			case "firedAt":
+				return ec.fieldContext_AlertInstance_firedAt(ctx, field)
+			case "lastSeenAt":
+				return ec.fieldContext_AlertInstance_lastSeenAt(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_AlertInstance_resolvedAt(ctx, field)
+			case "currentValue":
+				return ec.fieldContext_AlertInstance_currentValue(ctx, field)
+			case "message":
+				return ec.fieldContext_AlertInstance_message(ctx, field)
+			case "contextJson":
+				return ec.fieldContext_AlertInstance_contextJson(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertInstance", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_alertHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_alertHistory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().AlertHistory(ctx, fc.Args["filter"].(*model.AlertHistoryFilterInput))
+		},
+		nil,
+		ec.marshalNAlertHistoryPage2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_alertHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "instances":
+				return ec.fieldContext_AlertHistoryPage_instances(ctx, field)
+			case "total":
+				return ec.fieldContext_AlertHistoryPage_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertHistoryPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_alertHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -29141,6 +31331,112 @@ func (ec *executionContext) fieldContext_StoredException_capturedAt(_ context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Subscription_alertFired(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	return graphql.ResolveFieldStream(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Subscription_alertFired,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Subscription().AlertFired(ctx)
+		},
+		nil,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Subscription_alertFired(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertInstance_id(ctx, field)
+			case "ruleId":
+				return ec.fieldContext_AlertInstance_ruleId(ctx, field)
+			case "rule":
+				return ec.fieldContext_AlertInstance_rule(ctx, field)
+			case "state":
+				return ec.fieldContext_AlertInstance_state(ctx, field)
+			case "dedupKey":
+				return ec.fieldContext_AlertInstance_dedupKey(ctx, field)
+			case "firedAt":
+				return ec.fieldContext_AlertInstance_firedAt(ctx, field)
+			case "lastSeenAt":
+				return ec.fieldContext_AlertInstance_lastSeenAt(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_AlertInstance_resolvedAt(ctx, field)
+			case "currentValue":
+				return ec.fieldContext_AlertInstance_currentValue(ctx, field)
+			case "message":
+				return ec.fieldContext_AlertInstance_message(ctx, field)
+			case "contextJson":
+				return ec.fieldContext_AlertInstance_contextJson(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertInstance", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_alertResolved(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	return graphql.ResolveFieldStream(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Subscription_alertResolved,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Subscription().AlertResolved(ctx)
+		},
+		nil,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Subscription_alertResolved(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AlertInstance_id(ctx, field)
+			case "ruleId":
+				return ec.fieldContext_AlertInstance_ruleId(ctx, field)
+			case "rule":
+				return ec.fieldContext_AlertInstance_rule(ctx, field)
+			case "state":
+				return ec.fieldContext_AlertInstance_state(ctx, field)
+			case "dedupKey":
+				return ec.fieldContext_AlertInstance_dedupKey(ctx, field)
+			case "firedAt":
+				return ec.fieldContext_AlertInstance_firedAt(ctx, field)
+			case "lastSeenAt":
+				return ec.fieldContext_AlertInstance_lastSeenAt(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_AlertInstance_resolvedAt(ctx, field)
+			case "currentValue":
+				return ec.fieldContext_AlertInstance_currentValue(ctx, field)
+			case "message":
+				return ec.fieldContext_AlertInstance_message(ctx, field)
+			case "contextJson":
+				return ec.fieldContext_AlertInstance_contextJson(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertInstance", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Subscription_blueGreenStateChanged(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	return graphql.ResolveFieldStream(
 		ctx,
@@ -34247,6 +36543,107 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAlertConditionInput(ctx context.Context, obj any) (model.AlertConditionInput, error) {
+	var it model.AlertConditionInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"type", "threshold", "windowSec"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "threshold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Threshold = data
+		case "windowSec":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("windowSec"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WindowSec = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputAlertHistoryFilterInput(ctx context.Context, obj any) (model.AlertHistoryFilterInput, error) {
+	var it model.AlertHistoryFilterInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"ruleId", "state", "after", "before", "limit", "offset"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "ruleId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ruleId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RuleID = data
+		case "state":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+			data, err := ec.unmarshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.State = data
+		case "after":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		case "before":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Before = data
+		case "limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "offset":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Offset = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCheckpointHistoryFilter(ctx context.Context, obj any) (model.CheckpointHistoryFilter, error) {
 	var it model.CheckpointHistoryFilter
 	asMap := map[string]any{}
@@ -34303,6 +36700,67 @@ func (ec *executionContext) unmarshalInputCheckpointHistoryFilter(ctx context.Co
 				return it, err
 			}
 			it.Before = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateAlertRuleInput(ctx context.Context, obj any) (model.CreateAlertRuleInput, error) {
+	var it model.CreateAlertRuleInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "condition", "severity", "owner", "enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "condition":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("condition"))
+			data, err := ec.unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Condition = data
+		case "severity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("severity"))
+			data, err := ec.unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Severity = data
+		case "owner":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("owner"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Owner = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
 		}
 	}
 	return it, nil
@@ -34637,6 +37095,67 @@ func (ec *executionContext) unmarshalInputSimulationInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateAlertRuleInput(ctx context.Context, obj any) (model.UpdateAlertRuleInput, error) {
+	var it model.UpdateAlertRuleInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "condition", "severity", "owner", "enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "condition":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("condition"))
+			data, err := ec.unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Condition = data
+		case "severity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("severity"))
+			data, err := ec.unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Severity = data
+		case "owner":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("owner"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Owner = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -34644,6 +37163,319 @@ func (ec *executionContext) unmarshalInputSimulationInput(ctx context.Context, o
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var alertAckImplementors = []string{"AlertAck"}
+
+func (ec *executionContext) _AlertAck(ctx context.Context, sel ast.SelectionSet, obj *model.AlertAck) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertAckImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertAck")
+		case "id":
+			out.Values[i] = ec._AlertAck_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "instanceId":
+			out.Values[i] = ec._AlertAck_instanceId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ackBy":
+			out.Values[i] = ec._AlertAck_ackBy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ackAt":
+			out.Values[i] = ec._AlertAck_ackAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "note":
+			out.Values[i] = ec._AlertAck_note(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var alertConditionImplementors = []string{"AlertCondition"}
+
+func (ec *executionContext) _AlertCondition(ctx context.Context, sel ast.SelectionSet, obj *model.AlertCondition) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertConditionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertCondition")
+		case "type":
+			out.Values[i] = ec._AlertCondition_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "threshold":
+			out.Values[i] = ec._AlertCondition_threshold(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "windowSec":
+			out.Values[i] = ec._AlertCondition_windowSec(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var alertHistoryPageImplementors = []string{"AlertHistoryPage"}
+
+func (ec *executionContext) _AlertHistoryPage(ctx context.Context, sel ast.SelectionSet, obj *model.AlertHistoryPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertHistoryPageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertHistoryPage")
+		case "instances":
+			out.Values[i] = ec._AlertHistoryPage_instances(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "total":
+			out.Values[i] = ec._AlertHistoryPage_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var alertInstanceImplementors = []string{"AlertInstance"}
+
+func (ec *executionContext) _AlertInstance(ctx context.Context, sel ast.SelectionSet, obj *model.AlertInstance) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertInstanceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertInstance")
+		case "id":
+			out.Values[i] = ec._AlertInstance_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ruleId":
+			out.Values[i] = ec._AlertInstance_ruleId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rule":
+			out.Values[i] = ec._AlertInstance_rule(ctx, field, obj)
+		case "state":
+			out.Values[i] = ec._AlertInstance_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dedupKey":
+			out.Values[i] = ec._AlertInstance_dedupKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "firedAt":
+			out.Values[i] = ec._AlertInstance_firedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastSeenAt":
+			out.Values[i] = ec._AlertInstance_lastSeenAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "resolvedAt":
+			out.Values[i] = ec._AlertInstance_resolvedAt(ctx, field, obj)
+		case "currentValue":
+			out.Values[i] = ec._AlertInstance_currentValue(ctx, field, obj)
+		case "message":
+			out.Values[i] = ec._AlertInstance_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "contextJson":
+			out.Values[i] = ec._AlertInstance_contextJson(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var alertRuleImplementors = []string{"AlertRule"}
+
+func (ec *executionContext) _AlertRule(ctx context.Context, sel ast.SelectionSet, obj *model.AlertRule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertRuleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertRule")
+		case "id":
+			out.Values[i] = ec._AlertRule_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._AlertRule_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._AlertRule_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "condition":
+			out.Values[i] = ec._AlertRule_condition(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "severity":
+			out.Values[i] = ec._AlertRule_severity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "owner":
+			out.Values[i] = ec._AlertRule_owner(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isPreset":
+			out.Values[i] = ec._AlertRule_isPreset(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "enabled":
+			out.Values[i] = ec._AlertRule_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._AlertRule_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._AlertRule_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
 
 var allocatedSlotImplementors = []string{"AllocatedSlot"}
 
@@ -39160,6 +41992,48 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createAlertRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createAlertRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateAlertRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateAlertRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteAlertRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteAlertRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "acknowledgeAlert":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_acknowledgeAlert(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "silenceAlert":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_silenceAlert(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "resolveAlert":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_resolveAlert(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "executeDatabaseQuery":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_executeDatabaseQuery(ctx, field)
@@ -39533,6 +42407,91 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clusters(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "alertRules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_alertRules(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "alertRule":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_alertRule(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "activeAlerts":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_activeAlerts(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "alertHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_alertHistory(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -42410,6 +45369,10 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
+	case "alertFired":
+		return ec._Subscription_alertFired(ctx, fields[0])
+	case "alertResolved":
+		return ec._Subscription_alertResolved(ctx, fields[0])
 	case "blueGreenStateChanged":
 		return ec._Subscription_blueGreenStateChanged(ctx, fields[0])
 	case "jobStatusChanged":
@@ -44032,6 +46995,125 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNAlertCondition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertCondition(ctx context.Context, sel ast.SelectionSet, v *model.AlertCondition) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AlertCondition(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx context.Context, v any) (*model.AlertConditionInput, error) {
+	res, err := ec.unmarshalInputAlertConditionInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx context.Context, v any) (model.AlertConditionType, error) {
+	var res model.AlertConditionType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx context.Context, sel ast.SelectionSet, v model.AlertConditionType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNAlertHistoryPage2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage(ctx context.Context, sel ast.SelectionSet, v model.AlertHistoryPage) graphql.Marshaler {
+	return ec._AlertHistoryPage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertHistoryPage2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage(ctx context.Context, sel ast.SelectionSet, v *model.AlertHistoryPage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AlertHistoryPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAlertInstance2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx context.Context, sel ast.SelectionSet, v model.AlertInstance) graphql.Marshaler {
+	return ec._AlertInstance(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AlertInstance) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx context.Context, sel ast.SelectionSet, v *model.AlertInstance) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AlertInstance(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAlertRule2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v model.AlertRule) graphql.Marshaler {
+	return ec._AlertRule(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertRule2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AlertRule) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v *model.AlertRule) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AlertRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx context.Context, v any) (model.AlertSeverity, error) {
+	var res model.AlertSeverity
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx context.Context, sel ast.SelectionSet, v model.AlertSeverity) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, v any) (model.AlertState, error) {
+	var res model.AlertState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, sel ast.SelectionSet, v model.AlertState) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNAllocatedSlot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AllocatedSlot) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -44446,6 +47528,11 @@ func (ec *executionContext) marshalNConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋfl
 		return graphql.Null
 	}
 	return ec._ConfigEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCreateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCreateAlertRuleInput(ctx context.Context, v any) (model.CreateAlertRuleInput, error) {
+	res, err := ec.unmarshalInputCreateAlertRuleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNDashboardConfig2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig(ctx context.Context, sel ast.SelectionSet, v model.DashboardConfig) graphql.Marshaler {
@@ -46626,6 +49713,11 @@ func (ec *executionContext) marshalNTimestampEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._TimestampEntry(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNUpdateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUpdateAlertRuleInput(ctx context.Context, v any) (model.UpdateAlertRuleInput, error) {
+	res, err := ec.unmarshalInputUpdateAlertRuleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNUserAccumulator2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulatorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.UserAccumulator) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -46873,6 +49965,37 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) unmarshalOAlertHistoryFilterInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryFilterInput(ctx context.Context, v any) (*model.AlertHistoryFilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAlertHistoryFilterInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v *model.AlertRule) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AlertRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, v any) (*model.AlertState, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.AlertState)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, sel ast.SelectionSet, v *model.AlertState) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalOBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenDeployment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -47052,6 +50175,24 @@ func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalID(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v any) (*int, error) {

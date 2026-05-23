@@ -17,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	instruments "github.com/sandboxws/flink-reactor-instruments"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/alerts"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
@@ -52,6 +53,9 @@ type Config struct {
 
 	// SimulationEngine manages chaos engineering simulations. May be nil when storage is disabled.
 	SimulationEngine *simulation.Engine
+
+	// AlertEngine drives server-side alert evaluation and subscription fan-out. May be nil when storage is disabled.
+	AlertEngine *alerts.Engine
 
 	// InitSQLPath is the path to an init SQL file whose DDL is executed on
 	// every new SQL Gateway session. Empty string disables init SQL.
@@ -196,6 +200,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		StorageConfig:      cfg.StorageConfig,
 		SimulationEngine:   cfg.SimulationEngine,
 		SavepointTriggers:  savepoints.NewTriggerTypeCache(),
+		AlertEngine:        cfg.AlertEngine,
 	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
@@ -270,6 +275,13 @@ func WithStores(stores *store.Stores) Option {
 func WithSimulationEngine(engine *simulation.Engine) Option {
 	return func(c *Config) {
 		c.SimulationEngine = engine
+	}
+}
+
+// WithAlertEngine sets the alerts engine for the GraphQL resolver.
+func WithAlertEngine(engine *alerts.Engine) Option {
+	return func(c *Config) {
+		c.AlertEngine = engine
 	}
 }
 

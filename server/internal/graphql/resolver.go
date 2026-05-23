@@ -4,6 +4,7 @@ package graphql
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	instruments "github.com/sandboxws/flink-reactor-instruments"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/alerts"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
@@ -27,4 +28,5 @@ type Resolver struct {
 	StorageConfig      config.StorageConfig
 	SimulationEngine   *simulation.Engine        // nil when storage disabled
 	SavepointTriggers  *savepoints.TriggerTypeCache
+	AlertEngine        *alerts.Engine // nil when storage disabled
 }

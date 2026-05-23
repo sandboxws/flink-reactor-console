@@ -20,6 +20,7 @@ type Stores struct {
 	Metrics      *MetricStore
 	Logs         *LogStore
 	TapManifests *TapManifestStore
+	Alerts       *AlertStore
 }
 
 // New creates a Stores aggregate backed by the given connection pool.
@@ -35,5 +36,10 @@ func New(pool *pgxpool.Pool) *Stores {
 		Metrics:      &MetricStore{pool: pool},
 		Logs:         &LogStore{pool: pool},
 		TapManifests: &TapManifestStore{pool: pool},
+		Alerts:       &AlertStore{pool: pool},
 	}
 }
+
+// Pool exposes the underlying connection pool for components that need direct
+// access (e.g. the alerts engine for LISTEN/NOTIFY subscriptions).
+func (s *Stores) Pool() *pgxpool.Pool { return s.pool }

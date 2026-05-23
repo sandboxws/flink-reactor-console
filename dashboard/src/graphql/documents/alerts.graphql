@@ -1,0 +1,102 @@
+fragment AlertConditionFields on AlertCondition {
+  type
+  threshold
+  windowSec
+}
+
+fragment AlertRuleFields on AlertRule {
+  id
+  name
+  description
+  condition {
+    ...AlertConditionFields
+  }
+  severity
+  owner
+  isPreset
+  enabled
+  createdAt
+  updatedAt
+}
+
+fragment AlertInstanceFields on AlertInstance {
+  id
+  ruleId
+  state
+  dedupKey
+  firedAt
+  lastSeenAt
+  resolvedAt
+  currentValue
+  message
+  contextJson
+}
+
+query AlertRules($enabledOnly: Boolean) {
+  alertRules(enabledOnly: $enabledOnly) {
+    ...AlertRuleFields
+  }
+}
+
+query ActiveAlerts {
+  activeAlerts {
+    ...AlertInstanceFields
+  }
+}
+
+query AlertHistory($filter: AlertHistoryFilterInput) {
+  alertHistory(filter: $filter) {
+    total
+    instances {
+      ...AlertInstanceFields
+    }
+  }
+}
+
+mutation CreateAlertRule($input: CreateAlertRuleInput!) {
+  createAlertRule(input: $input) {
+    ...AlertRuleFields
+  }
+}
+
+mutation UpdateAlertRule($id: ID!, $input: UpdateAlertRuleInput!) {
+  updateAlertRule(id: $id, input: $input) {
+    ...AlertRuleFields
+  }
+}
+
+mutation DeleteAlertRule($id: ID!) {
+  deleteAlertRule(id: $id) {
+    success
+  }
+}
+
+mutation AcknowledgeAlert($id: ID!, $note: String) {
+  acknowledgeAlert(id: $id, note: $note) {
+    ...AlertInstanceFields
+  }
+}
+
+mutation SilenceAlert($id: ID!) {
+  silenceAlert(id: $id) {
+    ...AlertInstanceFields
+  }
+}
+
+mutation ResolveAlert($id: ID!) {
+  resolveAlert(id: $id) {
+    ...AlertInstanceFields
+  }
+}
+
+subscription AlertFired {
+  alertFired {
+    ...AlertInstanceFields
+  }
+}
+
+subscription AlertResolved {
+  alertResolved {
+    ...AlertInstanceFields
+  }
+}

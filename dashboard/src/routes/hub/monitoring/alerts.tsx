@@ -23,6 +23,7 @@ import {
 } from "@/components/hub/alerts/alert-filter-rail"
 import { AlertGroupHeader } from "@/components/hub/alerts/alert-group-header"
 import { AlertRow } from "@/components/hub/alerts/alert-row"
+import { RulesTab } from "@/components/hub/alerts/rules-tab"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import {
@@ -53,6 +54,7 @@ function HubMonitoringAlerts() {
   const rules = useAlertsStore((s) => s.rules)
   const acknowledgeAlert = useAlertsStore((s) => s.acknowledgeAlert)
 
+  const [tab, setTab] = useState<"active" | "rules">("active")
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<AlertStatusFilter>(null)
   const [severityFilter, setSeverityFilter] =
@@ -203,7 +205,22 @@ function HubMonitoringAlerts() {
         />
       </section>
 
-      {activeAlerts.length === 0 ? (
+      {/* Active / Rules sub-tabs */}
+      <div className="mb-4 flex items-center gap-1 border-b border-dash-border">
+        <SubTabButton
+          active={tab === "active"}
+          onClick={() => setTab("active")}
+        >
+          Active ({activeAlerts.length})
+        </SubTabButton>
+        <SubTabButton active={tab === "rules"} onClick={() => setTab("rules")}>
+          Rules ({rules.length})
+        </SubTabButton>
+      </div>
+
+      {tab === "rules" ? (
+        <RulesTab />
+      ) : activeAlerts.length === 0 ? (
         <AlertEmptyState enabledRuleCount={enabledRuleCount} />
       ) : (
         <>
@@ -297,6 +314,30 @@ function KpiTile({ label, value, sub, state, tone }: KpiTileProps) {
       <div className={`kpi-value ${valueClass}`}>{value}</div>
       {sub ? <div className="kpi-sub">{sub}</div> : null}
     </div>
+  )
+}
+
+function SubTabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        active
+          ? "border-b-2 border-fr-coral px-3 py-2 text-[12px] font-medium text-zinc-100"
+          : "border-b-2 border-transparent px-3 py-2 text-[12px] text-fg-muted hover:text-zinc-200"
+      }
+    >
+      {children}
+    </button>
   )
 }
 

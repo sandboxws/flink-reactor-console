@@ -1,0 +1,153 @@
+# Server-side alerts engine: rules, instances, mutations, subscriptions.
+
+"""
+Alert rule condition type. v1 enum.
+"""
+enum AlertConditionType {
+  SLOT_EXHAUSTION
+  BACKPRESSURE
+  CHECKPOINT_FAILURE
+  TM_MEMORY
+  TM_LOST
+}
+
+enum AlertSeverity {
+  info
+  warning
+  critical
+}
+
+enum AlertState {
+  FIRING
+  ACKNOWLEDGED
+  SILENCED
+  RESOLVED
+}
+
+"""
+Structured condition payload stored on an alert rule.
+"""
+type AlertCondition {
+  type: AlertConditionType!
+  threshold: Float!
+  windowSec: Int
+}
+
+"""
+A configured alert rule.
+"""
+type AlertRule {
+  id: ID!
+  name: String!
+  description: String!
+  condition: AlertCondition!
+  severity: AlertSeverity!
+  owner: String!
+  isPreset: Boolean!
+  enabled: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""
+A single firing/acknowledged/resolved alert occurrence.
+"""
+type AlertInstance {
+  id: ID!
+  ruleId: ID!
+  rule: AlertRule
+  state: AlertState!
+  dedupKey: String!
+  firedAt: String!
+  lastSeenAt: String!
+  resolvedAt: String
+  currentValue: Float
+  message: String!
+  contextJson: String!
+}
+
+"""
+Acknowledgement record for an alert instance.
+"""
+type AlertAck {
+  id: ID!
+  instanceId: ID!
+  ackBy: String!
+  ackAt: String!
+  note: String!
+}
+
+input AlertConditionInput {
+  type: AlertConditionType!
+  threshold: Float!
+  windowSec: Int
+}
+
+input CreateAlertRuleInput {
+  name: String!
+  description: String
+  condition: AlertConditionInput!
+  severity: AlertSeverity!
+  owner: String
+  enabled: Boolean
+}
+
+input UpdateAlertRuleInput {
+  name: String!
+  description: String
+  condition: AlertConditionInput!
+  severity: AlertSeverity!
+  owner: String
+  enabled: Boolean!
+}
+
+input AlertHistoryFilterInput {
+  ruleId: ID
+  state: AlertState
+  after: String
+  before: String
+  limit: Int
+  offset: Int
+}
+
+type AlertHistoryPage {
+  instances: [AlertInstance!]!
+  total: Int!
+}
+
+extend type Query {
+  """All configured alert rules."""
+  alertRules(enabledOnly: Boolean): [AlertRule!]!
+
+  """A single rule by ID."""
+  alertRule(id: ID!): AlertRule
+
+  """All currently FIRING or ACKNOWLEDGED instances."""
+  activeAlerts: [AlertInstance!]!
+
+  """Paginated historical alert instances."""
+  alertHistory(filter: AlertHistoryFilterInput): AlertHistoryPage!
+}
+
+extend type Mutation {
+  createAlertRule(input: CreateAlertRuleInput!): AlertRule!
+  updateAlertRule(id: ID!, input: UpdateAlertRuleInput!): AlertRule!
+  deleteAlertRule(id: ID!): DeleteResult!
+
+  """Acknowledge a FIRING instance; transitions state to ACKNOWLEDGED."""
+  acknowledgeAlert(id: ID!, note: String): AlertInstance!
+
+  """Mark an instance as SILENCED (suppresses repeat firings until resolved)."""
+  silenceAlert(id: ID!): AlertInstance!
+
+  """Manually resolve an instance (works from any state)."""
+  resolveAlert(id: ID!): AlertInstance!
+}
+
+extend type Subscription {
+  """Emits an AlertInstance whenever a new instance opens."""
+  alertFired: AlertInstance!
+
+  """Emits an AlertInstance whenever an instance transitions to RESOLVED."""
+  alertResolved: AlertInstance!
+}
