@@ -18,3 +18,11 @@ query JobManagerDetail($cluster: String) {
     }
   }
 }
+
+query JobManagerStdout($cluster: String) {
+  jobManagerStdout(cluster: $cluster)
+}
+
+query JobManagerStderr($cluster: String) {
+  jobManagerStderr(cluster: $cluster)
+}

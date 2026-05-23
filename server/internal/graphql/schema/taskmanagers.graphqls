@@ -91,4 +91,10 @@ extend type Query {
 
   """Get task manager thread dump"""
   taskManagerThreadDump(id: ID!, cluster: String): [ThreadDumpEntry!]!
+
+  """Get task manager process stdout (tail-truncated to last 1 MB)"""
+  taskManagerStdout(id: ID!, cluster: String): String!
+
+  """Get task manager process stderr (tail-truncated to last 1 MB)"""
+  taskManagerStderr(id: ID!, cluster: String): String!
 }

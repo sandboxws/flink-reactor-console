@@ -1202,6 +1202,10 @@ export type Query = {
   jobHistory: JobHistoryConnection;
   /** Get job manager config, environment, and metrics */
   jobManager: JobManagerDetail;
+  /** Get job manager process stderr (tail-truncated to last 1 MB) */
+  jobManagerStderr: Scalars['String']['output'];
+  /** Get job manager process stdout (tail-truncated to last 1 MB) */
+  jobManagerStdout: Scalars['String']['output'];
   /** List all jobs in a cluster */
   jobs: Array<JobOverview>;
   /** Get detailed information about a specific consumer group. */
@@ -1266,6 +1270,10 @@ export type Query = {
   taskManager: TaskManagerDetail;
   /** Get task manager logs list */
   taskManagerLogs: Array<TmLogEntry>;
+  /** Get task manager process stderr (tail-truncated to last 1 MB) */
+  taskManagerStderr: Scalars['String']['output'];
+  /** Get task manager process stdout (tail-truncated to last 1 MB) */
+  taskManagerStdout: Scalars['String']['output'];
   /** Get task manager thread dump */
   taskManagerThreadDump: Array<ThreadDumpEntry>;
   /** List all task managers in a cluster */
@@ -1437,6 +1445,16 @@ export type QueryJobManagerArgs = {
 };
 
 
+export type QueryJobManagerStderrArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryJobManagerStdoutArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryJobsArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
 };
@@ -1576,6 +1594,18 @@ export type QueryTaskManagerArgs = {
 
 
 export type QueryTaskManagerLogsArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryTaskManagerStderrArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryTaskManagerStdoutArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
 };
@@ -2272,6 +2302,20 @@ export type JobManagerDetailQueryVariables = Exact<{
 
 export type JobManagerDetailQuery = { __typename?: 'Query', jobManager: { __typename?: 'JobManagerDetail', config: Array<{ __typename?: 'JMConfigEntry', key: string, value: string }>, environment: { __typename?: 'JMEnvironment', classpath: Array<string>, jvm: { __typename?: 'JMEnvironmentJVM', version: string, arch: string, options: Array<string> } } | null, metrics: Array<{ __typename?: 'MetricEntry', id: string, value: string }> } };
 
+export type JobManagerStdoutQueryVariables = Exact<{
+  cluster: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type JobManagerStdoutQuery = { __typename?: 'Query', jobManagerStdout: string };
+
+export type JobManagerStderrQueryVariables = Exact<{
+  cluster: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type JobManagerStderrQuery = { __typename?: 'Query', jobManagerStderr: string };
+
 export type JobsListQueryVariables = Exact<{
   cluster: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -2430,3 +2474,19 @@ export type TaskManagerDetailQueryVariables = Exact<{
 
 
 export type TaskManagerDetailQuery = { __typename?: 'Query', taskManager: { __typename?: 'TaskManagerDetail', id: string, path: string, dataPort: number, jmxPort: number, timeSinceLastHeartbeat: string, slotsNumber: number, freeSlots: number, totalResource: { __typename?: 'TaskManagerResourceProfile', cpuCores: number, taskHeapMemory: string, taskOffHeapMemory: string, managedMemory: string, networkMemory: string }, freeResource: { __typename?: 'TaskManagerResourceProfile', cpuCores: number, taskHeapMemory: string, taskOffHeapMemory: string, managedMemory: string, networkMemory: string }, hardware: { __typename?: 'TaskManagerHardware', cpuCores: number, physicalMemory: string, freeMemory: string, managedMemory: string }, memoryConfiguration: { __typename?: 'TaskManagerMemory', frameworkHeap: string, taskHeap: string, frameworkOffHeap: string, taskOffHeap: string, networkMemory: string, managedMemory: string, jvmMetaspace: string, jvmOverhead: string, totalFlinkMemory: string, totalProcessMemory: string }, allocatedSlots: Array<{ __typename?: 'AllocatedSlot', index: number, jobId: string, resource: { __typename?: 'TaskManagerResourceProfile', cpuCores: number, taskHeapMemory: string, taskOffHeapMemory: string, managedMemory: string, networkMemory: string } }>, metrics: Array<{ __typename?: 'MetricEntry', id: string, value: string }> } };
+
+export type TaskManagerStdoutQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+  cluster: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type TaskManagerStdoutQuery = { __typename?: 'Query', taskManagerStdout: string };
+
+export type TaskManagerStderrQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+  cluster: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type TaskManagerStderrQuery = { __typename?: 'Query', taskManagerStderr: string };

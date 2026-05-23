@@ -100,3 +100,11 @@ query TaskManagerDetail($id: ID!, $cluster: String) {
     }
   }
 }
+
+query TaskManagerStdout($id: ID!, $cluster: String) {
+  taskManagerStdout(id: $id, cluster: $cluster)
+}
+
+query TaskManagerStderr($id: ID!, $cluster: String) {
+  taskManagerStderr(id: $id, cluster: $cluster)
+}

@@ -7,7 +7,9 @@ package graphql
 
 import (
 	"context"
+	"log/slog"
 
+	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
@@ -45,4 +47,32 @@ func (r *queryResolver) JobManager(ctx context.Context, cluster *string) (*model
 		Environment: env,
 		Metrics:     mapMetrics(agg.Metrics),
 	}, nil
+}
+
+// JobManagerStdout is the resolver for the jobManagerStdout field.
+func (r *queryResolver) JobManagerStdout(ctx context.Context, cluster *string) (string, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return "", err
+	}
+	out, err := conn.Service.GetJobManagerStdout(ctx)
+	if flink.IsNotFound(err) {
+		slog.Default().Info("flink jobmanager stdout endpoint not available", slog.String("cluster", conn.Name))
+		return "", nil
+	}
+	return out, err
+}
+
+// JobManagerStderr is the resolver for the jobManagerStderr field.
+func (r *queryResolver) JobManagerStderr(ctx context.Context, cluster *string) (string, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return "", err
+	}
+	out, err := conn.Service.GetJobManagerStderr(ctx)
+	if flink.IsNotFound(err) {
+		slog.Default().Info("flink jobmanager stderr endpoint not available", slog.String("cluster", conn.Name))
+		return "", nil
+	}
+	return out, err
 }

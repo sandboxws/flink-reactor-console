@@ -231,6 +231,18 @@ const JOB_MANAGER_QUERY = gql`
   }
 `
 
+const JOB_MANAGER_STDOUT_QUERY = gql`
+  query JobManagerStdout($cluster: String) {
+    jobManagerStdout(cluster: $cluster)
+  }
+`
+
+const TASK_MANAGER_STDOUT_QUERY = gql`
+  query TaskManagerStdout($id: ID!, $cluster: String) {
+    taskManagerStdout(id: $id, cluster: $cluster)
+  }
+`
+
 const FLINK_CONFIG_QUERY = gql`
   query FlinkConfig($cluster: String) {
     flinkConfig(cluster: $cluster) {
@@ -1495,9 +1507,14 @@ export async function fetchTaskManagerLogFile(
   return resp.text()
 }
 
-/** Fetch TM stdout. */
+/** Fetch TM stdout via the dedicated GraphQL query (server tail-caps at 1 MB). */
 export async function fetchTaskManagerStdout(tmId: string): Promise<string> {
-  return fetchTaskManagerLogFile(tmId, "taskmanager.out")
+  const data = await query<{ taskManagerStdout: string }>(
+    TASK_MANAGER_STDOUT_QUERY,
+    { id: tmId },
+    "network-only",
+  )
+  return data.taskManagerStdout
 }
 
 /** Fetch TM thread dump. */
@@ -1546,9 +1563,14 @@ export async function fetchJobManagerLogFile(logName: string): Promise<string> {
   return resp.text()
 }
 
-/** Fetch JM stdout. */
+/** Fetch JM stdout via the dedicated GraphQL query (server tail-caps at 1 MB). */
 export async function fetchJobManagerStdout(): Promise<string> {
-  return fetchJobManagerLogFile("jobmanager.out")
+  const data = await query<{ jobManagerStdout: string }>(
+    JOB_MANAGER_STDOUT_QUERY,
+    {},
+    "network-only",
+  )
+  return data.jobManagerStdout
 }
 
 /** Fetch JM thread dump. */

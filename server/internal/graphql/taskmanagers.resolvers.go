@@ -7,7 +7,9 @@ package graphql
 
 import (
 	"context"
+	"log/slog"
 
+	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
@@ -118,4 +120,34 @@ func (r *queryResolver) TaskManagerThreadDump(ctx context.Context, id string, cl
 		}
 	}
 	return result, nil
+}
+
+// TaskManagerStdout is the resolver for the taskManagerStdout field.
+func (r *queryResolver) TaskManagerStdout(ctx context.Context, id string, cluster *string) (string, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return "", err
+	}
+	out, err := conn.Service.GetTaskManagerStdout(ctx, id)
+	if flink.IsNotFound(err) {
+		slog.Default().Info("flink taskmanager stdout endpoint not available",
+			slog.String("cluster", conn.Name), slog.String("tm_id", id))
+		return "", nil
+	}
+	return out, err
+}
+
+// TaskManagerStderr is the resolver for the taskManagerStderr field.
+func (r *queryResolver) TaskManagerStderr(ctx context.Context, id string, cluster *string) (string, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return "", err
+	}
+	out, err := conn.Service.GetTaskManagerStderr(ctx, id)
+	if flink.IsNotFound(err) {
+		slog.Default().Info("flink taskmanager stderr endpoint not available",
+			slog.String("cluster", conn.Name), slog.String("tm_id", id))
+		return "", nil
+	}
+	return out, err
 }

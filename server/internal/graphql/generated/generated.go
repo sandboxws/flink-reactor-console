@@ -731,6 +731,8 @@ type ComplexityRoot struct {
 		Job                           func(childComplexity int, id string, cluster *string) int
 		JobHistory                    func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput, orderBy *model.OrderByInput) int
 		JobManager                    func(childComplexity int, cluster *string) int
+		JobManagerStderr              func(childComplexity int, cluster *string) int
+		JobManagerStdout              func(childComplexity int, cluster *string) int
 		Jobs                          func(childComplexity int, cluster *string) int
 		KafkaConsumerGroup            func(childComplexity int, instrument string, groupID string) int
 		KafkaConsumerGroups           func(childComplexity int, instrument string) int
@@ -760,6 +762,8 @@ type ComplexityRoot struct {
 		TapManifests                  func(childComplexity int) int
 		TaskManager                   func(childComplexity int, id string, cluster *string) int
 		TaskManagerLogs               func(childComplexity int, id string, cluster *string) int
+		TaskManagerStderr             func(childComplexity int, id string, cluster *string) int
+		TaskManagerStdout             func(childComplexity int, id string, cluster *string) int
 		TaskManagerThreadDump         func(childComplexity int, id string, cluster *string) int
 		TaskManagers                  func(childComplexity int, cluster *string) int
 		VertexDetail                  func(childComplexity int, jobID string, vertexID string, cluster *string) int
@@ -1197,6 +1201,8 @@ type QueryResolver interface {
 	Instruments(ctx context.Context) ([]*model.InstrumentInfo, error)
 	Jars(ctx context.Context, cluster *string) ([]*model.JarFile, error)
 	JobManager(ctx context.Context, cluster *string) (*model.JobManagerDetail, error)
+	JobManagerStdout(ctx context.Context, cluster *string) (string, error)
+	JobManagerStderr(ctx context.Context, cluster *string) (string, error)
 	Jobs(ctx context.Context, cluster *string) ([]*model.JobOverview, error)
 	Job(ctx context.Context, id string, cluster *string) (*model.JobDetail, error)
 	VertexDetail(ctx context.Context, jobID string, vertexID string, cluster *string) (*model.VertexDetail, error)
@@ -1228,6 +1234,8 @@ type QueryResolver interface {
 	TaskManager(ctx context.Context, id string, cluster *string) (*model.TaskManagerDetail, error)
 	TaskManagerLogs(ctx context.Context, id string, cluster *string) ([]*model.TMLogEntry, error)
 	TaskManagerThreadDump(ctx context.Context, id string, cluster *string) ([]*model.ThreadDumpEntry, error)
+	TaskManagerStdout(ctx context.Context, id string, cluster *string) (string, error)
+	TaskManagerStderr(ctx context.Context, id string, cluster *string) (string, error)
 }
 type SubscriptionResolver interface {
 	BlueGreenStateChanged(ctx context.Context, cluster *string, namespace *string) (<-chan *model.BlueGreenDeployment, error)
@@ -4155,6 +4163,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.JobManager(childComplexity, args["cluster"].(*string)), true
+	case "Query.jobManagerStderr":
+		if e.ComplexityRoot.Query.JobManagerStderr == nil {
+			break
+		}
+
+		args, err := ec.field_Query_jobManagerStderr_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.JobManagerStderr(childComplexity, args["cluster"].(*string)), true
+	case "Query.jobManagerStdout":
+		if e.ComplexityRoot.Query.JobManagerStdout == nil {
+			break
+		}
+
+		args, err := ec.field_Query_jobManagerStdout_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.JobManagerStdout(childComplexity, args["cluster"].(*string)), true
 	case "Query.jobs":
 		if e.ComplexityRoot.Query.Jobs == nil {
 			break
@@ -4449,6 +4479,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.TaskManagerLogs(childComplexity, args["id"].(string), args["cluster"].(*string)), true
+	case "Query.taskManagerStderr":
+		if e.ComplexityRoot.Query.TaskManagerStderr == nil {
+			break
+		}
+
+		args, err := ec.field_Query_taskManagerStderr_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.TaskManagerStderr(childComplexity, args["id"].(string), args["cluster"].(*string)), true
+	case "Query.taskManagerStdout":
+		if e.ComplexityRoot.Query.TaskManagerStdout == nil {
+			break
+		}
+
+		args, err := ec.field_Query_taskManagerStdout_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.TaskManagerStdout(childComplexity, args["id"].(string), args["cluster"].(*string)), true
 	case "Query.taskManagerThreadDump":
 		if e.ComplexityRoot.Query.TaskManagerThreadDump == nil {
 			break
@@ -6791,6 +6843,12 @@ type JobManagerDetail {
 extend type Query {
   """Get job manager config, environment, and metrics"""
   jobManager(cluster: String): JobManagerDetail!
+
+  """Get job manager process stdout (tail-truncated to last 1 MB)"""
+  jobManagerStdout(cluster: String): String!
+
+  """Get job manager process stderr (tail-truncated to last 1 MB)"""
+  jobManagerStderr(cluster: String): String!
 }
 `, BuiltIn: false},
 	{Name: "../schema/jobs.graphqls", Input: `# Job types and queries for the Flink dashboard
@@ -7879,6 +7937,12 @@ extend type Query {
 
   """Get task manager thread dump"""
   taskManagerThreadDump(id: ID!, cluster: String): [ThreadDumpEntry!]!
+
+  """Get task manager process stdout (tail-truncated to last 1 MB)"""
+  taskManagerStdout(id: ID!, cluster: String): String!
+
+  """Get task manager process stderr (tail-truncated to last 1 MB)"""
+  taskManagerStderr(id: ID!, cluster: String): String!
 }
 `, BuiltIn: false},
 }
@@ -8676,6 +8740,28 @@ func (ec *executionContext) field_Query_jobHistory_args(ctx context.Context, raw
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_jobManagerStderr_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_jobManagerStdout_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_jobManager_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9056,6 +9142,38 @@ func (ec *executionContext) field_Query_subtaskTimes_args(ctx context.Context, r
 }
 
 func (ec *executionContext) field_Query_taskManagerLogs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_taskManagerStderr_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_taskManagerStdout_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -23567,6 +23685,88 @@ func (ec *executionContext) fieldContext_Query_jobManager(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_jobManagerStdout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_jobManagerStdout,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().JobManagerStdout(ctx, fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_jobManagerStdout(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_jobManagerStdout_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_jobManagerStderr(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_jobManagerStderr,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().JobManagerStderr(ctx, fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_jobManagerStderr(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_jobManagerStderr_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -25252,6 +25452,88 @@ func (ec *executionContext) fieldContext_Query_taskManagerThreadDump(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_taskManagerThreadDump_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_taskManagerStdout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_taskManagerStdout,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().TaskManagerStdout(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_taskManagerStdout(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_taskManagerStdout_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_taskManagerStderr(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_taskManagerStderr,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().TaskManagerStderr(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_taskManagerStderr(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_taskManagerStderr_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -39898,6 +40180,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "jobManagerStdout":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_jobManagerStdout(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "jobManagerStderr":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_jobManagerStderr(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "jobs":
 			field := field
 
@@ -40562,6 +40888,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_taskManagerThreadDump(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "taskManagerStdout":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_taskManagerStdout(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "taskManagerStderr":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_taskManagerStderr(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

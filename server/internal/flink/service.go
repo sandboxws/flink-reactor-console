@@ -4,7 +4,28 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/url"
 )
+
+// StdioMaxBytes caps the size of stdout/stderr responses to avoid massive
+// GraphQL payloads. When the underlying Flink endpoint returns more bytes,
+// the response is tail-truncated to the last StdioMaxBytes and prefixed with
+// StdioTruncatedPrefix. Operators care about *recent* stdio (what just
+// happened before a crash), so tail-truncation preserves the high-value
+// content while bounding payload size.
+const (
+	StdioMaxBytes        = 1 << 20 // 1 MB
+	StdioTruncatedPrefix = "... [truncated to last 1MB]\n"
+)
+
+// capStdio applies the 1 MB tail cap described above. If the input is at or
+// below the cap, it is returned unchanged.
+func capStdio(s string) string {
+	if len(s) <= StdioMaxBytes {
+		return s
+	}
+	return StdioTruncatedPrefix + s[len(s)-StdioMaxBytes:]
+}
 
 // JarRunRequest holds parameters for running a JAR.
 type JarRunRequest struct {
@@ -311,4 +332,45 @@ func (s *Service) GetSubtaskTimes(ctx context.Context, jobID string, vertexID st
 		return nil, err
 	}
 	return &result, nil
+}
+
+// --- Process stdio (stdout/stderr) ---
+
+// GetJobManagerStdout returns the JM process stdout, capped at StdioMaxBytes.
+func (s *Service) GetJobManagerStdout(ctx context.Context) (string, error) {
+	body, err := s.client.GetText(ctx, "/jobmanager/stdout")
+	if err != nil {
+		return "", err
+	}
+	return capStdio(body), nil
+}
+
+// GetJobManagerStderr returns the JM process stderr, capped at StdioMaxBytes.
+func (s *Service) GetJobManagerStderr(ctx context.Context) (string, error) {
+	body, err := s.client.GetText(ctx, "/jobmanager/stderr")
+	if err != nil {
+		return "", err
+	}
+	return capStdio(body), nil
+}
+
+// GetTaskManagerStdout returns the TM process stdout for tmID, capped at
+// StdioMaxBytes. tmID is URL-encoded so host:port-style identifiers don't
+// corrupt the request path.
+func (s *Service) GetTaskManagerStdout(ctx context.Context, tmID string) (string, error) {
+	body, err := s.client.GetText(ctx, "/taskmanagers/"+url.PathEscape(tmID)+"/stdout")
+	if err != nil {
+		return "", err
+	}
+	return capStdio(body), nil
+}
+
+// GetTaskManagerStderr returns the TM process stderr for tmID, capped at
+// StdioMaxBytes. tmID is URL-encoded.
+func (s *Service) GetTaskManagerStderr(ctx context.Context, tmID string) (string, error) {
+	body, err := s.client.GetText(ctx, "/taskmanagers/"+url.PathEscape(tmID)+"/stderr")
+	if err != nil {
+		return "", err
+	}
+	return capStdio(body), nil
 }

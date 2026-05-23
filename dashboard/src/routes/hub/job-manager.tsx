@@ -18,13 +18,14 @@ import {
   ThreadDumpViewer,
 } from "@flink-reactor/ui"
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { ProfilerPicker } from "@/components/hub/tools/flamegraph/profiler-picker"
 import {
   JM_TABS,
   type JmTab,
   JmTabsHub,
 } from "@/components/hub/job-manager/jm-tabs-hub"
+import { fetchJobManagerStdout } from "@/lib/graphql-api-client"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -108,7 +109,8 @@ function Tab({ tab, jobManager }: TabProps) {
     case "logs":
       return <TextViewer text={jobManager.logs} maxHeight={500} />
     case "stdout":
-      return <TextViewer text={jobManager.stdout} maxHeight={500} />
+      return <JmStdoutTab />
+
     case "classpath":
       return <ClasspathTab classpath={jobManager.classpath} />
     case "jvm":
@@ -240,6 +242,42 @@ function JvmTab({ jm }: { jm: TabProps["jobManager"] }) {
       </div>
     </div>
   )
+}
+
+function JmStdoutTab() {
+  const [text, setText] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchJobManagerStdout()
+      .then((t) => {
+        if (!cancelled) {
+          setText(t)
+          setError(null)
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Failed to load")
+          setText("")
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (text === null) {
+    return <p className="text-[11px] font-mono text-fg-faint">Loading…</p>
+  }
+  if (error) {
+    return <p className="text-[12px] text-fr-rose">{error}</p>
+  }
+  if (text === "") {
+    return <p className="text-[12px] text-fg-muted">No stdout output.</p>
+  }
+  return <TextViewer text={text} maxHeight={500} />
 }
 
 function pct(used: number, max: number): number {

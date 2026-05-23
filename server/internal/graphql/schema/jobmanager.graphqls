@@ -25,4 +25,10 @@ type JobManagerDetail {
 extend type Query {
   """Get job manager config, environment, and metrics"""
   jobManager(cluster: String): JobManagerDetail!
+
+  """Get job manager process stdout (tail-truncated to last 1 MB)"""
+  jobManagerStdout(cluster: String): String!
+
+  """Get job manager process stderr (tail-truncated to last 1 MB)"""
+  jobManagerStderr(cluster: String): String!
 }
