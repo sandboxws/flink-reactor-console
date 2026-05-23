@@ -22,6 +22,12 @@ type JobOverview {
   duration: String!
   lastModification: String!
   tasks: TaskCounts!
+  """Records-per-second emitted by source vertices (job-wide input throughput). Null when no vertex metrics are available yet."""
+  recordsInPerSecond: Float
+  """Records-per-second consumed by sink vertices (job-wide output throughput). Null when no vertex metrics are available yet."""
+  recordsOutPerSecond: Float
+  """Watermark lag in milliseconds (`now - min subtask watermark`). Null for batch jobs or before any source has emitted a watermark."""
+  watermarkLag: Int
 }
 
 type VertexMetrics {
@@ -300,6 +306,44 @@ type CancelJobResult {
   success: Boolean!
 }
 
+"""Lifecycle state of a savepoint operation."""
+enum SavepointStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+"""
+How a savepoint was triggered.
+
+The server records this when its own mutations initiate a savepoint;
+savepoints observed in Flink but not initiated by this server default
+to MANUAL.
+"""
+enum SavepointTriggerType {
+  MANUAL
+  STOP_WITH_SAVEPOINT
+  BLUE_GREEN
+}
+
+"""A single Flink savepoint operation."""
+type Savepoint {
+  """The Flink savepoint operation handle."""
+  id: String!
+  status: SavepointStatus!
+  triggerType: SavepointTriggerType!
+  """Savepoint storage path. Null until the operation completes successfully."""
+  location: String
+  """Savepoint size in bytes (String to safely encode int64). Null until completed."""
+  sizeBytes: String
+  """Trigger-to-completion duration in milliseconds. Null until completed."""
+  durationMs: String
+  """ISO-millisecond epoch timestamp at which the operation was triggered."""
+  triggeredAt: String!
+  """Failure reason. Null unless `status: FAILED`."""
+  error: String
+}
+
 extend type Query {
   """List all jobs in a cluster"""
   jobs(cluster: String): [JobOverview!]!
@@ -318,6 +362,12 @@ extend type Query {
 
   """Get checkpoint detail"""
   checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointHistoryEntry!
+
+  """List savepoints for a job, ordered by triggeredAt descending."""
+  savepoints(jobId: ID!, cluster: String): [Savepoint!]!
+
+  """Get a single savepoint operation by ID."""
+  savepoint(jobId: ID!, savepointId: String!, cluster: String): Savepoint!
 }
 
 type SavepointTriggerResult {

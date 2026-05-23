@@ -49,6 +49,11 @@ type ComplexityRoot struct {
 		Subtasks          func(childComplexity int) int
 	}
 
+	BlueGreenConfigDiff struct {
+		BlueYaml  func(childComplexity int) int
+		GreenYaml func(childComplexity int) int
+	}
+
 	BlueGreenDeployment struct {
 		AbortGracePeriod         func(childComplexity int) int
 		AbortTimestamp           func(childComplexity int) int
@@ -511,14 +516,17 @@ type ComplexityRoot struct {
 	}
 
 	JobOverview struct {
-		Duration         func(childComplexity int) int
-		EndTime          func(childComplexity int) int
-		ID               func(childComplexity int) int
-		LastModification func(childComplexity int) int
-		Name             func(childComplexity int) int
-		StartTime        func(childComplexity int) int
-		State            func(childComplexity int) int
-		Tasks            func(childComplexity int) int
+		Duration            func(childComplexity int) int
+		EndTime             func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		LastModification    func(childComplexity int) int
+		Name                func(childComplexity int) int
+		RecordsInPerSecond  func(childComplexity int) int
+		RecordsOutPerSecond func(childComplexity int) int
+		StartTime           func(childComplexity int) int
+		State               func(childComplexity int) int
+		Tasks               func(childComplexity int) int
+		WatermarkLag        func(childComplexity int) int
 	}
 
 	JobPlan struct {
@@ -693,65 +701,68 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		BlueGreenDeployment    func(childComplexity int, name string, namespace *string, cluster *string) int
-		BlueGreenDeployments   func(childComplexity int, cluster *string, namespace *string) int
-		CatalogColumns         func(childComplexity int, catalog string, database string, table string, cluster *string) int
-		CatalogDatabases       func(childComplexity int, catalog string, cluster *string) int
-		CatalogTableDdl        func(childComplexity int, catalog string, database string, table string, cluster *string) int
-		CatalogTables          func(childComplexity int, catalog string, database string, cluster *string) int
-		Catalogs               func(childComplexity int, cluster *string) int
-		CheckpointDetail       func(childComplexity int, jobID string, checkpointID string, cluster *string) int
-		CheckpointHistory      func(childComplexity int, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) int
-		ClusterOverviewHistory func(childComplexity int, clusterID string, after *string, before *string) int
-		Clusters               func(childComplexity int) int
-		DashboardConfig        func(childComplexity int) int
-		DatabaseQueryHistory   func(childComplexity int, instrument string) int
-		DatabaseSchemas        func(childComplexity int, instrument string) int
-		DatabaseTable          func(childComplexity int, instrument string, schema string, table string) int
-		DatabaseTables         func(childComplexity int, instrument string, schema string) int
-		ExceptionHistory       func(childComplexity int, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) int
-		Flamegraph             func(childComplexity int, jobID string, vertexID string, typeArg string, cluster *string) int
-		FlinkConfig            func(childComplexity int, cluster *string) int
-		FlussDatabases         func(childComplexity int, instrument string) int
-		FlussTable             func(childComplexity int, instrument string, database string, table string) int
-		FlussTables            func(childComplexity int, instrument string, database string) int
-		FlussTabletServers     func(childComplexity int, instrument string) int
-		Health                 func(childComplexity int) int
-		Instruments            func(childComplexity int) int
-		Jars                   func(childComplexity int, cluster *string) int
-		Job                    func(childComplexity int, id string, cluster *string) int
-		JobHistory             func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput, orderBy *model.OrderByInput) int
-		JobManager             func(childComplexity int, cluster *string) int
-		Jobs                   func(childComplexity int, cluster *string) int
-		KafkaConsumerGroup     func(childComplexity int, instrument string, groupID string) int
-		KafkaConsumerGroups    func(childComplexity int, instrument string) int
-		KafkaTopic             func(childComplexity int, instrument string, name string) int
-		KafkaTopics            func(childComplexity int, instrument string) int
-		MaterializedTable      func(childComplexity int, name string, catalog string, cluster *string) int
-		MaterializedTables     func(childComplexity int, cluster *string, catalog *string) int
-		MetricCatalog          func(childComplexity int, clusterID string) int
-		MetricHistory          func(childComplexity int, filter model.MetricHistoryFilter) int
-		MetricSeries           func(childComplexity int, clusterID string, series []*model.MetricSeriesRequest, after string, before string, maxPoints *int) int
-		RedisKeyInfo           func(childComplexity int, instrument string, key string) int
-		RedisKeyValue          func(childComplexity int, instrument string, key string) int
-		RedisMemoryStats       func(childComplexity int, instrument string) int
-		RedisScan              func(childComplexity int, instrument string, cursor *string, pattern *string, count *int) int
-		RedisServerInfo        func(childComplexity int, instrument string) int
-		SchemaDetail           func(childComplexity int, instrument string, subject string, version int) int
-		SchemaSubjects         func(childComplexity int, instrument string) int
-		SchemaVersions         func(childComplexity int, instrument string, subject string) int
-		SimulationPreflight    func(childComplexity int) int
-		SimulationPresets      func(childComplexity int) int
-		SimulationRun          func(childComplexity int, id string) int
-		SimulationRuns         func(childComplexity int) int
-		StorageStatus          func(childComplexity int) int
-		SubtaskTimes           func(childComplexity int, jobID string, vertexID string, cluster *string) int
-		TapManifests           func(childComplexity int) int
-		TaskManager            func(childComplexity int, id string, cluster *string) int
-		TaskManagerLogs        func(childComplexity int, id string, cluster *string) int
-		TaskManagerThreadDump  func(childComplexity int, id string, cluster *string) int
-		TaskManagers           func(childComplexity int, cluster *string) int
-		VertexDetail           func(childComplexity int, jobID string, vertexID string, cluster *string) int
+		BlueGreenDeployment           func(childComplexity int, name string, namespace *string, cluster *string) int
+		BlueGreenDeploymentConfigDiff func(childComplexity int, name string, namespace *string, cluster *string) int
+		BlueGreenDeployments          func(childComplexity int, cluster *string, namespace *string) int
+		CatalogColumns                func(childComplexity int, catalog string, database string, table string, cluster *string) int
+		CatalogDatabases              func(childComplexity int, catalog string, cluster *string) int
+		CatalogTableDdl               func(childComplexity int, catalog string, database string, table string, cluster *string) int
+		CatalogTables                 func(childComplexity int, catalog string, database string, cluster *string) int
+		Catalogs                      func(childComplexity int, cluster *string) int
+		CheckpointDetail              func(childComplexity int, jobID string, checkpointID string, cluster *string) int
+		CheckpointHistory             func(childComplexity int, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) int
+		ClusterOverviewHistory        func(childComplexity int, clusterID string, after *string, before *string) int
+		Clusters                      func(childComplexity int) int
+		DashboardConfig               func(childComplexity int) int
+		DatabaseQueryHistory          func(childComplexity int, instrument string) int
+		DatabaseSchemas               func(childComplexity int, instrument string) int
+		DatabaseTable                 func(childComplexity int, instrument string, schema string, table string) int
+		DatabaseTables                func(childComplexity int, instrument string, schema string) int
+		ExceptionHistory              func(childComplexity int, filter *model.ExceptionHistoryFilter, pagination *model.PaginationInput) int
+		Flamegraph                    func(childComplexity int, jobID string, vertexID string, typeArg string, cluster *string) int
+		FlinkConfig                   func(childComplexity int, cluster *string) int
+		FlussDatabases                func(childComplexity int, instrument string) int
+		FlussTable                    func(childComplexity int, instrument string, database string, table string) int
+		FlussTables                   func(childComplexity int, instrument string, database string) int
+		FlussTabletServers            func(childComplexity int, instrument string) int
+		Health                        func(childComplexity int) int
+		Instruments                   func(childComplexity int) int
+		Jars                          func(childComplexity int, cluster *string) int
+		Job                           func(childComplexity int, id string, cluster *string) int
+		JobHistory                    func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput, orderBy *model.OrderByInput) int
+		JobManager                    func(childComplexity int, cluster *string) int
+		Jobs                          func(childComplexity int, cluster *string) int
+		KafkaConsumerGroup            func(childComplexity int, instrument string, groupID string) int
+		KafkaConsumerGroups           func(childComplexity int, instrument string) int
+		KafkaTopic                    func(childComplexity int, instrument string, name string) int
+		KafkaTopics                   func(childComplexity int, instrument string) int
+		MaterializedTable             func(childComplexity int, name string, catalog string, cluster *string) int
+		MaterializedTables            func(childComplexity int, cluster *string, catalog *string) int
+		MetricCatalog                 func(childComplexity int, clusterID string) int
+		MetricHistory                 func(childComplexity int, filter model.MetricHistoryFilter) int
+		MetricSeries                  func(childComplexity int, clusterID string, series []*model.MetricSeriesRequest, after string, before string, maxPoints *int) int
+		RedisKeyInfo                  func(childComplexity int, instrument string, key string) int
+		RedisKeyValue                 func(childComplexity int, instrument string, key string) int
+		RedisMemoryStats              func(childComplexity int, instrument string) int
+		RedisScan                     func(childComplexity int, instrument string, cursor *string, pattern *string, count *int) int
+		RedisServerInfo               func(childComplexity int, instrument string) int
+		Savepoint                     func(childComplexity int, jobID string, savepointID string, cluster *string) int
+		Savepoints                    func(childComplexity int, jobID string, cluster *string) int
+		SchemaDetail                  func(childComplexity int, instrument string, subject string, version int) int
+		SchemaSubjects                func(childComplexity int, instrument string) int
+		SchemaVersions                func(childComplexity int, instrument string, subject string) int
+		SimulationPreflight           func(childComplexity int) int
+		SimulationPresets             func(childComplexity int) int
+		SimulationRun                 func(childComplexity int, id string) int
+		SimulationRuns                func(childComplexity int) int
+		StorageStatus                 func(childComplexity int) int
+		SubtaskTimes                  func(childComplexity int, jobID string, vertexID string, cluster *string) int
+		TapManifests                  func(childComplexity int) int
+		TaskManager                   func(childComplexity int, id string, cluster *string) int
+		TaskManagerLogs               func(childComplexity int, id string, cluster *string) int
+		TaskManagerThreadDump         func(childComplexity int, id string, cluster *string) int
+		TaskManagers                  func(childComplexity int, cluster *string) int
+		VertexDetail                  func(childComplexity int, jobID string, vertexID string, cluster *string) int
 	}
 
 	RedisHashEntry struct {
@@ -847,6 +858,17 @@ type ComplexityRoot struct {
 
 	SQLStatementResult struct {
 		OperationHandle func(childComplexity int) int
+	}
+
+	Savepoint struct {
+		DurationMs  func(childComplexity int) int
+		Error       func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Location    func(childComplexity int) int
+		SizeBytes   func(childComplexity int) int
+		Status      func(childComplexity int) int
+		TriggerType func(childComplexity int) int
+		TriggeredAt func(childComplexity int) int
 	}
 
 	SavepointTriggerResult struct {
@@ -1148,6 +1170,7 @@ type QueryResolver interface {
 	Clusters(ctx context.Context) ([]*model.ClusterInfo, error)
 	BlueGreenDeployments(ctx context.Context, cluster *string, namespace *string) ([]*model.BlueGreenDeployment, error)
 	BlueGreenDeployment(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenDeployment, error)
+	BlueGreenDeploymentConfigDiff(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenConfigDiff, error)
 	Catalogs(ctx context.Context, cluster *string) ([]*model.CatalogInfo, error)
 	CatalogDatabases(ctx context.Context, catalog string, cluster *string) ([]*model.CatalogDatabase, error)
 	CatalogTables(ctx context.Context, catalog string, database string, cluster *string) ([]*model.CatalogTable, error)
@@ -1180,6 +1203,8 @@ type QueryResolver interface {
 	SubtaskTimes(ctx context.Context, jobID string, vertexID string, cluster *string) (*model.SubtaskTimes, error)
 	Flamegraph(ctx context.Context, jobID string, vertexID string, typeArg string, cluster *string) (*model.Flamegraph, error)
 	CheckpointDetail(ctx context.Context, jobID string, checkpointID string, cluster *string) (*model.CheckpointHistoryEntry, error)
+	Savepoints(ctx context.Context, jobID string, cluster *string) ([]*model.Savepoint, error)
+	Savepoint(ctx context.Context, jobID string, savepointID string, cluster *string) (*model.Savepoint, error)
 	KafkaTopics(ctx context.Context, instrument string) ([]*model.KafkaTopic, error)
 	KafkaTopic(ctx context.Context, instrument string, name string) (*model.KafkaTopicDetail, error)
 	KafkaConsumerGroups(ctx context.Context, instrument string) ([]*model.KafkaConsumerGroup, error)
@@ -1267,6 +1292,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.BackPressureInfo.Subtasks(childComplexity), true
+
+	case "BlueGreenConfigDiff.blueYAML":
+		if e.ComplexityRoot.BlueGreenConfigDiff.BlueYaml == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenConfigDiff.BlueYaml(childComplexity), true
+	case "BlueGreenConfigDiff.greenYAML":
+		if e.ComplexityRoot.BlueGreenConfigDiff.GreenYaml == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueGreenConfigDiff.GreenYaml(childComplexity), true
 
 	case "BlueGreenDeployment.abortGracePeriod":
 		if e.ComplexityRoot.BlueGreenDeployment.AbortGracePeriod == nil {
@@ -3010,6 +3048,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobOverview.Name(childComplexity), true
+	case "JobOverview.recordsInPerSecond":
+		if e.ComplexityRoot.JobOverview.RecordsInPerSecond == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobOverview.RecordsInPerSecond(childComplexity), true
+	case "JobOverview.recordsOutPerSecond":
+		if e.ComplexityRoot.JobOverview.RecordsOutPerSecond == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobOverview.RecordsOutPerSecond(childComplexity), true
 	case "JobOverview.startTime":
 		if e.ComplexityRoot.JobOverview.StartTime == nil {
 			break
@@ -3028,6 +3078,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobOverview.Tasks(childComplexity), true
+	case "JobOverview.watermarkLag":
+		if e.ComplexityRoot.JobOverview.WatermarkLag == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobOverview.WatermarkLag(childComplexity), true
 
 	case "JobPlan.jid":
 		if e.ComplexityRoot.JobPlan.Jid == nil {
@@ -3799,6 +3855,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.BlueGreenDeployment(childComplexity, args["name"].(string), args["namespace"].(*string), args["cluster"].(*string)), true
+	case "Query.blueGreenDeploymentConfigDiff":
+		if e.ComplexityRoot.Query.BlueGreenDeploymentConfigDiff == nil {
+			break
+		}
+
+		args, err := ec.field_Query_blueGreenDeploymentConfigDiff_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.BlueGreenDeploymentConfigDiff(childComplexity, args["name"].(string), args["namespace"].(*string), args["cluster"].(*string)), true
 	case "Query.blueGreenDeployments":
 		if e.ComplexityRoot.Query.BlueGreenDeployments == nil {
 			break
@@ -4253,6 +4320,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.RedisServerInfo(childComplexity, args["instrument"].(string)), true
+	case "Query.savepoint":
+		if e.ComplexityRoot.Query.Savepoint == nil {
+			break
+		}
+
+		args, err := ec.field_Query_savepoint_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.Savepoint(childComplexity, args["jobId"].(string), args["savepointId"].(string), args["cluster"].(*string)), true
+	case "Query.savepoints":
+		if e.ComplexityRoot.Query.Savepoints == nil {
+			break
+		}
+
+		args, err := ec.field_Query_savepoints_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.Savepoints(childComplexity, args["jobId"].(string), args["cluster"].(*string)), true
 	case "Query.schemaDetail":
 		if e.ComplexityRoot.Query.SchemaDetail == nil {
 			break
@@ -4708,6 +4797,55 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.SQLStatementResult.OperationHandle(childComplexity), true
+
+	case "Savepoint.durationMs":
+		if e.ComplexityRoot.Savepoint.DurationMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Savepoint.DurationMs(childComplexity), true
+	case "Savepoint.error":
+		if e.ComplexityRoot.Savepoint.Error == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Savepoint.Error(childComplexity), true
+	case "Savepoint.id":
+		if e.ComplexityRoot.Savepoint.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Savepoint.ID(childComplexity), true
+	case "Savepoint.location":
+		if e.ComplexityRoot.Savepoint.Location == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Savepoint.Location(childComplexity), true
+	case "Savepoint.sizeBytes":
+		if e.ComplexityRoot.Savepoint.SizeBytes == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Savepoint.SizeBytes(childComplexity), true
+	case "Savepoint.status":
+		if e.ComplexityRoot.Savepoint.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Savepoint.Status(childComplexity), true
+	case "Savepoint.triggerType":
+		if e.ComplexityRoot.Savepoint.TriggerType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Savepoint.TriggerType(childComplexity), true
+	case "Savepoint.triggeredAt":
+		if e.ComplexityRoot.Savepoint.TriggeredAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Savepoint.TriggeredAt(childComplexity), true
 
 	case "SavepointTriggerResult.requestId":
 		if e.ComplexityRoot.SavepointTriggerResult.RequestID == nil {
@@ -5953,9 +6091,15 @@ type BlueGreenDeployment {
   deploymentDeletionDelay: String
 }
 
+type BlueGreenConfigDiff {
+  blueYAML: String!
+  greenYAML: String!
+}
+
 extend type Query {
   blueGreenDeployments(cluster: String, namespace: String): [BlueGreenDeployment!]!
   blueGreenDeployment(name: String!, namespace: String, cluster: String): BlueGreenDeployment
+  blueGreenDeploymentConfigDiff(name: String!, namespace: String, cluster: String): BlueGreenConfigDiff!
 }
 
 extend type Subscription {
@@ -6673,6 +6817,12 @@ type JobOverview {
   duration: String!
   lastModification: String!
   tasks: TaskCounts!
+  """Records-per-second emitted by source vertices (job-wide input throughput). Null when no vertex metrics are available yet."""
+  recordsInPerSecond: Float
+  """Records-per-second consumed by sink vertices (job-wide output throughput). Null when no vertex metrics are available yet."""
+  recordsOutPerSecond: Float
+  """Watermark lag in milliseconds (` + "`" + `now - min subtask watermark` + "`" + `). Null for batch jobs or before any source has emitted a watermark."""
+  watermarkLag: Int
 }
 
 type VertexMetrics {
@@ -6951,6 +7101,44 @@ type CancelJobResult {
   success: Boolean!
 }
 
+"""Lifecycle state of a savepoint operation."""
+enum SavepointStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+"""
+How a savepoint was triggered.
+
+The server records this when its own mutations initiate a savepoint;
+savepoints observed in Flink but not initiated by this server default
+to MANUAL.
+"""
+enum SavepointTriggerType {
+  MANUAL
+  STOP_WITH_SAVEPOINT
+  BLUE_GREEN
+}
+
+"""A single Flink savepoint operation."""
+type Savepoint {
+  """The Flink savepoint operation handle."""
+  id: String!
+  status: SavepointStatus!
+  triggerType: SavepointTriggerType!
+  """Savepoint storage path. Null until the operation completes successfully."""
+  location: String
+  """Savepoint size in bytes (String to safely encode int64). Null until completed."""
+  sizeBytes: String
+  """Trigger-to-completion duration in milliseconds. Null until completed."""
+  durationMs: String
+  """ISO-millisecond epoch timestamp at which the operation was triggered."""
+  triggeredAt: String!
+  """Failure reason. Null unless ` + "`" + `status: FAILED` + "`" + `."""
+  error: String
+}
+
 extend type Query {
   """List all jobs in a cluster"""
   jobs(cluster: String): [JobOverview!]!
@@ -6969,6 +7157,12 @@ extend type Query {
 
   """Get checkpoint detail"""
   checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointHistoryEntry!
+
+  """List savepoints for a job, ordered by triggeredAt descending."""
+  savepoints(jobId: ID!, cluster: String): [Savepoint!]!
+
+  """Get a single savepoint operation by ID."""
+  savepoint(jobId: ID!, savepointId: String!, cluster: String): Savepoint!
 }
 
 type SavepointTriggerResult {
@@ -8063,6 +8257,27 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_blueGreenDeploymentConfigDiff_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "namespace", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["namespace"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_blueGreenDeployment_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8723,6 +8938,43 @@ func (ec *executionContext) field_Query_redisServerInfo_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_savepoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "savepointId", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["savepointId"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_savepoints_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_schemaDetail_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9207,6 +9459,64 @@ func (ec *executionContext) fieldContext_BackPressureInfo_subtasks(_ context.Con
 				return ec.fieldContext_SubtaskBackPressure_idleRatio(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SubtaskBackPressure", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenConfigDiff_blueYAML(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenConfigDiff) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenConfigDiff_blueYAML,
+		func(ctx context.Context) (any, error) {
+			return obj.BlueYaml, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenConfigDiff_blueYAML(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenConfigDiff",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BlueGreenConfigDiff_greenYAML(ctx context.Context, field graphql.CollectedField, obj *model.BlueGreenConfigDiff) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BlueGreenConfigDiff_greenYAML,
+		func(ctx context.Context) (any, error) {
+			return obj.GreenYaml, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BlueGreenConfigDiff_greenYAML(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BlueGreenConfigDiff",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18019,6 +18329,93 @@ func (ec *executionContext) fieldContext_JobOverview_tasks(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _JobOverview_recordsInPerSecond(ctx context.Context, field graphql.CollectedField, obj *model.JobOverview) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobOverview_recordsInPerSecond,
+		func(ctx context.Context) (any, error) {
+			return obj.RecordsInPerSecond, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobOverview_recordsInPerSecond(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobOverview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobOverview_recordsOutPerSecond(ctx context.Context, field graphql.CollectedField, obj *model.JobOverview) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobOverview_recordsOutPerSecond,
+		func(ctx context.Context) (any, error) {
+			return obj.RecordsOutPerSecond, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobOverview_recordsOutPerSecond(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobOverview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobOverview_watermarkLag(ctx context.Context, field graphql.CollectedField, obj *model.JobOverview) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobOverview_watermarkLag,
+		func(ctx context.Context) (any, error) {
+			return obj.WatermarkLag, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobOverview_watermarkLag(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobOverview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobPlan_jid(ctx context.Context, field graphql.CollectedField, obj *model.JobPlan) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -21849,6 +22246,53 @@ func (ec *executionContext) fieldContext_Query_blueGreenDeployment(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_blueGreenDeploymentConfigDiff(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_blueGreenDeploymentConfigDiff,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().BlueGreenDeploymentConfigDiff(ctx, fc.Args["name"].(string), fc.Args["namespace"].(*string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNBlueGreenConfigDiff2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_blueGreenDeploymentConfigDiff(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "blueYAML":
+				return ec.fieldContext_BlueGreenConfigDiff_blueYAML(ctx, field)
+			case "greenYAML":
+				return ec.fieldContext_BlueGreenConfigDiff_greenYAML(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BlueGreenConfigDiff", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_blueGreenDeploymentConfigDiff_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_catalogs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -23164,6 +23608,12 @@ func (ec *executionContext) fieldContext_Query_jobs(ctx context.Context, field g
 				return ec.fieldContext_JobOverview_lastModification(ctx, field)
 			case "tasks":
 				return ec.fieldContext_JobOverview_tasks(ctx, field)
+			case "recordsInPerSecond":
+				return ec.fieldContext_JobOverview_recordsInPerSecond(ctx, field)
+			case "recordsOutPerSecond":
+				return ec.fieldContext_JobOverview_recordsOutPerSecond(ctx, field)
+			case "watermarkLag":
+				return ec.fieldContext_JobOverview_watermarkLag(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobOverview", field.Name)
 		},
@@ -23477,6 +23927,124 @@ func (ec *executionContext) fieldContext_Query_checkpointDetail(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_checkpointDetail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_savepoints(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_savepoints,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().Savepoints(ctx, fc.Args["jobId"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNSavepoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_savepoints(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Savepoint_id(ctx, field)
+			case "status":
+				return ec.fieldContext_Savepoint_status(ctx, field)
+			case "triggerType":
+				return ec.fieldContext_Savepoint_triggerType(ctx, field)
+			case "location":
+				return ec.fieldContext_Savepoint_location(ctx, field)
+			case "sizeBytes":
+				return ec.fieldContext_Savepoint_sizeBytes(ctx, field)
+			case "durationMs":
+				return ec.fieldContext_Savepoint_durationMs(ctx, field)
+			case "triggeredAt":
+				return ec.fieldContext_Savepoint_triggeredAt(ctx, field)
+			case "error":
+				return ec.fieldContext_Savepoint_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Savepoint", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_savepoints_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_savepoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_savepoint,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().Savepoint(ctx, fc.Args["jobId"].(string), fc.Args["savepointId"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_savepoint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Savepoint_id(ctx, field)
+			case "status":
+				return ec.fieldContext_Savepoint_status(ctx, field)
+			case "triggerType":
+				return ec.fieldContext_Savepoint_triggerType(ctx, field)
+			case "location":
+				return ec.fieldContext_Savepoint_location(ctx, field)
+			case "sizeBytes":
+				return ec.fieldContext_Savepoint_sizeBytes(ctx, field)
+			case "durationMs":
+				return ec.fieldContext_Savepoint_durationMs(ctx, field)
+			case "triggeredAt":
+				return ec.fieldContext_Savepoint_triggeredAt(ctx, field)
+			case "error":
+				return ec.fieldContext_Savepoint_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Savepoint", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_savepoint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -26262,6 +26830,238 @@ func (ec *executionContext) _SQLStatementResult_operationHandle(ctx context.Cont
 func (ec *executionContext) fieldContext_SQLStatementResult_operationHandle(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SQLStatementResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Savepoint_id(ctx context.Context, field graphql.CollectedField, obj *model.Savepoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Savepoint_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Savepoint_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Savepoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Savepoint_status(ctx context.Context, field graphql.CollectedField, obj *model.Savepoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Savepoint_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Savepoint_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Savepoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SavepointStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Savepoint_triggerType(ctx context.Context, field graphql.CollectedField, obj *model.Savepoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Savepoint_triggerType,
+		func(ctx context.Context) (any, error) {
+			return obj.TriggerType, nil
+		},
+		nil,
+		ec.marshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Savepoint_triggerType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Savepoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SavepointTriggerType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Savepoint_location(ctx context.Context, field graphql.CollectedField, obj *model.Savepoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Savepoint_location,
+		func(ctx context.Context) (any, error) {
+			return obj.Location, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Savepoint_location(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Savepoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Savepoint_sizeBytes(ctx context.Context, field graphql.CollectedField, obj *model.Savepoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Savepoint_sizeBytes,
+		func(ctx context.Context) (any, error) {
+			return obj.SizeBytes, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Savepoint_sizeBytes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Savepoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Savepoint_durationMs(ctx context.Context, field graphql.CollectedField, obj *model.Savepoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Savepoint_durationMs,
+		func(ctx context.Context) (any, error) {
+			return obj.DurationMs, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Savepoint_durationMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Savepoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Savepoint_triggeredAt(ctx context.Context, field graphql.CollectedField, obj *model.Savepoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Savepoint_triggeredAt,
+		func(ctx context.Context) (any, error) {
+			return obj.TriggeredAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Savepoint_triggeredAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Savepoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Savepoint_error(ctx context.Context, field graphql.CollectedField, obj *model.Savepoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Savepoint_error,
+		func(ctx context.Context) (any, error) {
+			return obj.Error, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Savepoint_error(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Savepoint",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -33666,6 +34466,50 @@ func (ec *executionContext) _BackPressureInfo(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var blueGreenConfigDiffImplementors = []string{"BlueGreenConfigDiff"}
+
+func (ec *executionContext) _BlueGreenConfigDiff(ctx context.Context, sel ast.SelectionSet, obj *model.BlueGreenConfigDiff) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, blueGreenConfigDiffImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BlueGreenConfigDiff")
+		case "blueYAML":
+			out.Values[i] = ec._BlueGreenConfigDiff_blueYAML(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "greenYAML":
+			out.Values[i] = ec._BlueGreenConfigDiff_greenYAML(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var blueGreenDeploymentImplementors = []string{"BlueGreenDeployment"}
 
 func (ec *executionContext) _BlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, obj *model.BlueGreenDeployment) graphql.Marshaler {
@@ -37050,6 +37894,12 @@ func (ec *executionContext) _JobOverview(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "recordsInPerSecond":
+			out.Values[i] = ec._JobOverview_recordsInPerSecond(ctx, field, obj)
+		case "recordsOutPerSecond":
+			out.Values[i] = ec._JobOverview_recordsOutPerSecond(ctx, field, obj)
+		case "watermarkLag":
+			out.Values[i] = ec._JobOverview_watermarkLag(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38454,6 +39304,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "blueGreenDeploymentConfigDiff":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_blueGreenDeploymentConfigDiff(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "catalogs":
 			field := field
 
@@ -39146,6 +40018,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_checkpointDetail(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "savepoints":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_savepoints(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "savepoint":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_savepoint(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -40408,6 +41324,68 @@ func (ec *executionContext) _SQLStatementResult(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var savepointImplementors = []string{"Savepoint"}
+
+func (ec *executionContext) _Savepoint(ctx context.Context, sel ast.SelectionSet, obj *model.Savepoint) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, savepointImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Savepoint")
+		case "id":
+			out.Values[i] = ec._Savepoint_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._Savepoint_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "triggerType":
+			out.Values[i] = ec._Savepoint_triggerType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "location":
+			out.Values[i] = ec._Savepoint_location(ctx, field, obj)
+		case "sizeBytes":
+			out.Values[i] = ec._Savepoint_sizeBytes(ctx, field, obj)
+		case "durationMs":
+			out.Values[i] = ec._Savepoint_durationMs(ctx, field, obj)
+		case "triggeredAt":
+			out.Values[i] = ec._Savepoint_triggeredAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "error":
+			out.Values[i] = ec._Savepoint_error(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -42720,6 +43698,20 @@ func (ec *executionContext) marshalNBackPressureInfo2ᚖgithubᚗcomᚋsandboxws
 	return ec._BackPressureInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNBlueGreenConfigDiff2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenConfigDiff) graphql.Marshaler {
+	return ec._BlueGreenConfigDiff(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBlueGreenConfigDiff2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenConfigDiff) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BlueGreenConfigDiff(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNBlueGreenDeployment2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenDeployment) graphql.Marshaler {
 	return ec._BlueGreenDeployment(ctx, sel, &v)
 }
@@ -44657,6 +45649,46 @@ func (ec *executionContext) marshalNSQLStatementResult2ᚖgithubᚗcomᚋsandbox
 	return ec._SQLStatementResult(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSavepoint2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx context.Context, sel ast.SelectionSet, v model.Savepoint) graphql.Marshaler {
+	return ec._Savepoint(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSavepoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Savepoint) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx context.Context, sel ast.SelectionSet, v *model.Savepoint) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Savepoint(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus(ctx context.Context, v any) (model.SavepointStatus, error) {
+	var res model.SavepointStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus(ctx context.Context, sel ast.SelectionSet, v model.SavepointStatus) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNSavepointTriggerResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult(ctx context.Context, sel ast.SelectionSet, v model.SavepointTriggerResult) graphql.Marshaler {
 	return ec._SavepointTriggerResult(ctx, sel, &v)
 }
@@ -44669,6 +45701,16 @@ func (ec *executionContext) marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsan
 		return graphql.Null
 	}
 	return ec._SavepointTriggerResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType(ctx context.Context, v any) (model.SavepointTriggerType, error) {
+	var res model.SavepointTriggerType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType(ctx context.Context, sel ast.SelectionSet, v model.SavepointTriggerType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSchemaDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaDetail(ctx context.Context, sel ast.SelectionSet, v model.SchemaDetail) graphql.Marshaler {
@@ -45587,6 +46629,23 @@ func (ec *executionContext) marshalOFlamegraphNode2ᚕᚖgithubᚗcomᚋsandboxw
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v any) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {

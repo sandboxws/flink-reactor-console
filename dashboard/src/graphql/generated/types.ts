@@ -30,6 +30,12 @@ export type BackPressureInfo = {
   subtasks: Array<SubtaskBackPressure>;
 };
 
+export type BlueGreenConfigDiff = {
+  __typename?: 'BlueGreenConfigDiff';
+  blueYAML: Scalars['String']['output'];
+  greenYAML: Scalars['String']['output'];
+};
+
 export type BlueGreenDeployment = {
   __typename?: 'BlueGreenDeployment';
   abortGracePeriod: Maybe<Scalars['String']['output']>;
@@ -722,9 +728,15 @@ export type JobOverview = {
   id: Scalars['ID']['output'];
   lastModification: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  /** Records-per-second emitted by source vertices (job-wide input throughput). Null when no vertex metrics are available yet. */
+  recordsInPerSecond: Maybe<Scalars['Float']['output']>;
+  /** Records-per-second consumed by sink vertices (job-wide output throughput). Null when no vertex metrics are available yet. */
+  recordsOutPerSecond: Maybe<Scalars['Float']['output']>;
   startTime: Scalars['String']['output'];
   state: Scalars['String']['output'];
   tasks: TaskCounts;
+  /** Watermark lag in milliseconds (`now - min subtask watermark`). Null for batch jobs or before any source has emitted a watermark. */
+  watermarkLag: Maybe<Scalars['Int']['output']>;
 };
 
 export type JobPlan = {
@@ -1133,6 +1145,7 @@ export type PreflightCheck = {
 export type Query = {
   __typename?: 'Query';
   blueGreenDeployment: Maybe<BlueGreenDeployment>;
+  blueGreenDeploymentConfigDiff: BlueGreenConfigDiff;
   blueGreenDeployments: Array<BlueGreenDeployment>;
   /** List columns for a table */
   catalogColumns: Array<ColumnInfo>;
@@ -1225,6 +1238,10 @@ export type Query = {
   redisScan: RedisScanResult;
   /** Get high-level Redis server stats (version, uptime, memory, keyspace). */
   redisServerInfo: RedisServerInfo;
+  /** Get a single savepoint operation by ID. */
+  savepoint: Savepoint;
+  /** List savepoints for a job, ordered by triggeredAt descending. */
+  savepoints: Array<Savepoint>;
   /** Get the full schema for a specific subject and version. */
   schemaDetail: SchemaDetail;
   /** List all subjects in the Schema Registry, with their latest version metadata. */
@@ -1259,6 +1276,13 @@ export type Query = {
 
 
 export type QueryBlueGreenDeploymentArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  namespace: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryBlueGreenDeploymentConfigDiffArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   namespace: InputMaybe<Scalars['String']['input']>;
@@ -1502,6 +1526,19 @@ export type QueryRedisServerInfoArgs = {
 };
 
 
+export type QuerySavepointArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  jobId: Scalars['ID']['input'];
+  savepointId: Scalars['String']['input'];
+};
+
+
+export type QuerySavepointsArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  jobId: Scalars['ID']['input'];
+};
+
+
 export type QuerySchemaDetailArgs = {
   instrument: Scalars['String']['input'];
   subject: Scalars['String']['input'];
@@ -1687,10 +1724,47 @@ export type SqlStatementResult = {
   operationHandle: Scalars['String']['output'];
 };
 
+/** A single Flink savepoint operation. */
+export type Savepoint = {
+  __typename?: 'Savepoint';
+  /** Trigger-to-completion duration in milliseconds. Null until completed. */
+  durationMs: Maybe<Scalars['String']['output']>;
+  /** Failure reason. Null unless `status: FAILED`. */
+  error: Maybe<Scalars['String']['output']>;
+  /** The Flink savepoint operation handle. */
+  id: Scalars['String']['output'];
+  /** Savepoint storage path. Null until the operation completes successfully. */
+  location: Maybe<Scalars['String']['output']>;
+  /** Savepoint size in bytes (String to safely encode int64). Null until completed. */
+  sizeBytes: Maybe<Scalars['String']['output']>;
+  status: SavepointStatus;
+  triggerType: SavepointTriggerType;
+  /** ISO-millisecond epoch timestamp at which the operation was triggered. */
+  triggeredAt: Scalars['String']['output'];
+};
+
+/** Lifecycle state of a savepoint operation. */
+export type SavepointStatus =
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'IN_PROGRESS';
+
 export type SavepointTriggerResult = {
   __typename?: 'SavepointTriggerResult';
   requestId: Scalars['String']['output'];
 };
+
+/**
+ * How a savepoint was triggered.
+ *
+ * The server records this when its own mutations initiate a savepoint;
+ * savepoints observed in Flink but not initiated by this server default
+ * to MANUAL.
+ */
+export type SavepointTriggerType =
+  | 'BLUE_GREEN'
+  | 'MANUAL'
+  | 'STOP_WITH_SAVEPOINT';
 
 /** The full content of a single schema version. */
 export type SchemaDetail = {
@@ -2132,6 +2206,15 @@ export type BlueGreenDeploymentDetailQueryVariables = Exact<{
 
 export type BlueGreenDeploymentDetailQuery = { __typename?: 'Query', blueGreenDeployment: { __typename?: 'BlueGreenDeployment', name: string, namespace: string, state: BlueGreenState, jobStatus: string | null, error: string | null, lastReconciledTimestamp: string | null, abortTimestamp: string | null, deploymentReadyTimestamp: string | null, blueDeploymentName: string | null, greenDeploymentName: string | null, activeJobId: string | null, pendingJobId: string | null, abortGracePeriod: string | null, deploymentDeletionDelay: string | null } | null };
 
+export type BlueGreenDeploymentConfigDiffQueryVariables = Exact<{
+  name: Scalars['String']['input'];
+  namespace: InputMaybe<Scalars['String']['input']>;
+  cluster: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type BlueGreenDeploymentConfigDiffQuery = { __typename?: 'Query', blueGreenDeploymentConfigDiff: { __typename?: 'BlueGreenConfigDiff', blueYAML: string, greenYAML: string } };
+
 export type BlueGreenStateChangedSubscriptionVariables = Exact<{
   cluster: InputMaybe<Scalars['String']['input']>;
   namespace: InputMaybe<Scalars['String']['input']>;
@@ -2194,7 +2277,7 @@ export type JobsListQueryVariables = Exact<{
 }>;
 
 
-export type JobsListQuery = { __typename?: 'Query', jobs: Array<{ __typename?: 'JobOverview', id: string, name: string, state: string, startTime: string, endTime: string, duration: string, lastModification: string, tasks: { __typename?: 'TaskCounts', created: number, scheduled: number, deploying: number, running: number, finished: number, canceling: number, canceled: number, failed: number, reconciling: number, initializing: number } }> };
+export type JobsListQuery = { __typename?: 'Query', jobs: Array<{ __typename?: 'JobOverview', id: string, name: string, state: string, startTime: string, endTime: string, duration: string, lastModification: string, recordsInPerSecond: number | null, recordsOutPerSecond: number | null, watermarkLag: number | null, tasks: { __typename?: 'TaskCounts', created: number, scheduled: number, deploying: number, running: number, finished: number, canceling: number, canceled: number, failed: number, reconciling: number, initializing: number } }> };
 
 export type JobDetailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2211,6 +2294,14 @@ export type CancelJobMutationVariables = Exact<{
 
 
 export type CancelJobMutation = { __typename?: 'Mutation', cancelJob: { __typename?: 'CancelJobResult', success: boolean } };
+
+export type JobSavepointsQueryVariables = Exact<{
+  jobId: Scalars['ID']['input'];
+  cluster: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type JobSavepointsQuery = { __typename?: 'Query', savepoints: Array<{ __typename?: 'Savepoint', id: string, status: SavepointStatus, triggerType: SavepointTriggerType, location: string | null, sizeBytes: string | null, durationMs: string | null, triggeredAt: string, error: string | null }> };
 
 export type RedisScanQueryVariables = Exact<{
   instrument: Scalars['String']['input'];

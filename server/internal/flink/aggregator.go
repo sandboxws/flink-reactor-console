@@ -301,6 +301,72 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 	}, nil
 }
 
+// JobRates fetches the lightweight subset of JobDetail needed to compute
+// per-job throughput and watermark lag: the job's plan (for source/sink
+// classification) plus per-vertex rate metrics and watermarks. It exists
+// so the `jobs` list resolver can populate rates without paying for the
+// full JobDetail aggregate (which also fetches exceptions, checkpoints,
+// accumulators, vertex details, and backpressure).
+//
+// On per-vertex fetch failure (rate metrics or watermarks), the affected
+// map entry is left empty — the rates compute treats missing data as
+// "not yet reported" rather than an error.
+func (a *Aggregator) JobRates(ctx context.Context, jobID string) (*JobDetailAggregate, error) {
+	var job JobDetail
+	if err := a.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s", jobID), &job); err != nil {
+		return nil, fmt.Errorf("job rates: %w", err)
+	}
+
+	vertexIDs := make([]string, len(job.Vertices))
+	for i, v := range job.Vertices {
+		vertexIDs[i] = v.ID
+	}
+
+	var (
+		mu          sync.Mutex
+		vertexRates = make(map[string][]AggregatedSubtaskMetric, len(vertexIDs))
+		watermarks  = make(map[string]Watermarks, len(vertexIDs))
+	)
+
+	g := new(errgroup.Group)
+	g.SetLimit(10)
+
+	for _, vid := range vertexIDs {
+		g.Go(func() error {
+			var rates []AggregatedSubtaskMetric
+			url := fmt.Sprintf("/jobs/%s/vertices/%s/subtasks/metrics?get=%s", jobID, vid, VertexRateMetricQuery)
+			if err := a.client.GetJSON(ctx, url, &rates); err != nil {
+				rates = nil
+			}
+			mu.Lock()
+			vertexRates[vid] = rates
+			mu.Unlock()
+			return nil
+		})
+
+		g.Go(func() error {
+			var wm Watermarks
+			if err := a.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/vertices/%s/watermarks", jobID, vid), &wm); err != nil {
+				wm = Watermarks{}
+			}
+			mu.Lock()
+			watermarks[vid] = wm
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("job rates fan-out: %w", err)
+	}
+
+	return &JobDetailAggregate{
+		Job:         &job,
+		VertexRates: vertexRates,
+		Watermarks:  watermarks,
+	}, nil
+}
+
 // TMDetail fetches task manager detail and 28 JVM metrics in parallel.
 func (a *Aggregator) TMDetail(ctx context.Context, tmID string) (*TMDetailAggregate, error) {
 	var (

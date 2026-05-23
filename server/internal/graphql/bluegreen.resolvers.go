@@ -73,6 +73,32 @@ func (r *queryResolver) BlueGreenDeployment(ctx context.Context, name string, na
 	return mapBlueGreenDeployment(d), nil
 }
 
+// BlueGreenDeploymentConfigDiff is the resolver for the blueGreenDeploymentConfigDiff field.
+func (r *queryResolver) BlueGreenDeploymentConfigDiff(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenConfigDiff, error) {
+	if r.Manager == nil {
+		return nil, fmt.Errorf("cluster manager not configured")
+	}
+
+	conn, err := r.Manager.Resolve(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	if conn.K8sService == nil {
+		return nil, fmt.Errorf("kubernetes not configured for cluster %q", conn.Name)
+	}
+
+	diff, err := conn.K8sService.ConfigDiff(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("getting blue-green config diff for %q: %w", name, err)
+	}
+
+	return &model.BlueGreenConfigDiff{
+		BlueYaml:  diff.BlueYAML,
+		GreenYaml: diff.GreenYAML,
+	}, nil
+}
+
 // BlueGreenStateChanged is the resolver for the blueGreenStateChanged field.
 func (r *subscriptionResolver) BlueGreenStateChanged(ctx context.Context, cluster *string, namespace *string) (<-chan *model.BlueGreenDeployment, error) {
 	if r.Manager == nil {

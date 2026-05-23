@@ -22,6 +22,11 @@ type BackPressureInfo struct {
 	Subtasks          []*SubtaskBackPressure `json:"subtasks"`
 }
 
+type BlueGreenConfigDiff struct {
+	BlueYaml  string `json:"blueYAML"`
+	GreenYaml string `json:"greenYAML"`
+}
+
 type BlueGreenDeployment struct {
 	Name                     string         `json:"name"`
 	Namespace                string         `json:"namespace"`
@@ -621,6 +626,12 @@ type JobOverview struct {
 	Duration         string      `json:"duration"`
 	LastModification string      `json:"lastModification"`
 	Tasks            *TaskCounts `json:"tasks"`
+	// Records-per-second emitted by source vertices (job-wide input throughput). Null when no vertex metrics are available yet.
+	RecordsInPerSecond *float64 `json:"recordsInPerSecond,omitempty"`
+	// Records-per-second consumed by sink vertices (job-wide output throughput). Null when no vertex metrics are available yet.
+	RecordsOutPerSecond *float64 `json:"recordsOutPerSecond,omitempty"`
+	// Watermark lag in milliseconds (`now - min subtask watermark`). Null for batch jobs or before any source has emitted a watermark.
+	WatermarkLag *int `json:"watermarkLag,omitempty"`
 }
 
 type JobPlan struct {
@@ -939,6 +950,24 @@ type SQLSessionResult struct {
 
 type SQLStatementResult struct {
 	OperationHandle string `json:"operationHandle"`
+}
+
+// A single Flink savepoint operation.
+type Savepoint struct {
+	// The Flink savepoint operation handle.
+	ID          string               `json:"id"`
+	Status      SavepointStatus      `json:"status"`
+	TriggerType SavepointTriggerType `json:"triggerType"`
+	// Savepoint storage path. Null until the operation completes successfully.
+	Location *string `json:"location,omitempty"`
+	// Savepoint size in bytes (String to safely encode int64). Null until completed.
+	SizeBytes *string `json:"sizeBytes,omitempty"`
+	// Trigger-to-completion duration in milliseconds. Null until completed.
+	DurationMs *string `json:"durationMs,omitempty"`
+	// ISO-millisecond epoch timestamp at which the operation was triggered.
+	TriggeredAt string `json:"triggeredAt"`
+	// Failure reason. Null unless `status: FAILED`.
+	Error *string `json:"error,omitempty"`
 }
 
 type SavepointTriggerResult struct {
@@ -1522,6 +1551,126 @@ func (e *OrderDirection) UnmarshalJSON(b []byte) error {
 }
 
 func (e OrderDirection) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Lifecycle state of a savepoint operation.
+type SavepointStatus string
+
+const (
+	SavepointStatusInProgress SavepointStatus = "IN_PROGRESS"
+	SavepointStatusCompleted  SavepointStatus = "COMPLETED"
+	SavepointStatusFailed     SavepointStatus = "FAILED"
+)
+
+var AllSavepointStatus = []SavepointStatus{
+	SavepointStatusInProgress,
+	SavepointStatusCompleted,
+	SavepointStatusFailed,
+}
+
+func (e SavepointStatus) IsValid() bool {
+	switch e {
+	case SavepointStatusInProgress, SavepointStatusCompleted, SavepointStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e SavepointStatus) String() string {
+	return string(e)
+}
+
+func (e *SavepointStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SavepointStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SavepointStatus", str)
+	}
+	return nil
+}
+
+func (e SavepointStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SavepointStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SavepointStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// How a savepoint was triggered.
+//
+// The server records this when its own mutations initiate a savepoint;
+// savepoints observed in Flink but not initiated by this server default
+// to MANUAL.
+type SavepointTriggerType string
+
+const (
+	SavepointTriggerTypeManual            SavepointTriggerType = "MANUAL"
+	SavepointTriggerTypeStopWithSavepoint SavepointTriggerType = "STOP_WITH_SAVEPOINT"
+	SavepointTriggerTypeBlueGreen         SavepointTriggerType = "BLUE_GREEN"
+)
+
+var AllSavepointTriggerType = []SavepointTriggerType{
+	SavepointTriggerTypeManual,
+	SavepointTriggerTypeStopWithSavepoint,
+	SavepointTriggerTypeBlueGreen,
+}
+
+func (e SavepointTriggerType) IsValid() bool {
+	switch e {
+	case SavepointTriggerTypeManual, SavepointTriggerTypeStopWithSavepoint, SavepointTriggerTypeBlueGreen:
+		return true
+	}
+	return false
+}
+
+func (e SavepointTriggerType) String() string {
+	return string(e)
+}
+
+func (e *SavepointTriggerType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SavepointTriggerType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SavepointTriggerType", str)
+	}
+	return nil
+}
+
+func (e SavepointTriggerType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SavepointTriggerType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SavepointTriggerType) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

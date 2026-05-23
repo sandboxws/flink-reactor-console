@@ -40,6 +40,21 @@ query BlueGreenDeploymentDetail(
   }
 }
 
+query BlueGreenDeploymentConfigDiff(
+  $name: String!
+  $namespace: String
+  $cluster: String
+) {
+  blueGreenDeploymentConfigDiff(
+    name: $name
+    namespace: $namespace
+    cluster: $cluster
+  ) {
+    blueYAML
+    greenYAML
+  }
+}
+
 subscription BlueGreenStateChanged($cluster: String, $namespace: String) {
   blueGreenStateChanged(cluster: $cluster, namespace: $namespace) {
     name

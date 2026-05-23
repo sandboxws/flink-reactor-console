@@ -10,13 +10,39 @@
 import { DiffViewer, HubBreadcrumb } from "@flink-reactor/ui"
 import { createFileRoute, useParams } from "@tanstack/react-router"
 import { ArrowLeftRight, CircleX, Play, RotateCcw } from "lucide-react"
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { gql } from "urql"
 import { BlueGreenComparison } from "@/components/hub/deployments/blue-green-comparison"
 import { StateMachineViz } from "@/components/hub/deployments/state-machine-viz"
 import { getStateLabel } from "@/data/bg-deployment-types"
+import { graphqlClient } from "@/lib/graphql-client"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
+
+const CONFIG_DIFF_QUERY = gql`
+  query BlueGreenDeploymentConfigDiff(
+    $name: String!
+    $namespace: String
+    $cluster: String
+  ) {
+    blueGreenDeploymentConfigDiff(
+      name: $name
+      namespace: $namespace
+      cluster: $cluster
+    ) {
+      blueYAML
+      greenYAML
+    }
+  }
+`
+
+interface ConfigDiffState {
+  blueYAML: string
+  greenYAML: string
+  loading: boolean
+  error: string | null
+}
 
 function HubDeploymentDetail() {
   const { name } = useParams({ from: "/hub/deployments/$name" })
@@ -35,32 +61,51 @@ function HubDeploymentDetail() {
     [deployments, name],
   )
 
-  // Synthesize a blue/green config diff for the diff-viewer demo. Without a
-  // backend endpoint that returns both rendered configs we fall back to a
-  // representative pair of YAML blobs derived from the deployment's tracked
-  // resource names. This still exercises `<DiffViewer>` end-to-end.
-  const { blueConfig, greenConfig } = useMemo(() => {
-    if (!deployment) return { blueConfig: "", greenConfig: "" }
-    const blue = `name: ${deployment.blueDeploymentName ?? `${deployment.name}-blue`}
-namespace: ${deployment.namespace}
-parallelism: 4
-checkpointInterval: 60s
-restartStrategy: fixedDelay
-sources:
-  - kafka:events.v1
-sinks:
-  - paimon:default.events`
-    const green = `name: ${deployment.greenDeploymentName ?? `${deployment.name}-green`}
-namespace: ${deployment.namespace}
-parallelism: 8
-checkpointInterval: 30s
-restartStrategy: exponentialDelay
-sources:
-  - kafka:events.v2
-sinks:
-  - paimon:default.events`
-    return { blueConfig: blue, greenConfig: green }
-  }, [deployment])
+  const [configDiff, setConfigDiff] = useState<ConfigDiffState>({
+    blueYAML: "",
+    greenYAML: "",
+    loading: true,
+    error: null,
+  })
+
+  useEffect(() => {
+    let cancelled = false
+    setConfigDiff((prev) => ({ ...prev, loading: true, error: null }))
+    graphqlClient
+      .query(CONFIG_DIFF_QUERY, { name })
+      .toPromise()
+      .then((result) => {
+        if (cancelled) return
+        if (result.error) {
+          setConfigDiff({
+            blueYAML: "",
+            greenYAML: "",
+            loading: false,
+            error: result.error.message,
+          })
+          return
+        }
+        const diff = result.data?.blueGreenDeploymentConfigDiff
+        setConfigDiff({
+          blueYAML: diff?.blueYAML ?? "",
+          greenYAML: diff?.greenYAML ?? "",
+          loading: false,
+          error: null,
+        })
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setConfigDiff({
+          blueYAML: "",
+          greenYAML: "",
+          loading: false,
+          error: err instanceof Error ? err.message : "Failed to load diff",
+        })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [name])
 
   if (error) {
     return (
@@ -170,7 +215,7 @@ sinks:
             </p>
           </div>
         </div>
-        <DiffViewer a={blueConfig} b={greenConfig} />
+        <ConfigDiffSection state={configDiff} />
       </section>
 
       {/* Timing */}
@@ -199,6 +244,39 @@ function KvCard({ label, value }: { label: string; value: string }) {
       <div className="font-mono text-[12px] text-fg truncate">{value}</div>
     </div>
   )
+}
+
+function ConfigDiffSection({ state }: { state: ConfigDiffState }) {
+  if (state.loading) {
+    return (
+      <div className="h-40 animate-pulse rounded bg-dash-surface/40" />
+    )
+  }
+  if (state.error) {
+    return (
+      <div className="rounded border border-fr-coral/30 bg-dash-surface p-4 text-[12px] text-fr-coral">
+        Failed to load config diff: {state.error}
+      </div>
+    )
+  }
+  if (!state.blueYAML && !state.greenYAML) {
+    return (
+      <div className="rounded bg-dash-surface p-4 text-[12px] text-fg-muted">
+        No template configuration found for this deployment.
+      </div>
+    )
+  }
+  if (!state.greenYAML) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded bg-dash-surface p-3 text-[11px] text-fg-muted">
+          No pending green — showing the active blue configuration only.
+        </div>
+        <DiffViewer a={state.blueYAML} b={state.blueYAML} />
+      </div>
+    )
+  }
+  return <DiffViewer a={state.blueYAML} b={state.greenYAML} />
 }
 
 export const Route = createFileRoute("/hub/deployments/$name")({

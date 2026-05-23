@@ -107,6 +107,9 @@ const CLUSTER_OVERVIEW_QUERY = gql`
         created scheduled deploying running finished
         canceling canceled failed reconciling initializing
       }
+      recordsInPerSecond
+      recordsOutPerSecond
+      watermarkLag
     }
     taskManagers(cluster: $cluster) {
       id slotsNumber freeSlots
@@ -267,6 +270,21 @@ const RESCALE_JOB_MUTATION = gql`
   }
 `
 
+const JOB_SAVEPOINTS_QUERY = gql`
+  query JobSavepoints($jobId: ID!, $cluster: String) {
+    savepoints(jobId: $jobId, cluster: $cluster) {
+      id
+      status
+      triggerType
+      location
+      sizeBytes
+      durationMs
+      triggeredAt
+      error
+    }
+  }
+`
+
 const DELETE_JAR_MUTATION = gql`
   mutation DeleteJar($id: ID!, $cluster: String) {
     deleteJar(id: $id, cluster: $cluster) { success }
@@ -397,6 +415,15 @@ async function mutate<T>(
 // ---------------------------------------------------------------------------
 
 function mapJobOverview(j: any): FlinkJob {
+  const rin = j.recordsInPerSecond
+  const rout = j.recordsOutPerSecond
+  const throughput =
+    rin == null && rout == null
+      ? null
+      : {
+          recordsInPerSecond: rin ?? 0,
+          recordsOutPerSecond: rout ?? 0,
+        }
   return {
     id: j.id,
     name: j.name,
@@ -420,8 +447,8 @@ function mapJobOverview(j: any): FlinkJob {
     backpressure: {},
     accumulators: {},
     sourcesAndSinks: [],
-    throughput: null,
-    watermarkLag: null,
+    throughput,
+    watermarkLag: j.watermarkLag ?? null,
   }
 }
 
@@ -1062,6 +1089,59 @@ export async function rescaleJob(
     newParallelism,
   })
   return data.rescaleJob.requestId
+}
+
+/** Status of a Flink savepoint operation. */
+export type SavepointStatus = "IN_PROGRESS" | "COMPLETED" | "FAILED"
+
+/** How a savepoint was initiated. */
+export type SavepointTriggerType = "MANUAL" | "STOP_WITH_SAVEPOINT" | "BLUE_GREEN"
+
+/** A single savepoint row, with size/duration decoded from String to number. */
+export interface JobSavepoint {
+  id: string
+  status: SavepointStatus
+  triggerType: SavepointTriggerType
+  /** Savepoint storage path. Null until the operation completes successfully. */
+  location: string | null
+  /** Size in bytes. Null until the operation completes. */
+  sizeBytes: number | null
+  /** Trigger-to-completion duration in ms. Null until the operation completes. */
+  durationMs: number | null
+  /** Trigger time as a Date object. */
+  triggeredAt: Date
+  /** Failure reason. Null unless status is FAILED. */
+  error: string | null
+}
+
+/**
+ * Fetch savepoints for a single job, ordered by triggeredAt descending.
+ *
+ * The fan-out at the route level (one query per running job) is intentional
+ * for v1; if it becomes a bottleneck, a future change can add an aggregated
+ * `clusterSavepoints` query.
+ */
+export async function fetchJobSavepoints(
+  jobId: string,
+  cluster?: string,
+): Promise<JobSavepoint[]> {
+  const data = await query<any>(
+    JOB_SAVEPOINTS_QUERY,
+    { jobId, cluster },
+    "network-only",
+  )
+  return (data.savepoints ?? []).map(
+    (sp: any): JobSavepoint => ({
+      id: sp.id,
+      status: sp.status as SavepointStatus,
+      triggerType: sp.triggerType as SavepointTriggerType,
+      location: sp.location,
+      sizeBytes: sp.sizeBytes != null ? parseI64(sp.sizeBytes) : null,
+      durationMs: sp.durationMs != null ? parseI64(sp.durationMs) : null,
+      triggeredAt: new Date(parseI64(sp.triggeredAt)),
+      error: sp.error,
+    }),
+  )
 }
 
 /** Run a JAR */

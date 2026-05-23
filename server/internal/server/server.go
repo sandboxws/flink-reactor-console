@@ -25,6 +25,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/metrics"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/savepoints"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/simulation"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
@@ -194,6 +195,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		StoragePool:        cfg.StoragePool,
 		StorageConfig:      cfg.StorageConfig,
 		SimulationEngine:   cfg.SimulationEngine,
+		SavepointTriggers:  savepoints.NewTriggerTypeCache(),
 	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,

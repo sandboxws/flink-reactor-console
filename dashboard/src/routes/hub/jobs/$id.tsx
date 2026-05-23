@@ -27,24 +27,30 @@ import {
   Bookmark,
   Clock,
   Droplets,
+  FileCode2,
   GitBranch,
   Layers,
   ListTree,
   MoreHorizontal,
+  Plug,
+  Radio,
   RotateCcw,
   SlidersHorizontal,
   Square,
+  Waves,
 } from "lucide-react"
 import { lazy, Suspense, useEffect, useMemo, useState } from "react"
 import { JobKpiStrip } from "@/components/hub/jobs/job-kpi-strip"
 import { CheckpointsTab } from "@/components/jobs/detail/checkpoints-tab"
 import { ConfigurationTab } from "@/components/jobs/detail/configuration-tab"
 import { ExceptionsTab } from "@/components/jobs/detail/exceptions-tab"
+import { extractSql } from "@/components/jobs/detail/sql-tab"
 import { TimelineTab } from "@/components/jobs/detail/timeline-tab"
 import { VerticesTab } from "@/components/jobs/detail/vertices-tab"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useClusterStore } from "@/stores/cluster-store"
+import { useTapStore } from "@/stores/tap-store"
 
 /** Lazy-loaded DAG — keeps ReactFlow + xyflow CSS out of the initial chunk. */
 const HubJobGraph = lazy(() =>
@@ -52,6 +58,46 @@ const HubJobGraph = lazy(() =>
     default: m.HubJobGraph,
   })),
 )
+
+/** Lazy-loaded SQL tab — keeps CodeMirror + lang-sql out of the initial chunk. */
+const HubSqlTab = lazy(() =>
+  import("@/components/hub/jobs/tabs/sql-tab").then((m) => ({
+    default: m.HubSqlTab,
+  })),
+)
+
+const HubDataSkewTab = lazy(() =>
+  import("@/components/hub/jobs/tabs/data-skew-tab").then((m) => ({
+    default: m.HubDataSkewTab,
+  })),
+)
+
+const HubSourcesSinksTab = lazy(() =>
+  import("@/components/hub/jobs/tabs/sources-sinks-tab").then((m) => ({
+    default: m.HubSourcesSinksTab,
+  })),
+)
+
+const HubWatermarksTab = lazy(() =>
+  import("@/components/hub/jobs/tabs/watermarks-tab").then((m) => ({
+    default: m.HubWatermarksTab,
+  })),
+)
+
+/** Lazy-loaded Tap tab — pulls in the full streaming-SQL panel only when opened. */
+const HubTapTab = lazy(() =>
+  import("@/components/hub/jobs/tabs/tap-tab").then((m) => ({
+    default: m.HubTapTab,
+  })),
+)
+
+function TabFallback() {
+  return (
+    <div className="glass-card-static py-12 text-center text-[12px] font-mono text-fg-muted">
+      Loading…
+    </div>
+  )
+}
 
 function timeAgo(date: Date | string | null | undefined): string {
   if (!date) return "—"
@@ -79,12 +125,29 @@ function HubJobDetail() {
   const [activeTab, setActiveTab] = useState("dag")
   const [selectedVertexId, setSelectedVertexId] = useState<string | undefined>()
 
+  const loadTapManifest = useTapStore((s) => s.loadManifest)
+  const tapPipelineName = useTapStore((s) => s.currentPipelineName)
+  const tapOperators = useTapStore((s) => s.availableOperators)
+
   useEffect(() => {
     fetchJobDetail(id)
     return () => clearJobDetail()
   }, [id, fetchJobDetail, clearJobDetail])
 
   const job = jobDetail
+
+  /**
+   * Reactively load the tap manifest by job name. The Tap tab visibility
+   * derives from `tapPipelineName === job.name && tapOperators.length > 0`;
+   * a missing manifest is a 404 inside the store and silently produces an
+   * empty list, so this never fails the route.
+   */
+  useEffect(() => {
+    if (!job?.name) return
+    if (tapPipelineName !== job.name) {
+      loadTapManifest(job.name)
+    }
+  }, [job?.name, tapPipelineName, loadTapManifest])
   const isRunning = job
     ? ["RUNNING", "CREATED", "RESTARTING", "RECONCILING"].includes(job.status)
     : false
@@ -93,6 +156,25 @@ function HubJobDetail() {
     for (const v of job?.plan?.vertices ?? []) map[v.id] = v.name
     return map
   }, [job?.plan])
+
+  const hasSql = useMemo(
+    () => extractSql(job?.jobConfig?.userConfig) !== null,
+    [job?.jobConfig],
+  )
+  const hasTapManifest =
+    !!job && tapPipelineName === job.name && tapOperators.length > 0
+  const hasSourcesSinks = (job?.sourcesAndSinks.length ?? 0) > 0
+
+  /**
+   * Snap back to DAG if the active tab becomes unavailable (e.g. user lands on
+   * /tap and switches to a job without a manifest). Radix Tabs leave the active
+   * value alone otherwise, which would render an empty panel.
+   */
+  useEffect(() => {
+    if (activeTab === "sql" && !hasSql) setActiveTab("dag")
+    if (activeTab === "tap" && !hasTapManifest) setActiveTab("dag")
+    if (activeTab === "sources-sinks" && !hasSourcesSinks) setActiveTab("dag")
+  }, [activeTab, hasSql, hasTapManifest, hasSourcesSinks])
 
   const handleSelectVertex = (vertexId: string) => {
     setSelectedVertexId(vertexId)
@@ -233,10 +315,23 @@ function HubJobDetail() {
             <GitBranch />
             <span>DAG</span>
           </TabsTrigger>
+          {hasSql ? (
+            <TabsTrigger value="sql" className="tab">
+              <FileCode2 />
+              <span>SQL</span>
+            </TabsTrigger>
+          ) : null}
           <TabsTrigger value="vertices" className="tab">
             <ListTree />
             <span>Vertices</span>
           </TabsTrigger>
+          {hasSourcesSinks ? (
+            <TabsTrigger value="sources-sinks" className="tab">
+              <Plug />
+              <span>Sources &amp; Sinks</span>
+              <span className="tab-count">{job.sourcesAndSinks.length}</span>
+            </TabsTrigger>
+          ) : null}
           <TabsTrigger value="checkpoints" className="tab">
             <BarChart3 />
             <span>Checkpoints</span>
@@ -245,6 +340,14 @@ function HubJobDetail() {
                 {job.checkpointCounts.completed}
               </span>
             ) : null}
+          </TabsTrigger>
+          <TabsTrigger value="data-skew" className="tab">
+            <Waves />
+            <span>Data Skew</span>
+          </TabsTrigger>
+          <TabsTrigger value="watermarks" className="tab">
+            <Droplets />
+            <span>Watermarks</span>
           </TabsTrigger>
           <TabsTrigger value="exceptions" className="tab">
             <AlertTriangle />
@@ -261,10 +364,13 @@ function HubJobDetail() {
             <Clock />
             <span>Timeline</span>
           </TabsTrigger>
-          <TabsTrigger value="watermarks" className="tab">
-            <Droplets />
-            <span>Watermarks</span>
-          </TabsTrigger>
+          {hasTapManifest ? (
+            <TabsTrigger value="tap" className="tab">
+              <Radio />
+              <span>Tap</span>
+              <span className="tab-count">{tapOperators.length}</span>
+            </TabsTrigger>
+          ) : null}
         </TabsList>
 
         {/* DAG tab */}
@@ -334,12 +440,30 @@ function HubJobDetail() {
           </div>
         </TabsContent>
 
+        {/* SQL tab (conditional) */}
+        {hasSql ? (
+          <TabsContent value="sql" className="mt-6 outline-none">
+            <Suspense fallback={<TabFallback />}>
+              <HubSqlTab jobConfig={job.jobConfig} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
+
         {/* Vertices tab */}
         <TabsContent value="vertices" className="mt-6 outline-none">
           <div className="glass-card-static p-5">
             <VerticesTab job={job} selectedVertexId={selectedVertexId} />
           </div>
         </TabsContent>
+
+        {/* Sources & Sinks tab */}
+        {hasSourcesSinks ? (
+          <TabsContent value="sources-sinks" className="mt-6 outline-none">
+            <Suspense fallback={<TabFallback />}>
+              <HubSourcesSinksTab job={job} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
 
         {/* Checkpoints tab */}
         <TabsContent value="checkpoints" className="mt-6 outline-none">
@@ -353,6 +477,13 @@ function HubJobDetail() {
               vertexNames={vertexNames}
             />
           </div>
+        </TabsContent>
+
+        {/* Data Skew tab */}
+        <TabsContent value="data-skew" className="mt-6 outline-none">
+          <Suspense fallback={<TabFallback />}>
+            <HubDataSkewTab job={job} />
+          </Suspense>
         </TabsContent>
 
         {/* Exceptions tab */}
@@ -381,13 +512,19 @@ function HubJobDetail() {
 
         {/* Watermarks tab */}
         <TabsContent value="watermarks" className="mt-6 outline-none">
-          <div className="glass-card-static p-8 text-center">
-            <p className="text-[12px] text-fg-muted">
-              Per-vertex watermarks live in the Vertices tab for now. A
-              dedicated Watermarks chart is on the roadmap.
-            </p>
-          </div>
+          <Suspense fallback={<TabFallback />}>
+            <HubWatermarksTab job={job} />
+          </Suspense>
         </TabsContent>
+
+        {/* Tap tab (conditional) */}
+        {hasTapManifest ? (
+          <TabsContent value="tap" className="mt-6 outline-none">
+            <Suspense fallback={<TabFallback />}>
+              <HubTapTab jobName={job.name} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
       </Tabs>
     </HubAppShell>
   )

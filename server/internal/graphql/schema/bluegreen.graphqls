@@ -25,9 +25,15 @@ type BlueGreenDeployment {
   deploymentDeletionDelay: String
 }
 
+type BlueGreenConfigDiff {
+  blueYAML: String!
+  greenYAML: String!
+}
+
 extend type Query {
   blueGreenDeployments(cluster: String, namespace: String): [BlueGreenDeployment!]!
   blueGreenDeployment(name: String!, namespace: String, cluster: String): BlueGreenDeployment
+  blueGreenDeploymentConfigDiff(name: String!, namespace: String, cluster: String): BlueGreenConfigDiff!
 }
 
 extend type Subscription {

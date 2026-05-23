@@ -2,9 +2,10 @@
  * Engine bars chart — last-38-minutes throughput sparkline rendered as
  * stacked SVG `<rect>` bars. Sage = success, coral = failed checkpoint.
  *
- * The parent decides whether to feed live data (from `useEngineBarsData`)
- * or seeded demo bars; this component only renders. The `isDemo` flag
- * controls the badge ("demo data" vs "live") and tooltip text.
+ * Renders three explicit states from `useEngineBarsData`:
+ *  - `loading`: 38 low-opacity skeleton bars at a uniform height
+ *  - `empty`: "Collecting metrics" message when storage has no series yet
+ *  - live: real bars with `live` badge
  */
 
 export interface EngineBar {
@@ -14,16 +15,44 @@ export interface EngineBar {
 
 interface EngineBarsChartProps {
   bars: EngineBar[]
-  isDemo: boolean
-  /** Optional error message — surfaces in the demo-badge tooltip. */
+  loading: boolean
+  empty: boolean
+  /** Optional error message — surfaces in the badge tooltip when present. */
   errorMessage?: string | null
 }
 
+const SKELETON_BAR: EngineBar = { height: 30, failed: false }
+
 export function EngineBarsChart({
   bars,
-  isDemo,
+  loading,
+  empty,
   errorMessage,
 }: EngineBarsChartProps) {
+  const skeletonBars: EngineBar[] = loading
+    ? Array.from({ length: 38 }, () => SKELETON_BAR)
+    : []
+  const rendered = loading ? skeletonBars : bars
+  const showEmptyOverlay = !loading && (empty || rendered.length === 0)
+  const showErrorOverlay = !!errorMessage && !loading
+
+  const badge = loading ? (
+    <span className="sev-badge muted">loading</span>
+  ) : showErrorOverlay ? (
+    <span className="sev-badge fail" title={errorMessage ?? undefined}>
+      error
+    </span>
+  ) : showEmptyOverlay ? (
+    <span
+      className="sev-badge muted"
+      title="no numRecordsOutPerSecond series in storage yet"
+    >
+      no data yet
+    </span>
+  ) : (
+    <span className="sev-badge ok">live</span>
+  )
+
   return (
     <div className="col-span-12 lg:col-span-7">
       <div className="glass-card-static h-full p-5">
@@ -33,20 +62,7 @@ export function EngineBarsChart({
               <h3 className="font-sans text-[14px] font-medium text-zinc-100">
                 Streaming engine
               </h3>
-              {isDemo ? (
-                <span
-                  className="sev-badge muted"
-                  title={
-                    errorMessage
-                      ? `metric fetch failed: ${errorMessage}`
-                      : "no numRecordsOutPerSecond series in storage yet"
-                  }
-                >
-                  demo data
-                </span>
-              ) : (
-                <span className="sev-badge ok">live</span>
-              )}
+              {badge}
             </div>
             <p className="mt-0.5 text-[11px] text-fg-muted">
               Throughput · last 38 minutes · sage = success, coral = failed
@@ -67,10 +83,10 @@ export function EngineBarsChart({
               <line x1="0" y1="90" x2="600" y2="90" />
               <line x1="0" y1="135" x2="600" y2="135" />
             </g>
-            <g>
-              {bars.map((bar, i) => {
-                const x = (i / bars.length) * 600
-                const barWidth = 600 / bars.length - 2
+            <g opacity={loading ? 0.3 : 1}>
+              {rendered.map((bar, i) => {
+                const x = (i / Math.max(rendered.length, 1)) * 600
+                const barWidth = 600 / Math.max(rendered.length, 1) - 2
                 const y = 180 - bar.height
                 const fill = bar.failed
                   ? "var(--color-fr-coral)"
@@ -84,18 +100,23 @@ export function EngineBarsChart({
                     width={barWidth}
                     height={bar.height}
                     fill={fill}
-                    opacity={0.7}
+                    opacity={loading ? 0.4 : 0.7}
                   />
                 )
               })}
             </g>
           </svg>
+          {showEmptyOverlay ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="text-[11px] font-mono text-fg-muted">
+                Collecting metrics — first bars appear after ~60s
+              </span>
+            </div>
+          ) : null}
         </div>
         <div className="mt-3 flex items-center justify-between text-[10px] font-mono text-fg-faint">
           <span>38m ago</span>
-          <span>
-            wire to <code>metricSeries(jobID, metric)</code> in P3
-          </span>
+          <span>peak across all sources</span>
           <span>now</span>
         </div>
       </div>

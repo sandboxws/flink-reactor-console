@@ -1,17 +1,15 @@
 /**
  * Hub overview — /hub landing page.
  *
- * Mirrors `console-v2/overview.html` exactly. Real data comes from existing
- * Zustand stores (cluster, alerts, bg-deployment, config). Values without a
- * backing store yet (real-time throughput, watermark lag, SLO, engine bars,
- * checkpoint heatmap, instrument health) render as "—" with a small "demo"
- * affordance — see `fr-server-XX-metric-subscription` and `fr-server-XX-alerts-engine`
- * follow-ups for the missing pipes.
- *
- * After cutover (fr-console-hub-cutover) this file moves to /overview.
+ * Mirrors `console-v2/overview.html`. Every chart and KPI sources from live
+ * GraphQL queries (cluster store + `metricSeries` + `checkpointHistory`).
+ * Empty states render explicitly when a backing store has no data yet — no
+ * seeded fallbacks. The cluster-wide throughput + watermark rollups use
+ * `useClusterRates`, the interim path until `fr-console-v2-server-job-throughput-rollup`
+ * lands those fields directly on `JobOverview`.
  */
 
-import { type HeatmapIntensity, KpiCard, LiveDot } from "@flink-reactor/ui"
+import { KpiCard, LiveDot } from "@flink-reactor/ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   AlertTriangle,
@@ -37,11 +35,20 @@ import { RecentAlertsCard } from "@/components/hub/overview/recent-alerts-card"
 import { TopPipelinesGrid } from "@/components/hub/overview/top-pipelines-grid"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { useCheckpointDensity } from "@/lib/hub/use-checkpoint-density"
+import { useClusterRates } from "@/lib/hub/use-cluster-rates"
 import { useEngineBarsData } from "@/lib/hub/use-engine-bars-data"
 import { useAlertsStore } from "@/stores/alerts-store"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useConfigStore } from "@/stores/config-store"
+
+/** Compact rate formatter ("4.21M", "1.8K", "420"). */
+function formatRate(n: number | null): string {
+  if (n === null || !Number.isFinite(n)) return "—"
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  return n.toFixed(0)
+}
 
 /** Format the relative time for activity rows ("2m ago", "1h ago"). */
 function timeAgo(date: Date | string | null | undefined): string {
@@ -188,61 +195,19 @@ function HubOverview() {
 
   const clusterID = config?.clusters?.[0] ?? null
 
-  /* Engine bars — driven by `metricSeries` when the storage backend has
-   * `numRecordsOutPerSecond` data, otherwise falls back to seeded demo
-   * bars so the page never renders empty. The hook tells us via `empty`
-   * which case we're in. */
-  const liveEngineBars = useEngineBarsData(clusterID, { minutes: 38 })
-  const demoEngineBars = useMemo(() => {
-    const seeded = (n: number) => {
-      const x = Math.sin(n * 7.3) * 10000
-      return x - Math.floor(x)
-    }
-    return Array.from({ length: 38 }, (_, i) => {
-      const r = seeded(i + 1)
-      const height = 30 + r * 130
-      const failed = i % 9 === 3 || i % 11 === 7
-      return { height, failed }
-    })
-  }, [])
-  /* Use live bars only when we got real data back; otherwise stay on demo
-   * regardless of whether the cause was empty storage or a network error. */
-  const useLiveEngineBars =
-    !liveEngineBars.loading &&
-    !liveEngineBars.empty &&
-    !liveEngineBars.error &&
-    liveEngineBars.bars.length > 0
-  const engineBars = useLiveEngineBars ? liveEngineBars.bars : demoEngineBars
-  const engineBarsAreDemo = !useLiveEngineBars
+  /* Engine bars — `metricSeries`-backed. Renders an empty state until the
+   * storage backend has `numRecordsOutPerSecond` data; no seeded fallback. */
+  const engineBars = useEngineBarsData(clusterID, { minutes: 38 })
 
-  /* Heatmap — driven by `checkpointHistory` aggregated per local day.
-   * Falls back to seeded demo data when storage is empty/unavailable. */
-  const liveHeatmap = useCheckpointDensity(clusterID, { days: 26 * 7 })
-  const demoHeatmap = useMemo<HeatmapIntensity[]>(() => {
-    const seeded = (n: number) => {
-      const x = Math.sin(n * 13.7) * 10000
-      return x - Math.floor(x)
-    }
-    return Array.from({ length: 26 * 7 }, (_, i) => {
-      const r = seeded(i + 1)
-      if (r < 0.25) return 0
-      if (r < 0.5) return 1
-      if (r < 0.72) return 2
-      if (r < 0.9) return 3
-      return 4
-    }) as HeatmapIntensity[]
-  }, [])
-  const useLiveHeatmap =
-    !liveHeatmap.loading &&
-    !liveHeatmap.empty &&
-    !liveHeatmap.error &&
-    liveHeatmap.data.length > 0
-  const heatmapData = useLiveHeatmap ? liveHeatmap.data : demoHeatmap
-  const heatmapIsDemo = !useLiveHeatmap
+  /* Heatmap — `checkpointHistory` aggregated per local day. Renders an
+   * empty state until storage has data; no seeded fallback. */
+  const heatmap = useCheckpointDensity(clusterID, { days: 26 * 7 })
+
+  /* Cluster-wide Throughput + Watermark-lag rollups via `metricSeries`. */
+  const rates = useClusterRates(clusterID, { refreshIntervalMs: 5000 })
 
   const flinkVersion = overview?.flinkVersion ?? "—"
   const clusterName = config?.clusterDisplayName ?? "cluster"
-  const region = "—" // Not in current overview store
   const slotsTotal = overview?.totalTaskSlots ?? 0
 
   const rail = (
@@ -254,16 +219,18 @@ function HubOverview() {
           liveDot="sage"
           value={
             <span className="flex items-baseline gap-1">
-              <span>—</span>
+              <span>{formatRate(rates.throughput)}</span>
               <span className="text-[10px] font-normal text-fg-muted">
                 evt/s
               </span>
             </span>
           }
           sub={
-            lastUpdated
-              ? `polled ${timeAgo(lastUpdated)}`
-              : "awaiting first poll"
+            rates.empty
+              ? "no metric series yet"
+              : lastUpdated
+                ? `polled ${timeAgo(lastUpdated)}`
+                : "awaiting first poll"
           }
         />
         <KpiCard
@@ -292,7 +259,6 @@ function HubOverview() {
       <div className="space-y-2 text-[12px]">
         <RailRow label="Flink version" value={flinkVersion} />
         <RailRow label="Reactor" value={config?.clusters?.[0] ?? "—"} />
-        <RailRow label="Region" value={region} />
         <RailRow
           label="Task managers"
           value={String(overview?.taskManagerCount ?? "—")}
@@ -360,18 +326,21 @@ function HubOverview() {
       <section className="mb-8 grid grid-cols-12 gap-4">
         <OverviewKpiQuad
           runningJobsCount={runningJobs.length}
-          slotsUsed={slotsUsed}
-          slotsTotal={slotsTotal}
-          slotPct={slotPct}
+          throughputEvtPerSec={rates.throughput}
+          watermarkLagMs={rates.watermarkLagMs}
           taskManagerCount={overview?.taskManagerCount ?? 0}
+          slotsTotal={slotsTotal}
+          slotsUsed={slotsUsed}
+          slotPct={slotPct}
           jobsRunning={overview?.runningJobs ?? 0}
           jobsFinished={overview?.finishedJobs ?? 0}
           jobsFailed={overview?.failedJobs ?? 0}
         />
         <EngineBarsChart
-          bars={engineBars}
-          isDemo={engineBarsAreDemo}
-          errorMessage={liveEngineBars.error}
+          bars={engineBars.bars}
+          loading={engineBars.loading}
+          empty={engineBars.empty}
+          errorMessage={engineBars.error}
         />
       </section>
 
@@ -390,10 +359,11 @@ function HubOverview() {
 
       {/* ── CHECKPOINT HEATMAP ────────────────────────────────── */}
       <CheckpointHeatmap
-        data={heatmapData}
+        data={heatmap.data}
         weeks={26}
-        isDemo={heatmapIsDemo}
-        errorMessage={liveHeatmap.error}
+        loading={heatmap.loading}
+        empty={heatmap.empty}
+        errorMessage={heatmap.error}
       />
     </HubAppShell>
   )

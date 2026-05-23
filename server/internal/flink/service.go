@@ -21,6 +21,7 @@ type JarRunRequest struct {
 type Service struct {
 	client     *Client
 	aggregator *Aggregator
+	ratesCache *RatesCache
 }
 
 // NewService creates a Service backed by the given Flink client.
@@ -28,6 +29,7 @@ func NewService(client *Client) *Service {
 	return &Service{
 		client:     client,
 		aggregator: NewAggregator(client),
+		ratesCache: NewRatesCache(),
 	}
 }
 
@@ -160,6 +162,27 @@ func (s *Service) StopWithSavepoint(ctx context.Context, jobID string, targetDir
 	return resp.RequestID, nil
 }
 
+// Savepoints lists savepoint operations for a job via
+// GET /jobs/:jobID/savepoints. Decoding is tolerant: unknown fields are
+// ignored so the call survives minor schema changes across Flink versions.
+func (s *Service) Savepoints(ctx context.Context, jobID string) ([]SavepointInfo, error) {
+	var result SavepointList
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/savepoints", jobID), &result); err != nil {
+		return nil, err
+	}
+	return result.Operations, nil
+}
+
+// SavepointDetail returns a single savepoint operation via
+// GET /jobs/:jobID/savepoints/:savepointID.
+func (s *Service) SavepointDetail(ctx context.Context, jobID, savepointID string) (*SavepointInfo, error) {
+	var result SavepointInfo
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/savepoints/%s", jobID, savepointID), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 // RescaleJob rescales a running job to the given parallelism.
 func (s *Service) RescaleJob(ctx context.Context, jobID string, newParallelism int) (string, error) {
 	var resp RescaleResponse
@@ -174,6 +197,16 @@ func (s *Service) RescaleJob(ctx context.Context, jobID string, newParallelism i
 // GetJobDetail returns a fully aggregated job detail.
 func (s *Service) GetJobDetail(ctx context.Context, jobID string) (*JobDetailAggregate, error) {
 	return s.aggregator.JobDetail(ctx, jobID)
+}
+
+// GetJobRates returns the lightweight subset of JobDetail needed to compute
+// per-job throughput and watermark lag. The result is served from a short-TTL
+// cache (RatesCacheTTL); concurrent calls for the same jobID are coalesced
+// into a single Flink REST fan-out.
+func (s *Service) GetJobRates(ctx context.Context, jobID string) (*JobDetailAggregate, error) {
+	return s.ratesCache.Fetch(ctx, "", jobID, func(ctx context.Context) (*JobDetailAggregate, error) {
+		return s.aggregator.JobRates(ctx, jobID)
+	})
 }
 
 // GetTaskManagerDetail returns aggregated TM detail with metrics.

@@ -44,6 +44,9 @@ func (r *mutationResolver) TriggerSavepoint(ctx context.Context, jobID string, t
 	if err != nil {
 		return nil, err
 	}
+	if r.SavepointTriggers != nil {
+		r.SavepointTriggers.RecordManual(conn.Name, jobID, requestID)
+	}
 	return &model.SavepointTriggerResult{RequestID: requestID}, nil
 }
 
@@ -62,6 +65,9 @@ func (r *mutationResolver) StopJobWithSavepoint(ctx context.Context, jobID strin
 	requestID, err := conn.Service.StopWithSavepoint(ctx, jobID, targetDir)
 	if err != nil {
 		return nil, err
+	}
+	if r.SavepointTriggers != nil {
+		r.SavepointTriggers.RecordStopWithSavepoint(conn.Name, jobID, requestID)
 	}
 	return &model.SavepointTriggerResult{RequestID: requestID}, nil
 }
@@ -116,6 +122,8 @@ func (r *queryResolver) Jobs(ctx context.Context, cluster *string) ([]*model.Job
 			},
 		}
 	}
+
+	enrichJobsWithRates(ctx, conn.Service, result)
 	return result, nil
 }
 
@@ -256,4 +264,38 @@ func (r *queryResolver) CheckpointDetail(ctx context.Context, jobID string, chec
 		NumAcknowledgedSubtasks: detail.NumAcknowledgedSubtask,
 		CheckpointedSize:        i64p(detail.CheckpointedSize),
 	}, nil
+}
+
+// Savepoints is the resolver for the savepoints field.
+func (r *queryResolver) Savepoints(ctx context.Context, jobID string, cluster *string) ([]*model.Savepoint, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	ops, err := conn.Service.Savepoints(ctx, jobID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.Savepoint, 0, len(ops))
+	for i := range ops {
+		result = append(result, mapSavepoint(&ops[i], conn.Name, jobID, r.SavepointTriggers))
+	}
+	sortSavepointsByTriggeredAtDesc(result)
+	return result, nil
+}
+
+// Savepoint is the resolver for the savepoint field.
+func (r *queryResolver) Savepoint(ctx context.Context, jobID string, savepointID string, cluster *string) (*model.Savepoint, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	op, err := conn.Service.SavepointDetail(ctx, jobID, savepointID)
+	if err != nil {
+		return nil, err
+	}
+	return mapSavepoint(op, conn.Name, jobID, r.SavepointTriggers), nil
 }

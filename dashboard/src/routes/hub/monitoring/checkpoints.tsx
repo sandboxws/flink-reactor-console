@@ -17,6 +17,7 @@ import { SavepointsList } from "@/components/hub/checkpoints/savepoints-list"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useCheckpointFailureBuckets } from "@/lib/hub/use-checkpoint-failure-buckets"
+import { useClusterSavepoints } from "@/lib/hub/use-cluster-savepoints"
 import {
   type EngineBar,
   useEngineBarsData,
@@ -72,10 +73,12 @@ function HubMonitoringCheckpoints() {
   const initCluster = useClusterStore((s) => s.initialize)
   const startCluster = useClusterStore((s) => s.startPolling)
   const stopCluster = useClusterStore((s) => s.stopPolling)
+  const runningJobs = useClusterStore((s) => s.runningJobs)
   const config = useConfigStore((s) => s.config)
   const clusterID = config?.clusters?.[0] ?? null
   const liveBars = useEngineBarsData(clusterID, { minutes: 38 })
   const failureBuckets = useCheckpointFailureBuckets(clusterID, { minutes: 38 })
+  const savepointsResult = useClusterSavepoints(runningJobs)
 
   useEffect(() => {
     initCluster()
@@ -393,7 +396,11 @@ function HubMonitoringCheckpoints() {
 
               <div className="glass-card-static p-5">
                 <h3 className="section-heading mb-3">Savepoints (recent)</h3>
-                <SavepointsList summaries={summaries} />
+                <SavepointsList
+                  rows={savepointsResult.rows}
+                  loading={savepointsResult.loading}
+                  limit={8}
+                />
               </div>
             </div>
           </section>

@@ -239,11 +239,12 @@ func extractAggSum(items []flink.AggregatedSubtaskMetric, id string) float64 {
 	return 0
 }
 
-// computeWatermarkLag returns `now - min subtask watermark` (in ms),
-// stringified as a Long. Filters Flink's sentinel values
+// computeWatermarkLagMs returns `now - min subtask watermark` (in ms),
+// or nil when no valid watermark exists. Filters Flink's sentinel values
 // (Long.MIN_VALUE = "no watermark", Long.MAX_VALUE = "end of stream")
-// and zero. Returns nil when no valid watermark exists.
-func computeWatermarkLag(agg *flink.JobDetailAggregate) *string {
+// and zero. Shared by both JobDetail (which stringifies the result) and
+// JobOverview (which serializes it as a GraphQL Int).
+func computeWatermarkLagMs(agg *flink.JobDetailAggregate) *int64 {
 	if agg == nil || agg.Job == nil || len(agg.Watermarks) == 0 {
 		return nil
 	}
@@ -271,12 +272,32 @@ func computeWatermarkLag(agg *flink.JobDetailAggregate) *string {
 		return nil
 	}
 
-	lag := agg.Job.Now - minWatermark
-	if lag < 0 {
-		lag = 0
+	lag := max(agg.Job.Now-minWatermark, 0)
+	return &lag
+}
+
+// computeWatermarkLag returns the lag stringified as a Long, for JobDetail
+// (which uses String to safely encode lags that may exceed int32).
+func computeWatermarkLag(agg *flink.JobDetailAggregate) *string {
+	lag := computeWatermarkLagMs(agg)
+	if lag == nil {
+		return nil
 	}
-	s := strconv.FormatInt(lag, 10)
+	s := strconv.FormatInt(*lag, 10)
 	return &s
+}
+
+// computeWatermarkLagInt returns the lag as a GraphQL Int (int32-clamped),
+// for JobOverview. Lags exceeding int32 (~24.85 days) are clamped — at that
+// magnitude the exact value is meaningless and we just want a "very stale"
+// signal that still fits the schema.
+func computeWatermarkLagInt(agg *flink.JobDetailAggregate) *int {
+	lag := computeWatermarkLagMs(agg)
+	if lag == nil {
+		return nil
+	}
+	clamped := int(min(*lag, math.MaxInt32))
+	return &clamped
 }
 
 // mapJobConfig converts the Flink JobConfig (raw /jobs/:id/config response) into a

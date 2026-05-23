@@ -406,3 +406,100 @@ func writeTestJSON(w http.ResponseWriter, v any) {
 	}
 	_, _ = w.Write(data) //nolint:gosec // test server writing JSON
 }
+
+func TestAggregator_JobRates_FetchesPlanAndPerVertexRates(t *testing.T) {
+	t.Parallel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /jobs/{id}", func(w http.ResponseWriter, r *http.Request) {
+		writeTestJSON(w, flink.MockJobDetail(r.PathValue("id")))
+	})
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/subtasks/metrics", func(w http.ResponseWriter, _ *http.Request) {
+		writeTestJSON(w, []flink.AggregatedSubtaskMetric{
+			{ID: "numRecordsInPerSecond", Sum: 100},
+			{ID: "numRecordsOutPerSecond", Sum: 90},
+		})
+	})
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/watermarks", func(w http.ResponseWriter, _ *http.Request) {
+		writeTestJSON(w, []flink.WatermarkEntry{
+			{ID: "0.currentInputWatermark", Value: "1700000000000"},
+		})
+	})
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client := flink.NewClient(flink.WithBaseURL(srv.URL))
+	agg := flink.NewAggregator(client)
+
+	got, err := agg.JobRates(context.Background(), "d1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got.Job == nil {
+		t.Fatal("expected job to be populated")
+	}
+	if len(got.VertexRates) != len(got.Job.Vertices) {
+		t.Errorf("expected vertex rates for every vertex, got %d for %d vertices",
+			len(got.VertexRates), len(got.Job.Vertices))
+	}
+	for vid, rates := range got.VertexRates {
+		if len(rates) != 2 {
+			t.Errorf("expected 2 rate metrics for %s, got %d", vid, len(rates))
+		}
+	}
+	if len(got.Watermarks) != len(got.Job.Vertices) {
+		t.Errorf("expected watermarks for every vertex, got %d", len(got.Watermarks))
+	}
+}
+
+func TestAggregator_JobRates_JobFetchFailure_Errors(t *testing.T) {
+	t.Parallel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /jobs/{id}", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client := flink.NewClient(flink.WithBaseURL(srv.URL))
+	agg := flink.NewAggregator(client)
+
+	if _, err := agg.JobRates(context.Background(), "any-job"); err == nil {
+		t.Fatal("expected error when /jobs/{id} fails")
+	}
+}
+
+func TestAggregator_JobRates_VertexFetchFailure_Tolerated(t *testing.T) {
+	t.Parallel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /jobs/{id}", func(w http.ResponseWriter, r *http.Request) {
+		writeTestJSON(w, flink.MockJobDetail(r.PathValue("id")))
+	})
+	// Per-vertex endpoints all fail — should not propagate, rate maps just empty.
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/subtasks/metrics", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+	mux.HandleFunc("GET /jobs/{id}/vertices/{vid}/watermarks", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	client := flink.NewClient(flink.WithBaseURL(srv.URL))
+	agg := flink.NewAggregator(client)
+
+	got, err := agg.JobRates(context.Background(), "d1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6")
+	if err != nil {
+		t.Fatalf("expected per-vertex failures to be tolerated, got: %v", err)
+	}
+	for vid, rates := range got.VertexRates {
+		if len(rates) != 0 {
+			t.Errorf("expected empty rates fallback for %s, got %d entries", vid, len(rates))
+		}
+	}
+}

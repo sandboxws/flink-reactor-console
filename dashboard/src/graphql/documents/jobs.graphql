@@ -19,6 +19,9 @@ query JobsList($cluster: String) {
       reconciling
       initializing
     }
+    recordsInPerSecond
+    recordsOutPerSecond
+    watermarkLag
   }
 }
 
@@ -228,5 +231,18 @@ query JobDetail($id: ID!, $cluster: String) {
 mutation CancelJob($id: ID!, $cluster: String) {
   cancelJob(id: $id, cluster: $cluster) {
     success
+  }
+}
+
+query JobSavepoints($jobId: ID!, $cluster: String) {
+  savepoints(jobId: $jobId, cluster: $cluster) {
+    id
+    status
+    triggerType
+    location
+    sizeBytes
+    durationMs
+    triggeredAt
+    error
   }
 }

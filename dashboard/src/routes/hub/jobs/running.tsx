@@ -3,10 +3,11 @@
  *
  * Mirrors `console-v2/jobs-running.html`. Lists all running jobs from
  * useClusterStore.runningJobs as a dense table-like list with the .pipe-row
- * grid layout from the mockup.
- *
- * Throughput / Watermark columns show "—" until `metricStream` lands; the
- * task and parallelism columns are real data today.
+ * grid layout from the mockup. Throughput + Watermark cells are sourced from
+ * `FlinkJob.throughput.recordsOutPerSecond` and `FlinkJob.watermarkLag`,
+ * populated by the server's per-job rate rollup (see
+ * `fr-console-v2-server-job-throughput-rollup`). Cells render "—" only when
+ * the underlying field is null (no signal yet); zero values render as `0/s`.
  */
 
 import type { FlinkJob } from "@flink-reactor/ui"
@@ -38,6 +39,26 @@ function timeAgo(date: Date | string | null | undefined): string {
   const hours = Math.floor(minutes / 60)
   if (hours < 24) return `${hours}h`
   return `${Math.floor(hours / 24)}d ${hours % 24}h`
+}
+
+/** Format a per-second rate. Null → "—", zero → "0/s". */
+function formatRate(rate: number | null): { value: string; unit: string } {
+  if (rate === null) return { value: "—", unit: "evt/s" }
+  if (!Number.isFinite(rate) || rate <= 0) return { value: "0", unit: "/s" }
+  if (rate >= 1_000_000)
+    return { value: (rate / 1_000_000).toFixed(2), unit: "M/s" }
+  if (rate >= 1_000) return { value: (rate / 1_000).toFixed(1), unit: "K/s" }
+  return { value: rate.toFixed(0), unit: "/s" }
+}
+
+/** Format a watermark lag in ms. Null → "—". */
+function formatLag(ms: number | null): { value: string; unit: string } {
+  if (ms === null) return { value: "—", unit: "lag" }
+  if (!Number.isFinite(ms) || ms < 0) return { value: "—", unit: "lag" }
+  if (ms < 1_000) return { value: ms.toFixed(0), unit: "ms" }
+  if (ms < 60_000) return { value: (ms / 1_000).toFixed(1), unit: "s" }
+  if (ms < 3_600_000) return { value: (ms / 60_000).toFixed(1), unit: "m" }
+  return { value: (ms / 3_600_000).toFixed(1), unit: "h" }
 }
 
 type SortKey = "throughput" | "name" | "parallelism" | "tasks" | "uptime"
@@ -92,9 +113,9 @@ function HubJobsRunning() {
           bV = b.startTime.getTime()
           break
         case "throughput":
-          // No real-time throughput yet — fall back to uptime to keep stable
-          aV = a.startTime.getTime()
-          bV = b.startTime.getTime()
+          // Null rates sort to the bottom (treat as -1 so they trail real values).
+          aV = a.throughput?.recordsOutPerSecond ?? -1
+          bV = b.throughput?.recordsOutPerSecond ?? -1
           break
       }
       const cmp =
@@ -268,6 +289,8 @@ function HubJobsRunning() {
 function PipelineRow({ job }: { job: FlinkJob }) {
   const totalTasks = Object.values(job.tasks).reduce((s, n) => s + n, 0)
   const allRunning = job.tasks.running === totalTasks && totalTasks > 0
+  const rate = formatRate(job.throughput?.recordsOutPerSecond ?? null)
+  const lag = formatLag(job.watermarkLag)
   return (
     <Link to="/hub/jobs/$id" params={{ id: job.id }} className="pipe-row">
       <Layers className="size-4 text-fr-coral shrink-0" />
@@ -291,12 +314,12 @@ function PipelineRow({ job }: { job: FlinkJob }) {
           : job.status.charAt(0) + job.status.slice(1).toLowerCase()}
       </span>
       <div className="text-right">
-        <div className="font-mono text-[14px] text-zinc-100">—</div>
-        <div className="font-mono text-[10px] text-fg-muted">evt/s</div>
+        <div className="font-mono text-[14px] text-zinc-100">{rate.value}</div>
+        <div className="font-mono text-[10px] text-fg-muted">{rate.unit}</div>
       </div>
       <div className="text-right">
-        <div className="font-mono text-[12px] text-fg">—</div>
-        <div className="font-mono text-[10px] text-fg-faint">p99</div>
+        <div className="font-mono text-[12px] text-fg">{lag.value}</div>
+        <div className="font-mono text-[10px] text-fg-faint">{lag.unit}</div>
       </div>
       <div>
         <div className="text-[12px] text-fg">

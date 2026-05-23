@@ -34,6 +34,12 @@ func (s *Service) Get(ctx context.Context, name string) (*BlueGreenDeployment, e
 	return s.client.GetBlueGreenDeployment(ctx, name)
 }
 
+// ConfigDiff returns the YAML-rendered blue and pending-green configurations
+// for a FlinkBlueGreenDeployment.
+func (s *Service) ConfigDiff(ctx context.Context, name string) (*ConfigDiff, error) {
+	return s.client.BlueGreenConfigDiff(ctx, name)
+}
+
 // EventBus returns the event bus for BG deployment state changes.
 func (s *Service) EventBus() *flink.EventBus[BlueGreenDeployment] {
 	return s.watcher.EventBus()

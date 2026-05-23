@@ -254,3 +254,47 @@ type AggregatedSubtaskMetric struct {
 	Sum  float64 `json:"sum"`
 	Skew float64 `json:"skew"`
 }
+
+// SavepointOperationStatus wraps Flink's per-operation status enum.
+// `id` is one of "IN_PROGRESS" or "COMPLETED".
+type SavepointOperationStatus struct {
+	ID string `json:"id"`
+}
+
+// SavepointOperationDetail carries the completion result of a savepoint
+// operation. Exactly one of `location` (success) or `failure-cause` (failure)
+// is populated once the operation finishes; both are empty while in-progress.
+type SavepointOperationDetail struct {
+	Location     string `json:"location,omitempty"`
+	FailureCause string `json:"failure-cause,omitempty"`
+}
+
+// SavepointInfo represents one entry in GET /jobs/:jid/savepoints.
+// The detail endpoint GET /jobs/:jid/savepoints/:id returns the same shape
+// without the surrounding `operations` array.
+//
+// Flink's response shape varies slightly across versions; unknown fields are
+// ignored by json.Unmarshal so this remains forward-compatible.
+type SavepointInfo struct {
+	// OperationID is Flink's savepoint operation handle (UUID-ish).
+	OperationID string                   `json:"operation-id"`
+	Status      SavepointOperationStatus `json:"status"`
+	Operation   SavepointOperationDetail `json:"operation"`
+	// TriggerTimestamp is the timestamp at which the operation was triggered,
+	// in epoch millis. Flink returns this as `triggerTimestamp` (camelCase).
+	TriggerTimestamp int64 `json:"triggerTimestamp"`
+	// SizeBytes is populated only after the operation completes. The Flink
+	// REST endpoint does not include size for in-progress operations.
+	SizeBytes int64 `json:"size,omitempty"`
+	// DurationMs is the trigger-to-completion duration in milliseconds.
+	// Zero until the operation completes.
+	DurationMs int64 `json:"duration,omitempty"`
+}
+
+// SavepointList represents the GET /jobs/:jid/savepoints response envelope.
+//
+// Flink wraps the savepoint list in `{"operations": [...]}` on most versions;
+// keep the wrapper explicit so the decoder can ignore other top-level fields.
+type SavepointList struct {
+	Operations []SavepointInfo `json:"operations"`
+}

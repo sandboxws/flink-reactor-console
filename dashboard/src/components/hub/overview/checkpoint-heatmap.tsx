@@ -1,8 +1,11 @@
 /**
  * Checkpoint density heatmap — wraps `<HeatmapCalendar>` with the legend
- * row above and the live/demo footer below. Live data comes from
- * `useCheckpointDensity`; demo seeded data fills in until storage has
- * checkpoint history.
+ * row above and a state-aware footer below.
+ *
+ * Renders three explicit states from `useCheckpointDensity`:
+ *  - `loading`: heatmap dimmed at low opacity, "loading" badge
+ *  - `empty`: "No checkpoints in window" overlay
+ *  - live: real intensities with refresh-cadence footer
  */
 
 import { HeatmapCalendar, type HeatmapIntensity } from "@flink-reactor/ui"
@@ -10,16 +13,37 @@ import { HeatmapCalendar, type HeatmapIntensity } from "@flink-reactor/ui"
 interface CheckpointHeatmapProps {
   data: HeatmapIntensity[]
   weeks?: number
-  isDemo: boolean
+  loading: boolean
+  empty: boolean
   errorMessage?: string | null
 }
 
 export function CheckpointHeatmap({
   data,
   weeks = 26,
-  isDemo,
+  loading,
+  empty,
   errorMessage,
 }: CheckpointHeatmapProps) {
+  const showEmptyOverlay = !loading && empty
+  const showErrorOverlay = !!errorMessage && !loading
+
+  const footerText = loading
+    ? "loading checkpoint history…"
+    : showErrorOverlay
+      ? `checkpointHistory failed: ${errorMessage}`
+      : showEmptyOverlay
+        ? "No checkpoints in window"
+        : "live · refreshes every 5m"
+
+  // Ensure the calendar always has weeks*7 cells so the grid renders even
+  // when we have nothing to show. The overlay covers the visuals in the
+  // empty / loading cases.
+  const safeData: HeatmapIntensity[] =
+    data.length === weeks * 7
+      ? data
+      : (Array.from({ length: weeks * 7 }, () => 0) as HeatmapIntensity[])
+
   return (
     <section className="mb-8">
       <div className="glass-card-static p-5">
@@ -42,24 +66,23 @@ export function CheckpointHeatmap({
             <span>more</span>
           </div>
         </div>
-        <HeatmapCalendar data={data} weeks={weeks} fill />
+        <div className="relative">
+          <div style={{ opacity: loading || showEmptyOverlay ? 0.25 : 1 }}>
+            <HeatmapCalendar data={safeData} weeks={weeks} fill />
+          </div>
+          {showEmptyOverlay || showErrorOverlay ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="text-[11px] font-mono text-fg-muted">
+                {showErrorOverlay
+                  ? "Failed to load checkpoint history"
+                  : "No checkpoints in window"}
+              </span>
+            </div>
+          ) : null}
+        </div>
         <div className="mt-3 flex items-center justify-between text-[10px] font-mono text-fg-faint">
           <span>{weeks} weeks ago</span>
-          <span>
-            {isDemo ? (
-              <span
-                title={
-                  errorMessage
-                    ? `checkpointHistory failed: ${errorMessage}`
-                    : "no checkpoint history in storage yet"
-                }
-              >
-                demo · awaiting <code>checkpointHistory</code> data
-              </span>
-            ) : (
-              <span>live · refreshes every 5m</span>
-            )}
-          </span>
+          <span title={errorMessage ?? undefined}>{footerText}</span>
           <span>now</span>
         </div>
       </div>
