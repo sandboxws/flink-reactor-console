@@ -693,6 +693,14 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	MetricEvent struct {
+		ClusterID func(childComplexity int) int
+		JobID     func(childComplexity int) int
+		Metric    func(childComplexity int) int
+		Timestamp func(childComplexity int) int
+		Value     func(childComplexity int) int
+	}
+
 	MetricTimeSeries struct {
 		MetricID   func(childComplexity int) int
 		Points     func(childComplexity int) int
@@ -1027,6 +1035,7 @@ type ComplexityRoot struct {
 		AlertResolved         func(childComplexity int) int
 		BlueGreenStateChanged func(childComplexity int, cluster *string, namespace *string) int
 		JobStatusChanged      func(childComplexity int, cluster *string) int
+		MetricStream          func(childComplexity int, clusterID string, metric string, jobID *string) int
 		SQLResults            func(childComplexity int, cluster *string, sessionHandle string, operationHandle string) int
 	}
 
@@ -1311,6 +1320,7 @@ type SubscriptionResolver interface {
 	BlueGreenStateChanged(ctx context.Context, cluster *string, namespace *string) (<-chan *model.BlueGreenDeployment, error)
 	JobStatusChanged(ctx context.Context, cluster *string) (<-chan *model.JobStatusEvent, error)
 	SQLResults(ctx context.Context, cluster *string, sessionHandle string, operationHandle string) (<-chan *model.SQLResultBatch, error)
+	MetricStream(ctx context.Context, clusterID string, metric string, jobID *string) (<-chan *model.MetricEvent, error)
 }
 
 type executableSchema graphql.ExecutableSchemaState[ResolverRoot, DirectiveRoot, ComplexityRoot]
@@ -3790,6 +3800,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.MetricEntry.Value(childComplexity), true
 
+	case "MetricEvent.clusterID":
+		if e.ComplexityRoot.MetricEvent.ClusterID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MetricEvent.ClusterID(childComplexity), true
+	case "MetricEvent.jobId":
+		if e.ComplexityRoot.MetricEvent.JobID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MetricEvent.JobID(childComplexity), true
+	case "MetricEvent.metric":
+		if e.ComplexityRoot.MetricEvent.Metric == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MetricEvent.Metric(childComplexity), true
+	case "MetricEvent.timestamp":
+		if e.ComplexityRoot.MetricEvent.Timestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MetricEvent.Timestamp(childComplexity), true
+	case "MetricEvent.value":
+		if e.ComplexityRoot.MetricEvent.Value == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MetricEvent.Value(childComplexity), true
+
 	case "MetricTimeSeries.metricID":
 		if e.ComplexityRoot.MetricTimeSeries.MetricID == nil {
 			break
@@ -5675,6 +5716,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Subscription.JobStatusChanged(childComplexity, args["cluster"].(*string)), true
+	case "Subscription.metricStream":
+		if e.ComplexityRoot.Subscription.MetricStream == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_metricStream_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Subscription.MetricStream(childComplexity, args["clusterID"].(string), args["metric"].(string), args["jobId"].(*string)), true
 	case "Subscription.sqlResults":
 		if e.ComplexityRoot.Subscription.SQLResults == nil {
 			break
@@ -8347,6 +8399,20 @@ type SQLResultBatch {
   hasMore: Boolean!
 }
 
+"""
+A sampled metric value published at ~1s cadence by the server's
+MetricSampler. ` + "`" + `jobId` + "`" + ` is null for cluster-wide aggregates.
+Supported ` + "`" + `metric` + "`" + ` values for v1: ` + "`" + `throughput` + "`" + `, ` + "`" + `watermarkLag` + "`" + `,
+` + "`" + `checkpointRate` + "`" + `.
+"""
+type MetricEvent {
+  clusterID: String!
+  jobId: ID
+  metric: String!
+  value: Float!
+  timestamp: String!
+}
+
 extend type Subscription {
   """
   Emits a JobStatusEvent whenever any Flink job's status changes.
@@ -8362,6 +8428,15 @@ extend type Subscription {
     sessionHandle: String!
     operationHandle: String!
   ): SQLResultBatch!
+
+  """
+  Emits MetricEvent values at ~1s cadence for the given cluster + metric.
+  When ` + "`" + `jobId` + "`" + ` is null, the subscription delivers cluster-wide aggregates;
+  when set, it delivers events filtered to that job. ` + "`" + `metric` + "`" + ` must be one
+  of the v1 supported names — unknown values are rejected as a GraphQL
+  error at subscription time.
+  """
+  metricStream(clusterID: String!, metric: String!, jobId: ID): MetricEvent!
 }
 `, BuiltIn: false},
 	{Name: "../schema/tap.graphqls", Input: `# Tap pipeline manifest types and queries
@@ -9922,6 +9997,27 @@ func (ec *executionContext) field_Subscription_jobStatusChanged_args(ctx context
 		return nil, err
 	}
 	args["cluster"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_metricStream_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "clusterID", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["clusterID"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "metric", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["metric"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalOID2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg2
 	return args, nil
 }
 
@@ -22264,6 +22360,151 @@ func (ec *executionContext) fieldContext_MetricEntry_value(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _MetricEvent_clusterID(ctx context.Context, field graphql.CollectedField, obj *model.MetricEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MetricEvent_clusterID,
+		func(ctx context.Context) (any, error) {
+			return obj.ClusterID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MetricEvent_clusterID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricEvent_jobId(ctx context.Context, field graphql.CollectedField, obj *model.MetricEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MetricEvent_jobId,
+		func(ctx context.Context) (any, error) {
+			return obj.JobID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_MetricEvent_jobId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricEvent_metric(ctx context.Context, field graphql.CollectedField, obj *model.MetricEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MetricEvent_metric,
+		func(ctx context.Context) (any, error) {
+			return obj.Metric, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MetricEvent_metric(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricEvent_value(ctx context.Context, field graphql.CollectedField, obj *model.MetricEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MetricEvent_value,
+		func(ctx context.Context) (any, error) {
+			return obj.Value, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MetricEvent_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricEvent_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.MetricEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MetricEvent_timestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.Timestamp, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MetricEvent_timestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricTimeSeries_sourceType(ctx context.Context, field graphql.CollectedField, obj *model.MetricTimeSeries) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -31604,6 +31845,59 @@ func (ec *executionContext) fieldContext_Subscription_sqlResults(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Subscription_sqlResults_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_metricStream(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	return graphql.ResolveFieldStream(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Subscription_metricStream,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Subscription().MetricStream(ctx, fc.Args["clusterID"].(string), fc.Args["metric"].(string), fc.Args["jobId"].(*string))
+		},
+		nil,
+		ec.marshalNMetricEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Subscription_metricStream(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "clusterID":
+				return ec.fieldContext_MetricEvent_clusterID(ctx, field)
+			case "jobId":
+				return ec.fieldContext_MetricEvent_jobId(ctx, field)
+			case "metric":
+				return ec.fieldContext_MetricEvent_metric(ctx, field)
+			case "value":
+				return ec.fieldContext_MetricEvent_value(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_MetricEvent_timestamp(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricEvent", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_metricStream_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -41919,6 +42213,62 @@ func (ec *executionContext) _MetricEntry(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var metricEventImplementors = []string{"MetricEvent"}
+
+func (ec *executionContext) _MetricEvent(ctx context.Context, sel ast.SelectionSet, obj *model.MetricEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metricEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetricEvent")
+		case "clusterID":
+			out.Values[i] = ec._MetricEvent_clusterID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jobId":
+			out.Values[i] = ec._MetricEvent_jobId(ctx, field, obj)
+		case "metric":
+			out.Values[i] = ec._MetricEvent_metric(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._MetricEvent_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "timestamp":
+			out.Values[i] = ec._MetricEvent_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var metricTimeSeriesImplementors = []string{"MetricTimeSeries"}
 
 func (ec *executionContext) _MetricTimeSeries(ctx context.Context, sel ast.SelectionSet, obj *model.MetricTimeSeries) graphql.Marshaler {
@@ -45379,6 +45729,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 		return ec._Subscription_jobStatusChanged(ctx, fields[0])
 	case "sqlResults":
 		return ec._Subscription_sqlResults(ctx, fields[0])
+	case "metricStream":
+		return ec._Subscription_metricStream(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
@@ -48767,6 +49119,20 @@ func (ec *executionContext) marshalNMetricEntry2ᚖgithubᚗcomᚋsandboxwsᚋfl
 		return graphql.Null
 	}
 	return ec._MetricEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMetricEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent(ctx context.Context, sel ast.SelectionSet, v model.MetricEvent) graphql.Marshaler {
+	return ec._MetricEvent(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMetricEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent(ctx context.Context, sel ast.SelectionSet, v *model.MetricEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MetricEvent(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNMetricHistoryFilter2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricHistoryFilter(ctx context.Context, v any) (model.MetricHistoryFilter, error) {

@@ -93,13 +93,15 @@ func (m *Manager) buildConnection(cfg Config, logger *slog.Logger) *Connection {
 	client := flink.NewClient(clientOpts...)
 	service := flink.NewService(client)
 	poller := flink.NewPoller(service, flink.WithPollerLogger(logger))
+	sampler := flink.NewMetricSampler(cfg.Name, service, flink.WithMetricSamplerLogger(logger))
 
 	conn := &Connection{
-		Name:    cfg.Name,
-		URL:     cfg.URL,
-		Service: service,
-		Poller:  poller,
-		status:  StatusUnknown,
+		Name:          cfg.Name,
+		URL:           cfg.URL,
+		Service:       service,
+		Poller:        poller,
+		MetricSampler: sampler,
+		status:        StatusUnknown,
 	}
 
 	if cfg.SQLGatewayURL != "" {
@@ -272,6 +274,9 @@ func (m *Manager) Stop() {
 
 	for _, conn := range m.connections {
 		conn.Poller.Stop()
+		if conn.MetricSampler != nil {
+			conn.MetricSampler.Stop()
+		}
 		if conn.K8sService != nil {
 			conn.K8sService.Stop()
 		}

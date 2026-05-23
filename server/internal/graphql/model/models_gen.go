@@ -840,6 +840,18 @@ type MetricEntry struct {
 	Value string `json:"value"`
 }
 
+// A sampled metric value published at ~1s cadence by the server's
+// MetricSampler. `jobId` is null for cluster-wide aggregates.
+// Supported `metric` values for v1: `throughput`, `watermarkLag`,
+// `checkpointRate`.
+type MetricEvent struct {
+	ClusterID string  `json:"clusterID"`
+	JobID     *string `json:"jobId,omitempty"`
+	Metric    string  `json:"metric"`
+	Value     float64 `json:"value"`
+	Timestamp string  `json:"timestamp"`
+}
+
 // Filter criteria for metric time-series queries.
 type MetricHistoryFilter struct {
 	// Filter by cluster name (required).

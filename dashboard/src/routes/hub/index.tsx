@@ -36,7 +36,8 @@ import { TopPipelinesGrid } from "@/components/hub/overview/top-pipelines-grid"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { useCheckpointDensity } from "@/lib/hub/use-checkpoint-density"
 import { useClusterRates } from "@/lib/hub/use-cluster-rates"
-import { useEngineBarsData } from "@/lib/hub/use-engine-bars-data"
+import { useEngineBarsLive } from "@/lib/hub/use-engine-bars-live"
+import { useMetricStream } from "@/lib/hub/use-metric-stream"
 import { useAlertsStore } from "@/stores/alerts-store"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -195,16 +196,29 @@ function HubOverview() {
 
   const clusterID = config?.clusters?.[0] ?? null
 
-  /* Engine bars — `metricSeries`-backed. Renders an empty state until the
-   * storage backend has `numRecordsOutPerSecond` data; no seeded fallback. */
-  const engineBars = useEngineBarsData(clusterID, { minutes: 38 })
+  /* Engine bars — polled backfill (5s) seeded with live deltas from the
+   * `metricStream` subscription (~1s). Falls back to polling-only when the
+   * subscription is unavailable. */
+  const engineBars = useEngineBarsLive(clusterID)
 
   /* Heatmap — `checkpointHistory` aggregated per local day. Renders an
    * empty state until storage has data; no seeded fallback. */
   const heatmap = useCheckpointDensity(clusterID, { days: 26 * 7 })
 
-  /* Cluster-wide Throughput + Watermark-lag rollups via `metricSeries`. */
-  const rates = useClusterRates(clusterID, { refreshIntervalMs: 5000 })
+  /* Cluster-wide Throughput + Watermark-lag — subscription-first with a 5s
+   * polling fallback. The ticker upgrades to sub-second updates whenever the
+   * subscription is connected; on disconnect it transparently degrades to
+   * the polled snapshot. */
+  const polledRates = useClusterRates(clusterID, { refreshIntervalMs: 5000 })
+  const throughputStream = useMetricStream(clusterID, "throughput")
+  const watermarkStream = useMetricStream(clusterID, "watermarkLag")
+  const liveRates = {
+    throughput: throughputStream.value ?? polledRates.throughput,
+    watermarkLagMs: watermarkStream.value ?? polledRates.watermarkLagMs,
+    empty: polledRates.empty,
+    live: !throughputStream.error && throughputStream.value !== null,
+  }
+  const rates = liveRates
 
   const flinkVersion = overview?.flinkVersion ?? "—"
   const clusterName = config?.clusterDisplayName ?? "cluster"

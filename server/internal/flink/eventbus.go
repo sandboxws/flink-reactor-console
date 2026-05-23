@@ -43,12 +43,23 @@ func NewEventBus[T any]() *EventBus[T] {
 // Subscribe registers a new listener and returns it. The listener's channel
 // has a buffer of 1 to avoid blocking the publisher on slow consumers.
 func (b *EventBus[T]) Subscribe() *Listener[T] {
+	return b.SubscribeBuffered(1)
+}
+
+// SubscribeBuffered registers a listener with an explicit channel buffer
+// size. Use a larger buffer when the publisher may emit several events in
+// rapid succession (e.g. one tick fans out to multiple events) and you'd
+// rather queue than drop. Buffer is clamped to >= 1.
+func (b *EventBus[T]) SubscribeBuffered(buffer int) *Listener[T] {
+	if buffer < 1 {
+		buffer = 1
+	}
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	id := b.nextID
 	b.nextID++
-	ch := make(chan T, 1)
+	ch := make(chan T, buffer)
 	b.subscribers[id] = ch
 
 	return &Listener[T]{ch: ch, bus: b, id: id}

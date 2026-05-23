@@ -132,3 +132,83 @@ func (r *subscriptionResolver) SQLResults(ctx context.Context, cluster *string, 
 
 	return ch, nil
 }
+
+// MetricStream is the resolver for the metricStream field.
+//
+// Subscribes to the cluster's MetricSampler event bus, filters events by
+// (clusterID, metric, optional jobId), and pipes matching events to the
+// client. The sampler lazy-starts on the first subscriber and stops on
+// the last unsubscribe, so an idle cluster pays nothing. Unknown metric
+// names are rejected at subscription time.
+func (r *subscriptionResolver) MetricStream(ctx context.Context, clusterID string, metric string, jobID *string) (<-chan *model.MetricEvent, error) {
+	if r.Manager == nil {
+		return nil, fmt.Errorf("cluster manager not configured")
+	}
+	if !flink.IsKnownMetric(metric) {
+		return nil, fmt.Errorf("unknown metric %q (expected one of: throughput, watermarkLag, checkpointRate)", metric)
+	}
+
+	conn, err := r.Manager.Get(clusterID)
+	if err != nil {
+		return nil, err
+	}
+	if conn.MetricSampler == nil {
+		return nil, fmt.Errorf("metric sampler not configured for cluster %q", conn.Name)
+	}
+
+	listener := conn.MetricSampler.Subscribe()
+	ch := make(chan *model.MetricEvent, 1)
+
+	observability.ActiveSubscriptions.WithLabelValues("metricStream").Inc()
+	go func() {
+		defer observability.ActiveSubscriptions.WithLabelValues("metricStream").Dec()
+		defer close(ch)
+		defer listener.Close()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case evt, ok := <-listener.Updates():
+				if !ok {
+					return
+				}
+				if evt.ClusterID != clusterID || evt.Metric != metric {
+					continue
+				}
+				if !matchesJobFilter(evt.JobID, jobID) {
+					continue
+				}
+
+				out := &model.MetricEvent{
+					ClusterID: evt.ClusterID,
+					Metric:    evt.Metric,
+					Value:     evt.Value,
+					Timestamp: evt.Timestamp.UTC().Format(time.RFC3339Nano),
+				}
+				if evt.JobID != "" {
+					jid := evt.JobID
+					out.JobID = &jid
+				}
+
+				select {
+				case ch <- out:
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
+	}()
+
+	return ch, nil
+}
+
+// matchesJobFilter returns true when the event's jobID matches the
+// subscriber's filter. A nil filter matches only cluster-wide events
+// (empty event jobID); a non-nil filter matches only exact equality.
+func matchesJobFilter(eventJobID string, filter *string) bool {
+	if filter == nil {
+		return eventJobID == ""
+	}
+	return eventJobID == *filter
+}

@@ -26,6 +26,20 @@ type SQLResultBatch {
   hasMore: Boolean!
 }
 
+"""
+A sampled metric value published at ~1s cadence by the server's
+MetricSampler. `jobId` is null for cluster-wide aggregates.
+Supported `metric` values for v1: `throughput`, `watermarkLag`,
+`checkpointRate`.
+"""
+type MetricEvent {
+  clusterID: String!
+  jobId: ID
+  metric: String!
+  value: Float!
+  timestamp: String!
+}
+
 extend type Subscription {
   """
   Emits a JobStatusEvent whenever any Flink job's status changes.
@@ -41,4 +55,13 @@ extend type Subscription {
     sessionHandle: String!
     operationHandle: String!
   ): SQLResultBatch!
+
+  """
+  Emits MetricEvent values at ~1s cadence for the given cluster + metric.
+  When `jobId` is null, the subscription delivers cluster-wide aggregates;
+  when set, it delivers events filtered to that job. `metric` must be one
+  of the v1 supported names — unknown values are rejected as a GraphQL
+  error at subscription time.
+  """
+  metricStream(clusterID: String!, metric: String!, jobId: ID): MetricEvent!
 }

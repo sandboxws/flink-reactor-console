@@ -990,6 +990,21 @@ export type MetricEntry = {
   value: Scalars['String']['output'];
 };
 
+/**
+ * A sampled metric value published at ~1s cadence by the server's
+ * MetricSampler. `jobId` is null for cluster-wide aggregates.
+ * Supported `metric` values for v1: `throughput`, `watermarkLag`,
+ * `checkpointRate`.
+ */
+export type MetricEvent = {
+  __typename?: 'MetricEvent';
+  clusterID: Scalars['String']['output'];
+  jobId: Maybe<Scalars['ID']['output']>;
+  metric: Scalars['String']['output'];
+  timestamp: Scalars['String']['output'];
+  value: Scalars['Float']['output'];
+};
+
 /** Filter criteria for metric time-series queries. */
 export type MetricHistoryFilter = {
   /** Return only data points captured after this timestamp (RFC3339). */
@@ -2091,6 +2106,14 @@ export type Subscription = {
    * Optionally scoped to a specific cluster.
    */
   jobStatusChanged: JobStatusEvent;
+  /**
+   * Emits MetricEvent values at ~1s cadence for the given cluster + metric.
+   * When `jobId` is null, the subscription delivers cluster-wide aggregates;
+   * when set, it delivers events filtered to that job. `metric` must be one
+   * of the v1 supported names — unknown values are rejected as a GraphQL
+   * error at subscription time.
+   */
+  metricStream: MetricEvent;
   /** Streams result batches from a SQL Gateway operation. */
   sqlResults: SqlResultBatch;
 };
@@ -2104,6 +2127,13 @@ export type SubscriptionBlueGreenStateChangedArgs = {
 
 export type SubscriptionJobStatusChangedArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type SubscriptionMetricStreamArgs = {
+  clusterID: Scalars['String']['input'];
+  jobId: InputMaybe<Scalars['ID']['input']>;
+  metric: Scalars['String']['input'];
 };
 
 
@@ -2708,6 +2738,15 @@ export type CloseSqlSessionMutationVariables = Exact<{
 
 
 export type CloseSqlSessionMutation = { __typename?: 'Mutation', closeSQLSession: { __typename?: 'SQLCloseResult', success: boolean } };
+
+export type MetricStreamSubscriptionVariables = Exact<{
+  clusterID: Scalars['String']['input'];
+  metric: Scalars['String']['input'];
+  jobId: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type MetricStreamSubscription = { __typename?: 'Subscription', metricStream: { __typename?: 'MetricEvent', clusterID: string, jobId: string | null, metric: string, value: number, timestamp: string } };
 
 export type TapManifestsQueryVariables = Exact<{ [key: string]: never; }>;
 

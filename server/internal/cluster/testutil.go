@@ -74,3 +74,24 @@ func NewTestManagerWithPoller(poller *flink.Poller) *Manager {
 	}
 	return m
 }
+
+// NewTestManagerWithMetricSampler creates a Manager with a single named
+// cluster wired to a custom MetricSampler. Used by subscription tests for
+// the metricStream resolver.
+func NewTestManagerWithMetricSampler(clusterName string, sampler *flink.MetricSampler) *Manager {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	m := &Manager{
+		connections: map[string]*Connection{
+			clusterName: {
+				Name:          clusterName,
+				URL:           "http://test:8081",
+				MetricSampler: sampler,
+				status:        StatusUnknown,
+			},
+		},
+		defaultName: clusterName,
+		logger:      logger,
+	}
+	return m
+}

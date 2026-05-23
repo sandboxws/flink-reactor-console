@@ -1,14 +1,55 @@
 package graphql
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/sandboxws/flink-reactor/apps/server/internal/alerts"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
 )
+
+// subscribeInstance bridges an alerts.EventBus into a GraphQL subscription
+// channel, filtering to a single EventKind. Shared by AlertFired and
+// AlertResolved resolvers.
+func subscribeInstance(ctx context.Context, engine *alerts.Engine, want alerts.EventKind, metric string) (<-chan *model.AlertInstance, error) {
+	if engine == nil {
+		return nil, fmt.Errorf("alert engine not configured")
+	}
+	listener := engine.Bus().Subscribe()
+	ch := make(chan *model.AlertInstance, 1)
+
+	observability.ActiveSubscriptions.WithLabelValues(metric).Inc()
+	go func() {
+		defer observability.ActiveSubscriptions.WithLabelValues(metric).Dec()
+		defer close(ch)
+		defer listener.Close()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case evt, ok := <-listener.Updates():
+				if !ok {
+					return
+				}
+				if evt.Kind != want {
+					continue
+				}
+				select {
+				case ch <- dbInstanceToModel(evt.Instance):
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
+	}()
+	return ch, nil
+}
 
 func formatTime(t time.Time) string {
 	return t.UTC().Format(time.RFC3339)

@@ -12,10 +12,11 @@ import (
 // Connection holds all per-cluster resources: Flink client stack, optional SQL
 // Gateway client, and health metadata. Status fields are protected by mu.
 type Connection struct {
-	Name    string
-	URL     string
-	Service *flink.Service
-	Poller  *flink.Poller
+	Name          string
+	URL           string
+	Service       *flink.Service
+	Poller        *flink.Poller
+	MetricSampler *flink.MetricSampler
 
 	// SQLClient is the Flink Client configured for SQL Gateway (nil if not configured).
 	SQLClient *flink.Client

@@ -12,7 +12,6 @@ import (
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/alerts"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
 )
@@ -277,41 +276,4 @@ func (r *subscriptionResolver) AlertFired(ctx context.Context) (<-chan *model.Al
 // AlertResolved is the resolver for the alertResolved field.
 func (r *subscriptionResolver) AlertResolved(ctx context.Context) (<-chan *model.AlertInstance, error) {
 	return subscribeInstance(ctx, r.AlertEngine, alerts.EventResolved, "alertResolved")
-}
-
-// subscribeInstance opens a listener on the alerts bus and re-publishes events
-// whose Kind matches `want` to the GraphQL subscription channel.
-func subscribeInstance(ctx context.Context, engine *alerts.Engine, want alerts.EventKind, metric string) (<-chan *model.AlertInstance, error) {
-	if engine == nil {
-		return nil, fmt.Errorf("alert engine not configured")
-	}
-	listener := engine.Bus().Subscribe()
-	ch := make(chan *model.AlertInstance, 1)
-
-	observability.ActiveSubscriptions.WithLabelValues(metric).Inc()
-	go func() {
-		defer observability.ActiveSubscriptions.WithLabelValues(metric).Dec()
-		defer close(ch)
-		defer listener.Close()
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case evt, ok := <-listener.Updates():
-				if !ok {
-					return
-				}
-				if evt.Kind != want {
-					continue
-				}
-				select {
-				case ch <- dbInstanceToModel(evt.Instance):
-				case <-ctx.Done():
-					return
-				}
-			}
-		}
-	}()
-	return ch, nil
 }

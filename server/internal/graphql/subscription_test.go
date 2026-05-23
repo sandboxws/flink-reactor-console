@@ -367,3 +367,252 @@ func (m *mockJobGetter) GetJobs(_ context.Context) (*flink.JobsOverview, error) 
 	defer m.mu.Unlock()
 	return m.response, nil
 }
+
+// mockMetricSource implements flink.MetricRatesSource for the metricStream
+// resolver tests.
+type mockMetricSource struct {
+	mu    sync.Mutex
+	jobs  []flink.JobOverview
+	rates map[string]*flink.JobDetailAggregate
+}
+
+func (m *mockMetricSource) GetJobs(_ context.Context) (*flink.JobsOverview, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([]flink.JobOverview, len(m.jobs))
+	copy(out, m.jobs)
+	return &flink.JobsOverview{Jobs: out}, nil
+}
+
+func (m *mockMetricSource) GetJobRates(_ context.Context, jobID string) (*flink.JobDetailAggregate, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.rates[jobID], nil
+}
+
+func (m *mockMetricSource) setJobs(jobs []flink.JobOverview) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.jobs = jobs
+}
+
+func (m *mockMetricSource) setRates(jobID string, agg *flink.JobDetailAggregate) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.rates == nil {
+		m.rates = make(map[string]*flink.JobDetailAggregate)
+	}
+	m.rates[jobID] = agg
+}
+
+// metricFixture builds a sampler aggregate where the single source vertex
+// emits `rate` records/sec — matches the fixture in metric_sampler_test.go.
+func metricFixture(rate float64) *flink.JobDetailAggregate {
+	return &flink.JobDetailAggregate{
+		Job: &flink.JobDetail{
+			Plan: flink.JobPlan{Nodes: []flink.PlanNode{{ID: "src", Inputs: nil}}},
+		},
+		VertexRates: map[string][]flink.AggregatedSubtaskMetric{
+			"src": {{ID: "numRecordsOutPerSecond", Sum: rate}},
+		},
+	}
+}
+
+func TestSubscription_MetricStream_ClusterWide(t *testing.T) {
+	src := &mockMetricSource{}
+	src.setJobs([]flink.JobOverview{{JID: "j1", Name: "job1", State: "RUNNING"}})
+	src.setRates("j1", metricFixture(42))
+
+	sampler := flink.NewMetricSampler(
+		"cluster-0",
+		src,
+		flink.WithMetricSamplerInterval(40*time.Millisecond),
+	)
+	defer sampler.Stop()
+
+	manager := cluster.NewTestManagerWithMetricSampler("cluster-0", sampler)
+	srv := newTestServer(&graphql.Resolver{Manager: manager})
+	defer srv.Close()
+
+	conn := wsConnect(t, srv.URL)
+	defer func() { _ = conn.Close() }()
+
+	payload, _ := json.Marshal(map[string]any{
+		"query":     `subscription M($c: String!) { metricStream(clusterID: $c, metric: "throughput") { clusterID jobId metric value } }`,
+		"variables": map[string]any{"c": "cluster-0"},
+	})
+	writeMsg(t, conn, wsMessage{ID: "1", Type: "subscribe", Payload: payload})
+
+	// Read up to several events; assert that we eventually see the
+	// cluster-wide event (jobId == null, value == 42).
+	deadline := time.After(2 * time.Second)
+	for {
+		select {
+		case <-deadline:
+			t.Fatal("did not observe cluster-wide event within timeout")
+		default:
+		}
+
+		msg := readMsg(t, conn, time.Second)
+		if msg.Type != "next" {
+			continue
+		}
+		var result struct {
+			Data struct {
+				MetricStream struct {
+					ClusterID string  `json:"clusterID"`
+					JobID     *string `json:"jobId"`
+					Metric    string  `json:"metric"`
+					Value     float64 `json:"value"`
+				} `json:"metricStream"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal(msg.Payload, &result); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
+		evt := result.Data.MetricStream
+		if evt.JobID == nil && evt.Metric == "throughput" && evt.Value == 42 && evt.ClusterID == "cluster-0" {
+			return
+		}
+	}
+}
+
+func TestSubscription_MetricStream_PerJobFilter(t *testing.T) {
+	src := &mockMetricSource{}
+	src.setJobs([]flink.JobOverview{
+		{JID: "j1", State: "RUNNING"},
+		{JID: "j2", State: "RUNNING"},
+	})
+	src.setRates("j1", metricFixture(10))
+	src.setRates("j2", metricFixture(20))
+
+	sampler := flink.NewMetricSampler(
+		"cluster-0",
+		src,
+		flink.WithMetricSamplerInterval(40*time.Millisecond),
+	)
+	defer sampler.Stop()
+
+	manager := cluster.NewTestManagerWithMetricSampler("cluster-0", sampler)
+	srv := newTestServer(&graphql.Resolver{Manager: manager})
+	defer srv.Close()
+
+	conn := wsConnect(t, srv.URL)
+	defer func() { _ = conn.Close() }()
+
+	payload, _ := json.Marshal(map[string]any{
+		"query": `subscription { metricStream(clusterID: "cluster-0", metric: "throughput", jobId: "j2") { jobId value } }`,
+	})
+	writeMsg(t, conn, wsMessage{ID: "1", Type: "subscribe", Payload: payload})
+
+	// Every event the client sees must be for j2.
+	deadline := time.After(2 * time.Second)
+	sawJ2 := false
+	for {
+		select {
+		case <-deadline:
+			if !sawJ2 {
+				t.Fatal("did not observe any j2 event within timeout")
+			}
+			return
+		default:
+		}
+
+		msg := readMsg(t, conn, time.Second)
+		if msg.Type != "next" {
+			continue
+		}
+		var result struct {
+			Data struct {
+				MetricStream struct {
+					JobID *string `json:"jobId"`
+					Value float64 `json:"value"`
+				} `json:"metricStream"`
+			} `json:"data"`
+		}
+		_ = json.Unmarshal(msg.Payload, &result)
+		evt := result.Data.MetricStream
+		if evt.JobID == nil {
+			t.Fatalf("expected jobId=j2 only; got cluster-wide event")
+		}
+		if *evt.JobID != "j2" {
+			t.Fatalf("expected jobId=j2, got %q", *evt.JobID)
+		}
+		if evt.Value != 20 {
+			t.Fatalf("expected j2 value=20, got %f", evt.Value)
+		}
+		sawJ2 = true
+	}
+}
+
+func TestSubscription_MetricStream_UnknownMetricRejected(t *testing.T) {
+	src := &mockMetricSource{}
+	src.setJobs(nil)
+
+	sampler := flink.NewMetricSampler("cluster-0", src)
+	defer sampler.Stop()
+
+	manager := cluster.NewTestManagerWithMetricSampler("cluster-0", sampler)
+	srv := newTestServer(&graphql.Resolver{Manager: manager})
+	defer srv.Close()
+
+	conn := wsConnect(t, srv.URL)
+	defer func() { _ = conn.Close() }()
+
+	payload, _ := json.Marshal(map[string]any{
+		"query": `subscription { metricStream(clusterID: "cluster-0", metric: "bogus") { value } }`,
+	})
+	writeMsg(t, conn, wsMessage{ID: "1", Type: "subscribe", Payload: payload})
+
+	// We expect an "error" or "next" with errors. The sampler should not have
+	// started — its subscriber count stays 0.
+	msg := readMsg(t, conn, 2*time.Second)
+	if msg.Type != "error" && msg.Type != "next" {
+		t.Fatalf("expected error or next-with-error, got %s", msg.Type)
+	}
+	// Give the resolver a moment in case it briefly subscribed before the
+	// validation error propagates.
+	time.Sleep(100 * time.Millisecond)
+	if got := sampler.SubscriberCount(); got != 0 {
+		t.Errorf("expected 0 sampler subscribers for unknown-metric subscription, got %d", got)
+	}
+}
+
+func TestSubscription_MetricStream_ClientDisconnectCleanup(t *testing.T) {
+	src := &mockMetricSource{}
+	src.setJobs([]flink.JobOverview{{JID: "j1", State: "RUNNING"}})
+	src.setRates("j1", metricFixture(1))
+
+	sampler := flink.NewMetricSampler(
+		"cluster-0",
+		src,
+		flink.WithMetricSamplerInterval(30*time.Millisecond),
+	)
+	defer sampler.Stop()
+
+	manager := cluster.NewTestManagerWithMetricSampler("cluster-0", sampler)
+	srv := newTestServer(&graphql.Resolver{Manager: manager})
+	defer srv.Close()
+
+	conn := wsConnect(t, srv.URL)
+
+	payload, _ := json.Marshal(map[string]any{
+		"query": `subscription { metricStream(clusterID: "cluster-0", metric: "throughput") { value } }`,
+	})
+	writeMsg(t, conn, wsMessage{ID: "1", Type: "subscribe", Payload: payload})
+
+	// Let the resolver register with the sampler.
+	time.Sleep(100 * time.Millisecond)
+	if got := sampler.SubscriberCount(); got != 1 {
+		t.Fatalf("expected 1 sampler subscriber, got %d", got)
+	}
+
+	_ = conn.Close()
+
+	// Allow the resolver goroutine to observe the context cancel and
+	// release the sampler listener.
+	time.Sleep(200 * time.Millisecond)
+	if got := sampler.SubscriberCount(); got != 0 {
+		t.Errorf("expected 0 sampler subscribers after client disconnect, got %d", got)
+	}
+}

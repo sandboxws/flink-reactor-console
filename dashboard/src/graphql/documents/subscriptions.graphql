@@ -1,0 +1,9 @@
+subscription MetricStream($clusterID: String!, $metric: String!, $jobId: ID) {
+  metricStream(clusterID: $clusterID, metric: $metric, jobId: $jobId) {
+    clusterID
+    jobId
+    metric
+    value
+    timestamp
+  }
+}
