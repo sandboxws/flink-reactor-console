@@ -10,9 +10,7 @@ import type { LucideIcon } from "lucide-react"
 import {
   Activity,
   AlignLeft,
-  Cpu,
   FileBarChart,
-  ListTree,
   ScrollText,
   Settings2,
   Sigma,
@@ -23,8 +21,6 @@ export type JmTab =
   | "metrics"
   | "logs"
   | "stdout"
-  | "classpath"
-  | "jvm"
   | "threads"
   | "profiler"
 
@@ -35,12 +31,10 @@ interface JmTabSpec {
 }
 
 export const JM_TABS: readonly JmTabSpec[] = [
-  { id: "config", label: "Config", icon: Settings2 },
+  { id: "config", label: "Configuration", icon: Settings2 },
   { id: "metrics", label: "Metrics", icon: FileBarChart },
   { id: "logs", label: "Logs", icon: ScrollText },
   { id: "stdout", label: "StdOut", icon: AlignLeft },
-  { id: "classpath", label: "Classpath", icon: ListTree },
-  { id: "jvm", label: "JVM", icon: Cpu },
   { id: "threads", label: "Threads", icon: Sigma },
   { id: "profiler", label: "Profiler", icon: Activity },
 ]

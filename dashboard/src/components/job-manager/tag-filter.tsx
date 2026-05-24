@@ -12,7 +12,7 @@
  * so that `color-mix()` can derive background, text, and border shades at
  * render time.
  */
-const TAG_COLORS: Record<string, string> = {
+export const TAG_COLORS: Record<string, string> = {
   // Classpath tags
   "flink-core": "var(--color-log-debug)",
   "flink-sql": "var(--color-log-info)",
@@ -39,12 +39,12 @@ const TAG_COLORS: Record<string, string> = {
 }
 
 /** Resolve a tag name to its CSS color variable, falling back to "other". */
-function getTagColor(tag: string): string {
+export function getTagColor(tag: string): string {
   return TAG_COLORS[tag] ?? TAG_COLORS.other
 }
 
 /** Derive background, text, and border colors from a base CSS color using `color-mix()`. */
-function tagStyle(color: string) {
+export function tagStyle(color: string) {
   return {
     bg: `color-mix(in srgb, ${color} 12%, transparent)`,
     text: color,
