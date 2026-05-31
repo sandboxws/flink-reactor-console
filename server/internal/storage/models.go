@@ -302,6 +302,55 @@ type DBTapManifest struct {
 	UpdatedAt    time.Time       `db:"updated_at"`
 }
 
+// DBPipelineManifest mirrors the pipeline_manifests table — a versioned State
+// Manifest pushed by the DSL (state-collision-01).
+type DBPipelineManifest struct {
+	ID               int64           `db:"id"`
+	PipelineName     string          `db:"pipeline_name"`
+	Environment      string          `db:"environment"`
+	Version          int             `db:"version"`
+	FlinkVersion     *string         `db:"flink_version"`
+	Manifest         json.RawMessage `db:"manifest"`
+	StateFingerprint string          `db:"state_fingerprint"`
+	OperatorStates   json.RawMessage `db:"operator_states"`
+	Source           string          `db:"source"`
+	CreatedAt        time.Time       `db:"created_at"`
+}
+
+// DBCompatibilityCheck mirrors the compatibility_checks table.
+type DBCompatibilityCheck struct {
+	ID             int64           `db:"id"`
+	PipelineName   string          `db:"pipeline_name"`
+	Environment    string          `db:"environment"`
+	FromManifestID *int64          `db:"from_manifest_id"`
+	ToManifestID   *int64          `db:"to_manifest_id"`
+	FromVersion    *int            `db:"from_version"`
+	ToVersion      *int            `db:"to_version"`
+	Verdict        string          `db:"verdict"`
+	CanProceed     bool            `db:"can_proceed"`
+	Issues         json.RawMessage `db:"issues"`
+	CheckedAt      time.Time       `db:"checked_at"`
+}
+
+// DBRestoreEvent mirrors the restore_events table.
+type DBRestoreEvent struct {
+	ID                   int64           `db:"id"`
+	PipelineName         string          `db:"pipeline_name"`
+	Environment          string          `db:"environment"`
+	Cluster              string          `db:"cluster"`
+	JID                  *string         `db:"jid"`
+	ManifestID           *int64          `db:"manifest_id"`
+	CheckID              *int64          `db:"check_id"`
+	BlueGreenName        *string         `db:"bluegreen_name"`
+	Outcome              string          `db:"outcome"`
+	ErrorCategory        *string         `db:"error_category"`
+	RestoredCheckpointID *int64          `db:"restored_checkpoint_id"`
+	RestoredPath         *string         `db:"restored_path"`
+	ExceptionID          *int64          `db:"exception_id"`
+	Detail               json.RawMessage `db:"detail"`
+	ObservedAt           time.Time       `db:"observed_at"`
+}
+
 // DBLog mirrors the logs table.
 type DBLog struct {
 	ID         int64     `db:"id"`

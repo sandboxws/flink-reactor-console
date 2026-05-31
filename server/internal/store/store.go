@@ -10,33 +10,35 @@ import (
 // Stores is the top-level aggregate that holds all domain-specific sub-stores
 // and the shared connection pool.
 type Stores struct {
-	pool         *pgxpool.Pool
-	Clusters     *ClusterStore
-	Jobs         *JobStore
-	Checkpoints  *CheckpointStore
-	Exceptions   *ExceptionStore
-	TaskManagers *TaskManagerStore
-	JobManager   *JobManagerStore
-	Metrics      *MetricStore
-	Logs         *LogStore
-	TapManifests *TapManifestStore
-	Alerts       *AlertStore
+	pool              *pgxpool.Pool
+	Clusters          *ClusterStore
+	Jobs              *JobStore
+	Checkpoints       *CheckpointStore
+	Exceptions        *ExceptionStore
+	TaskManagers      *TaskManagerStore
+	JobManager        *JobManagerStore
+	Metrics           *MetricStore
+	Logs              *LogStore
+	TapManifests      *TapManifestStore
+	Alerts            *AlertStore
+	PipelineManifests *PipelineManifestStore
 }
 
 // New creates a Stores aggregate backed by the given connection pool.
 func New(pool *pgxpool.Pool) *Stores {
 	return &Stores{
-		pool:         pool,
-		Clusters:     &ClusterStore{pool: pool},
-		Jobs:         &JobStore{pool: pool},
-		Checkpoints:  &CheckpointStore{pool: pool},
-		Exceptions:   &ExceptionStore{pool: pool},
-		TaskManagers: &TaskManagerStore{pool: pool},
-		JobManager:   &JobManagerStore{pool: pool},
-		Metrics:      &MetricStore{pool: pool},
-		Logs:         &LogStore{pool: pool},
-		TapManifests: &TapManifestStore{pool: pool},
-		Alerts:       &AlertStore{pool: pool},
+		pool:              pool,
+		Clusters:          &ClusterStore{pool: pool},
+		Jobs:              &JobStore{pool: pool},
+		Checkpoints:       &CheckpointStore{pool: pool},
+		Exceptions:        &ExceptionStore{pool: pool},
+		TaskManagers:      &TaskManagerStore{pool: pool},
+		JobManager:        &JobManagerStore{pool: pool},
+		Metrics:           &MetricStore{pool: pool},
+		Logs:              &LogStore{pool: pool},
+		TapManifests:      &TapManifestStore{pool: pool},
+		Alerts:            &AlertStore{pool: pool},
+		PipelineManifests: &PipelineManifestStore{pool: pool},
 	}
 }
 
