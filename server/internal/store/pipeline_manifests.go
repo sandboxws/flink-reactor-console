@@ -4,12 +4,30 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
 )
+
+// PipelineSummaryRow is a per-(pipeline, environment) rollup joining the latest
+// manifest, version count, latest compatibility verdict, and restore tallies.
+type PipelineSummaryRow struct {
+	PipelineName     string
+	Environment      string
+	LatestVersion    int
+	VersionCount     int
+	StateFingerprint string
+	FlinkVersion     *string
+	CreatedAt        time.Time
+	LastVerdict      *string
+	LastCheckedAt    *time.Time
+	LastIssueCount   *int
+	RestoreTotal     int
+	RestoreSuccess   int
+}
 
 // PipelineManifestStore manages the versioned State Manifest registry and the
 // compatibility checks and restore outcomes computed against it.
@@ -206,6 +224,76 @@ func (s *PipelineManifestStore) InsertRestoreEvent(
 		return 0, fmt.Errorf("insert restore event %q: %w", e.PipelineName, err)
 	}
 	return id, nil
+}
+
+// ListPipelineSummaries returns one rollup row per (pipeline, environment),
+// joining the latest manifest with its version count, the latest compatibility
+// verdict, and restore-outcome tallies. A nil environment spans all
+// environments. Computed in a single query so the registry index and the
+// kanban verdict-join avoid an N+1 over the per-pipeline endpoints.
+func (s *PipelineManifestStore) ListPipelineSummaries(
+	ctx context.Context,
+	environment *string,
+) ([]PipelineSummaryRow, error) {
+	rows, err := s.pool.Query(ctx, `
+		WITH latest_manifest AS (
+			SELECT DISTINCT ON (pipeline_name, environment)
+				pipeline_name, environment, version, state_fingerprint, flink_version, created_at
+			FROM pipeline_manifests
+			WHERE ($1::text IS NULL OR environment = $1)
+			ORDER BY pipeline_name, environment, version DESC
+		),
+		version_counts AS (
+			SELECT pipeline_name, environment, COUNT(*) AS version_count
+			FROM pipeline_manifests
+			WHERE ($1::text IS NULL OR environment = $1)
+			GROUP BY pipeline_name, environment
+		),
+		latest_check AS (
+			SELECT DISTINCT ON (pipeline_name, environment)
+				pipeline_name, environment, verdict, checked_at,
+				jsonb_array_length(issues) AS issue_count
+			FROM compatibility_checks
+			WHERE ($1::text IS NULL OR environment = $1)
+			ORDER BY pipeline_name, environment, checked_at DESC
+		),
+		restore_stats AS (
+			SELECT pipeline_name, environment,
+				COUNT(*) FILTER (WHERE outcome <> 'PENDING') AS restore_total,
+				COUNT(*) FILTER (WHERE outcome = 'SUCCESS') AS restore_success
+			FROM restore_events
+			WHERE ($1::text IS NULL OR environment = $1)
+			GROUP BY pipeline_name, environment
+		)
+		SELECT
+			lm.pipeline_name, lm.environment, lm.version,
+			COALESCE(vc.version_count, 1), lm.state_fingerprint, lm.flink_version,
+			lm.created_at, lc.verdict, lc.checked_at, lc.issue_count,
+			COALESCE(rs.restore_total, 0), COALESCE(rs.restore_success, 0)
+		FROM latest_manifest lm
+		LEFT JOIN version_counts vc USING (pipeline_name, environment)
+		LEFT JOIN latest_check lc USING (pipeline_name, environment)
+		LEFT JOIN restore_stats rs USING (pipeline_name, environment)
+		ORDER BY lm.pipeline_name, lm.environment
+	`, environment)
+	if err != nil {
+		return nil, fmt.Errorf("list pipeline summaries: %w", err)
+	}
+	defer rows.Close()
+
+	var out []PipelineSummaryRow
+	for rows.Next() {
+		var r PipelineSummaryRow
+		if err := rows.Scan(
+			&r.PipelineName, &r.Environment, &r.LatestVersion, &r.VersionCount,
+			&r.StateFingerprint, &r.FlinkVersion, &r.CreatedAt, &r.LastVerdict,
+			&r.LastCheckedAt, &r.LastIssueCount, &r.RestoreTotal, &r.RestoreSuccess,
+		); err != nil {
+			return nil, fmt.Errorf("scan pipeline summary: %w", err)
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
 }
 
 // RestoreEventExists reports whether a terminal restore event was already

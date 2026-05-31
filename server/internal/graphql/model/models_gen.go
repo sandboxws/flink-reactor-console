@@ -949,6 +949,31 @@ type PipelineManifestVersion struct {
 	StateFingerprint string  `json:"stateFingerprint"`
 	Source           string  `json:"source"`
 	CreatedAt        string  `json:"createdAt"`
+	// The full canonical State Manifest JSON (sorted keys) for version diffing.
+	ManifestJSON string `json:"manifestJson"`
+}
+
+// A per-pipeline rollup for the State Registry index and the deployment kanban's
+// "Blocked" join. One row per (pipeline, environment); fetched in a single query
+// to avoid an N+1 over the per-pipeline report endpoints.
+type PipelineStateSummary struct {
+	Pipeline         string  `json:"pipeline"`
+	Environment      string  `json:"environment"`
+	LatestVersion    int     `json:"latestVersion"`
+	VersionCount     int     `json:"versionCount"`
+	StateFingerprint string  `json:"stateFingerprint"`
+	FlinkVersion     *string `json:"flinkVersion,omitempty"`
+	// Verdict of the most recent compatibility check; null when none has run.
+	LastVerdict   *CompatibilityVerdict `json:"lastVerdict,omitempty"`
+	LastCheckedAt *string               `json:"lastCheckedAt,omitempty"`
+	// Number of issues in the most recent check; null when none has run.
+	LastIssueCount *int `json:"lastIssueCount,omitempty"`
+	// Count of non-PENDING restore outcomes observed for this pipeline.
+	RestoreTotal int `json:"restoreTotal"`
+	// Count of SUCCESS restore outcomes (restoreTotal - this = failures).
+	RestoreSuccess int `json:"restoreSuccess"`
+	// ISO timestamp of the latest manifest version.
+	UpdatedAt string `json:"updatedAt"`
 }
 
 type PlanNode struct {

@@ -45,6 +45,7 @@ import { Route as CatalogsExploreRouteImport } from './routes/catalogs/explore'
 import { Route as CatalogsAvailableRouteImport } from './routes/catalogs/available'
 import { Route as InstrumentsInstrumentNameIndexRouteImport } from './routes/instruments/$instrumentName/index'
 import { Route as HubTaskManagersIndexRouteImport } from './routes/hub/task-managers/index'
+import { Route as HubStateIndexRouteImport } from './routes/hub/state/index'
 import { Route as HubSandboxIndexRouteImport } from './routes/hub/sandbox/index'
 import { Route as HubMaterializedTablesIndexRouteImport } from './routes/hub/materialized-tables/index'
 import { Route as HubInstrumentsIndexRouteImport } from './routes/hub/instruments/index'
@@ -53,6 +54,7 @@ import { Route as HubCatalogsIndexRouteImport } from './routes/hub/catalogs/inde
 import { Route as AdminSimulationsIndexRouteImport } from './routes/admin/simulations/index'
 import { Route as AdminBenchmarksIndexRouteImport } from './routes/admin/benchmarks/index'
 import { Route as HubTaskManagersIdRouteImport } from './routes/hub/task-managers/$id'
+import { Route as HubStatePipelineRouteImport } from './routes/hub/state/$pipeline'
 import { Route as HubSandboxEditorRouteImport } from './routes/hub/sandbox/editor'
 import { Route as HubMonitoringCheckpointsRouteImport } from './routes/hub/monitoring/checkpoints'
 import { Route as HubMonitoringAlertsRouteImport } from './routes/hub/monitoring/alerts'
@@ -276,6 +278,11 @@ const HubTaskManagersIndexRoute = HubTaskManagersIndexRouteImport.update({
   path: '/hub/task-managers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HubStateIndexRoute = HubStateIndexRouteImport.update({
+  id: '/hub/state/',
+  path: '/hub/state/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HubSandboxIndexRoute = HubSandboxIndexRouteImport.update({
   id: '/hub/sandbox/',
   path: '/hub/sandbox/',
@@ -315,6 +322,11 @@ const AdminBenchmarksIndexRoute = AdminBenchmarksIndexRouteImport.update({
 const HubTaskManagersIdRoute = HubTaskManagersIdRouteImport.update({
   id: '/hub/task-managers/$id',
   path: '/hub/task-managers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubStatePipelineRoute = HubStatePipelineRouteImport.update({
+  id: '/hub/state/$pipeline',
+  path: '/hub/state/$pipeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HubSandboxEditorRoute = HubSandboxEditorRouteImport.update({
@@ -594,6 +606,7 @@ export interface FileRoutesByFullPath {
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
   '/hub/sandbox/editor': typeof HubSandboxEditorRoute
+  '/hub/state/$pipeline': typeof HubStatePipelineRoute
   '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks/': typeof AdminBenchmarksIndexRoute
   '/admin/simulations/': typeof AdminSimulationsIndexRoute
@@ -602,6 +615,7 @@ export interface FileRoutesByFullPath {
   '/hub/instruments/': typeof HubInstrumentsIndexRoute
   '/hub/materialized-tables/': typeof HubMaterializedTablesIndexRoute
   '/hub/sandbox/': typeof HubSandboxIndexRoute
+  '/hub/state/': typeof HubStateIndexRoute
   '/hub/task-managers/': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/hub/admin/simulations/$runId': typeof HubAdminSimulationsRunIdRoute
@@ -678,6 +692,7 @@ export interface FileRoutesByTo {
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
   '/hub/sandbox/editor': typeof HubSandboxEditorRoute
+  '/hub/state/$pipeline': typeof HubStatePipelineRoute
   '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks': typeof AdminBenchmarksIndexRoute
   '/admin/simulations': typeof AdminSimulationsIndexRoute
@@ -686,6 +701,7 @@ export interface FileRoutesByTo {
   '/hub/instruments': typeof HubInstrumentsIndexRoute
   '/hub/materialized-tables': typeof HubMaterializedTablesIndexRoute
   '/hub/sandbox': typeof HubSandboxIndexRoute
+  '/hub/state': typeof HubStateIndexRoute
   '/hub/task-managers': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName': typeof InstrumentsInstrumentNameIndexRoute
   '/hub/admin/simulations/$runId': typeof HubAdminSimulationsRunIdRoute
@@ -765,6 +781,7 @@ export interface FileRoutesById {
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
   '/hub/sandbox/editor': typeof HubSandboxEditorRoute
+  '/hub/state/$pipeline': typeof HubStatePipelineRoute
   '/hub/task-managers/$id': typeof HubTaskManagersIdRoute
   '/admin/benchmarks/': typeof AdminBenchmarksIndexRoute
   '/admin/simulations/': typeof AdminSimulationsIndexRoute
@@ -773,6 +790,7 @@ export interface FileRoutesById {
   '/hub/instruments/': typeof HubInstrumentsIndexRoute
   '/hub/materialized-tables/': typeof HubMaterializedTablesIndexRoute
   '/hub/sandbox/': typeof HubSandboxIndexRoute
+  '/hub/state/': typeof HubStateIndexRoute
   '/hub/task-managers/': typeof HubTaskManagersIndexRoute
   '/instruments/$instrumentName/': typeof InstrumentsInstrumentNameIndexRoute
   '/hub/admin/simulations/$runId': typeof HubAdminSimulationsRunIdRoute
@@ -853,6 +871,7 @@ export interface FileRouteTypes {
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
     | '/hub/sandbox/editor'
+    | '/hub/state/$pipeline'
     | '/hub/task-managers/$id'
     | '/admin/benchmarks/'
     | '/admin/simulations/'
@@ -861,6 +880,7 @@ export interface FileRouteTypes {
     | '/hub/instruments/'
     | '/hub/materialized-tables/'
     | '/hub/sandbox/'
+    | '/hub/state/'
     | '/hub/task-managers/'
     | '/instruments/$instrumentName/'
     | '/hub/admin/simulations/$runId'
@@ -937,6 +957,7 @@ export interface FileRouteTypes {
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
     | '/hub/sandbox/editor'
+    | '/hub/state/$pipeline'
     | '/hub/task-managers/$id'
     | '/admin/benchmarks'
     | '/admin/simulations'
@@ -945,6 +966,7 @@ export interface FileRouteTypes {
     | '/hub/instruments'
     | '/hub/materialized-tables'
     | '/hub/sandbox'
+    | '/hub/state'
     | '/hub/task-managers'
     | '/instruments/$instrumentName'
     | '/hub/admin/simulations/$runId'
@@ -1023,6 +1045,7 @@ export interface FileRouteTypes {
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
     | '/hub/sandbox/editor'
+    | '/hub/state/$pipeline'
     | '/hub/task-managers/$id'
     | '/admin/benchmarks/'
     | '/admin/simulations/'
@@ -1031,6 +1054,7 @@ export interface FileRouteTypes {
     | '/hub/instruments/'
     | '/hub/materialized-tables/'
     | '/hub/sandbox/'
+    | '/hub/state/'
     | '/hub/task-managers/'
     | '/instruments/$instrumentName/'
     | '/hub/admin/simulations/$runId'
@@ -1110,6 +1134,7 @@ export interface RootRouteChildren {
   HubMonitoringAlertsRoute: typeof HubMonitoringAlertsRoute
   HubMonitoringCheckpointsRoute: typeof HubMonitoringCheckpointsRoute
   HubSandboxEditorRoute: typeof HubSandboxEditorRoute
+  HubStatePipelineRoute: typeof HubStatePipelineRoute
   HubTaskManagersIdRoute: typeof HubTaskManagersIdRoute
   AdminBenchmarksIndexRoute: typeof AdminBenchmarksIndexRoute
   AdminSimulationsIndexRoute: typeof AdminSimulationsIndexRoute
@@ -1118,6 +1143,7 @@ export interface RootRouteChildren {
   HubInstrumentsIndexRoute: typeof HubInstrumentsIndexRoute
   HubMaterializedTablesIndexRoute: typeof HubMaterializedTablesIndexRoute
   HubSandboxIndexRoute: typeof HubSandboxIndexRoute
+  HubStateIndexRoute: typeof HubStateIndexRoute
   HubTaskManagersIndexRoute: typeof HubTaskManagersIndexRoute
   HubAdminSimulationsRunIdRoute: typeof HubAdminSimulationsRunIdRoute
   HubAdminBenchmarksIndexRoute: typeof HubAdminBenchmarksIndexRoute
@@ -1390,6 +1416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubTaskManagersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hub/state/': {
+      id: '/hub/state/'
+      path: '/hub/state'
+      fullPath: '/hub/state/'
+      preLoaderRoute: typeof HubStateIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hub/sandbox/': {
       id: '/hub/sandbox/'
       path: '/hub/sandbox'
@@ -1444,6 +1477,13 @@ declare module '@tanstack/react-router' {
       path: '/hub/task-managers/$id'
       fullPath: '/hub/task-managers/$id'
       preLoaderRoute: typeof HubTaskManagersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/state/$pipeline': {
+      id: '/hub/state/$pipeline'
+      path: '/hub/state/$pipeline'
+      fullPath: '/hub/state/$pipeline'
+      preLoaderRoute: typeof HubStatePipelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/sandbox/editor': {
@@ -1827,6 +1867,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubMonitoringAlertsRoute: HubMonitoringAlertsRoute,
   HubMonitoringCheckpointsRoute: HubMonitoringCheckpointsRoute,
   HubSandboxEditorRoute: HubSandboxEditorRoute,
+  HubStatePipelineRoute: HubStatePipelineRoute,
   HubTaskManagersIdRoute: HubTaskManagersIdRoute,
   AdminBenchmarksIndexRoute: AdminBenchmarksIndexRoute,
   AdminSimulationsIndexRoute: AdminSimulationsIndexRoute,
@@ -1835,6 +1876,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubInstrumentsIndexRoute: HubInstrumentsIndexRoute,
   HubMaterializedTablesIndexRoute: HubMaterializedTablesIndexRoute,
   HubSandboxIndexRoute: HubSandboxIndexRoute,
+  HubStateIndexRoute: HubStateIndexRoute,
   HubTaskManagersIndexRoute: HubTaskManagersIndexRoute,
   HubAdminSimulationsRunIdRoute: HubAdminSimulationsRunIdRoute,
   HubAdminBenchmarksIndexRoute: HubAdminBenchmarksIndexRoute,

@@ -26,6 +26,7 @@ import {
   ScrollText,
   SearchCode,
   Server,
+  ShieldCheck,
   Upload,
 } from "lucide-react"
 
@@ -44,6 +45,11 @@ export const HUB_SIDEBAR_SECTIONS: HubSidebarSection[] = [
         label: "Deployments",
         href: "/hub/deployments",
         icon: ArrowLeftRight,
+      },
+      {
+        label: "State registry",
+        href: "/hub/state",
+        icon: ShieldCheck,
       },
     ],
   },

@@ -141,6 +141,22 @@ func restoreEvents(
 	return out, nil
 }
 
+func pipelineStateSummaries(
+	ctx context.Context,
+	s *store.PipelineManifestStore,
+	environment *string,
+) ([]*model.PipelineStateSummary, error) {
+	rows, err := s.ListPipelineSummaries(ctx, environment)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.PipelineStateSummary, 0, len(rows))
+	for i := range rows {
+		out = append(out, mapPipelineSummary(&rows[i]))
+	}
+	return out, nil
+}
+
 // ── mappers ─────────────────────────────────────────────────────────
 
 func inputToStateManifest(in model.StateManifestInput) compatibility.StateManifest {
@@ -207,6 +223,7 @@ func mapManifestVersion(row *storage.DBPipelineManifest) *model.PipelineManifest
 		StateFingerprint: row.StateFingerprint,
 		Source:           row.Source,
 		CreatedAt:        row.CreatedAt.UTC().Format(time.RFC3339),
+		ManifestJSON:     string(row.Manifest),
 	}
 }
 
@@ -227,4 +244,28 @@ func mapRestoreEvent(row *storage.DBRestoreEvent) *model.RestoreEvent {
 		ev.RestoredCheckpointID = &v
 	}
 	return ev
+}
+
+func mapPipelineSummary(row *store.PipelineSummaryRow) *model.PipelineStateSummary {
+	sum := &model.PipelineStateSummary{
+		Pipeline:         row.PipelineName,
+		Environment:      row.Environment,
+		LatestVersion:    row.LatestVersion,
+		VersionCount:     row.VersionCount,
+		StateFingerprint: row.StateFingerprint,
+		FlinkVersion:     row.FlinkVersion,
+		LastIssueCount:   row.LastIssueCount,
+		RestoreTotal:     row.RestoreTotal,
+		RestoreSuccess:   row.RestoreSuccess,
+		UpdatedAt:        row.CreatedAt.UTC().Format(time.RFC3339),
+	}
+	if row.LastVerdict != nil {
+		v := model.CompatibilityVerdict(*row.LastVerdict)
+		sum.LastVerdict = &v
+	}
+	if row.LastCheckedAt != nil {
+		ts := row.LastCheckedAt.UTC().Format(time.RFC3339)
+		sum.LastCheckedAt = &ts
+	}
+	return sum
 }

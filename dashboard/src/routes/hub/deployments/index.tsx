@@ -18,19 +18,26 @@ import { DeploymentKanban } from "@/components/hub/deployments/deployment-kanban
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
+import { useCompatibilityStore } from "@/stores/compatibility-store"
 
 function HubDeployments() {
   const fetchDeployments = useBgDeploymentStore((s) => s.fetchDeployments)
   const deployments = useBgDeploymentStore((s) => s.deployments)
   const isLoading = useBgDeploymentStore((s) => s.isLoading)
   const error = useBgDeploymentStore((s) => s.error)
+  const fetchSummaries = useCompatibilityStore((s) => s.fetchSummaries)
+  const summaries = useCompatibilityStore((s) => s.summaries)
   const [showAddBanner, setShowAddBanner] = useState(false)
 
   useEffect(() => {
     fetchDeployments()
-    const id = setInterval(() => fetchDeployments(), 5000)
+    fetchSummaries()
+    const id = setInterval(() => {
+      fetchDeployments()
+      fetchSummaries()
+    }, 5000)
     return () => clearInterval(id)
-  }, [fetchDeployments])
+  }, [fetchDeployments, fetchSummaries])
 
   return (
     <HubAppShell>
@@ -89,6 +96,7 @@ function HubDeployments() {
       ) : (
         <DeploymentKanban
           deployments={deployments}
+          summaries={summaries}
           onAdd={() => setShowAddBanner(true)}
         />
       )}

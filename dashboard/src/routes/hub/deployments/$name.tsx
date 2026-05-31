@@ -9,16 +9,28 @@
 
 import { DiffViewer, HubBreadcrumb } from "@flink-reactor/ui"
 import { createFileRoute, useParams } from "@tanstack/react-router"
-import { ArrowLeftRight, CircleX, Play, RotateCcw } from "lucide-react"
+import {
+  ArrowLeftRight,
+  CircleX,
+  History,
+  Layers,
+  Play,
+  RotateCcw,
+  ShieldCheck,
+} from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { gql } from "urql"
 import { BlueGreenComparison } from "@/components/hub/deployments/blue-green-comparison"
+import { CompatibilityPanel } from "@/components/hub/deployments/compatibility-panel"
+import { ManifestVersionHistory } from "@/components/hub/deployments/manifest-version-history"
+import { RestoreTimeline } from "@/components/hub/deployments/restore-timeline"
 import { StateMachineViz } from "@/components/hub/deployments/state-machine-viz"
 import { getStateLabel } from "@/data/bg-deployment-types"
 import { graphqlClient } from "@/lib/graphql-client"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useBgDeploymentStore } from "@/stores/bg-deployment-store"
+import { useCompatibilityStore } from "@/stores/compatibility-store"
 
 const CONFIG_DIFF_QUERY = gql`
   query BlueGreenDeploymentConfigDiff(
@@ -50,11 +62,27 @@ function HubDeploymentDetail() {
   const deployments = useBgDeploymentStore((s) => s.deployments)
   const error = useBgDeploymentStore((s) => s.error)
 
+  // State-compatibility detail for this pipeline (pipeline name == deployment
+  // name under the FlinkReactor naming contract). Fetched once per name; the
+  // store runs report + versions + restores in parallel.
+  const report = useCompatibilityStore((s) => s.report)
+  const versions = useCompatibilityStore((s) => s.versions)
+  const restores = useCompatibilityStore((s) => s.restores)
+  const detailLoading = useCompatibilityStore((s) => s.detailLoading)
+  const detailError = useCompatibilityStore((s) => s.detailError)
+  const fetchPipelineDetail = useCompatibilityStore(
+    (s) => s.fetchPipelineDetail,
+  )
+
   useEffect(() => {
     fetchDeployments()
     const id = setInterval(() => fetchDeployments(), 5000)
     return () => clearInterval(id)
   }, [fetchDeployments])
+
+  useEffect(() => {
+    fetchPipelineDetail(name)
+  }, [name, fetchPipelineDetail])
 
   const deployment = useMemo(
     () => deployments.find((d) => d.name === name) ?? null,
@@ -194,6 +222,45 @@ function HubDeploymentDetail() {
         ) : null}
       </section>
 
+      {/* State compatibility */}
+      <section className="glass-card-static p-5 mb-5">
+        <h3 className="section-heading mb-3 flex items-center gap-2">
+          <ShieldCheck className="size-3.5" />
+          State compatibility
+        </h3>
+        <CompatibilityPanel
+          report={report}
+          loading={detailLoading}
+          error={detailError}
+        />
+      </section>
+
+      {/* State manifest history */}
+      <section className="glass-card-static p-5 mb-5">
+        <h3 className="section-heading mb-3 flex items-center gap-2">
+          <Layers className="size-3.5" />
+          State manifest history
+        </h3>
+        <ManifestVersionHistory
+          versions={versions}
+          loading={detailLoading}
+          error={detailError}
+        />
+      </section>
+
+      {/* Restore outcomes */}
+      <section className="glass-card-static p-5 mb-5">
+        <h3 className="section-heading mb-3 flex items-center gap-2">
+          <History className="size-3.5" />
+          Restore outcomes
+        </h3>
+        <RestoreTimeline
+          restores={restores}
+          loading={detailLoading}
+          error={detailError}
+        />
+      </section>
+
       {/* Blue/green */}
       <section className="mb-5">
         <h3 className="section-heading mb-3 flex items-center gap-2">
@@ -248,9 +315,7 @@ function KvCard({ label, value }: { label: string; value: string }) {
 
 function ConfigDiffSection({ state }: { state: ConfigDiffState }) {
   if (state.loading) {
-    return (
-      <div className="h-40 animate-pulse rounded bg-dash-surface/40" />
-    )
+    return <div className="h-40 animate-pulse rounded bg-dash-surface/40" />
   }
   if (state.error) {
     return (

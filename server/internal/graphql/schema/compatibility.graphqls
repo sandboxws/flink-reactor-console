@@ -42,6 +42,8 @@ type PipelineManifestVersion {
   stateFingerprint: String!
   source: String!
   createdAt: String!
+  "The full canonical State Manifest JSON (sorted keys) for version diffing."
+  manifestJson: String!
 }
 
 type RestoreEvent {
@@ -83,6 +85,31 @@ input StateManifestInput {
   fingerprint: String!
 }
 
+"""
+A per-pipeline rollup for the State Registry index and the deployment kanban's
+"Blocked" join. One row per (pipeline, environment); fetched in a single query
+to avoid an N+1 over the per-pipeline report endpoints.
+"""
+type PipelineStateSummary {
+  pipeline: String!
+  environment: String!
+  latestVersion: Int!
+  versionCount: Int!
+  stateFingerprint: String!
+  flinkVersion: String
+  "Verdict of the most recent compatibility check; null when none has run."
+  lastVerdict: CompatibilityVerdict
+  lastCheckedAt: String
+  "Number of issues in the most recent check; null when none has run."
+  lastIssueCount: Int
+  "Count of non-PENDING restore outcomes observed for this pipeline."
+  restoreTotal: Int!
+  "Count of SUCCESS restore outcomes (restoreTotal - this = failures)."
+  restoreSuccess: Int!
+  "ISO timestamp of the latest manifest version."
+  updatedAt: String!
+}
+
 extend type Query {
   "Stored State Manifest versions for a pipeline (newest first)."
   pipelineManifestVersions(pipeline: String!, environment: String): [PipelineManifestVersion!]!
@@ -90,6 +117,8 @@ extend type Query {
   latestCompatibilityReport(pipeline: String!, environment: String): CompatibilityReport
   "Observed restore outcomes for a pipeline (newest first)."
   restoreEvents(pipeline: String!, environment: String): [RestoreEvent!]!
+  "Per-pipeline state rollups across the registry (all environments when environment is null)."
+  pipelineStateSummaries(environment: String): [PipelineStateSummary!]!
 }
 
 extend type Mutation {

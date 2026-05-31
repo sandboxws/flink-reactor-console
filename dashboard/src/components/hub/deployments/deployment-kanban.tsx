@@ -1,8 +1,13 @@
 /**
- * 5-column Linear-style kanban for blue-green deployments.
+ * 6-column Linear-style kanban for blue-green deployments.
  *
  * Reads `useBgDeploymentStore.deployments` and buckets them into:
- *   Pending / Validating / Rolling out / Rolling back / Complete
+ *   Pending / Validating / Rolling out / Rolling back / Complete / Blocked
+ *
+ * The "Blocked" column is the Tier-2 advisory surface for state-collision
+ * detection: any deployment whose pipeline's latest compatibility verdict is
+ * INCOMPATIBLE is routed here regardless of its blue-green phase. Verdicts are
+ * joined from `pipelineStateSummaries` (passed as `summaries`) by pipeline name.
  *
  * Column count headers update in real time as the store re-fetches (every
  * 5s). When a deployment transitions state, the card moves columns without
@@ -12,6 +17,7 @@
 
 import { useMemo } from "react"
 import type { BlueGreenDeployment } from "@/data/bg-deployment-types"
+import type { PipelineStateSummary } from "@/data/compatibility-types"
 import {
   DeploymentCard,
   type DeploymentColumn,
@@ -25,6 +31,7 @@ const COLUMN_ORDER: DeploymentColumn[] = [
   "rolling-out",
   "rolling-back",
   "complete",
+  "blocked",
 ]
 
 const COLUMN_META: Record<
@@ -60,17 +67,31 @@ const COLUMN_META: Record<
     state: "resolved",
     emptyMessage: "no completed deployments yet",
   },
+  blocked: {
+    name: "Blocked",
+    state: "firing",
+    emptyMessage: "no incompatible state changes",
+  },
 }
 
 interface DeploymentKanbanProps {
   deployments: readonly BlueGreenDeployment[]
+  /** Per-pipeline state rollups, joined to deployments by name for verdicts. */
+  summaries?: readonly PipelineStateSummary[]
   onAdd?: () => void
 }
 
 export function DeploymentKanban({
   deployments,
+  summaries = [],
   onAdd,
 }: DeploymentKanbanProps) {
+  const summaryByPipeline = useMemo(() => {
+    const map = new Map<string, PipelineStateSummary>()
+    for (const s of summaries) map.set(s.pipeline, s)
+    return map
+  }, [summaries])
+
   const buckets = useMemo(() => {
     const result: Record<DeploymentColumn, BlueGreenDeployment[]> = {
       pending: [],
@@ -78,12 +99,14 @@ export function DeploymentKanban({
       "rolling-out": [],
       "rolling-back": [],
       complete: [],
+      blocked: [],
     }
     for (const dep of deployments) {
-      result[deploymentColumn(dep.state)].push(dep)
+      const verdict = summaryByPipeline.get(dep.name)?.lastVerdict ?? null
+      result[deploymentColumn(dep.state, verdict)].push(dep)
     }
     return result
-  }, [deployments])
+  }, [deployments, summaryByPipeline])
 
   return (
     <div className="flex gap-4 overflow-x-auto pb-2">
@@ -99,9 +122,17 @@ export function DeploymentKanban({
             emptyMessage={meta.emptyMessage}
             onAdd={onAdd}
           >
-            {items.map((d) => (
-              <DeploymentCard key={d.name} deployment={d} />
-            ))}
+            {items.map((d) => {
+              const summary = summaryByPipeline.get(d.name)
+              return (
+                <DeploymentCard
+                  key={d.name}
+                  deployment={d}
+                  verdict={summary?.lastVerdict ?? null}
+                  issueCount={summary?.lastIssueCount ?? null}
+                />
+              )
+            })}
           </KanbanColumn>
         )
       })}

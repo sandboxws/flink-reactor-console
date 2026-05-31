@@ -46,3 +46,13 @@ func (r *queryResolver) RestoreEvents(ctx context.Context, pipeline string, envi
 	}
 	return restoreEvents(ctx, r.Stores.PipelineManifests, pipeline, environmentOrDefault(environment))
 }
+
+// PipelineStateSummaries is the resolver for the pipelineStateSummaries field.
+// A nil environment spans the whole registry (no defaulting), so the State
+// Registry index can show every pipeline across environments.
+func (r *queryResolver) PipelineStateSummaries(ctx context.Context, environment *string) ([]*model.PipelineStateSummary, error) {
+	if r.Stores == nil || r.Stores.PipelineManifests == nil {
+		return []*model.PipelineStateSummary{}, nil
+	}
+	return pipelineStateSummaries(ctx, r.Stores.PipelineManifests, environment)
+}

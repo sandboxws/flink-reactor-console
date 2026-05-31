@@ -9,11 +9,13 @@
  *   - complete     → `.done` modifier with completion timestamp
  */
 
+import { SevBadge } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import type {
   BlueGreenDeployment,
   BlueGreenState,
 } from "@/data/bg-deployment-types"
+import type { CompatibilityVerdict } from "@/data/compatibility-types"
 
 export type DeploymentColumn =
   | "pending"
@@ -21,8 +23,19 @@ export type DeploymentColumn =
   | "rolling-out"
   | "rolling-back"
   | "complete"
+  | "blocked"
 
-export function deploymentColumn(state: BlueGreenState): DeploymentColumn {
+/**
+ * Bucket a deployment into a kanban column. An INCOMPATIBLE state-compatibility
+ * verdict routes the deployment to "Blocked" regardless of its blue-green
+ * phase — this is the Tier-2 advisory annotation (the CLI preflight is the
+ * authoritative gate; the console cannot block the Flink operator).
+ */
+export function deploymentColumn(
+  state: BlueGreenState,
+  verdict?: CompatibilityVerdict | null,
+): DeploymentColumn {
+  if (verdict === "INCOMPATIBLE") return "blocked"
   switch (state) {
     case "INITIALIZING_BLUE":
       return "pending"
@@ -42,6 +55,10 @@ export function deploymentColumn(state: BlueGreenState): DeploymentColumn {
 
 interface DeploymentCardProps {
   deployment: BlueGreenDeployment
+  /** Latest compatibility verdict for this deployment's pipeline, if known. */
+  verdict?: CompatibilityVerdict | null
+  /** Number of incompatible operators in the latest check, if known. */
+  issueCount?: number | null
 }
 
 const AVATAR_TONES = [
@@ -74,9 +91,14 @@ function shortVersion(name: string): string {
   return name.length <= 8 ? name : `${name.slice(0, 4)}…${name.slice(-3)}`
 }
 
-export function DeploymentCard({ deployment }: DeploymentCardProps) {
-  const col = deploymentColumn(deployment.state)
+export function DeploymentCard({
+  deployment,
+  verdict,
+  issueCount,
+}: DeploymentCardProps) {
+  const col = deploymentColumn(deployment.state, verdict)
   const isComplete = col === "complete"
+  const isBlocked = col === "blocked"
   const tone = pickAvatarTone(deployment.name)
   const initial = deployment.name[0]?.toUpperCase() ?? "?"
 
@@ -111,6 +133,15 @@ export function DeploymentCard({ deployment }: DeploymentCardProps) {
       <div className="text-[13px] text-zinc-100 truncate">
         {deployment.name}
       </div>
+      {isBlocked ? (
+        <div className="mt-1.5">
+          <SevBadge tone="fail">
+            {issueCount && issueCount > 0
+              ? `${issueCount} op${issueCount === 1 ? "" : "s"} incompatible`
+              : "incompatible state"}
+          </SevBadge>
+        </div>
+      ) : null}
       {col === "rolling-out" || col === "validating" ? (
         <div className="resource-bar mt-2">
           <div className="seg heap" style={{ width: `${progress}%` }} />
