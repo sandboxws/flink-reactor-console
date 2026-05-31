@@ -208,6 +208,34 @@ func (s *PipelineManifestStore) InsertRestoreEvent(
 	return id, nil
 }
 
+// RestoreEventExists reports whether a terminal restore event was already
+// recorded for this job's specific restore. A restore is identified by the
+// restored checkpoint id (for a SUCCESS) or the originating exception id (for
+// a FAILED outcome), so the sync loop can stay idempotent across restarts
+// without a unique constraint that would also have to cover the nullable
+// deploy-time PENDING rows.
+func (s *PipelineManifestStore) RestoreEventExists(
+	ctx context.Context,
+	cluster, jid string,
+	restoredCheckpointID, exceptionID *int64,
+) (bool, error) {
+	var exists bool
+	err := s.pool.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1 FROM restore_events
+			WHERE cluster = $1 AND jid = $2 AND outcome <> 'PENDING'
+			  AND (
+				($3::bigint IS NOT NULL AND restored_checkpoint_id = $3)
+				OR ($4::bigint IS NOT NULL AND exception_id = $4)
+			  )
+		)
+	`, cluster, jid, restoredCheckpointID, exceptionID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check restore event exists %q/%q: %w", cluster, jid, err)
+	}
+	return exists, nil
+}
+
 // ListRestoreEvents returns up to `limit` restore events for a pipeline (newest first).
 func (s *PipelineManifestStore) ListRestoreEvents(
 	ctx context.Context,

@@ -96,6 +96,13 @@ func (s *Syncer) Start(ctx context.Context) {
 		s.runOverviewSync(ctx)
 	}()
 
+	// Restore-outcome domain (state-collision feedback loop).
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.runRestoreSync(ctx)
+	}()
+
 	s.logger.Info("sync started",
 		"jobs_interval", s.config.Jobs,
 		"checkpoints_interval", s.config.Checkpoints,
@@ -105,6 +112,7 @@ func (s *Syncer) Start(ctx context.Context) {
 		"logs_interval", s.config.Logs,
 		"metrics_interval", s.config.Metrics,
 		"cluster_overview_interval", s.config.ClusterOverview,
+		"restores_interval", s.config.Restores,
 	)
 }
 

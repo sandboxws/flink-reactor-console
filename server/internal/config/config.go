@@ -56,6 +56,7 @@ type SyncConfig struct {
 	Logs            time.Duration `mapstructure:"logs"`
 	Metrics         time.Duration `mapstructure:"metrics"`
 	ClusterOverview time.Duration `mapstructure:"cluster_overview"`
+	Restores        time.Duration `mapstructure:"restores"`
 }
 
 // RetentionConfig holds per-domain data retention settings.
@@ -231,6 +232,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("storage.sync.logs", "300s")
 	v.SetDefault("storage.sync.metrics", "15s")
 	v.SetDefault("storage.sync.cluster_overview", "30s")
+	v.SetDefault("storage.sync.restores", "60s")
 
 	v.SetDefault("storage.retention.jobs", "2160h")
 	v.SetDefault("storage.retention.checkpoints", "720h")
