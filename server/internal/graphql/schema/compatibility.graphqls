@@ -1,0 +1,103 @@
+# State-collision detection: versioned manifest registry, compatibility checks,
+# and restore outcomes (state-collision-03).
+
+enum CompatibilityVerdict {
+  COMPATIBLE
+  WARNING
+  INCOMPATIBLE
+}
+
+enum IssueSeverity {
+  WARNING
+  ERROR
+}
+
+type CompatibilityIssue {
+  operatorKey: String!
+  component: String!
+  "MAX_PARALLELISM | UNMAPPED_STATE | SERIALIZER | SCHEMA_EVOLUTION"
+  category: String!
+  severity: IssueSeverity!
+  message: String!
+}
+
+type CompatibilityReport {
+  pipeline: String!
+  environment: String!
+  verdict: CompatibilityVerdict!
+  canProceed: Boolean!
+  issues: [CompatibilityIssue!]!
+  "ISO timestamp; null for a non-persisted preview."
+  checkedAt: String
+  "Set when the check was persisted."
+  checkId: ID
+}
+
+type PipelineManifestVersion {
+  id: ID!
+  pipeline: String!
+  environment: String!
+  version: Int!
+  flinkVersion: String
+  stateFingerprint: String!
+  source: String!
+  createdAt: String!
+}
+
+type RestoreEvent {
+  id: ID!
+  pipeline: String!
+  environment: String!
+  cluster: String!
+  jid: String
+  "PENDING | SUCCESS | FAILED | UNKNOWN"
+  outcome: String!
+  errorCategory: String
+  restoredCheckpointId: Int
+  blueGreenName: String
+  observedAt: String!
+}
+
+input KeyFieldInput {
+  name: String!
+  type: String!
+}
+
+input OperatorStateInput {
+  logicalKey: String!
+  nodeId: String!
+  component: String!
+  stateRole: String!
+  keyFields: [KeyFieldInput!]!
+  changelogMode: String!
+  ttl: String
+  maxParallelism: Int
+  operatorHash: String!
+}
+
+input StateManifestInput {
+  schemaVersion: Int!
+  pipelineName: String!
+  flinkVersion: String!
+  operators: [OperatorStateInput!]!
+  fingerprint: String!
+}
+
+extend type Query {
+  "Stored State Manifest versions for a pipeline (newest first)."
+  pipelineManifestVersions(pipeline: String!, environment: String): [PipelineManifestVersion!]!
+  "The most recent persisted compatibility report for a pipeline, if any."
+  latestCompatibilityReport(pipeline: String!, environment: String): CompatibilityReport
+  "Observed restore outcomes for a pipeline (newest first)."
+  restoreEvents(pipeline: String!, environment: String): [RestoreEvent!]!
+}
+
+extend type Mutation {
+  "Compare a proposed manifest against the stored latest version. Persists the check unless persist is false."
+  checkDeploymentCompatibility(
+    pipeline: String!
+    environment: String
+    newManifest: StateManifestInput!
+    persist: Boolean
+  ): CompatibilityReport!
+}

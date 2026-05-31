@@ -24,6 +24,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/manifests"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/metrics"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/savepoints"
@@ -41,6 +42,9 @@ type Config struct {
 
 	// TapStore provides DB-backed tap pipeline manifests. May be nil.
 	TapStore *tap.Store
+
+	// ManifestStore ingests versioned pipeline State Manifests. May be nil.
+	ManifestStore *manifests.Store
 
 	// StoragePool is the PostgreSQL connection pool. May be nil when storage is disabled.
 	StoragePool *pgxpool.Pool
@@ -227,6 +231,9 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	// Tap manifest endpoint (serves DSL-generated tap manifests by pipeline name).
 	tap.Register(e, cfg.TapStore)
 
+	// Pipeline State Manifest ingest (versioned registry, state-collision-03).
+	manifests.Register(e, cfg.ManifestStore)
+
 	// SPA static file handler (registered last as catch-all).
 	if cfg.StaticDir != "" {
 		spa.Register(e, spa.Config{StaticDir: cfg.StaticDir}, logger)
@@ -253,6 +260,13 @@ func WithStaticDir(dir string) Option {
 func WithTapStore(s *tap.Store) Option {
 	return func(c *Config) {
 		c.TapStore = s
+	}
+}
+
+// WithManifestStore sets the DB-backed pipeline State Manifest ingest store.
+func WithManifestStore(s *manifests.Store) Option {
+	return func(c *Config) {
+		c.ManifestStore = s
 	}
 }
 

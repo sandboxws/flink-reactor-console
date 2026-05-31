@@ -19,6 +19,7 @@ import (
 	"github.com/sandboxws/flink-reactor/apps/server/internal/alerts"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
+	"github.com/sandboxws/flink-reactor/apps/server/internal/manifests"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/simulation"
@@ -128,6 +129,8 @@ func run() int {
 		serverOpts = append(serverOpts, server.WithStores(stores))
 		tapStore := tap.NewStore(stores.TapManifests)
 		serverOpts = append(serverOpts, server.WithTapStore(tapStore))
+		manifestStore := manifests.NewStore(stores.PipelineManifests)
+		serverOpts = append(serverOpts, server.WithManifestStore(manifestStore))
 	}
 
 	// Initialize simulation engine if storage is enabled.

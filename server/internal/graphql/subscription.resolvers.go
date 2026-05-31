@@ -202,13 +202,3 @@ func (r *subscriptionResolver) MetricStream(ctx context.Context, clusterID strin
 
 	return ch, nil
 }
-
-// matchesJobFilter returns true when the event's jobID matches the
-// subscriber's filter. A nil filter matches only cluster-wide events
-// (empty event jobID); a non-nil filter matches only exact equality.
-func matchesJobFilter(eventJobID string, filter *string) bool {
-	if filter == nil {
-		return eventJobID == ""
-	}
-	return eventJobID == *filter
-}

@@ -278,6 +278,27 @@ type ColumnInfo struct {
 	Type string `json:"type"`
 }
 
+type CompatibilityIssue struct {
+	OperatorKey string `json:"operatorKey"`
+	Component   string `json:"component"`
+	// MAX_PARALLELISM | UNMAPPED_STATE | SERIALIZER | SCHEMA_EVOLUTION
+	Category string        `json:"category"`
+	Severity IssueSeverity `json:"severity"`
+	Message  string        `json:"message"`
+}
+
+type CompatibilityReport struct {
+	Pipeline    string                `json:"pipeline"`
+	Environment string                `json:"environment"`
+	Verdict     CompatibilityVerdict  `json:"verdict"`
+	CanProceed  bool                  `json:"canProceed"`
+	Issues      []*CompatibilityIssue `json:"issues"`
+	// ISO timestamp; null for a non-persisted preview.
+	CheckedAt *string `json:"checkedAt,omitempty"`
+	// Set when the check was persisted.
+	CheckID *string `json:"checkId,omitempty"`
+}
+
 // The result of a compatibility check. `messages` describes incompatibilities
 // when `isCompatible` is false; empty otherwise.
 type CompatibilityResult struct {
@@ -810,6 +831,11 @@ type KafkaTopicPartition struct {
 	Partition int    `json:"partition"`
 }
 
+type KeyFieldInput struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
 type MaterializedTable struct {
 	Name          string                         `json:"name"`
 	Catalog       string                         `json:"catalog"`
@@ -886,6 +912,18 @@ type MetricTimeSeries struct {
 type Mutation struct {
 }
 
+type OperatorStateInput struct {
+	LogicalKey     string           `json:"logicalKey"`
+	NodeID         string           `json:"nodeId"`
+	Component      string           `json:"component"`
+	StateRole      string           `json:"stateRole"`
+	KeyFields      []*KeyFieldInput `json:"keyFields"`
+	ChangelogMode  string           `json:"changelogMode"`
+	TTL            *string          `json:"ttl,omitempty"`
+	MaxParallelism *int             `json:"maxParallelism,omitempty"`
+	OperatorHash   string           `json:"operatorHash"`
+}
+
 // Sorting configuration for query results.
 type OrderByInput struct {
 	// The field to sort by.
@@ -900,6 +938,17 @@ type PaginationInput struct {
 	First *int `json:"first,omitempty"`
 	// Opaque cursor for the next page.
 	After *string `json:"after,omitempty"`
+}
+
+type PipelineManifestVersion struct {
+	ID               string  `json:"id"`
+	Pipeline         string  `json:"pipeline"`
+	Environment      string  `json:"environment"`
+	Version          int     `json:"version"`
+	FlinkVersion     *string `json:"flinkVersion,omitempty"`
+	StateFingerprint string  `json:"stateFingerprint"`
+	Source           string  `json:"source"`
+	CreatedAt        string  `json:"createdAt"`
 }
 
 type PlanNode struct {
@@ -998,6 +1047,20 @@ type RedisZSetEntry struct {
 
 type RescaleResult struct {
 	RequestID string `json:"requestId"`
+}
+
+type RestoreEvent struct {
+	ID          string  `json:"id"`
+	Pipeline    string  `json:"pipeline"`
+	Environment string  `json:"environment"`
+	Cluster     string  `json:"cluster"`
+	Jid         *string `json:"jid,omitempty"`
+	// PENDING | SUCCESS | FAILED | UNKNOWN
+	Outcome              string  `json:"outcome"`
+	ErrorCategory        *string `json:"errorCategory,omitempty"`
+	RestoredCheckpointID *int    `json:"restoredCheckpointId,omitempty"`
+	BlueGreenName        *string `json:"blueGreenName,omitempty"`
+	ObservedAt           string  `json:"observedAt"`
 }
 
 type SQLCloseResult struct {
@@ -1116,6 +1179,14 @@ type SimulationRun struct {
 	StoppedAt    *string                  `json:"stoppedAt,omitempty"`
 	Parameters   map[string]any           `json:"parameters"`
 	Observations []*SimulationObservation `json:"observations"`
+}
+
+type StateManifestInput struct {
+	SchemaVersion int                   `json:"schemaVersion"`
+	PipelineName  string                `json:"pipelineName"`
+	FlinkVersion  string                `json:"flinkVersion"`
+	Operators     []*OperatorStateInput `json:"operators"`
+	Fingerprint   string                `json:"fingerprint"`
 }
 
 // Status of the PostgreSQL historical storage backend.
@@ -1649,6 +1720,118 @@ func (e *ClusterStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e ClusterStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type CompatibilityVerdict string
+
+const (
+	CompatibilityVerdictCompatible   CompatibilityVerdict = "COMPATIBLE"
+	CompatibilityVerdictWarning      CompatibilityVerdict = "WARNING"
+	CompatibilityVerdictIncompatible CompatibilityVerdict = "INCOMPATIBLE"
+)
+
+var AllCompatibilityVerdict = []CompatibilityVerdict{
+	CompatibilityVerdictCompatible,
+	CompatibilityVerdictWarning,
+	CompatibilityVerdictIncompatible,
+}
+
+func (e CompatibilityVerdict) IsValid() bool {
+	switch e {
+	case CompatibilityVerdictCompatible, CompatibilityVerdictWarning, CompatibilityVerdictIncompatible:
+		return true
+	}
+	return false
+}
+
+func (e CompatibilityVerdict) String() string {
+	return string(e)
+}
+
+func (e *CompatibilityVerdict) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CompatibilityVerdict(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CompatibilityVerdict", str)
+	}
+	return nil
+}
+
+func (e CompatibilityVerdict) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *CompatibilityVerdict) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e CompatibilityVerdict) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type IssueSeverity string
+
+const (
+	IssueSeverityWarning IssueSeverity = "WARNING"
+	IssueSeverityError   IssueSeverity = "ERROR"
+)
+
+var AllIssueSeverity = []IssueSeverity{
+	IssueSeverityWarning,
+	IssueSeverityError,
+}
+
+func (e IssueSeverity) IsValid() bool {
+	switch e {
+	case IssueSeverityWarning, IssueSeverityError:
+		return true
+	}
+	return false
+}
+
+func (e IssueSeverity) String() string {
+	return string(e)
+}
+
+func (e *IssueSeverity) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IssueSeverity(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IssueSeverity", str)
+	}
+	return nil
+}
+
+func (e IssueSeverity) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *IssueSeverity) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e IssueSeverity) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

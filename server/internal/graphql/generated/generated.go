@@ -249,6 +249,24 @@ type ComplexityRoot struct {
 		Type func(childComplexity int) int
 	}
 
+	CompatibilityIssue struct {
+		Category    func(childComplexity int) int
+		Component   func(childComplexity int) int
+		Message     func(childComplexity int) int
+		OperatorKey func(childComplexity int) int
+		Severity    func(childComplexity int) int
+	}
+
+	CompatibilityReport struct {
+		CanProceed  func(childComplexity int) int
+		CheckID     func(childComplexity int) int
+		CheckedAt   func(childComplexity int) int
+		Environment func(childComplexity int) int
+		Issues      func(childComplexity int) int
+		Pipeline    func(childComplexity int) int
+		Verdict     func(childComplexity int) int
+	}
+
 	CompatibilityResult struct {
 		IsCompatible func(childComplexity int) int
 		Messages     func(childComplexity int) int
@@ -709,30 +727,42 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcknowledgeAlert         func(childComplexity int, id string, note *string) int
-		CancelJob                func(childComplexity int, id string, cluster *string) int
-		CheckSchemaCompatibility func(childComplexity int, instrument string, subject string, schema string, schemaType string) int
-		CloseSQLSession          func(childComplexity int, sessionHandle string, cluster *string) int
-		CreateAlertRule          func(childComplexity int, input model.CreateAlertRuleInput) int
-		CreateSQLSession         func(childComplexity int, cluster *string) int
-		DeleteAlertRule          func(childComplexity int, id string) int
-		DeleteJar                func(childComplexity int, id string, cluster *string) int
-		ExecuteDatabaseQuery     func(childComplexity int, instrument string, sql string) int
-		ExplainStatement         func(childComplexity int, sessionHandle string, statement string, cluster *string) int
-		FetchSQLResults          func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
-		RefreshMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
-		RescaleJob               func(childComplexity int, jobID string, newParallelism int, cluster *string) int
-		ResolveAlert             func(childComplexity int, id string) int
-		ResumeMaterializedTable  func(childComplexity int, name string, catalog string, cluster *string) int
-		RunJar                   func(childComplexity int, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
-		RunSimulation            func(childComplexity int, input model.SimulationInput) int
-		SilenceAlert             func(childComplexity int, id string) int
-		StopJobWithSavepoint     func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
-		StopSimulation           func(childComplexity int, runID string) int
-		SubmitStatement          func(childComplexity int, sessionHandle string, statement string, cluster *string) int
-		SuspendMaterializedTable func(childComplexity int, name string, catalog string, cluster *string) int
-		TriggerSavepoint         func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
-		UpdateAlertRule          func(childComplexity int, id string, input model.UpdateAlertRuleInput) int
+		AcknowledgeAlert             func(childComplexity int, id string, note *string) int
+		CancelJob                    func(childComplexity int, id string, cluster *string) int
+		CheckDeploymentCompatibility func(childComplexity int, pipeline string, environment *string, newManifest model.StateManifestInput, persist *bool) int
+		CheckSchemaCompatibility     func(childComplexity int, instrument string, subject string, schema string, schemaType string) int
+		CloseSQLSession              func(childComplexity int, sessionHandle string, cluster *string) int
+		CreateAlertRule              func(childComplexity int, input model.CreateAlertRuleInput) int
+		CreateSQLSession             func(childComplexity int, cluster *string) int
+		DeleteAlertRule              func(childComplexity int, id string) int
+		DeleteJar                    func(childComplexity int, id string, cluster *string) int
+		ExecuteDatabaseQuery         func(childComplexity int, instrument string, sql string) int
+		ExplainStatement             func(childComplexity int, sessionHandle string, statement string, cluster *string) int
+		FetchSQLResults              func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
+		RefreshMaterializedTable     func(childComplexity int, name string, catalog string, cluster *string) int
+		RescaleJob                   func(childComplexity int, jobID string, newParallelism int, cluster *string) int
+		ResolveAlert                 func(childComplexity int, id string) int
+		ResumeMaterializedTable      func(childComplexity int, name string, catalog string, cluster *string) int
+		RunJar                       func(childComplexity int, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
+		RunSimulation                func(childComplexity int, input model.SimulationInput) int
+		SilenceAlert                 func(childComplexity int, id string) int
+		StopJobWithSavepoint         func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
+		StopSimulation               func(childComplexity int, runID string) int
+		SubmitStatement              func(childComplexity int, sessionHandle string, statement string, cluster *string) int
+		SuspendMaterializedTable     func(childComplexity int, name string, catalog string, cluster *string) int
+		TriggerSavepoint             func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
+		UpdateAlertRule              func(childComplexity int, id string, input model.UpdateAlertRuleInput) int
+	}
+
+	PipelineManifestVersion struct {
+		CreatedAt        func(childComplexity int) int
+		Environment      func(childComplexity int) int
+		FlinkVersion     func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Pipeline         func(childComplexity int) int
+		Source           func(childComplexity int) int
+		StateFingerprint func(childComplexity int) int
+		Version          func(childComplexity int) int
 	}
 
 	PlanNode struct {
@@ -802,16 +832,19 @@ type ComplexityRoot struct {
 		KafkaConsumerGroups           func(childComplexity int, instrument string) int
 		KafkaTopic                    func(childComplexity int, instrument string, name string) int
 		KafkaTopics                   func(childComplexity int, instrument string) int
+		LatestCompatibilityReport     func(childComplexity int, pipeline string, environment *string) int
 		MaterializedTable             func(childComplexity int, name string, catalog string, cluster *string) int
 		MaterializedTables            func(childComplexity int, cluster *string, catalog *string) int
 		MetricCatalog                 func(childComplexity int, clusterID string) int
 		MetricHistory                 func(childComplexity int, filter model.MetricHistoryFilter) int
 		MetricSeries                  func(childComplexity int, clusterID string, series []*model.MetricSeriesRequest, after string, before string, maxPoints *int) int
+		PipelineManifestVersions      func(childComplexity int, pipeline string, environment *string) int
 		RedisKeyInfo                  func(childComplexity int, instrument string, key string) int
 		RedisKeyValue                 func(childComplexity int, instrument string, key string) int
 		RedisMemoryStats              func(childComplexity int, instrument string) int
 		RedisScan                     func(childComplexity int, instrument string, cursor *string, pattern *string, count *int) int
 		RedisServerInfo               func(childComplexity int, instrument string) int
+		RestoreEvents                 func(childComplexity int, pipeline string, environment *string) int
 		Savepoint                     func(childComplexity int, jobID string, savepointID string, cluster *string) int
 		Savepoints                    func(childComplexity int, jobID string, cluster *string) int
 		SchemaDetail                  func(childComplexity int, instrument string, subject string, version int) int
@@ -891,6 +924,19 @@ type ComplexityRoot struct {
 
 	RescaleResult struct {
 		RequestID func(childComplexity int) int
+	}
+
+	RestoreEvent struct {
+		BlueGreenName        func(childComplexity int) int
+		Cluster              func(childComplexity int) int
+		Environment          func(childComplexity int) int
+		ErrorCategory        func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		Jid                  func(childComplexity int) int
+		ObservedAt           func(childComplexity int) int
+		Outcome              func(childComplexity int) int
+		Pipeline             func(childComplexity int) int
+		RestoredCheckpointID func(childComplexity int) int
 	}
 
 	SQLCloseResult struct {
@@ -1223,6 +1269,7 @@ type MutationResolver interface {
 	AcknowledgeAlert(ctx context.Context, id string, note *string) (*model.AlertInstance, error)
 	SilenceAlert(ctx context.Context, id string) (*model.AlertInstance, error)
 	ResolveAlert(ctx context.Context, id string) (*model.AlertInstance, error)
+	CheckDeploymentCompatibility(ctx context.Context, pipeline string, environment *string, newManifest model.StateManifestInput, persist *bool) (*model.CompatibilityReport, error)
 	ExecuteDatabaseQuery(ctx context.Context, instrument string, sql string) (*model.DatabaseQueryResult, error)
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
 	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
@@ -1257,6 +1304,9 @@ type QueryResolver interface {
 	CatalogTables(ctx context.Context, catalog string, database string, cluster *string) ([]*model.CatalogTable, error)
 	CatalogColumns(ctx context.Context, catalog string, database string, table string, cluster *string) ([]*model.ColumnInfo, error)
 	CatalogTableDdl(ctx context.Context, catalog string, database string, table string, cluster *string) (string, error)
+	PipelineManifestVersions(ctx context.Context, pipeline string, environment *string) ([]*model.PipelineManifestVersion, error)
+	LatestCompatibilityReport(ctx context.Context, pipeline string, environment *string) (*model.CompatibilityReport, error)
+	RestoreEvents(ctx context.Context, pipeline string, environment *string) ([]*model.RestoreEvent, error)
 	FlinkConfig(ctx context.Context, cluster *string) (*model.FlinkConfig, error)
 	DashboardConfig(ctx context.Context) (*model.DashboardConfig, error)
 	DatabaseSchemas(ctx context.Context, instrument string) ([]*model.DatabaseSchema, error)
@@ -2155,6 +2205,80 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ColumnInfo.Type(childComplexity), true
+
+	case "CompatibilityIssue.category":
+		if e.ComplexityRoot.CompatibilityIssue.Category == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityIssue.Category(childComplexity), true
+	case "CompatibilityIssue.component":
+		if e.ComplexityRoot.CompatibilityIssue.Component == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityIssue.Component(childComplexity), true
+	case "CompatibilityIssue.message":
+		if e.ComplexityRoot.CompatibilityIssue.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityIssue.Message(childComplexity), true
+	case "CompatibilityIssue.operatorKey":
+		if e.ComplexityRoot.CompatibilityIssue.OperatorKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityIssue.OperatorKey(childComplexity), true
+	case "CompatibilityIssue.severity":
+		if e.ComplexityRoot.CompatibilityIssue.Severity == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityIssue.Severity(childComplexity), true
+
+	case "CompatibilityReport.canProceed":
+		if e.ComplexityRoot.CompatibilityReport.CanProceed == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityReport.CanProceed(childComplexity), true
+	case "CompatibilityReport.checkId":
+		if e.ComplexityRoot.CompatibilityReport.CheckID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityReport.CheckID(childComplexity), true
+	case "CompatibilityReport.checkedAt":
+		if e.ComplexityRoot.CompatibilityReport.CheckedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityReport.CheckedAt(childComplexity), true
+	case "CompatibilityReport.environment":
+		if e.ComplexityRoot.CompatibilityReport.Environment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityReport.Environment(childComplexity), true
+	case "CompatibilityReport.issues":
+		if e.ComplexityRoot.CompatibilityReport.Issues == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityReport.Issues(childComplexity), true
+	case "CompatibilityReport.pipeline":
+		if e.ComplexityRoot.CompatibilityReport.Pipeline == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityReport.Pipeline(childComplexity), true
+	case "CompatibilityReport.verdict":
+		if e.ComplexityRoot.CompatibilityReport.Verdict == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CompatibilityReport.Verdict(childComplexity), true
 
 	case "CompatibilityResult.isCompatible":
 		if e.ComplexityRoot.CompatibilityResult.IsCompatible == nil {
@@ -3878,6 +4002,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CancelJob(childComplexity, args["id"].(string), args["cluster"].(*string)), true
+	case "Mutation.checkDeploymentCompatibility":
+		if e.ComplexityRoot.Mutation.CheckDeploymentCompatibility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_checkDeploymentCompatibility_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CheckDeploymentCompatibility(childComplexity, args["pipeline"].(string), args["environment"].(*string), args["newManifest"].(model.StateManifestInput), args["persist"].(*bool)), true
 	case "Mutation.checkSchemaCompatibility":
 		if e.ComplexityRoot.Mutation.CheckSchemaCompatibility == nil {
 			break
@@ -4120,6 +4255,55 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.UpdateAlertRule(childComplexity, args["id"].(string), args["input"].(model.UpdateAlertRuleInput)), true
+
+	case "PipelineManifestVersion.createdAt":
+		if e.ComplexityRoot.PipelineManifestVersion.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PipelineManifestVersion.CreatedAt(childComplexity), true
+	case "PipelineManifestVersion.environment":
+		if e.ComplexityRoot.PipelineManifestVersion.Environment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PipelineManifestVersion.Environment(childComplexity), true
+	case "PipelineManifestVersion.flinkVersion":
+		if e.ComplexityRoot.PipelineManifestVersion.FlinkVersion == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PipelineManifestVersion.FlinkVersion(childComplexity), true
+	case "PipelineManifestVersion.id":
+		if e.ComplexityRoot.PipelineManifestVersion.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PipelineManifestVersion.ID(childComplexity), true
+	case "PipelineManifestVersion.pipeline":
+		if e.ComplexityRoot.PipelineManifestVersion.Pipeline == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PipelineManifestVersion.Pipeline(childComplexity), true
+	case "PipelineManifestVersion.source":
+		if e.ComplexityRoot.PipelineManifestVersion.Source == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PipelineManifestVersion.Source(childComplexity), true
+	case "PipelineManifestVersion.stateFingerprint":
+		if e.ComplexityRoot.PipelineManifestVersion.StateFingerprint == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PipelineManifestVersion.StateFingerprint(childComplexity), true
+	case "PipelineManifestVersion.version":
+		if e.ComplexityRoot.PipelineManifestVersion.Version == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PipelineManifestVersion.Version(childComplexity), true
 
 	case "PlanNode.description":
 		if e.ComplexityRoot.PlanNode.Description == nil {
@@ -4647,6 +4831,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.KafkaTopics(childComplexity, args["instrument"].(string)), true
+	case "Query.latestCompatibilityReport":
+		if e.ComplexityRoot.Query.LatestCompatibilityReport == nil {
+			break
+		}
+
+		args, err := ec.field_Query_latestCompatibilityReport_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.LatestCompatibilityReport(childComplexity, args["pipeline"].(string), args["environment"].(*string)), true
 	case "Query.materializedTable":
 		if e.ComplexityRoot.Query.MaterializedTable == nil {
 			break
@@ -4702,6 +4897,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.MetricSeries(childComplexity, args["clusterID"].(string), args["series"].([]*model.MetricSeriesRequest), args["after"].(string), args["before"].(string), args["maxPoints"].(*int)), true
+	case "Query.pipelineManifestVersions":
+		if e.ComplexityRoot.Query.PipelineManifestVersions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_pipelineManifestVersions_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.PipelineManifestVersions(childComplexity, args["pipeline"].(string), args["environment"].(*string)), true
 	case "Query.redisKeyInfo":
 		if e.ComplexityRoot.Query.RedisKeyInfo == nil {
 			break
@@ -4757,6 +4963,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.RedisServerInfo(childComplexity, args["instrument"].(string)), true
+	case "Query.restoreEvents":
+		if e.ComplexityRoot.Query.RestoreEvents == nil {
+			break
+		}
+
+		args, err := ec.field_Query_restoreEvents_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RestoreEvents(childComplexity, args["pipeline"].(string), args["environment"].(*string)), true
 	case "Query.savepoint":
 		if e.ComplexityRoot.Query.Savepoint == nil {
 			break
@@ -5165,6 +5382,67 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.RescaleResult.RequestID(childComplexity), true
+
+	case "RestoreEvent.blueGreenName":
+		if e.ComplexityRoot.RestoreEvent.BlueGreenName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.BlueGreenName(childComplexity), true
+	case "RestoreEvent.cluster":
+		if e.ComplexityRoot.RestoreEvent.Cluster == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.Cluster(childComplexity), true
+	case "RestoreEvent.environment":
+		if e.ComplexityRoot.RestoreEvent.Environment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.Environment(childComplexity), true
+	case "RestoreEvent.errorCategory":
+		if e.ComplexityRoot.RestoreEvent.ErrorCategory == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.ErrorCategory(childComplexity), true
+	case "RestoreEvent.id":
+		if e.ComplexityRoot.RestoreEvent.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.ID(childComplexity), true
+	case "RestoreEvent.jid":
+		if e.ComplexityRoot.RestoreEvent.Jid == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.Jid(childComplexity), true
+	case "RestoreEvent.observedAt":
+		if e.ComplexityRoot.RestoreEvent.ObservedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.ObservedAt(childComplexity), true
+	case "RestoreEvent.outcome":
+		if e.ComplexityRoot.RestoreEvent.Outcome == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.Outcome(childComplexity), true
+	case "RestoreEvent.pipeline":
+		if e.ComplexityRoot.RestoreEvent.Pipeline == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.Pipeline(childComplexity), true
+	case "RestoreEvent.restoredCheckpointId":
+		if e.ComplexityRoot.RestoreEvent.RestoredCheckpointID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestoreEvent.RestoredCheckpointID(childComplexity), true
 
 	case "SQLCloseResult.success":
 		if e.ComplexityRoot.SQLCloseResult.Success == nil {
@@ -6452,11 +6730,14 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateAlertRuleInput,
 		ec.unmarshalInputExceptionHistoryFilter,
 		ec.unmarshalInputJobHistoryFilter,
+		ec.unmarshalInputKeyFieldInput,
 		ec.unmarshalInputMetricHistoryFilter,
 		ec.unmarshalInputMetricSeriesRequest,
+		ec.unmarshalInputOperatorStateInput,
 		ec.unmarshalInputOrderByInput,
 		ec.unmarshalInputPaginationInput,
 		ec.unmarshalInputSimulationInput,
+		ec.unmarshalInputStateManifestInput,
 		ec.unmarshalInputUpdateAlertRuleInput,
 	)
 	first := true
@@ -6785,6 +7066,110 @@ extend type Query {
 
   """Get the CREATE TABLE DDL for a table"""
   catalogTableDDL(catalog: String!, database: String!, table: String!, cluster: String): String!
+}
+`, BuiltIn: false},
+	{Name: "../schema/compatibility.graphqls", Input: `# State-collision detection: versioned manifest registry, compatibility checks,
+# and restore outcomes (state-collision-03).
+
+enum CompatibilityVerdict {
+  COMPATIBLE
+  WARNING
+  INCOMPATIBLE
+}
+
+enum IssueSeverity {
+  WARNING
+  ERROR
+}
+
+type CompatibilityIssue {
+  operatorKey: String!
+  component: String!
+  "MAX_PARALLELISM | UNMAPPED_STATE | SERIALIZER | SCHEMA_EVOLUTION"
+  category: String!
+  severity: IssueSeverity!
+  message: String!
+}
+
+type CompatibilityReport {
+  pipeline: String!
+  environment: String!
+  verdict: CompatibilityVerdict!
+  canProceed: Boolean!
+  issues: [CompatibilityIssue!]!
+  "ISO timestamp; null for a non-persisted preview."
+  checkedAt: String
+  "Set when the check was persisted."
+  checkId: ID
+}
+
+type PipelineManifestVersion {
+  id: ID!
+  pipeline: String!
+  environment: String!
+  version: Int!
+  flinkVersion: String
+  stateFingerprint: String!
+  source: String!
+  createdAt: String!
+}
+
+type RestoreEvent {
+  id: ID!
+  pipeline: String!
+  environment: String!
+  cluster: String!
+  jid: String
+  "PENDING | SUCCESS | FAILED | UNKNOWN"
+  outcome: String!
+  errorCategory: String
+  restoredCheckpointId: Int
+  blueGreenName: String
+  observedAt: String!
+}
+
+input KeyFieldInput {
+  name: String!
+  type: String!
+}
+
+input OperatorStateInput {
+  logicalKey: String!
+  nodeId: String!
+  component: String!
+  stateRole: String!
+  keyFields: [KeyFieldInput!]!
+  changelogMode: String!
+  ttl: String
+  maxParallelism: Int
+  operatorHash: String!
+}
+
+input StateManifestInput {
+  schemaVersion: Int!
+  pipelineName: String!
+  flinkVersion: String!
+  operators: [OperatorStateInput!]!
+  fingerprint: String!
+}
+
+extend type Query {
+  "Stored State Manifest versions for a pipeline (newest first)."
+  pipelineManifestVersions(pipeline: String!, environment: String): [PipelineManifestVersion!]!
+  "The most recent persisted compatibility report for a pipeline, if any."
+  latestCompatibilityReport(pipeline: String!, environment: String): CompatibilityReport
+  "Observed restore outcomes for a pipeline (newest first)."
+  restoreEvents(pipeline: String!, environment: String): [RestoreEvent!]!
+}
+
+extend type Mutation {
+  "Compare a proposed manifest against the stored latest version. Persists the check unless persist is false."
+  checkDeploymentCompatibility(
+    pipeline: String!
+    environment: String
+    newManifest: StateManifestInput!
+    persist: Boolean
+  ): CompatibilityReport!
 }
 `, BuiltIn: false},
 	{Name: "../schema/config.graphqls", Input: `# Dashboard and Flink configuration types and queries
@@ -8595,6 +8980,32 @@ func (ec *executionContext) field_Mutation_cancelJob_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_checkDeploymentCompatibility_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "pipeline", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["pipeline"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "environment", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["environment"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "newManifest", ec.unmarshalNStateManifestInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStateManifestInput)
+	if err != nil {
+		return nil, err
+	}
+	args["newManifest"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "persist", ec.unmarshalOBoolean2ᚖbool)
+	if err != nil {
+		return nil, err
+	}
+	args["persist"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_checkSchemaCompatibility_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9574,6 +9985,22 @@ func (ec *executionContext) field_Query_kafkaTopics_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_latestCompatibilityReport_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "pipeline", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["pipeline"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "environment", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["environment"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_materializedTable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9664,6 +10091,22 @@ func (ec *executionContext) field_Query_metricSeries_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_pipelineManifestVersions_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "pipeline", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["pipeline"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "environment", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["environment"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_redisKeyInfo_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9741,6 +10184,22 @@ func (ec *executionContext) field_Query_redisServerInfo_args(ctx context.Context
 		return nil, err
 	}
 	args["instrument"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_restoreEvents_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "pipeline", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["pipeline"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "environment", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["environment"] = arg1
 	return args, nil
 }
 
@@ -14229,6 +14688,366 @@ func (ec *executionContext) fieldContext_ColumnInfo_type(_ context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityIssue_operatorKey(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityIssue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityIssue_operatorKey,
+		func(ctx context.Context) (any, error) {
+			return obj.OperatorKey, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityIssue_operatorKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityIssue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityIssue_component(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityIssue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityIssue_component,
+		func(ctx context.Context) (any, error) {
+			return obj.Component, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityIssue_component(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityIssue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityIssue_category(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityIssue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityIssue_category,
+		func(ctx context.Context) (any, error) {
+			return obj.Category, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityIssue_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityIssue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityIssue_severity(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityIssue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityIssue_severity,
+		func(ctx context.Context) (any, error) {
+			return obj.Severity, nil
+		},
+		nil,
+		ec.marshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityIssue_severity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityIssue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type IssueSeverity does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityIssue_message(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityIssue) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityIssue_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityIssue_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityIssue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityReport_pipeline(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityReport_pipeline,
+		func(ctx context.Context) (any, error) {
+			return obj.Pipeline, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityReport_pipeline(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityReport_environment(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityReport_environment,
+		func(ctx context.Context) (any, error) {
+			return obj.Environment, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityReport_environment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityReport_verdict(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityReport_verdict,
+		func(ctx context.Context) (any, error) {
+			return obj.Verdict, nil
+		},
+		nil,
+		ec.marshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityReport_verdict(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CompatibilityVerdict does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityReport_canProceed(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityReport_canProceed,
+		func(ctx context.Context) (any, error) {
+			return obj.CanProceed, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityReport_canProceed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityReport_issues(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityReport_issues,
+		func(ctx context.Context) (any, error) {
+			return obj.Issues, nil
+		},
+		nil,
+		ec.marshalNCompatibilityIssue2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssueᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityReport_issues(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "operatorKey":
+				return ec.fieldContext_CompatibilityIssue_operatorKey(ctx, field)
+			case "component":
+				return ec.fieldContext_CompatibilityIssue_component(ctx, field)
+			case "category":
+				return ec.fieldContext_CompatibilityIssue_category(ctx, field)
+			case "severity":
+				return ec.fieldContext_CompatibilityIssue_severity(ctx, field)
+			case "message":
+				return ec.fieldContext_CompatibilityIssue_message(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompatibilityIssue", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityReport_checkedAt(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityReport_checkedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckedAt, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityReport_checkedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompatibilityReport_checkId(ctx context.Context, field graphql.CollectedField, obj *model.CompatibilityReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompatibilityReport_checkId,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompatibilityReport_checkId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompatibilityReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -22993,6 +23812,63 @@ func (ec *executionContext) fieldContext_Mutation_resolveAlert(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_checkDeploymentCompatibility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_checkDeploymentCompatibility,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CheckDeploymentCompatibility(ctx, fc.Args["pipeline"].(string), fc.Args["environment"].(*string), fc.Args["newManifest"].(model.StateManifestInput), fc.Args["persist"].(*bool))
+		},
+		nil,
+		ec.marshalNCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_checkDeploymentCompatibility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pipeline":
+				return ec.fieldContext_CompatibilityReport_pipeline(ctx, field)
+			case "environment":
+				return ec.fieldContext_CompatibilityReport_environment(ctx, field)
+			case "verdict":
+				return ec.fieldContext_CompatibilityReport_verdict(ctx, field)
+			case "canProceed":
+				return ec.fieldContext_CompatibilityReport_canProceed(ctx, field)
+			case "issues":
+				return ec.fieldContext_CompatibilityReport_issues(ctx, field)
+			case "checkedAt":
+				return ec.fieldContext_CompatibilityReport_checkedAt(ctx, field)
+			case "checkId":
+				return ec.fieldContext_CompatibilityReport_checkId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompatibilityReport", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_checkDeploymentCompatibility_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_executeDatabaseQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -23877,6 +24753,238 @@ func (ec *executionContext) fieldContext_Mutation_explainStatement(ctx context.C
 	if fc.Args, err = ec.field_Mutation_explainStatement_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PipelineManifestVersion_id(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PipelineManifestVersion_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PipelineManifestVersion_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PipelineManifestVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PipelineManifestVersion_pipeline(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PipelineManifestVersion_pipeline,
+		func(ctx context.Context) (any, error) {
+			return obj.Pipeline, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PipelineManifestVersion_pipeline(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PipelineManifestVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PipelineManifestVersion_environment(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PipelineManifestVersion_environment,
+		func(ctx context.Context) (any, error) {
+			return obj.Environment, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PipelineManifestVersion_environment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PipelineManifestVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PipelineManifestVersion_version(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PipelineManifestVersion_version,
+		func(ctx context.Context) (any, error) {
+			return obj.Version, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PipelineManifestVersion_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PipelineManifestVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PipelineManifestVersion_flinkVersion(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PipelineManifestVersion_flinkVersion,
+		func(ctx context.Context) (any, error) {
+			return obj.FlinkVersion, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PipelineManifestVersion_flinkVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PipelineManifestVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PipelineManifestVersion_stateFingerprint(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PipelineManifestVersion_stateFingerprint,
+		func(ctx context.Context) (any, error) {
+			return obj.StateFingerprint, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PipelineManifestVersion_stateFingerprint(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PipelineManifestVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PipelineManifestVersion_source(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PipelineManifestVersion_source,
+		func(ctx context.Context) (any, error) {
+			return obj.Source, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PipelineManifestVersion_source(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PipelineManifestVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PipelineManifestVersion_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PipelineManifestVersion_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PipelineManifestVersion_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PipelineManifestVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -25069,6 +26177,185 @@ func (ec *executionContext) fieldContext_Query_catalogTableDDL(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_catalogTableDDL_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_pipelineManifestVersions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_pipelineManifestVersions,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().PipelineManifestVersions(ctx, fc.Args["pipeline"].(string), fc.Args["environment"].(*string))
+		},
+		nil,
+		ec.marshalNPipelineManifestVersion2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersionᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_pipelineManifestVersions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PipelineManifestVersion_id(ctx, field)
+			case "pipeline":
+				return ec.fieldContext_PipelineManifestVersion_pipeline(ctx, field)
+			case "environment":
+				return ec.fieldContext_PipelineManifestVersion_environment(ctx, field)
+			case "version":
+				return ec.fieldContext_PipelineManifestVersion_version(ctx, field)
+			case "flinkVersion":
+				return ec.fieldContext_PipelineManifestVersion_flinkVersion(ctx, field)
+			case "stateFingerprint":
+				return ec.fieldContext_PipelineManifestVersion_stateFingerprint(ctx, field)
+			case "source":
+				return ec.fieldContext_PipelineManifestVersion_source(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PipelineManifestVersion_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PipelineManifestVersion", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_pipelineManifestVersions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_latestCompatibilityReport(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_latestCompatibilityReport,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().LatestCompatibilityReport(ctx, fc.Args["pipeline"].(string), fc.Args["environment"].(*string))
+		},
+		nil,
+		ec.marshalOCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_latestCompatibilityReport(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pipeline":
+				return ec.fieldContext_CompatibilityReport_pipeline(ctx, field)
+			case "environment":
+				return ec.fieldContext_CompatibilityReport_environment(ctx, field)
+			case "verdict":
+				return ec.fieldContext_CompatibilityReport_verdict(ctx, field)
+			case "canProceed":
+				return ec.fieldContext_CompatibilityReport_canProceed(ctx, field)
+			case "issues":
+				return ec.fieldContext_CompatibilityReport_issues(ctx, field)
+			case "checkedAt":
+				return ec.fieldContext_CompatibilityReport_checkedAt(ctx, field)
+			case "checkId":
+				return ec.fieldContext_CompatibilityReport_checkId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompatibilityReport", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_latestCompatibilityReport_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_restoreEvents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_restoreEvents,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RestoreEvents(ctx, fc.Args["pipeline"].(string), fc.Args["environment"].(*string))
+		},
+		nil,
+		ec.marshalNRestoreEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEventᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_restoreEvents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RestoreEvent_id(ctx, field)
+			case "pipeline":
+				return ec.fieldContext_RestoreEvent_pipeline(ctx, field)
+			case "environment":
+				return ec.fieldContext_RestoreEvent_environment(ctx, field)
+			case "cluster":
+				return ec.fieldContext_RestoreEvent_cluster(ctx, field)
+			case "jid":
+				return ec.fieldContext_RestoreEvent_jid(ctx, field)
+			case "outcome":
+				return ec.fieldContext_RestoreEvent_outcome(ctx, field)
+			case "errorCategory":
+				return ec.fieldContext_RestoreEvent_errorCategory(ctx, field)
+			case "restoredCheckpointId":
+				return ec.fieldContext_RestoreEvent_restoredCheckpointId(ctx, field)
+			case "blueGreenName":
+				return ec.fieldContext_RestoreEvent_blueGreenName(ctx, field)
+			case "observedAt":
+				return ec.fieldContext_RestoreEvent_observedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RestoreEvent", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_restoreEvents_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -29125,6 +30412,296 @@ func (ec *executionContext) _RescaleResult_requestId(ctx context.Context, field 
 func (ec *executionContext) fieldContext_RescaleResult_requestId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RescaleResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_id(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_pipeline(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_pipeline,
+		func(ctx context.Context) (any, error) {
+			return obj.Pipeline, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_pipeline(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_environment(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_environment,
+		func(ctx context.Context) (any, error) {
+			return obj.Environment, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_environment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_cluster(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_cluster,
+		func(ctx context.Context) (any, error) {
+			return obj.Cluster, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_cluster(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_jid(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_jid,
+		func(ctx context.Context) (any, error) {
+			return obj.Jid, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_jid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_outcome(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_outcome,
+		func(ctx context.Context) (any, error) {
+			return obj.Outcome, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_outcome(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_errorCategory(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_errorCategory,
+		func(ctx context.Context) (any, error) {
+			return obj.ErrorCategory, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_errorCategory(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_restoredCheckpointId(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_restoredCheckpointId,
+		func(ctx context.Context) (any, error) {
+			return obj.RestoredCheckpointID, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_restoredCheckpointId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_blueGreenName(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_blueGreenName,
+		func(ctx context.Context) (any, error) {
+			return obj.BlueGreenName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_blueGreenName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestoreEvent_observedAt(ctx context.Context, field graphql.CollectedField, obj *model.RestoreEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestoreEvent_observedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.ObservedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestoreEvent_observedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestoreEvent",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -37175,6 +38752,39 @@ func (ec *executionContext) unmarshalInputJobHistoryFilter(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputKeyFieldInput(ctx context.Context, obj any) (model.KeyFieldInput, error) {
+	var it model.KeyFieldInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "type"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputMetricHistoryFilter(ctx context.Context, obj any) (model.MetricHistoryFilter, error) {
 	var it model.MetricHistoryFilter
 	asMap := map[string]any{}
@@ -37271,6 +38881,88 @@ func (ec *executionContext) unmarshalInputMetricSeriesRequest(ctx context.Contex
 				return it, err
 			}
 			it.MetricID = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOperatorStateInput(ctx context.Context, obj any) (model.OperatorStateInput, error) {
+	var it model.OperatorStateInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"logicalKey", "nodeId", "component", "stateRole", "keyFields", "changelogMode", "ttl", "maxParallelism", "operatorHash"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "logicalKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logicalKey"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LogicalKey = data
+		case "nodeId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nodeId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NodeID = data
+		case "component":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("component"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Component = data
+		case "stateRole":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stateRole"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StateRole = data
+		case "keyFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyFields"))
+			data, err := ec.unmarshalNKeyFieldInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.KeyFields = data
+		case "changelogMode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("changelogMode"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChangelogMode = data
+		case "ttl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ttl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TTL = data
+		case "maxParallelism":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxParallelism"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxParallelism = data
+		case "operatorHash":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operatorHash"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OperatorHash = data
 		}
 	}
 	return it, nil
@@ -37384,6 +39076,60 @@ func (ec *executionContext) unmarshalInputSimulationInput(ctx context.Context, o
 				return it, err
 			}
 			it.Cluster = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStateManifestInput(ctx context.Context, obj any) (model.StateManifestInput, error) {
+	var it model.StateManifestInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"schemaVersion", "pipelineName", "flinkVersion", "operators", "fingerprint"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "schemaVersion":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("schemaVersion"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SchemaVersion = data
+		case "pipelineName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pipelineName"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PipelineName = data
+		case "flinkVersion":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flinkVersion"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FlinkVersion = data
+		case "operators":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operators"))
+			data, err := ec.unmarshalNOperatorStateInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operators = data
+		case "fingerprint":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fingerprint"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Fingerprint = data
 		}
 	}
 	return it, nil
@@ -38917,6 +40663,128 @@ func (ec *executionContext) _ColumnInfo(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var compatibilityIssueImplementors = []string{"CompatibilityIssue"}
+
+func (ec *executionContext) _CompatibilityIssue(ctx context.Context, sel ast.SelectionSet, obj *model.CompatibilityIssue) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, compatibilityIssueImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CompatibilityIssue")
+		case "operatorKey":
+			out.Values[i] = ec._CompatibilityIssue_operatorKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "component":
+			out.Values[i] = ec._CompatibilityIssue_component(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "category":
+			out.Values[i] = ec._CompatibilityIssue_category(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "severity":
+			out.Values[i] = ec._CompatibilityIssue_severity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._CompatibilityIssue_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var compatibilityReportImplementors = []string{"CompatibilityReport"}
+
+func (ec *executionContext) _CompatibilityReport(ctx context.Context, sel ast.SelectionSet, obj *model.CompatibilityReport) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, compatibilityReportImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CompatibilityReport")
+		case "pipeline":
+			out.Values[i] = ec._CompatibilityReport_pipeline(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "environment":
+			out.Values[i] = ec._CompatibilityReport_environment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "verdict":
+			out.Values[i] = ec._CompatibilityReport_verdict(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "canProceed":
+			out.Values[i] = ec._CompatibilityReport_canProceed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "issues":
+			out.Values[i] = ec._CompatibilityReport_issues(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "checkedAt":
+			out.Values[i] = ec._CompatibilityReport_checkedAt(ctx, field, obj)
+		case "checkId":
+			out.Values[i] = ec._CompatibilityReport_checkId(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -42384,6 +44252,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "checkDeploymentCompatibility":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_checkDeploymentCompatibility(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "executeDatabaseQuery":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_executeDatabaseQuery(ctx, field)
@@ -42507,6 +44382,77 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_explainStatement(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var pipelineManifestVersionImplementors = []string{"PipelineManifestVersion"}
+
+func (ec *executionContext) _PipelineManifestVersion(ctx context.Context, sel ast.SelectionSet, obj *model.PipelineManifestVersion) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pipelineManifestVersionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PipelineManifestVersion")
+		case "id":
+			out.Values[i] = ec._PipelineManifestVersion_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pipeline":
+			out.Values[i] = ec._PipelineManifestVersion_pipeline(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "environment":
+			out.Values[i] = ec._PipelineManifestVersion_environment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "version":
+			out.Values[i] = ec._PipelineManifestVersion_version(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "flinkVersion":
+			out.Values[i] = ec._PipelineManifestVersion_flinkVersion(ctx, field, obj)
+		case "stateFingerprint":
+			out.Values[i] = ec._PipelineManifestVersion_stateFingerprint(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "source":
+			out.Values[i] = ec._PipelineManifestVersion_source(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._PipelineManifestVersion_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -43015,6 +44961,69 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_catalogTableDDL(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "pipelineManifestVersions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_pipelineManifestVersions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "latestCompatibilityReport":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_latestCompatibilityReport(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "restoreEvents":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_restoreEvents(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -44695,6 +46704,78 @@ func (ec *executionContext) _RescaleResult(ctx context.Context, sel ast.Selectio
 			out.Values[i] = graphql.MarshalString("RescaleResult")
 		case "requestId":
 			out.Values[i] = ec._RescaleResult_requestId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var restoreEventImplementors = []string{"RestoreEvent"}
+
+func (ec *executionContext) _RestoreEvent(ctx context.Context, sel ast.SelectionSet, obj *model.RestoreEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, restoreEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RestoreEvent")
+		case "id":
+			out.Values[i] = ec._RestoreEvent_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pipeline":
+			out.Values[i] = ec._RestoreEvent_pipeline(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "environment":
+			out.Values[i] = ec._RestoreEvent_environment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cluster":
+			out.Values[i] = ec._RestoreEvent_cluster(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "jid":
+			out.Values[i] = ec._RestoreEvent_jid(ctx, field, obj)
+		case "outcome":
+			out.Values[i] = ec._RestoreEvent_outcome(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "errorCategory":
+			out.Values[i] = ec._RestoreEvent_errorCategory(ctx, field, obj)
+		case "restoredCheckpointId":
+			out.Values[i] = ec._RestoreEvent_restoredCheckpointId(ctx, field, obj)
+		case "blueGreenName":
+			out.Values[i] = ec._RestoreEvent_blueGreenName(ctx, field, obj)
+		case "observedAt":
+			out.Values[i] = ec._RestoreEvent_observedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -47842,6 +49923,46 @@ func (ec *executionContext) marshalNColumnInfo2ᚖgithubᚗcomᚋsandboxwsᚋfli
 	return ec._ColumnInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCompatibilityIssue2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompatibilityIssue) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCompatibilityIssue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssue(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCompatibilityIssue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssue(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityIssue) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CompatibilityIssue(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCompatibilityReport2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityReport) graphql.Marshaler {
+	return ec._CompatibilityReport(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityReport) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CompatibilityReport(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNCompatibilityResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityResult(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityResult) graphql.Marshaler {
 	return ec._CompatibilityResult(ctx, sel, &v)
 }
@@ -47854,6 +49975,16 @@ func (ec *executionContext) marshalNCompatibilityResult2ᚖgithubᚗcomᚋsandbo
 		return graphql.Null
 	}
 	return ec._CompatibilityResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, v any) (model.CompatibilityVerdict, error) {
+	var res model.CompatibilityVerdict
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityVerdict) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigEntry) graphql.Marshaler {
@@ -48445,6 +50576,16 @@ func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.S
 	return ret
 }
 
+func (ec *executionContext) unmarshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity(ctx context.Context, v any) (model.IssueSeverity, error) {
+	var res model.IssueSeverity
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity(ctx context.Context, sel ast.SelectionSet, v model.IssueSeverity) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNJMConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JMConfigEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -49003,6 +51144,26 @@ func (ec *executionContext) marshalNKafkaTopicPartition2ᚖgithubᚗcomᚋsandbo
 	return ec._KafkaTopicPartition(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNKeyFieldInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInputᚄ(ctx context.Context, v any) ([]*model.KeyFieldInput, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.KeyFieldInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNKeyFieldInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNKeyFieldInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInput(ctx context.Context, v any) (*model.KeyFieldInput, error) {
+	res, err := ec.unmarshalInputKeyFieldInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNMaterializedTable2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v model.MaterializedTable) graphql.Marshaler {
 	return ec._MaterializedTable(ctx, sel, &v)
 }
@@ -49186,6 +51347,26 @@ func (ec *executionContext) marshalNMetricTimeSeries2ᚖgithubᚗcomᚋsandboxws
 	return ec._MetricTimeSeries(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNOperatorStateInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInputᚄ(ctx context.Context, v any) ([]*model.OperatorStateInput, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.OperatorStateInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNOperatorStateInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNOperatorStateInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInput(ctx context.Context, v any) (*model.OperatorStateInput, error) {
+	res, err := ec.unmarshalInputOperatorStateInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx context.Context, v any) (model.OrderDirection, error) {
 	var res model.OrderDirection
 	err := res.UnmarshalGQL(v)
@@ -49194,6 +51375,32 @@ func (ec *executionContext) unmarshalNOrderDirection2githubᚗcomᚋsandboxwsᚋ
 
 func (ec *executionContext) marshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v model.OrderDirection) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNPipelineManifestVersion2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PipelineManifestVersion) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPipelineManifestVersion2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersion(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPipelineManifestVersion2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersion(ctx context.Context, sel ast.SelectionSet, v *model.PipelineManifestVersion) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PipelineManifestVersion(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPlanNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNode) graphql.Marshaler {
@@ -49360,6 +51567,32 @@ func (ec *executionContext) marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋ
 		return graphql.Null
 	}
 	return ec._RescaleResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRestoreEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RestoreEvent) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNRestoreEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEvent(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRestoreEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEvent(ctx context.Context, sel ast.SelectionSet, v *model.RestoreEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RestoreEvent(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSQLCloseResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLCloseResult(ctx context.Context, sel ast.SelectionSet, v model.SQLCloseResult) graphql.Marshaler {
@@ -49697,6 +51930,11 @@ func (ec *executionContext) unmarshalNSimulationStatus2githubᚗcomᚋsandboxws�
 
 func (ec *executionContext) marshalNSimulationStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationStatus(ctx context.Context, sel ast.SelectionSet, v model.SimulationStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNStateManifestInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStateManifestInput(ctx context.Context, v any) (model.StateManifestInput, error) {
+	res, err := ec.unmarshalInputStateManifestInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNStorageStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus(ctx context.Context, sel ast.SelectionSet, v model.StorageStatus) graphql.Marshaler {
@@ -50454,6 +52692,13 @@ func (ec *executionContext) marshalOCheckpointSummary2ᚖgithubᚗcomᚋsandboxw
 		return graphql.Null
 	}
 	return ec._CheckpointSummary(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityReport) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CompatibilityReport(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOConnectorMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConnectorMetrics(ctx context.Context, sel ast.SelectionSet, v *model.ConnectorMetrics) graphql.Marshaler {
