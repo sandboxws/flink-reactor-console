@@ -13,6 +13,8 @@ type SQLFetchResult {
   rows: [[String]]!
   hasMore: Boolean!
   nextToken: String
+  """Flink job id when this statement launched a job (INSERT / streaming SELECT); null for DDL or bounded batch."""
+  jobID: String
 }
 
 type SQLCloseResult {

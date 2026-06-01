@@ -5,7 +5,7 @@
  * data via GraphQL from the Go backend. Converts GraphQL response types to
  * the domain types in cluster-types.ts.
  */
-import { gql } from "urql"
+
 import type {
   AllocatedSlot,
   Checkpoint,
@@ -13,7 +13,6 @@ import type {
   CheckpointCounts,
   CheckpointLatest,
   ClusterOverview,
-  ConnectorMetrics,
   ConnectorRole,
   ConnectorType,
   FlinkFeatureFlags,
@@ -41,6 +40,7 @@ import type {
   VertexBackPressure,
   VertexWatermark,
 } from "@flink-reactor/ui"
+import { gql } from "urql"
 import { graphqlClient } from "./graphql-client"
 
 // ---------------------------------------------------------------------------
@@ -344,6 +344,7 @@ const FETCH_SQL_RESULTS = gql`
       rows
       hasMore
       nextToken
+      jobID
     }
   }
 `
@@ -1057,8 +1058,7 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
           recordsOutPerSecond: j.metrics.recordsOutPerSecond,
         }
       : null,
-    watermarkLag:
-      j.watermarkLag != null ? parseI64(j.watermarkLag) : null,
+    watermarkLag: j.watermarkLag != null ? parseI64(j.watermarkLag) : null,
   }
 }
 
@@ -1107,7 +1107,10 @@ export async function rescaleJob(
 export type SavepointStatus = "IN_PROGRESS" | "COMPLETED" | "FAILED"
 
 /** How a savepoint was initiated. */
-export type SavepointTriggerType = "MANUAL" | "STOP_WITH_SAVEPOINT" | "BLUE_GREEN"
+export type SavepointTriggerType =
+  | "MANUAL"
+  | "STOP_WITH_SAVEPOINT"
+  | "BLUE_GREEN"
 
 /** A single savepoint row, with size/duration decoded from String to number. */
 export interface JobSavepoint {
@@ -1264,6 +1267,8 @@ export async function fetchSQLResults(
   rows: Array<Array<string | null>>
   hasMore: boolean
   nextToken: string | null
+  /** Flink job id when the statement launched a job; null for DDL / bounded batch. */
+  jobID: string | null
 }> {
   const data = await mutate<any>(FETCH_SQL_RESULTS, {
     sessionHandle,

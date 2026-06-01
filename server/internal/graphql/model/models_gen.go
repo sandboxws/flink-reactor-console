@@ -1109,6 +1109,8 @@ type SQLFetchResult struct {
 	Rows      [][]*string  `json:"rows"`
 	HasMore   bool         `json:"hasMore"`
 	NextToken *string      `json:"nextToken,omitempty"`
+	// Flink job id when this statement launched a job (INSERT / streaming SELECT); null for DDL or bounded batch.
+	JobID *string `json:"jobID,omitempty"`
 }
 
 // A batch of SQL Gateway query results.

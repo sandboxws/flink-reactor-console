@@ -74,9 +74,15 @@ func (r *mutationResolver) SubmitStatement(ctx context.Context, sessionHandle st
 	var result flink.SQLGatewayOperationResponse
 	body := map[string]any{
 		"statement": statement,
+		// executionConfig carries ONLY the base64 SQL passthrough (see doc comment
+		// above). Runtime mode is intentionally not pinned here: Flink's Table/SQL
+		// planner rejects "AUTOMATIC" (that value is DataStream-API-only) and accepts
+		// only explicit BATCH or STREAMING. Omitting it inherits the gateway's
+		// STREAMING default while still letting a user opt into batch per session via
+		// `SET 'execution.runtime-mode' = 'BATCH'` — a per-statement executionConfig
+		// value would silently clobber that SET.
 		"executionConfig": map[string]string{
 			"pipeline.global-job-parameters": "pipeline.sql.b64:" + stmtB64,
-			"execution.runtime-mode":         "AUTOMATIC",
 		},
 	}
 	path := fmt.Sprintf("/v3/sessions/%s/statements", sessionHandle)
@@ -150,6 +156,7 @@ func (r *mutationResolver) FetchSQLResults(ctx context.Context, sessionHandle st
 		Rows:      rows,
 		HasMore:   hasMore,
 		NextToken: nextToken,
+		JobID:     resultSet.JobID,
 	}, nil
 }
 

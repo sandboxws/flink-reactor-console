@@ -108,10 +108,11 @@ async function apiRequest<T>(
 }
 
 /**
- * Split observation SQL into individual statements.
- * Observation SQL has a predictable format: CREATE TEMPORARY TABLE ...; SELECT * FROM ...;
+ * Split SQL into individual statements on `;` boundaries, skipping blank lines
+ * and `--` comments. Shared by the tap observation flow and the multi-statement
+ * SQL console (`catalog-explore-store`).
  */
-function splitStatements(sql: string): string[] {
+export function splitStatements(sql: string): string[] {
   const statements: string[] = []
   let current = ""
   for (const line of sql.split("\n")) {

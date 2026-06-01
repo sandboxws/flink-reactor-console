@@ -12,14 +12,13 @@ import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
 import { ExploreEditor } from "./explore-editor"
 import { TemplateSelector } from "./template-selector"
 
-const MAX_ROWS = 10_000
-
 /**
  * SQL exploration page with editor, template selector, and query results.
  *
  * Converts raw string rows from the store into the `{v: value}` format
- * expected by the QueryResults component. Displays errors inline and
- * shows a truncation warning when rows reach the {@link MAX_ROWS} limit.
+ * expected by the QueryResults component. Displays errors inline and shows a
+ * truncation warning when rows reach the configured row cap (`maxRows`, shared
+ * with the SQL Explorer console).
  */
 export function CatalogExplorePage() {
   const setSql = useCatalogExploreStore((s) => s.setSql)
@@ -28,6 +27,7 @@ export function CatalogExplorePage() {
   const rows = useCatalogExploreStore((s) => s.rows)
   const streaming = useCatalogExploreStore((s) => s.streaming)
   const error = useCatalogExploreStore((s) => s.error)
+  const maxRows = useCatalogExploreStore((s) => s.maxRows)
 
   const hasResults = columns.length > 0
 
@@ -69,7 +69,7 @@ export function CatalogExplorePage() {
           rows={formattedRows}
           rowCount={rows.length}
           streaming={streaming}
-          truncated={rows.length >= MAX_ROWS}
+          truncated={rows.length >= maxRows}
         />
       )}
 

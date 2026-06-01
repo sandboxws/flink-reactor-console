@@ -89,8 +89,11 @@ type SQLGatewayResults struct {
 // In v3, columns and data are nested under "results", and the next page
 // URI is "nextResultUri" (not "nextUri").
 type SQLGatewayResultSet struct {
-	ResultType    string            `json:"resultType"`
-	IsQueryResult bool              `json:"isQueryResult"`
+	ResultType    string `json:"resultType"`
+	IsQueryResult bool   `json:"isQueryResult"`
+	// JobID is set by the SQL Gateway for statements that launch a Flink job
+	// (e.g. INSERT, streaming SELECT). Nil for pure DDL or bounded batch results.
+	JobID         *string           `json:"jobID,omitempty"`
 	Results       SQLGatewayResults `json:"results"`
 	NextResultURI *string           `json:"nextResultUri,omitempty"`
 }

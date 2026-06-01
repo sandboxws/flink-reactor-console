@@ -186,7 +186,7 @@ dashboard/src/routes/hub/
 Notable cross-cuts (P4 — `fr-console-hub-tools-instruments`):
 - `<HubFlamegraph>` lives in `components/hub/tools/flamegraph/` and is consumed by both the JM Profiler tab and the TM-detail Profiler tab via `<ProfilerPicker>`.
 - `<SchemaDiffViewer>` lives in `components/hub/tools/diff/` and composes the foundation `<DiffViewer>` over two parallel `schemaDetail` queries.
-- `<SqlExplorer>` lives in `components/hub/tools/sql-explorer/` and reuses the legacy `useCatalogExploreStore` for SQL Gateway execution.
+- `<SqlExplorer>` lives in `components/hub/tools/sql-explorer/` — a multi-statement console (`sql-explorer.tsx` shell + `results-tabs.tsx` per-statement tabs + `console-inspector.tsx`). It reuses `useCatalogExploreStore` for sequential multi-statement SQL Gateway execution (`executeAll`/`executeSelection`, reusing `splitStatements` from `sql-gateway-store`). The inspector deep-links statements that launched a job to `/hub/jobs/$id` (the Flink job id is surfaced via `SQLFetchResult.jobID`), with live state from the job store — deliberately *not* a link out to the stock Flink Web UI.
 
 ## Related
 

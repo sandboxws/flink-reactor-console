@@ -973,6 +973,7 @@ type ComplexityRoot struct {
 	SQLFetchResult struct {
 		Columns   func(childComplexity int) int
 		HasMore   func(childComplexity int) int
+		JobID     func(childComplexity int) int
 		NextToken func(childComplexity int) int
 		Rows      func(childComplexity int) int
 	}
@@ -5597,6 +5598,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.SQLFetchResult.HasMore(childComplexity), true
+	case "SQLFetchResult.jobID":
+		if e.ComplexityRoot.SQLFetchResult.JobID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SQLFetchResult.JobID(childComplexity), true
 	case "SQLFetchResult.nextToken":
 		if e.ComplexityRoot.SQLFetchResult.NextToken == nil {
 			break
@@ -8848,6 +8855,8 @@ type SQLFetchResult {
   rows: [[String]]!
   hasMore: Boolean!
   nextToken: String
+  """Flink job id when this statement launched a job (INSERT / streaming SELECT); null for DDL or bounded batch."""
+  jobID: String
 }
 
 type SQLCloseResult {
@@ -24795,6 +24804,8 @@ func (ec *executionContext) fieldContext_Mutation_fetchSQLResults(ctx context.Co
 				return ec.fieldContext_SQLFetchResult_hasMore(ctx, field)
 			case "nextToken":
 				return ec.fieldContext_SQLFetchResult_nextToken(ctx, field)
+			case "jobID":
+				return ec.fieldContext_SQLFetchResult_jobID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SQLFetchResult", field.Name)
 		},
@@ -31561,6 +31572,35 @@ func (ec *executionContext) _SQLFetchResult_nextToken(ctx context.Context, field
 }
 
 func (ec *executionContext) fieldContext_SQLFetchResult_nextToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SQLFetchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SQLFetchResult_jobID(ctx context.Context, field graphql.CollectedField, obj *model.SQLFetchResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SQLFetchResult_jobID,
+		func(ctx context.Context) (any, error) {
+			return obj.JobID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_SQLFetchResult_jobID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SQLFetchResult",
 		Field:      field,
@@ -47660,6 +47700,8 @@ func (ec *executionContext) _SQLFetchResult(ctx context.Context, sel ast.Selecti
 			}
 		case "nextToken":
 			out.Values[i] = ec._SQLFetchResult_nextToken(ctx, field, obj)
+		case "jobID":
+			out.Values[i] = ec._SQLFetchResult_jobID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

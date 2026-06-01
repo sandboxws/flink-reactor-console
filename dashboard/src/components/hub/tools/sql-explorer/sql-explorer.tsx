@@ -1,12 +1,15 @@
 /**
- * SQL Explorer shell — 2-column full-bleed workspace.
+ * SQL Explorer shell — 3-column full-bleed console.
  *
  * Left:   `<SavedQueriesPane>` (localStorage-backed bookmarks)
- * Center: CodeMirror SQL editor + result table
+ * Center: CodeMirror multi-statement editor + per-statement result tabs
+ * Right:  `<ConsoleInspector>` — identity + "Open job in Console" for the
+ *         selected statement's Flink job
  *
- * Run, Save, and Share live on the editor toolbar. Share copies a URL
- * with the SQL encoded as `?q=<base64>` so it can be pasted into Slack /
- * docs and round-tripped.
+ * Run all (⌘⇧⏎) splits the script and runs statements sequentially in one
+ * session; Run statement / Run selection (⌘⏎) runs the highlighted text, or the
+ * statement under the caret. Save, and Share live on the editor toolbar; Share
+ * copies a URL with the SQL encoded as `?q=<base64>`.
  */
 
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
@@ -20,15 +23,26 @@ import {
   lineNumbers,
   placeholder,
 } from "@codemirror/view"
-import { Bookmark, Link2, Play, Square } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
-import { QueryTemplateDialog } from "./query-template-dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@flink-reactor/ui"
+import {
+  Bookmark,
+  ChevronsRight,
+  Link2,
+  Play,
+  SlidersHorizontal,
+  Square,
+} from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import {
   createThemeCompartment,
   getActiveTheme,
   useCmPaletteObserver,
 } from "@/lib/cm-themes"
+import { cn } from "@/lib/cn"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
+import { ConsoleInspector } from "./console-inspector"
+import { QueryTemplateDialog } from "./query-template-dialog"
+import { ResultsTabs } from "./results-tabs"
 import {
   loadSavedQueries,
   SavedQueriesPane,
@@ -36,6 +50,15 @@ import {
 } from "./saved-queries-pane"
 
 const themeCompartment = createThemeCompartment()
+
+/** Extract the `;`-bounded statement containing `pos` (no string-literal awareness). */
+function statementAtCursor(doc: string, pos: number): string {
+  const before = doc.lastIndexOf(";", Math.max(0, pos - 1))
+  const after = doc.indexOf(";", pos)
+  const start = before === -1 ? 0 : before + 1
+  const end = after === -1 ? doc.length : after
+  return doc.slice(start, end).trim()
+}
 
 interface SqlExplorerProps {
   /** Initial SQL — usually the `?q=` param decoded by the route. */
@@ -46,14 +69,24 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
   const sql$ = useCatalogExploreStore((s) => s.sql)
   const setSql = useCatalogExploreStore((s) => s.setSql)
   const status = useCatalogExploreStore((s) => s.status)
-  const columns = useCatalogExploreStore((s) => s.columns)
-  const rows = useCatalogExploreStore((s) => s.rows)
   const error = useCatalogExploreStore((s) => s.error)
-  const executeQuery = useCatalogExploreStore((s) => s.executeQuery)
+  const statements = useCatalogExploreStore((s) => s.statements)
+  const activeIndex = useCatalogExploreStore((s) => s.activeIndex)
+  const sessionHandle = useCatalogExploreStore((s) => s.sessionHandle)
+  const executeAll = useCatalogExploreStore((s) => s.executeAll)
+  const executeSelection = useCatalogExploreStore((s) => s.executeSelection)
+  const setActiveStatement = useCatalogExploreStore((s) => s.setActiveStatement)
   const cancelQuery = useCatalogExploreStore((s) => s.cancelQuery)
+  const runtimeMode = useCatalogExploreStore((s) => s.runtimeMode)
+  const setRuntimeMode = useCatalogExploreStore((s) => s.setRuntimeMode)
+  const maxRows = useCatalogExploreStore((s) => s.maxRows)
+  const setMaxRows = useCatalogExploreStore((s) => s.setMaxRows)
+  const stateTtl = useCatalogExploreStore((s) => s.stateTtl)
+  const setStateTtl = useCatalogExploreStore((s) => s.setStateTtl)
 
   const [saved, setSaved] = useState<SavedQuery[]>([])
   const [shareToast, setShareToast] = useState<string | null>(null)
+  const [hasSelection, setHasSelection] = useState(false)
 
   // Load saved queries once on mount
   useEffect(() => {
@@ -72,15 +105,33 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
 
   const isRunning = status === "submitting" || status === "running"
 
+  // Run handlers — held in refs so the once-mounted editor keymap and the
+  // toolbar buttons invoke the same up-to-date closures.
+  const runAll = () => {
+    if (isRunning) return
+    void executeAll()
+  }
+  const runSelectionOrStatement = () => {
+    const view = viewRef.current
+    if (!view || isRunning) return
+    const sel = view.state.selection.main
+    const text = sel.empty
+      ? statementAtCursor(view.state.doc.toString(), sel.head)
+      : view.state.sliceDoc(sel.from, sel.to)
+    if (text.trim()) void executeSelection(text)
+  }
+
   // Editor wiring
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const setSqlRef = useRef(setSql)
-  const executeQueryRef = useRef(executeQuery)
-  const isRunningRef = useRef(isRunning)
+  const setHasSelectionRef = useRef(setHasSelection)
+  const runAllRef = useRef(runAll)
+  const runSelRef = useRef(runSelectionOrStatement)
   setSqlRef.current = setSql
-  executeQueryRef.current = executeQuery
-  isRunningRef.current = isRunning
+  setHasSelectionRef.current = setHasSelection
+  runAllRef.current = runAll
+  runSelRef.current = runSelectionOrStatement
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -92,7 +143,7 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
         bracketMatching(),
         history(),
         cmSql(),
-        placeholder("SELECT * FROM ..."),
+        placeholder("SELECT * FROM ...  (⌘⏎ run statement · ⌘⇧⏎ run all)"),
         themeCompartment.of(getActiveTheme()),
         keymap.of([
           ...defaultKeymap,
@@ -100,8 +151,14 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
           {
             key: "Mod-Enter",
             run: () => {
-              if (isRunningRef.current) return true
-              executeQueryRef.current()
+              runSelRef.current()
+              return true
+            },
+          },
+          {
+            key: "Mod-Shift-Enter",
+            run: () => {
+              runAllRef.current()
               return true
             },
           },
@@ -109,6 +166,9 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             setSqlRef.current(update.state.doc.toString())
+          }
+          if (update.selectionSet || update.docChanged) {
+            setHasSelectionRef.current(!update.state.selection.main.empty)
           }
         }),
       ],
@@ -135,12 +195,9 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
 
   useCmPaletteObserver(viewRef, themeCompartment)
 
-  const onLoad = useCallback(
-    (sql: string) => {
-      setSql(sql)
-    },
-    [setSql],
-  )
+  const onLoad = (sql: string) => {
+    setSql(sql)
+  }
 
   const save = () => {
     const text = sql$.trim()
@@ -172,13 +229,13 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[260px,1fr]">
+    <div className="grid h-full min-h-0 grid-cols-[260px_1fr_360px]">
       <SavedQueriesPane saved={saved} setSaved={setSaved} onLoad={onLoad} />
 
-      <div className="flex h-full min-h-0 flex-col">
+      <div className="relative flex h-full min-h-0 flex-col">
         <div className="flex h-10 shrink-0 items-center justify-between border-b border-dash-border bg-dash-surface/40 px-4">
           <span className="font-mono text-[10.5px] uppercase tracking-wider text-fg-faint">
-            SQL editor
+            Console
           </span>
           <div className="flex items-center gap-2">
             <QueryTemplateDialog onSelect={onLoad} />
@@ -200,6 +257,95 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
               <Link2 className="size-3" />
               Share
             </button>
+            <div className="flex items-center gap-0.5 rounded-md border border-dash-border p-0.5">
+              {(["STREAMING", "BATCH"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setRuntimeMode(mode)}
+                  aria-pressed={runtimeMode === mode}
+                  title={
+                    mode === "STREAMING"
+                      ? "Streaming — continuous/updating results; required for unbounded sources (Kafka)"
+                      : "Batch — final results; needed for full sorts & non-windowed aggregations over bounded sources (JDBC)"
+                  }
+                  className={cn(
+                    "rounded px-2 py-1 font-sans text-[11px] leading-none transition-colors",
+                    runtimeMode === mode
+                      ? "bg-dash-elevated text-fg"
+                      : "text-fg-faint hover:text-fg",
+                  )}
+                >
+                  {mode === "STREAMING" ? "Streaming" : "Batch"}
+                </button>
+              ))}
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  title="Query settings"
+                >
+                  <SlidersHorizontal className="size-3" />
+                  Settings
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                sideOffset={6}
+                className="w-64 border-dash-border bg-dash-panel p-3"
+              >
+                <div className="flex flex-col gap-3">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="font-mono text-[10.5px] uppercase tracking-wider text-fg-faint">
+                      Max rows
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      step={100}
+                      value={maxRows}
+                      onChange={(e) => {
+                        const n = Math.floor(Number(e.target.value))
+                        if (Number.isFinite(n) && n >= 1) setMaxRows(n)
+                      }}
+                      className="rounded-md border border-dash-border bg-transparent px-2 py-1 font-mono text-[11px] text-fg focus:outline-none focus:ring-1 focus:ring-fr-coral/50"
+                    />
+                    <span className="font-mono text-[10px] text-fg-faint">
+                      Rows fetched per statement before auto-stopping.
+                    </span>
+                  </label>
+
+                  <div className="flex flex-col gap-1.5">
+                    <span className="font-mono text-[10.5px] uppercase tracking-wider text-fg-faint">
+                      State TTL
+                    </span>
+                    <div className="flex items-center gap-0.5 rounded-md border border-dash-border p-0.5">
+                      {(["off", "1 h", "6 h", "24 h"] as const).map((ttl) => (
+                        <button
+                          key={ttl}
+                          type="button"
+                          onClick={() => setStateTtl(ttl)}
+                          aria-pressed={stateTtl === ttl}
+                          className={cn(
+                            "flex-1 rounded px-1.5 py-1 font-mono text-[10.5px] leading-none transition-colors",
+                            stateTtl === ttl
+                              ? "bg-dash-elevated text-fg"
+                              : "text-fg-faint hover:text-fg",
+                          )}
+                        >
+                          {ttl === "off" ? "Off" : ttl}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="font-mono text-[10px] text-fg-faint">
+                      Bounds streaming state growth. No effect in batch.
+                    </span>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
             {isRunning ? (
               <button
                 type="button"
@@ -210,15 +356,32 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
                 Cancel
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={executeQuery}
-                disabled={!sql$.trim()}
-                className="btn btn-secondary btn-sm"
-              >
-                <Play className="size-3" />
-                Run
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={runAll}
+                  disabled={!sql$.trim()}
+                  className="btn btn-ghost btn-sm"
+                  title="Run all statements (⌘⇧⏎)"
+                >
+                  <ChevronsRight className="size-3" />
+                  Run all
+                </button>
+                <button
+                  type="button"
+                  onClick={runSelectionOrStatement}
+                  disabled={!sql$.trim()}
+                  className="btn btn-secondary btn-sm"
+                  title={
+                    hasSelection
+                      ? "Run selection (⌘⏎)"
+                      : "Run statement under caret (⌘⏎)"
+                  }
+                >
+                  <Play className="size-3" />
+                  {hasSelection ? "Run selection" : "Run statement"}
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -227,103 +390,25 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
           className="h-[40%] min-h-[160px] [&_.cm-editor]:h-full [&_.cm-editor]:outline-none [&_.cm-scroller]:h-full"
         />
         <div className="flex min-h-0 flex-1 flex-col border-t border-dash-border">
-          <ResultsPane
+          <ResultsTabs
+            statements={statements}
+            activeIndex={activeIndex}
             status={status}
-            columns={columns}
-            rows={rows}
             error={error}
+            onSelect={setActiveStatement}
           />
         </div>
         {shareToast ? (
-          <div className="pointer-events-none absolute bottom-4 right-1/2 translate-x-1/2 rounded-md border border-dash-border bg-dash-panel/90 px-3 py-1.5 font-mono text-[11px] text-fg backdrop-blur">
+          <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md border border-dash-border bg-dash-panel/90 px-3 py-1.5 font-mono text-[11px] text-fg backdrop-blur">
             {shareToast}
           </div>
         ) : null}
       </div>
-    </div>
-  )
-}
 
-interface ResultsPaneProps {
-  status: ReturnType<typeof useCatalogExploreStore.getState>["status"]
-  columns: { name: string; dataType: string }[]
-  rows: (string | null)[][]
-  error: string | null
-}
-
-function ResultsPane({ status, columns, rows, error }: ResultsPaneProps) {
-  if (error) {
-    return (
-      <div className="flex-1 overflow-auto p-4">
-        <div className="rounded-md border border-fr-rose/30 bg-fr-rose/5 px-3 py-2 font-mono text-[11.5px] text-fg whitespace-pre-wrap">
-          {error}
-        </div>
-      </div>
-    )
-  }
-  if (status === "idle" && rows.length === 0) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <p className="font-mono text-[11px] text-fg-faint">
-          Cmd+Enter to run · results render here
-        </p>
-      </div>
-    )
-  }
-  if (rows.length === 0) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <p className="font-mono text-[11px] text-fg-faint">
-          {status === "submitting"
-            ? "Submitting…"
-            : status === "running"
-              ? "Streaming results…"
-              : "No rows returned."}
-        </p>
-      </div>
-    )
-  }
-  return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex h-9 shrink-0 items-center border-b border-dash-border px-4 font-mono text-[10px] uppercase tracking-wider text-fg-faint">
-        <span>
-          Results · {rows.length} row{rows.length === 1 ? "" : "s"} ·{" "}
-          {columns.length} column{columns.length === 1 ? "" : "s"} · {status}
-        </span>
-      </div>
-      <div className="min-h-0 flex-1 overflow-auto">
-        <table className="w-full text-[12px]">
-          <thead className="sticky top-0 bg-dash-surface">
-            <tr className="border-b border-dash-border text-left text-fg-faint">
-              {columns.map((c) => (
-                <th
-                  key={c.name}
-                  className="whitespace-nowrap px-3 py-2 font-mono text-[10px] uppercase tracking-wider"
-                >
-                  {c.name}
-                  <span className="ml-1 normal-case text-fg-faint/70">
-                    {c.dataType}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-dash-border/40">
-            {rows.map((row, i) => (
-              <tr key={i} className="hover:bg-dash-elevated/30">
-                {row.map((cell, j) => (
-                  <td
-                    key={j}
-                    className="whitespace-nowrap px-3 py-1.5 font-mono text-[11.5px] text-fg"
-                  >
-                    {cell ?? <span className="text-fg-faint">NULL</span>}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ConsoleInspector
+        statement={statements[activeIndex] ?? null}
+        sessionHandle={sessionHandle}
+      />
     </div>
   )
 }
