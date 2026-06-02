@@ -69,7 +69,14 @@
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "overrides": [
     {
-      "includes": ["src/cli/**", "packages/create-fr-app/src/**", "scripts/**"],
+      "includes": [
+        "src/cli/**",
+        "packages/create-fr-app/src/**",
+        "scripts/**",
+        "packages/vscode-extension/esbuild.mjs",
+        "packages/vscode-extension/scripts/**",
+        "packages/vscode-extension/test/**"
+      ],
       "linter": { "rules": { "suspicious": { "noConsole": "off" } } }
     },
     {
@@ -90,7 +97,8 @@
         "src/core/__tests__/jsx-types.test-d.tsx",
         "src/components/__tests__/jsx-children-types.test-d.tsx",
         "pipelines/**/*.tsx",
-        "packages/language-server/__tests__/fixtures/**/*.tsx"
+        "packages/language-server/__tests__/fixtures/**/*.tsx",
+        "packages/vscode-extension/test/fixtures/**/*.tsx"
       ],
       "linter": {
         "rules": {

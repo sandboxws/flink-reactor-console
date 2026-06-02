@@ -1,0 +1,75 @@
+{
+  "FlinkReactor pipeline": {
+    "prefix": "frpipeline",
+    "description": "Scaffold a new FlinkReactor pipeline (schema + source + sink)",
+    "body": [
+      "import { Pipeline } from \"@/components/pipeline\"",
+      "import { KafkaSource } from \"@/components/sources\"",
+      "import { JdbcSink } from \"@/components/sinks\"",
+      "import { Field, Schema } from \"@/core/schema\"",
+      "",
+      "const ${1:My}Schema = Schema({",
+      "  fields: {",
+      "    ${2:id}: Field.${3:STRING}(),",
+      "  },",
+      "})",
+      "",
+      "export default (",
+      "  <Pipeline name=\"${4:my-pipeline}\" parallelism={${5:1}}>",
+      "    <KafkaSource",
+      "      topic=\"${6:input_topic}\"",
+      "      bootstrapServers=\"${7:kafka:9092}\"",
+      "      schema={${1:My}Schema}",
+      "    />",
+      "    <JdbcSink url=\"${8:jdbc:postgresql://db:5432/app}\" table=\"${9:output}\" />",
+      "  </Pipeline>",
+      ")",
+      ""
+    ]
+  },
+  "FlinkReactor Kafka source": {
+    "prefix": "frsource",
+    "description": "A KafkaSource node",
+    "body": [
+      "<KafkaSource",
+      "  topic=\"${1:input_topic}\"",
+      "  bootstrapServers=\"${2:kafka:9092}\"",
+      "  schema={${3:MySchema}}",
+      "/>"
+    ]
+  },
+  "FlinkReactor JDBC sink": {
+    "prefix": "frsink",
+    "description": "A JdbcSink node",
+    "body": [
+      "<JdbcSink url=\"${1:jdbc:postgresql://db:5432/app}\" table=\"${2:output}\" />"
+    ]
+  },
+  "FlinkReactor transform (Map)": {
+    "prefix": "frtransform",
+    "description": "A Map transform projecting/deriving columns",
+    "body": [
+      "<Map",
+      "  select={{",
+      "    ${1:column}: \"${2:expression}\",",
+      "  }}",
+      "/>"
+    ]
+  },
+  "FlinkReactor schema": {
+    "prefix": "frschema",
+    "description": "A Schema with fields and a watermark",
+    "body": [
+      "const ${1:My}Schema = Schema({",
+      "  fields: {",
+      "    ${2:id}: Field.${3:STRING}(),",
+      "    ${4:created_at}: Field.TIMESTAMP(3),",
+      "  },",
+      "  watermark: {",
+      "    column: \"${4:created_at}\",",
+      "    expression: \"${4:created_at} - INTERVAL '5' SECOND\",",
+      "  },",
+      "})"
+    ]
+  }
+}

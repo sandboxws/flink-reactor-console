@@ -1,0 +1,34 @@
+# Source and build inputs — the bundled dist/ is what ships.
+src/**
+test/**
+__tests__/**
+scripts/**
+dist-test/**
+**/*.map
+
+# Configs and dev tooling
+.vscode/**
+.vscode-test/**
+tsconfig*.json
+vitest.config.ts
+esbuild.mjs
+.gitignore
+.eslintrc*
+biome.json
+
+# Keep node_modules out — we package with `vsce --no-dependencies` and bundle
+# runtime deps into dist/. The language server ships under server/ instead.
+node_modules/**
+
+# Explicitly KEEP (negated) — the self-contained payload:
+#   dist/                        bundled extension host
+#   server/                      copied language-server (dist + bin + runtime deps)
+#   media/, snippets/, syntaxes/, language-configuration.json
+#   README.md, LICENSE, package.json
+!dist/**
+!server/**
+
+# …but never ship source maps, even from the vendored server (re-excluded after
+# the server negation above, since the last matching pattern wins).
+server/**/*.map
+dist/**/*.map

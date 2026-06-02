@@ -1,0 +1,227 @@
+{
+  "name": "flink-reactor",
+  "displayName": "FlinkReactor",
+  "version": "0.1.0",
+  "description": "VS Code support for FlinkReactor — synthesis-backed diagnostics, ts-plugin auto-configuration, and one-step onboarding for TSX Flink pipelines",
+  "license": "BSL-1.1",
+  "publisher": "flink-reactor",
+  "author": "Ahmed El.Hussaini <328866+sandboxws@users.noreply.github.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandboxws/flink-reactor-dsl.git",
+    "directory": "packages/vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/sandboxws/flink-reactor-dsl/issues"
+  },
+  "homepage": "https://github.com/sandboxws/flink-reactor-dsl/tree/main/packages/vscode-extension#readme",
+  "keywords": [
+    "flink",
+    "flink-reactor",
+    "lsp",
+    "tsx",
+    "streaming",
+    "kafka"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0",
+    "node": ">=20"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:typescriptreact",
+    "workspaceContains:flink-reactor.config.ts"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "flinkReactor.configureTsPlugin",
+        "title": "Configure ts-plugin in tsconfig.json",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.useWorkspaceTypeScript",
+        "title": "Use Workspace TypeScript Version",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.restartServer",
+        "title": "Restart Language Server",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.showOutput",
+        "title": "Show Output",
+        "category": "FlinkReactor"
+      }
+    ],
+    "configuration": {
+      "title": "FlinkReactor",
+      "properties": {
+        "flinkReactor.enable": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Master switch for the FlinkReactor language server. When disabled, the server publishes no diagnostics."
+        },
+        "flinkReactor.diagnostics.enable": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Publish synthesis-backed diagnostics (`FR*` codes) for pipeline files."
+        },
+        "flinkReactor.server.debounce": {
+          "type": "number",
+          "default": 300,
+          "minimum": 0,
+          "markdownDescription": "Debounce window (ms) after the last edit before re-synthesizing a pipeline."
+        },
+        "flinkReactor.server.timeout": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 100,
+          "markdownDescription": "Per-synthesis isolation timeout (ms)."
+        },
+        "flinkReactor.server.maxHeapMb": {
+          "type": "number",
+          "default": 512,
+          "minimum": 64,
+          "markdownDescription": "Heap ceiling (MB) for the synthesis isolation worker."
+        },
+        "flinkReactor.flinkVersion": {
+          "type": "string",
+          "enum": [
+            "1.18",
+            "1.19",
+            "1.20"
+          ],
+          "markdownDescription": "Target Flink version override. The DSL default applies when unset."
+        },
+        "flinkReactor.tsPlugin.autoConfigure": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "always",
+            "never"
+          ],
+          "default": "prompt",
+          "enumDescriptions": [
+            "Ask before editing tsconfig.json",
+            "Configure tsconfig.json automatically without asking",
+            "Never edit tsconfig.json (use the explicit command instead)"
+          ],
+          "markdownDescription": "How to ensure `@flink-reactor/ts-plugin` is configured in the project `tsconfig.json`."
+        },
+        "flinkReactor.cliPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the `flink-reactor` CLI. Resolved from the workspace when empty. Reserved for CLI-lifecycle integration."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "typescriptreact",
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "scopeName": "flink-reactor.injection",
+        "path": "./syntaxes/flink-reactor.injection.json",
+        "injectTo": [
+          "source.tsx"
+        ]
+      }
+    ],
+    "snippets": [
+      {
+        "language": "typescriptreact",
+        "path": "./snippets/flink-reactor.code-snippets"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "flinkReactor.gettingStarted",
+        "title": "Get Started with FlinkReactor",
+        "description": "Configure the ts-plugin, switch to your workspace TypeScript, and open your first pipeline.",
+        "steps": [
+          {
+            "id": "configureTsPlugin",
+            "title": "Configure the ts-plugin",
+            "description": "FlinkReactor's editor intelligence is delivered by `@flink-reactor/ts-plugin`. Add it to your `tsconfig.json`.\n[Configure ts-plugin](command:flinkReactor.configureTsPlugin)",
+            "media": {
+              "markdown": "media/walkthrough/configure-ts-plugin.md"
+            },
+            "completionEvents": [
+              "onCommand:flinkReactor.configureTsPlugin"
+            ]
+          },
+          {
+            "id": "useWorkspaceTypeScript",
+            "title": "Use your workspace TypeScript",
+            "description": "VS Code's bundled TypeScript will not load workspace plugins. Switch to the workspace version so the ts-plugin activates.\n[Use Workspace TypeScript](command:flinkReactor.useWorkspaceTypeScript)",
+            "media": {
+              "markdown": "media/walkthrough/use-workspace-typescript.md"
+            },
+            "completionEvents": [
+              "onCommand:typescript.selectTypeScriptVersion"
+            ]
+          },
+          {
+            "id": "openPipeline",
+            "title": "Open a pipeline",
+            "description": "Pipelines live in `pipelines/<name>/index.tsx`. Open one to see live diagnostics from the FlinkReactor language server.",
+            "media": {
+              "markdown": "media/walkthrough/open-pipeline.md"
+            }
+          },
+          {
+            "id": "nextSteps",
+            "title": "Next steps",
+            "description": "Synthesize SQL and CRDs from the terminal with `flink-reactor synth`, and explore the docs.",
+            "media": {
+              "markdown": "media/walkthrough/next-steps.md"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.mjs --production",
+    "dev": "node esbuild.mjs --watch",
+    "prepare-server": "node scripts/prepare-server.mjs",
+    "compile-tests": "tsc -p ./tsconfig.test.json",
+    "pretest": "pnpm run compile-tests && pnpm run build && pnpm run prepare-server",
+    "test:unit": "vitest run",
+    "test:e2e": "node ./dist-test/test/runTest.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "package": "pnpm run build && pnpm run prepare-server && vsce package --no-dependencies",
+    "vscode:prepublish": "pnpm run build && pnpm run prepare-server"
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1",
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@flink-reactor/dsl": "workspace:*",
+    "@flink-reactor/language-server": "workspace:*",
+    "@flink-reactor/ts-plugin": "workspace:*",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.12.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.0",
+    "esbuild": "^0.25.0",
+    "glob": "^11.0.0",
+    "mocha": "^11.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
