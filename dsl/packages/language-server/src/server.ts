@@ -14,7 +14,7 @@ import {
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { DEFAULT_CONFIG, parseConfig, type ServerConfig } from "./config.js"
-import { toLspDiagnostics } from "./diagnostics.js"
+import { mapperContext, toLspDiagnostics } from "./diagnostics/index.js"
 import { DocumentStateStore } from "./document-state.js"
 import { buildPositionMap } from "./mappers/source-position-mapper.js"
 import { registerProviders } from "./providers.js"
@@ -169,7 +169,10 @@ export function createServer(connection: Connection): ServerHandle {
     store.set({ uri, version, result, positionMap })
     connection.sendDiagnostics({
       uri,
-      diagnostics: toLspDiagnostics(result, positionMap),
+      diagnostics: toLspDiagnostics(
+        result,
+        mapperContext(positionMap, text, uri),
+      ),
     })
   }
 

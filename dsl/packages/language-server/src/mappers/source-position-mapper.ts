@@ -14,6 +14,10 @@ export interface PositionMapMismatch {
 export interface PositionMap {
   /** ConstructNode id → source range. */
   readonly map: ReadonlyMap<string, SourceRange>
+  /** ConstructNode id → (prop name → that prop's value range in source). Lets
+   *  a diagnostic narrow from the whole element to the offending prop (e.g. a
+   *  `<Filter>` `condition`). Only literal-valued attributes are recorded. */
+  readonly propRanges: ReadonlyMap<string, ReadonlyMap<string, SourceRange>>
   /** Set when the JSX element count diverges from the ConstructNode count. */
   readonly mismatch?: PositionMapMismatch
   /** True when ranges came from authoritative `__loc` rather than prediction. */
@@ -24,6 +28,8 @@ interface CollectedElement {
   readonly tag: string
   readonly props: StaticProps
   readonly range: SourceRange
+  /** prop name → value range, for prop-span narrowing. */
+  readonly propRanges: ReadonlyMap<string, SourceRange>
 }
 
 /**
@@ -49,7 +55,7 @@ export function buildPositionMap(
   if (nodes && nodes.length > 0 && nodes.every((n) => n.loc)) {
     const map = new Map<string, SourceRange>()
     for (const n of nodes) if (n.loc) map.set(n.id, n.loc)
-    return { map, fromLoc: true }
+    return { map, propRanges: new Map(), fromLoc: true }
   }
 
   // ── 2. Prediction path ──────────────────────────────────────────────
@@ -80,6 +86,7 @@ export function buildPositionMap(
       tag,
       props: staticProps(attributes, sf),
       range: toRange(rangeStart, rangeEnd),
+      propRanges: propValueRanges(attributes, sf, toRange),
     })
   }
 
@@ -112,6 +119,10 @@ export function buildPositionMap(
           tag,
           props: factoryProps(propsArg),
           range: toRange(node.getStart(sf), node.getEnd()),
+          // Prop-span narrowing is JSX-only; programmatic `createElement`
+          // object literals are not narrowed (design: narrow only literal
+          // JSX attributes), so no per-prop ranges are recorded here.
+          propRanges: new Map(),
         })
       }
       // Still descend into the tag/props args for any nested JSX.
@@ -131,10 +142,14 @@ export function buildPositionMap(
   const predictor = new IdPredictor()
   const authoritative = nodes ? new Set(nodes.map((n) => n.id)) : null
   const map = new Map<string, SourceRange>()
+  const propRanges = new Map<string, ReadonlyMap<string, SourceRange>>()
   for (const el of elements) {
     const id = predictor.predict(el.tag, el.props)
     if (authoritative && !authoritative.has(id)) continue
-    if (!map.has(id)) map.set(id, el.range)
+    if (!map.has(id)) {
+      map.set(id, el.range)
+      if (el.propRanges.size > 0) propRanges.set(id, el.propRanges)
+    }
   }
 
   // ── Mismatch detection (4.5) ────────────────────────────────────────
@@ -157,10 +172,50 @@ export function buildPositionMap(
     }
   }
 
-  return { map, mismatch, fromLoc: false }
+  return { map, propRanges, mismatch, fromLoc: false }
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
+
+/** Capture each literal-valued JSX attribute's **value** range (the squiggle
+ *  unit for prop-span narrowing). Boolean attributes (no initializer) map to
+ *  the attribute name's range. Spread/computed attributes are skipped. */
+function propValueRanges(
+  attrs: ts.JsxAttributes,
+  sf: ts.SourceFile,
+  toRange: (start: number, end: number) => SourceRange,
+): ReadonlyMap<string, SourceRange> {
+  const ranges = new Map<string, SourceRange>()
+  for (const prop of attrs.properties) {
+    if (!ts.isJsxAttribute(prop)) continue // skip spread
+    const name = ts.isIdentifier(prop.name)
+      ? prop.name.text
+      : prop.name.getText(sf)
+    const target = propValueNode(prop)
+    if (!target) continue
+    ranges.set(name, toRange(target.getStart(sf), target.getEnd()))
+  }
+  return ranges
+}
+
+/** The AST node whose span best represents an attribute's value: the string
+ *  literal (for `="x"`), the inner literal (for `={"x"}`), or the attribute
+ *  name itself (boolean attribute). Non-literal expressions are not narrowed. */
+function propValueNode(prop: ts.JsxAttribute): ts.Node | undefined {
+  const init = prop.initializer
+  if (!init) return prop.name // boolean attribute → name span
+  if (ts.isStringLiteral(init)) return init
+  if (ts.isJsxExpression(init) && init.expression) {
+    if (
+      ts.isStringLiteral(init.expression) ||
+      ts.isNoSubstitutionTemplateLiteral(init.expression)
+    ) {
+      return init.expression
+    }
+    return undefined // computed expression → don't narrow
+  }
+  return undefined
+}
 
 function lineChar(
   sf: ts.SourceFile,

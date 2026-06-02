@@ -24,7 +24,22 @@ open .tsx ──▶ debounce ──▶ IsolatedRunner (worker thread)
 - **Isolation.** Each synthesis runs in a worker thread with a configurable timeout and heap limit. A throwing, infinite-looping, or memory-hungry pipeline is terminated and the worker respawned — it degrades to a single diagnostic instead of crashing the server.
 - **Caching.** Results are cached by a content hash of the document text + `flink-reactor.config.ts` mtime + resolved `@/` alias, so unchanged documents skip re-synthesis.
 - **Source-position mapping.** ConstructNode IDs are mapped back to `.tsx` ranges by re-deriving each node's ID from the AST in `createElement` (post-order) order — mirroring the DSL's `generateNodeId`. A parity test gates this against real synthesis. Where prediction is ambiguous (computed props, programmatic `createElement`), the affected nodes are reported as a mismatch and their diagnostics fall back to the file top.
-- **FR-only diagnostics.** Only `FR`-prefixed codes are emitted (`FR-SCHEMA`, `FR-EXPRESSION`, `FR-CONNECTOR`, …); TypeScript type errors stay with `tsserver` / the ts-plugin, so the dual setup never duplicates diagnostics.
+- **FR-only diagnostics.** Only `FR`-prefixed codes are emitted (`FR-SCHEMA-001`, `FR-EXPR-001`, `FR-CDC-001`, …); TypeScript type errors stay with `tsserver` / the ts-plugin, so the dual setup never duplicates diagnostics and nothing collides with the ts-plugin's nesting code (`90100`).
+
+## Diagnostic codes
+
+Every validation finding is projected to one LSP `Diagnostic` with `source: "flink-reactor"` and a stable `FR-{CATEGORY}-{NNN}` code derived **purely** from the finding's `category`. This table is the cross-editor source of truth — the VS Code, IntelliJ, and Neovim clients all read the same code for the same finding, so it filters and documents identically everywhere. Each category owns a reserved `…-0xx` range; the canonical code is listed below and the rest of each range is reserved for future sub-classification.
+
+| Category | Code prefix | Canonical code | Severity | Surfaces |
+|---|---|---|---|---|
+| `schema` | `FR-SCHEMA-` | `FR-SCHEMA-001` | Error | Unknown column reference, with a did-you-mean suggestion from the upstream schema |
+| `expression` | `FR-EXPR-` | `FR-EXPR-001` | Warning/Error | Malformed SQL in a `Filter`/`Map`/`Aggregate`/`Query` prop, narrowed to the prop value |
+| `connector` | `FR-CONN-` | `FR-CONN-001` | Error/Warning | Missing required or conditional connector property (validator-chosen severity) |
+| `changelog` | `FR-CDC-` | `FR-CDC-001` | Error | Retract/upsert source feeding an append-only sink — cross-node, with a `relatedInformation` link from sink to source |
+| `structure` | `FR-DAG-` | `FR-DAG-001` | Error | Orphan source, dangling sink, or cycle (cycles list every participant as related information) |
+| `sql` | `FR-SQL-` | `FR-SQL-001` | — | Reserved for generated-SQL verification (`gateway-validation`); not produced by static synthesis |
+
+Severity is a total projection: the validator's `"error"` → `DiagnosticSeverity.Error`, `"warning"` → `DiagnosticSeverity.Warning` (no Information/Hint levels). Each diagnostic also stamps its structured `details` (did-you-mean candidate, `missingProps`, source/sink endpoints) onto `Diagnostic.data` so a later code-action capability can consume a stable shape.
 
 ## Usage
 

@@ -9,6 +9,7 @@
 import type {
   FlinkMajorVersion,
   PipelineArtifact,
+  ValidationCategory,
   ValidationDiagnostic,
 } from "@flink-reactor/dsl/browser"
 
@@ -116,4 +117,4 @@ export interface SynthesisResult {
 }
 
 /** Re-export for convenience so providers import diagnostics from one place. */
-export type { ValidationDiagnostic }
+export type { ValidationCategory, ValidationDiagnostic }

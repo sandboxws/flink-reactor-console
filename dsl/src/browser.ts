@@ -192,7 +192,10 @@ export type {
 } from "./core/app.js"
 // Core: app
 export { synthesizeApp } from "./core/app.js"
-export { validateChangelogModes } from "./core/changelog-propagation.js"
+export {
+  computeChangelogModes,
+  validateChangelogModes,
+} from "./core/changelog-propagation.js"
 export type {
   ClusterConfig,
   ConnectorConfig,
@@ -305,7 +308,17 @@ export {
   PipelineLoader,
   ProcessRunner,
 } from "./core/services.js"
-export type { GraphEdge, ValidationDiagnostic } from "./core/synth-context.js"
+// Core: sibling-chain resolution (tree-aware source↔sink binding)
+export {
+  resolveSiblingChains,
+  type SiblingChainResolution,
+} from "./core/sibling-chain.js"
+export type {
+  GraphEdge,
+  ValidationCategory,
+  ValidationDiagnostic,
+  ValidationDiagnosticDetails,
+} from "./core/synth-context.js"
 // Core: synth context
 export { SynthContext } from "./core/synth-context.js"
 // Core: tree utilities

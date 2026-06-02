@@ -10,6 +10,10 @@ import {
   validateExpressionSyntax,
   validateSchemaReferences,
 } from "@flink-reactor/dsl/browser"
+import {
+  collectChangelogDiagnostics,
+  collectStructuralDiagnostics,
+} from "./graph-validation.js"
 import { loadPipelineNode } from "./load.js"
 import type {
   DecodedContributor,
@@ -78,23 +82,26 @@ function projectNodes(root: ConstructNode): NodeProjection[] {
 // ── Validation pass (non-throwing) ──────────────────────────────────
 
 /**
- * Collect FlinkReactor validation findings without throwing.
+ * Collect FlinkReactor validation findings without throwing, across all five
+ * categories the `validation-diagnostics` capability surfaces:
+ *   - `schema` — `validateSchemaReferences`
+ *   - `connector` — `validateConnectorProperties` (standalone)
+ *   - `structure` — chain-aware orphan/dangling/cycle detection
+ *   - `changelog` — changelog-mode propagation over a dataflow graph
+ *   - `expression` — `validateExpressionSyntax`
  *
- * Runs the validators that operate purely on the construct tree —
- * `validateSchemaReferences` (schema), `validateConnectorProperties`
- * (connector), and `validateExpressionSyntax` (expression). The structural
- * detectors (orphan/dangling/cycle) and changelog propagation are intentionally
- * NOT run here: they live on `SynthContext`, whose naive parent→child
- * `buildFromTree` mis-models the flat sibling-chain topology (it would flag
- * every source under a `<Pipeline>` as an orphan). Correct structural checks
- * need the DSL's chain-aware DAG (`resolveSiblingChains`, as the CLI's
- * `validateTreeAware` does); wiring that is deferred to a follow-up tier.
+ * Structural and changelog findings use the chain-aware helpers in
+ * `graph-validation.ts` (built on the DSL's `resolveSiblingChains`), not the
+ * naive `SynthContext.buildFromTree`, which mis-models the sibling-chain
+ * topology (it would flag every source under a `<Pipeline>` as an orphan).
  */
 async function collectDiagnostics(
   node: ConstructNode,
 ): Promise<ValidationDiagnostic[]> {
   const schema = validateSchemaReferences(node)
   const connector = validateConnectorProperties(node, { standalone: true })
+  const structural = collectStructuralDiagnostics(node)
+  const changelog = collectChangelogDiagnostics(node)
 
   let expr: ValidationDiagnostic[] = []
   try {
@@ -103,7 +110,7 @@ async function collectDiagnostics(
     // The SQL parser failed to load — skip expression validation rather than
     // failing the whole pass.
   }
-  return [...schema, ...connector, ...expr]
+  return [...schema, ...connector, ...structural, ...changelog, ...expr]
 }
 
 function emptyResult(

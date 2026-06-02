@@ -1,28 +1,27 @@
 import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
+import { fileURLToPath, pathToFileURL } from "node:url"
 import { describe, expect, it } from "vitest"
 import { DiagnosticSeverity } from "vscode-languageserver"
-import { toLspDiagnostics } from "../src/diagnostics"
+import { mapperContext, toLspDiagnostics } from "../src/diagnostics/index"
 import {
   buildPositionMap,
   type PositionMap,
 } from "../src/mappers/source-position-mapper"
 import { synthesizeDocument } from "../src/synth/runner"
-import type { SynthesisResult, ValidationDiagnostic } from "../src/synth/types"
+import type { SynthesisResult } from "../src/synth/types"
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), "fixtures")
 
 /** Run the full pipeline: synthesize → build position map → map to LSP. */
 async function diagnose(fixture: string) {
   const entryPoint = join(FIXTURES, fixture)
+  const text = readFileSync(entryPoint, "utf-8")
   const result = await synthesizeDocument({ entryPoint, projectDir: FIXTURES })
-  const positionMap = buildPositionMap(
-    readFileSync(entryPoint, "utf-8"),
-    entryPoint,
-    result.nodes,
-  )
-  return { result, positionMap, lsp: toLspDiagnostics(result, positionMap) }
+  const positionMap = buildPositionMap(text, entryPoint, result.nodes)
+  const uri = pathToFileURL(entryPoint).href
+  const lsp = toLspDiagnostics(result, mapperContext(positionMap, text, uri))
+  return { result, positionMap, text, uri, lsp }
 }
 
 function baseResult(overrides: Partial<SynthesisResult> = {}): SynthesisResult {
@@ -41,21 +40,29 @@ function baseResult(overrides: Partial<SynthesisResult> = {}): SynthesisResult {
   }
 }
 
+const emptyMap: PositionMap = {
+  map: new Map(),
+  propRanges: new Map(),
+  fromLoc: false,
+}
+
 describe("diagnostics (end-to-end)", () => {
   it("publishes zero diagnostics for a valid pipeline", async () => {
     const { lsp } = await diagnose("valid-pipeline.tsx")
     expect(lsp).toEqual([])
   })
 
-  it("maps a validation finding to its node's source range with an FR code", async () => {
+  it("maps an expression finding to the offending prop with an FR-EXPR code", async () => {
     const { lsp, positionMap } = await diagnose("validation-error-pipeline.tsx")
 
     expect(lsp).toHaveLength(1)
     const [diag] = lsp
-    expect(diag.code).toBe("FR-EXPRESSION")
+    expect(diag.code).toBe("FR-EXPR-001")
     expect(diag.source).toBe("flink-reactor")
-    // The Filter node's range, not the file top.
-    expect(diag.range).toEqual(positionMap.map.get("Filter_1"))
+    // Narrowed to the `condition` prop value (not the whole Filter tag).
+    const condition = positionMap.propRanges.get("Filter_1")?.get("condition")
+    expect(condition).toBeDefined()
+    expect(diag.range).toEqual(condition)
     expect(diag.range.start.line).toBeGreaterThan(0)
   })
 
@@ -67,80 +74,43 @@ describe("diagnostics (end-to-end)", () => {
   })
 })
 
-describe("toLspDiagnostics (unit)", () => {
-  // A real position map for the valid fixture so node ranges are authentic.
-  async function validPositionMap(): Promise<{
-    positionMap: PositionMap
-    nodeIds: string[]
-  }> {
-    const entryPoint = join(FIXTURES, "valid-pipeline.tsx")
-    const result = await synthesizeDocument({
-      entryPoint,
-      projectDir: FIXTURES,
-    })
-    const positionMap = buildPositionMap(
-      readFileSync(entryPoint, "utf-8"),
-      entryPoint,
-      result.nodes,
-    )
-    return { positionMap, nodeIds: result.nodes.map((n) => n.id) }
-  }
-
-  it("codes a schema finding FR-SCHEMA at the referencing node's range", async () => {
-    const { positionMap } = await validPositionMap()
-    const diag: ValidationDiagnostic = {
-      severity: "error",
-      message: "unknown column",
-      nodeId: "orders",
-      category: "schema",
-    }
-    const [lsp] = toLspDiagnostics(
-      baseResult({ diagnostics: [diag] }),
-      positionMap,
-    )
-    expect(lsp.code).toBe("FR-SCHEMA")
-    expect(lsp.severity).toBe(DiagnosticSeverity.Error)
-    expect(lsp.range).toEqual(positionMap.map.get("orders"))
-  })
-
-  it("codes a connector finding FR-CONNECTOR at the right component", async () => {
-    const { positionMap } = await validPositionMap()
-    const diag: ValidationDiagnostic = {
-      severity: "warning",
-      message: "infra-provided property",
-      nodeId: "print",
-      category: "connector",
-    }
-    const [lsp] = toLspDiagnostics(
-      baseResult({ diagnostics: [diag] }),
-      positionMap,
-    )
-    expect(lsp.code).toBe("FR-CONNECTOR")
-    expect(lsp.range).toEqual(positionMap.map.get("print"))
-  })
-
-  it("falls back to the file top for an unmapped node", () => {
-    const diag: ValidationDiagnostic = {
-      severity: "error",
+describe("toLspDiagnostics (orchestration)", () => {
+  it("falls back to the file top for an unmapped node and names it in the message", () => {
+    const diag = {
+      severity: "error" as const,
       message: "structural issue",
       nodeId: "ghost_99",
-      category: "structure",
+      category: "structure" as const,
     }
-    const emptyMap: PositionMap = { map: new Map(), fromLoc: false }
     const [lsp] = toLspDiagnostics(
       baseResult({ diagnostics: [diag] }),
-      emptyMap,
+      mapperContext(emptyMap, "", "file:///x.tsx"),
     )
-    expect(lsp.code).toBe("FR-STRUCTURE")
+    expect(lsp.code).toBe("FR-DAG-001")
     expect(lsp.range).toEqual({
       start: { line: 0, character: 0 },
       end: { line: 0, character: 0 },
     })
+    expect(lsp.message).toContain("ghost_99")
+  })
+
+  it("surfaces a loadError as a single FR-<KIND> error", () => {
+    const lsp = toLspDiagnostics(
+      baseResult({
+        ok: false,
+        loadError: { kind: "sql", message: "synthesis blew up" },
+      }),
+      mapperContext(emptyMap, "", "file:///x.tsx"),
+    )
+    const err = lsp.find((d) => d.code === "FR-SQL")
+    expect(err).toBeDefined()
+    expect(err?.severity).toBe(DiagnosticSeverity.Error)
   })
 
   it("emits a separate FR-MAP-MISMATCH warning when the map is approximate", () => {
     const positionMap: PositionMap = {
       map: new Map(),
+      propRanges: new Map(),
       fromLoc: false,
       mismatch: {
         jsxElementCount: 2,
@@ -149,7 +119,10 @@ describe("toLspDiagnostics (unit)", () => {
         message: "approximate",
       },
     }
-    const lsp = toLspDiagnostics(baseResult(), positionMap)
+    const lsp = toLspDiagnostics(
+      baseResult(),
+      mapperContext(positionMap, "", "file:///x.tsx"),
+    )
     const mismatch = lsp.find((d) => d.code === "FR-MAP-MISMATCH")
     expect(mismatch).toBeDefined()
     expect(mismatch?.severity).toBe(DiagnosticSeverity.Warning)

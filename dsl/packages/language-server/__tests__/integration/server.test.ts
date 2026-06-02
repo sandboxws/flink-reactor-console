@@ -14,6 +14,10 @@ interface LspDiagnostic {
   message: string
   range: { start: { line: number; character: number } }
   severity?: number
+  relatedInformation?: Array<{
+    location: { uri: string; range: { start: { line: number } } }
+    message: string
+  }>
 }
 
 const fixtureUri = (name: string) => pathToFileURL(join(FIXTURES, name)).href
@@ -116,5 +120,37 @@ describe("language server (integration over stdio)", () => {
 
     const cleared = await c.waitForDiagnostics(uri, (d) => d.length === 0)
     expect(cleared).toEqual([])
+  })
+
+  it("publishes a cross-node FR-CDC diagnostic linking the source", async () => {
+    const c = await start()
+    const uri = fixtureUri("changelog-cross-node-pipeline.tsx")
+    openDoc(c, "changelog-cross-node-pipeline.tsx")
+
+    const diags = (await c.waitForDiagnostics(
+      uri,
+      (d) => d.length > 0,
+    )) as LspDiagnostic[]
+
+    const cdc = diags.find((d) => String(d.code).startsWith("FR-CDC-"))
+    expect(cdc).toBeDefined()
+    // The cross-node link to the source endpoint is carried over the wire.
+    expect(cdc?.relatedInformation?.length).toBeGreaterThan(0)
+    expect(cdc?.relatedInformation?.[0].location.uri).toBe(uri)
+  })
+
+  it("publishes an FR-DAG diagnostic for an orphan source", async () => {
+    const c = await start()
+    const uri = fixtureUri("orphan-source-pipeline.tsx")
+    openDoc(c, "orphan-source-pipeline.tsx")
+
+    const diags = (await c.waitForDiagnostics(
+      uri,
+      (d) => d.length > 0,
+    )) as LspDiagnostic[]
+
+    const dag = diags.find((d) => String(d.code).startsWith("FR-DAG-"))
+    expect(dag).toBeDefined()
+    expect(dag?.message).toContain("lonely")
   })
 })

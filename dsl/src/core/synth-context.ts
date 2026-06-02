@@ -33,6 +33,10 @@ export interface ValidationDiagnosticDetails {
   readonly sourceNodeId?: string
   /** Cross-node diagnostics: identifies the sink endpoint of the violation. */
   readonly sinkNodeId?: string
+  /** Cross-node diagnostics: every other node implicated in the finding (e.g.
+   *  the members of a detected cycle). Consumers project these to LSP
+   *  `relatedInformation` entries. */
+  readonly relatedNodeIds?: readonly string[]
 }
 
 export interface ValidationDiagnostic {
