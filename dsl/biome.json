@@ -10,7 +10,8 @@
       "!dist",
       "!build",
       "!.source",
-      "!**/.embeddings"
+      "!**/.embeddings",
+      "!**/*.generated.ts"
     ]
   },
   "css": { "parser": { "tailwindDirectives": true } },
@@ -73,11 +74,21 @@
         "src/cli/**",
         "packages/create-fr-app/src/**",
         "scripts/**",
+        "packages/language-server/scripts/**",
         "packages/vscode-extension/esbuild.mjs",
         "packages/vscode-extension/scripts/**",
         "packages/vscode-extension/test/**"
       ],
       "linter": { "rules": { "suspicious": { "noConsole": "off" } } }
+    },
+    {
+      "includes": [
+        "packages/language-server/src/providers/completion/**",
+        "packages/language-server/__tests__/completion/**"
+      ],
+      "linter": {
+        "rules": { "suspicious": { "noTemplateCurlyInString": "off" } }
+      }
     },
     {
       "includes": [

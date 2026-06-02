@@ -12,6 +12,15 @@ export interface ServerConfig {
   readonly enabled: boolean
   /** Target Flink version override; the DSL default applies when unset. */
   readonly flinkVersion?: FlinkMajorVersion
+  /**
+   * Set by the client (via `initializationOptions`) when the
+   * `@flink-reactor/ts-plugin` is active for the workspace. When true the
+   * server suppresses child-component completions — the plugin owns those
+   * in-`tsserver` — and serves only props, enums, and Flink types. The VS Code
+   * shell sets this; IntelliJ/Neovim without the plugin leave it false so the
+   * server serves all four completion kinds standalone.
+   */
+  readonly tsPluginActive: boolean
 }
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -19,6 +28,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
   timeoutMs: 5000,
   maxOldGenerationSizeMb: 512,
   enabled: true,
+  tsPluginActive: false,
 }
 
 function num(value: unknown, fallback: number): number {
@@ -63,5 +73,11 @@ export function parseConfig(
     ),
     enabled: bool(fr.enable ?? fr.enabled, base.enabled),
     flinkVersion,
+    // Accept the flag whether namespaced under `flinkReactor` or sent at the
+    // top level of `initializationOptions`.
+    tsPluginActive: bool(
+      fr.tsPluginActive ?? obj.tsPluginActive,
+      base.tsPluginActive,
+    ),
   }
 }

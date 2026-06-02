@@ -11,7 +11,7 @@ import type { ComponentRulesRegistry } from "./types"
 export type { ComponentRulesRegistry } from "./types"
 
 /** Built-in parent → allowed children mapping */
-const COMPONENT_CHILDREN: Record<string, string[] | "*"> = {
+export const COMPONENT_CHILDREN: Record<string, string[] | "*"> = {
   Pipeline: [
     "KafkaSource",
     "JdbcSource",

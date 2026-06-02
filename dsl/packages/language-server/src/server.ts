@@ -72,7 +72,9 @@ export function createServer(connection: Connection): ServerHandle {
         },
         completionProvider: {
           resolveProvider: true,
-          triggerCharacters: ["<", ".", " ", '"', "'"],
+          // `<` child tags, `.` dot-notation, space → attribute names, `=`/`"`/`'`/`{`
+          // → values, `:` → a Flink type after a field name.
+          triggerCharacters: ["<", ".", " ", '"', "'", "=", ":", "{"],
         },
         hoverProvider: true,
         codeActionProvider: true,
@@ -127,7 +129,7 @@ export function createServer(connection: Connection): ServerHandle {
     connection.sendDiagnostics({ uri, diagnostics: [] })
   })
 
-  registerProviders(connection, store, documents)
+  registerProviders(connection, store, documents, () => config)
 
   function scheduleSynth(doc: TextDocument): void {
     if (!config.enabled) return
