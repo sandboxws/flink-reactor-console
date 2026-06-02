@@ -473,8 +473,12 @@ function validateNodeColumnReferences(
 /**
  * Expression-type props by component.
  * Maps component name → array of prop paths that contain SQL expressions.
+ *
+ * Exported so consumers that classify SQL expressions in source text (e.g. the
+ * language server's hover provider) share one source of truth with the
+ * validator — a new expression prop added here is honored everywhere.
  */
-const EXPRESSION_PROPS: Record<string, string[]> = {
+export const EXPRESSION_PROPS: Record<string, string[]> = {
   Filter: ["condition"],
   Map: ["select.*"],
   Join: ["on"],

@@ -127,7 +127,7 @@ export function createServer(connection: Connection): ServerHandle {
     connection.sendDiagnostics({ uri, diagnostics: [] })
   })
 
-  registerProviders(connection, store)
+  registerProviders(connection, store, documents)
 
   function scheduleSynth(doc: TextDocument): void {
     if (!config.enabled) return

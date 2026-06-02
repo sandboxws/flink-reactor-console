@@ -14,12 +14,19 @@
 // stays a pure projection. No DSL validator behavior is modified.
 
 import {
+  type ChangelogMode,
   type ConstructNode,
+  computeChangelogModes,
   resolveSiblingChains,
   SynthContext,
   type ValidationDiagnostic,
   validateChangelogModes,
 } from "@flink-reactor/dsl/browser"
+import type {
+  DecodedChangelogMode,
+  DecodedEdge,
+  DecodedSinkAccept,
+} from "./types.js"
 
 // ── Structural (FR-DAG) ──────────────────────────────────────────────
 
@@ -236,4 +243,72 @@ function findUpstreamSource(
     frontier = next
   }
   return undefined
+}
+
+// ── Graph facts for hover ────────────────────────────────────────────
+
+/**
+ * Sinks that natively accept retract/upsert streams. Mirrors the DSL's private
+ * `CHANGELOG_CAPABLE_SINKS`: the DSL does not export it, and `sinkAcceptsChangelog`
+ * needs the live node + props (which never reach the host), so sink acceptance
+ * is resolved here in the worker and serialized.
+ */
+const CHANGELOG_CAPABLE_SINKS: ReadonlySet<string> = new Set([
+  "JdbcSink", // only with upsertMode === true
+  "PaimonSink",
+  "IcebergSink",
+])
+
+/** The changelog modes a sink accepts, for the hover sink card. */
+function sinkAcceptedModes(node: ConstructNode): ChangelogMode[] {
+  const accepts =
+    node.component === "JdbcSink"
+      ? node.props.upsertMode === true
+      : CHANGELOG_CAPABLE_SINKS.has(node.component)
+  return accepts ? ["append-only", "retract", "upsert"] : ["append-only"]
+}
+
+export interface GraphFacts {
+  readonly edges: readonly DecodedEdge[]
+  readonly changelogModes: readonly DecodedChangelogMode[]
+  readonly sinkChangelogAccepts: readonly DecodedSinkAccept[]
+}
+
+/**
+ * Derive the hover-facing graph facts that cannot cross the worker→host
+ * serialization boundary as live objects: the dataflow edges (flattened from
+ * the chain-aware `SynthContext`), each node's resolved output changelog mode,
+ * and each sink's accepted changelog modes. Computed here in the worker, where
+ * the `ConstructNode` tree and `SynthContext` still exist; the host reads the
+ * decoded arrays.
+ *
+ * Reuses the same `buildDataflowContext` topology the changelog *diagnostics*
+ * use, so hover neighbors and changelog badges agree with the squiggles.
+ * Non-throwing: a degenerate graph (e.g. a cycle that trips the topological
+ * sort) yields empty changelog facts rather than failing the whole synthesis.
+ */
+export function collectGraphFacts(root: ConstructNode): GraphFacts {
+  const ctx = buildDataflowContext(root)
+
+  const edges: DecodedEdge[] = ctx
+    .getAllEdges()
+    .map((e) => ({ from: e.from, to: e.to }))
+
+  let changelogModes: DecodedChangelogMode[] = []
+  try {
+    changelogModes = [...computeChangelogModes(ctx)].map(([nodeId, mode]) => ({
+      nodeId,
+      mode,
+    }))
+  } catch {
+    // Cycle or unexpected topology — skip changelog facts; hover degrades to
+    // "no changelog mode" rather than the whole synthesis failing.
+  }
+
+  const sinkChangelogAccepts: DecodedSinkAccept[] = ctx
+    .getAllNodes()
+    .filter((n) => n.kind === "Sink")
+    .map((n) => ({ nodeId: n.id, accepts: sinkAcceptedModes(n) }))
+
+  return { edges, changelogModes, sinkChangelogAccepts }
 }

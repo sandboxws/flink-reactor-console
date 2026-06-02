@@ -12,6 +12,7 @@ import {
 } from "@flink-reactor/dsl/browser"
 import {
   collectChangelogDiagnostics,
+  collectGraphFacts,
   collectStructuralDiagnostics,
 } from "./graph-validation.js"
 import { loadPipelineNode } from "./load.js"
@@ -126,6 +127,9 @@ function emptyResult(
     statementOrigins: [],
     statementContributors: [],
     statementMeta: [],
+    edges: [],
+    changelogModes: [],
+    sinkChangelogAccepts: [],
     pipelineManifest: null,
     crdYaml: "",
     nodes,
@@ -190,6 +194,7 @@ export async function synthesizeDocument(
     }
 
     const sql = pipeline.sql
+    const graphFacts = collectGraphFacts(node)
     return {
       ok: true,
       statements: [...sql.statements],
@@ -198,6 +203,9 @@ export async function synthesizeDocument(
       statementOrigins: decodeOrigins(sql.statementOrigins),
       statementContributors: decodeContributors(sql.statementContributors),
       statementMeta: decodeMeta(sql.statementMeta),
+      edges: graphFacts.edges,
+      changelogModes: graphFacts.changelogModes,
+      sinkChangelogAccepts: graphFacts.sinkChangelogAccepts,
       pipelineManifest: pipeline.pipelineManifest,
       crdYaml: toYaml(pipeline.crd),
       nodes,

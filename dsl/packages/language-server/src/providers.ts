@@ -8,8 +8,10 @@ import type {
   LocationLink,
   SemanticTokens,
 } from "vscode-languageserver"
-import type { Connection } from "vscode-languageserver/node"
+import type { Connection, TextDocuments } from "vscode-languageserver/node"
+import type { TextDocument } from "vscode-languageserver-textdocument"
 import type { DocumentStateStore } from "./document-state.js"
+import { provideHover } from "./hover/provider.js"
 
 /**
  * Register thin dispatchers for every provider endpoint the server advertises.
@@ -23,6 +25,7 @@ import type { DocumentStateStore } from "./document-state.js"
 export function registerProviders(
   connection: Connection,
   store: DocumentStateStore,
+  documents: TextDocuments<TextDocument>,
 ): void {
   const empty = <T>(value: T) => value
 
@@ -33,9 +36,20 @@ export function registerProviders(
   })
   connection.onCompletionResolve((item): CompletionItem => empty(item))
 
+  // Synthesis-backed DSL hover (vscode-tier-1-feature-2). Classifies against the
+  // *current* document text and reads the shared synthesis state for the doc
+  // version, so it can flag staleness; returns null for non-FR tokens so the
+  // ts-plugin's plain-TS hover shows instead.
   connection.onHover((params): Hover | null => {
-    void store.get(params.textDocument.uri)
-    return null
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return null
+    return provideHover({
+      state: store.get(params.textDocument.uri),
+      sourceText: doc.getText(),
+      fileName: params.textDocument.uri,
+      position: params.position,
+      documentVersion: doc.version,
+    })
   })
 
   connection.onCodeAction((params): CodeAction[] => {

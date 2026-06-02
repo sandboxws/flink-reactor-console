@@ -41,6 +41,43 @@ Every validation finding is projected to one LSP `Diagnostic` with `source: "fli
 
 Severity is a total projection: the validator's `"error"` → `DiagnosticSeverity.Error`, `"warning"` → `DiagnosticSeverity.Warning` (no Information/Hint levels). Each diagnostic also stamps its structured `details` (did-you-mean candidate, `missingProps`, source/sink endpoints) onto `Diagnostic.data` so a later code-action capability can consume a stable shape.
 
+## Hover (synthesis-backed)
+
+`textDocument/hover` answers the **DSL-semantic** questions an author asks while
+reading a pipeline — facts that only exist *after* synthesis — by reading the
+shared per-document synthesis result rather than re-deriving anything:
+
+| Hovered token | Card |
+|---|---|
+| a component **tag** (`<KafkaSource>`, `<Filter>`, incl. dot-notation `Route.Branch`) | kind + description, inferred **output schema** (`column │ Flink type`), **changelog mode** (append-only/retract/upsert), the **SQL fragment it emits** (sliced from the byte-span source map — `CREATE TABLE` for a source, `WHERE` for a `<Filter>`, `INSERT INTO … SELECT` for a sink), and its upstream/downstream **neighbors** |
+| a **sink** tag | the tag card plus the sink's **accepted changelog modes** and whether the upstream mode is compatible |
+| a connector **prop** (`topic`, `table`, …) | the prop's description, expected type, and default (curated connector-prop docs); SQL-expression props (`Filter.condition`, `Map.select`, …) are marked as such |
+| a **column reference** inside an expression prop | the field's Flink type from the inferred **upstream** schema, or an explicit "unknown column" note (never a type for a SQL keyword/function/literal) |
+
+### Relationship to the ts-plugin's plain-TS hover
+
+The two hovers **compose, never duplicate**. The FR server answers only for
+recognized FlinkReactor tags, connector props, and column references and returns
+`null` for everything else, so the client falls back to `@flink-reactor/ts-plugin`'s
+plain-TypeScript hover (the prop's TS type, JSDoc, import origin) inside
+`tsserver`. The FR server owns the *semantic* layer (what schema/SQL a node
+produces); the ts-plugin owns the *type* layer. Exactly one card shows for any
+token.
+
+### Source-position-map dependency & graceful degradation
+
+Hover is the inverse of validation: validation maps a `nodeId` *to* a range;
+hover maps a hovered position *back to* a node via the same source-position map,
+then projects that node's synthesis facts. It never errors or blocks:
+
+- **Node not in the position map** (programmatic `createElement`, ambiguous
+  id-prediction, computed children) — falls back to a minimal **static card**
+  (kind + description) for a recognizable tag, else `null` to defer to the
+  ts-plugin.
+- **Synthesis trailing the document version** (mid-edit, before the next
+  debounced synth) — shows the static card with a **"synthesis pending"** note
+  instead of possibly-stale types.
+
 ## Usage
 
 ### As a standalone binary (stdio)

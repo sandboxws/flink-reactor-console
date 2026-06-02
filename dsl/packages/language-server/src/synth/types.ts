@@ -81,6 +81,34 @@ export interface DecodedStatementMeta {
   readonly meta: unknown
 }
 
+/** A directed dataflow edge (`from` → `to`) decoded from the synthesis-time
+ *  `SynthContext`. The graph cannot cross the worker boundary (it is a class
+ *  with `Map` internals), so its edges are flattened here for the hover
+ *  provider to recover upstream/downstream neighbors. Built from the
+ *  chain-aware dataflow topology (not the naive parent→child tree). */
+export interface DecodedEdge {
+  readonly from: string
+  readonly to: string
+}
+
+/** A node's resolved output changelog mode, computed during synthesis via the
+ *  DSL's `computeChangelogModes`. Carried per-node because it is *not* a field
+ *  on `StatementMeta`. `mode` is a DSL `ChangelogMode`
+ *  (`append-only`/`retract`/`upsert`). */
+export interface DecodedChangelogMode {
+  readonly nodeId: string
+  readonly mode: string
+}
+
+/** The changelog modes a sink node accepts, decoded from the DSL's private
+ *  sink-acceptance rule (which needs the live node + props, unavailable host-
+ *  side). Lets the hover sink card show accepted modes + upstream compatibility
+ *  without re-deriving from a component name alone. */
+export interface DecodedSinkAccept {
+  readonly nodeId: string
+  readonly accepts: readonly string[]
+}
+
 /** Request payload sent to the synthesis worker (and accepted by the pure
  *  in-process runner). */
 export interface SynthesisInput {
@@ -107,6 +135,12 @@ export interface SynthesisResult {
   readonly statementOrigins: readonly DecodedOrigin[]
   readonly statementContributors: readonly DecodedContributor[]
   readonly statementMeta: readonly DecodedStatementMeta[]
+  /** Flattened dataflow edges (chain-aware) for upstream/downstream neighbors. */
+  readonly edges: readonly DecodedEdge[]
+  /** Per-node resolved output changelog mode (sources..sinks). */
+  readonly changelogModes: readonly DecodedChangelogMode[]
+  /** Accepted changelog modes per sink node (for sink-card compatibility). */
+  readonly sinkChangelogAccepts: readonly DecodedSinkAccept[]
   readonly pipelineManifest: PipelineManifest | null
   readonly crdYaml: string
   /** Construct nodes in creation order — the mapper's source of truth for

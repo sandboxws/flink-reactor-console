@@ -286,6 +286,7 @@ export type {
 export { Field, isValidFlinkType, Schema } from "./core/schema.js"
 // Core: validation — individual validators for sandbox integration
 export {
+  EXPRESSION_PROPS,
   validateExpressionSyntax,
   validateSchemaReferences,
 } from "./core/schema-validation.js"
