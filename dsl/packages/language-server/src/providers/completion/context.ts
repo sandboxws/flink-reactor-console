@@ -1,24 +1,48 @@
 // Completion context classifier.
 //
-// Decides which of four completion strategies a cursor position should drive,
-// by walking the parsed TSX rather than regexing the line:
+// Decides which completion strategy a cursor position should drive, by walking
+// the parsed TSX rather than regexing the line:
 //
+//   • column-ref      — an identifier slot inside a column-referencing
+//                       expression prop (offer the upstream columns)
 //   • child-component — a JSX children region (offer valid child tags)
 //   • connector-prop  — an attribute-name slot inside an opening tag
 //   • enum-value      — the value of a string-literal-union prop
 //   • flink-type      — a type-string position inside a `Schema({fields})` call
 //
 // The contexts are disjoint by AST position; checks run most-specific first so
-// the broad children-region case never swallows a more precise one. Parsing is
-// tolerant of mid-edit/malformed JSX (TypeScript's error-recovery parser): when
-// the position cannot be classified, we return `undefined` so the dispatcher
-// yields no items rather than wrong ones.
+// the broad children-region case never swallows a more precise one. column-ref
+// runs first because an expression-prop string would otherwise be claimed by
+// the enum-value case. Parsing is tolerant of mid-edit/malformed JSX
+// (TypeScript's error-recovery parser): when the position cannot be classified,
+// we return `undefined` so the dispatcher yields no items rather than wrong ones.
 
 import {
   getComponentName,
   getParentTagAtPosition,
 } from "@flink-reactor/ts-plugin/rules"
 import ts from "typescript"
+import {
+  columnSlotsFor,
+  type Descent,
+  descentsMatch,
+} from "../../expression-props.js"
+import type { SourceRange } from "../../synth/types.js"
+
+/** The cursor sits inside a column-referencing expression prop of an FR
+ *  component; offer the owning node's upstream columns. */
+export interface ColumnRefContext {
+  readonly kind: "column-ref"
+  readonly component: string
+  readonly prop: string
+  /** The text range an accepted column should replace. */
+  readonly replace: SourceRange
+  /** The partial identifier already typed (for filtering/ranking). */
+  readonly partial: string
+  /** How to render an inserted identifier (`backtick` for verbatim-SQL slots,
+   *  `bare` for codegen-quoted column names). */
+  readonly quote: "backtick" | "bare"
+}
 
 /** A classified completion position within a FlinkReactor pipeline. */
 export type CompletionContext =
@@ -34,6 +58,7 @@ export type CompletionContext =
       readonly prop: string
     }
   | { readonly kind: "flink-type" }
+  | ColumnRefContext
 
 /** Cursor position (zero-based line/character), matching the LSP `Position`. */
 export interface ClassifyPosition {
@@ -66,11 +91,65 @@ export function classifyCompletion(
   const node = findDeepestNode(sf, offset)
 
   return (
+    classifyColumnRef(sf, sourceText, node, offset) ??
     classifyFlinkType(node) ??
     classifyEnumValue(sf, node, offset) ??
     classifyConnectorProp(sf, node, offset) ??
     classifyChildComponent(sf, offset)
   )
+}
+
+/**
+ * Inside a column-referencing expression prop of an FR component → offer the
+ * upstream columns. The cursor may sit in a string value, an array element, or
+ * an object key; the slot's AST shape is matched against the component's
+ * declared `EXPRESSION_PROPS` paths to confirm it is a column slot and to pick
+ * the insert style. Returns `undefined` (defer to other strategies) when the
+ * position is not a recognized column slot.
+ */
+function classifyColumnRef(
+  sf: ts.SourceFile,
+  sourceText: string,
+  node: ts.Node,
+  offset: number,
+): CompletionContext | undefined {
+  // The cursor is on an object-literal KEY, or inside a string value/element.
+  const key = asObjectKey(node)
+  const str = key ? undefined : findAncestor(node, isStringLike)
+  const slot: "value" | "key" = key ? "key" : "value"
+  // The node to walk up from: the record holding the key, or the string itself.
+  const container = key ? key.parent.parent : str
+  const anchor = key ?? str
+  if (!container || !anchor) return undefined
+
+  const attr = findAncestor(container, ts.isJsxAttribute)
+  if (!attr) return undefined
+  const el = findAncestor(attr, isOpeningTag)
+  if (!el) return undefined
+  const tag = tagText(el.tagName)
+  if (!tag) return undefined
+  const prop = attrName(attr.name, sf)
+
+  const descents = buildDescents(container, attr)
+  if (!descents) return undefined
+
+  const matched = columnSlotsFor(tag).find(
+    (s) =>
+      s.prop === prop && s.slot === slot && descentsMatch(descents, s.descents),
+  )
+  if (!matched) return undefined
+
+  const partial = extractPartial(sf, sourceText, anchor, offset, matched.quote)
+  if (!partial) return undefined
+
+  return {
+    kind: "column-ref",
+    component: tag,
+    prop,
+    replace: partial.range,
+    partial: partial.text,
+    quote: matched.quote,
+  }
 }
 
 // ── Classifiers ─────────────────────────────────────────────────────
@@ -245,4 +324,109 @@ function propertyName(assign: ts.PropertyAssignment): string | undefined {
 
 function attrName(name: ts.JsxAttributeName, sf: ts.SourceFile): string {
   return ts.isIdentifier(name) ? name.text : name.getText(sf)
+}
+
+// ── Column-slot helpers ─────────────────────────────────────────────
+
+/** The property-name node when `node` is (the name of) an object-literal key. */
+function asObjectKey(
+  node: ts.Node,
+): ts.Identifier | ts.StringLiteral | undefined {
+  if (!ts.isIdentifier(node) && !ts.isStringLiteral(node)) return undefined
+  const parent = node.parent
+  if (
+    (ts.isPropertyAssignment(parent) ||
+      ts.isShorthandPropertyAssignment(parent)) &&
+    parent.name === node
+  )
+    return node
+  return undefined
+}
+
+/**
+ * Walk from a slot container up to the JSX attribute value, recording each
+ * structural descent (array element / named-property value). Returns the
+ * descents top-down, or `undefined` when an unrecognized node intervenes.
+ */
+function buildDescents(
+  container: ts.Node,
+  attr: ts.JsxAttribute,
+): Descent[] | undefined {
+  const descents: Descent[] = []
+  let cur: ts.Node = container
+  while (cur.parent && cur.parent !== attr) {
+    const parent = cur.parent
+    if (ts.isArrayLiteralExpression(parent)) {
+      descents.push({ kind: "element" })
+    } else if (ts.isPropertyAssignment(parent) && parent.initializer === cur) {
+      descents.push({ kind: "key", name: propNameText(parent.name) })
+    } else if (
+      ts.isObjectLiteralExpression(parent) ||
+      ts.isJsxExpression(parent) ||
+      ts.isParenthesizedExpression(parent)
+    ) {
+      // structural pass-through (the `{...}` wrapper, the object, parens)
+    } else {
+      return undefined // an unrecognized container — not a column slot
+    }
+    cur = parent
+  }
+  return descents.reverse()
+}
+
+function propNameText(name: ts.PropertyName): string {
+  if (
+    ts.isIdentifier(name) ||
+    ts.isStringLiteral(name) ||
+    ts.isNumericLiteral(name)
+  )
+    return name.text
+  return "" // computed name → matches no named descent
+}
+
+/**
+ * The partial identifier under the cursor and the range an accepted column
+ * replaces. For a back-quoted slot, swallows surrounding back-quotes so
+ * re-triggering does not double them. Returns `undefined` when the cursor is on
+ * a quote rather than the content.
+ */
+function extractPartial(
+  sf: ts.SourceFile,
+  sourceText: string,
+  anchor: ts.Node,
+  offset: number,
+  quote: "backtick" | "bare",
+): { range: SourceRange; text: string } | undefined {
+  if (ts.isIdentifier(anchor)) {
+    return {
+      range: toRange(sf, anchor.getStart(sf), anchor.getEnd()),
+      text: anchor.text,
+    }
+  }
+  if (!isStringLike(anchor)) return undefined
+  const lo = anchor.getStart(sf) + 1 // just inside the opening quote
+  const hi = anchor.getEnd() - 1 // just before the closing quote
+  if (offset < lo || offset > hi) return undefined
+  const isWord = (c: string): boolean => /[A-Za-z0-9_$]/.test(c)
+  let wStart = offset
+  let wEnd = offset
+  while (wStart > lo && isWord(sourceText[wStart - 1])) wStart -= 1
+  while (wEnd < hi && isWord(sourceText[wEnd])) wEnd += 1
+  let rStart = wStart
+  let rEnd = wEnd
+  if (quote === "backtick") {
+    if (rStart > lo && sourceText[rStart - 1] === "`") rStart -= 1
+    if (rEnd < hi && sourceText[rEnd] === "`") rEnd += 1
+  }
+  return {
+    range: toRange(sf, rStart, rEnd),
+    text: sourceText.slice(wStart, wEnd),
+  }
+}
+
+function toRange(sf: ts.SourceFile, start: number, end: number): SourceRange {
+  return {
+    start: sf.getLineAndCharacterOfPosition(start),
+    end: sf.getLineAndCharacterOfPosition(end),
+  }
 }

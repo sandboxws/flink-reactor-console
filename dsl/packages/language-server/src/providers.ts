@@ -32,10 +32,12 @@ export function registerProviders(
 ): void {
   const empty = <T>(value: T) => value
 
-  // Context-aware DSL completion (vscode-tier-1-feature-3). Classifies against
-  // the *current* document text and serves child components, connector props,
-  // enum values, and Flink types. Independent of synthesis state. Suppresses
-  // child-component items when the ts-plugin owns them in-tsserver.
+  // Context-aware DSL completion. Classifies against the *current* document text
+  // and serves child components, connector props, enum values, and Flink types
+  // from static metadata, plus synthesis-backed column completions inside
+  // expression props (vscode-tier-1-feature-4) — those read the shared synthesis
+  // state for the document. Suppresses child-component items when the ts-plugin
+  // owns them in-tsserver.
   connection.onCompletion((params): CompletionList => {
     const doc = documents.get(params.textDocument.uri)
     if (!doc) return { isIncomplete: false, items: [] }
@@ -44,6 +46,7 @@ export function registerProviders(
       fileName: params.textDocument.uri,
       position: params.position,
       tsPluginActive: getConfig().tsPluginActive,
+      synthState: store.get(params.textDocument.uri),
     })
   })
   connection.onCompletionResolve((item): CompletionItem => empty(item))

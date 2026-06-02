@@ -17,7 +17,10 @@ import {
   type ChangelogMode,
   type ConstructNode,
   computeChangelogModes,
+  type ResolvedColumn,
+  resolveNodeSchema,
   resolveSiblingChains,
+  resolveTransformSchema,
   SynthContext,
   type ValidationDiagnostic,
   validateChangelogModes,
@@ -25,6 +28,7 @@ import {
 import type {
   DecodedChangelogMode,
   DecodedEdge,
+  DecodedNodeSchema,
   DecodedSinkAccept,
 } from "./types.js"
 
@@ -272,6 +276,151 @@ export interface GraphFacts {
   readonly edges: readonly DecodedEdge[]
   readonly changelogModes: readonly DecodedChangelogMode[]
   readonly sinkChangelogAccepts: readonly DecodedSinkAccept[]
+  readonly nodeInputSchemas: readonly DecodedNodeSchema[]
+}
+
+/**
+ * Resolve, for every node, the schema *feeding* its expression props — the
+ * columns visible to a `Filter` condition, a `Map` projection, a join `on`, a
+ * `Query.Select`, etc. Folds the DSL's `resolveTransformSchema` along the
+ * dataflow graph so renames/aggregations/windows are reflected; a node with no
+ * dataflow edge of its own (a config sub-node like `Query.Select`, or the
+ * `Aggregate` nested inside a window) inherits its construct-tree parent's
+ * input. Non-throwing: any resolution failure yields no schema for that node
+ * rather than failing synthesis.
+ */
+function collectNodeInputSchemas(
+  ctx: SynthContext,
+  root: ConstructNode,
+): DecodedNodeSchema[] {
+  // Index every node reachable through children *and* through join-style input
+  // props (`Join` `left`/`right`, `TemporalJoin` `stream`/`temporal`,
+  // `LookupJoin` `input`) — those inputs are not construct-tree children and so
+  // are absent from the chain-aware dataflow edges, but a join's `on` references
+  // both sides' columns.
+  const nodeIndex = new Map<string, ConstructNode>()
+  const parentOf = new Map<string, ConstructNode>()
+  const index = (node: ConstructNode, parent?: ConstructNode): void => {
+    if (nodeIndex.has(node.id)) return
+    nodeIndex.set(node.id, node)
+    if (parent) parentOf.set(node.id, parent)
+    for (const child of node.children) index(child, node)
+  }
+  index(root)
+
+  const inCache = new Map<string, readonly ResolvedColumn[]>()
+  const outCache = new Map<string, readonly ResolvedColumn[]>()
+
+  /** Upstream node ids: chain-aware dataflow edges plus join-style prop inputs. */
+  const inputIdsOf = (id: string): string[] => {
+    const node = nodeIndex.get(id)
+    const fromProps = node ? propInputIds(node) : []
+    return [...new Set([...ctx.getIncoming(id), ...fromProps])]
+  }
+
+  const inputOf = (
+    id: string,
+    guard: Set<string>,
+  ): readonly ResolvedColumn[] => {
+    const cached = inCache.get(id)
+    if (cached) return cached
+    if (guard.has(id)) return []
+    guard.add(id)
+    const inputs = inputIdsOf(id)
+    let result: readonly ResolvedColumn[]
+    if (inputs.length > 0) {
+      result = dedupeByName(inputs.flatMap((from) => outputOf(from, guard)))
+    } else {
+      // No upstream — inherit the construct-tree parent's input (a config
+      // sub-node like `Query.Select`, or an `Aggregate` nested in a window).
+      const parent = parentOf.get(id)
+      result = parent ? inputOf(parent.id, guard) : []
+    }
+    inCache.set(id, result)
+    return result
+  }
+
+  const outputOf = (
+    id: string,
+    guard: Set<string>,
+  ): readonly ResolvedColumn[] => {
+    const cached = outCache.get(id)
+    if (cached) return cached
+    const node = ctx.getNode(id) ?? nodeIndex.get(id)
+    if (!node) return []
+    let result: readonly ResolvedColumn[]
+    if (node.kind === "Source") {
+      result = resolveNodeSchema(node, nodeIndex) ?? []
+    } else {
+      const input = inputOf(id, guard)
+      result = resolveTransformSchema(node, [...input]) ?? input
+    }
+    outCache.set(id, result)
+    return result
+  }
+
+  const schemas: DecodedNodeSchema[] = []
+  for (const node of nodeIndex.values()) {
+    // Sources/containers have no expression props feeding off an input schema;
+    // skip them (a join's source children would otherwise inherit the merged
+    // schema via the parent fallback).
+    if (node.kind === "Source" || node.kind === "Pipeline") continue
+    const cols = inputOf(node.id, new Set())
+    if (cols.length > 0) {
+      schemas.push({
+        nodeId: node.id,
+        columns: cols.map((c) => ({ name: c.name, type: c.type })),
+      })
+    }
+  }
+  return schemas
+}
+
+/** Props through which join-style components hold their input nodes — `Join`/
+ *  `IntervalJoin` `left`/`right`, `TemporalJoin` `stream`/`temporal`,
+ *  `LookupJoin` `input`. The DSL stores these as the input node's *id* (and also
+ *  attaches it as a child for DAG edges), so they are absent from the chain-
+ *  aware dataflow edges; a join's `on` must still see both sides' columns. */
+const INPUT_PROPS: readonly string[] = [
+  "left",
+  "right",
+  "input",
+  "stream",
+  "temporal",
+]
+
+function isConstructNode(value: unknown): value is ConstructNode {
+  if (typeof value !== "object" || value === null) return false
+  const o = value as Record<string, unknown>
+  return (
+    typeof o.id === "string" &&
+    typeof o.component === "string" &&
+    typeof o.kind === "string" &&
+    Array.isArray(o.children)
+  )
+}
+
+/** The ids of input nodes a join-style node holds in its props (stored as an
+ *  id string, or — defensively — as a ConstructNode). */
+function propInputIds(node: ConstructNode): string[] {
+  const out: string[] = []
+  for (const prop of INPUT_PROPS) {
+    const value = node.props[prop]
+    if (typeof value === "string") out.push(value)
+    else if (isConstructNode(value)) out.push(value.id)
+  }
+  return out
+}
+
+function dedupeByName(cols: readonly ResolvedColumn[]): ResolvedColumn[] {
+  const seen = new Set<string>()
+  const out: ResolvedColumn[] = []
+  for (const c of cols)
+    if (!seen.has(c.name)) {
+      seen.add(c.name)
+      out.push(c)
+    }
+  return out
 }
 
 /**
@@ -310,5 +459,13 @@ export function collectGraphFacts(root: ConstructNode): GraphFacts {
     .filter((n) => n.kind === "Sink")
     .map((n) => ({ nodeId: n.id, accepts: sinkAcceptedModes(n) }))
 
-  return { edges, changelogModes, sinkChangelogAccepts }
+  let nodeInputSchemas: DecodedNodeSchema[] = []
+  try {
+    nodeInputSchemas = collectNodeInputSchemas(ctx, root)
+  } catch {
+    // Schema inference hiccup — column completion degrades to no items rather
+    // than failing the whole synthesis.
+  }
+
+  return { edges, changelogModes, sinkChangelogAccepts, nodeInputSchemas }
 }

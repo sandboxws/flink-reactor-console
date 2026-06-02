@@ -71,6 +71,8 @@ export class HoverFacts {
   /** to → froms (incoming) and from → tos (outgoing). */
   private readonly incoming = new Map<string, string[]>()
   private readonly outgoing = new Map<string, string[]>()
+  /** nodeId → the schema feeding its expressions (resolved in the worker). */
+  private readonly inputSchema = new Map<string, readonly Column[]>()
 
   constructor(private readonly result: SynthesisResult) {
     for (const m of result.statementMeta)
@@ -92,6 +94,11 @@ export class HoverFacts {
       push(this.incoming, e.to, e.from)
       push(this.outgoing, e.from, e.to)
     }
+    for (const s of result.nodeInputSchemas)
+      this.inputSchema.set(
+        s.nodeId,
+        s.columns.map((c) => ({ name: c.name, type: c.type })),
+      )
   }
 
   /** Whether synthesis produced SQL (vs a load/synth error result). */
@@ -204,12 +211,17 @@ export class HoverFacts {
   }
 
   /**
-   * The schema feeding a node's expression: the union of the nearest
-   * schema-bearing upstream nodes (walking back through transforms that carry
-   * no schema of their own). Used to type a column reference in an expression
-   * prop, matching how `validateSchemaReferences` scopes expressions.
+   * The schema feeding a node's expression — the columns available *to* a
+   * `Filter` condition, a `Map` projection, a join `on`, a `Query.Select`, etc.
+   * Prefers the worker-resolved per-node input schema (which reflects upstream
+   * renames, joins, and windows, and inherits a parent's input for config
+   * sub-nodes like `Query.Select`). Falls back to walking the nearest
+   * schema-bearing upstream nodes for results without per-node schemas.
    */
   getUpstreamSchema(nodeId: string): readonly Column[] {
+    const resolved = this.inputSchema.get(nodeId)
+    if (resolved) return resolved
+
     const seen = new Set<string>([nodeId])
     const collected: Column[] = []
     const names = new Set<string>()

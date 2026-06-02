@@ -6,8 +6,8 @@
 // the emitted fragment, and an upstream/downstream neighbor line. Wide schemas
 // and long SQL are truncated with an ellipsis + remaining count.
 
+import { isExpressionProp } from "../expression-props.js"
 import { getComponentDescription } from "./component-docs.js"
-import { isExpressionProp } from "./expression-props.js"
 import type { Column, HoverFacts, Neighbors } from "./facts.js"
 import { getPropDoc } from "./prop-docs.js"
 

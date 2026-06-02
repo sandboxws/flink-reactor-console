@@ -109,6 +109,19 @@ export interface DecodedSinkAccept {
   readonly accepts: readonly string[]
 }
 
+/** The schema *feeding* a node's expressions — the columns visible to a
+ *  `Filter` condition, a `Map` projection, a join `on`, etc. Resolved in the
+ *  worker by folding `resolveTransformSchema` along the dataflow graph (so
+ *  renames/joins/windows are reflected), with a construct-tree-parent fallback
+ *  for config sub-nodes (e.g. `Query.Select`) that carry no dataflow edge of
+ *  their own. Column completion + the hover column-ref card read this; it cannot
+ *  be recomputed host-side because the `SynthContext`/tree never cross the
+ *  worker boundary. */
+export interface DecodedNodeSchema {
+  readonly nodeId: string
+  readonly columns: readonly { readonly name: string; readonly type: string }[]
+}
+
 /** Request payload sent to the synthesis worker (and accepted by the pure
  *  in-process runner). */
 export interface SynthesisInput {
@@ -141,6 +154,9 @@ export interface SynthesisResult {
   readonly changelogModes: readonly DecodedChangelogMode[]
   /** Accepted changelog modes per sink node (for sink-card compatibility). */
   readonly sinkChangelogAccepts: readonly DecodedSinkAccept[]
+  /** Per-node input schema (columns visible to the node's expression props),
+   *  for column completion + the hover column-ref card. */
+  readonly nodeInputSchemas: readonly DecodedNodeSchema[]
   readonly pipelineManifest: PipelineManifest | null
   readonly crdYaml: string
   /** Construct nodes in creation order — the mapper's source of truth for

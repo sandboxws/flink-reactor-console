@@ -44,6 +44,7 @@ function errorResult(kind: LoadErrorKind, message: string): SynthesisResult {
     edges: [],
     changelogModes: [],
     sinkChangelogAccepts: [],
+    nodeInputSchemas: [],
     pipelineManifest: null,
     crdYaml: "",
     nodes: [],

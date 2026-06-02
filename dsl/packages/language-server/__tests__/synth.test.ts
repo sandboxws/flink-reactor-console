@@ -62,6 +62,7 @@ describe("ResultCache", () => {
       edges: [],
       changelogModes: [],
       sinkChangelogAccepts: [],
+      nodeInputSchemas: [],
       pipelineManifest: null,
       crdYaml: "",
       nodes: [],

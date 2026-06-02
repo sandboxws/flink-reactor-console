@@ -12,8 +12,8 @@
 // it is trivially unit-testable.
 
 import ts from "typescript"
+import { isExpressionProp } from "../expression-props.js"
 import type { SourceRange } from "../synth/types.js"
-import { isExpressionProp } from "./expression-props.js"
 import type { Position } from "./resolve.js"
 
 /** What the cursor is on, within a resolved FlinkReactor element. */

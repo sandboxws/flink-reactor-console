@@ -36,6 +36,7 @@ function baseResult(overrides: Partial<SynthesisResult> = {}): SynthesisResult {
     edges: [],
     changelogModes: [],
     sinkChangelogAccepts: [],
+    nodeInputSchemas: [],
     pipelineManifest: null,
     crdYaml: "",
     nodes: [],

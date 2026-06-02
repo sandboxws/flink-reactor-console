@@ -471,26 +471,94 @@ function validateNodeColumnReferences(
 // ── Expression syntax validation ─────────────────────────────────────
 
 /**
- * Expression-type props by component.
- * Maps component name → array of prop paths that contain SQL expressions.
+ * Expression-type props by component, the single source of truth for *where*
+ * a component's props carry SQL expressions or column references. Shared by the
+ * syntax validator (`validateExpressionSyntax`) and by source-text consumers
+ * (the language server's hover + column-completion providers) — a prop added
+ * here is honored everywhere.
  *
- * Exported so consumers that classify SQL expressions in source text (e.g. the
- * language server's hover provider) share one source of truth with the
- * validator — a new expression prop added here is honored everywhere.
+ * Each entry is a path into the node's props, with a terminal modifier that
+ * declares the value shape:
+ *   - `prop`        a `string` SQL expression (column refs author-quoted)
+ *   - `prop.*`      a `Record<string,string>` whose *values* are SQL expressions
+ *   - `prop[]`      a `string[]` whose elements are column names (codegen-quoted)
+ *   - `prop{}`      a `Record` whose *keys* are column names (codegen-quoted)
+ *   - `prop#`       a `string` holding a single column name (codegen-quoted)
+ *   - segments join with `.` for nested shapes (e.g. `rules.expression.*`)
+ *
+ * The `.*`/(plain) shapes are verbatim SQL; the `[]`/`{}`/`#` shapes are bare
+ * column names the codegen back-quotes via `quoteIdentifier`. Completion uses
+ * that distinction to decide whether to insert a back-quoted identifier.
  */
 export const EXPRESSION_PROPS: Record<string, string[]> = {
   Filter: ["condition"],
   Map: ["select.*"],
+  Aggregate: ["groupBy[]", "select.*"],
   Join: ["on"],
-  Validate: ["rules.*"],
+  TemporalJoin: ["on"],
+  IntervalJoin: ["on"],
+  LookupJoin: ["on"],
+  Deduplicate: ["key[]", "order#"],
+  TopN: ["partitionBy[]", "orderBy{}"],
+  Validate: ["rules.notNull[]", "rules.range{}", "rules.expression.*"],
   Qualify: ["condition"],
+  "Query.Select": ["columns.*"],
   "Query.Where": ["condition"],
   "Query.Having": ["condition"],
+  "Query.OrderBy": ["columns{}"],
+}
+
+/** A path segment's base name and terminal value-shape modifier. */
+function parseSegment(seg: string): {
+  base: string
+  suffix: "" | "[]" | "{}" | "#"
+} {
+  if (seg.endsWith("[]")) return { base: seg.slice(0, -2), suffix: "[]" }
+  if (seg.endsWith("{}")) return { base: seg.slice(0, -2), suffix: "{}" }
+  if (seg.endsWith("#")) return { base: seg.slice(0, -1), suffix: "#" }
+  return { base: seg, suffix: "" }
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+/** Walk one EXPRESSION_PROPS path into `value`, pushing each extracted string. */
+function collectExpressions(
+  value: unknown,
+  segments: readonly string[],
+  prefix: string,
+  out: Array<{ propPath: string; expr: string }>,
+): void {
+  if (segments.length === 0) {
+    if (typeof value === "string") out.push({ propPath: prefix, expr: value })
+    return
+  }
+  const [seg, ...rest] = segments
+  if (seg === "*") {
+    if (isPlainObject(value)) {
+      for (const [key, child] of Object.entries(value)) {
+        collectExpressions(child, rest, prefix ? `${prefix}.${key}` : key, out)
+      }
+    }
+    return
+  }
+  const { base, suffix } = parseSegment(seg)
+  const child = isPlainObject(value) ? value[base] : undefined
+  const childPath = prefix ? `${prefix}.${base}` : base
+  // The `[]`/`{}`/`#` shapes hold bare column *names*, not SQL expressions: a
+  // lone identifier is always valid syntax, so feeding it to the SQL parser is
+  // pointless (and risks mis-parsing a keyword-like column). Their existence is
+  // checked by `validateSchemaReferences`; completion reads them from the table
+  // directly. So syntax extraction only descends into verbatim-SQL shapes.
+  if (suffix === "[]" || suffix === "{}" || suffix === "#") return
+  collectExpressions(child, rest, childPath, out)
 }
 
 /**
- * Extract expression strings from a node based on EXPRESSION_PROPS config.
- * Returns array of `{ propPath, expr }`.
+ * Extract the verbatim SQL-expression strings from a node per EXPRESSION_PROPS
+ * (the `prop` and `prop.*` shapes). Bare column-name shapes are skipped — see
+ * `collectExpressions`. Returns array of `{ propPath, expr }`.
  */
 function extractExpressions(
   node: ConstructNode,
@@ -499,28 +567,9 @@ function extractExpressions(
   if (!propPaths) return []
 
   const result: Array<{ propPath: string; expr: string }> = []
-
   for (const path of propPaths) {
-    if (path.endsWith(".*")) {
-      const baseProp = path.slice(0, -2)
-      const value = node.props[baseProp]
-      if (value && typeof value === "object") {
-        for (const [key, expr] of Object.entries(
-          value as Record<string, unknown>,
-        )) {
-          if (typeof expr === "string") {
-            result.push({ propPath: `${baseProp}.${key}`, expr })
-          }
-        }
-      }
-    } else {
-      const value = node.props[path]
-      if (typeof value === "string") {
-        result.push({ propPath: path, expr: value })
-      }
-    }
+    collectExpressions(node.props, path.split("."), "", result)
   }
-
   return result
 }
 

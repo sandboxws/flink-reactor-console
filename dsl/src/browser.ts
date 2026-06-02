@@ -5,6 +5,14 @@
 
 // Codegen: YAML serializer (pure, no I/O — safe for browser)
 export { toYaml } from "./codegen/crd-generator.js"
+// Codegen: per-node schema resolution (for editor tooling — column completion,
+// hover column typing — that resolves the schema feeding a node's expressions)
+export {
+  indexTree,
+  type ResolvedColumn,
+  resolveNodeSchema,
+  resolveTransformSchema,
+} from "./codegen/schema-introspect.js"
 export type {
   SqlFragment,
   SqlSection,
