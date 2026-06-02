@@ -42,6 +42,7 @@ function errorResult(kind: LoadErrorKind, message: string): SynthesisResult {
     statementContributors: [],
     statementMeta: [],
     edges: [],
+    dagEdges: [],
     changelogModes: [],
     sinkChangelogAccepts: [],
     nodeInputSchemas: [],

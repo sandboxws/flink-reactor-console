@@ -13,6 +13,10 @@ import {
   State,
   TransportKind,
 } from "vscode-languageclient/node"
+import {
+  SYNTHESIZED_NOTIFICATION,
+  type SynthesizedNotification,
+} from "../graph/protocol.js"
 import { getOutputChannel } from "../ui/output.js"
 import type { StatusBar } from "../ui/status-bar.js"
 import type { ProjectContext } from "../workspace/project-context.js"
@@ -53,6 +57,13 @@ export class FlinkReactorClient {
   private readonly crashes: number[] = []
   /** Set when the user/extension stopped the server deliberately. */
   private stopping = false
+
+  /** Fires after each debounced re-synthesis (the `flinkReactor/synthesized`
+   *  notification) so an open DAG panel can pull a fresh model. Re-wired on
+   *  every (re)start so it survives server restarts. */
+  private readonly synthesizedEmitter =
+    new vscode.EventEmitter<SynthesizedNotification>()
+  readonly onSynthesized = this.synthesizedEmitter.event
 
   constructor(
     private readonly project: ProjectContext,
@@ -113,10 +124,36 @@ export class FlinkReactorClient {
 
     try {
       await this.client.start()
+      // Bridge the server's re-synthesis signal onto our public event. Safe to
+      // register after start; persists for the life of this client instance
+      // (including its own crash-restarts).
+      this.client.onNotification(
+        SYNTHESIZED_NOTIFICATION,
+        (params: SynthesizedNotification) =>
+          this.synthesizedEmitter.fire(params),
+      )
       log.info("Language server started.")
     } catch (err) {
       this.status.set("error")
       log.error(`Language server failed to start: ${String(err)}`)
+    }
+  }
+
+  /**
+   * Send a custom LSP request to the running server, or resolve `undefined`
+   * when no server is running (so callers degrade rather than throw). Used by
+   * the DAG panel for `flinkReactor/graphModel` and `flinkReactor/nodeRange`.
+   */
+  async sendGraphRequest<T>(
+    method: string,
+    params: unknown,
+  ): Promise<T | undefined> {
+    if (!this.client || this.client.state !== State.Running) return undefined
+    try {
+      return await this.client.sendRequest<T>(method, params)
+    } catch (err) {
+      getOutputChannel().warn(`${method} request failed: ${String(err)}`)
+      return undefined
     }
   }
 
@@ -153,6 +190,7 @@ export class FlinkReactorClient {
   }
 
   async dispose(): Promise<void> {
+    this.synthesizedEmitter.dispose()
     await this.stop()
   }
 

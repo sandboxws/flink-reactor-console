@@ -41,6 +41,10 @@ export interface NodeProjection {
   readonly id: string
   readonly component: string
   readonly kind: string
+  /** The node's `name` prop, when set — the display label the graph model
+   *  prefers over the id (mirroring `fr graph` `nodeLabel`'s `name ?? id`).
+   *  Decoded here because props never cross the worker boundary. */
+  readonly name?: string
   readonly loc?: SourceRange
 }
 
@@ -148,8 +152,14 @@ export interface SynthesisResult {
   readonly statementOrigins: readonly DecodedOrigin[]
   readonly statementContributors: readonly DecodedContributor[]
   readonly statementMeta: readonly DecodedStatementMeta[]
-  /** Flattened dataflow edges (chain-aware) for upstream/downstream neighbors. */
+  /** Flattened dataflow edges (chain-aware) for upstream/downstream neighbors.
+   *  Linear-chain scoped — collapses nesting; use `dagEdges` for the full DAG. */
   readonly edges: readonly DecodedEdge[]
+  /** Full visualization DAG edges: sibling chains **plus** Route/SideOutput
+   *  fan-out and Join fan-in, computed in the worker from the construct tree.
+   *  The graph-model request reads these (host-side `getAllEdges()` cannot see
+   *  the tree/props). */
+  readonly dagEdges: readonly DecodedEdge[]
   /** Per-node resolved output changelog mode (sources..sinks). */
   readonly changelogModes: readonly DecodedChangelogMode[]
   /** Accepted changelog modes per sink node (for sink-card compatibility). */

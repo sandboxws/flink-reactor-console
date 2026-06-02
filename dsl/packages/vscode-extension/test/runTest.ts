@@ -1,4 +1,4 @@
-import { cpSync, mkdtempSync } from "node:fs"
+import { cpSync, mkdirSync, mkdtempSync, symlinkSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { runTests } from "@vscode/test-electron"
@@ -19,6 +19,16 @@ async function main(): Promise<void> {
     )
     const workspace = mkdtempSync(join(tmpdir(), "fr-e2e-"))
     cpSync(fixture, workspace, { recursive: true })
+
+    // The fixture's pipelines `import "@flink-reactor/dsl"`. A real project has
+    // it installed; the bare fixture does not, so synthesis (jiti) would fail
+    // with "Cannot find module '@flink-reactor/dsl'". Symlink the DSL package
+    // (the repo root) into the temp workspace's node_modules so the loader
+    // resolves it exactly as it would in a real install.
+    const repoRoot = resolve(extensionDevelopmentPath, "..", "..")
+    const scopeDir = join(workspace, "node_modules", "@flink-reactor")
+    mkdirSync(scopeDir, { recursive: true })
+    symlinkSync(repoRoot, join(scopeDir, "dsl"), "dir")
 
     await runTests({
       extensionDevelopmentPath,

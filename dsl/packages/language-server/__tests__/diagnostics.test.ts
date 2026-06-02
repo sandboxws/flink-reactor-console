@@ -34,6 +34,7 @@ function baseResult(overrides: Partial<SynthesisResult> = {}): SynthesisResult {
     statementContributors: [],
     statementMeta: [],
     edges: [],
+    dagEdges: [],
     changelogModes: [],
     sinkChangelogAccepts: [],
     nodeInputSchemas: [],

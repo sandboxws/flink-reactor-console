@@ -60,6 +60,7 @@ describe("ResultCache", () => {
       statementContributors: [],
       statementMeta: [],
       edges: [],
+      dagEdges: [],
       changelogModes: [],
       sinkChangelogAccepts: [],
       nodeInputSchemas: [],

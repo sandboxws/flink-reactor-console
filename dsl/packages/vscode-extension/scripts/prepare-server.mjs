@@ -7,7 +7,14 @@
 // deps it keeps external (`jiti` and `@flink-reactor/dsl`). The user's own
 // project still takes precedence for the DSL — the loader resolves the DSL the
 // project depends on first; this copy is only the no-prior-install fallback.
-import { cpSync, existsSync, mkdirSync, realpathSync, rmSync } from "node:fs"
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+} from "node:fs"
 import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -63,10 +70,40 @@ for (const sub of ["dist", "bin", "package.json"]) {
   cpSync(from, join(serverOut, sub), { recursive: true, dereference: true })
 }
 
+/**
+ * Vendor a runtime dep by copying exactly what it declares it ships (its
+ * `files` field) plus its manifest, so its `exports` map resolves at runtime.
+ * Hardcoding `dist/` was wrong for `jiti`, whose entry points live in `lib/`
+ * (`exports["."].import → ./lib/jiti.mjs`): the worker's `import "jiti"` then
+ * failed with "Cannot find module .../jiti/lib/jiti.mjs", breaking ALL
+ * synthesis in the packaged server. Copying the declared `files` keeps the
+ * payload lean without assuming a layout.
+ */
+function vendorDep(name) {
+  copyInto(name, "package.json")
+  let files
+  try {
+    const manifest = JSON.parse(
+      readFileSync(join(packageDir(name), "package.json"), "utf-8"),
+    )
+    files = Array.isArray(manifest.files) ? manifest.files : null
+  } catch {
+    files = null
+  }
+  // Fall back to `dist` when a package declares no `files` (our own packages).
+  const subs = files?.length ? files : ["dist"]
+  for (const sub of subs) {
+    // Skip globs/parent escapes — copy plain dir/file entries only.
+    if (sub.includes("*") || sub.startsWith("..") || sub === "package.json") {
+      continue
+    }
+    copyInto(name, sub)
+  }
+}
+
 // Best-effort runtime deps for the no-prior-install fallback path.
 for (const dep of ["@flink-reactor/dsl", "@flink-reactor/ts-plugin", "jiti"]) {
-  copyInto(dep, "dist")
-  copyInto(dep, "package.json")
+  vendorDep(dep)
 }
 
 console.log(`[prepare-server] vendored language server into ${serverOut}`)

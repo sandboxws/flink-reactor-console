@@ -12,8 +12,17 @@ import type { Connection, TextDocuments } from "vscode-languageserver/node"
 import type { TextDocument } from "vscode-languageserver-textdocument"
 import type { ServerConfig } from "./config.js"
 import type { DocumentStateStore } from "./document-state.js"
+import {
+  GRAPH_MODEL_REQUEST,
+  type GraphModelParams,
+  type GraphModelResponse,
+  NODE_RANGE_REQUEST,
+  type NodeRangeParams,
+  type NodeRangeResult,
+} from "./graph/model.js"
 import { provideHover } from "./hover/provider.js"
 import { provideCompletion } from "./providers/completion/index.js"
+import { buildGraphModel } from "./providers/graph-model.js"
 
 /**
  * Register thin dispatchers for every provider endpoint the server advertises.
@@ -90,4 +99,52 @@ export function registerProviders(
   const emptyTokens = (): SemanticTokens => ({ data: [] })
   connection.languages.semanticTokens.on(emptyTokens)
   connection.languages.semanticTokens.onRange(emptyTokens)
+
+  // ── Custom requests (dag-visualization, vscode-tier-2-feature-7) ─────
+  // The webview-facing graph model and click-to-source range, both projected
+  // from the shared per-document synthesis state. Defensive: the handlers
+  // never throw — a failed/absent synthesis becomes an `ok: false` envelope so
+  // the panel degrades gracefully instead of surfacing an RPC error.
+
+  connection.onRequest(
+    GRAPH_MODEL_REQUEST,
+    (params: GraphModelParams): GraphModelResponse => {
+      const fallbackVersion = params.version ?? 0
+      try {
+        const state = store.get(params.uri)
+        if (!state) {
+          return {
+            uri: params.uri,
+            version: fallbackVersion,
+            ok: false,
+            error: "Pipeline has not been synthesized yet.",
+            nodes: [],
+            edges: [],
+            statements: [],
+          }
+        }
+        return buildGraphModel(state.uri, state.version, state.result)
+      } catch (err) {
+        return {
+          uri: params.uri,
+          version: fallbackVersion,
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+          nodes: [],
+          edges: [],
+          statements: [],
+        }
+      }
+    },
+  )
+
+  connection.onRequest(
+    NODE_RANGE_REQUEST,
+    (params: NodeRangeParams): NodeRangeResult => {
+      const range = store.get(params.uri)?.positionMap.map.get(params.nodeId)
+      return {
+        range: range ? { start: range.start, end: range.end } : null,
+      }
+    },
+  )
 }

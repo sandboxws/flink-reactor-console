@@ -274,9 +274,106 @@ function sinkAcceptedModes(node: ConstructNode): ChangelogMode[] {
 
 export interface GraphFacts {
   readonly edges: readonly DecodedEdge[]
+  readonly dagEdges: readonly DecodedEdge[]
   readonly changelogModes: readonly DecodedChangelogMode[]
   readonly sinkChangelogAccepts: readonly DecodedSinkAccept[]
   readonly nodeInputSchemas: readonly DecodedNodeSchema[]
+}
+
+// ── Visualization DAG edges (DAG-VIS) ────────────────────────────────
+
+/**
+ * Build the **full** visualization DAG edges from the construct tree. Unlike
+ * the chain-aware `buildDataflowContext` (which scopes to a single container's
+ * linear sibling chain and so mis-wires nested Route branches and parallel Join
+ * inputs), this threads the upstream *across* nesting:
+ *
+ *  - **Sibling chains** — within a container, consecutive dataflow nodes chain
+ *    `Source → Transform → … → Sink`; a Sink does not consume the upstream, so
+ *    several sinks fan out from one chain head.
+ *  - **Route / SideOutput fan-out** — the upstream feeds the routing node, then
+ *    each branch wrapper (`Route.Branch`/`Route.Default`) continues the chain
+ *    *seeded from the routing node*, so a sink nested in a branch is reached.
+ *  - **Join / multi-input fan-in** — each input held in a `left`/`right`/
+ *    `stream`/`temporal`/`input` prop (or attached as a child) is an edge into
+ *    the join; the join then becomes the chain head.
+ *
+ * Pure and non-throwing; the graph-model request projects these edges directly.
+ */
+export function collectDagEdges(root: ConstructNode): DecodedEdge[] {
+  const edges: DecodedEdge[] = []
+  const seen = new Set<string>()
+  const addEdge = (from: string, to: string): void => {
+    if (from === to) return
+    const key = `${from} ${to}`
+    if (seen.has(key)) return
+    seen.add(key)
+    edges.push({ from, to })
+  }
+
+  const ROUTING = new Set(["Route", "SideOutput"])
+
+  /** Wire a sibling list as a dataflow chain, seeded with an optional upstream
+   *  (used when a Route branch continues from the routing node). */
+  const wireChain = (
+    siblings: readonly ConstructNode[],
+    seedUpstream: string | undefined,
+  ): void => {
+    let upstream = seedUpstream
+    for (const child of siblings) {
+      if (ROUTING.has(child.component)) {
+        if (upstream) addEdge(upstream, child.id)
+        for (const branch of child.children) {
+          addEdge(child.id, branch.id)
+          wireChain(branch.children, branch.id)
+        }
+        upstream = child.id
+        continue
+      }
+      if (child.kind === "Join") {
+        const inputs = propInputIds(child)
+        const inputSet = new Set(inputs)
+        for (const inId of inputs) addEdge(inId, child.id)
+        if (upstream && !inputSet.has(upstream)) addEdge(upstream, child.id)
+        // An input node attached as a child is already wired; descend only into
+        // its own subtree. A non-input child continues the chain from the join.
+        for (const c of child.children) {
+          if (inputSet.has(c.id)) wireChain(c.children, c.id)
+          else wireChain([c], child.id)
+        }
+        upstream = child.id
+        continue
+      }
+      switch (child.kind) {
+        case "Source":
+        case "RawSQL":
+          upstream = child.id
+          wireChain(child.children, child.id)
+          break
+        case "Transform":
+        case "Window":
+        case "CEP":
+          if (upstream) addEdge(upstream, child.id)
+          upstream = child.id
+          wireChain(child.children, child.id)
+          break
+        case "Sink":
+          if (upstream) addEdge(upstream, child.id)
+          // Terminal: keep `upstream` so later siblings fan out from the same
+          // head. Explicit-nesting children (`Sink({children:[src]})`) form
+          // their own chain.
+          wireChain(child.children, undefined)
+          break
+        default:
+          // Containers (StatementSet) and config sub-nodes: descend, carrying
+          // the upstream through so a chain spanning a container is preserved.
+          wireChain(child.children, upstream)
+      }
+    }
+  }
+
+  wireChain(root.children, undefined)
+  return edges
 }
 
 /**
@@ -443,6 +540,15 @@ export function collectGraphFacts(root: ConstructNode): GraphFacts {
     .getAllEdges()
     .map((e) => ({ from: e.from, to: e.to }))
 
+  let dagEdges: DecodedEdge[] = []
+  try {
+    dagEdges = collectDagEdges(root)
+  } catch {
+    // A degenerate tree should not fail synthesis; the graph view degrades to
+    // the chain-aware edges (or none) rather than blanking.
+    dagEdges = edges
+  }
+
   let changelogModes: DecodedChangelogMode[] = []
   try {
     changelogModes = [...computeChangelogModes(ctx)].map(([nodeId, mode]) => ({
@@ -467,5 +573,11 @@ export function collectGraphFacts(root: ConstructNode): GraphFacts {
     // than failing the whole synthesis.
   }
 
-  return { edges, changelogModes, sinkChangelogAccepts, nodeInputSchemas }
+  return {
+    edges,
+    dagEdges,
+    changelogModes,
+    sinkChangelogAccepts,
+    nodeInputSchemas,
+  }
 }

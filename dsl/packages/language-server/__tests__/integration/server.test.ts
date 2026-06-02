@@ -153,4 +153,74 @@ describe("language server (integration over stdio)", () => {
     expect(dag).toBeDefined()
     expect(dag?.message).toContain("lonely")
   })
+
+  // ── dag-visualization custom requests (vscode-tier-2-feature-7) ──────
+
+  interface GraphModel {
+    uri: string
+    version: number
+    ok: boolean
+    error?: string
+    nodes: Array<{ id: string; kind: string; label: string }>
+    edges: Array<{ from: string; to: string }>
+    statements: string[]
+  }
+
+  it("answers flinkReactor/graphModel and notifies flinkReactor/synthesized", async () => {
+    const c = await start()
+    const uri = fixtureUri("dag-linear-pipeline.tsx")
+
+    const synthesized: Array<{ uri: string; version: number }> = []
+    c.onNotification("flinkReactor/synthesized", (p) =>
+      synthesized.push(p as { uri: string; version: number }),
+    )
+
+    openDoc(c, "dag-linear-pipeline.tsx")
+    // Diagnostics publish right after the store is populated → safe to request.
+    await c.waitForDiagnostics(uri, () => true)
+
+    const model = await c.request<GraphModel>("flinkReactor/graphModel", {
+      uri,
+    })
+    expect(model.ok).toBe(true)
+    expect(model.uri).toBe(uri)
+    expect(model.nodes.map((n) => n.id).sort()).toEqual(
+      ["Filter_1", "orders", "sink_out"].sort(),
+    )
+    expect(model.edges).toHaveLength(2)
+    expect(model.statements.some((s) => s.includes("CREATE TABLE"))).toBe(true)
+
+    // The debounced re-synthesis signal fired for this document.
+    expect(synthesized.some((s) => s.uri === uri)).toBe(true)
+  })
+
+  it("resolves a node's source range via flinkReactor/nodeRange", async () => {
+    const c = await start()
+    const uri = fixtureUri("dag-linear-pipeline.tsx")
+    openDoc(c, "dag-linear-pipeline.tsx")
+    await c.waitForDiagnostics(uri, () => true)
+
+    const hit = await c.request<{ range: { start: { line: number } } | null }>(
+      "flinkReactor/nodeRange",
+      { uri, nodeId: "orders" },
+    )
+    expect(hit.range).not.toBeNull()
+    expect(hit.range?.start.line).toBeGreaterThan(0)
+
+    const miss = await c.request<{ range: unknown }>("flinkReactor/nodeRange", {
+      uri,
+      nodeId: "does-not-exist",
+    })
+    expect(miss.range).toBeNull()
+  })
+
+  it("returns an error envelope (not an RPC error) when no synthesis is cached", async () => {
+    const c = await start()
+    const model = await c.request<GraphModel>("flinkReactor/graphModel", {
+      uri: fixtureUri("never-opened.tsx"),
+      version: 1,
+    })
+    expect(model.ok).toBe(false)
+    expect(model.error).toMatch(/synthesized/i)
+  })
 })

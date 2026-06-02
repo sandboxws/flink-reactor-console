@@ -16,10 +16,28 @@ import { TextDocument } from "vscode-languageserver-textdocument"
 import { DEFAULT_CONFIG, parseConfig, type ServerConfig } from "./config.js"
 import { mapperContext, toLspDiagnostics } from "./diagnostics/index.js"
 import { DocumentStateStore } from "./document-state.js"
+import { SYNTHESIZED_NOTIFICATION } from "./graph/model.js"
 import { buildPositionMap } from "./mappers/source-position-mapper.js"
 import { registerProviders } from "./providers.js"
 import { cacheKeyFor, ResultCache } from "./synth/cache.js"
 import { IsolatedRunner } from "./synth/isolated-runner.js"
+
+// Public wire contract for the `dag-visualization` capability — re-exported so
+// LSP clients (the VS Code extension + its webview) share one source of truth.
+export {
+  GRAPH_MODEL_REQUEST,
+  type GraphModelColumn,
+  type GraphModelDiagnostic,
+  type GraphModelEdge,
+  type GraphModelNode,
+  type GraphModelParams,
+  type GraphModelResponse,
+  NODE_RANGE_REQUEST,
+  type NodeRangeParams,
+  type NodeRangeResult,
+  SYNTHESIZED_NOTIFICATION,
+  type SynthesizedNotification,
+} from "./graph/model.js"
 
 const SEMANTIC_TOKEN_LEGEND: SemanticTokensLegend = {
   tokenTypes: ["keyword", "type", "variable", "string", "number"],
@@ -176,6 +194,9 @@ export function createServer(connection: Connection): ServerHandle {
         mapperContext(positionMap, text, uri),
       ),
     })
+    // Signal interested clients (the DAG panel) that a fresh model is ready
+    // for this document version, so they can pull `flinkReactor/graphModel`.
+    void connection.sendNotification(SYNTHESIZED_NOTIFICATION, { uri, version })
   }
 
   documents.listen(connection)

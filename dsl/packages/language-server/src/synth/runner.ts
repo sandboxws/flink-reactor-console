@@ -73,7 +73,8 @@ function projectNodes(root: ConstructNode): NodeProjection[] {
   const out: NodeProjection[] = []
   const walk = (n: ConstructNode): void => {
     const loc = (n as { __loc?: SourceRange }).__loc
-    out.push({ id: n.id, component: n.component, kind: n.kind, loc })
+    const name = typeof n.props.name === "string" ? n.props.name : undefined
+    out.push({ id: n.id, component: n.component, kind: n.kind, name, loc })
     for (const c of n.children) walk(c)
   }
   walk(root)
@@ -128,6 +129,7 @@ function emptyResult(
     statementContributors: [],
     statementMeta: [],
     edges: [],
+    dagEdges: [],
     changelogModes: [],
     sinkChangelogAccepts: [],
     nodeInputSchemas: [],
@@ -205,6 +207,7 @@ export async function synthesizeDocument(
       statementContributors: decodeContributors(sql.statementContributors),
       statementMeta: decodeMeta(sql.statementMeta),
       edges: graphFacts.edges,
+      dagEdges: graphFacts.dagEdges,
       changelogModes: graphFacts.changelogModes,
       sinkChangelogAccepts: graphFacts.sinkChangelogAccepts,
       nodeInputSchemas: graphFacts.nodeInputSchemas,

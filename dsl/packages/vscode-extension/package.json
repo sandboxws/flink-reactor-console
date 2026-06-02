@@ -59,8 +59,29 @@
         "command": "flinkReactor.showOutput",
         "title": "Show Output",
         "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.openGraph",
+        "title": "Open Pipeline DAG",
+        "category": "FlinkReactor",
+        "icon": "$(type-hierarchy)"
       }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "flinkReactor.openGraph",
+          "when": "flinkReactor.isPipeline",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "flinkReactor.openGraph",
+          "when": "flinkReactor.isPipeline"
+        }
+      ]
+    },
     "configuration": {
       "title": "FlinkReactor",
       "properties": {
@@ -201,7 +222,7 @@
     "test:unit": "vitest run",
     "test:e2e": "node ./dist-test/test/runTest.js",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p src/graph/webview/tsconfig.json --noEmit",
     "package": "pnpm run build && pnpm run prepare-server && vsce package --no-dependencies",
     "vscode:prepublish": "pnpm run build && pnpm run prepare-server"
   },
