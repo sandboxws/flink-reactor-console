@@ -7,24 +7,28 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./jsx-runtime": {
-      "import": "./dist/jsx-runtime.js",
-      "types": "./dist/jsx-runtime.d.ts"
+      "types": "./dist/jsx-runtime.d.ts",
+      "import": "./dist/jsx-runtime.js"
     },
     "./jsx-dev-runtime": {
-      "import": "./dist/jsx-dev-runtime.js",
-      "types": "./dist/jsx-dev-runtime.d.ts"
+      "types": "./dist/jsx-dev-runtime.d.ts",
+      "import": "./dist/jsx-dev-runtime.js"
     },
     "./plugins": {
-      "import": "./dist/plugins.js",
-      "types": "./dist/plugins.d.ts"
+      "types": "./dist/plugins.d.ts",
+      "import": "./dist/plugins.js"
     },
     "./browser": {
-      "import": "./dist/browser.js",
-      "types": "./dist/browser.d.ts"
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js"
     }
   },
   "bin": {
@@ -55,7 +59,7 @@
   "homepage": "https://github.com/sandboxws/flink-reactor-dsl#readme",
   "author": "Ahmed El.Hussaini <328866+sandboxws@users.noreply.github.com>",
   "scripts": {
-    "build": "pnpm -r --filter './packages/*' run build && tsup",
+    "build": "rm -rf dist && tsup && pnpm -r --filter './packages/*' run build",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",

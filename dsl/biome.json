@@ -89,12 +89,14 @@
         "src/cli/templates/__tests__/fixtures/**/*.tsx",
         "src/core/__tests__/jsx-types.test-d.tsx",
         "src/components/__tests__/jsx-children-types.test-d.tsx",
-        "pipelines/**/*.tsx"
+        "pipelines/**/*.tsx",
+        "packages/language-server/__tests__/fixtures/**/*.tsx"
       ],
       "linter": {
         "rules": {
           "correctness": { "noUnusedImports": "off" },
-          "style": { "noDefaultExport": "off" }
+          "style": { "noDefaultExport": "off" },
+          "suspicious": { "noShadowRestrictedNames": "off" }
         }
       }
     },

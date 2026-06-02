@@ -20,11 +20,18 @@ export default defineConfig([
       "jsx-runtime": "src/jsx-runtime.ts",
       "jsx-dev-runtime": "src/jsx-dev-runtime.ts",
       plugins: "src/plugins/index.ts",
+      // Node-only loader subpath (`@flink-reactor/dsl/node`) — sibling of
+      // the browser bundle, used by the language server to load pipelines.
+      node: "src/node.ts",
     },
     format: ["esm"],
     target: "node18",
     outDir: "dist",
-    clean: true,
+    // NOTE: clean is handled once via the `build` script (rm -rf dist) BEFORE
+    // tsup runs. Per-config `clean: true` races with the separate `browser`
+    // config (which shares this outDir but builds in parallel) and can wipe
+    // `dist/browser.d.ts` after it is written.
+    clean: false,
     dts: true,
     sourcemap: true,
     splitting: false,
