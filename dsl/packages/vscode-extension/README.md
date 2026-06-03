@@ -37,6 +37,20 @@ into VS Code and automates the setup that otherwise blocks the editor tooling.
   dist/** (one artifact or the whole set) to land exactly where `fr synth`
   writes. Like the SQL preview, it refreshes on debounced re-synthesis and keeps
   the last-good artifacts behind a "stale" banner when an edit breaks synthesis.
+- **Go-to-definition across references** — Ctrl/Cmd-click navigates FlinkReactor
+  references: a **column** in an expression prop (`condition="user_id > 0"`)
+  jumps to its `Schema({ fields })` field key — **including** when the schema
+  lives in a `schemas/*.ts` module; a sink/source `catalog={lake}` jumps to the
+  `…Catalog({ … })` that defines the handle; and a `<Join>`'s `left`/`right` (or
+  a transform's `source`) jumps to the node it references. Misses fall through
+  to the plain TypeScript definition handler.
+- **Schema Explorer** — a **FlinkReactor** activity-bar view listing the active
+  pipeline's **sources and sinks**, each expanding to its fields rendered
+  `name: TYPE` with a 🔑 primary-key marker and a watermark child. Click a field
+  to reveal its `Schema()` declaration (cross-file aware); click a source/sink
+  to reveal its node JSX. It refreshes on the same debounced re-synthesis as the
+  previews and degrades to non-navigable items rather than failing when a
+  declaration can't be located.
 - **Editor surface** — a status bar item, an output channel, a Getting Started
   walkthrough, and starter snippets (`frpipeline`, `frsource`, `frsink`,
   `frtransform`, `frschema`).
@@ -74,9 +88,12 @@ refuses workspace plugins for security. This extension automates both.
 | `FlinkReactor: Show SQL Preview` | Open the read-only, bidirectional SQL preview beside a pipeline |
 | `FlinkReactor: Open Pipeline DAG` | Open the pipeline dataflow graph beside a pipeline |
 | `FlinkReactor: Open CRD Preview` | Open the read-only, tabbed Kubernetes artifact-set preview beside a pipeline |
+| `FlinkReactor: Refresh Schema Explorer` | Re-request the schema tree for the active pipeline (also the view's title button) |
 
-The last three are also available as editor-title (navigation) actions on any
-`.tsx` pipeline in a FlinkReactor project.
+The three preview/DAG commands are also available as editor-title (navigation)
+actions on any `.tsx` pipeline in a FlinkReactor project. The **Schema Explorer**
+lives in the FlinkReactor activity-bar container and tracks the active pipeline
+automatically.
 
 ## Custom LSP requests
 
@@ -93,6 +110,7 @@ type contract re-exported from `@flink-reactor/language-server`):
 | `flinkReactor/synthesized` | server notification | Fired after each debounced re-synthesis so an open panel re-requests a fresh model (no second client-side debounce). |
 | `flinkReactor/graphModel` | request → `GraphModelResponse` | The DAG projection (the `dag-visualization` capability). |
 | `flinkReactor/crdPreview` | request → `CrdPreviewResponse` | The per-pipeline Kubernetes artifact set (`{ pipelineName, pipelineKind, status, artifacts: [{ id, label, filename, kind, yaml }] }` + the document version). The CRD YAML is serialized in the synthesis worker (via the browser-safe `toYaml`); the request is a pure lookup-and-serialize. Powers the CRD preview. |
+| `flinkReactor/schemaTree` | request → `SchemaTreeResponse` | The active pipeline's sources/sinks as `{ tables: [{ nodeId, role, component, label, fields: [{ name, type, primaryKey, locationRef? }], watermark?, locationRef? }], ok, error? }` + the document version. Fields/PK/watermark are decoded in the synthesis worker; each `locationRef` (node JSX + per-source field-key positions, cross-file aware) is resolved host-side from the source-position map. Pure lookup-and-serialize. Powers the Schema Explorer. |
 
 ## CRD preview: standard vs. CDC, and the IntelliJ supersession
 
@@ -117,6 +135,31 @@ with a diff view and a CRD-only request. This VS Code preview reuses the
 `flinkReactor/crdPreview` request name but returns the **full** artifact set;
 the IntelliJ diff view is not carried forward in v1 (live re-synthesis covers
 the primary "see the effect of my edit" need).
+
+## Go-to-definition & Schema Explorer (IntelliJ supersession)
+
+`textDocument/definition` is editor-agnostic LSP, so the navigation below also
+benefits any other LSP client (IntelliJ, Neovim). It resolves three FlinkReactor
+reference kinds, classified by where the cursor sits and resolved over the source
+AST plus the held synthesis graph:
+
+| Cursor on… | Resolves to | Cross-file |
+|------------|-------------|------------|
+| a **column** in an expression prop (`condition`, `on`, `Map` select, …) | the column's `Schema({ fields })` field key in the nearest upstream source | yes — follows the source's `schema={X}` import into `schemas/*.ts` |
+| a sink/source `catalog={handle}` | the `…Catalog({ … })` call that defines the handle | follows a one-hop import |
+| a `<Join>`'s `left`/`right`, a transform's `source` | the node bound to that variable | — |
+
+Bare, back-quoted, and qualified `alias.column` references all resolve (the
+alias maps to the matching join input). A computed handle, an untraceable
+column, or a cursor on a SQL keyword returns **no result** (no error), so the
+default TypeScript definition handler still runs.
+
+This **supersedes and extends** the IntelliJ `schema-goto-definition`
+(`intellij-tier-2-feature-9`), which covered only the column → `Schema`-field
+case for IntelliJ. That same column case is now editor-agnostic LSP, joined by
+catalog-handle and component-input navigation **and** the VS Code Schema
+Explorer tree (fed by `flinkReactor/schemaTree`). `intellij-tier-2-feature-9`
+should be archived/dropped now that this has landed.
 
 ## Settings
 

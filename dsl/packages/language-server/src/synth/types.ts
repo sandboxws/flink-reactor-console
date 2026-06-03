@@ -157,6 +157,31 @@ export interface DecodedNodeSchema {
   readonly columns: readonly { readonly name: string; readonly type: string }[]
 }
 
+/** One field of a source/sink table schema for the `schemaTree` request. */
+export interface DecodedTableField {
+  readonly name: string
+  readonly type: string
+  /** True when the field is part of the schema's `primaryKey.columns`. */
+  readonly primaryKey: boolean
+}
+
+/** A source or sink node projected to the schema the `schemaTree` request and
+ *  the VS Code Schema Explorer render: its role, fields (with PK marking), and
+ *  watermark. For a source the fields/PK/watermark come from its declared
+ *  `SchemaDefinition`; for a sink the fields are the *inferred input* schema
+ *  (the dataflow fold), since a sink writes whatever flows into it. Resolved in
+ *  the worker where `SchemaDefinition` and the construct tree still exist; the
+ *  host pairs each entry with its source position. */
+export interface DecodedTableSchema {
+  readonly nodeId: string
+  readonly role: "source" | "sink"
+  readonly component: string
+  /** The node's `name` prop when set, else its id (display label parity). */
+  readonly label: string
+  readonly fields: readonly DecodedTableField[]
+  readonly watermark?: { readonly column: string; readonly expression: string }
+}
+
 /** Request payload sent to the synthesis worker (and accepted by the pure
  *  in-process runner). */
 export interface SynthesisInput {
@@ -198,6 +223,9 @@ export interface SynthesisResult {
   /** Per-node input schema (columns visible to the node's expression props),
    *  for column completion + the hover column-ref card. */
   readonly nodeInputSchemas: readonly DecodedNodeSchema[]
+  /** Per source/sink table schema (fields + PK + watermark) for the
+   *  `flinkReactor/schemaTree` request and the VS Code Schema Explorer. */
+  readonly tableSchemas: readonly DecodedTableSchema[]
   readonly pipelineManifest: PipelineManifest | null
   readonly crdYaml: string
   /** Which artifact shape the pipeline synthesized to (`standard` for a

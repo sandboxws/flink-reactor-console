@@ -30,7 +30,16 @@ import type {
   DecodedEdge,
   DecodedNodeSchema,
   DecodedSinkAccept,
+  DecodedTableField,
+  DecodedTableSchema,
 } from "./types.js"
+
+/** The minimal shape of a `SchemaDefinition` this module reads off a node's
+ *  `schema` prop (its full type is not exported through the worker boundary). */
+interface SchemaDefinitionLike {
+  readonly primaryKey?: { readonly columns?: readonly string[] }
+  readonly watermark?: { readonly column: string; readonly expression: string }
+}
 
 // ── Structural (FR-DAG) ──────────────────────────────────────────────
 
@@ -278,6 +287,7 @@ export interface GraphFacts {
   readonly changelogModes: readonly DecodedChangelogMode[]
   readonly sinkChangelogAccepts: readonly DecodedSinkAccept[]
   readonly nodeInputSchemas: readonly DecodedNodeSchema[]
+  readonly tableSchemas: readonly DecodedTableSchema[]
 }
 
 // ── Visualization DAG edges (DAG-VIS) ────────────────────────────────
@@ -521,6 +531,71 @@ function dedupeByName(cols: readonly ResolvedColumn[]): ResolvedColumn[] {
 }
 
 /**
+ * Project every source and sink to the table schema the `schemaTree` request
+ * renders. A source's fields/PK/watermark come from its declared
+ * `SchemaDefinition` (`resolveNodeSchema` for the field types, `props.schema`
+ * for PK membership and the watermark); a sink writes whatever flows into it, so
+ * its fields are the inferred *input* schema (`nodeInputSchemas`, computed just
+ * above). Non-throwing: a resolution failure for one node is skipped rather than
+ * failing synthesis.
+ */
+function collectTableSchemas(
+  root: ConstructNode,
+  nodeInputSchemas: readonly DecodedNodeSchema[],
+): DecodedTableSchema[] {
+  const nodeIndex = new Map<string, ConstructNode>()
+  const index = (node: ConstructNode): void => {
+    if (nodeIndex.has(node.id)) return
+    nodeIndex.set(node.id, node)
+    for (const child of node.children) index(child)
+  }
+  index(root)
+  const inputByNode = new Map(
+    nodeInputSchemas.map((s) => [s.nodeId, s.columns]),
+  )
+
+  const tables: DecodedTableSchema[] = []
+  for (const node of nodeIndex.values()) {
+    const role =
+      node.kind === "Source"
+        ? "source"
+        : node.kind === "Sink"
+          ? "sink"
+          : undefined
+    if (!role) continue
+
+    const schemaDef = node.props.schema as SchemaDefinitionLike | undefined
+    const pkColumns = new Set(schemaDef?.primaryKey?.columns ?? [])
+
+    const columns =
+      role === "source"
+        ? (resolveNodeSchema(node, nodeIndex) ?? []).map((c) => ({
+            name: c.name,
+            type: c.type,
+          }))
+        : (inputByNode.get(node.id) ?? [])
+
+    const fields: DecodedTableField[] = columns.map((c) => ({
+      name: c.name,
+      type: c.type,
+      primaryKey: pkColumns.has(c.name),
+    }))
+
+    const name = node.props.name
+    tables.push({
+      nodeId: node.id,
+      role,
+      component: node.component,
+      label: typeof name === "string" && name.length > 0 ? name : node.id,
+      fields,
+      // Only sources carry a watermark declaration; a sink writes a stream.
+      watermark: role === "source" ? schemaDef?.watermark : undefined,
+    })
+  }
+  return tables
+}
+
+/**
  * Derive the hover-facing graph facts that cannot cross the worker→host
  * serialization boundary as live objects: the dataflow edges (flattened from
  * the chain-aware `SynthContext`), each node's resolved output changelog mode,
@@ -573,11 +648,20 @@ export function collectGraphFacts(root: ConstructNode): GraphFacts {
     // than failing the whole synthesis.
   }
 
+  let tableSchemas: DecodedTableSchema[] = []
+  try {
+    tableSchemas = collectTableSchemas(root, nodeInputSchemas)
+  } catch {
+    // Schema projection hiccup — the schema tree degrades to no tables rather
+    // than failing the whole synthesis.
+  }
+
   return {
     edges,
     dagEdges,
     changelogModes,
     sinkChangelogAccepts,
     nodeInputSchemas,
+    tableSchemas,
   }
 }

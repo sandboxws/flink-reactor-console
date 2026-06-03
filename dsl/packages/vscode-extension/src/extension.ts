@@ -20,6 +20,14 @@ import {
   SqlPreviewPanel,
   type SqlRenderInfo,
 } from "./preview/sql-preview-manager.js"
+import type { SchemaTableInfo, SchemaTreeLocation } from "./tree/protocol.js"
+import {
+  revealLocation,
+  REFRESH_COMMAND as SCHEMA_REFRESH_COMMAND,
+  REVEAL_COMMAND as SCHEMA_REVEAL_COMMAND,
+  SCHEMA_VIEW_ID,
+  SchemaExplorerProvider,
+} from "./tree/schema-explorer.js"
 import { disposeOutputChannel, getOutputChannel } from "./ui/output.js"
 import { StatusBar } from "./ui/status-bar.js"
 import { discoverPipelines } from "./workspace/pipeline-discovery.js"
@@ -30,6 +38,7 @@ import {
 
 let client: FlinkReactorClient | undefined
 let statusBar: StatusBar | undefined
+let schemaExplorer: SchemaExplorerProvider | undefined
 
 /** The extension's public API (also used by the e2e suite to observe the DAG
  *  panel, whose sandboxed webview is otherwise unreadable from the host). */
@@ -69,6 +78,19 @@ export interface FlinkReactorApi {
     /** Whether the CRD preview panel is currently open. */
     isOpen(): boolean
   }
+  readonly schemaTree: {
+    /** The Schema Explorer's current source/sink tables (the rendered model). */
+    tables(): readonly SchemaTableInfo[]
+    /** The pipeline URI the tree is bound to, if any. */
+    boundUri(): string | undefined
+    /** Whether the tree is showing last-good tables behind a stale indicator. */
+    isStale(): boolean
+    /** Drive the reveal path for a tree item by id (the native tree's items are
+     *  not clickable from the host). Resolves to whether navigation occurred. */
+    revealItem(id: string): Promise<boolean>
+    /** Force a re-request of `flinkReactor/schemaTree` for the bound document. */
+    refresh(): Promise<void>
+  }
 }
 
 const api: FlinkReactorApi = {
@@ -97,6 +119,15 @@ const api: FlinkReactorApi = {
     saveAll: () => CrdPreviewPanel.active?.saveAll() ?? Promise.resolve(),
     isOpen: () => CrdPreviewPanel.active !== undefined,
   },
+  schemaTree: {
+    tables: () => SchemaExplorerProvider.current?.snapshot ?? [],
+    boundUri: () => SchemaExplorerProvider.current?.boundUri,
+    isStale: () => SchemaExplorerProvider.current?.isStale ?? false,
+    revealItem: (id) =>
+      SchemaExplorerProvider.current?.revealById(id) ?? Promise.resolve(false),
+    refresh: () =>
+      SchemaExplorerProvider.current?.refresh() ?? Promise.resolve(),
+  },
 }
 
 export async function activate(
@@ -109,6 +140,19 @@ export async function activate(
   // user can act even if activation raced ahead of the project being detected.
   registerCommands(context, locateProject)
 
+  // Schema Explorer: register the view + provider up front (it shows a
+  // placeholder without a project/server). The provider reads `client` lazily,
+  // so it starts producing data as soon as the server is up.
+  schemaExplorer = new SchemaExplorerProvider(() => client)
+  context.subscriptions.push(
+    vscode.window.createTreeView(SCHEMA_VIEW_ID, {
+      treeDataProvider: schemaExplorer,
+      showCollapseAll: true,
+    }),
+    { dispose: () => schemaExplorer?.dispose() },
+  )
+  void schemaExplorer.bind(activePipelineUri())
+
   // Keep the `flinkReactor.isPipeline` context key (which gates the editor-title
   // DAG + SQL-preview actions) in sync with the active editor.
   updatePipelineContext()
@@ -120,6 +164,8 @@ export async function activate(
       if (editor && isPipelineDocument(editor.document)) {
         CrdPreviewPanel.handleActiveEditor(editor.document.uri.toString())
       }
+      // 7.4 — re-bind the Schema Explorer to the newly active pipeline.
+      void schemaExplorer?.bind(activePipelineUri())
     }),
     vscode.workspace.onDidOpenTextDocument(() => updatePipelineContext()),
     // DSL→SQL: drive any open SQL preview off the bound editor's caret.
@@ -151,6 +197,17 @@ export async function activate(
   await client.start()
   context.subscriptions.push(client.watchConfiguration())
   context.subscriptions.push({ dispose: () => void client?.dispose() })
+
+  // 7.3 — live refresh: re-request the schema tree whenever the server reports a
+  // fresh synthesis for the bound pipeline (its existing debounced re-synthesis).
+  context.subscriptions.push(
+    client.onSynthesized(({ uri }) => {
+      if (uri === schemaExplorer?.boundUri) void schemaExplorer.refresh()
+    }),
+  )
+  // The view bound before the server existed (returning no data); now that it is
+  // up, pull the tree for the active pipeline.
+  void schemaExplorer?.refresh()
 
   // Onboarding automation — both are non-blocking and self-gating.
   void maybeConfigureTsPlugin(project)
@@ -211,7 +268,23 @@ function registerCommands(
     vscode.commands.registerCommand("flinkReactor.openCrdPreview", () =>
       openCrdPreviewCommand(context.extensionUri),
     ),
+    // Schema Explorer: reveal an item's declaration (driven by the tree item's
+    // command) and a manual refresh (the view/title button).
+    vscode.commands.registerCommand(
+      SCHEMA_REVEAL_COMMAND,
+      (loc?: SchemaTreeLocation) => revealLocation(loc),
+    ),
+    vscode.commands.registerCommand(SCHEMA_REFRESH_COMMAND, () =>
+      schemaExplorer?.refresh(),
+    ),
   )
+}
+
+/** The active editor's URI when it is a FlinkReactor pipeline, else `undefined`
+ *  — what the Schema Explorer binds to. */
+function activePipelineUri(): string | undefined {
+  const doc = vscode.window.activeTextEditor?.document
+  return doc && isPipelineDocument(doc) ? doc.uri.toString() : undefined
 }
 
 /** Open (or reveal) the DAG panel for the active pipeline. */

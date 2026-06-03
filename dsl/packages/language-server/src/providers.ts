@@ -35,9 +35,16 @@ import {
   type SynthParams,
   type SynthResponse,
 } from "./preview/model.js"
+import {
+  SCHEMA_TREE_REQUEST,
+  type SchemaTreeParams,
+  type SchemaTreeResponse,
+} from "./preview/schema-tree-model.js"
 import { provideCompletion } from "./providers/completion/index.js"
 import { buildCrdPreviewModel } from "./providers/crd-preview.js"
+import { provideDefinition } from "./providers/definition/index.js"
 import { buildGraphModel } from "./providers/graph-model.js"
+import { buildSchemaTreeModel } from "./providers/schema-tree.js"
 import { buildSynthModel } from "./providers/synth-model.js"
 
 /**
@@ -102,9 +109,19 @@ export function registerProviders(
     return []
   })
 
+  // FlinkReactor go-to-definition (schema-navigation, Tier-2): resolves a
+  // catalog-handle prop, a column reference in an expression prop, or a
+  // node-input prop to its source declaration. Returns null for non-FR tokens
+  // and unresolvable targets so the default TypeScript handler still runs.
   connection.onDefinition((params): LocationLink[] | null => {
-    void store.get(params.textDocument.uri)
-    return null
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return null
+    return provideDefinition({
+      state: store.get(params.textDocument.uri),
+      sourceText: doc.getText(),
+      uri: params.textDocument.uri,
+      position: params.position,
+    })
   })
 
   connection.languages.inlayHint.on((params): InlayHint[] => {
@@ -243,6 +260,42 @@ export function registerProviders(
               artifacts: [],
             },
           ],
+        }
+      }
+    },
+  )
+
+  // Schema tree (schema-navigation, vscode-tier-2-feature-8): serialize the
+  // cached pipeline's sources/sinks + fields/PK/watermark + per-node/-field
+  // `locationRef`s for the read-only Schema Explorer tree. Pure projection of
+  // the held state (and the source AST for positions) — never re-synthesizes. A
+  // failed synthesis resolves with `ok: false` + an error indicator (not an RPC
+  // rejection) so the tree keeps its last-good tables; an un-synthesized or
+  // unopened document resolves with no tables.
+  connection.onRequest(
+    SCHEMA_TREE_REQUEST,
+    (params: SchemaTreeParams): SchemaTreeResponse => {
+      const fallbackVersion = params.version ?? 0
+      try {
+        const state = store.get(params.uri)
+        const doc = documents.get(params.uri)
+        if (!state || !doc) {
+          return {
+            uri: params.uri,
+            version: fallbackVersion,
+            ok: false,
+            error: "Pipeline has not been synthesized yet.",
+            tables: [],
+          }
+        }
+        return buildSchemaTreeModel(state, doc.getText())
+      } catch (err) {
+        return {
+          uri: params.uri,
+          version: fallbackVersion,
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+          tables: [],
         }
       }
     },

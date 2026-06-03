@@ -405,4 +405,119 @@ describe("language server (integration over stdio)", () => {
     expect(crd.documentVersion).toBe(5)
     expect(crd.pipelines).toEqual([])
   })
+
+  // ── textDocument/definition (schema-navigation, vscode-tier-2-feature-8) ──
+
+  interface DefLink {
+    targetUri: string
+    targetRange: {
+      start: { line: number; character: number }
+      end: { line: number; character: number }
+    }
+  }
+
+  /** Position `delta` chars into the first occurrence of `marker` in `name`. */
+  function posIn(name: string, marker: string, delta: number) {
+    const text = fixtureText(name)
+    const before = text.slice(0, text.indexOf(marker) + delta).split("\n")
+    return {
+      line: before.length - 1,
+      character: before[before.length - 1].length,
+    }
+  }
+
+  it("resolves a column reference to its inline Schema field via definition", async () => {
+    const c = await start()
+    const name = "def-inline-pipeline.tsx"
+    const uri = fixtureUri(name)
+    openDoc(c, name)
+    await c.waitForDiagnostics(uri, () => true)
+
+    const links = await c.request<DefLink[] | null>("textDocument/definition", {
+      textDocument: { uri },
+      position: posIn(name, "amount > 0", 2),
+    })
+    expect(links).not.toBeNull()
+    expect((links ?? [])[0].targetUri).toBe(uri)
+  })
+
+  it("resolves a column across files into the schema module via definition", async () => {
+    const c = await start()
+    const name = "def-xfile-pipeline.tsx"
+    const uri = fixtureUri(name)
+    openDoc(c, name)
+    await c.waitForDiagnostics(uri, () => true)
+
+    const links = await c.request<DefLink[] | null>("textDocument/definition", {
+      textDocument: { uri },
+      position: posIn(name, "o_orderkey > 0", 2),
+    })
+    expect(links).not.toBeNull()
+    expect((links ?? [])[0].targetUri).toBe(
+      pathToFileURL(join(FIXTURES, "schemas", "orders.ts")).href,
+    )
+  })
+
+  it("returns null from definition on a non-reference token", async () => {
+    const c = await start()
+    const name = "def-inline-pipeline.tsx"
+    const uri = fixtureUri(name)
+    openDoc(c, name)
+    await c.waitForDiagnostics(uri, () => true)
+
+    const links = await c.request<DefLink[] | null>("textDocument/definition", {
+      textDocument: { uri },
+      position: posIn(name, "AND `order_id`", 1),
+    })
+    expect(links).toBeNull()
+  })
+
+  // ── flinkReactor/schemaTree custom request (schema-navigation) ───────
+
+  interface SchemaTreeModel {
+    uri: string
+    version: number
+    ok: boolean
+    error?: string
+    tables: {
+      nodeId: string
+      role: "source" | "sink"
+      component: string
+      label: string
+      fields: { name: string; type: string; primaryKey: boolean }[]
+      watermark?: { column: string; expression: string }
+      locationRef?: { uri: string }
+    }[]
+  }
+
+  it("answers flinkReactor/schemaTree with the cached sources and sinks", async () => {
+    const c = await start()
+    const uri = fixtureUri("def-schema-tree-pipeline.tsx")
+    openDoc(c, "def-schema-tree-pipeline.tsx")
+    await c.waitForDiagnostics(uri, () => true)
+
+    const tree = await c.request<SchemaTreeModel>("flinkReactor/schemaTree", {
+      uri,
+    })
+    expect(tree.ok).toBe(true)
+    expect(tree.uri).toBe(uri)
+    const source = tree.tables.find((t) => t.role === "source")
+    expect(source?.component).toBe("KafkaSource")
+    expect(source?.fields.find((f) => f.name === "event_id")?.primaryKey).toBe(
+      true,
+    )
+    expect(source?.watermark?.column).toBe("event_time")
+    expect(tree.tables.some((t) => t.role === "sink")).toBe(true)
+  })
+
+  it("returns an error envelope for flinkReactor/schemaTree when nothing is cached", async () => {
+    const c = await start()
+    const tree = await c.request<SchemaTreeModel>("flinkReactor/schemaTree", {
+      uri: fixtureUri("never-opened.tsx"),
+      version: 9,
+    })
+    expect(tree.ok).toBe(false)
+    expect(tree.version).toBe(9)
+    expect(tree.tables).toEqual([])
+  })
 })

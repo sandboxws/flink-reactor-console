@@ -77,9 +77,40 @@
         "title": "Open CRD Preview",
         "category": "FlinkReactor",
         "icon": "$(symbol-namespace)"
+      },
+      {
+        "command": "flinkReactor.refreshSchemaExplorer",
+        "title": "Refresh Schema Explorer",
+        "category": "FlinkReactor",
+        "icon": "$(refresh)"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "flinkReactor",
+          "title": "FlinkReactor",
+          "icon": "media/schema-explorer.svg"
+        }
+      ]
+    },
+    "views": {
+      "flinkReactor": [
+        {
+          "id": "flinkReactor.schemaExplorer",
+          "name": "Schema Explorer",
+          "contextualTitle": "FlinkReactor"
+        }
+      ]
+    },
     "menus": {
+      "view/title": [
+        {
+          "command": "flinkReactor.refreshSchemaExplorer",
+          "when": "view == flinkReactor.schemaExplorer",
+          "group": "navigation"
+        }
+      ],
       "editor/title": [
         {
           "command": "flinkReactor.openGraph",

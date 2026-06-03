@@ -62,6 +62,17 @@ export {
   type SynthStatementMeta,
   type SynthStatementOrigin,
 } from "./preview/model.js"
+// Schema-tree wire contract (schema-navigation capability) — same one-source-of-
+// truth re-export so the extension + its Schema Explorer share the contract.
+export {
+  SCHEMA_TREE_REQUEST,
+  type SchemaTableInfo,
+  type SchemaTreeField,
+  type SchemaTreeLocation,
+  type SchemaTreeParams,
+  type SchemaTreeResponse,
+  type SchemaTreeWatermark,
+} from "./preview/schema-tree-model.js"
 export type { PipelineKind } from "./synth/types.js"
 
 const SEMANTIC_TOKEN_LEGEND: SemanticTokensLegend = {
