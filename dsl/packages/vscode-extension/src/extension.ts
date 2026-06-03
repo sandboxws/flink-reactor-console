@@ -20,6 +20,7 @@ import {
   SqlPreviewPanel,
   type SqlRenderInfo,
 } from "./preview/sql-preview-manager.js"
+import { SqlHighlightingController } from "./sql/highlighting-controller.js"
 import type { SchemaTableInfo, SchemaTreeLocation } from "./tree/protocol.js"
 import {
   revealLocation,
@@ -139,6 +140,12 @@ export async function activate(
   // Commands are always available (using a late-bound project lookup) so the
   // user can act even if activation raced ahead of the project being detected.
   registerCommands(context, locateProject)
+
+  // Embedded-SQL highlighting opt-out (embedded-sql-highlighting, Tier-2): honor
+  // `flinkReactor.sql.highlighting` for the TextMate layer. Registered before
+  // the project gate so the opt-out applies to any open pipeline `.tsx`, even
+  // when no FlinkReactor project is detected (the grammar is injected globally).
+  context.subscriptions.push(new SqlHighlightingController().register())
 
   // Schema Explorer: register the view + provider up front (it shows a
   // placeholder without a project/server). The provider reads `client` lazily,

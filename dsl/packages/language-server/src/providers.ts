@@ -10,7 +10,7 @@ import type {
 } from "vscode-languageserver"
 import type { Connection, TextDocuments } from "vscode-languageserver/node"
 import type { TextDocument } from "vscode-languageserver-textdocument"
-import type { ServerConfig } from "./config.js"
+import { type ServerConfig, sqlSemanticTokensEnabled } from "./config.js"
 import type { DocumentStateStore } from "./document-state.js"
 import {
   GRAPH_MODEL_REQUEST,
@@ -45,6 +45,10 @@ import { buildCrdPreviewModel } from "./providers/crd-preview.js"
 import { provideDefinition } from "./providers/definition/index.js"
 import { buildGraphModel } from "./providers/graph-model.js"
 import { buildSchemaTreeModel } from "./providers/schema-tree.js"
+import type {
+  SqlSemanticTokensProvider,
+  TokenInput,
+} from "./providers/sql-semantic-tokens.js"
 import { buildSynthModel } from "./providers/synth-model.js"
 
 /**
@@ -61,8 +65,15 @@ export function registerProviders(
   store: DocumentStateStore,
   documents: TextDocuments<TextDocument>,
   getConfig: () => ServerConfig,
+  sqlSemanticTokens: SqlSemanticTokensProvider,
 ): void {
   const empty = <T>(value: T) => value
+
+  /** A document is FR-pipeline-like (eligible for SQL coloring) when it imports
+   *  the DSL — pipelines and `schemas/*.ts` modules both do. Mirrors the
+   *  server's `isPipelineDocument` gate so non-FR `.tsx` is left plain. */
+  const importsDsl = (text: string): boolean =>
+    /from\s+["']@flink-reactor\/dsl/.test(text)
 
   // Context-aware DSL completion. Classifies against the *current* document text
   // and serves child components, connector props, enum values, and Flink types
@@ -129,9 +140,36 @@ export function registerProviders(
     return []
   })
 
-  const emptyTokens = (): SemanticTokens => ({ data: [] })
-  connection.languages.semanticTokens.on(emptyTokens)
-  connection.languages.semanticTokens.onRange(emptyTokens)
+  // Embedded-SQL semantic tokens (embedded-sql-highlighting, Tier-2 feature 9):
+  // the precise, synthesis-aware coloring layer VS Code renders *over* the
+  // TextMate injection grammar. Range-finding is AST-only, so tokens are emitted
+  // even when synthesis failed; the provider caches per document version and
+  // never throws. Suppressed (empty) when `flinkReactor.sql.highlighting` is
+  // `textmate`/`off`, or for non-FR documents.
+  const tokenInput = (doc: TextDocument): TokenInput => {
+    const sourceText = doc.getText()
+    return {
+      uri: doc.uri,
+      version: doc.version,
+      sourceText,
+      fileName: doc.uri,
+      enabled: sqlSemanticTokensEnabled(getConfig()) && importsDsl(sourceText),
+    }
+  }
+  connection.languages.semanticTokens.on((params): SemanticTokens => {
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return { data: [] }
+    return sqlSemanticTokens.full(tokenInput(doc))
+  })
+  connection.languages.semanticTokens.onRange((params): SemanticTokens => {
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return { data: [] }
+    return sqlSemanticTokens.range(
+      tokenInput(doc),
+      params.range.start.line,
+      params.range.end.line,
+    )
+  })
 
   // ── Custom requests (dag-visualization + sql-preview) ───────────────
   // The webview-facing graph/synth models and click-to-source range, all

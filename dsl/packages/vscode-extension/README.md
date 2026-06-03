@@ -51,6 +51,13 @@ into VS Code and automates the setup that otherwise blocks the editor tooling.
   to reveal its node JSX. It refreshes on the same debounced re-synthesis as the
   previews and degrades to non-navigable items rather than failing when a
   declaration can't be located.
+- **Embedded SQL highlighting** — the Flink SQL you write inside `.tsx` props
+  (`Filter` `condition`, `Map`/`Aggregate` projections, join `on`, `Query`
+  clauses, `Validate` rules, `Schema` watermark, `RawSQL` body) is colored as
+  SQL instead of rendering as one flat string — keywords, functions (`TUMBLE`,
+  `CAST`, `CURRENT_WATERMARK`), type names, operators, literals, and comments
+  each in their theme color. Two layers compose (see below); toggle with
+  `flinkReactor.sql.highlighting`.
 - **Editor surface** — a status bar item, an output channel, a Getting Started
   walkthrough, and starter snippets (`frpipeline`, `frsource`, `frsink`,
   `frtransform`, `frschema`).
@@ -161,6 +168,44 @@ catalog-handle and component-input navigation **and** the VS Code Schema
 Explorer tree (fed by `flinkReactor/schemaTree`). `intellij-tier-2-feature-9`
 should be archived/dropped now that this has landed.
 
+## Embedded SQL highlighting (two layers, IntelliJ supersession)
+
+The SQL embedded in pipeline props is colored by **two complementary layers**
+over one shared SQL-context set (the DSL's `EXPRESSION_PROPS` plus the `RawSQL`
+body and `Schema` watermark expression) and one Flink 1.20–2.2 vocabulary:
+
+| Layer | Where | Character |
+|-------|-------|-----------|
+| **TextMate injection grammar** (`syntaxes/flinkreactor-sql.injection.json`, `injectTo: ["source.tsx"]`) | the VS Code shell | fast, **offline**, active the instant a file opens; heuristic (matches prop/component shapes textually) |
+| **LSP semantic tokens** (`@flink-reactor/language-server`) | a separate process | **precise**, synthesis-aware: exact prop ranges from the parsed TSX + source-position map; **editor-agnostic** (also benefits IntelliJ/Neovim LSP clients) |
+
+They compose the way VS Code intends: the grammar paints immediately, and the
+server's **semantic tokens override it within the ranges the server reports**
+(multi-line clause props, `RawSQL` bodies, watermark expressions inside a
+`Schema({ … })` call, and only-FR props the textual grammar would mis-scope).
+Outside those ranges — and before the server is ready, or on a transient server
+failure — the grammar's coloring stands. Both layers map to **standard** SQL
+scopes / LSP token types, so stock and custom themes color FR SQL with **zero**
+per-user configuration, and unknown identifiers (columns, newer-version builtins)
+are left plain — never colored as errors. Highlighting is best-effort on
+malformed/mid-edit SQL: a half-typed `SELECT ` colors immediately, and the server
+emits tokens even when synthesis fails, never blanking already-shown coloring.
+
+`flinkReactor.sql.highlighting` selects the layers — `semantic+textmate`
+(default), `textmate` (grammar only), `semantic` (server only), or `off` (plain
+TypeScript strings). The server honors the setting exactly (it emits no SQL
+tokens for `textmate`/`off`). VS Code cannot un-register a contributed grammar at
+runtime, so for `semantic`/`off` the extension neutralizes the grammar's coloring
+via a workspace `editor.tokenColorCustomizations` rule targeting an FR-only
+marker scope (`meta.embedded.flinkreactor-sql`) — leaving standalone `.sql` files
+untouched; switching back to a TextMate mode removes the rule.
+
+This **supersedes** the IntelliJ `sql-injection` capability
+(`intellij-tier-2-feature-5`), which used IntelliJ's platform-specific
+`MultiHostInjector`. The precise layer is now editor-agnostic LSP; the grammar is
+the VS Code packaging detail. `intellij-tier-2-feature-5` should be
+archived/dropped for the VS Code/LSP stack now that this has landed.
+
 ## Settings
 
 | Setting | Default | Description |
@@ -172,6 +217,7 @@ should be archived/dropped now that this has landed.
 | `flinkReactor.server.maxHeapMb` | `512` | Heap ceiling (MB) for the synthesis worker |
 | `flinkReactor.flinkVersion` | _(unset)_ | Target Flink version override |
 | `flinkReactor.tsPlugin.autoConfigure` | `prompt` | `prompt` / `always` / `never` for tsconfig editing |
+| `flinkReactor.sql.highlighting` | `semantic+textmate` | Embedded-SQL coloring layers: `semantic+textmate` / `textmate` / `semantic` / `off` |
 | `flinkReactor.cliPath` | _(empty)_ | Path to the `flink-reactor` CLI (reserved for CLI integration) |
 
 ## Packaging

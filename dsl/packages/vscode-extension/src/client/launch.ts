@@ -30,6 +30,9 @@ interface ServerSettings {
   readonly timeout: number
   readonly maxHeapMb: number
   readonly flinkVersion?: string
+  /** `flinkReactor.sql.highlighting` — the server emits SQL semantic tokens only
+   *  for `semantic`/`semantic+textmate`. */
+  readonly sqlHighlighting: string
 }
 
 /** Map VS Code's nested `flinkReactor.*` config into the server's flat shape. */
@@ -44,6 +47,7 @@ function readServerSettings(): ServerSettings {
     timeout: cfg.get<number>("server.timeout", 5000),
     maxHeapMb: cfg.get<number>("server.maxHeapMb", 512),
     flinkVersion: cfg.get<string>("flinkVersion") || undefined,
+    sqlHighlighting: cfg.get<string>("sql.highlighting", "semantic+textmate"),
   }
 }
 

@@ -1,5 +1,0 @@
-{
-  "scopeName": "flink-reactor.injection",
-  "injectionSelector": "L:source.tsx -comment -string",
-  "patterns": []
-}

@@ -202,6 +202,23 @@
           "type": "string",
           "default": "",
           "markdownDescription": "Path to the `flink-reactor` CLI. Resolved from the workspace when empty. Reserved for CLI-lifecycle integration."
+        },
+        "flinkReactor.sql.highlighting": {
+          "type": "string",
+          "enum": [
+            "semantic+textmate",
+            "textmate",
+            "semantic",
+            "off"
+          ],
+          "default": "semantic+textmate",
+          "enumDescriptions": [
+            "Both layers: the TextMate grammar colors instantly/offline and the language server's semantic tokens refine it (recommended).",
+            "TextMate grammar only — fast, offline, heuristic; no server semantic tokens for embedded SQL.",
+            "Language-server semantic tokens only — precise, synthesis-aware; the heuristic grammar coloring is suppressed.",
+            "No embedded-SQL coloring — fragments render as ordinary TypeScript string literals."
+          ],
+          "markdownDescription": "How to color the Flink SQL embedded in `.tsx` pipeline props (`Filter` `condition`, `Map`/`Aggregate` projections, join `on`, `Validate` rules, `Schema` watermark, `RawSQL` body). Two complementary layers — a TextMate injection grammar and language-server semantic tokens — that compose: semantic tokens override the grammar within the ranges the server reports."
         }
       }
     },
@@ -213,8 +230,8 @@
     ],
     "grammars": [
       {
-        "scopeName": "flink-reactor.injection",
-        "path": "./syntaxes/flink-reactor.injection.json",
+        "scopeName": "flinkreactor.sql.injection",
+        "path": "./syntaxes/flinkreactor-sql.injection.json",
         "injectTo": [
           "source.tsx"
         ]

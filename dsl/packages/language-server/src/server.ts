@@ -6,7 +6,6 @@ import {
   createConnection,
   type InitializeResult,
   ProposedFeatures,
-  type SemanticTokensLegend,
   StreamMessageReader,
   StreamMessageWriter,
   TextDocumentSyncKind,
@@ -18,6 +17,10 @@ import { mapperContext, toLspDiagnostics } from "./diagnostics/index.js"
 import { DocumentStateStore } from "./document-state.js"
 import { SYNTHESIZED_NOTIFICATION } from "./graph/model.js"
 import { buildPositionMap } from "./mappers/source-position-mapper.js"
+import {
+  SQL_SEMANTIC_LEGEND,
+  SqlSemanticTokensProvider,
+} from "./providers/sql-semantic-tokens.js"
 import { registerProviders } from "./providers.js"
 import { cacheKeyFor, ResultCache } from "./synth/cache.js"
 import { IsolatedRunner } from "./synth/isolated-runner.js"
@@ -73,12 +76,14 @@ export {
   type SchemaTreeResponse,
   type SchemaTreeWatermark,
 } from "./preview/schema-tree-model.js"
+// Embedded-SQL semantic-token legend + provider (embedded-sql-highlighting,
+// Tier-2 feature 9) — re-exported so an embedding client can read the legend.
+export {
+  SQL_SEMANTIC_LEGEND,
+  SQL_TOKEN_MODIFIERS,
+  SQL_TOKEN_TYPES,
+} from "./providers/sql-semantic-tokens.js"
 export type { PipelineKind } from "./synth/types.js"
-
-const SEMANTIC_TOKEN_LEGEND: SemanticTokensLegend = {
-  tokenTypes: ["keyword", "type", "variable", "string", "number"],
-  tokenModifiers: [],
-}
 
 export interface ServerHandle {
   readonly connection: Connection
@@ -95,6 +100,7 @@ export function createServer(connection: Connection): ServerHandle {
   const documents = new TextDocuments(TextDocument)
   const store = new DocumentStateStore()
   const cache = new ResultCache()
+  const sqlSemanticTokens = new SqlSemanticTokensProvider()
 
   let config: ServerConfig = DEFAULT_CONFIG
   let runner = new IsolatedRunner({
@@ -136,7 +142,7 @@ export function createServer(connection: Connection): ServerHandle {
         definitionProvider: true,
         inlayHintProvider: true,
         semanticTokensProvider: {
-          legend: SEMANTIC_TOKEN_LEGEND,
+          legend: SQL_SEMANTIC_LEGEND,
           range: true,
           full: true,
         },
@@ -185,11 +191,18 @@ export function createServer(connection: Connection): ServerHandle {
       debounceTimers.delete(uri)
     }
     store.delete(uri)
+    sqlSemanticTokens.forget(uri)
     // Clear diagnostics for the closed document.
     connection.sendDiagnostics({ uri, diagnostics: [] })
   })
 
-  registerProviders(connection, store, documents, () => config)
+  registerProviders(
+    connection,
+    store,
+    documents,
+    () => config,
+    sqlSemanticTokens,
+  )
 
   function scheduleSynth(doc: TextDocument): void {
     if (!config.enabled) return
