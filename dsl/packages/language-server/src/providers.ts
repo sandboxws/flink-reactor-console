@@ -21,8 +21,18 @@ import {
   type NodeRangeResult,
 } from "./graph/model.js"
 import { provideHover } from "./hover/provider.js"
+import { nodeAtPosition } from "./mappers/source-position-mapper.js"
+import {
+  NODE_AT_POSITION_REQUEST,
+  type NodeAtPositionParams,
+  type NodeAtPositionResult,
+  SYNTH_REQUEST,
+  type SynthParams,
+  type SynthResponse,
+} from "./preview/model.js"
 import { provideCompletion } from "./providers/completion/index.js"
 import { buildGraphModel } from "./providers/graph-model.js"
+import { buildSynthModel } from "./providers/synth-model.js"
 
 /**
  * Register thin dispatchers for every provider endpoint the server advertises.
@@ -100,11 +110,16 @@ export function registerProviders(
   connection.languages.semanticTokens.on(emptyTokens)
   connection.languages.semanticTokens.onRange(emptyTokens)
 
-  // ── Custom requests (dag-visualization, vscode-tier-2-feature-7) ─────
-  // The webview-facing graph model and click-to-source range, both projected
-  // from the shared per-document synthesis state. Defensive: the handlers
-  // never throw — a failed/absent synthesis becomes an `ok: false` envelope so
-  // the panel degrades gracefully instead of surfacing an RPC error.
+  // ── Custom requests (dag-visualization + sql-preview) ───────────────
+  // The webview-facing graph/synth models and click-to-source range, all
+  // projected from the shared per-document synthesis state. Defensive: the
+  // handlers never throw — a failed/absent synthesis becomes an `ok: false`
+  // envelope so the panel degrades gracefully instead of surfacing an RPC
+  // error. None of them re-synthesizes: each is a lookup-and-serialize of the
+  // cached result, so the synthesis pass counter is unaffected by request
+  // volume. `flinkReactor/nodeRange` doubles as the spec's `locateNode`
+  // companion for SQL→DSL navigation (identical `{uri,nodeId}`→`Range`
+  // contract); no duplicate method is registered.
 
   connection.onRequest(
     GRAPH_MODEL_REQUEST,
@@ -145,6 +160,45 @@ export function registerProviders(
       return {
         range: range ? { start: range.start, end: range.end } : null,
       }
+    },
+  )
+
+  // SQL preview (sql-preview, vscode-tier-2-feature-5): serialize the cached
+  // per-pipeline synthesis result (statements + source maps) for the read-only
+  // SQL-preview webview. Pure projection — never calls the synthesis runner.
+  connection.onRequest(SYNTH_REQUEST, (params: SynthParams): SynthResponse => {
+    const fallbackVersion = params.version ?? 0
+    try {
+      const state = store.get(params.uri)
+      if (!state) {
+        return {
+          uri: params.uri,
+          version: fallbackVersion,
+          ok: false,
+          error: "Pipeline has not been synthesized yet.",
+          pipelines: [],
+        }
+      }
+      return buildSynthModel(state.uri, state.version, state.result)
+    } catch (err) {
+      return {
+        uri: params.uri,
+        version: fallbackVersion,
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+        pipelines: [],
+      }
+    }
+  })
+
+  // SQL preview DSL→SQL inverse: resolve the editor caret position to the
+  // innermost node under it (the source-position map's reverse lookup).
+  connection.onRequest(
+    NODE_AT_POSITION_REQUEST,
+    (params: NodeAtPositionParams): NodeAtPositionResult => {
+      const state = store.get(params.uri)
+      if (!state) return { nodeId: null }
+      return { nodeId: nodeAtPosition(state.positionMap, params.position) }
     },
   )
 }

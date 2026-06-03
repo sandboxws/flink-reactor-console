@@ -24,6 +24,17 @@ const fixtureUri = (name: string) => pathToFileURL(join(FIXTURES, name)).href
 const fixtureText = (name: string) =>
   readFileSync(join(FIXTURES, name), "utf-8")
 
+/** Poll until `pred()` holds or the deadline passes (notifications arrive
+ *  asynchronously after the request/diagnostic that triggered them). */
+async function waitFor(pred: () => boolean, timeoutMs = 3000): Promise<void> {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    if (pred()) return
+    await new Promise((r) => setTimeout(r, 25))
+  }
+  throw new Error("timed out waiting for condition")
+}
+
 let client: LspClient | undefined
 
 afterEach(() => {
@@ -214,6 +225,34 @@ describe("language server (integration over stdio)", () => {
     expect(miss.range).toBeNull()
   })
 
+  it("resolves a caret position to its node via flinkReactor/nodeAtPosition", async () => {
+    const c = await start()
+    const uri = fixtureUri("dag-linear-pipeline.tsx")
+    openDoc(c, "dag-linear-pipeline.tsx")
+    await c.waitForDiagnostics(uri, () => true)
+
+    // Resolve the KafkaSource's own range, then ask which node sits at its
+    // start position — it must be the source itself (the round trip nodeRange →
+    // nodeAtPosition is the DSL→SQL inverse the preview relies on).
+    const range = await c.request<{
+      range: { start: { line: number; character: number } } | null
+    }>("flinkReactor/nodeRange", { uri, nodeId: "orders" })
+    expect(range.range).not.toBeNull()
+
+    const at = await c.request<{ nodeId: string | null }>(
+      "flinkReactor/nodeAtPosition",
+      { uri, position: range.range?.start },
+    )
+    expect(at.nodeId).toBe("orders")
+
+    // A position off in empty space resolves to nothing, not an error.
+    const none = await c.request<{ nodeId: string | null }>(
+      "flinkReactor/nodeAtPosition",
+      { uri, position: { line: 0, character: 0 } },
+    )
+    expect(none.nodeId).toBeNull()
+  })
+
   it("returns an error envelope (not an RPC error) when no synthesis is cached", async () => {
     const c = await start()
     const model = await c.request<GraphModel>("flinkReactor/graphModel", {
@@ -222,5 +261,90 @@ describe("language server (integration over stdio)", () => {
     })
     expect(model.ok).toBe(false)
     expect(model.error).toMatch(/synthesized/i)
+  })
+
+  // ── sql-preview custom request (vscode-tier-2-feature-5) ─────────────
+
+  interface SynthModel {
+    uri: string
+    version: number
+    ok: boolean
+    error?: string
+    pipelines: {
+      id: string
+      statements: string[]
+      statementOrigins: [number, { nodeId: string; component: string }][]
+      statementContributors: [
+        number,
+        { offset: number; length: number; origin: string }[],
+      ][]
+      statementMeta: [number, { label: string; section: string }][]
+    }[]
+  }
+
+  it("answers flinkReactor/synth with the cached per-pipeline result", async () => {
+    const c = await start()
+    const uri = fixtureUri("dag-linear-pipeline.tsx")
+    openDoc(c, "dag-linear-pipeline.tsx")
+    await c.waitForDiagnostics(uri, () => true)
+
+    const synth = await c.request<SynthModel>("flinkReactor/synth", { uri })
+    expect(synth.ok).toBe(true)
+    expect(synth.uri).toBe(uri)
+    expect(synth.pipelines).toHaveLength(1)
+    const [p] = synth.pipelines
+    expect(p.id).toBe("dag-linear")
+    expect(p.statements.some((s) => s.includes("CREATE TABLE"))).toBe(true)
+
+    // The number-keyed maps survive as entry arrays and reconstruct.
+    const origins = new Map(p.statementOrigins)
+    const createIdx = p.statements.findIndex((s) => s.includes("CREATE TABLE"))
+    expect(origins.get(createIdx)?.nodeId).toBe("orders")
+
+    // The Filter's predicate span is carried for sub-statement highlighting.
+    const contributors = new Map(p.statementContributors)
+    const filterSpan = [...contributors.values()]
+      .flat()
+      .find((f) => f.origin === "Filter_1")
+    expect(filterSpan).toBeDefined()
+  })
+
+  // 1.7 — `flinkReactor/synth` is a pure projection: repeated requests run NO
+  // new synthesis, so the debounced re-synthesis signal never fires for them.
+  it("never re-synthesizes to answer flinkReactor/synth", async () => {
+    const c = await start()
+    const uri = fixtureUri("dag-linear-pipeline.tsx")
+
+    const synthesized: number[] = []
+    c.onNotification("flinkReactor/synthesized", (p) =>
+      synthesized.push((p as { version: number }).version),
+    )
+
+    openDoc(c, "dag-linear-pipeline.tsx")
+    await c.waitForDiagnostics(uri, () => true)
+    // The open's synth pass fires the notification asynchronously after the
+    // diagnostics — wait for it to land before taking the baseline.
+    await waitFor(() => synthesized.length > 0)
+    const passesAfterOpen = synthesized.length
+
+    // Fire several synth requests; none of them should trigger a synthesis pass
+    // (the handler is a pure projection and we never edit the document).
+    for (let i = 0; i < 5; i++) {
+      const synth = await c.request<SynthModel>("flinkReactor/synth", { uri })
+      expect(synth.ok).toBe(true)
+    }
+    expect(synthesized.length).toBe(passesAfterOpen)
+  })
+
+  it("returns a failure envelope for flinkReactor/synth when nothing is cached", async () => {
+    const c = await start()
+    const synth = await c.request<SynthModel>("flinkReactor/synth", {
+      uri: fixtureUri("never-opened.tsx"),
+      version: 4,
+    })
+    expect(synth.ok).toBe(false)
+    expect(synth.version).toBe(4)
+    expect(synth.pipelines).toEqual([])
+    expect(synth.error).toMatch(/synthesized/i)
   })
 })

@@ -175,6 +175,54 @@ export function buildPositionMap(
   return { map, propRanges, mismatch, fromLoc: false }
 }
 
+/** A 0-based source position (mirrors LSP `Position`). */
+export interface SourcePosition {
+  readonly line: number
+  readonly character: number
+}
+
+/**
+ * The **innermost** node whose source range contains `position`, or `null`.
+ * This is the inverse of the `nodeId → Range` map: it turns a caret/selection
+ * position into the most specific node under it, so the SQL preview can resolve
+ * "which node is the author looking at" for DSL→SQL highlighting. When ranges
+ * nest (a child element inside its parent), the smallest containing range wins.
+ */
+export function nodeAtPosition(
+  positionMap: PositionMap,
+  position: SourcePosition,
+): string | null {
+  let best: { id: string; size: number } | null = null
+  for (const [id, range] of positionMap.map) {
+    if (!rangeContains(range, position)) continue
+    const size = rangeSpan(range)
+    if (!best || size < best.size) best = { id, size }
+  }
+  return best?.id ?? null
+}
+
+/** Half-open-ish containment: a position on either boundary counts as inside so
+ *  a caret resting at the very start/end of an element still resolves to it. */
+function rangeContains(range: SourceRange, p: SourcePosition): boolean {
+  const afterStart =
+    p.line > range.start.line ||
+    (p.line === range.start.line && p.character >= range.start.character)
+  const beforeEnd =
+    p.line < range.end.line ||
+    (p.line === range.end.line && p.character <= range.end.character)
+  return afterStart && beforeEnd
+}
+
+/** A monotonic span measure for "smallest range wins" — line distance dominates
+ *  so a multi-line parent always outranks a single-line child. */
+function rangeSpan(range: SourceRange): number {
+  const LINE_WEIGHT = 1_000_000
+  return (
+    (range.end.line - range.start.line) * LINE_WEIGHT +
+    (range.end.character - range.start.character)
+  )
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────
 
 /** Capture each literal-valued JSX attribute's **value** range (the squiggle

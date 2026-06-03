@@ -24,6 +24,7 @@
     "dist-test",
     "test",
     "__tests__",
-    "src/graph/webview"
+    "src/graph/webview",
+    "src/preview/webview"
   ]
 }

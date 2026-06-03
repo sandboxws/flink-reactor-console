@@ -38,6 +38,20 @@ export {
   SYNTHESIZED_NOTIFICATION,
   type SynthesizedNotification,
 } from "./graph/model.js"
+// SQL-preview wire contract (sql-preview capability) — same one-source-of-truth
+// re-export so the extension + its webview import the types from one place.
+export {
+  NODE_AT_POSITION_REQUEST,
+  type NodeAtPositionParams,
+  type NodeAtPositionResult,
+  SYNTH_REQUEST,
+  type SynthFragment,
+  type SynthParams,
+  type SynthPipeline,
+  type SynthResponse,
+  type SynthStatementMeta,
+  type SynthStatementOrigin,
+} from "./preview/model.js"
 
 const SEMANTIC_TOKEN_LEGEND: SemanticTokensLegend = {
   tokenTypes: ["keyword", "type", "variable", "string", "number"],

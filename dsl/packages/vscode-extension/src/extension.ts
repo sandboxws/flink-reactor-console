@@ -10,6 +10,11 @@ import {
   useWorkspaceTypeScriptCommand,
 } from "./config/use-workspace-typescript.js"
 import { GraphPanel, type RenderInfo } from "./graph/panel.js"
+import {
+  type SqlHighlightInfo,
+  SqlPreviewPanel,
+  type SqlRenderInfo,
+} from "./preview/sql-preview-manager.js"
 import { disposeOutputChannel, getOutputChannel } from "./ui/output.js"
 import { StatusBar } from "./ui/status-bar.js"
 import { discoverPipelines } from "./workspace/pipeline-discovery.js"
@@ -32,6 +37,18 @@ export interface FlinkReactorApi {
     /** Whether a DAG panel is currently open. */
     isOpen(): boolean
   }
+  readonly sqlPreview: {
+    /** The webview's last render acknowledgement for a document, if open. */
+    renderInfo(uri: string): SqlRenderInfo | undefined
+    /** The webview's last DSL→SQL highlight acknowledgement (caret → spans). */
+    lastHighlight(uri: string): SqlHighlightInfo | undefined
+    /** Drive the SQL→DSL click-to-source path (what a webview span click posts). */
+    revealNode(uri: string, nodeId: string): Promise<void>
+    /** Whether a SQL preview is open for the document. */
+    isOpen(uri: string): boolean
+    /** Total open SQL preview panels (assert no duplicates). */
+    count(): number
+  }
 }
 
 const api: FlinkReactorApi = {
@@ -40,6 +57,14 @@ const api: FlinkReactorApi = {
     revealNode: (nodeId) =>
       GraphPanel.active?.revealNode(nodeId) ?? Promise.resolve(),
     isOpen: () => GraphPanel.active !== undefined,
+  },
+  sqlPreview: {
+    renderInfo: (uri) => SqlPreviewPanel.forUri(uri)?.render,
+    lastHighlight: (uri) => SqlPreviewPanel.forUri(uri)?.lastHighlight,
+    revealNode: (uri, nodeId) =>
+      SqlPreviewPanel.forUri(uri)?.revealNode(nodeId) ?? Promise.resolve(),
+    isOpen: (uri) => SqlPreviewPanel.forUri(uri) !== undefined,
+    count: () => SqlPreviewPanel.count,
   },
 }
 
@@ -54,11 +79,19 @@ export async function activate(
   registerCommands(context, locateProject)
 
   // Keep the `flinkReactor.isPipeline` context key (which gates the editor-title
-  // DAG action) in sync with the active editor.
+  // DAG + SQL-preview actions) in sync with the active editor.
   updatePipelineContext()
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor(() => updatePipelineContext()),
     vscode.workspace.onDidOpenTextDocument(() => updatePipelineContext()),
+    // DSL→SQL: drive any open SQL preview off the bound editor's caret.
+    vscode.window.onDidChangeTextEditorSelection((e) => {
+      void SqlPreviewPanel.handleSelection(e.textEditor)
+    }),
+    // Dispose a SQL preview when its bound document closes.
+    vscode.workspace.onDidCloseTextDocument((doc) => {
+      SqlPreviewPanel.handleDocumentClose(doc.uri.toString())
+    }),
   )
 
   if (!project) {
@@ -134,6 +167,9 @@ function registerCommands(
     vscode.commands.registerCommand("flinkReactor.openGraph", () =>
       openGraphCommand(context.extensionUri),
     ),
+    vscode.commands.registerCommand("flinkReactor.showSqlPreview", () =>
+      openSqlPreviewCommand(context.extensionUri),
+    ),
   )
 }
 
@@ -153,6 +189,28 @@ function openGraphCommand(extensionUri: vscode.Uri): void {
     return
   }
   GraphPanel.createOrShow(extensionUri, client, editor.document.uri.toString())
+}
+
+/** Open (or reveal) the read-only SQL preview for the active pipeline. */
+function openSqlPreviewCommand(extensionUri: vscode.Uri): void {
+  if (!client) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: open a pipeline inside a FlinkReactor project first.",
+    )
+    return
+  }
+  const editor = vscode.window.activeTextEditor
+  if (!editor || !isPipelineDocument(editor.document)) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: the active editor is not a pipeline (.tsx importing @flink-reactor/dsl).",
+    )
+    return
+  }
+  SqlPreviewPanel.createOrShow(
+    extensionUri,
+    client,
+    editor.document.uri.toString(),
+  )
 }
 
 /** A FlinkReactor pipeline document: a `.tsx` importing the DSL (mirrors the

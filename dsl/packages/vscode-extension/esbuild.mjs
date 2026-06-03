@@ -7,9 +7,10 @@
 // process and is shipped under `server/` by `scripts/prepare-server.mjs`, not
 // bundled here.
 //
-// The webview (`dag-visualization`) is a SEPARATE browser/IIFE bundle written to
-// `dist/webview/graph.js` and loaded into the sandboxed webview with a CSP +
-// nonce. It is a dumb renderer — it imports no DSL and no Node APIs.
+// Each webview (`dag-visualization`, `sql-preview`) is a SEPARATE browser/IIFE
+// bundle written under `dist/webview/` and loaded into the sandboxed webview
+// with a CSP + nonce. They are dumb renderers — they import no DSL and no Node
+// APIs.
 import * as esbuild from "esbuild"
 
 const production = process.argv.includes("--production")
@@ -35,10 +36,8 @@ const hostOptions = {
 }
 
 /** @type {import('esbuild').BuildOptions} */
-const webviewOptions = {
-  entryPoints: ["src/graph/webview/main.ts"],
+const sharedWebview = {
   bundle: true,
-  outfile: "dist/webview/graph.js",
   format: "iife",
   platform: "browser",
   target: "es2020",
@@ -47,14 +46,35 @@ const webviewOptions = {
   logLevel: "info",
 }
 
+/** @type {import('esbuild').BuildOptions} */
+const graphWebview = {
+  ...sharedWebview,
+  entryPoints: ["src/graph/webview/main.ts"],
+  outfile: "dist/webview/graph.js",
+}
+
+/** @type {import('esbuild').BuildOptions} */
+const sqlPreviewWebview = {
+  ...sharedWebview,
+  entryPoints: ["src/preview/webview/main.ts"],
+  outfile: "dist/webview/sql-preview.js",
+}
+
 if (watch) {
-  const host = await esbuild.context(hostOptions)
-  const webview = await esbuild.context(webviewOptions)
-  await Promise.all([host.watch(), webview.watch()])
-  console.log("[esbuild] watching host + webview…")
+  const contexts = await Promise.all([
+    esbuild.context(hostOptions),
+    esbuild.context(graphWebview),
+    esbuild.context(sqlPreviewWebview),
+  ])
+  await Promise.all(contexts.map((c) => c.watch()))
+  console.log("[esbuild] watching host + webviews…")
 } else {
-  await Promise.all([esbuild.build(hostOptions), esbuild.build(webviewOptions)])
+  await Promise.all([
+    esbuild.build(hostOptions),
+    esbuild.build(graphWebview),
+    esbuild.build(sqlPreviewWebview),
+  ])
   console.log(
-    `[esbuild] built dist/extension.js + dist/webview/graph.js (${production ? "production" : "development"})`,
+    `[esbuild] built dist/extension.js + dist/webview/{graph,sql-preview}.js (${production ? "production" : "development"})`,
   )
 }
