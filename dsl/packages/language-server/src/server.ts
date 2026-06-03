@@ -38,6 +38,16 @@ export {
   SYNTHESIZED_NOTIFICATION,
   type SynthesizedNotification,
 } from "./graph/model.js"
+// CRD-preview wire contract (crd-preview capability) — same one-source-of-truth
+// re-export so the extension + its webview share the artifact-set contract.
+export {
+  CRD_PREVIEW_REQUEST,
+  type CrdArtifact,
+  type CrdPreviewParams,
+  type CrdPreviewPipeline,
+  type CrdPreviewResponse,
+  type CrdPreviewStatus,
+} from "./preview/crd-model.js"
 // SQL-preview wire contract (sql-preview capability) — same one-source-of-truth
 // re-export so the extension + its webview import the types from one place.
 export {
@@ -52,6 +62,7 @@ export {
   type SynthStatementMeta,
   type SynthStatementOrigin,
 } from "./preview/model.js"
+export type { PipelineKind } from "./synth/types.js"
 
 const SEMANTIC_TOKEN_LEGEND: SemanticTokensLegend = {
   tokenTypes: ["keyword", "type", "variable", "string", "number"],
@@ -117,6 +128,12 @@ export function createServer(connection: Connection): ServerHandle {
           legend: SEMANTIC_TOKEN_LEGEND,
           range: true,
           full: true,
+        },
+        // Custom requests are not part of the standard capability set; advertise
+        // them under `experimental` so a client can feature-detect before
+        // sending `flinkReactor/crdPreview` (crd-preview, Tier-2 feature 6).
+        experimental: {
+          flinkReactorCrdPreview: true,
         },
       },
     }

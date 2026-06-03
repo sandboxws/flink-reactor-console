@@ -104,6 +104,37 @@ export interface DecodedChangelogMode {
   readonly mode: string
 }
 
+/** Which artifact *shape* a pipeline synthesizes to. A standard SQL pipeline
+ *  emits a `FlinkDeployment`/`FlinkBlueGreenDeployment` CRD plus a wrapping
+ *  ConfigMap; a Flink CDC Pipeline Connector source emits a `pipeline.yaml`
+ *  plus a `configmap.yaml` and no `FlinkDeployment`. The discriminator is
+ *  server-authoritative (derived from the artifact, never re-inferred client-
+ *  side) so the `crd-preview` header/tab set can never mislabel. */
+export type PipelineKind = "standard" | "cdc-pipeline"
+
+/** One serialized Kubernetes artifact in a pipeline's generated set — the unit
+ *  the `crd-preview` webview renders as a single read-only YAML tab. The YAML
+ *  is produced in the worker (via the browser-safe `toYaml`) because the live
+ *  CRD / secondary-resource objects cannot cross the worker boundary; only the
+ *  serialized strings do. `filename` mirrors the `dist/<pipeline>/` name `fr
+ *  synth` writes so "save to dist/" reproduces the CLI layout. */
+export interface DecodedArtifact {
+  /** Stable id within the set (e.g. `crd`, `configmap`, `pipeline-yaml`,
+   *  `secondary:<name>`) — lets the webview key tabs across refreshes. */
+  readonly id: string
+  /** Display label (the resource's `metadata.name`, or the filename for the
+   *  CDC `pipeline.yaml`). */
+  readonly label: string
+  /** Target filename under `dist/<pipeline>/` (`deployment.yaml`,
+   *  `configmap.yaml`, `pipeline.yaml`, …). */
+  readonly filename: string
+  /** Kubernetes `kind` (`FlinkDeployment`/`FlinkBlueGreenDeployment`/`ConfigMap`)
+   *  or the sentinel `pipeline-yaml` for the Flink CDC pipeline document. */
+  readonly kind: string
+  /** The serialized YAML document. */
+  readonly yaml: string
+}
+
 /** The changelog modes a sink node accepts, decoded from the DSL's private
  *  sink-acceptance rule (which needs the live node + props, unavailable host-
  *  side). Lets the hover sink card show accepted modes + upstream compatibility
@@ -169,6 +200,13 @@ export interface SynthesisResult {
   readonly nodeInputSchemas: readonly DecodedNodeSchema[]
   readonly pipelineManifest: PipelineManifest | null
   readonly crdYaml: string
+  /** Which artifact shape the pipeline synthesized to (`standard` for a
+   *  FlinkDeployment + ConfigMap, `cdc-pipeline` for a Flink CDC `pipeline.yaml`
+   *  + ConfigMap). Defaults to `standard` on a failed/empty synthesis. */
+  readonly pipelineKind: PipelineKind
+  /** The full generated Kubernetes artifact set, serialized in the worker for
+   *  the `crd-preview` capability. Empty on a failed/empty synthesis. */
+  readonly artifacts: readonly DecodedArtifact[]
   /** Construct nodes in creation order — the mapper's source of truth for
    *  node count (mismatch detection) and any `__loc` fast-path. */
   readonly nodes: readonly NodeProjection[]

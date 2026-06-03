@@ -66,6 +66,8 @@ describe("ResultCache", () => {
       nodeInputSchemas: [],
       pipelineManifest: null,
       crdYaml: "",
+      pipelineKind: "standard",
+      artifacts: [],
       nodes: [],
     }
   }

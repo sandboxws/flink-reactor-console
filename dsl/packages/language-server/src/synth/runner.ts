@@ -10,6 +10,7 @@ import {
   validateExpressionSyntax,
   validateSchemaReferences,
 } from "@flink-reactor/dsl/browser"
+import { buildArtifactSet } from "./artifacts.js"
 import {
   collectChangelogDiagnostics,
   collectGraphFacts,
@@ -135,6 +136,8 @@ function emptyResult(
     nodeInputSchemas: [],
     pipelineManifest: null,
     crdYaml: "",
+    pipelineKind: "standard",
+    artifacts: [],
     nodes,
     loadError,
   }
@@ -198,6 +201,7 @@ export async function synthesizeDocument(
 
     const sql = pipeline.sql
     const graphFacts = collectGraphFacts(node)
+    const { pipelineKind, artifacts } = buildArtifactSet(pipeline)
     return {
       ok: true,
       statements: [...sql.statements],
@@ -213,6 +217,8 @@ export async function synthesizeDocument(
       nodeInputSchemas: graphFacts.nodeInputSchemas,
       pipelineManifest: pipeline.pipelineManifest,
       crdYaml: toYaml(pipeline.crd),
+      pipelineKind,
+      artifacts,
       nodes,
     }
   } catch (err) {

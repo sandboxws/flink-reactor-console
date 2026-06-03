@@ -48,6 +48,8 @@ function errorResult(kind: LoadErrorKind, message: string): SynthesisResult {
     nodeInputSchemas: [],
     pipelineManifest: null,
     crdYaml: "",
+    pipelineKind: "standard",
+    artifacts: [],
     nodes: [],
     loadError: { kind, message },
   }

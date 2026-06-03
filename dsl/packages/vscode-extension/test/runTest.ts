@@ -30,10 +30,21 @@ async function main(): Promise<void> {
     mkdirSync(scopeDir, { recursive: true })
     symlinkSync(repoRoot, join(scopeDir, "dsl"), "dir")
 
+    // VS Code creates its main IPC handle as a Unix-domain socket under
+    // `--user-data-dir`; macOS caps that socket path at ~103 chars. The default
+    // (`<repo>/.vscode-test/user-data`) overflows on a deep checkout and VS Code
+    // fails to launch with `EINVAL`. Pin user-data to a short temp dir so the
+    // e2e runs regardless of how deep the repo is cloned.
+    const userDataDir = mkdtempSync(join(tmpdir(), "fr-ud-"))
+
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [workspace, "--disable-extensions"],
+      launchArgs: [
+        workspace,
+        "--disable-extensions",
+        `--user-data-dir=${userDataDir}`,
+      ],
     })
   } catch (err) {
     console.error("E2E test run failed:", err)

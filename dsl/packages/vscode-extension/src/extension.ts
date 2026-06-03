@@ -11,6 +11,11 @@ import {
 } from "./config/use-workspace-typescript.js"
 import { GraphPanel, type RenderInfo } from "./graph/panel.js"
 import {
+  type CrdArtifactInfo,
+  CrdPreviewPanel,
+  type CrdRenderInfo,
+} from "./preview/crd-preview-manager.js"
+import {
   type SqlHighlightInfo,
   SqlPreviewPanel,
   type SqlRenderInfo,
@@ -49,6 +54,21 @@ export interface FlinkReactorApi {
     /** Total open SQL preview panels (assert no duplicates). */
     count(): number
   }
+  readonly crdPreview: {
+    /** The webview's last render acknowledgement, or `undefined` if closed. */
+    renderInfo(): CrdRenderInfo | undefined
+    /** The currently rendered artifact set (tab id/label/filename/kind). */
+    artifacts(): readonly CrdArtifactInfo[]
+    /** Switch the active tab (drives tab-preservation assertions). */
+    selectTab(index: number): void
+    /** Drive the copy action for an artifact (what a webview button posts). */
+    copy(artifactId: string): Promise<void>
+    /** Drive "save to dist/" for one artifact / the whole set. */
+    save(artifactId: string): Promise<void>
+    saveAll(): Promise<void>
+    /** Whether the CRD preview panel is currently open. */
+    isOpen(): boolean
+  }
 }
 
 const api: FlinkReactorApi = {
@@ -66,6 +86,17 @@ const api: FlinkReactorApi = {
     isOpen: (uri) => SqlPreviewPanel.forUri(uri) !== undefined,
     count: () => SqlPreviewPanel.count,
   },
+  crdPreview: {
+    renderInfo: () => CrdPreviewPanel.active?.render,
+    artifacts: () => CrdPreviewPanel.active?.artifacts ?? [],
+    selectTab: (index) => CrdPreviewPanel.active?.selectTab(index),
+    copy: (artifactId) =>
+      CrdPreviewPanel.active?.copyArtifact(artifactId) ?? Promise.resolve(),
+    save: (artifactId) =>
+      CrdPreviewPanel.active?.saveArtifact(artifactId) ?? Promise.resolve(),
+    saveAll: () => CrdPreviewPanel.active?.saveAll() ?? Promise.resolve(),
+    isOpen: () => CrdPreviewPanel.active !== undefined,
+  },
 }
 
 export async function activate(
@@ -82,7 +113,14 @@ export async function activate(
   // DAG + SQL-preview actions) in sync with the active editor.
   updatePipelineContext()
   context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(() => updatePipelineContext()),
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      updatePipelineContext()
+      // Re-target the CRD preview when the active editor switches to a different
+      // FlinkReactor pipeline (4.4).
+      if (editor && isPipelineDocument(editor.document)) {
+        CrdPreviewPanel.handleActiveEditor(editor.document.uri.toString())
+      }
+    }),
     vscode.workspace.onDidOpenTextDocument(() => updatePipelineContext()),
     // DSL→SQL: drive any open SQL preview off the bound editor's caret.
     vscode.window.onDidChangeTextEditorSelection((e) => {
@@ -170,6 +208,9 @@ function registerCommands(
     vscode.commands.registerCommand("flinkReactor.showSqlPreview", () =>
       openSqlPreviewCommand(context.extensionUri),
     ),
+    vscode.commands.registerCommand("flinkReactor.openCrdPreview", () =>
+      openCrdPreviewCommand(context.extensionUri),
+    ),
   )
 }
 
@@ -207,6 +248,29 @@ function openSqlPreviewCommand(extensionUri: vscode.Uri): void {
     return
   }
   SqlPreviewPanel.createOrShow(
+    extensionUri,
+    client,
+    editor.document.uri.toString(),
+  )
+}
+
+/** Open (or reveal) the read-only tabbed CRD/artifact-set preview for the
+ *  active pipeline. */
+function openCrdPreviewCommand(extensionUri: vscode.Uri): void {
+  if (!client) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: open a pipeline inside a FlinkReactor project first.",
+    )
+    return
+  }
+  const editor = vscode.window.activeTextEditor
+  if (!editor || !isPipelineDocument(editor.document)) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: the active editor is not a pipeline (.tsx importing @flink-reactor/dsl).",
+    )
+    return
+  }
+  CrdPreviewPanel.createOrShow(
     extensionUri,
     client,
     editor.document.uri.toString(),

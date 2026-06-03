@@ -23,6 +23,11 @@ import {
 import { provideHover } from "./hover/provider.js"
 import { nodeAtPosition } from "./mappers/source-position-mapper.js"
 import {
+  CRD_PREVIEW_REQUEST,
+  type CrdPreviewParams,
+  type CrdPreviewResponse,
+} from "./preview/crd-model.js"
+import {
   NODE_AT_POSITION_REQUEST,
   type NodeAtPositionParams,
   type NodeAtPositionResult,
@@ -31,6 +36,7 @@ import {
   type SynthResponse,
 } from "./preview/model.js"
 import { provideCompletion } from "./providers/completion/index.js"
+import { buildCrdPreviewModel } from "./providers/crd-preview.js"
 import { buildGraphModel } from "./providers/graph-model.js"
 import { buildSynthModel } from "./providers/synth-model.js"
 
@@ -199,6 +205,46 @@ export function registerProviders(
       const state = store.get(params.uri)
       if (!state) return { nodeId: null }
       return { nodeId: nodeAtPosition(state.positionMap, params.position) }
+    },
+  )
+
+  // CRD preview (crd-preview, vscode-tier-2-feature-6): serialize the cached
+  // per-pipeline Kubernetes artifact set (CRD/blue-green, wrapping ConfigMap,
+  // CDC pipeline.yaml, secondary resources) for the read-only tabbed webview.
+  // Pure projection — the artifact YAML was serialized in the worker; this
+  // never calls the synthesis runner. A synthesis failure resolves with a
+  // `status: "error"` pipeline (not an RPC rejection) so the webview can keep
+  // its last-good set behind a stale banner. An un-synthesized document
+  // resolves with no pipelines so the webview shows its waiting state.
+  connection.onRequest(
+    CRD_PREVIEW_REQUEST,
+    (params: CrdPreviewParams): CrdPreviewResponse => {
+      const fallbackVersion = params.version ?? 0
+      try {
+        const state = store.get(params.uri)
+        if (!state) {
+          return {
+            uri: params.uri,
+            documentVersion: fallbackVersion,
+            pipelines: [],
+          }
+        }
+        return buildCrdPreviewModel(state.uri, state.version, state.result)
+      } catch (err) {
+        return {
+          uri: params.uri,
+          documentVersion: fallbackVersion,
+          pipelines: [
+            {
+              pipelineName: "pipeline",
+              pipelineKind: "standard",
+              status: "error",
+              error: err instanceof Error ? err.message : String(err),
+              artifacts: [],
+            },
+          ],
+        }
+      }
     },
   )
 }

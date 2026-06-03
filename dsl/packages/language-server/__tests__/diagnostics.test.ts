@@ -40,6 +40,8 @@ function baseResult(overrides: Partial<SynthesisResult> = {}): SynthesisResult {
     nodeInputSchemas: [],
     pipelineManifest: null,
     crdYaml: "",
+    pipelineKind: "standard",
+    artifacts: [],
     nodes: [],
     ...overrides,
   }

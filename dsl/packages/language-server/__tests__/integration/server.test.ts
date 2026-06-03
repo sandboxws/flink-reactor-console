@@ -88,6 +88,12 @@ describe("language server (integration over stdio)", () => {
     expect(caps.inlayHintProvider).toBe(true)
     expect(caps.semanticTokensProvider).toBeDefined()
     expect(caps.textDocumentSync).toBeDefined()
+    // crd-preview (Tier-2 feature 6) advertises its custom request under
+    // `experimental` so a client can feature-detect it.
+    expect(
+      (caps.experimental as { flinkReactorCrdPreview?: boolean } | undefined)
+        ?.flinkReactorCrdPreview,
+    ).toBe(true)
 
     c.notify("initialized", {})
     await c.request("shutdown")
@@ -346,5 +352,57 @@ describe("language server (integration over stdio)", () => {
     expect(synth.version).toBe(4)
     expect(synth.pipelines).toEqual([])
     expect(synth.error).toMatch(/synthesized/i)
+  })
+
+  // ── crd-preview custom request (vscode-tier-2-feature-6) ─────────────
+
+  interface CrdPreviewModel {
+    uri: string
+    documentVersion: number
+    pipelines: {
+      pipelineName: string
+      pipelineKind: "standard" | "cdc-pipeline"
+      status: "ok" | "error" | "no-pipeline"
+      error?: string
+      artifacts: {
+        id: string
+        label: string
+        filename: string
+        kind: string
+        yaml: string
+      }[]
+    }[]
+  }
+
+  it("answers flinkReactor/crdPreview with the cached artifact set", async () => {
+    const c = await start()
+    const uri = fixtureUri("dag-linear-pipeline.tsx")
+    openDoc(c, "dag-linear-pipeline.tsx")
+    await c.waitForDiagnostics(uri, () => true)
+
+    const crd = await c.request<CrdPreviewModel>("flinkReactor/crdPreview", {
+      uri,
+    })
+    expect(crd.uri).toBe(uri)
+    expect(crd.pipelines).toHaveLength(1)
+    const [p] = crd.pipelines
+    expect(p.status).toBe("ok")
+    expect(p.pipelineKind).toBe("standard")
+    expect(p.pipelineName).toBe("dag-linear")
+
+    const deployment = p.artifacts.find((a) => a.filename === "deployment.yaml")
+    expect(deployment?.kind).toBe("FlinkDeployment")
+    expect(deployment?.yaml).toContain("kind: FlinkDeployment")
+    expect(p.artifacts.some((a) => a.filename === "configmap.yaml")).toBe(true)
+  })
+
+  it("returns empty pipelines for flinkReactor/crdPreview when nothing is cached", async () => {
+    const c = await start()
+    const crd = await c.request<CrdPreviewModel>("flinkReactor/crdPreview", {
+      uri: fixtureUri("never-opened.tsx"),
+      version: 5,
+    })
+    expect(crd.documentVersion).toBe(5)
+    expect(crd.pipelines).toEqual([])
   })
 })
