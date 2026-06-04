@@ -6,7 +6,9 @@ import type {
   Hover,
   InlayHint,
   LocationLink,
+  Range,
   SemanticTokens,
+  WorkspaceEdit,
 } from "vscode-languageserver"
 import type { Connection, TextDocuments } from "vscode-languageserver/node"
 import type { TextDocument } from "vscode-languageserver-textdocument"
@@ -51,6 +53,8 @@ import type {
   TokenInput,
 } from "./providers/sql-semantic-tokens.js"
 import { buildSynthModel } from "./providers/synth-model.js"
+import { provideCodeActions } from "./refactor/code-actions.js"
+import { prepareRenameAt, renameAt } from "./refactor/prepare-rename.js"
 
 /**
  * Register thin dispatchers for every provider endpoint the server advertises.
@@ -111,9 +115,55 @@ export function registerProviders(
     })
   })
 
+  // Diagnostic-driven quick-fixes + the extract-schema refactor
+  // (component-refactoring, Tier-3 feature 14). Each action is a deterministic
+  // projection of the in-range `FR-*` diagnostics' `data` (add-missing-prop,
+  // replace-with-candidate, wrap-window, swap-sink) delivered as one
+  // `WorkspaceEdit`; nothing is offered for spread/computed targets or when
+  // the held synthesis state trails the document version.
   connection.onCodeAction((params): CodeAction[] => {
-    void store.get(params.textDocument.uri)
-    return []
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return []
+    return provideCodeActions({
+      state: store.get(params.textDocument.uri),
+      sourceText: doc.getText(),
+      uri: params.textDocument.uri,
+      range: params.range,
+      diagnostics: params.context.diagnostics,
+      documentVersion: doc.version,
+    })
+  })
+
+  // Schema-aware rename (component-refactoring, Tier-3 feature 14):
+  // `prepareRename` gates the request — only a `Schema` field key, a column
+  // reference resolving to one, or a node/pipeline `name` value returns a
+  // range — and `rename` rewrites the declaration plus every reference the
+  // inferred schema flow (or the synthesis graph, for names) actually reaches.
+  connection.onPrepareRename((params): Range | null => {
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return null
+    return prepareRenameAt({
+      state: store.get(params.textDocument.uri),
+      sourceText: doc.getText(),
+      uri: params.textDocument.uri,
+      position: params.position,
+      documentVersion: doc.version,
+    })
+  })
+
+  connection.onRenameRequest((params): WorkspaceEdit | null => {
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return null
+    return renameAt(
+      {
+        state: store.get(params.textDocument.uri),
+        sourceText: doc.getText(),
+        uri: params.textDocument.uri,
+        position: params.position,
+        documentVersion: doc.version,
+      },
+      params.newName,
+    )
   })
 
   connection.onDocumentSymbol((params): DocumentSymbol[] => {

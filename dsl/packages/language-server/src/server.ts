@@ -214,6 +214,9 @@ export function createServer(connection: Connection): ServerHandle {
         documentSymbolProvider: true,
         definitionProvider: true,
         inlayHintProvider: true,
+        // Schema-aware rename (component-refactoring, Tier-3 feature 14):
+        // prepareRename gates the target before the client prompts.
+        renameProvider: { prepareProvider: true },
         semanticTokensProvider: {
           legend: SQL_SEMANTIC_LEGEND,
           range: true,
