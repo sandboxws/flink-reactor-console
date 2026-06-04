@@ -121,6 +121,7 @@ refuses workspace plugins for security. This extension automates both.
 | `FlinkReactor: Open CRD Preview` | Open the read-only, tabbed Kubernetes artifact-set preview beside a pipeline |
 | `FlinkReactor: Refresh Schema Explorer` | Re-request the schema tree for the active pipeline (also the view's title button) |
 | `FlinkReactor: Deep Validate Pipeline (SQL Gateway)` | Run one opt-in deep-validation pass for the active pipeline against the configured SQL Gateway |
+| `FlinkReactor: Open Pipeline Designer` | Open the low-code visual designer (palette + canvas + prop forms) beside a pipeline |
 
 The three preview/DAG commands are also available as editor-title (navigation)
 actions on any `.tsx` pipeline in a FlinkReactor project. The **Schema Explorer**
@@ -143,6 +144,47 @@ type contract re-exported from `@flink-reactor/language-server`):
 | `flinkReactor/graphModel` | request → `GraphModelResponse` | The DAG projection (the `dag-visualization` capability). |
 | `flinkReactor/crdPreview` | request → `CrdPreviewResponse` | The per-pipeline Kubernetes artifact set (`{ pipelineName, pipelineKind, status, artifacts: [{ id, label, filename, kind, yaml }] }` + the document version). The CRD YAML is serialized in the synthesis worker (via the browser-safe `toYaml`); the request is a pure lookup-and-serialize. Powers the CRD preview. |
 | `flinkReactor/schemaTree` | request → `SchemaTreeResponse` | The active pipeline's sources/sinks as `{ tables: [{ nodeId, role, component, label, fields: [{ name, type, primaryKey, locationRef? }], watermark?, locationRef? }], ok, error? }` + the document version. Fields/PK/watermark are decoded in the synthesis worker; each `locationRef` (node JSX + per-source field-key positions, cross-file aware) is resolved host-side from the source-position map. Pure lookup-and-serialize. Powers the Schema Explorer. |
+| `flinkReactor/designerModel` | request → `DesignerModelResponse` | The graph model **plus** per-node prop editability (`editable` literal with value + range vs `readOnly` computed/identifier/spread, classified from the `.tsx` AST) and the document's file kind (`arbitrary` / `designer-managed` / `pragma-violated`) for the edit-safety matrix. Powers the visual designer canvas + prop forms. |
+| `flinkReactor/applyDesignerEdit` | request → `ApplyDesignerEditResponse` | The designer's single write path: scalar literal-prop edits, pragma-gated structural edits (add/delete/re-parent/add-join), and greenfield generation — applied with `ts-morph`, verified (re-parse + re-synthesize) before commit, returned as text edits the extension applies as one undoable `WorkspaceEdit` (or `newFileContent` for generation). Refusals are data (`refusedReason`), never RPC errors. |
+
+## Visual designer: what is editable, and what is refused
+
+The **Pipeline Designer** (`FlinkReactor: Open Pipeline Designer`) is a webview
+canvas with a component palette (the DSL inventory grouped by kind,
+drop-validity from the ts-plugin hierarchy rules) and prop forms generated from
+the DSL's typed prop interfaces (string-literal unions render as dropdowns,
+required markers honor both `readonly x:` optionality and `requireProps(...)`,
+JSDoc renders as field help).
+
+A FlinkReactor pipeline is arbitrary TypeScript: the canvas shows **resolved**
+values, while the file stores **expressions** (`format={WIRE_FORMAT[input]}`).
+There is no general inverse from a resolved value back to its expression, so
+**full round-trip of arbitrary pipelines is explicitly out of scope** — the
+designer degrades to read-only rather than guess. Every write is gated by the
+**edit-safety matrix** and applied server-side via a `ts-morph` codemod under a
+verify-then-commit rule: the edited text is re-parsed and re-synthesized
+*before* it is committed, and a change that does not round-trip cleanly is
+rolled back. Committed changes land as a normal undoable `WorkspaceEdit`; the
+`.tsx` stays the source of truth and the canvas always re-renders from the
+fresh synthesis (external text edits refresh it too).
+
+| Edit kind | Arbitrary `.tsx` | Designer-managed `.tsx` (`// @flink-reactor designer`) |
+|---|---|---|
+| Open / read-only view | SAFE | SAFE |
+| Scalar edit of an `editable` (literal) prop | SAFE | SAFE |
+| Scalar edit of a `readOnly` (computed/identifier/spread) prop | REFUSED — "Edit in source" | REFUSED — same |
+| Add / delete / re-parent / add-join | REFUSED | SAFE (hierarchy-rule checked) |
+| Free wiring | REFUSED | SAFE within hierarchy rules |
+| Regenerate the whole file from the canvas | REFUSED | n/a (greenfield writes a *new* file) |
+
+The `// @flink-reactor designer` pragma asserts a file is a fully static
+subset (no loops, conditionals, computed props, or spreads — bare identifier
+references like `schema={OrdersSchema}` are fine). The claim is **checked, not
+trusted**: the server re-verifies the contract before every structural edit and
+refuses (with the specific violation) when a hand edit broke it. The
+"New pipeline…" draft mode composes a fresh static `.tsx` from the palette and
+generates a deterministic file that carries the pragma, so generated pipelines
+remain structurally editable.
 
 ## CRD preview: standard vs. CDC, and the IntelliJ supersession
 

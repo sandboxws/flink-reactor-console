@@ -46,6 +46,13 @@
       "require": "./dist/rules.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "rules": [
+        "./dist/rules.d.ts"
+      ]
+    }
+  },
   "peerDependencies": {
     "typescript": ">=5.0.0"
   },

@@ -27,6 +27,7 @@
     "src/graph/webview",
     "src/preview/webview",
     "src/preview/crd-webview",
-    "src/taps/webview"
+    "src/taps/webview",
+    "src/designer/webview"
   ]
 }

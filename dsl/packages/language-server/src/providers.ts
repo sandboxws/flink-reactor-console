@@ -13,6 +13,11 @@ import type {
 import type { Connection, TextDocuments } from "vscode-languageserver/node"
 import type { TextDocument } from "vscode-languageserver-textdocument"
 import { type ServerConfig, sqlSemanticTokensEnabled } from "./config.js"
+import {
+  DESIGNER_MODEL_REQUEST,
+  type DesignerModelParams,
+  type DesignerModelResponse,
+} from "./designer/model.js"
 import type { DocumentStateStore } from "./document-state.js"
 import {
   GRAPH_MODEL_REQUEST,
@@ -46,6 +51,7 @@ import {
 import { provideCompletion } from "./providers/completion/index.js"
 import { buildCrdPreviewModel } from "./providers/crd-preview.js"
 import { provideDefinition } from "./providers/definition/index.js"
+import { buildDesignerModel } from "./providers/designer-model.js"
 import { buildGraphModel } from "./providers/graph-model.js"
 import { buildSchemaTreeModel } from "./providers/schema-tree.js"
 import type {
@@ -289,6 +295,43 @@ export function registerProviders(
       const range = store.get(params.uri)?.positionMap.map.get(params.nodeId)
       return {
         range: range ? { start: range.start, end: range.end } : null,
+      }
+    },
+  )
+
+  // Designer model (visual-designer, Tier-3 feature 15): the graph model plus
+  // per-node prop editability (classified from the CURRENT document AST — the
+  // resolved synthesis value cannot tell a literal from `WIRE_FORMAT[input]`)
+  // and the file kind for the edit-safety matrix. Pure projection; an absent/
+  // failed synthesis degrades to an `ok: false` envelope, never an RPC error.
+  connection.onRequest(
+    DESIGNER_MODEL_REQUEST,
+    (params: DesignerModelParams): DesignerModelResponse => {
+      const fallbackVersion = params.version ?? 0
+      const fail = (error: string): DesignerModelResponse => ({
+        uri: params.uri,
+        version: fallbackVersion,
+        ok: false,
+        error,
+        fileKind: "arbitrary",
+        nodes: [],
+        edges: [],
+        statements: [],
+      })
+      try {
+        const state = store.get(params.uri)
+        const doc = documents.get(params.uri)
+        if (!state || !doc) {
+          return fail("Pipeline has not been synthesized yet.")
+        }
+        return buildDesignerModel(
+          state.uri,
+          state.version,
+          state.result,
+          doc.getText(),
+        )
+      } catch (err) {
+        return fail(err instanceof Error ? err.message : String(err))
       }
     },
   )

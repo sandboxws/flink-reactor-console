@@ -10,6 +10,15 @@ import {
   useWorkspaceTypeScriptCommand,
 } from "./config/use-workspace-typescript.js"
 import {
+  type DesignerEditOutcome,
+  DesignerPanel,
+  type DesignerRenderInfo,
+} from "./designer/panel.js"
+import type {
+  DesignerEdit,
+  DesignerModelResponse,
+} from "./designer/protocol.js"
+import {
   DEEP_VALIDATE_REQUEST,
   type DeepValidateResponse,
 } from "./gateway/protocol.js"
@@ -116,6 +125,20 @@ export interface FlinkReactorApi {
     /** The DAG overlay's toggle state + last application ack. */
     overlayInfo(): TapOverlayInfo | undefined
   }
+  readonly designer: {
+    /** The designer webview's last render acknowledgement. */
+    renderInfo(): DesignerRenderInfo | undefined
+    /** The last designer model the panel pulled (props/fileKind assertions). */
+    model(): DesignerModelResponse | undefined
+    /** Drive one edit intent through the panel (what the webview posts). */
+    applyEdit(edit: DesignerEdit): Promise<DesignerEditOutcome | undefined>
+    /** The last `applyDesignerEdit` outcome (applied / refused / error). */
+    lastEdit(): DesignerEditOutcome | undefined
+    /** Drive the click-to-source path for a node. */
+    revealNode(nodeId: string): Promise<void>
+    /** Whether a designer panel is currently open. */
+    isOpen(): boolean
+  }
 }
 
 const api: FlinkReactorApi = {
@@ -160,6 +183,16 @@ const api: FlinkReactorApi = {
       TapsPanel.active?.revealTap(nodeId) ?? Promise.resolve(),
     isOpen: () => TapsPanel.active !== undefined,
     overlayInfo: () => GraphPanel.active?.tapOverlay,
+  },
+  designer: {
+    renderInfo: () => DesignerPanel.active?.render,
+    model: () => DesignerPanel.active?.model,
+    applyEdit: (edit) =>
+      DesignerPanel.active?.applyEdit(edit) ?? Promise.resolve(undefined),
+    lastEdit: () => DesignerPanel.active?.lastEditOutcome,
+    revealNode: (nodeId) =>
+      DesignerPanel.active?.revealNode(nodeId) ?? Promise.resolve(),
+    isOpen: () => DesignerPanel.active !== undefined,
   },
 }
 
@@ -341,6 +374,32 @@ function registerCommands(
     vscode.commands.registerCommand("flinkReactor.toggleTapOverlay", () =>
       toggleTapOverlayCommand(),
     ),
+    // Visual designer (Tier-3 feature 15): the palette/canvas/forms webview.
+    vscode.commands.registerCommand("flinkReactor.openDesigner", () =>
+      openDesignerCommand(context.extensionUri),
+    ),
+  )
+}
+
+/** Open (or reveal) the visual designer for the active pipeline. */
+function openDesignerCommand(extensionUri: vscode.Uri): void {
+  if (!client) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: open a pipeline inside a FlinkReactor project first.",
+    )
+    return
+  }
+  const editor = vscode.window.activeTextEditor
+  if (!editor || !isPipelineDocument(editor.document)) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: the active editor is not a pipeline (.tsx importing @flink-reactor/dsl).",
+    )
+    return
+  }
+  DesignerPanel.createOrShow(
+    extensionUri,
+    client,
+    editor.document.uri.toString(),
   )
 }
 

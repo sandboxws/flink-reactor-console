@@ -32,6 +32,17 @@
     ".": {
       "import": "./dist/server.js",
       "types": "./dist/server.d.ts"
+    },
+    "./prop-form-schema": {
+      "types": "./dist/prop-form-schema.d.ts",
+      "import": "./dist/prop-form-schema.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "prop-form-schema": [
+        "./dist/prop-form-schema.d.ts"
+      ]
     }
   },
   "bin": {
@@ -45,18 +56,20 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "rm -rf dist && tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "gen:prop-metadata": "tsx scripts/generate-prop-metadata.ts",
+    "gen:prop-form-schema": "tsx scripts/generate-prop-form-schema.ts",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@flink-reactor/dsl": "workspace:*",
     "@flink-reactor/ts-plugin": "workspace:*",
     "jiti": "^2.6.1",
+    "ts-morph": "^25.0.1",
     "typescript": "^5.7.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"

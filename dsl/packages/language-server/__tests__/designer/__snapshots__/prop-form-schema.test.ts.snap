@@ -1,0 +1,368 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`prop-form schema projection > snapshots the representative components (KafkaSource, Filter, IcebergSink, Join) > Filter 1`] = `
+{
+  "component": "Filter",
+  "fields": [
+    {
+      "help": "SQL WHERE expression (e.g. "amount > 100 AND status = 'active'")",
+      "inputKind": "string",
+      "name": "condition",
+      "readOnlyInForm": false,
+      "required": true,
+      "type": "string",
+    },
+    {
+      "inputKind": "number",
+      "name": "parallelism",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "number",
+    },
+    {
+      "help": "Enable operator tailing for this transform",
+      "inputKind": "object",
+      "name": "tap",
+      "readOnlyInForm": true,
+      "required": false,
+      "type": "boolean | TapConfig",
+    },
+  ],
+  "runtimeRequired": [],
+}
+`;
+
+exports[`prop-form schema projection > snapshots the representative components (KafkaSource, Filter, IcebergSink, Join) > IcebergSink 1`] = `
+{
+  "component": "IcebergSink",
+  "fields": [
+    {
+      "inputKind": "object",
+      "name": "catalog",
+      "readOnlyInForm": true,
+      "required": true,
+      "type": "CatalogHandle",
+    },
+    {
+      "inputKind": "string",
+      "name": "database",
+      "readOnlyInForm": false,
+      "required": true,
+      "type": "string",
+    },
+    {
+      "inputKind": "string",
+      "name": "table",
+      "readOnlyInForm": false,
+      "required": true,
+      "type": "string",
+    },
+    {
+      "help": "Iceberg writer flush cadence. Maps to \`commit-interval-ms\` (×1000).
+
+Recommended defaults for CDC workloads:
+  • 10s — throughput-oriented runs
+  • 2–5s — latency-oriented runs",
+      "inputKind": "number",
+      "name": "commitIntervalSeconds",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "number",
+    },
+    {
+      "help": "Columns that drive Iceberg equality-delete writes for MoR.
+Declared independently from \`primaryKey\`: in practice they are usually
+the same set, but Iceberg treats them as two distinct concepts and
+without at least one of them set, \`upsertEnabled: true\` cannot produce
+real row-level deletes (falls back to position-only deletes).
+
+When omitted but \`primaryKey\` is set, synthesis derives the Iceberg
+\`equality-field-columns\` entry from \`primaryKey\`.",
+      "inputKind": "array",
+      "name": "equalityFieldColumns",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "readonly string[]",
+    },
+    {
+      "inputKind": "number",
+      "name": "formatVersion",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "1 | 2",
+    },
+    {
+      "inputKind": "number",
+      "name": "parallelism",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "number",
+    },
+    {
+      "inputKind": "array",
+      "name": "primaryKey",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "readonly string[]",
+    },
+    {
+      "help": "Enable operator tailing for this sink",
+      "inputKind": "object",
+      "name": "tap",
+      "readOnlyInForm": true,
+      "required": false,
+      "type": "boolean | TapConfig",
+    },
+    {
+      "help": "Target size per data file in MB. Maps to \`write.target-file-size-bytes\`
+(×1048576). Pair with \`writeDistributionMode\` to bound write-amplification.
+
+Recommended defaults: 256 for snapshot backfills, 64 for steady-state live.",
+      "inputKind": "number",
+      "name": "targetFileSizeMB",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "number",
+    },
+    {
+      "inputKind": "boolean",
+      "name": "upsertEnabled",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "boolean",
+    },
+    {
+      "help": "Partition-aware write routing. Maps to \`write.distribution-mode\`.
+
+Use \`'hash'\` under any non-trivial parallelism to avoid small-file
+explosion; \`'none'\` + \`parallelism > 1\` emits a synthesis warning.",
+      "inputKind": "enum",
+      "name": "writeDistributionMode",
+      "options": [
+        "none",
+        "hash",
+        "range",
+      ],
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "IcebergWriteDistributionMode",
+    },
+    {
+      "help": "Parquet codec. Maps to \`write.parquet.compression-codec\`.
+\`'zstd'\` is the defensible default for CDC workloads.",
+      "inputKind": "enum",
+      "name": "writeParquetCompression",
+      "options": [
+        "none",
+        "zstd",
+        "snappy",
+        "gzip",
+      ],
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "IcebergParquetCompression",
+    },
+  ],
+  "runtimeRequired": [],
+}
+`;
+
+exports[`prop-form schema projection > snapshots the representative components (KafkaSource, Filter, IcebergSink, Join) > Join 1`] = `
+{
+  "component": "Join",
+  "fields": [
+    {
+      "help": "Left input stream (construct node)",
+      "inputKind": "object",
+      "name": "left",
+      "readOnlyInForm": true,
+      "required": true,
+      "type": "ConstructNode",
+    },
+    {
+      "help": "SQL join condition (e.g. "a.user_id = b.user_id")",
+      "inputKind": "string",
+      "name": "on",
+      "readOnlyInForm": false,
+      "required": true,
+      "type": "string",
+    },
+    {
+      "help": "Right input stream (construct node)",
+      "inputKind": "object",
+      "name": "right",
+      "readOnlyInForm": true,
+      "required": true,
+      "type": "ConstructNode",
+    },
+    {
+      "help": "Query hints for join optimization",
+      "inputKind": "object",
+      "name": "hints",
+      "readOnlyInForm": true,
+      "required": false,
+      "type": "JoinHints",
+    },
+    {
+      "inputKind": "number",
+      "name": "parallelism",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "number",
+    },
+    {
+      "help": "State TTL for join state expiry (e.g. '1h', '30min')",
+      "inputKind": "string",
+      "name": "stateTtl",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "string",
+    },
+    {
+      "help": "Enable operator tailing for this join",
+      "inputKind": "object",
+      "name": "tap",
+      "readOnlyInForm": true,
+      "required": false,
+      "type": "boolean | TapConfig",
+    },
+    {
+      "help": "Join type (default: 'inner')",
+      "inputKind": "enum",
+      "name": "type",
+      "options": [
+        "inner",
+        "left",
+        "right",
+        "full",
+        "anti",
+        "semi",
+      ],
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "JoinType",
+    },
+  ],
+  "runtimeRequired": [],
+}
+`;
+
+exports[`prop-form schema projection > snapshots the representative components (KafkaSource, Filter, IcebergSink, Join) > KafkaSource 1`] = `
+{
+  "component": "KafkaSource",
+  "fields": [
+    {
+      "inputKind": "object",
+      "name": "schema",
+      "readOnlyInForm": true,
+      "required": true,
+      "type": "SchemaDefinition<T>",
+    },
+    {
+      "inputKind": "string",
+      "name": "topic",
+      "readOnlyInForm": false,
+      "required": true,
+      "type": "string",
+    },
+    {
+      "inputKind": "string",
+      "name": "bootstrapServers",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "string",
+    },
+    {
+      "inputKind": "string",
+      "name": "consumerGroup",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "string",
+    },
+    {
+      "inputKind": "enum",
+      "name": "format",
+      "options": [
+        "csv",
+        "json",
+        "avro",
+        "debezium-json",
+        "debezium-avro",
+        "debezium-protobuf",
+        "canal-json",
+        "maxwell-json",
+      ],
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "KafkaFormat",
+    },
+    {
+      "help": "Optional SQL table name. Defaults to topic name normalized as a SQL identifier.",
+      "inputKind": "string",
+      "name": "name",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "string",
+    },
+    {
+      "inputKind": "number",
+      "name": "parallelism",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "number",
+    },
+    {
+      "inputKind": "array",
+      "name": "primaryKey",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "readonly string[]",
+    },
+    {
+      "help": "Confluent Schema Registry URL. Required when \`format\` is \`"debezium-avro"\`
+or \`"debezium-protobuf"\` — the Flink deserializer fetches the writer schema
+from this endpoint at runtime. The deployment template must expose a
+reachable Schema Registry (in-cluster sidecar or external endpoint); see
+the Confluent \`flink-sql-avro-confluent-registry\` /
+\`flink-sql-protobuf-confluent-registry\` format docs for the request shape.",
+      "inputKind": "string",
+      "name": "schemaRegistryUrl",
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "string",
+    },
+    {
+      "inputKind": "enum",
+      "name": "startupMode",
+      "options": [
+        "latest-offset",
+        "earliest-offset",
+        "group-offsets",
+        "timestamp",
+      ],
+      "readOnlyInForm": false,
+      "required": false,
+      "type": "KafkaStartupMode",
+    },
+    {
+      "help": "Enable operator tailing for this source",
+      "inputKind": "object",
+      "name": "tap",
+      "readOnlyInForm": true,
+      "required": false,
+      "type": "boolean | TapConfig",
+    },
+    {
+      "inputKind": "object",
+      "name": "watermark",
+      "readOnlyInForm": true,
+      "required": false,
+      "type": "WatermarkDeclaration",
+    },
+  ],
+  "runtimeRequired": [
+    "topic",
+    "schema",
+  ],
+}
+`;

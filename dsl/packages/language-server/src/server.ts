@@ -13,6 +13,12 @@ import {
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { DEFAULT_CONFIG, parseConfig, type ServerConfig } from "./config.js"
+import { applyDesignerEdit } from "./designer/apply-edit.js"
+import {
+  APPLY_DESIGNER_EDIT_REQUEST,
+  type ApplyDesignerEditParams,
+  type ApplyDesignerEditResponse,
+} from "./designer/model.js"
 import { mapperContext, toLspDiagnostics } from "./diagnostics/index.js"
 import { DocumentStateStore } from "./document-state.js"
 import { GatewayCoordinator } from "./gateway/coordinator.js"
@@ -36,6 +42,35 @@ import { registerProviders } from "./providers.js"
 import { cacheKeyFor, ResultCache } from "./synth/cache.js"
 import { IsolatedRunner } from "./synth/isolated-runner.js"
 
+// Visual-designer wire contract (visual-designer, Tier-3 feature 15) — the
+// designer-model + apply-edit requests the designer canvas mirrors, plus the
+// prop-form schema types (the data itself ships as the
+// `@flink-reactor/language-server/prop-form-schema` subpath).
+export {
+  APPLY_DESIGNER_EDIT_REQUEST,
+  type ApplyDesignerEditParams,
+  type ApplyDesignerEditResponse,
+  type CanvasNode,
+  DESIGNER_MODEL_REQUEST,
+  type DesignerEdit,
+  type DesignerFileKind,
+  type DesignerModelNode,
+  type DesignerModelParams,
+  type DesignerModelResponse,
+  type DesignerPropEntry,
+  type DesignerPropValue,
+  type DesignerTextEdit,
+  type GenerateEdit,
+  type PropClassification,
+  type ScalarPropEdit,
+  type StructuralEdit,
+  type StructuralOp,
+} from "./designer/model.js"
+export {
+  DESIGNER_PRAGMA,
+  resolveFileKind,
+  verifyStaticSubset,
+} from "./designer/static-subset.js"
 // Gateway-validation wire contract (gateway-validation, Tier-3 feature 11) —
 // the deep-validate request + gateway-state notification clients mirror.
 export {
@@ -299,6 +334,48 @@ export function createServer(connection: Connection): ServerHandle {
     DEEP_VALIDATE_REQUEST,
     (params: DeepValidateParams): Promise<DeepValidateResponse> =>
       gateway.runPass(params.uri),
+  )
+
+  // Designer writes (visual-designer, Tier-3 feature 15): the single write
+  // path for scalar/structural/greenfield edits. Registered here (not in
+  // `registerProviders`) because verify-then-commit needs the synthesis
+  // runner: every edit is applied in memory, re-parsed, and re-synthesized
+  // BEFORE it is returned — a failure resolves as a refusal envelope (the
+  // file is untouched), never an RPC error. The store is never mutated; the
+  // committed `WorkspaceEdit` triggers the normal didChange → re-synthesis.
+  connection.onRequest(
+    APPLY_DESIGNER_EDIT_REQUEST,
+    async (
+      params: ApplyDesignerEditParams,
+    ): Promise<ApplyDesignerEditResponse> => {
+      const doc = documents.get(params.uri)
+      const state = store.get(params.uri)
+      const entryPoint = uriToPath(params.uri)
+      if (!doc || !entryPoint) {
+        return {
+          uri: params.uri,
+          version: params.version ?? 0,
+          ok: false,
+          error: "Document is not open in the editor.",
+        }
+      }
+      const projectDir = findProjectRoot(entryPoint)
+      return applyDesignerEdit(params, {
+        sourceText: doc.getText(),
+        fileName: entryPoint,
+        nodes: state?.result.nodes ?? [],
+        synthesize: (text) =>
+          runner.synthesize(
+            {
+              entryPoint,
+              projectDir,
+              documentText: text,
+              flinkVersion: config.flinkVersion,
+            },
+            cacheKeyFor(text, projectDir),
+          ),
+      })
+    },
   )
 
   registerProviders(

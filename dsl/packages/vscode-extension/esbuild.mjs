@@ -74,6 +74,18 @@ const tapsWebview = {
   outfile: "dist/webview/taps.js",
 }
 
+/** @type {import('esbuild').BuildOptions} */
+const designerWebview = {
+  ...sharedWebview,
+  // The designer canvas bundles the generated prop-form schema (a pure-data
+  // module from `@flink-reactor/language-server/prop-form-schema`) via the
+  // HOST, not here — the webview itself stays DSL-free and receives the
+  // schema over postMessage. This bundle carries only the renderer + the
+  // shared layout/palette modules.
+  entryPoints: ["src/designer/webview/main.ts"],
+  outfile: "dist/webview/designer.js",
+}
+
 if (watch) {
   const contexts = await Promise.all([
     esbuild.context(hostOptions),
@@ -81,6 +93,7 @@ if (watch) {
     esbuild.context(sqlPreviewWebview),
     esbuild.context(crdPreviewWebview),
     esbuild.context(tapsWebview),
+    esbuild.context(designerWebview),
   ])
   await Promise.all(contexts.map((c) => c.watch()))
   console.log("[esbuild] watching host + webviews…")
@@ -91,8 +104,9 @@ if (watch) {
     esbuild.build(sqlPreviewWebview),
     esbuild.build(crdPreviewWebview),
     esbuild.build(tapsWebview),
+    esbuild.build(designerWebview),
   ])
   console.log(
-    `[esbuild] built dist/extension.js + dist/webview/{graph,sql-preview,crd-preview,taps}.js (${production ? "production" : "development"})`,
+    `[esbuild] built dist/extension.js + dist/webview/{graph,sql-preview,crd-preview,taps,designer}.js (${production ? "production" : "development"})`,
   )
 }
