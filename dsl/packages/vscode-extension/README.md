@@ -58,6 +58,19 @@ into VS Code and automates the setup that otherwise blocks the editor tooling.
   `CAST`, `CURRENT_WATERMARK`), type names, operators, literals, and comments
   each in their theme color. Two layers compose (see below); toggle with
   `flinkReactor.sql.highlighting`.
+- **Schema inlay hints** — every component is annotated inline, after its
+  opening tag, with the facts synthesis derived for it: the inferred **output
+  schema** (`5 cols`, or an inline `[user_id, amount, ts]` in `compact` mode),
+  its **changelog mode** (`append`/`retract`/`upsert`), and the resolved
+  **effective parallelism** (`p=4` — the tooltip names which cascade level set
+  it). Window nodes additionally show the injected `+window_start,
+  +window_end` columns; joins show their merged output column count
+  (`→ 6 cols`). Hover any schema hint to expand the full `column | TYPE` table
+  — no command, no extra request. Hints update on the same debounced
+  re-synthesis as diagnostics, disappear (rather than go stale) while an edit
+  is mid-synthesis, and every part is independently toggleable via
+  `flinkReactor.inlayHints.*`. TypeScript's own parameter/type inlay hints are
+  untouched — the two sets compose.
 - **Editor surface** — a status bar item, an output channel, a Getting Started
   walkthrough, and starter snippets (`frpipeline`, `frsource`, `frsink`,
   `frtransform`, `frschema`).
@@ -218,6 +231,12 @@ archived/dropped for the VS Code/LSP stack now that this has landed.
 | `flinkReactor.flinkVersion` | _(unset)_ | Target Flink version override |
 | `flinkReactor.tsPlugin.autoConfigure` | `prompt` | `prompt` / `always` / `never` for tsconfig editing |
 | `flinkReactor.sql.highlighting` | `semantic+textmate` | Embedded-SQL coloring layers: `semantic+textmate` / `textmate` / `semantic` / `off` |
+| `flinkReactor.inlayHints.enabled` | `true` | Master switch for synthesis-backed inlay hints |
+| `flinkReactor.inlayHints.schema` | `count` | Schema fact: `off` / `count` (`5 cols`) / `compact` (inline column list) |
+| `flinkReactor.inlayHints.changelogMode` | `true` | Show each node's changelog-mode badge |
+| `flinkReactor.inlayHints.parallelism` | `true` | Show the resolved effective parallelism (`p=4`) |
+| `flinkReactor.inlayHints.windowColumns` | `true` | Annotate windows with the injected `window_start`/`window_end` |
+| `flinkReactor.inlayHints.joinColumns` | `true` | Annotate joins with their merged output column count |
 | `flinkReactor.cliPath` | _(empty)_ | Path to the `flink-reactor` CLI (reserved for CLI integration) |
 
 ## Packaging

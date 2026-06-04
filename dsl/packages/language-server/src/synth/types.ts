@@ -157,6 +157,23 @@ export interface DecodedNodeSchema {
   readonly columns: readonly { readonly name: string; readonly type: string }[]
 }
 
+/** Which level of the config cascade resolved the pipeline's effective
+ *  parallelism (Pipeline prop > env override > config > built-in default).
+ *  The language server synthesizes without a project config/environment, so
+ *  in practice it resolves `prop` or `default`; `env`/`config` exist for a
+ *  future worker that loads `flink-reactor.config.ts`. */
+export type ParallelismLevel = "prop" | "env" | "config" | "default"
+
+/** The pipeline's resolved effective parallelism, decoded in the worker from
+ *  the post-cascade synthesis output (the CRD `job.parallelism` the pipeline
+ *  will actually run with). Flink SQL parallelism is job-scoped, so one value
+ *  covers every node; the `schema-inlay-hints` capability annotates each
+ *  component with it. */
+export interface DecodedParallelism {
+  readonly value: number
+  readonly level: ParallelismLevel
+}
+
 /** One field of a source/sink table schema for the `schemaTree` request. */
 export interface DecodedTableField {
   readonly name: string
@@ -223,6 +240,9 @@ export interface SynthesisResult {
   /** Per-node input schema (columns visible to the node's expression props),
    *  for column completion + the hover column-ref card. */
   readonly nodeInputSchemas: readonly DecodedNodeSchema[]
+  /** The pipeline's resolved effective parallelism (job-scoped — every node
+   *  runs at it), or `null` on a failed/empty synthesis. */
+  readonly parallelism: DecodedParallelism | null
   /** Per source/sink table schema (fields + PK + watermark) for the
    *  `flinkReactor/schemaTree` request and the VS Code Schema Explorer. */
   readonly tableSchemas: readonly DecodedTableSchema[]

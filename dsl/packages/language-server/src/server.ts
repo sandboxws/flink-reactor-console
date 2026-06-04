@@ -16,6 +16,7 @@ import { DEFAULT_CONFIG, parseConfig, type ServerConfig } from "./config.js"
 import { mapperContext, toLspDiagnostics } from "./diagnostics/index.js"
 import { DocumentStateStore } from "./document-state.js"
 import { SYNTHESIZED_NOTIFICATION } from "./graph/model.js"
+import { createInlayHintRefresher } from "./inlay-hints/refresh.js"
 import { buildPositionMap } from "./mappers/source-position-mapper.js"
 import {
   SQL_SEMANTIC_LEGEND,
@@ -110,6 +111,15 @@ export function createServer(connection: Connection): ServerHandle {
   })
   const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
+  // Pull-model staleness signal for inlay hints: at most one
+  // `workspace/inlayHint/refresh` per completed synthesis, and only when the
+  // client advertised refresh support (schema-inlay-hints, Tier-3 feature 10).
+  let inlayHintRefreshSupported = false
+  const inlayHintRefresher = createInlayHintRefresher({
+    refreshSupported: () => inlayHintRefreshSupported,
+    send: () => connection.sendRequest("workspace/inlayHint/refresh"),
+  })
+
   function recreateRunner(): void {
     void runner.dispose()
     runner = new IsolatedRunner({
@@ -128,6 +138,8 @@ export function createServer(connection: Connection): ServerHandle {
 
   connection.onInitialize((params): InitializeResult => {
     config = parseConfig(params.initializationOptions, config)
+    inlayHintRefreshSupported =
+      params.capabilities.workspace?.inlayHint?.refreshSupport === true
     recreateRunner()
     return {
       capabilities: {
@@ -257,6 +269,10 @@ export function createServer(connection: Connection): ServerHandle {
     // Signal interested clients (the DAG panel) that a fresh model is ready
     // for this document version, so they can pull `flinkReactor/graphModel`.
     void connection.sendNotification(SYNTHESIZED_NOTIFICATION, { uri, version })
+    // Inlay hints are pull-based: ask the client to re-query the visible range
+    // now that counts/modes/parallelism may have changed (once per synthesis —
+    // this sits on the debounced completion, never on keystrokes).
+    inlayHintRefresher.onSynthesized()
   }
 
   documents.listen(connection)

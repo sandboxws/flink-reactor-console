@@ -19,6 +19,38 @@ const SQL_HIGHLIGHTING_MODES: readonly SqlHighlightingMode[] = [
   "off",
 ]
 
+/** How the schema fact of an inlay hint renders (`flinkReactor.inlayHints.schema`):
+ *  `count` shows `N cols`, `compact` an inline column-name list (width-bounded,
+ *  falling back to a count), `off` omits the schema fact entirely. */
+export type InlayHintSchemaMode = "off" | "count" | "compact"
+
+const INLAY_HINT_SCHEMA_MODES: readonly InlayHintSchemaMode[] = [
+  "off",
+  "count",
+  "compact",
+]
+
+/** Per-hint-kind toggles for the synthesis-backed inlay hints
+ *  (`flinkReactor.inlayHints.*`, forwarded by the client). `enabled` is the
+ *  master switch — off returns no hints regardless of the individual parts. */
+export interface InlayHintsConfig {
+  readonly enabled: boolean
+  readonly schema: InlayHintSchemaMode
+  readonly changelogMode: boolean
+  readonly parallelism: boolean
+  readonly windowColumns: boolean
+  readonly joinColumns: boolean
+}
+
+export const DEFAULT_INLAY_HINTS: InlayHintsConfig = {
+  enabled: true,
+  schema: "count",
+  changelogMode: true,
+  parallelism: true,
+  windowColumns: true,
+  joinColumns: true,
+}
+
 /** Server configuration, sourced from `flinkReactor.*` client settings. */
 export interface ServerConfig {
   /** Debounce window (ms) after the last edit before re-synthesizing. */
@@ -47,6 +79,8 @@ export interface ServerConfig {
   /** Embedded-SQL highlighting mode. The server emits SQL semantic tokens only
    *  for `semantic`/`semantic+textmate`; `textmate`/`off` suppress them. */
   readonly sqlHighlighting: SqlHighlightingMode
+  /** Synthesis-backed inlay-hint toggles (`flinkReactor.inlayHints.*`). */
+  readonly inlayHints: InlayHintsConfig
 }
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -57,6 +91,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
   enabled: true,
   tsPluginActive: false,
   sqlHighlighting: "semantic+textmate",
+  inlayHints: DEFAULT_INLAY_HINTS,
 }
 
 /** Does this mode have the server contribute SQL semantic tokens? */
@@ -102,6 +137,7 @@ export function parseConfig(
 
   return {
     sqlHighlighting: parseSqlHighlighting(fr, base.sqlHighlighting),
+    inlayHints: parseInlayHints(fr, base.inlayHints),
     debounceMs: num(fr.debounce ?? fr.debounceMs, base.debounceMs),
     timeoutMs: num(fr.timeout ?? fr.timeoutMs, base.timeoutMs),
     bootGraceMs: num(fr.bootGraceMs, base.bootGraceMs),
@@ -117,6 +153,35 @@ export function parseConfig(
       fr.tsPluginActive ?? obj.tsPluginActive,
       base.tsPluginActive,
     ),
+  }
+}
+
+/**
+ * Read the `flinkReactor.inlayHints.*` toggles from the forwarded settings —
+ * a nested `inlayHints` object (`{ enabled, schema, changelogMode, … }`).
+ * Unknown/absent keys fall back per-key so a partial settings payload (or an
+ * older client) degrades to the current values rather than resetting them.
+ */
+function parseInlayHints(
+  fr: Record<string, unknown>,
+  base: InlayHintsConfig,
+): InlayHintsConfig {
+  const raw =
+    fr.inlayHints && typeof fr.inlayHints === "object"
+      ? (fr.inlayHints as Record<string, unknown>)
+      : {}
+  const schema = INLAY_HINT_SCHEMA_MODES.includes(
+    raw.schema as InlayHintSchemaMode,
+  )
+    ? (raw.schema as InlayHintSchemaMode)
+    : base.schema
+  return {
+    enabled: bool(raw.enabled, base.enabled),
+    schema,
+    changelogMode: bool(raw.changelogMode, base.changelogMode),
+    parallelism: bool(raw.parallelism, base.parallelism),
+    windowColumns: bool(raw.windowColumns, base.windowColumns),
+    joinColumns: bool(raw.joinColumns, base.joinColumns),
   }
 }
 

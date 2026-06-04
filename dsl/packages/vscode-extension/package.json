@@ -219,6 +219,46 @@
             "No embedded-SQL coloring — fragments render as ordinary TypeScript string literals."
           ],
           "markdownDescription": "How to color the Flink SQL embedded in `.tsx` pipeline props (`Filter` `condition`, `Map`/`Aggregate` projections, join `on`, `Validate` rules, `Schema` watermark, `RawSQL` body). Two complementary layers — a TextMate injection grammar and language-server semantic tokens — that compose: semantic tokens override the grammar within the ranges the server reports."
+        },
+        "flinkReactor.inlayHints.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Master switch for FlinkReactor's synthesis-backed inlay hints. When off, no per-component schema/changelog/parallelism annotations are shown (TypeScript's own inlay hints are unaffected)."
+        },
+        "flinkReactor.inlayHints.schema": {
+          "type": "string",
+          "enum": [
+            "off",
+            "count",
+            "compact"
+          ],
+          "default": "count",
+          "enumDescriptions": [
+            "No schema fact in the hint.",
+            "The inferred output column count (e.g. `5 cols`).",
+            "An inline column-name list (e.g. `[user_id, amount, ts]`), falling back to a count for wide schemas."
+          ],
+          "markdownDescription": "How each component's inferred output schema renders in its inlay hint. Hovering the hint always expands to the full `column | TYPE` schema, regardless of mode."
+        },
+        "flinkReactor.inlayHints.changelogMode": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Show each component's resolved changelog mode (`append`/`retract`/`upsert`) in its inlay hint."
+        },
+        "flinkReactor.inlayHints.parallelism": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Show the resolved effective parallelism (`p=4`) in each component's inlay hint. The tooltip notes which cascade level set it (Pipeline prop > env override > config > default)."
+        },
+        "flinkReactor.inlayHints.windowColumns": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Annotate window components (`TumbleWindow`/`SlideWindow`/`SessionWindow`) with the `window_start`/`window_end` time columns windowing injects into the downstream schema."
+        },
+        "flinkReactor.inlayHints.joinColumns": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Annotate join components with the merged (deduplicated) resulting column count of their output schema."
         }
       }
     },

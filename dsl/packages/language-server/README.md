@@ -78,6 +78,45 @@ then projects that node's synthesis facts. It never errors or blocks:
   debounced synth) — shows the static card with a **"synthesis pending"** note
   instead of possibly-stale types.
 
+## Inlay hints (synthesis-backed)
+
+`textDocument/inlayHint` renders each component's **synthesis-derived facts
+inline**, after its opening tag — the bulk, always-visible counterpart to
+hover's on-demand card. All facts are read from the per-document synthesis
+state (`statementMeta` schemas, resolved changelog modes, the decoded effective
+parallelism); a hint request never re-synthesizes.
+
+| Hint part | Example | Where |
+|---|---|---|
+| inferred output schema | `5 cols` (`count`) or `[user_id, amount, ts]` (`compact`, width-bounded with a `N cols …` fallback) | every dataflow node with a resolvable output schema |
+| changelog mode | `append` / `retract` / `upsert` | every node with a resolved mode |
+| effective parallelism | `p=4` | every node (job-scoped; the tooltip names the resolving cascade level — Pipeline prop > env override > config > default) |
+| injected window columns | `+window_start, +window_end` | `TumbleWindow`/`SlideWindow`/`SessionWindow` |
+| merged join column count | `→ 6 cols` | `Join`/`TemporalJoin`/`LookupJoin`/`IntervalJoin`/`LateralJoin` |
+
+Each part is an LSP **label part with its own Markdown tooltip**: hovering a
+`5 cols` hint expands to the full `column | TYPE` schema with no follow-up
+request (the tooltip is eager — the schema is already in hand). Parts are
+independently toggleable via `flinkReactor.inlayHints.*`; the master toggle off
+returns no hints at all. The `<Pipeline>` container and catalog declarations
+are never annotated — their changelog entries are vacuous.
+
+**Anchoring & the source-position map.** Hints anchor at each node's
+opening-tag end via the same `nodeId → Range` map hover and diagnostics use
+(the map records opening tags only, so multi-line tags anchor at their `/>`).
+A node absent from the map — programmatic `createElement`, an aliased factory
+call, ambiguous id-prediction — is simply skipped while its siblings still
+annotate.
+
+**Refresh model.** Inlay hints are pull-based; the server signals
+`workspace/inlayHint/refresh` exactly once per completed **debounced**
+re-synthesis (never per keystroke), and only when the client declared
+`workspace.inlayHint.refreshSupport`. Between an edit and the next synthesis
+the provider answers **empty** rather than stale: when the stored result's
+version trails the document version there is nothing trustworthy to show, and
+the refresh re-pulls the moment it catches up. A failed synthesis likewise
+yields no hints — absence over wrong facts, and never an error.
+
 ## Usage
 
 ### As a standalone binary (stdio)
@@ -109,9 +148,16 @@ Settings are forwarded by the client under the `flinkReactor.*` namespace (via `
 |---|---|---|
 | `flinkReactor.enable` | `true` | Master switch; when `false` no diagnostics are published. |
 | `flinkReactor.debounce` | `300` | Milliseconds to wait after the last edit before re-synthesizing. |
-| `flinkReactor.timeout` | `5000` | Per-synthesis isolation timeout (ms). |
+| `flinkReactor.timeout` | `8000` | Per-synthesis isolation timeout (ms) for a warm worker. |
+| `flinkReactor.bootGraceMs` | `20000` | Budget for a fresh worker's first synthesis (thread boot + first project-DSL import). |
 | `flinkReactor.maxHeapMb` | `512` | Worker heap ceiling (MB). |
 | `flinkReactor.flinkVersion` | DSL default | Target Flink version (`1.20`–`2.2`). |
+| `flinkReactor.inlayHints.enabled` | `true` | Master switch for synthesis-backed inlay hints. |
+| `flinkReactor.inlayHints.schema` | `count` | Schema fact rendering: `off`, `count` (`5 cols`), or `compact` (inline column list, width-bounded). |
+| `flinkReactor.inlayHints.changelogMode` | `true` | Show the changelog-mode badge. |
+| `flinkReactor.inlayHints.parallelism` | `true` | Show the effective-parallelism label. |
+| `flinkReactor.inlayHints.windowColumns` | `true` | Annotate window nodes with the injected `window_start`/`window_end`. |
+| `flinkReactor.inlayHints.joinColumns` | `true` | Annotate join nodes with the merged output column count. |
 
 ## Development
 

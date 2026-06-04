@@ -21,6 +21,7 @@ import {
   type NodeRangeResult,
 } from "./graph/model.js"
 import { provideHover } from "./hover/provider.js"
+import { provideInlayHints } from "./inlay-hints/provider.js"
 import { nodeAtPosition } from "./mappers/source-position-mapper.js"
 import {
   CRD_PREVIEW_REQUEST,
@@ -135,9 +136,21 @@ export function registerProviders(
     })
   })
 
+  // Synthesis-backed inlay hints (schema-inlay-hints, Tier-3 feature 10): per-
+  // component output schema (count/compact), changelog mode, and effective
+  // parallelism, plus window time-column and join merged-count annotations —
+  // each part gated by its `flinkReactor.inlayHints.*` toggle. Pure read over
+  // the shared synthesis state; empty while synthesis trails the document
+  // version (the post-synthesis refresh re-pulls).
   connection.languages.inlayHint.on((params): InlayHint[] => {
-    void store.get(params.textDocument.uri)
-    return []
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return []
+    return provideInlayHints({
+      state: store.get(params.textDocument.uri),
+      documentVersion: doc.version,
+      range: params.range,
+      config: getConfig().inlayHints,
+    })
   })
 
   // Embedded-SQL semantic tokens (embedded-sql-highlighting, Tier-2 feature 9):

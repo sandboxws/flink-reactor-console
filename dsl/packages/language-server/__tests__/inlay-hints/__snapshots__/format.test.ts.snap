@@ -1,0 +1,76 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`formatChangelogPart > 2.2 renders the DSL's append-only as the compact append badge 1`] = `
+{
+  "label": "append",
+  "tooltip": "Changelog mode \`append-only\` — the stream this node emits only ever inserts rows.",
+}
+`;
+
+exports[`formatParallelismPart > 2.3 renders p=<n> with the cascade level in the tooltip 1`] = `
+{
+  "label": "p=4",
+  "tooltip": "Effective parallelism \`4\` — resolved from the \`parallelism\` prop on the \`<Pipeline>\`.",
+}
+`;
+
+exports[`formatSchemaPart > 2.1 compact mode lists column names inline 1`] = `
+{
+  "label": "[user_id, amount, ts]",
+  "tooltip": "| column | type |
+|---|---|
+| \`user_id\` | \`BIGINT\` |
+| \`amount\` | \`DECIMAL(10, 2)\` |
+| \`ts\` | \`TIMESTAMP(3)\` |",
+}
+`;
+
+exports[`formatSchemaPart > 2.1 count mode renders the column count 1`] = `
+{
+  "label": "3 cols",
+  "tooltip": "| column | type |
+|---|---|
+| \`user_id\` | \`BIGINT\` |
+| \`amount\` | \`DECIMAL(10, 2)\` |
+| \`ts\` | \`TIMESTAMP(3)\` |",
+}
+`;
+
+exports[`formatSchemaPart > 2.5 compact mode truncates a wide schema to a count with ellipsis 1`] = `
+{
+  "label": "12 cols …",
+  "tooltip": "| column | type |
+|---|---|
+| \`column_1\` | \`STRING\` |
+| \`column_2\` | \`STRING\` |
+| \`column_3\` | \`STRING\` |
+| \`column_4\` | \`STRING\` |
+| \`column_5\` | \`STRING\` |
+| \`column_6\` | \`STRING\` |
+| \`column_7\` | \`STRING\` |
+| \`column_8\` | \`STRING\` |
+| \`column_9\` | \`STRING\` |
+| \`column_10\` | \`STRING\` |
+| \`column_11\` | \`STRING\` |
+| \`column_12\` | \`STRING\` |",
+}
+`;
+
+exports[`formatWindowPart / formatJoinPart > 2.4 join part renders the merged column count 1`] = `
+{
+  "label": "→ 6 cols",
+  "tooltip": "The join's merged (deduplicated) output schema has 6 cols.",
+}
+`;
+
+exports[`formatWindowPart / formatJoinPart > 2.4 window part lists the injected time columns 1`] = `
+{
+  "label": "+window_start, +window_end",
+  "tooltip": "Windowing injects these time columns into the downstream schema:
+
+| column | type |
+|---|---|
+| \`window_start\` | \`TIMESTAMP(3)\` |
+| \`window_end\` | \`TIMESTAMP(3)\` |",
+}
+`;

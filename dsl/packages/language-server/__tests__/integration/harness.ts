@@ -70,6 +70,12 @@ export class LspClient {
     }
     if (msg.method) {
       for (const h of this.handlers.get(msg.method) ?? []) h(msg.params)
+      // A server→client *request* (method + id, e.g.
+      // `workspace/inlayHint/refresh`) needs a response frame to keep the
+      // server's pending map clean; tests observe it via `onNotification`.
+      if (msg.id !== undefined) {
+        this.write({ jsonrpc: "2.0", id: msg.id, result: null })
+      }
     }
   }
 

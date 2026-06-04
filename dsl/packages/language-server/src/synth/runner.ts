@@ -20,6 +20,7 @@ import { loadPipelineNode } from "./load.js"
 import type {
   DecodedContributor,
   DecodedOrigin,
+  DecodedParallelism,
   DecodedStatementMeta,
   LoadError,
   NodeProjection,
@@ -66,6 +67,40 @@ function decodeMeta(
   return [...m.entries()]
     .map(([statementIndex, meta]) => ({ statementIndex, meta }))
     .sort((a, b) => a.statementIndex - b.statementIndex)
+}
+
+/**
+ * Decode the pipeline's resolved effective parallelism (the config cascade:
+ * Pipeline prop > env override > config > built-in default). The server
+ * synthesizes without a project config/environment, so the cascade collapses
+ * to *prop > default* here — the level is `prop` exactly when the Pipeline
+ * node declares `parallelism`. The value is read from the generated CRD's
+ * `job.parallelism` (post-cascade, what the job will actually run with) so it
+ * can never drift from the emitted artifact; the prop is the fallback when
+ * the CRD shape is unexpected (e.g. a CDC pipeline's ConfigMap-only set).
+ */
+function decodeParallelism(
+  pipelineNode: ConstructNode,
+  crd: unknown,
+): DecodedParallelism {
+  const prop =
+    typeof pipelineNode.props.parallelism === "number"
+      ? pipelineNode.props.parallelism
+      : undefined
+  const spec = (crd as { spec?: Record<string, unknown> } | null)?.spec
+  // Standard `FlinkDeployment` nests at `spec.job`; `FlinkBlueGreenDeployment`
+  // at `spec.template.spec.job`.
+  const inner =
+    spec && "template" in spec
+      ? (spec.template as { spec?: Record<string, unknown> } | undefined)?.spec
+      : spec
+  const job = inner?.job as { parallelism?: unknown } | undefined
+  const fromCrd =
+    typeof job?.parallelism === "number" ? job.parallelism : undefined
+  return {
+    value: fromCrd ?? prop ?? 1,
+    level: prop !== undefined ? "prop" : "default",
+  }
 }
 
 /** Project the construct tree (pre-order) into the serializable node list the
@@ -134,6 +169,7 @@ function emptyResult(
     changelogModes: [],
     sinkChangelogAccepts: [],
     nodeInputSchemas: [],
+    parallelism: null,
     tableSchemas: [],
     pipelineManifest: null,
     crdYaml: "",
@@ -216,6 +252,7 @@ export async function synthesizeDocument(
       changelogModes: graphFacts.changelogModes,
       sinkChangelogAccepts: graphFacts.sinkChangelogAccepts,
       nodeInputSchemas: graphFacts.nodeInputSchemas,
+      parallelism: decodeParallelism(node, pipeline.crd),
       tableSchemas: graphFacts.tableSchemas,
       pipelineManifest: pipeline.pipelineManifest,
       crdYaml: toYaml(pipeline.crd),

@@ -33,6 +33,16 @@ interface ServerSettings {
   /** `flinkReactor.sql.highlighting` — the server emits SQL semantic tokens only
    *  for `semantic`/`semantic+textmate`. */
   readonly sqlHighlighting: string
+  /** `flinkReactor.inlayHints.*` — per-hint-kind toggles for the synthesis-
+   *  backed inlay hints (schema-inlay-hints capability). */
+  readonly inlayHints: {
+    readonly enabled: boolean
+    readonly schema: string
+    readonly changelogMode: boolean
+    readonly parallelism: boolean
+    readonly windowColumns: boolean
+    readonly joinColumns: boolean
+  }
 }
 
 /** Map VS Code's nested `flinkReactor.*` config into the server's flat shape. */
@@ -48,6 +58,14 @@ function readServerSettings(): ServerSettings {
     maxHeapMb: cfg.get<number>("server.maxHeapMb", 512),
     flinkVersion: cfg.get<string>("flinkVersion") || undefined,
     sqlHighlighting: cfg.get<string>("sql.highlighting", "semantic+textmate"),
+    inlayHints: {
+      enabled: cfg.get<boolean>("inlayHints.enabled", true),
+      schema: cfg.get<string>("inlayHints.schema", "count"),
+      changelogMode: cfg.get<boolean>("inlayHints.changelogMode", true),
+      parallelism: cfg.get<boolean>("inlayHints.parallelism", true),
+      windowColumns: cfg.get<boolean>("inlayHints.windowColumns", true),
+      joinColumns: cfg.get<boolean>("inlayHints.joinColumns", true),
+    },
   }
 }
 
