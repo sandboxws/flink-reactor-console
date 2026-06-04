@@ -31,6 +31,7 @@ function makeState(statements: string[], version = 1): DocumentSynthState {
     parallelism: null,
     tableSchemas: [],
     pipelineManifest: null,
+    tapManifest: null,
     crdYaml: "",
     pipelineKind: "standard",
     artifacts: [],

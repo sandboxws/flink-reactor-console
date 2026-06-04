@@ -34,12 +34,27 @@ let lastGood: GraphModelResponse | undefined
 let previousIds = new Set<string>()
 /** The selected node id, preserved across refreshes for stable selection. */
 let selectedId: string | undefined
+/** Tapped node ids for the tap-visualization overlay (Tier-3 feature 13);
+ *  `undefined` while the overlay is off. Applied over the rendered nodes by
+ *  id — never re-laying-out the graph. */
+let tapOverlayIds: ReadonlySet<string> | undefined
 
 // ── Message pump ────────────────────────────────────────────────────
 
 window.addEventListener("message", (event: MessageEvent) => {
-  const msg = event.data as { type: string; model?: GraphModelResponse }
+  const msg = event.data as {
+    type: string
+    model?: GraphModelResponse
+    nodeIds?: readonly string[] | null
+  }
   if (msg.type === "model" && msg.model) applyModel(msg.model)
+  // The tap overlay is an additive layer: `nodeIds` marks matching rendered
+  // nodes, `null` clears. Ids with no matching node are ignored (the next
+  // synthesis reconciles both views from the same version).
+  if (msg.type === "tapOverlay") {
+    tapOverlayIds = msg.nodeIds ? new Set(msg.nodeIds) : undefined
+    applyTapOverlay()
+  }
 })
 
 function applyModel(model: GraphModelResponse): void {
@@ -108,6 +123,69 @@ function render(model: GraphModelResponse): void {
   // Drop selection if the node vanished (identity churn).
   if (selectedId && !nodeById.has(selectedId)) selectedId = undefined
   previousIds = nextIds
+  // Re-apply the tap overlay over the freshly rendered nodes (a re-render
+  // rebuilds the SVG, dropping the previous badges).
+  applyTapOverlay()
+}
+
+// ── Tap overlay (tap-visualization, Tier-3 feature 13) ─────────────
+
+/**
+ * Mark each rendered node whose `id` matches a tapped node with an eye badge
+ * — purely additive over the existing layout. Clearing removes the badges and
+ * leaves the underlying graph untouched. Acks the applied count so the host
+ * (and the e2e suite) can observe the overlay state.
+ */
+function applyTapOverlay(): void {
+  let marked = 0
+  for (const el of Array.from(canvas.querySelectorAll(".fr-node"))) {
+    const g = el as SVGGElement
+    const nodeId = g.dataset.nodeId
+    const existing = g.querySelector(".fr-tap-badge")
+    const tapped = nodeId !== undefined && tapOverlayIds?.has(nodeId) === true
+    if (tapped) {
+      marked++
+      if (!existing) g.appendChild(buildTapBadge(g))
+    } else if (existing) {
+      existing.remove()
+    }
+  }
+  vscode.postMessage({ type: "tapOverlayApplied", markedCount: marked })
+}
+
+/** A small "observed" eye badge pinned to the node's bottom-right corner. */
+function buildTapBadge(node: SVGGElement): SVGGElement {
+  const rect = node.querySelector("rect")
+  const w = Number(rect?.getAttribute("width") ?? 0)
+  const h = Number(rect?.getAttribute("height") ?? 0)
+  const badge = document.createElementNS(SVG_NS, "g") as SVGGElement
+  badge.setAttribute("class", "fr-tap-badge")
+  badge.setAttribute("transform", `translate(${w - 4}, ${h - 4})`)
+
+  const circle = document.createElementNS(SVG_NS, "circle")
+  circle.setAttribute("r", "9")
+  circle.setAttribute("fill", "var(--vscode-charts-purple, #7c3aed)")
+  circle.setAttribute("stroke", "var(--vscode-editor-background, #1e1e1e)")
+  circle.setAttribute("stroke-width", "1.5")
+  badge.appendChild(circle)
+
+  // A simple eye glyph: an almond outline + pupil, drawn as SVG (no emoji —
+  // platform-stable rendering inside the sandboxed webview).
+  const eye = document.createElementNS(SVG_NS, "path")
+  eye.setAttribute("d", "M -5 0 Q 0 -4.5 5 0 Q 0 4.5 -5 0 Z")
+  eye.setAttribute("fill", "none")
+  eye.setAttribute("stroke", "#fff")
+  eye.setAttribute("stroke-width", "1.2")
+  badge.appendChild(eye)
+  const pupil = document.createElementNS(SVG_NS, "circle")
+  pupil.setAttribute("r", "1.7")
+  pupil.setAttribute("fill", "#fff")
+  badge.appendChild(pupil)
+
+  const title = document.createElementNS(SVG_NS, "title")
+  title.textContent = "Tapped operator (observed)"
+  badge.appendChild(title)
+  return badge
 }
 
 function buildDefs(): SVGDefsElement {

@@ -67,12 +67,20 @@ const crdPreviewWebview = {
   outfile: "dist/webview/crd-preview.js",
 }
 
+/** @type {import('esbuild').BuildOptions} */
+const tapsWebview = {
+  ...sharedWebview,
+  entryPoints: ["src/taps/webview/main.ts"],
+  outfile: "dist/webview/taps.js",
+}
+
 if (watch) {
   const contexts = await Promise.all([
     esbuild.context(hostOptions),
     esbuild.context(graphWebview),
     esbuild.context(sqlPreviewWebview),
     esbuild.context(crdPreviewWebview),
+    esbuild.context(tapsWebview),
   ])
   await Promise.all(contexts.map((c) => c.watch()))
   console.log("[esbuild] watching host + webviews…")
@@ -82,8 +90,9 @@ if (watch) {
     esbuild.build(graphWebview),
     esbuild.build(sqlPreviewWebview),
     esbuild.build(crdPreviewWebview),
+    esbuild.build(tapsWebview),
   ])
   console.log(
-    `[esbuild] built dist/extension.js + dist/webview/{graph,sql-preview,crd-preview}.js (${production ? "production" : "development"})`,
+    `[esbuild] built dist/extension.js + dist/webview/{graph,sql-preview,crd-preview,taps}.js (${production ? "production" : "development"})`,
   )
 }

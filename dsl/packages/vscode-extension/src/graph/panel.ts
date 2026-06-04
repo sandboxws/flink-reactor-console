@@ -1,6 +1,10 @@
 import { basename } from "node:path"
 import * as vscode from "vscode"
 import type { FlinkReactorClient } from "../client/launch.js"
+import {
+  TAP_MANIFEST_REQUEST,
+  type TapManifestResponse,
+} from "../taps/protocol.js"
 import { getOutputChannel } from "../ui/output.js"
 import { buildHtml, getNonce } from "./html.js"
 import {
@@ -20,6 +24,7 @@ type InboundMessage =
       readonly version: number
       readonly nodeCount: number
     }
+  | { readonly type: "tapOverlayApplied"; readonly markedCount: number }
 
 /** What the webview last drew — exposed for the e2e suite (the sandboxed
  *  webview DOM is otherwise unreadable from the host). */
@@ -27,6 +32,12 @@ export interface RenderInfo {
   readonly ok: boolean
   readonly version: number
   readonly nodeCount: number
+}
+
+/** The overlay's last application ack (e2e visibility). */
+export interface TapOverlayInfo {
+  readonly active: boolean
+  readonly markedCount: number
 }
 
 /**
@@ -45,6 +56,12 @@ export class GraphPanel {
   private renderedVersion = -1
   /** The webview's last render acknowledgement (for the e2e suite). */
   private lastRender: RenderInfo | undefined
+  /** Tap-overlay toggle state (tap-visualization, Tier-3 feature 13). When
+   *  on, each refresh re-pulls the tap manifest and re-posts the overlay so
+   *  badges track the re-rendered graph. */
+  private tapOverlayActive = false
+  /** The webview's last overlay application ack (e2e visibility). */
+  private lastTapOverlay: TapOverlayInfo = { active: false, markedCount: 0 }
 
   /**
    * Reveal the panel for `uri`, creating it (beside the active editor) on first
@@ -84,6 +101,11 @@ export class GraphPanel {
   /** The webview's most recent render acknowledgement (e2e visibility). */
   get render(): RenderInfo | undefined {
     return this.lastRender
+  }
+
+  /** The overlay's toggle state + last application ack (e2e visibility). */
+  get tapOverlay(): TapOverlayInfo {
+    return { ...this.lastTapOverlay, active: this.tapOverlayActive }
   }
 
   private constructor(
@@ -144,6 +166,40 @@ export class GraphPanel {
       `DAG model refreshed (${basename(this.uri)} v${model.version}, ok=${model.ok}, ${model.nodes.length} nodes)`,
     )
     void this.panel.webview.postMessage({ type: "model", model })
+    // Keep the tap overlay aligned with the re-rendered graph: both views
+    // re-read the same synthesis version, so badges reconcile by node id.
+    if (this.tapOverlayActive) void this.postTapOverlay()
+  }
+
+  /**
+   * Toggle the tap-visualization overlay (tap badges on tapped nodes). On
+   * enable, the tap manifest is pulled and posted into the webview as an
+   * additive `tapOverlay` message; on disable, a clear is posted — the
+   * underlying graph is never re-laid-out. Returns the new state.
+   */
+  async toggleTapOverlay(): Promise<boolean> {
+    this.tapOverlayActive = !this.tapOverlayActive
+    if (this.tapOverlayActive) {
+      await this.postTapOverlay()
+    } else {
+      void this.panel.webview.postMessage({ type: "tapOverlay", nodeIds: null })
+      getOutputChannel().info(`Tap overlay cleared (${basename(this.uri)})`)
+    }
+    return this.tapOverlayActive
+  }
+
+  /** Pull the tap manifest and post the overlay's tapped node ids. */
+  private async postTapOverlay(): Promise<void> {
+    const manifest = await this.client.sendGraphRequest<TapManifestResponse>(
+      TAP_MANIFEST_REQUEST,
+      { uri: this.uri },
+    )
+    // A failed pull/synthesis adds no badges; the next good refresh reconciles.
+    const nodeIds = manifest?.ok ? manifest.taps.map((t) => t.nodeId) : []
+    void this.panel.webview.postMessage({ type: "tapOverlay", nodeIds })
+    getOutputChannel().info(
+      `Tap overlay posted (${basename(this.uri)}, ${nodeIds.length} tapped node(s))`,
+    )
   }
 
   private onMessage(message: InboundMessage): void {
@@ -156,6 +212,13 @@ export class GraphPanel {
         ok: message.ok,
         version: message.version,
         nodeCount: message.nodeCount,
+      }
+      return
+    }
+    if (message.type === "tapOverlayApplied") {
+      this.lastTapOverlay = {
+        active: this.tapOverlayActive,
+        markedCount: message.markedCount,
       }
       return
     }

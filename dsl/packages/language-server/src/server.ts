@@ -106,6 +106,15 @@ export {
   SQL_TOKEN_TYPES,
 } from "./providers/sql-semantic-tokens.js"
 export type { PipelineKind } from "./synth/types.js"
+// Tap-manifest wire contract (tap-visualization, Tier-3 feature 13) — same
+// one-source-of-truth re-export so the extension + its tap panel/overlay
+// share the envelope and tap shapes.
+export {
+  TAP_MANIFEST_REQUEST,
+  type TapManifestParams,
+  type TapManifestResponse,
+  type TapView,
+} from "./taps/model.js"
 
 export interface ServerHandle {
   readonly connection: Connection

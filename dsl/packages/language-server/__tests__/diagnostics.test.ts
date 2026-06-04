@@ -41,6 +41,7 @@ function baseResult(overrides: Partial<SynthesisResult> = {}): SynthesisResult {
     parallelism: null,
     tableSchemas: [],
     pipelineManifest: null,
+    tapManifest: null,
     crdYaml: "",
     pipelineKind: "standard",
     artifacts: [],

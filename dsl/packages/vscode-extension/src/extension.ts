@@ -14,7 +14,11 @@ import {
   type DeepValidateResponse,
 } from "./gateway/protocol.js"
 import { GatewayStatusItem } from "./gateway/status.js"
-import { GraphPanel, type RenderInfo } from "./graph/panel.js"
+import {
+  GraphPanel,
+  type RenderInfo,
+  type TapOverlayInfo,
+} from "./graph/panel.js"
 import {
   type CrdArtifactInfo,
   CrdPreviewPanel,
@@ -26,6 +30,8 @@ import {
   type SqlRenderInfo,
 } from "./preview/sql-preview-manager.js"
 import { SqlHighlightingController } from "./sql/highlighting-controller.js"
+import { type TapRenderInfo, TapsPanel } from "./taps/panel.js"
+import type { TapManifestResponse } from "./taps/protocol.js"
 import type { SchemaTableInfo, SchemaTreeLocation } from "./tree/protocol.js"
 import {
   revealLocation,
@@ -98,6 +104,18 @@ export interface FlinkReactorApi {
     /** Force a re-request of `flinkReactor/schemaTree` for the bound document. */
     refresh(): Promise<void>
   }
+  readonly taps: {
+    /** The tap webview's last render acknowledgement, or `undefined` if closed. */
+    renderInfo(): TapRenderInfo | undefined
+    /** The last tap manifest the panel pulled (strategy/schema/SQL assertions). */
+    manifest(): TapManifestResponse | undefined
+    /** Drive the tap click-to-source path (what a webview click posts). */
+    revealTap(nodeId: string): Promise<void>
+    /** Whether a tap panel is currently open. */
+    isOpen(): boolean
+    /** The DAG overlay's toggle state + last application ack. */
+    overlayInfo(): TapOverlayInfo | undefined
+  }
 }
 
 const api: FlinkReactorApi = {
@@ -134,6 +152,14 @@ const api: FlinkReactorApi = {
       SchemaExplorerProvider.current?.revealById(id) ?? Promise.resolve(false),
     refresh: () =>
       SchemaExplorerProvider.current?.refresh() ?? Promise.resolve(),
+  },
+  taps: {
+    renderInfo: () => TapsPanel.active?.render,
+    manifest: () => TapsPanel.active?.manifest,
+    revealTap: (nodeId) =>
+      TapsPanel.active?.revealTap(nodeId) ?? Promise.resolve(),
+    isOpen: () => TapsPanel.active !== undefined,
+    overlayInfo: () => GraphPanel.active?.tapOverlay,
   },
 }
 
@@ -308,6 +334,49 @@ function registerCommands(
     vscode.commands.registerCommand("flinkReactor.deepValidate", () =>
       deepValidateCommand(),
     ),
+    // Tap visualization (Tier-3 feature 13): the tap panel + the DAG overlay.
+    vscode.commands.registerCommand("flinkReactor.openTaps", () =>
+      openTapsCommand(context.extensionUri),
+    ),
+    vscode.commands.registerCommand("flinkReactor.toggleTapOverlay", () =>
+      toggleTapOverlayCommand(),
+    ),
+  )
+}
+
+/** Open (or reveal) the tap panel for the active pipeline. */
+function openTapsCommand(extensionUri: vscode.Uri): void {
+  if (!client) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: open a pipeline inside a FlinkReactor project first.",
+    )
+    return
+  }
+  const editor = vscode.window.activeTextEditor
+  if (!editor || !isPipelineDocument(editor.document)) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: the active editor is not a pipeline (.tsx importing @flink-reactor/dsl).",
+    )
+    return
+  }
+  TapsPanel.createOrShow(extensionUri, client, editor.document.uri.toString())
+}
+
+/** Toggle the tap overlay on the open DAG panel (badges on tapped nodes). */
+async function toggleTapOverlayCommand(): Promise<void> {
+  const panel = GraphPanel.active
+  if (!panel) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: open the Pipeline DAG first (FlinkReactor: Open Pipeline DAG).",
+    )
+    return
+  }
+  const active = await panel.toggleTapOverlay()
+  vscode.window.setStatusBarMessage(
+    active
+      ? "$(eye) FlinkReactor: tap overlay on"
+      : "FlinkReactor: tap overlay off",
+    4000,
   )
 }
 

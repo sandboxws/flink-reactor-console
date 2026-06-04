@@ -110,6 +110,10 @@ export interface ServerConfig {
   readonly inlayHints: InlayHintsConfig
   /** Opt-in SQL Gateway deep validation (`flinkReactor.gateway.*`). */
   readonly gateway: GatewayConfig
+  /** Console push target (`flinkReactor.consoleUrl`, mirroring the CLI
+   *  `fr synth --console-url`). Surfaced on the tap-manifest envelope so the
+   *  tap panel can show where taps push; unset means no console configured. */
+  readonly consoleUrl?: string
 }
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -165,7 +169,15 @@ export function parseConfig(
       ? (fr.flinkVersion as FlinkMajorVersion)
       : base.flinkVersion
 
+  // An explicit empty string clears the console URL (the "unset" shape VS
+  // Code sends for a cleared setting); otherwise layer over the base.
+  const consoleUrl =
+    typeof fr.consoleUrl === "string"
+      ? fr.consoleUrl.trim() || undefined
+      : base.consoleUrl
+
   return {
+    consoleUrl,
     sqlHighlighting: parseSqlHighlighting(fr, base.sqlHighlighting),
     inlayHints: parseInlayHints(fr, base.inlayHints),
     gateway: parseGateway(fr, base.gateway),

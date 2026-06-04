@@ -53,8 +53,14 @@ import type {
   TokenInput,
 } from "./providers/sql-semantic-tokens.js"
 import { buildSynthModel } from "./providers/synth-model.js"
+import { buildTapManifestModel } from "./providers/tap-manifest.js"
 import { provideCodeActions } from "./refactor/code-actions.js"
 import { prepareRenameAt, renameAt } from "./refactor/prepare-rename.js"
+import {
+  TAP_MANIFEST_REQUEST,
+  type TapManifestParams,
+  type TapManifestResponse,
+} from "./taps/model.js"
 
 /**
  * Register thin dispatchers for every provider endpoint the server advertises.
@@ -361,6 +367,37 @@ export function registerProviders(
               artifacts: [],
             },
           ],
+        }
+      }
+    },
+  )
+
+  // Tap manifest (tap-visualization, vscode-tier-3-feature-13): serialize the
+  // cached pipeline's decoded tap layer for the tap panel + DAG overlay. Pure
+  // projection of the held state — never re-synthesizes, never throws. The
+  // `tapManifest === null` (no operators tapped) case resolves `ok: true`
+  // with empty `taps`; a failed synthesis resolves `ok: false` + `error` so
+  // the panel can keep its last good view dimmed. `consoleUrl` reflects the
+  // forwarded `flinkReactor.consoleUrl` configuration (mirroring the CLI
+  // `fr synth --console-url`); omitted when unset.
+  connection.onRequest(
+    TAP_MANIFEST_REQUEST,
+    (params: TapManifestParams): TapManifestResponse => {
+      const fallbackVersion = params.version ?? 0
+      try {
+        return buildTapManifestModel(
+          store.get(params.uri),
+          params.uri,
+          fallbackVersion,
+          getConfig().consoleUrl,
+        )
+      } catch (err) {
+        return {
+          uri: params.uri,
+          version: fallbackVersion,
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+          taps: [],
         }
       }
     },

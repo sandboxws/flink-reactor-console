@@ -22,6 +22,8 @@ import type {
   DecodedOrigin,
   DecodedParallelism,
   DecodedStatementMeta,
+  DecodedTap,
+  DecodedTapManifest,
   LoadError,
   NodeProjection,
   SourceRange,
@@ -103,6 +105,79 @@ function decodeParallelism(
   }
 }
 
+/** The minimal shape of the DSL's `TapManifest` this decoder reads (the full
+ *  type is not exported through `@flink-reactor/dsl/browser`'s index types). */
+interface TapManifestLike {
+  readonly pipelineName: string
+  readonly flinkVersion: string
+  readonly generatedAt: string
+  readonly taps: readonly {
+    readonly nodeId: string
+    readonly name: string
+    readonly componentType: string
+    readonly componentName: string
+    readonly schema: Record<string, string>
+    readonly connectorType: string
+    readonly observationSql: string
+    readonly consumerGroupId: string
+    readonly config: Record<string, unknown>
+  }[]
+}
+
+/**
+ * Decode the pipeline's `TapManifest` for the `tap-visualization` capability:
+ * normalize each tap's `schema` record into ordered `{name,type}` columns
+ * (Schema declaration order — `Object.entries` preserves it), stamp `autoTap`
+ * from the construct tree (a Sink with no `tap` prop is a dev-mode auto-tap —
+ * `synthesizeApp` runs tap generation with `devMode: true`), and **drop
+ * `connectorProperties`** (it can carry credentials and is not needed to
+ * render). `null` passes through — no operators tapped is a valid state.
+ */
+function decodeTapManifest(
+  manifest: TapManifestLike | null | undefined,
+  root: ConstructNode,
+): DecodedTapManifest | null {
+  if (!manifest) return null
+  const nodeById = new Map<string, ConstructNode>()
+  const index = (n: ConstructNode): void => {
+    if (!nodeById.has(n.id)) nodeById.set(n.id, n)
+    for (const c of n.children) index(c)
+  }
+  index(root)
+
+  const taps: DecodedTap[] = manifest.taps.map((tap) => {
+    const node = nodeById.get(tap.nodeId)
+    const autoTap =
+      node !== undefined && node.kind === "Sink" && node.props.tap === undefined
+    const config: Record<string, string> = {}
+    for (const [key, value] of Object.entries(tap.config)) {
+      if (value !== undefined && value !== null) config[key] = String(value)
+    }
+    return {
+      nodeId: tap.nodeId,
+      name: tap.name,
+      componentType: tap.componentType,
+      componentName: tap.componentName,
+      connectorType: tap.connectorType,
+      consumerGroupId: tap.consumerGroupId,
+      schema: Object.entries(tap.schema).map(([name, type]) => ({
+        name,
+        type,
+      })),
+      observationSql: tap.observationSql,
+      config,
+      autoTap,
+    }
+  })
+
+  return {
+    pipelineName: manifest.pipelineName,
+    flinkVersion: manifest.flinkVersion,
+    generatedAt: manifest.generatedAt,
+    taps,
+  }
+}
+
 /** Project the construct tree (pre-order) into the serializable node list the
  *  source mapper consumes for node count + any `__loc` fast-path. */
 function projectNodes(root: ConstructNode): NodeProjection[] {
@@ -172,6 +247,7 @@ function emptyResult(
     parallelism: null,
     tableSchemas: [],
     pipelineManifest: null,
+    tapManifest: null,
     crdYaml: "",
     pipelineKind: "standard",
     artifacts: [],
@@ -255,6 +331,10 @@ export async function synthesizeDocument(
       parallelism: decodeParallelism(node, pipeline.crd),
       tableSchemas: graphFacts.tableSchemas,
       pipelineManifest: pipeline.pipelineManifest,
+      tapManifest: decodeTapManifest(
+        (pipeline as { tapManifest?: TapManifestLike | null }).tapManifest,
+        node,
+      ),
       crdYaml: toYaml(pipeline.crd),
       pipelineKind,
       artifacts,

@@ -55,6 +55,7 @@ function errorResult(kind: LoadErrorKind, message: string): SynthesisResult {
     parallelism: null,
     tableSchemas: [],
     pipelineManifest: null,
+    tapManifest: null,
     crdYaml: "",
     pipelineKind: "standard",
     artifacts: [],

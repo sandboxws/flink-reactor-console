@@ -199,6 +199,43 @@ export interface DecodedTableSchema {
   readonly watermark?: { readonly column: string; readonly expression: string }
 }
 
+/** One tapped operator, decoded from the DSL's `TapMetadata` for the
+ *  `tap-visualization` capability. The projection happens in the worker —
+ *  where the construct tree still exists to stamp `autoTap` — and
+ *  deliberately **omits `connectorProperties`** (it can carry credentials and
+ *  is not needed to render). `nodeId` is the operator's `ConstructNode.id`,
+ *  the same identity the DAG model and the source-position map key on. */
+export interface DecodedTap {
+  readonly nodeId: string
+  /** Tap display name (from `TapConfig.name` or auto-generated). */
+  readonly name: string
+  /** 'source' | 'sink' | 'transform' | 'join' | 'window'. */
+  readonly componentType: string
+  readonly componentName: string
+  /** Connector type driving the observation strategy (e.g. `kafka`, `jdbc`). */
+  readonly connectorType: string
+  readonly consumerGroupId: string
+  /** Tapped output columns, normalized from the manifest's record shape. */
+  readonly schema: readonly { readonly name: string; readonly type: string }[]
+  /** The generated `CREATE TEMPORARY TABLE … SELECT …` observation query. */
+  readonly observationSql: string
+  /** Merged tap configuration (defaults + user overrides) — plain strings. */
+  readonly config: Readonly<Record<string, string>>
+  /** True for a dev-mode auto-tapped sink (no `tap` prop declared); false for
+   *  an explicitly declared tap. */
+  readonly autoTap: boolean
+}
+
+/** The pipeline's tap manifest, decoded for the `flinkReactor/tapManifest`
+ *  request. `null` mirrors the DSL's `tapManifest === null` — no operators
+ *  tapped — which is a valid, non-error state. */
+export interface DecodedTapManifest {
+  readonly pipelineName: string
+  readonly flinkVersion: string
+  readonly generatedAt: string
+  readonly taps: readonly DecodedTap[]
+}
+
 /** Request payload sent to the synthesis worker (and accepted by the pure
  *  in-process runner). */
 export interface SynthesisInput {
@@ -247,6 +284,9 @@ export interface SynthesisResult {
    *  `flinkReactor/schemaTree` request and the VS Code Schema Explorer. */
   readonly tableSchemas: readonly DecodedTableSchema[]
   readonly pipelineManifest: PipelineManifest | null
+  /** The pipeline's decoded tap manifest (tap-visualization), or `null` when
+   *  no operators are tapped — a valid state, not an error. */
+  readonly tapManifest: DecodedTapManifest | null
   readonly crdYaml: string
   /** Which artifact shape the pipeline synthesized to (`standard` for a
    *  FlinkDeployment + ConfigMap, `cdc-pipeline` for a Flink CDC `pipeline.yaml`

@@ -56,6 +56,9 @@ interface ServerSettings {
     readonly timeoutMs: number
     readonly flinkVersion?: string
   }
+  /** `flinkReactor.consoleUrl` — the console push target shown by the tap
+   *  panel (tap-visualization capability); empty string when unset. */
+  readonly consoleUrl: string
 }
 
 /** Map VS Code's nested `flinkReactor.*` config into the server's flat shape. */
@@ -86,6 +89,7 @@ function readServerSettings(): ServerSettings {
       timeoutMs: cfg.get<number>("gateway.timeoutMs", 30000),
       flinkVersion: cfg.get<string>("gateway.flinkVersion") || undefined,
     },
+    consoleUrl: cfg.get<string>("consoleUrl", ""),
   }
 }
 

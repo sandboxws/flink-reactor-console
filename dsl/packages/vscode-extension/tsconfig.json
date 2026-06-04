@@ -26,6 +26,7 @@
     "__tests__",
     "src/graph/webview",
     "src/preview/webview",
-    "src/preview/crd-webview"
+    "src/preview/crd-webview",
+    "src/taps/webview"
   ]
 }
