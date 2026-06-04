@@ -9,6 +9,11 @@ import {
   maybePromptWorkspaceTypeScript,
   useWorkspaceTypeScriptCommand,
 } from "./config/use-workspace-typescript.js"
+import {
+  DEEP_VALIDATE_REQUEST,
+  type DeepValidateResponse,
+} from "./gateway/protocol.js"
+import { GatewayStatusItem } from "./gateway/status.js"
 import { GraphPanel, type RenderInfo } from "./graph/panel.js"
 import {
   type CrdArtifactInfo,
@@ -40,6 +45,7 @@ import {
 let client: FlinkReactorClient | undefined
 let statusBar: StatusBar | undefined
 let schemaExplorer: SchemaExplorerProvider | undefined
+let gatewayStatus: GatewayStatusItem | undefined
 
 /** The extension's public API (also used by the e2e suite to observe the DAG
  *  panel, whose sandboxed webview is otherwise unreadable from the host). */
@@ -210,6 +216,20 @@ export async function activate(
       if (uri === schemaExplorer?.boundUri) void schemaExplorer.refresh()
     }),
   )
+
+  // Gateway-state status item (gateway-validation): renders the server's
+  // deep-validation state; visible only while flinkReactor.gateway.enabled.
+  // (Work-done progress for a pass is rendered by vscode-languageclient.)
+  gatewayStatus = new GatewayStatusItem()
+  context.subscriptions.push(
+    { dispose: () => gatewayStatus?.dispose() },
+    client.onGatewayState(({ state, message }) =>
+      gatewayStatus?.update(state, message),
+    ),
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration("flinkReactor.gateway")) gatewayStatus?.sync()
+    }),
+  )
   // The view bound before the server existed (returning no data); now that it is
   // up, pull the tree for the active pipeline.
   void schemaExplorer?.refresh()
@@ -226,6 +246,8 @@ export async function deactivate(): Promise<void> {
   client = undefined
   statusBar?.dispose()
   statusBar = undefined
+  gatewayStatus?.dispose()
+  gatewayStatus = undefined
   disposeOutputChannel()
 }
 
@@ -282,7 +304,66 @@ function registerCommands(
     vscode.commands.registerCommand(SCHEMA_REFRESH_COMMAND, () =>
       schemaExplorer?.refresh(),
     ),
+    // Gateway deep validation: one explicit pass for the active pipeline.
+    vscode.commands.registerCommand("flinkReactor.deepValidate", () =>
+      deepValidateCommand(),
+    ),
   )
+}
+
+/** Run one gateway deep-validation pass for the active pipeline and surface
+ *  the outcome. Failures arrive as data (the server already showed its own
+ *  warning notice for gateway-level failures), so this stays gentle. */
+async function deepValidateCommand(): Promise<void> {
+  const uri = activePipelineUri()
+  if (!uri) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: open a pipeline .tsx to deep validate.",
+    )
+    return
+  }
+  if (!client) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: the language server is not running.",
+    )
+    return
+  }
+  const response = await client.sendGraphRequest<DeepValidateResponse>(
+    DEEP_VALIDATE_REQUEST,
+    { uri },
+  )
+  if (!response) return
+  switch (response.status) {
+    case "clean":
+      vscode.window.setStatusBarMessage(
+        `$(check) FlinkReactor: deep validation passed${response.fromCache ? " (cached)" : ""}`,
+        5000,
+      )
+      return
+    case "errors":
+      vscode.window.setStatusBarMessage(
+        `$(error) FlinkReactor: deep validation found ${response.errorCount} planner error(s) — see Problems`,
+        8000,
+      )
+      return
+    case "skipped":
+      if (response.skipReason === "disabled") {
+        const pick = await vscode.window.showInformationMessage(
+          "FlinkReactor deep validation is disabled. Enable flinkReactor.gateway.enabled and set the SQL Gateway endpoint to use it.",
+          "Open Settings",
+        )
+        if (pick) {
+          void vscode.commands.executeCommand(
+            "workbench.action.openSettings",
+            "flinkReactor.gateway",
+          )
+        }
+      }
+      return
+    default:
+      // "failed" — the server already raised its notice + status state.
+      return
+  }
 }
 
 /** The active editor's URI when it is a FlinkReactor pipeline, else `undefined`

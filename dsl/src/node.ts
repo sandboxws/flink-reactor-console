@@ -21,3 +21,19 @@ export {
   loadPipeline,
   resolveProjectContext,
 } from "./cli/discovery.js"
+// ── SQL Gateway client ──────────────────────────────────────────────
+// The REST transport behind `fr --deep-validate`, re-exported so the
+// language server's gateway-validation capability submits EXPLAIN through
+// the exact same path (and catches identical planner errors) instead of
+// re-implementing HTTP. Network-bound, hence Node-entry-only.
+export type { SqlGatewayClientOptions } from "./lib/sql-gateway/client.js"
+export {
+  SqlGatewayClient,
+  SqlGatewayClientError,
+  StatementExecutionError,
+} from "./lib/sql-gateway/client.js"
+export type {
+  SessionConfig,
+  StatementErrorDetail,
+  StatementStatus,
+} from "./lib/sql-gateway/types.js"

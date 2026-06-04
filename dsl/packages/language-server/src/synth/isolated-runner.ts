@@ -52,6 +52,7 @@ function errorResult(kind: LoadErrorKind, message: string): SynthesisResult {
     changelogModes: [],
     sinkChangelogAccepts: [],
     nodeInputSchemas: [],
+    parallelism: null,
     tableSchemas: [],
     pipelineManifest: null,
     crdYaml: "",

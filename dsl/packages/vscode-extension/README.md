@@ -71,6 +71,17 @@ into VS Code and automates the setup that otherwise blocks the editor tooling.
   is mid-synthesis, and every part is independently toggleable via
   `flinkReactor.inlayHints.*`. TypeScript's own parameter/type inlay hints are
   untouched — the two sets compose.
+- **Deep validation (SQL Gateway, opt-in)** — static checks can't see a real
+  catalog. Enable `flinkReactor.gateway.*` and run **FlinkReactor: Deep
+  Validate Pipeline** to submit the synthesized SQL to your Flink SQL Gateway
+  via `EXPLAIN`: missing catalog tables, live type mismatches, and
+  unregistered UDFs land as `FR-GATEWAY-` problems on the exact JSX element
+  that produced the failing statement — rendered alongside (never replacing)
+  the static diagnostics, each set clearing on its own cadence. Passes are
+  explicit (command, or optionally on save), cancellable, cached by the
+  generated SQL's hash, and fail soft: an unreachable gateway is one warning
+  notice and a status-bar state, never a blocked editor. Off by default —
+  nothing connects until you opt in.
 - **Editor surface** — a status bar item, an output channel, a Getting Started
   walkthrough, and starter snippets (`frpipeline`, `frsource`, `frsink`,
   `frtransform`, `frschema`).
@@ -109,6 +120,7 @@ refuses workspace plugins for security. This extension automates both.
 | `FlinkReactor: Open Pipeline DAG` | Open the pipeline dataflow graph beside a pipeline |
 | `FlinkReactor: Open CRD Preview` | Open the read-only, tabbed Kubernetes artifact-set preview beside a pipeline |
 | `FlinkReactor: Refresh Schema Explorer` | Re-request the schema tree for the active pipeline (also the view's title button) |
+| `FlinkReactor: Deep Validate Pipeline (SQL Gateway)` | Run one opt-in deep-validation pass for the active pipeline against the configured SQL Gateway |
 
 The three preview/DAG commands are also available as editor-title (navigation)
 actions on any `.tsx` pipeline in a FlinkReactor project. The **Schema Explorer**
@@ -237,6 +249,11 @@ archived/dropped for the VS Code/LSP stack now that this has landed.
 | `flinkReactor.inlayHints.parallelism` | `true` | Show the resolved effective parallelism (`p=4`) |
 | `flinkReactor.inlayHints.windowColumns` | `true` | Annotate windows with the injected `window_start`/`window_end` |
 | `flinkReactor.inlayHints.joinColumns` | `true` | Annotate joins with their merged output column count |
+| `flinkReactor.gateway.enabled` | `false` | Opt into SQL Gateway deep validation (nothing connects while off) |
+| `flinkReactor.gateway.endpoint` | _(empty)_ | SQL Gateway base URL, e.g. `http://localhost:8083` |
+| `flinkReactor.gateway.validateOnSave` | `false` | Also deep validate on save (never on keystrokes) |
+| `flinkReactor.gateway.timeoutMs` | `30000` | Wall-clock budget (ms) per deep-validation pass |
+| `flinkReactor.gateway.flinkVersion` | _(empty)_ | Optional gateway Flink-version hint (mismatch logs a warning only) |
 | `flinkReactor.cliPath` | _(empty)_ | Path to the `flink-reactor` CLI (reserved for CLI integration) |
 
 ## Packaging

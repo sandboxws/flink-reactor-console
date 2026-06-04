@@ -79,6 +79,11 @@
         "icon": "$(symbol-namespace)"
       },
       {
+        "command": "flinkReactor.deepValidate",
+        "title": "Deep Validate Pipeline (SQL Gateway)",
+        "category": "FlinkReactor"
+      },
+      {
         "command": "flinkReactor.refreshSchemaExplorer",
         "title": "Refresh Schema Explorer",
         "category": "FlinkReactor",
@@ -139,6 +144,10 @@
         },
         {
           "command": "flinkReactor.openCrdPreview",
+          "when": "flinkReactor.isPipeline"
+        },
+        {
+          "command": "flinkReactor.deepValidate",
           "when": "flinkReactor.isPipeline"
         }
       ]
@@ -259,6 +268,32 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "Annotate join components with the merged (deduplicated) resulting column count of their output schema."
+        },
+        "flinkReactor.gateway.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enable opt-in **deep validation** against a Flink SQL Gateway: the *Deep Validate Pipeline* command (and optionally save) submits the synthesized SQL via `EXPLAIN` and surfaces planner errors (missing catalog tables, type mismatches, unregistered UDFs) as `FR-GATEWAY-` diagnostics. Requires a reachable gateway — nothing connects while this is off."
+        },
+        "flinkReactor.gateway.endpoint": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Base URL of the Flink SQL Gateway REST endpoint (e.g. `http://localhost:8083`). Required when `flinkReactor.gateway.enabled` is on."
+        },
+        "flinkReactor.gateway.validateOnSave": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Run a deep-validation pass each time a pipeline `.tsx` is saved (never on keystrokes). The SQL-hash cache makes saves that don't change the generated SQL free."
+        },
+        "flinkReactor.gateway.timeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 1000,
+          "markdownDescription": "Wall-clock budget (ms) for one whole deep-validation pass; on expiry the pass is abandoned with a notice and authoring continues."
+        },
+        "flinkReactor.gateway.flinkVersion": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Optional hint of the gateway's Flink version. A mismatch with the pipeline's target logs a warning (EXPLAIN is generally forward-compatible); it never fails the pass."
         }
       }
     },

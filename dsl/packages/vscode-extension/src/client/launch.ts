@@ -14,6 +14,10 @@ import {
   TransportKind,
 } from "vscode-languageclient/node"
 import {
+  GATEWAY_STATE_NOTIFICATION,
+  type GatewayStateNotification,
+} from "../gateway/protocol.js"
+import {
   SYNTHESIZED_NOTIFICATION,
   type SynthesizedNotification,
 } from "../graph/protocol.js"
@@ -43,6 +47,15 @@ interface ServerSettings {
     readonly windowColumns: boolean
     readonly joinColumns: boolean
   }
+  /** `flinkReactor.gateway.*` — opt-in SQL Gateway deep validation
+   *  (gateway-validation capability). Off by default. */
+  readonly gateway: {
+    readonly enabled: boolean
+    readonly endpoint: string
+    readonly validateOnSave: boolean
+    readonly timeoutMs: number
+    readonly flinkVersion?: string
+  }
 }
 
 /** Map VS Code's nested `flinkReactor.*` config into the server's flat shape. */
@@ -66,6 +79,13 @@ function readServerSettings(): ServerSettings {
       windowColumns: cfg.get<boolean>("inlayHints.windowColumns", true),
       joinColumns: cfg.get<boolean>("inlayHints.joinColumns", true),
     },
+    gateway: {
+      enabled: cfg.get<boolean>("gateway.enabled", false),
+      endpoint: cfg.get<string>("gateway.endpoint", ""),
+      validateOnSave: cfg.get<boolean>("gateway.validateOnSave", false),
+      timeoutMs: cfg.get<number>("gateway.timeoutMs", 30000),
+      flinkVersion: cfg.get<string>("gateway.flinkVersion") || undefined,
+    },
   }
 }
 
@@ -86,6 +106,12 @@ export class FlinkReactorClient {
   private readonly synthesizedEmitter =
     new vscode.EventEmitter<SynthesizedNotification>()
   readonly onSynthesized = this.synthesizedEmitter.event
+
+  /** Fires on each `flinkReactor/gatewayState` notification so the gateway
+   *  status item reflects the server's deep-validation state. */
+  private readonly gatewayStateEmitter =
+    new vscode.EventEmitter<GatewayStateNotification>()
+  readonly onGatewayState = this.gatewayStateEmitter.event
 
   constructor(
     private readonly project: ProjectContext,
@@ -154,6 +180,11 @@ export class FlinkReactorClient {
         (params: SynthesizedNotification) =>
           this.synthesizedEmitter.fire(params),
       )
+      this.client.onNotification(
+        GATEWAY_STATE_NOTIFICATION,
+        (params: GatewayStateNotification) =>
+          this.gatewayStateEmitter.fire(params),
+      )
       log.info("Language server started.")
     } catch (err) {
       this.status.set("error")
@@ -213,6 +244,7 @@ export class FlinkReactorClient {
 
   async dispose(): Promise<void> {
     this.synthesizedEmitter.dispose()
+    this.gatewayStateEmitter.dispose()
     await this.stop()
   }
 

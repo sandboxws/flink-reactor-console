@@ -15,6 +15,16 @@ import { TextDocument } from "vscode-languageserver-textdocument"
 import { DEFAULT_CONFIG, parseConfig, type ServerConfig } from "./config.js"
 import { mapperContext, toLspDiagnostics } from "./diagnostics/index.js"
 import { DocumentStateStore } from "./document-state.js"
+import { GatewayCoordinator } from "./gateway/coordinator.js"
+import { GatewayValidator } from "./gateway/deep-validate.js"
+import {
+  DEEP_VALIDATE_REQUEST,
+  type DeepValidateParams,
+  type DeepValidateResponse,
+  GATEWAY_STATE_NOTIFICATION,
+  type GatewayState,
+} from "./gateway/model.js"
+import { DualChannelDiagnostics } from "./gateway/publisher.js"
 import { SYNTHESIZED_NOTIFICATION } from "./graph/model.js"
 import { createInlayHintRefresher } from "./inlay-hints/refresh.js"
 import { buildPositionMap } from "./mappers/source-position-mapper.js"
@@ -26,6 +36,17 @@ import { registerProviders } from "./providers.js"
 import { cacheKeyFor, ResultCache } from "./synth/cache.js"
 import { IsolatedRunner } from "./synth/isolated-runner.js"
 
+// Gateway-validation wire contract (gateway-validation, Tier-3 feature 11) —
+// the deep-validate request + gateway-state notification clients mirror.
+export {
+  DEEP_VALIDATE_REQUEST,
+  type DeepValidateParams,
+  type DeepValidateResponse,
+  type DeepValidateSkipReason,
+  GATEWAY_STATE_NOTIFICATION,
+  type GatewayState,
+  type GatewayStateNotification,
+} from "./gateway/model.js"
 // Public wire contract for the `dag-visualization` capability — re-exported so
 // LSP clients (the VS Code extension + its webview) share one source of truth.
 export {
@@ -120,6 +141,39 @@ export function createServer(connection: Connection): ServerHandle {
     send: () => connection.sendRequest("workspace/inlayHint/refresh"),
   })
 
+  // Dual-channel diagnostics (gateway-validation, Tier-3 feature 11): the
+  // static (Tier-1) and gateway sets are stored per document and published as
+  // one concatenation, so neither pass ever clears the other's findings.
+  const diagnostics = new DualChannelDiagnostics((uri, diags) => {
+    connection.sendDiagnostics({ uri, diagnostics: diags })
+  })
+
+  // Opt-in SQL Gateway deep validation: explicit command + optional on-save,
+  // never per keystroke. Everything short-circuits while
+  // `flinkReactor.gateway.enabled` is false (the default).
+  const gateway = new GatewayCoordinator({
+    getConfig: () => config.gateway,
+    getTargetFlinkVersion: () => config.flinkVersion,
+    getState: (uri) => store.get(uri),
+    publisher: diagnostics,
+    validator: new GatewayValidator(),
+    notifyState: (state: GatewayState, message?: string) => {
+      void connection.sendNotification(GATEWAY_STATE_NOTIFICATION, {
+        state,
+        ...(message !== undefined ? { message } : {}),
+      })
+    },
+    showWarning: (message) => {
+      void connection.window.showWarningMessage(message)
+    },
+    log: (message) => connection.console.warn(message),
+    beginProgress: async (title) => {
+      const progress = await connection.window.createWorkDoneProgress()
+      progress.begin(title)
+      return { done: () => progress.done() }
+    },
+  })
+
   function recreateRunner(): void {
     void runner.dispose()
     runner = new IsolatedRunner({
@@ -146,6 +200,8 @@ export function createServer(connection: Connection): ServerHandle {
         textDocumentSync: {
           openClose: true,
           change: TextDocumentSyncKind.Incremental,
+          // didSave drives the optional gateway validate-on-save trigger.
+          save: { includeText: false },
         },
         completionProvider: {
           resolveProvider: true,
@@ -182,8 +238,10 @@ export function createServer(connection: Connection): ServerHandle {
     const timeoutChanged =
       next.timeoutMs !== config.timeoutMs ||
       next.maxOldGenerationSizeMb !== config.maxOldGenerationSizeMb
+    const previousGateway = config.gateway
     config = next
     if (timeoutChanged) recreateRunner()
+    gateway.onConfigChanged(previousGateway, next.gateway)
     // Re-validate all open documents under the new config.
     for (const doc of documents.all()) scheduleSynth(doc)
   })
@@ -192,6 +250,7 @@ export function createServer(connection: Connection): ServerHandle {
     for (const timer of debounceTimers.values()) clearTimeout(timer)
     debounceTimers.clear()
     store.clear()
+    await gateway.dispose()
     await runner.dispose()
   })
 
@@ -199,6 +258,14 @@ export function createServer(connection: Connection): ServerHandle {
 
   // `onDidChangeContent` fires on open and on every incremental change.
   documents.onDidChangeContent((change) => scheduleSynth(change.document))
+
+  // Gateway validate-on-save (never on change/keystroke): only when the
+  // author opted into both the gateway and the on-save cadence.
+  documents.onDidSave((event) => {
+    if (!config.gateway.enabled || !config.gateway.validateOnSave) return
+    if (!isPipelineDocument(event.document)) return
+    void gateway.runPass(event.document.uri)
+  })
 
   documents.onDidClose((event) => {
     const uri = event.document.uri
@@ -209,9 +276,18 @@ export function createServer(connection: Connection): ServerHandle {
     }
     store.delete(uri)
     sqlSemanticTokens.forget(uri)
-    // Clear diagnostics for the closed document.
-    connection.sendDiagnostics({ uri, diagnostics: [] })
+    // Clear both diagnostic channels for the closed document.
+    diagnostics.forget(uri)
   })
+
+  // The explicit "Deep validate pipeline" trigger (the VS Code shell's
+  // command dispatches here). Resolves with an outcome envelope — failures
+  // are data, never RPC errors, so the client renders them gently.
+  connection.onRequest(
+    DEEP_VALIDATE_REQUEST,
+    (params: DeepValidateParams): Promise<DeepValidateResponse> =>
+      gateway.runPass(params.uri),
+  )
 
   registerProviders(
     connection,
@@ -259,13 +335,12 @@ export function createServer(connection: Connection): ServerHandle {
 
     const positionMap = buildPositionMap(text, entryPoint, result.nodes)
     store.set({ uri, version, result, positionMap })
-    connection.sendDiagnostics({
+    // Static channel only — gateway findings live on their own half and are
+    // never cleared by the static replace-on-change cycle.
+    diagnostics.setStatic(
       uri,
-      diagnostics: toLspDiagnostics(
-        result,
-        mapperContext(positionMap, text, uri),
-      ),
-    })
+      toLspDiagnostics(result, mapperContext(positionMap, text, uri)),
+    )
     // Signal interested clients (the DAG panel) that a fresh model is ready
     // for this document version, so they can pull `flinkReactor/graphModel`.
     void connection.sendNotification(SYNTHESIZED_NOTIFICATION, { uri, version })
@@ -285,6 +360,7 @@ export function createServer(connection: Connection): ServerHandle {
       for (const timer of debounceTimers.values()) clearTimeout(timer)
       debounceTimers.clear()
       store.clear()
+      await gateway.dispose()
       await runner.dispose()
     },
   }

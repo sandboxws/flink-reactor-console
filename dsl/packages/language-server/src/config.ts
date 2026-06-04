@@ -51,6 +51,33 @@ export const DEFAULT_INLAY_HINTS: InlayHintsConfig = {
   joinColumns: true,
 }
 
+/** Opt-in SQL Gateway deep-validation settings (`flinkReactor.gateway.*`,
+ *  forwarded by the client). `enabled` defaults to **false** — deep validation
+ *  needs a reachable gateway and network round-trips, so every gateway code
+ *  path short-circuits until the author explicitly turns it on. */
+export interface GatewayConfig {
+  readonly enabled: boolean
+  /** SQL Gateway base URL (e.g. `http://localhost:8083`). Empty = unset;
+   *  `enabled` with no endpoint is treated as misconfigured (notice, no
+   *  connection attempt). */
+  readonly endpoint: string
+  /** Run a deep-validation pass on document save (never on keystrokes). */
+  readonly validateOnSave: boolean
+  /** Wall-clock budget (ms) for one whole deep-validation pass. */
+  readonly timeoutMs: number
+  /** Optional hint of the gateway's Flink version; a mismatch with the
+   *  pipeline's target logs a warning (EXPLAIN is generally forward-
+   *  compatible) and never fails the pass. */
+  readonly flinkVersion?: string
+}
+
+export const DEFAULT_GATEWAY: GatewayConfig = {
+  enabled: false,
+  endpoint: "",
+  validateOnSave: false,
+  timeoutMs: 30000,
+}
+
 /** Server configuration, sourced from `flinkReactor.*` client settings. */
 export interface ServerConfig {
   /** Debounce window (ms) after the last edit before re-synthesizing. */
@@ -81,6 +108,8 @@ export interface ServerConfig {
   readonly sqlHighlighting: SqlHighlightingMode
   /** Synthesis-backed inlay-hint toggles (`flinkReactor.inlayHints.*`). */
   readonly inlayHints: InlayHintsConfig
+  /** Opt-in SQL Gateway deep validation (`flinkReactor.gateway.*`). */
+  readonly gateway: GatewayConfig
 }
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -92,6 +121,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
   tsPluginActive: false,
   sqlHighlighting: "semantic+textmate",
   inlayHints: DEFAULT_INLAY_HINTS,
+  gateway: DEFAULT_GATEWAY,
 }
 
 /** Does this mode have the server contribute SQL semantic tokens? */
@@ -138,6 +168,7 @@ export function parseConfig(
   return {
     sqlHighlighting: parseSqlHighlighting(fr, base.sqlHighlighting),
     inlayHints: parseInlayHints(fr, base.inlayHints),
+    gateway: parseGateway(fr, base.gateway),
     debounceMs: num(fr.debounce ?? fr.debounceMs, base.debounceMs),
     timeoutMs: num(fr.timeout ?? fr.timeoutMs, base.timeoutMs),
     bootGraceMs: num(fr.bootGraceMs, base.bootGraceMs),
@@ -153,6 +184,32 @@ export function parseConfig(
       fr.tsPluginActive ?? obj.tsPluginActive,
       base.tsPluginActive,
     ),
+  }
+}
+
+/**
+ * Read the `flinkReactor.gateway.*` block from the forwarded settings — a
+ * nested `gateway` object. Per-key fallback like the other blocks, so a
+ * partial payload never silently flips `enabled`.
+ */
+function parseGateway(
+  fr: Record<string, unknown>,
+  base: GatewayConfig,
+): GatewayConfig {
+  const raw =
+    fr.gateway && typeof fr.gateway === "object"
+      ? (fr.gateway as Record<string, unknown>)
+      : {}
+  const flinkVersion =
+    typeof raw.flinkVersion === "string" && raw.flinkVersion !== ""
+      ? raw.flinkVersion
+      : base.flinkVersion
+  return {
+    enabled: bool(raw.enabled, base.enabled),
+    endpoint: typeof raw.endpoint === "string" ? raw.endpoint : base.endpoint,
+    validateOnSave: bool(raw.validateOnSave, base.validateOnSave),
+    timeoutMs: num(raw.timeoutMs, base.timeoutMs),
+    ...(flinkVersion !== undefined ? { flinkVersion } : {}),
   }
 }
 

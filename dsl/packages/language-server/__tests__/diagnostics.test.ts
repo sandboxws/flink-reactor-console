@@ -38,6 +38,7 @@ function baseResult(overrides: Partial<SynthesisResult> = {}): SynthesisResult {
     changelogModes: [],
     sinkChangelogAccepts: [],
     nodeInputSchemas: [],
+    parallelism: null,
     tableSchemas: [],
     pipelineManifest: null,
     crdYaml: "",

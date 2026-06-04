@@ -117,6 +117,48 @@ version trails the document version there is nothing trustworthy to show, and
 the refresh re-pulls the moment it catches up. A failed synthesis likewise
 yields no hints — absence over wrong facts, and never an error.
 
+## Gateway deep validation (opt-in)
+
+Static validation can never see a real Flink catalog: a `CatalogSource`
+pointing at a missing table, a type mismatch against the live catalog, or an
+unregistered UDF only surface when the SQL is **planned**. The
+`gateway-validation` capability brings the CLI's `fr --deep-validate` path
+into the editor: it submits the synthesized statements to a configured Flink
+**SQL Gateway** via `EXPLAIN` (read-only intent, the DSL's own
+`SqlGatewayClient`) and lands planner errors on the JSX that produced the SQL.
+
+- **Off by default.** Everything short-circuits until
+  `flinkReactor.gateway.enabled` is set — no session, no submission, no
+  diagnostics. Enabled without an endpoint is *misconfigured*: one clear
+  notice, no connection attempt.
+- **Explicitly triggered.** The `flinkReactor/deepValidate` custom request
+  (the VS Code "Deep Validate Pipeline" command) runs one pass; the optional
+  `gateway.validateOnSave` adds a save-cadence. Never per keystroke.
+- **Source-isolated diagnostics.** Gateway findings publish under
+  `source: "flink-reactor-gateway"` with `FR-GATEWAY-` codes on their own
+  per-document half — the static `flink-reactor` set and the gateway set
+  render together and clear independently (a static re-pass can never wipe a
+  planner finding, and vice versa).
+- **Error → JSX mapping.** A failing statement resolves through a
+  deterministic chain: `statementOrigins[index].nodeId` → position map; else
+  the first mapped `statementContributors` node; else the file top with the
+  statement reference in the message. Errors are never dropped.
+- **Async, cancellable, cached.** A pass runs off the request path with
+  `window/workDoneProgress`; a newer pass aborts the in-flight one
+  (`AbortSignal` through the gateway client); verdicts are cached by
+  `hash(statements)` so SQL-neutral edits and repeat passes never re-`EXPLAIN`
+  — and cached errors re-map against the current position map.
+- **Soft failure.** Unreachable/timed-out gateways surface one non-modal
+  warning (deduped per failure state) + a `flinkReactor/gatewayState`
+  notification, clear stale gateway findings, and never block authoring. One
+  gateway session is opened lazily and reused for the workspace lifetime
+  (closed on shutdown/endpoint change). A gateway/pipeline Flink-version
+  mismatch logs a warning only.
+
+This supersedes the IntelliJ `gateway-validation` design (auto-connect on
+startup, merged into the static publish cycle) with an explicit, off-by-
+default, source-isolated model served from one LSP server.
+
 ## Usage
 
 ### As a standalone binary (stdio)
@@ -158,6 +200,11 @@ Settings are forwarded by the client under the `flinkReactor.*` namespace (via `
 | `flinkReactor.inlayHints.parallelism` | `true` | Show the effective-parallelism label. |
 | `flinkReactor.inlayHints.windowColumns` | `true` | Annotate window nodes with the injected `window_start`/`window_end`. |
 | `flinkReactor.inlayHints.joinColumns` | `true` | Annotate join nodes with the merged output column count. |
+| `flinkReactor.gateway.enabled` | `false` | Opt into SQL Gateway deep validation. Nothing connects while off. |
+| `flinkReactor.gateway.endpoint` | _(empty)_ | SQL Gateway base URL (e.g. `http://localhost:8083`). Required when enabled. |
+| `flinkReactor.gateway.validateOnSave` | `false` | Also run a pass on document save (never on keystrokes). |
+| `flinkReactor.gateway.timeoutMs` | `30000` | Wall-clock budget for one whole deep-validation pass. |
+| `flinkReactor.gateway.flinkVersion` | _(unset)_ | Optional gateway Flink-version hint; a mismatch with the pipeline target logs a warning only. |
 
 ## Development
 
