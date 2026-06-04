@@ -11,11 +11,12 @@
 import {
   blockMatches,
   buildBlocks,
+  noSqlMessage,
   type PreviewBlock,
-  type Segment,
   segment,
 } from "../blocks.js"
 import type { SynthPipeline } from "../protocol.js"
+import { tokenize } from "../sql-highlight.js"
 
 interface VsCodeApi {
   postMessage(message: unknown): void
@@ -29,8 +30,12 @@ const bannerTextEl = document.getElementById("banner-text") as HTMLSpanElement
 const bannerDetailsEl = document.getElementById(
   "banner-details",
 ) as HTMLButtonElement
+const contentEl = document.getElementById("content") as HTMLDivElement
 const blocksEl = document.getElementById("blocks") as HTMLDivElement
 const emptyEl = document.getElementById("empty") as HTMLDivElement
+const modeToggleEl = document.getElementById("mode-toggle") as HTMLButtonElement
+const refreshEl = document.getElementById("refresh") as HTMLButtonElement
+const pendingEl = document.getElementById("pending") as HTMLSpanElement
 
 /** Above this many blocks, populate statement bodies lazily on scroll rather
  *  than all at once (task 3.6 — virtualized/lazy rendering for large counts). */
@@ -41,6 +46,9 @@ type HostMessage =
   | { type: "synth"; version: number; pipeline: SynthPipeline }
   | { type: "failure"; version: number; error: string }
   | { type: "activeNode"; nodeId: string | null; version: number }
+  | { type: "sync"; mode: SyncMode; pending: boolean }
+
+type SyncMode = "auto" | "manual"
 
 /** The last successfully rendered pipeline — retained so a synthesis failure
  *  shows a stale banner over it instead of blanking the panel. */
@@ -48,6 +56,8 @@ let lastBlocks: PreviewBlock[] = []
 let renderedVersion = -1
 /** The active DSL→SQL node id, re-applied across refreshes when it survives. */
 let activeNodeId: string | null = null
+/** Current sync mode, mirrored from the host so the toggle label is correct. */
+let syncMode: SyncMode = "auto"
 /** Lazy population bookkeeping: block index → its `<pre>` body element. */
 const bodyByIndex = new Map<number, HTMLElement>()
 const populated = new Set<number>()
@@ -60,11 +70,34 @@ window.addEventListener("message", (event: MessageEvent) => {
   if (msg.type === "synth") onSynth(msg.pipeline, msg.version)
   else if (msg.type === "failure") onFailure(msg.error)
   else if (msg.type === "activeNode") onActiveNode(msg.nodeId, msg.version)
+  else if (msg.type === "sync") onSync(msg.mode, msg.pending)
 })
 
 bannerDetailsEl.addEventListener("click", () =>
   vscode.postMessage({ type: "showFailure" }),
 )
+
+// Sync controls. The toggle flips auto⇄manual; Refresh re-pulls on demand (the
+// primary action in manual mode). The host owns the state and echoes it back via
+// a `sync` message, so the button label always reflects the real mode.
+modeToggleEl.addEventListener("click", () =>
+  vscode.postMessage({
+    type: "setSyncMode",
+    mode: syncMode === "auto" ? "manual" : "auto",
+  }),
+)
+refreshEl.addEventListener("click", () =>
+  vscode.postMessage({ type: "requestRefresh" }),
+)
+
+function onSync(mode: SyncMode, pending: boolean): void {
+  syncMode = mode
+  modeToggleEl.textContent =
+    mode === "auto" ? "Auto-sync: On" : "Auto-sync: Off"
+  modeToggleEl.classList.toggle("manual", mode === "manual")
+  // The "changed — Refresh" hint only applies while paused in manual mode.
+  pendingEl.hidden = !(mode === "manual" && pending)
+}
 
 // SQL→DSL: one delegated click handler. A click on a contributed span resolves
 // to that fragment's node; a click elsewhere in a block resolves to the block's
@@ -85,13 +118,22 @@ blocksEl.addEventListener("click", (event) => {
 
 function onSynth(pipeline: SynthPipeline, version: number): void {
   bannerEl.hidden = true
+  // A fresh pull is now current — drop any manual "changed" hint.
+  pendingEl.hidden = true
   renderedVersion = version
   lastBlocks = buildBlocks(pipeline)
-  render(lastBlocks)
-  // Re-apply the active highlight when that node still exists in the new result.
-  const active = activeNodeId
-  if (active && lastBlocks.some((b) => matchesNode(b, active)))
-    applyHighlight(active, { scroll: false })
+  if (lastBlocks.length === 0) {
+    // Synthesis succeeded but produced no executable SQL (a comment-only
+    // pipeline, e.g. a CDC Pipeline Connector whose runtime is in pipeline.yaml).
+    // Show a real explanation rather than leaving the "Waiting…" placeholder.
+    showNoSqlState(pipeline)
+  } else {
+    render(lastBlocks)
+    // Re-apply the active highlight when that node still exists in the result.
+    const active = activeNodeId
+    if (active && lastBlocks.some((b) => matchesNode(b, active)))
+      applyHighlight(active, { scroll: false })
+  }
   vscode.postMessage({
     type: "rendered",
     ok: true,
@@ -121,8 +163,9 @@ function onFailure(error: string): void {
 }
 
 function render(blocks: PreviewBlock[]): void {
-  // Preserve the scroll offset across a re-render (6.2).
-  const scrollTop = blocksEl.scrollTop || document.documentElement.scrollTop
+  // Preserve the scroll offset across a re-render (6.2). `#content` is the
+  // scroll container (the body is a flex column with a fixed toolbar).
+  const scrollTop = contentEl.scrollTop
   clear(blocksEl)
   bodyByIndex.clear()
   populated.clear()
@@ -159,7 +202,7 @@ function render(blocks: PreviewBlock[]): void {
 
   // Restore scroll after layout settles.
   requestAnimationFrame(() => {
-    window.scrollTo({ top: scrollTop })
+    contentEl.scrollTo({ top: scrollTop })
   })
 }
 
@@ -184,28 +227,140 @@ function buildBlockEl(block: PreviewBlock): HTMLElement {
 }
 
 /** Populate a block's `<pre>` with its segmented SQL (idempotent). Origin spans
- *  become clickable `.frag` elements carrying `data-origin`. */
+ *  become clickable `.frag` elements carrying `data-origin`; every segment's text
+ *  is then syntax-highlighted inside. */
 function populate(block: PreviewBlock): void {
   if (populated.has(block.index)) return
   const pre = bodyByIndex.get(block.index)
   if (!pre) return
   for (const seg of segment(block.sql, block.fragments)) {
-    pre.appendChild(segmentNode(seg))
+    if (seg.origin) {
+      const frag = document.createElement("span")
+      frag.className = "frag"
+      frag.dataset.origin = seg.origin
+      appendHighlighted(frag, seg.text)
+      pre.appendChild(frag)
+    } else {
+      appendHighlighted(pre, seg.text)
+    }
   }
   populated.add(block.index)
 }
 
-function segmentNode(seg: Segment): Node {
-  if (!seg.origin) return document.createTextNode(seg.text)
-  const span = document.createElement("span")
-  span.className = "frag"
-  span.dataset.origin = seg.origin
-  span.textContent = seg.text
-  return span
+/** Tokenize `text` as Flink SQL and append colored token spans (+ plain text
+ *  nodes for unclassified runs) to `parent`. Purely decorative: it composes over
+ *  the fragment overlay and never carries `data-origin`, so the click/caret
+ *  resolution keys off the enclosing `.frag` / `.block` exactly as before — the
+ *  token spans are transparent to `closest("[data-origin]")`. */
+function appendHighlighted(parent: Node, text: string): void {
+  for (const tok of tokenize(text)) {
+    if (tok.category) {
+      const span = document.createElement("span")
+      span.className = `tok-${tok.category}`
+      span.textContent = tok.text
+      parent.appendChild(span)
+    } else {
+      parent.appendChild(document.createTextNode(tok.text))
+    }
+  }
+}
+
+const SVG_NS = "http://www.w3.org/2000/svg"
+
+/** Inline-SVG child specs, drawn on a 24×24 grid and stroked in `currentColor`
+ *  so each icon inherits the divider's (theme-aware) color. */
+interface IconChild {
+  readonly tag: "path" | "circle" | "rect" | "line"
+  readonly attrs: Readonly<Record<string, string>>
+}
+
+// NOTE(curate): the section→icon choices are a product/UX decision. Each maps a
+// `SqlSection` to a distinct, recognizable glyph — sliders=config, cylinder=
+// catalog, expression-brackets=functions, arrow-into-box=source, arrow-out-of-
+// box=sink, eye=view, grid=materialized table, branch=pipeline DAG. Retune by
+// swapping the path data; the lookup falls back to a chevron for any new section.
+const SECTION_ICONS: Readonly<Record<string, readonly IconChild[]>> = {
+  configuration: [
+    { tag: "line", attrs: { x1: "4", y1: "9", x2: "20", y2: "9" } },
+    { tag: "circle", attrs: { cx: "9", cy: "9", r: "2.4" } },
+    { tag: "line", attrs: { x1: "4", y1: "15", x2: "20", y2: "15" } },
+    { tag: "circle", attrs: { cx: "15", cy: "15", r: "2.4" } },
+  ],
+  catalogs: [
+    {
+      tag: "path",
+      attrs: { d: "M5 6c0-1.66 3.13-3 7-3s7 1.34 7 3-3.13 3-7 3-7-1.34-7-3z" },
+    },
+    { tag: "path", attrs: { d: "M5 6v12c0 1.66 3.13 3 7 3s7-1.34 7-3V6" } },
+    { tag: "path", attrs: { d: "M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3" } },
+  ],
+  functions: [
+    { tag: "path", attrs: { d: "M9 8l-4 4 4 4" } },
+    { tag: "path", attrs: { d: "M15 8l4 4-4 4" } },
+  ],
+  sources: [
+    { tag: "path", attrs: { d: "M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" } },
+    { tag: "path", attrs: { d: "M10 16l4-4-4-4" } },
+    { tag: "line", attrs: { x1: "14", y1: "12", x2: "4", y2: "12" } },
+  ],
+  sinks: [
+    { tag: "path", attrs: { d: "M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" } },
+    { tag: "path", attrs: { d: "M16 16l4-4-4-4" } },
+    { tag: "line", attrs: { x1: "20", y1: "12", x2: "10", y2: "12" } },
+  ],
+  views: [
+    {
+      tag: "path",
+      attrs: { d: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" },
+    },
+    { tag: "circle", attrs: { cx: "12", cy: "12", r: "3" } },
+  ],
+  "materialized-tables": [
+    {
+      tag: "rect",
+      attrs: { x: "3", y: "4", width: "18", height: "16", rx: "2" },
+    },
+    { tag: "line", attrs: { x1: "3", y1: "10", x2: "21", y2: "10" } },
+    { tag: "line", attrs: { x1: "9", y1: "10", x2: "9", y2: "20" } },
+  ],
+  pipeline: [
+    { tag: "line", attrs: { x1: "6", y1: "3", x2: "6", y2: "15" } },
+    { tag: "circle", attrs: { cx: "6", cy: "18", r: "3" } },
+    { tag: "circle", attrs: { cx: "18", cy: "6", r: "3" } },
+    { tag: "path", attrs: { d: "M18 9a9 9 0 0 1-9 9" } },
+  ],
+}
+
+/** Generic chevron for a section with no dedicated glyph. */
+const FALLBACK_ICON: readonly IconChild[] = [
+  { tag: "path", attrs: { d: "M9 6l6 6-6 6" } },
+]
+
+/** Build the section's icon as an inline SVG (CSP-safe DOM, not markup). */
+function sectionIcon(section: string): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, "svg")
+  svg.setAttribute("class", "section-icon")
+  svg.setAttribute("viewBox", "0 0 24 24")
+  svg.setAttribute("fill", "none")
+  svg.setAttribute("stroke", "currentColor")
+  svg.setAttribute("stroke-width", "2")
+  svg.setAttribute("stroke-linecap", "round")
+  svg.setAttribute("stroke-linejoin", "round")
+  svg.setAttribute("aria-hidden", "true")
+  for (const child of SECTION_ICONS[section] ?? FALLBACK_ICON) {
+    const node = document.createElementNS(SVG_NS, child.tag)
+    for (const [k, v] of Object.entries(child.attrs)) node.setAttribute(k, v)
+    svg.appendChild(node)
+  }
+  return svg
 }
 
 function sectionDivider(section: string): HTMLElement {
-  return el("div", "section-divider", sectionLabel(section))
+  const div = document.createElement("div")
+  div.className = "section-divider"
+  div.appendChild(sectionIcon(section))
+  div.appendChild(el("span", "", sectionLabel(section)))
+  return div
 }
 
 /** Map the DSL `SqlSection` to a friendly group heading. */
@@ -300,6 +455,19 @@ function matchesNode(block: PreviewBlock, nodeId: string): boolean {
 }
 
 // ── Error / empty state ─────────────────────────────────────────────
+
+/** Successful synth with no SQL to show (every statement is a `--` banner —
+ *  e.g. a CDC Pipeline Connector). Replace the "Waiting…" placeholder with a
+ *  real message so this never reads as a stuck synthesis. */
+function showNoSqlState(pipeline: SynthPipeline): void {
+  bannerEl.hidden = true
+  clear(blocksEl)
+  emptyEl.hidden = false
+  clear(emptyEl)
+  const { heading, detail } = noSqlMessage(pipeline)
+  emptyEl.appendChild(el("div", "no-sql-heading", heading))
+  if (detail) emptyEl.appendChild(el("pre", "no-sql-detail", detail))
+}
 
 function showErrorState(error: string): void {
   bannerEl.hidden = true

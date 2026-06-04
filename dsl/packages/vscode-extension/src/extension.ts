@@ -166,22 +166,20 @@ export async function activate(
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       updatePipelineContext()
-      // Re-target the CRD preview when the active editor switches to a different
-      // FlinkReactor pipeline (4.4).
+      // Re-target the CRD + SQL previews when the active editor switches to a
+      // different FlinkReactor pipeline (they follow the focused pipeline).
       if (editor && isPipelineDocument(editor.document)) {
-        CrdPreviewPanel.handleActiveEditor(editor.document.uri.toString())
+        const uri = editor.document.uri.toString()
+        CrdPreviewPanel.handleActiveEditor(uri)
+        SqlPreviewPanel.handleActiveEditor(uri)
       }
       // 7.4 — re-bind the Schema Explorer to the newly active pipeline.
       void schemaExplorer?.bind(activePipelineUri())
     }),
     vscode.workspace.onDidOpenTextDocument(() => updatePipelineContext()),
-    // DSL→SQL: drive any open SQL preview off the bound editor's caret.
+    // DSL→SQL: drive the open SQL preview off the bound editor's caret.
     vscode.window.onDidChangeTextEditorSelection((e) => {
       void SqlPreviewPanel.handleSelection(e.textEditor)
-    }),
-    // Dispose a SQL preview when its bound document closes.
-    vscode.workspace.onDidCloseTextDocument((doc) => {
-      SqlPreviewPanel.handleDocumentClose(doc.uri.toString())
     }),
   )
 

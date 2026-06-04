@@ -50,3 +50,21 @@ describe("flinkReactor.sql.highlighting config", () => {
     expect(next.sqlHighlighting).toBe("off")
   })
 })
+
+describe("synthesis timeout config", () => {
+  it("defaults to a warm timeout with a generous cold-start boot grace", () => {
+    expect(DEFAULT_CONFIG.timeoutMs).toBe(8000)
+    expect(DEFAULT_CONFIG.bootGraceMs).toBe(20000)
+    // The first (cold) synthesis must out-budget a warm one — it pays worker
+    // boot + the first DSL import.
+    expect(DEFAULT_CONFIG.bootGraceMs).toBeGreaterThan(DEFAULT_CONFIG.timeoutMs)
+  })
+
+  it("reads `timeout` and `bootGraceMs` overrides from client settings", () => {
+    const config = parseConfig({
+      flinkReactor: { timeout: 3000, bootGraceMs: 12000 },
+    })
+    expect(config.timeoutMs).toBe(3000)
+    expect(config.bootGraceMs).toBe(12000)
+  })
+})

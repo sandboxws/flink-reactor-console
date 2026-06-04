@@ -38,12 +38,14 @@ interface CollectedElement {
  * Strategy:
  *  1. If every ConstructNode carries an authoritative `__loc` (a future DSL
  *     dev-runtime feature), use it directly — no prediction.
- *  2. Otherwise parse the `.tsx`, walk JSX/`createElement` in **post-order**
- *     (children before parent — the order `createElement` actually runs), and
- *     predict each node's id with `IdPredictor`.
+ *  2. Otherwise parse the `.tsx`, walk JSX, `createElement`, AND named
+ *     component factory calls (`FlussSink({…})`, `FlussCatalog({…})` — the
+ *     idiomatic non-JSX style, recognized via the authoritative component set)
+ *     in **post-order** (children before parent — the order node creation
+ *     actually runs), and predict each node's id with `IdPredictor`.
  *
- * When the JSX element count disagrees with the ConstructNode count (e.g.
- * programmatic `createElement` interleaved with JSX, or computed children), a
+ * When the located element count disagrees with the ConstructNode count (e.g.
+ * genuinely computed/looped children, or programmatic `createElement`), a
  * mismatch is reported and only successfully paired nodes are mapped.
  */
 export function buildPositionMap(
@@ -68,6 +70,14 @@ export function buildPositionMap(
   )
 
   const elements: CollectedElement[] = []
+
+  // Component names synthesis actually produced as nodes. Lets us tell a
+  // node-creating factory call (`FlussSink({…})`) from an ordinary PascalCase
+  // call that yields no node (`Schema({…})`, `Field.BIGINT()`) — collecting the
+  // latter would desync the id counter and mislocate every later node.
+  const authoritativeComponents = nodes
+    ? new Set(nodes.map((n) => n.component))
+    : null
 
   const toRange = (start: number, end: number): SourceRange => ({
     start: lineChar(sf, start),
@@ -129,6 +139,27 @@ export function buildPositionMap(
       if (tagArg) visit(tagArg)
       if (propsArg) visit(propsArg)
       return
+    }
+    // Named component factory call — `FlussCatalog({…})`, `FlussSink({…})`,
+    // `PostgresCdcPipelineSource({…})` — the idiomatic alternative to JSX. The
+    // callee IS the component; its first arg is the props object. Gated on the
+    // authoritative component set so non-node PascalCase calls (`Schema({…})`,
+    // `Field.BIGINT()`) fall through without touching the id counter. Recurse
+    // args first (post-order = creation order) so inline factories nested under
+    // `children` are recorded before this node.
+    if (authoritativeComponents && ts.isCallExpression(node)) {
+      const tag = calleeComponentName(node)
+      if (tag && authoritativeComponents.has(tag)) {
+        for (const arg of node.arguments) visit(arg)
+        elements.push({
+          tag,
+          props: factoryProps(node.arguments[0]),
+          range: toRange(node.getStart(sf), node.getEnd()),
+          // Prop-span narrowing is JSX-only (see programmatic `createElement`).
+          propRanges: new Map(),
+        })
+        return
+      }
     }
     ts.forEachChild(node, visit)
   }
@@ -325,6 +356,19 @@ function isElementFactoryCall(node: ts.Node): node is ts.CallExpression {
   if (ts.isPropertyAccessExpression(callee))
     return FACTORY_NAMES.has(callee.name.text)
   return false
+}
+
+/** Component name from a factory CALL's callee: `FlussSink` (identifier) or
+ *  `Route.Branch` (dotted). Mirrors `tagText`/`factoryTag` naming. */
+function calleeComponentName(node: ts.CallExpression): string | undefined {
+  const callee = node.expression
+  if (ts.isIdentifier(callee)) return callee.text
+  if (
+    ts.isPropertyAccessExpression(callee) &&
+    ts.isIdentifier(callee.expression)
+  )
+    return `${callee.expression.text}.${callee.name.text}`
+  return undefined
 }
 
 /** Tag from a `createElement` first argument (string literal or identifier). */

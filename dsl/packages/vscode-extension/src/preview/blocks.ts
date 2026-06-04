@@ -60,6 +60,18 @@ export interface Segment {
   readonly origin?: string
 }
 
+/** The empty-state copy for a pipeline that synthesized *successfully* but has
+ *  no SQL to preview — `buildBlocks` returned no blocks because every statement
+ *  is a `--` comment banner (e.g. a Flink CDC Pipeline Connector job whose
+ *  runtime lives in `pipeline.yaml`, not Flink SQL). `heading` is the one-line
+ *  summary; `detail` is a longer explanation (may be empty). Lives in this pure
+ *  module so it unit-tests without a DOM and never reuses the "Waiting…"
+ *  placeholder, which must mean *only* "no synth received yet". */
+export interface NoSqlMessage {
+  readonly heading: string
+  readonly detail: string
+}
+
 /** A comment-only banner statement (Flink line comments start with `--`); never
  *  a real statement, which would be commented out if it started with `--`. */
 function isBanner(sql: string): boolean {
@@ -124,6 +136,35 @@ export function buildBlocks(pipeline: SynthPipeline): PreviewBlock[] {
 function labelFromOrigin(origin?: SynthStatementOrigin): string | undefined {
   if (!origin) return undefined
   return `${origin.component} (${origin.nodeId})`
+}
+
+/**
+ * Compose the empty-state message for a pipeline that synthesized successfully
+ * but produced no SQL blocks (every statement is a `--` banner). The webview
+ * calls this when `buildBlocks` returns `[]`, so the preview shows a real
+ * explanation instead of getting stuck on the "Waiting…" placeholder.
+ *
+ * `detail` surfaces the DSL's own banner explanation as prose: the banners
+ * already say where the runtime lives (for a CDC Pipeline Connector job,
+ * literally "The runtime definition lives in pipeline.yaml … inspect
+ * pipeline.yaml and deployment.yaml"), so the empty state reuses that
+ * DSL-authored copy instead of inventing its own. Comment markers and banner
+ * furniture (`====` rules, ALL-CAPS title lines) are dropped; sentence lines
+ * are kept verbatim. Renders in a `<pre>`, so `\n` joins are line breaks.
+ */
+export function noSqlMessage(pipeline: SynthPipeline): NoSqlMessage {
+  const heading =
+    pipeline.statements.length === 0
+      ? "This pipeline produced no statements."
+      : "No SQL to preview for this pipeline."
+  const detail = pipeline.statements
+    .flatMap((s) => s.split("\n"))
+    .map((line) => line.replace(/^\s*--\s?/, "").trim())
+    .filter((line) => line.length > 0)
+    .filter((line) => !/^[=-\s]+$/.test(line)) // `====` banner rules
+    .filter((line) => /[a-z]/.test(line)) // ALL-CAPS titles aren't prose
+    .join("\n")
+  return { heading, detail }
 }
 
 /**

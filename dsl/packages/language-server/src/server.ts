@@ -114,9 +114,14 @@ export function createServer(connection: Connection): ServerHandle {
     void runner.dispose()
     runner = new IsolatedRunner({
       timeoutMs: config.timeoutMs,
+      bootGraceMs: config.bootGraceMs,
       maxOldGenerationSizeMb: config.maxOldGenerationSizeMb,
       cache,
     })
+    // Spawn the worker now so its thread boot + bundled-DSL load overlap startup
+    // rather than counting against the user's first synthesis. Skip when the
+    // server is disabled — there will be no synthesis to warm for.
+    if (config.enabled) runner.prewarm()
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────

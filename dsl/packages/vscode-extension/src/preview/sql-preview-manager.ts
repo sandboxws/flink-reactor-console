@@ -13,6 +13,10 @@ import {
   type SynthResponse,
 } from "./protocol.js"
 
+/** Auto = re-pull on every server re-synthesis; manual = only on an explicit
+ *  Refresh (the webview shows a "pending" hint when the pipeline has moved on). */
+type SyncMode = "auto" | "manual"
+
 /** Messages the extension host posts to the webview. */
 type OutboundMessage =
   | {
@@ -30,11 +34,17 @@ type OutboundMessage =
       readonly nodeId: string | null
       readonly version: number
     }
+  | {
+      readonly type: "sync"
+      readonly mode: SyncMode
+      readonly pending: boolean
+    }
 
 /** Messages the webview posts back to the host. */
 type InboundMessage =
   | { readonly type: "ready" }
   | { readonly type: "requestRefresh" }
+  | { readonly type: "setSyncMode"; readonly mode: SyncMode }
   | { readonly type: "revealNode"; readonly nodeId: string }
   | { readonly type: "showFailure" }
   | {
@@ -76,18 +86,20 @@ const FLASH = vscode.window.createTextEditorDecorationType({
 })
 
 /**
- * A read-only SQL Preview webview bound to one `.tsx` pipeline document. Unlike
- * the singleton DAG panel, there is **one panel per document URI** (re-invoking
- * the command reveals the existing one). The panel brokers all LSP traffic:
- * pulls the synthesized SQL on open + on each debounced re-synthesis, pushes the
- * active node id as the editor caret moves (DSL→SQL), and reveals the `.tsx`
- * range when the webview reports a clicked SQL span (SQL→DSL). On synthesis
- * failure it keeps the last good SQL and tells the webview to show a stale
- * banner.
+ * A read-only SQL Preview webview that **follows the active pipeline** — a single
+ * panel beside the editor, re-targeted to whichever pipeline `.tsx` is focused
+ * (like the DAG + CRD panels; switching pipelines auto-updates this tab). The
+ * panel brokers all LSP traffic: pulls the synthesized SQL on open / retarget /
+ * each debounced re-synthesis, pushes the active node id as the editor caret
+ * moves (DSL→SQL), and reveals the `.tsx` range when the webview reports a
+ * clicked SQL span (SQL→DSL). On synthesis failure it keeps the last good SQL and
+ * tells the webview to show a stale banner.
  */
 export class SqlPreviewPanel {
   public static readonly viewType = "flinkReactor.sqlPreview"
-  private static readonly panels = new Map<string, SqlPreviewPanel>()
+  /** Single live preview, re-targeted to follow the active pipeline editor
+   *  (mirrors `CrdPreviewPanel`). `undefined` when no preview is open. */
+  private static instance: SqlPreviewPanel | undefined
 
   private readonly disposables: vscode.Disposable[] = []
   /** Highest model version posted to the webview — a slower in-flight response
@@ -97,20 +109,25 @@ export class SqlPreviewPanel {
   private lastError: string | undefined
   private lastRender: SqlRenderInfo | undefined
   private lastHighlightInfo: SqlHighlightInfo | undefined
+  /** Auto (default) re-pulls on every re-synthesis; manual freezes the view
+   *  until the user clicks Refresh. */
+  private syncMode: SyncMode = "auto"
+  /** Manual mode only: the pipeline re-synthesized since the last pull, so the
+   *  shown SQL is behind the source. */
+  private pendingResynth = false
 
   /**
    * Reveal the preview for `uri`, creating it beside the editor on first use and
-   * revealing the existing one otherwise — re-invoking never opens a duplicate.
+   * re-targeting the existing one otherwise — re-invoking never opens a duplicate.
    */
   static createOrShow(
     extensionUri: vscode.Uri,
     client: FlinkReactorClient,
     uri: string,
   ): void {
-    const existing = SqlPreviewPanel.panels.get(uri)
-    if (existing) {
-      existing.panel.reveal(vscode.ViewColumn.Beside, true)
-      void existing.refresh()
+    if (SqlPreviewPanel.instance) {
+      SqlPreviewPanel.instance.retarget(uri)
+      SqlPreviewPanel.instance.panel.reveal(vscode.ViewColumn.Beside, true)
       return
     }
     const panel = vscode.window.createWebviewPanel(
@@ -125,32 +142,38 @@ export class SqlPreviewPanel {
         ],
       },
     )
-    SqlPreviewPanel.panels.set(
+    SqlPreviewPanel.instance = new SqlPreviewPanel(
+      panel,
+      extensionUri,
+      client,
       uri,
-      new SqlPreviewPanel(panel, extensionUri, client, uri),
     )
   }
 
-  /** Route an editor caret/selection change to the panel bound to that document
-   *  (DSL→SQL). No-op when no preview is open for the document. */
+  /** Re-target the open panel when the active editor switches to a different
+   *  FlinkReactor pipeline. No-op when no panel is open. */
+  static handleActiveEditor(uri: string): void {
+    SqlPreviewPanel.instance?.retarget(uri)
+  }
+
+  /** Route an editor caret/selection change to the panel (DSL→SQL), but only
+   *  when it is currently bound to that document. No-op otherwise. */
   static async handleSelection(editor: vscode.TextEditor): Promise<void> {
-    const panel = SqlPreviewPanel.panels.get(editor.document.uri.toString())
-    if (panel) await panel.onEditorSelection(editor)
+    const inst = SqlPreviewPanel.instance
+    if (inst && inst.uri === editor.document.uri.toString())
+      await inst.onEditorSelection(editor)
   }
 
-  /** Dispose the panel bound to a closed document (2.3). */
-  static handleDocumentClose(uri: string): void {
-    SqlPreviewPanel.panels.get(uri)?.dispose()
-  }
-
-  /** The live panel for `uri`, if any (e2e visibility). */
+  /** The live panel iff it is currently bound to `uri` (e2e visibility — keeps
+   *  the URI-addressed API meaning "the preview showing this pipeline"). */
   static forUri(uri: string): SqlPreviewPanel | undefined {
-    return SqlPreviewPanel.panels.get(uri)
+    const inst = SqlPreviewPanel.instance
+    return inst && inst.uri === uri ? inst : undefined
   }
 
   /** Number of open preview panels (e2e: assert no duplicates). */
   static get count(): number {
-    return SqlPreviewPanel.panels.size
+    return SqlPreviewPanel.instance ? 1 : 0
   }
 
   get render(): SqlRenderInfo | undefined {
@@ -165,7 +188,7 @@ export class SqlPreviewPanel {
     private readonly panel: vscode.WebviewPanel,
     extensionUri: vscode.Uri,
     private readonly client: FlinkReactorClient,
-    private readonly uri: string,
+    private uri: string,
   ) {
     const scriptUri = panel.webview.asWebviewUri(
       vscode.Uri.joinPath(extensionUri, "dist", "webview", "sql-preview.js"),
@@ -182,13 +205,41 @@ export class SqlPreviewPanel {
     // client-side debounce).
     this.disposables.push(
       client.onSynthesized(({ uri }) => {
-        if (uri === this.uri) void this.refresh()
+        if (uri !== this.uri) return
+        if (this.syncMode === "auto") {
+          void this.refresh()
+        } else {
+          // Manual: don't pull; flag that the source moved on so the webview
+          // can show a "changed — Refresh" hint over the frozen SQL.
+          this.pendingResynth = true
+          this.postSyncState()
+        }
       }),
     )
     panel.onDidDispose(() => this.dispose(), undefined, this.disposables)
 
     getOutputChannel().info(`SQL preview opened for ${basename(uri)}`)
     void this.refresh()
+  }
+
+  /** Point the panel at a different pipeline and re-render. Re-targeting to the
+   *  same uri just refreshes. The user's sync-mode preference persists across a
+   *  retarget; the version/error/highlight state resets for the new document. */
+  retarget(uri: string): void {
+    if (uri === this.uri) {
+      void this.refresh()
+      return
+    }
+    this.uri = uri
+    this.renderedVersion = -1
+    this.lastError = undefined
+    this.lastRender = undefined
+    this.lastHighlightInfo = undefined
+    this.pendingResynth = false
+    this.panel.title = SqlPreviewPanel.titleFor(uri)
+    getOutputChannel().info(`SQL preview retargeted to ${basename(uri)}`)
+    void this.refresh()
+    this.postSyncState()
   }
 
   /** Pull the synth model and post it (or a failure) to the webview. Pure
@@ -247,8 +298,21 @@ export class SqlPreviewPanel {
   private onMessage(message: InboundMessage): void {
     switch (message.type) {
       case "ready":
-      case "requestRefresh":
         void this.refresh()
+        // Tell the freshly-loaded webview the current sync state.
+        this.postSyncState()
+        return
+      case "requestRefresh":
+        this.pendingResynth = false
+        void this.refresh()
+        this.postSyncState()
+        return
+      case "setSyncMode":
+        this.syncMode = message.mode
+        this.pendingResynth = false
+        // Switching back to auto catches up on whatever changed while paused.
+        if (this.syncMode === "auto") void this.refresh()
+        this.postSyncState()
         return
       case "revealNode":
         void this.revealNode(message.nodeId)
@@ -327,6 +391,16 @@ export class SqlPreviewPanel {
     void this.panel.webview.postMessage(message)
   }
 
+  /** Push the current sync mode + pending flag so the webview's toolbar reflects
+   *  it (auto/manual label + the "changed — Refresh" hint). */
+  private postSyncState(): void {
+    this.post({
+      type: "sync",
+      mode: this.syncMode,
+      pending: this.pendingResynth,
+    })
+  }
+
   private static titleFor(uri: string): string {
     try {
       return `SQL — ${basename(vscode.Uri.parse(uri).fsPath)}`
@@ -336,7 +410,7 @@ export class SqlPreviewPanel {
   }
 
   private dispose(): void {
-    SqlPreviewPanel.panels.delete(this.uri)
+    if (SqlPreviewPanel.instance === this) SqlPreviewPanel.instance = undefined
     for (const d of this.disposables.splice(0)) d.dispose()
     this.panel.dispose()
   }

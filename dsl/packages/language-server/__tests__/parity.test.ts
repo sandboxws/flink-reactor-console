@@ -12,6 +12,7 @@ const PARITY_FIXTURES = [
   "valid-pipeline.tsx",
   "fn-default-pipeline.tsx",
   "branching-pipeline.tsx",
+  "factory-pipeline.tsx",
 ]
 
 describe("source-position predictor parity (critical gate)", () => {
@@ -78,5 +79,34 @@ describe("source-position predictor parity (critical gate)", () => {
     // The two named sinks under the branches resolve by name.
     expect(map.has("big")).toBe(true)
     expect(map.has("rest")).toBe(true)
+  })
+
+  it("locates factory-call (non-JSX) nodes at their call sites", async () => {
+    const entryPoint = join(FIXTURES, "factory-pipeline.tsx")
+    const result = await synthesizeDocument({
+      entryPoint,
+      projectDir: FIXTURES,
+    })
+    const sourceText = readFileSync(entryPoint, "utf-8")
+    const { map, mismatch } = buildPositionMap(
+      sourceText,
+      entryPoint,
+      result.nodes,
+    )
+
+    // No "fall back to the file top" warning: every node is located.
+    expect(mismatch).toBeUndefined()
+
+    // Each factory-created node maps to the line of its factory call (not line 0).
+    const lines = sourceText.split("\n")
+    expect(lines[map.get("FlussCatalog_0")?.start.line ?? 0]).toContain(
+      "FlussCatalog",
+    )
+    expect(lines[map.get("FlussSink_2")?.start.line ?? 0]).toContain(
+      "FlussSink",
+    )
+    expect(lines[map.get("tpch")?.start.line ?? 0]).toContain(
+      "PostgresCdcPipelineSource",
+    )
   })
 })

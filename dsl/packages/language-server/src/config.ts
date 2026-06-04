@@ -23,8 +23,12 @@ const SQL_HIGHLIGHTING_MODES: readonly SqlHighlightingMode[] = [
 export interface ServerConfig {
   /** Debounce window (ms) after the last edit before re-synthesizing. */
   readonly debounceMs: number
-  /** Per-synthesis isolation timeout (ms). */
+  /** Per-synthesis isolation timeout (ms) for a warm worker. */
   readonly timeoutMs: number
+  /** Budget (ms) for the FIRST synthesis on a freshly-spawned worker, which
+   *  also pays worker-thread boot + the first project-DSL import. Generous so a
+   *  cold start (e.g. right after install) doesn't trip `timeoutMs`. */
+  readonly bootGraceMs: number
   /** Worker heap ceiling (MB). */
   readonly maxOldGenerationSizeMb: number
   /** Master enable switch; when false the server publishes no diagnostics. */
@@ -47,7 +51,8 @@ export interface ServerConfig {
 
 export const DEFAULT_CONFIG: ServerConfig = {
   debounceMs: 300,
-  timeoutMs: 5000,
+  timeoutMs: 8000,
+  bootGraceMs: 20000,
   maxOldGenerationSizeMb: 512,
   enabled: true,
   tsPluginActive: false,
@@ -99,6 +104,7 @@ export function parseConfig(
     sqlHighlighting: parseSqlHighlighting(fr, base.sqlHighlighting),
     debounceMs: num(fr.debounce ?? fr.debounceMs, base.debounceMs),
     timeoutMs: num(fr.timeout ?? fr.timeoutMs, base.timeoutMs),
+    bootGraceMs: num(fr.bootGraceMs, base.bootGraceMs),
     maxOldGenerationSizeMb: num(
       fr.maxHeapMb ?? fr.maxOldGenerationSizeMb,
       base.maxOldGenerationSizeMb,

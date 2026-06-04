@@ -42,11 +42,38 @@ export function buildHtml(
   <style>
     html, body { height: 100%; margin: 0; padding: 0; }
     body {
+      display: flex; flex-direction: column;
       font-family: var(--vscode-font-family);
       font-size: var(--vscode-font-size);
       color: var(--vscode-foreground);
       background: var(--vscode-editor-background);
     }
+    /* Sync controls: auto/manual toggle + manual refresh + a pending indicator. */
+    #toolbar {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 10px; font-size: 12px;
+      background: var(--vscode-editorGroupHeader-tabsBackground, rgba(128,128,128,0.08));
+      border-bottom: 1px solid var(--vscode-panel-border, rgba(128,128,128,0.2));
+    }
+    #toolbar button {
+      font: inherit; cursor: pointer;
+      color: var(--vscode-button-secondaryForeground, #fff);
+      background: var(--vscode-button-secondaryBackground, rgba(255,255,255,0.12));
+      border: none; border-radius: 3px; padding: 2px 10px;
+    }
+    #toolbar button:hover {
+      background: var(--vscode-button-secondaryHoverBackground, rgba(255,255,255,0.2));
+    }
+    /* In manual mode the toggle reads "off" — de-emphasize it. */
+    #mode-toggle.manual { opacity: 0.8; }
+    #pending {
+      color: var(--vscode-inputValidation-warningForeground, #d8a200);
+      font-size: 11px;
+    }
+    #pending[hidden] { display: none; }
+    /* The scrollable body area; the empty/banner overlays position against it. */
+    #content { flex: 1 1 auto; position: relative; overflow: auto; }
     /* Stale / failure banner — non-blocking, pinned to the top. */
     #banner {
       position: sticky; top: 0; z-index: 5;
@@ -65,14 +92,17 @@ export function buildHtml(
       border: none; border-radius: 3px; padding: 1px 8px;
     }
     #blocks { padding: 8px 10px 40px; }
-    /* A section group separator label (SET / sources / sinks / pipeline). */
+    /* A section group separator label (SET / sources / sinks / pipeline), with a
+       per-section icon that inherits the label color via currentColor. */
     .section-divider {
+      display: flex; align-items: center; gap: 6px;
       margin: 14px 2px 6px; font-size: 10px; letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--vscode-descriptionForeground);
       border-bottom: 1px solid var(--vscode-panel-border, rgba(128,128,128,0.25));
       padding-bottom: 3px;
     }
     .section-divider:first-child { margin-top: 2px; }
+    .section-icon { flex: 0 0 auto; width: 13px; height: 13px; opacity: 0.9; }
     .block {
       margin: 0 0 10px; border: 1px solid var(--vscode-panel-border, rgba(128,128,128,0.25));
       border-radius: 5px; overflow: hidden;
@@ -100,6 +130,17 @@ export function buildHtml(
       font-size: var(--vscode-editor-font-size, 12px);
       line-height: 1.5; color: var(--vscode-editor-foreground, #ddd);
     }
+    /* Syntax tokens (decorative). Mapped to VS Code's symbol / debug-token theme
+       colors — present in every theme, so coloring follows the active theme — with
+       Dark+ hex fallbacks. Unclassified text (identifiers, backtick names) keeps
+       the .block-sql foreground. */
+    .tok-keyword  { color: var(--vscode-symbolIcon-keywordForeground, #569cd6); }
+    .tok-function { color: var(--vscode-symbolIcon-functionForeground, #dcdcaa); }
+    .tok-type     { color: var(--vscode-symbolIcon-classForeground, #4ec9b0); }
+    .tok-string   { color: var(--vscode-debugTokenExpression-string, #ce9178); }
+    .tok-number   { color: var(--vscode-debugTokenExpression-number, #b5cea8); }
+    .tok-comment  { color: var(--vscode-descriptionForeground, #6a9955); font-style: italic; }
+    .tok-operator { color: var(--vscode-symbolIcon-operatorForeground, var(--vscode-editor-foreground, #d4d4d4)); }
     /* A contributed sub-statement span — clickable for SQL→DSL nav. */
     .frag { cursor: pointer; border-radius: 2px; }
     .frag:hover { background: var(--vscode-editor-hoverHighlightBackground, rgba(120,170,255,0.12)); }
@@ -124,15 +165,25 @@ export function buildHtml(
       color: var(--vscode-errorForeground, #f44);
       font-family: var(--vscode-editor-font-family, monospace); font-size: 11px;
     }
+    /* Successful-but-no-SQL state (e.g. a CDC connector) — neutral, not error-red. */
+    #empty .no-sql-heading { font-weight: 600; color: var(--vscode-foreground); }
+    #empty .no-sql-detail { color: var(--vscode-descriptionForeground); }
   </style>
 </head>
 <body>
-  <div id="banner" hidden>
-    <span id="banner-text" class="grow"></span>
-    <button id="banner-details" type="button">Details</button>
+  <div id="toolbar">
+    <button id="mode-toggle" type="button" title="Toggle whether the preview re-syncs automatically as you edit">Auto-sync: On</button>
+    <button id="refresh" type="button" title="Re-pull the latest SQL now">Refresh</button>
+    <span id="pending" hidden>Pipeline changed — Refresh to update.</span>
   </div>
-  <div id="blocks"></div>
-  <div id="empty">Waiting for the pipeline to synthesize…</div>
+  <div id="content">
+    <div id="banner" hidden>
+      <span id="banner-text" class="grow"></span>
+      <button id="banner-details" type="button">Details</button>
+    </div>
+    <div id="blocks"></div>
+    <div id="empty">Waiting for the pipeline to synthesize…</div>
+  </div>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`

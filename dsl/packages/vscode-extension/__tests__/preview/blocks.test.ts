@@ -3,6 +3,7 @@ import {
   blockMatches,
   buildBlocks,
   hitTest,
+  noSqlMessage,
   segment,
 } from "../../src/preview/blocks"
 import type { SynthPipeline } from "../../src/preview/protocol"
@@ -184,5 +185,58 @@ describe("blockMatches (DSL→SQL)", () => {
       whole: false,
       spans: [],
     })
+  })
+})
+
+// A Flink CDC Pipeline Connector pipeline (PostgresCdcPipelineSource → FlussSink)
+// has no Flink SQL runtime — its topology lives in pipeline.yaml — so synthesis
+// emits ONLY `--` comment banners. `buildBlocks` then yields no blocks, and the
+// webview must show a real "no SQL" message instead of the "Waiting…"
+// placeholder (the bug this fixes).
+const commentOnlyPipeline: SynthPipeline = {
+  id: "ingest",
+  statements: [
+    "-- ============\n-- PIPELINE CONNECTOR\n-- ============",
+    "-- This pipeline is a Flink CDC Pipeline Connector job.\n-- The runtime definition lives in pipeline.yaml (ConfigMap-mounted),\n-- not in Flink SQL. Inspect pipeline.yaml and deployment.yaml.",
+  ],
+  statementOrigins: [],
+  statementContributors: [],
+  statementMeta: [
+    [0, { label: "Pipeline Connector", section: "configuration" }],
+  ],
+}
+
+describe("comment-only pipeline (CDC Pipeline Connector)", () => {
+  it("buildBlocks yields no blocks — every statement is a banner", () => {
+    expect(buildBlocks(commentOnlyPipeline)).toHaveLength(0)
+  })
+
+  it("noSqlMessage gives a real heading, never the 'Waiting…' wording", () => {
+    const msg = noSqlMessage(commentOnlyPipeline)
+    expect(msg.heading).toBeTruthy()
+    expect(msg.heading).not.toMatch(/waiting/i)
+  })
+
+  it("noSqlMessage distinguishes a genuinely empty pipeline", () => {
+    const empty: SynthPipeline = { ...commentOnlyPipeline, statements: [] }
+    expect(noSqlMessage(empty).heading).not.toBe(
+      noSqlMessage(commentOnlyPipeline).heading,
+    )
+  })
+
+  it("noSqlMessage surfaces the pipeline.yaml explanation in detail", () => {
+    const { detail } = noSqlMessage(commentOnlyPipeline)
+    // The DSL-authored prose survives, stripped of comment markers…
+    expect(detail).toContain("pipeline.yaml")
+    expect(detail).toContain("Flink CDC Pipeline Connector job")
+    expect(detail).not.toMatch(/--/)
+    // …while banner furniture (`====` rules, ALL-CAPS titles) is dropped.
+    expect(detail).not.toContain("=")
+    expect(detail).not.toContain("PIPELINE CONNECTOR")
+  })
+
+  it("noSqlMessage keeps detail empty for a genuinely empty pipeline", () => {
+    const empty: SynthPipeline = { ...commentOnlyPipeline, statements: [] }
+    expect(noSqlMessage(empty).detail).toBe("")
   })
 })

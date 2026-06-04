@@ -17,9 +17,15 @@ interface Pending {
 }
 
 export interface IsolatedRunnerOptions {
-  /** Per-synthesis wall-clock budget. On expiry the worker is terminated and
-   *  respawned and a `timeout` diagnostic is returned. Default 5000ms. */
+  /** Per-synthesis wall-clock budget for a warm worker. On expiry the worker is
+   *  terminated and respawned and a `timeout` diagnostic is returned. Default
+   *  8000ms. */
   readonly timeoutMs?: number
+  /** Budget for the FIRST synthesis on a freshly-spawned worker, which also pays
+   *  worker-thread boot + the first project-DSL import (jiti pulling in the DSL
+   *  and its `effect` tree). Default 20000ms. Keeps a cold start (e.g. right
+   *  after install, or under load) from tripping the tight `timeoutMs`. */
+  readonly bootGraceMs?: number
   /** Worker heap ceiling (MB). Guards against runaway memory in user code.
    *  Default 512. */
   readonly maxOldGenerationSizeMb?: number
@@ -70,14 +76,20 @@ export class IsolatedRunner {
   private nextId = 1
   private readonly pending = new Map<number, Pending>()
   private disposed = false
+  /** Has the current worker completed (responded to) at least one synthesis?
+   *  Until it has, the next dispatch gets `bootGraceMs` instead of `timeoutMs`.
+   *  Reset to false whenever a fresh worker is spawned. */
+  private workerWarm = false
 
   private readonly timeoutMs: number
+  private readonly bootGraceMs: number
   private readonly maxOldGenerationSizeMb: number
   private readonly workerPath: string
   private readonly cache: ResultCache
 
   constructor(opts: IsolatedRunnerOptions = {}) {
-    this.timeoutMs = opts.timeoutMs ?? 5000
+    this.timeoutMs = opts.timeoutMs ?? 8000
+    this.bootGraceMs = opts.bootGraceMs ?? 20000
     this.maxOldGenerationSizeMb = opts.maxOldGenerationSizeMb ?? 512
     this.workerPath =
       opts.workerPath ??
@@ -117,6 +129,10 @@ export class IsolatedRunner {
   private dispatch(input: SynthesisInput): Promise<SynthesisResult> {
     const worker = this.ensureWorker()
     const id = this.nextId++
+    // A cold worker's first synthesis also pays thread boot + the first project-
+    // DSL import; give it the generous boot grace. Once it has answered once,
+    // steady-state edits get the tight `timeoutMs` so a real hang surfaces fast.
+    const budget = this.workerWarm ? this.timeoutMs : this.bootGraceMs
 
     return new Promise<SynthesisResult>((resolve) => {
       const entry: Pending = { resolve, timer: null, settled: false }
@@ -127,25 +143,31 @@ export class IsolatedRunner {
         entry.settled = true
         this.pending.delete(id)
         // A sync infinite loop can only be interrupted by killing the thread.
-        this.killWorker(
-          `synthesis exceeded ${this.timeoutMs}ms`,
-          /* respawn */ false,
-        )
+        this.killWorker(`synthesis exceeded ${budget}ms`, /* respawn */ false)
         resolve(
           errorResult(
             "timeout",
-            `Synthesis timed out after ${this.timeoutMs}ms. The pipeline may contain an infinite loop or extremely expensive evaluation.`,
+            `Synthesis timed out after ${budget}ms. The pipeline may contain an infinite loop or extremely expensive evaluation.`,
           ),
         )
-      }, this.timeoutMs)
+      }, budget)
 
       worker.postMessage({ id, input })
     })
   }
 
+  /** Spawn the worker thread ahead of the first synthesis (call at server init)
+   *  so worker boot + the bundled-DSL load overlap startup instead of counting
+   *  against the first user-triggered synthesis. */
+  prewarm(): void {
+    if (!this.disposed) this.ensureWorker()
+  }
+
   private ensureWorker(): Worker {
     if (this.worker) return this.worker
 
+    // A fresh worker is cold: the next dispatch earns the boot grace.
+    this.workerWarm = false
     const worker = new Worker(this.workerPath, {
       resourceLimits: { maxOldGenerationSizeMb: this.maxOldGenerationSizeMb },
     })
@@ -153,6 +175,8 @@ export class IsolatedRunner {
     worker.on("message", (msg: WorkerResponse) => {
       const entry = this.pending.get(msg.id)
       if (!entry || entry.settled) return
+      // The worker answered, so it has booted + imported the DSL: warm from now.
+      this.workerWarm = true
       entry.settled = true
       if (entry.timer) clearTimeout(entry.timer)
       this.pending.delete(msg.id)
@@ -170,10 +194,13 @@ export class IsolatedRunner {
 
     // A worker-level `error` or unexpected `exit` invalidates every in-flight
     // request; fail them as crashes and drop the worker so the next call
-    // respawns it.
+    // respawns it. Ignore a late signal from a worker we've ALREADY replaced
+    // (e.g. the one we just terminated on timeout) — otherwise its delayed
+    // `exit` would crash requests now dispatched to its successor.
     const onDead = (reason: string) => {
+      if (this.worker !== worker) return
+      this.worker = null
       this.failAllPending("crash", reason)
-      if (this.worker === worker) this.worker = null
     }
     worker.on("error", (err) => onDead(err.message))
     worker.on("exit", (code) => {

@@ -5,6 +5,11 @@
     "types": [],
     "noEmit": true
   },
-  "include": ["./**/*", "../blocks.ts", "../protocol.ts"],
+  "include": [
+    "./**/*",
+    "../blocks.ts",
+    "../protocol.ts",
+    "../sql-highlight.ts"
+  ],
   "exclude": []
 }

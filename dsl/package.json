@@ -61,6 +61,7 @@
   "scripts": {
     "build": "rm -rf dist && tsup && pnpm -r --filter './packages/*' run build",
     "dev": "tsup --watch",
+    "package:vscode": "pnpm --filter @flink-reactor/dsl --filter @flink-reactor/ts-plugin --filter @flink-reactor/language-server build && pnpm --filter flink-reactor package",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:snapshots": "vitest run src/codegen/__tests__/example-snapshots.test.ts",

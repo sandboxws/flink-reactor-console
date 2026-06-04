@@ -68,14 +68,15 @@ function def(loaded: Loaded, marker: string, delta = 0): LocationLink[] | null {
 
 describe("provideDefinition — catalog handle", () => {
   // 2.4 — `<IcebergSink catalog={iceberg.handle} />` resolves to the
-  // `IcebergCatalog({…})` that defines the handle.
+  // `makeCatalog({…})` declaration that defines the handle (the fixture
+  // aliases `IcebergCatalog` to stay off the position map).
   it("resolves a catalog prop to the catalog declaration", async () => {
     const f = await load("hover-catalog-pipeline.tsx")
     const result = def(f, "catalog={iceberg.handle}", "catalog={i".length)
     expect(result).not.toBeNull()
     const [hit] = result ?? []
     expect(hit.targetUri).toBe(f.uri)
-    expect(textAt(f.text, hit.targetRange)).toContain("IcebergCatalog({")
+    expect(textAt(f.text, hit.targetRange)).toContain("makeCatalog({")
   })
 
   // 2.4 — a handle built by a call (no resolvable variable) is not navigable.

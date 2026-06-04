@@ -79,8 +79,14 @@ for (const sub of ["dist", "bin", "package.json"]) {
  * synthesis in the packaged server. Copying the declared `files` keeps the
  * payload lean without assuming a layout.
  */
-function vendorDep(name) {
+function vendorDep(name, { only } = {}) {
   copyInto(name, "package.json")
+  // `only` overrides the files-field heuristic for deps where we need just a
+  // slice of the package (e.g. `typescript` — see the call site).
+  if (only) {
+    for (const sub of only) copyInto(name, sub)
+    return
+  }
   let files
   try {
     const manifest = JSON.parse(
@@ -93,17 +99,35 @@ function vendorDep(name) {
   // Fall back to `dist` when a package declares no `files` (our own packages).
   const subs = files?.length ? files : ["dist"]
   for (const sub of subs) {
-    // Skip globs/parent escapes — copy plain dir/file entries only.
-    if (sub.includes("*") || sub.startsWith("..") || sub === "package.json") {
+    // Skip globs, negations, and parent escapes — copy plain dir/file entries
+    // only (a `files` entry like `!lib/enu` is an exclude, not a path to copy).
+    if (
+      sub.includes("*") ||
+      sub.startsWith("!") ||
+      sub.startsWith("..") ||
+      sub === "package.json"
+    ) {
       continue
     }
     copyInto(name, sub)
   }
 }
 
-// Best-effort runtime deps for the no-prior-install fallback path.
+// Best-effort runtime deps for the no-prior-install fallback path — the
+// specifiers the server bundle keeps external (the language-server's tsup
+// `external`): the DSL + ts-plugin and `jiti`.
 for (const dep of ["@flink-reactor/dsl", "@flink-reactor/ts-plugin", "jiti"]) {
   vendorDep(dep)
 }
+
+// `typescript` is external in the server bundle (`import ts from "typescript"`)
+// but the package is 23 MB. The server uses only SYNTACTIC APIs
+// (`ts.createSourceFile` + AST walking — no `createProgram`/type checker), so
+// it needs just the self-contained compiler bundle (`lib/typescript.js`,
+// 8.7 MB) — not the `lib.*.d.ts` standard library or the tsc/tsserver CLIs.
+// Without this, the bundled fallback server crashed at load with
+// ERR_MODULE_NOT_FOUND ('typescript'). If a provider ever type-checks (i.e.
+// calls `createProgram`), also vendor `lib/lib*.d.ts`.
+vendorDep("typescript", { only: ["lib/typescript.js"] })
 
 console.log(`[prepare-server] vendored language server into ${serverOut}`)
