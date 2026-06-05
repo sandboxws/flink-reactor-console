@@ -57,6 +57,19 @@ import {
 import { SqlHighlightingController } from "./sql/highlighting-controller.js"
 import { type TapRenderInfo, TapsPanel } from "./taps/panel.js"
 import type { TapManifestResponse } from "./taps/protocol.js"
+import {
+  PipelineTestExplorer,
+  type TestItemSnapshot,
+} from "./test-explorer/controller.js"
+import {
+  firstSqlFailureId,
+  openSqlGoldenDiff,
+  registerSqlDiffProvider,
+} from "./test-explorer/sql-diff.js"
+import {
+  PipelineTestLensProvider,
+  RUN_TESTS_COMMAND,
+} from "./test-explorer/test-lens.js"
 import type { SchemaTableInfo, SchemaTreeLocation } from "./tree/protocol.js"
 import {
   revealLocation,
@@ -79,6 +92,7 @@ let schemaExplorer: SchemaExplorerProvider | undefined
 let gatewayStatus: GatewayStatusItem | undefined
 let envSwitcher: EnvironmentSwitcher | undefined
 let devController: DevController | undefined
+let testExplorer: PipelineTestExplorer | undefined
 
 /** The extension's public API (also used by the e2e suite to observe the DAG
  *  panel, whose sandboxed webview is otherwise unreadable from the host). */
@@ -157,6 +171,22 @@ export interface FlinkReactorApi {
     /** Whether a designer panel is currently open. */
     isOpen(): boolean
   }
+  readonly tests: {
+    /** Flattened snapshot of the discovered pipeline-test tree. */
+    items(): readonly TestItemSnapshot[]
+    /** Re-run discovery (what the watcher/refresh button drives). */
+    refresh(): void
+    /** Run items by file uri (+ optional full title), like a lens click. */
+    run(uri: vscode.Uri, fullTitle?: string): Promise<void>
+    /** itemId → latest outcome (pass/fail/skip/errored). */
+    outcomes(): ReadonlyMap<string, string>
+    /** Bless snapshots, scoped to a file uri/title when given (§7). */
+    updateSnapshots(uri?: vscode.Uri, fullTitle?: string): Promise<void>
+    /** The continuous-watch lifecycle (§9). */
+    startWatch(): void
+    stopWatch(): void
+    watchActive(): boolean
+  }
 }
 
 const api: FlinkReactorApi = {
@@ -212,6 +242,21 @@ const api: FlinkReactorApi = {
       DesignerPanel.active?.revealNode(nodeId) ?? Promise.resolve(),
     isOpen: () => DesignerPanel.active !== undefined,
   },
+  tests: {
+    items: () => testExplorer?.snapshotItems() ?? [],
+    refresh: () => testExplorer?.discoverAll(),
+    run: (uri, fullTitle) =>
+      testExplorer?.runItems(testExplorer.findItems(uri, fullTitle), false) ??
+      Promise.resolve(),
+    outcomes: () => testExplorer?.lastOutcomes ?? new Map(),
+    updateSnapshots: (uri, fullTitle) =>
+      testExplorer?.updateSnapshots(
+        uri ? testExplorer.findItems(uri, fullTitle) : undefined,
+      ) ?? Promise.resolve(),
+    startWatch: () => testExplorer?.startWatchForTests(),
+    stopWatch: () => testExplorer?.stopWatchForTests(),
+    watchActive: () => testExplorer?.watchActive ?? false,
+  },
 }
 
 export async function activate(
@@ -247,6 +292,21 @@ export async function activate(
       new PipelineLensProvider(
         (fsPath) => resolveProjectContext(dirname(fsPath)) !== null,
       ),
+    ),
+  )
+
+  // Test Explorer (test-explorer, Tier-3 feature 16): the pipeline-test
+  // controller, the SQL golden-diff document provider, and the run/debug
+  // CodeLens over open `tests/pipelines/*.test.ts` files. Discovery is
+  // filesystem-based, so the controller registers (with an empty tree) even
+  // before Vitest is installed.
+  testExplorer = new PipelineTestExplorer(() => locateProject()?.projectDir)
+  context.subscriptions.push(
+    { dispose: () => testExplorer?.dispose() },
+    registerSqlDiffProvider(),
+    vscode.languages.registerCodeLensProvider(
+      { language: "typescript", pattern: "**/tests/pipelines/*.test.ts" },
+      new PipelineTestLensProvider(),
     ),
   )
 
@@ -462,6 +522,34 @@ function registerCommands(
     vscode.commands.registerCommand(
       "flinkReactor.runPipelineTests",
       (pipeline?: string) => runPipelineTestsCommand(getProject, pipeline),
+    ),
+    // Test Explorer (Tier-3 feature 16): snapshot blessing + the SQL
+    // golden-diff entry points + the test CodeLens run path.
+    vscode.commands.registerCommand(
+      "flinkReactor.updatePipelineSnapshots",
+      (item?: vscode.TestItem) =>
+        testExplorer?.updateSnapshots(item ? [item] : undefined),
+    ),
+    vscode.commands.registerCommand(
+      "flinkReactor.openSqlGoldenDiff",
+      async (target?: vscode.TestItem | string) => {
+        const id =
+          typeof target === "string"
+            ? target
+            : (target?.id ?? firstSqlFailureId())
+        if (!id || !(await openSqlGoldenDiff(id))) {
+          void vscode.window.showInformationMessage(
+            "FlinkReactor: no failed SQL snapshot to diff — run the pipeline tests first.",
+          )
+        }
+      },
+    ),
+    vscode.commands.registerCommand(
+      RUN_TESTS_COMMAND,
+      (uri: vscode.Uri, fullTitle?: string, debug?: boolean) => {
+        const items = testExplorer?.findItems(uri, fullTitle) ?? []
+        return testExplorer?.runItems(items, debug === true)
+      },
     ),
   )
 }

@@ -185,6 +185,16 @@
         "command": "flinkReactor.runPipelineTests",
         "title": "Run Pipeline Tests",
         "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.updatePipelineSnapshots",
+        "title": "Update Pipeline Snapshots (vitest --update)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.openSqlGoldenDiff",
+        "title": "Open SQL Snapshot Golden Diff",
+        "category": "FlinkReactor"
       }
     ],
     "taskDefinitions": [
@@ -290,6 +300,16 @@
           "command": "flinkReactor.openDesigner",
           "when": "flinkReactor.isPipeline",
           "group": "navigation"
+        }
+      ],
+      "testing/item/context": [
+        {
+          "command": "flinkReactor.updatePipelineSnapshots",
+          "when": "controllerId == 'flinkReactor.pipelineTests'"
+        },
+        {
+          "command": "flinkReactor.openSqlGoldenDiff",
+          "when": "controllerId == 'flinkReactor.pipelineTests'"
         }
       ],
       "commandPalette": [

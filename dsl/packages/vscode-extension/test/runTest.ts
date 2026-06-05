@@ -2,6 +2,7 @@ import {
   cpSync,
   mkdirSync,
   mkdtempSync,
+  realpathSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs"
@@ -63,6 +64,13 @@ async function main(): Promise<void> {
     const binDir = join(workspace, "node_modules", ".bin")
     mkdirSync(binDir, { recursive: true })
     writeFileSync(join(binDir, "flink-reactor"), STUB_CLI, { mode: 0o755 })
+
+    // The test-explorer suite shells out to the PROJECT's Vitest. Symlink the
+    // repo's vitest package (realpath, so its pnpm-sibling deps resolve) —
+    // the resolver runs `node_modules/vitest/vitest.mjs` under Node when the
+    // `.bin` shim is absent, so no shim is materialized here.
+    const vitestDir = realpathSync(join(repoRoot, "node_modules", "vitest"))
+    symlinkSync(vitestDir, join(workspace, "node_modules", "vitest"), "dir")
 
     // VS Code creates its main IPC handle as a Unix-domain socket under
     // `--user-data-dir`; macOS caps that socket path at ~103 chars. The default

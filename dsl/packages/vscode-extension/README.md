@@ -151,6 +151,48 @@ type contract re-exported from `@flink-reactor/language-server`):
 | `flinkReactor/designerModel` | request → `DesignerModelResponse` | The graph model **plus** per-node prop editability (`editable` literal with value + range vs `readOnly` computed/identifier/spread, classified from the `.tsx` AST) and the document's file kind (`arbitrary` / `designer-managed` / `pragma-violated`) for the edit-safety matrix. Powers the visual designer canvas + prop forms. |
 | `flinkReactor/applyDesignerEdit` | request → `ApplyDesignerEditResponse` | The designer's single write path: scalar literal-prop edits, pragma-gated structural edits (add/delete/re-parent/add-join), and greenfield generation — applied with `ts-morph`, verified (re-parse + re-synthesize) before commit, returned as text edits the extension applies as one undoable `WorkspaceEdit` (or `newFileContent` for generation). Refusals are data (`refusedReason`), never RPC errors. |
 
+## Test Explorer: pipeline tests, SQL golden diffs, snapshot blessing
+
+The project's regression net is its Vitest pipeline tests
+(`tests/pipelines/<name>.test.ts`, per the template contract: synthesize the
+pipeline and `expect(sql).toMatchSnapshot()` plus load-bearing
+`expect(sql).toMatch(...)` checks). The **FlinkReactor Pipeline Tests**
+controller wires them into VS Code's native Test Explorer — net-new, with no
+IntelliJ analog:
+
+- **Discovery** is filesystem-based (works before Vitest is even installed):
+  every `tests/pipelines/*.test.ts` groups under its pipeline, with
+  `describe`/`it` children carrying source ranges (driving the native gutter
+  run-controls) and snapshot/SQL-snapshot tags. A watcher re-discovers on
+  create/delete/change. A run/debug CodeLens row also appears in open test
+  files.
+- **Run/Debug** shell out to the *project's* Vitest (`node_modules`; never a
+  bundled copy) with `--reporter=json --outputFile=…` as the source of truth
+  (a default reporter streams to the *FlinkReactor Pipeline Tests* output
+  channel). Outcomes, durations, and failures map back to each test by file +
+  full title; dynamically-titled tests surface as synthetic children so no
+  result is lost. Failures attach inline messages at the failing assertion's
+  line, with expected/actual where recoverable.
+- **SQL golden diff**: a failed *SQL* snapshot opens as a readable
+  side-by-side diff — stored (expected) vs freshly generated (received) SQL —
+  over two read-only virtual `.sql` documents in the native diff editor.
+  Reachable from the inline failure message and the Test Explorer context
+  menu (`Open SQL Snapshot Golden Diff`). Non-SQL snapshot mismatches (e.g.
+  CRD objects) and plain assertion failures stay inline.
+- **Update snapshots**: per-test/per-file (Test Explorer context menu) and
+  project-wide (`FlinkReactor: Update Pipeline Snapshots`) actions wrap
+  `vitest --update`, scoped via file + `-t`; the update run's outcomes flip
+  the tree to passing and any open golden diff for an updated test closes.
+  Updates only ever run on explicit action — never during a normal run or
+  watch.
+- **Watch**: the Test Explorer's continuous-run toggle starts a single
+  `vitest --watch --reporter=json` per workspace, feeding incremental results
+  into a long-lived run until stopped.
+- **Graceful degradation**: no `tests/pipelines/` → an empty tree, no error;
+  Vitest missing → discovery still lists files and a run reports each test
+  `errored` with an actionable message; unparseable Vitest output → the run
+  errors with the reason instead of crashing.
+
 ## CLI lifecycle: tasks, CodeLens, Problems panel, environments, fr dev
 
 The `flink-reactor` CLI remains the project's lifecycle surface (artifacts on
