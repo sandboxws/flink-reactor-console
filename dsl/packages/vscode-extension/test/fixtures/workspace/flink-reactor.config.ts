@@ -5,5 +5,6 @@ export default defineConfig({
   services: {},
   environments: {
     local: {},
+    production: {},
   },
 })

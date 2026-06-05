@@ -1,6 +1,20 @@
 import { dirname } from "node:path"
 import * as vscode from "vscode"
+import {
+  type LifecycleVerb,
+  PIPELINE_SCOPED_VERBS,
+} from "./cli/command-descriptor.js"
+import {
+  FLINK_REACTOR_TASK_TYPE,
+  FlinkReactorTaskProvider,
+  registerExitReporter,
+  runLifecycleTask,
+} from "./cli/task-provider.js"
 import { FlinkReactorClient } from "./client/launch.js"
+import {
+  PipelineLensProvider,
+  pipelineNameFor,
+} from "./codelens/pipeline-lens.js"
 import {
   configureTsPluginCommand,
   maybeConfigureTsPlugin,
@@ -18,6 +32,8 @@ import type {
   DesignerEdit,
   DesignerModelResponse,
 } from "./designer/protocol.js"
+import { DevController } from "./dev/controller.js"
+import { EnvironmentSwitcher } from "./env/switcher.js"
 import {
   DEEP_VALIDATE_REQUEST,
   type DeepValidateResponse,
@@ -61,6 +77,8 @@ let client: FlinkReactorClient | undefined
 let statusBar: StatusBar | undefined
 let schemaExplorer: SchemaExplorerProvider | undefined
 let gatewayStatus: GatewayStatusItem | undefined
+let envSwitcher: EnvironmentSwitcher | undefined
+let devController: DevController | undefined
 
 /** The extension's public API (also used by the e2e suite to observe the DAG
  *  panel, whose sandboxed webview is otherwise unreadable from the host). */
@@ -205,6 +223,32 @@ export async function activate(
   // Commands are always available (using a late-bound project lookup) so the
   // user can act even if activation raced ahead of the project being detected.
   registerCommands(context, locateProject)
+
+  // CLI lifecycle integration (cli-lifecycle-integration, Tier-3 feature 12):
+  // the environment switcher, the managed `fr dev` controller, the
+  // `flink-reactor` task provider, the non-zero-exit reporter, and the
+  // per-pipeline CodeLens. All late-bind the project so they behave in a
+  // project-less window (the lens simply emits nothing; a command warns).
+  envSwitcher = new EnvironmentSwitcher(
+    context.workspaceState,
+    () => locateProject()?.projectDir,
+  )
+  devController = new DevController()
+  context.subscriptions.push(
+    { dispose: () => envSwitcher?.dispose() },
+    { dispose: () => devController?.dispose() },
+    vscode.tasks.registerTaskProvider(
+      FLINK_REACTOR_TASK_TYPE,
+      new FlinkReactorTaskProvider(() => locateProject()?.projectDir),
+    ),
+    registerExitReporter(),
+    vscode.languages.registerCodeLensProvider(
+      { language: "typescriptreact", pattern: "**/pipelines/*/index.tsx" },
+      new PipelineLensProvider(
+        (fsPath) => resolveProjectContext(dirname(fsPath)) !== null,
+      ),
+    ),
+  )
 
   // Embedded-SQL highlighting opt-out (embedded-sql-highlighting, Tier-2): honor
   // `flinkReactor.sql.highlighting` for the TextMate layer. Registered before
@@ -378,7 +422,151 @@ function registerCommands(
     vscode.commands.registerCommand("flinkReactor.openDesigner", () =>
       openDesignerCommand(context.extensionUri),
     ),
+    // CLI lifecycle wrappers (Tier-3 feature 12): thin descriptor builders
+    // over the task system. Each accepts an optional pipeline argument (the
+    // CodeLens path); pipeline-scoped verbs without one quick-pick among the
+    // discovered pipelines.
+    ...(
+      [
+        "synth",
+        "validate",
+        "graph",
+        "schema",
+        "deploy",
+        "up",
+        "down",
+        "status",
+        "stop",
+        "resume",
+        "savepoint",
+        "doctor",
+      ] as const
+    ).map((verb) =>
+      vscode.commands.registerCommand(
+        `flinkReactor.${verb}`,
+        (pipeline?: string) => runLifecycle(verb, getProject, pipeline),
+      ),
+    ),
+    vscode.commands.registerCommand("flinkReactor.dev", () => {
+      const project = getProject()
+      if (!project) return warnNoProject()
+      return devController?.start(project.projectDir, envSwitcher?.active)
+    }),
+    vscode.commands.registerCommand("flinkReactor.stopDev", () =>
+      devController?.stop(),
+    ),
+    vscode.commands.registerCommand(
+      "flinkReactor.selectEnvironment",
+      (env?: string) => envSwitcher?.select(env),
+    ),
+    vscode.commands.registerCommand(
+      "flinkReactor.runPipelineTests",
+      (pipeline?: string) => runPipelineTestsCommand(getProject, pipeline),
+    ),
   )
+}
+
+/** Build + execute one lifecycle command: derive the pipeline (argument →
+ *  active editor → quick pick), inject the active environment, and run the
+ *  resolved `flink-reactor` task. */
+async function runLifecycle(
+  verb: LifecycleVerb,
+  getProject: () => ProjectContext | null,
+  pipelineArg?: string,
+): Promise<void> {
+  const project = getProject()
+  if (!project) return warnNoProject()
+
+  let pipeline = pipelineArg
+  if (!pipeline && PIPELINE_SCOPED_VERBS.has(verb)) {
+    pipeline =
+      pipelineFromActiveEditor() ?? (await pickPipeline(project.projectDir))
+    if (!pipeline) return // dismissed the pick
+  }
+
+  const flags = verb === "synth" ? synthFlags() : undefined
+  await runLifecycleTask(
+    {
+      verb,
+      ...(pipeline ? { pipeline } : {}),
+      ...(envSwitcher?.active ? { env: envSwitcher.active } : {}),
+      ...(flags?.length ? { flags } : {}),
+    },
+    project.projectDir,
+  )
+}
+
+function warnNoProject(): void {
+  void vscode.window.showWarningMessage(
+    "FlinkReactor: open a FlinkReactor project (flink-reactor.config.ts) first.",
+  )
+}
+
+/** The pipeline under the cursor, when the active editor is an entry point. */
+function pipelineFromActiveEditor(): string | undefined {
+  const active = vscode.window.activeTextEditor?.document
+  if (!active || active.uri.scheme !== "file") return undefined
+  return pipelineNameFor(active.uri.fsPath)
+}
+
+/** Quick-pick among the discovered `pipelines/<name>/index.tsx` (task 3.3). */
+async function pickPipeline(projectDir: string): Promise<string | undefined> {
+  const pipelines = discoverPipelines(projectDir)
+  if (pipelines.length === 0) {
+    void vscode.window.showWarningMessage(
+      "FlinkReactor: no pipelines discovered under pipelines/*/index.tsx.",
+    )
+    return undefined
+  }
+  return vscode.window.showQuickPick(
+    pipelines.map((p) => p.name),
+    { placeHolder: "Select the target pipeline" },
+  )
+}
+
+/** Synth flags from settings (task 3.4): `-o <outdir>` + `--deep-validate`. */
+function synthFlags(): string[] {
+  const config = vscode.workspace.getConfiguration("flinkReactor.synth")
+  const flags: string[] = []
+  const outDir = config.get<string>("outDir") ?? ""
+  if (outDir.trim().length > 0) flags.push("-o", outDir.trim())
+  if (config.get<boolean>("deepValidate") === true)
+    flags.push("--deep-validate")
+  return flags
+}
+
+/** "Run tests" lens (task 5.3): run the project's Vitest filtered to the
+ *  pipeline's conventional test file (`tests/pipelines/<name>.test.ts`). */
+async function runPipelineTestsCommand(
+  getProject: () => ProjectContext | null,
+  pipelineArg?: string,
+): Promise<void> {
+  const project = getProject()
+  if (!project) return warnNoProject()
+  const pipeline =
+    pipelineArg ??
+    pipelineFromActiveEditor() ??
+    (await pickPipeline(project.projectDir))
+  if (!pipeline) return
+
+  const task = new vscode.Task(
+    { type: FLINK_REACTOR_TASK_TYPE, verb: "test", pipeline },
+    vscode.workspace.workspaceFolders?.[0] ?? vscode.TaskScope.Workspace,
+    `test · ${pipeline}`,
+    FLINK_REACTOR_TASK_TYPE,
+    new vscode.ShellExecution(
+      `npx --no-install vitest run tests/pipelines/${pipeline}.test.ts`,
+      { cwd: project.projectDir },
+    ),
+  )
+  task.presentationOptions = {
+    reveal: vscode.TaskRevealKind.Always,
+    echo: true,
+    panel: vscode.TaskPanelKind.Dedicated,
+    clear: true,
+    showReuseMessage: false,
+  }
+  await vscode.tasks.executeTask(task)
 }
 
 /** Open (or reveal) the visual designer for the active pipeline. */

@@ -122,6 +122,10 @@ refuses workspace plugins for security. This extension automates both.
 | `FlinkReactor: Refresh Schema Explorer` | Re-request the schema tree for the active pipeline (also the view's title button) |
 | `FlinkReactor: Deep Validate Pipeline (SQL Gateway)` | Run one opt-in deep-validation pass for the active pipeline against the configured SQL Gateway |
 | `FlinkReactor: Open Pipeline Designer` | Open the low-code visual designer (palette + canvas + prop forms) beside a pipeline |
+| `FlinkReactor: Synth / Validate / Graph / Schema / Deploy / Up / Down / Status / Stop Job / Resume Job / Savepoint / Doctor` | Run the corresponding `flink-reactor` CLI verb as a VS Code task (see *CLI lifecycle*) |
+| `FlinkReactor: Dev (watch mode)` | Start `flink-reactor dev` as the single managed watch task (re-invoking reveals it) |
+| `FlinkReactor: Stop Dev` | Stop the managed dev watch (also the dev status bar item's click action) |
+| `FlinkReactor: Select Environment` | Pick the active environment; subsequent commands run with `--env <selected>` |
 
 The three preview/DAG commands are also available as editor-title (navigation)
 actions on any `.tsx` pipeline in a FlinkReactor project. The **Schema Explorer**
@@ -146,6 +150,45 @@ type contract re-exported from `@flink-reactor/language-server`):
 | `flinkReactor/schemaTree` | request → `SchemaTreeResponse` | The active pipeline's sources/sinks as `{ tables: [{ nodeId, role, component, label, fields: [{ name, type, primaryKey, locationRef? }], watermark?, locationRef? }], ok, error? }` + the document version. Fields/PK/watermark are decoded in the synthesis worker; each `locationRef` (node JSX + per-source field-key positions, cross-file aware) is resolved host-side from the source-position map. Pure lookup-and-serialize. Powers the Schema Explorer. |
 | `flinkReactor/designerModel` | request → `DesignerModelResponse` | The graph model **plus** per-node prop editability (`editable` literal with value + range vs `readOnly` computed/identifier/spread, classified from the `.tsx` AST) and the document's file kind (`arbitrary` / `designer-managed` / `pragma-violated`) for the edit-safety matrix. Powers the visual designer canvas + prop forms. |
 | `flinkReactor/applyDesignerEdit` | request → `ApplyDesignerEditResponse` | The designer's single write path: scalar literal-prop edits, pragma-gated structural edits (add/delete/re-parent/add-join), and greenfield generation — applied with `ts-morph`, verified (re-parse + re-synthesize) before commit, returned as text edits the extension applies as one undoable `WorkspaceEdit` (or `newFileContent` for generation). Refusals are data (`refusedReason`), never RPC errors. |
+
+## CLI lifecycle: tasks, CodeLens, Problems panel, environments, fr dev
+
+The `flink-reactor` CLI remains the project's lifecycle surface (artifacts on
+disk, deployment, cluster control); this extension brings it into the editor
+without modifying it. Every wrapped command runs through VS Code's **task
+system** — the exact command line is visible, the run is cancelable, the exit
+code is surfaced (a non-zero exit notifies and logs to the `FlinkReactor`
+output channel), and a stable task identity (verb + pipeline + env) reuses one
+terminal per command.
+
+**Binary resolution** (never a silent no-op): the workspace
+`node_modules/.bin/flink-reactor` (the version-pinned dev dependency) →
+the `flinkReactor.cliPath` setting → `PATH`. When none resolve, the command
+short-circuits with an actionable error instead of spawning anything.
+
+**Per-pipeline CodeLens**: every `pipelines/<name>/index.tsx` gets a lens row —
+`▶ Synth · Validate · Graph · Deploy · Run tests` — each scoped to that
+pipeline (`-p <name>` derived from the path, no prompting). "Run tests" runs
+the project's Vitest against the conventional `tests/pipelines/<name>.test.ts`.
+Component/schema files get no lens.
+
+**Problems panel**: CLI tasks attach the `$flink-reactor` problem matcher,
+which parses machine-oriented diagnostic lines
+(`<file>:<line>:<col> <severity> FR-<code> <message>`) into navigable Problems
+entries that clear on a clean re-run. It applies only to FlinkReactor CLI
+tasks and never duplicates the language server's live editor diagnostics
+(different sources, different lifecycles). Human-readable CLI output passes
+through as plain terminal text.
+
+**Environment switcher**: the `$(globe) env:` status bar item /
+`FlinkReactor: Select Environment` quick-picks among the environments
+discovered from `flink-reactor.config.ts`; the selection persists per
+workspace and scopes subsequent commands via `--env <selected>`. With no
+selection, commands run without `--env` (the CLI's own default applies).
+
+**Managed `fr dev`**: one watch task per workspace — re-invoking *reveals* the
+running task instead of starting a second; a status bar item shows it is
+running and stops it on click; status clears when the task exits.
 
 ## Visual designer: what is editable, and what is refused
 

@@ -105,6 +105,138 @@
         "title": "Open Pipeline Designer",
         "category": "FlinkReactor",
         "icon": "$(layout)"
+      },
+      {
+        "command": "flinkReactor.synth",
+        "title": "Synth",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.validate",
+        "title": "Validate",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.graph",
+        "title": "Graph",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.schema",
+        "title": "Schema",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.deploy",
+        "title": "Deploy",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.up",
+        "title": "Up (start local cluster)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.down",
+        "title": "Down (stop local cluster)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.status",
+        "title": "Status",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.stop",
+        "title": "Stop Job",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.resume",
+        "title": "Resume Job",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.savepoint",
+        "title": "Savepoint",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.doctor",
+        "title": "Doctor",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.dev",
+        "title": "Dev (watch mode)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.stopDev",
+        "title": "Stop Dev",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.selectEnvironment",
+        "title": "Select Environment",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.runPipelineTests",
+        "title": "Run Pipeline Tests",
+        "category": "FlinkReactor"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "flink-reactor",
+        "required": [
+          "verb"
+        ],
+        "properties": {
+          "verb": {
+            "type": "string",
+            "description": "The flink-reactor CLI verb (synth, validate, deploy, dev, …)"
+          },
+          "pipeline": {
+            "type": "string",
+            "description": "Pipeline name passed as -p <pipeline>"
+          },
+          "env": {
+            "type": "string",
+            "description": "Environment passed as --env <env>"
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Extra flags appended verbatim"
+          }
+        }
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "flink-reactor",
+        "label": "FlinkReactor CLI diagnostics",
+        "owner": "flink-reactor-cli",
+        "source": "flink-reactor-cli",
+        "applyTo": "allDocuments",
+        "clear": true,
+        "fileLocation": [
+          "autoDetect",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^\\s*(.+?):(\\d+):(\\d+)\\s+(error|warning)\\s+(FR[A-Za-z0-9-]*)\\s+(.+)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "code": 5,
+          "message": 6
+        }
       }
     ],
     "viewsContainers": {
@@ -337,6 +469,16 @@
           "type": "string",
           "default": "",
           "markdownDescription": "FlinkReactor Console URL tap manifests push to (mirrors `fr synth --console-url`). Shown in the Pipeline Taps panel; leave empty when no console is configured."
+        },
+        "flinkReactor.synth.outDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Output directory passed to `flink-reactor synth` as `-o <outdir>`. The CLI default (`dist/`) applies when empty."
+        },
+        "flinkReactor.synth.deepValidate": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Pass `--deep-validate` to `flink-reactor synth` runs (dt-sql-parser + SQL Gateway `EXPLAIN` against a running cluster)."
         }
       }
     },
