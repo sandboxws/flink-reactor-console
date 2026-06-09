@@ -247,14 +247,16 @@ _flink_reactor_synth() {
     '(-e --env)'{-e,--env}'[Environment name (loads env/<name>.ts)]: : ' \\
     '(-o --outdir)'{-o,--outdir}'[Output directory]: :_files -/' \\
     '--deep-validate[Submit EXPLAIN to a running Flink cluster for semantic validation]' \\
-    '--console-url[Push tap manifests to reactor-console at this URL]: : '
+    '--console-url[Push tap manifests to reactor-console at this URL]: : ' \\
+    '--json[Emit a machine-readable JSON report to stdout (suppresses human output; artifacts are still written; SQL-verifier diagnostics do not fail the command)]'
 }
 
 _flink_reactor_validate() {
   _arguments \\
     '(-p --pipeline)'{-p,--pipeline}'[Validate a specific pipeline]: : ' \\
     '(-e --env)'{-e,--env}'[Environment name]: : ' \\
-    '--deep-validate[Submit EXPLAIN to a running Flink cluster for semantic validation]'
+    '--deep-validate[Submit EXPLAIN to a running Flink cluster for semantic validation]' \\
+    '--json[Emit a machine-readable JSON report to stdout (suppresses human output; exit 1 on validation errors)]'
 }
 
 _flink_reactor_graph() {

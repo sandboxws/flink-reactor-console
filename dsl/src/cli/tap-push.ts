@@ -1,17 +1,29 @@
 import pc from "picocolors"
 import type { TapManifest } from "@/core/types.js"
 
+/** Outcome of a tap-manifest push. `message` is set on failure. */
+export interface TapPushResult {
+  readonly ok: boolean
+  readonly message?: string
+}
+
 /**
  * Push a tap manifest to the reactor-console backend.
  *
  * Posts the manifest JSON to the console's REST API.
- * Never throws — logs a warning on failure and returns false.
+ * Never throws — returns `{ ok: false, message }` on failure.
+ *
+ * In quiet mode nothing is printed (JSON-mode callers route `message`
+ * into their own output); otherwise progress/warnings go to stdout as
+ * before.
  */
 export async function pushTapManifest(
   manifest: TapManifest,
   consoleUrl: string,
-): Promise<boolean> {
+  opts?: { quiet?: boolean },
+): Promise<TapPushResult> {
   const url = `${consoleUrl.replace(/\/$/, "")}/api/tap-manifests`
+  const quiet = opts?.quiet === true
 
   try {
     const response = await fetch(url, {
@@ -23,21 +35,25 @@ export async function pushTapManifest(
 
     if (!response.ok) {
       const body = await response.text().catch(() => "")
-      console.log(
-        pc.yellow(
-          `  Warning: failed to push tap manifest (${response.status}): ${body}`,
-        ),
-      )
-      return false
+      const message = `failed to push tap manifest (${response.status}): ${body}`
+      if (!quiet) {
+        console.log(pc.yellow(`  Warning: ${message}`))
+      }
+      return { ok: false, message }
     }
 
-    console.log(
-      pc.dim(`  Tap manifest pushed to console (${manifest.pipelineName})`),
-    )
-    return true
+    if (!quiet) {
+      console.log(
+        pc.dim(`  Tap manifest pushed to console (${manifest.pipelineName})`),
+      )
+    }
+    return { ok: true }
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.log(pc.yellow(`  Warning: could not push tap manifest: ${message}`))
-    return false
+    const reason = err instanceof Error ? err.message : String(err)
+    const message = `could not push tap manifest: ${reason}`
+    if (!quiet) {
+      console.log(pc.yellow(`  Warning: ${message}`))
+    }
+    return { ok: false, message }
   }
 }

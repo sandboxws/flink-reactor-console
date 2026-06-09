@@ -6,6 +6,15 @@ import pc from "picocolors"
 import { resolveConsoleUrl } from "@/cli/console-url.js"
 import { loadPipeline, resolveProjectContext } from "@/cli/discovery.js"
 import { runCommand } from "@/cli/effect-runner.js"
+import {
+  emitJson,
+  JSON_FORMAT_VERSION,
+  jsonToolInfo,
+  type SynthArtifactFileJson,
+  type SynthJsonOutput,
+  type SynthPipelineJson,
+  serializeSynthError,
+} from "@/cli/json-output.js"
 import { pushTapManifest } from "@/cli/tap-push.js"
 import { generateCrd, toYaml } from "@/codegen/crd-generator.js"
 import {
@@ -36,6 +45,10 @@ export function registerSynthCommand(program: Command): void {
       "--console-url <url>",
       "Push tap manifests to reactor-console at this URL",
     )
+    .option(
+      "--json",
+      "Emit a machine-readable JSON report to stdout (suppresses human output; artifacts are still written; SQL-verifier diagnostics do not fail the command)",
+    )
     .action(
       async (opts: {
         pipeline?: string
@@ -44,22 +57,31 @@ export function registerSynthCommand(program: Command): void {
         outdir: string
         deepValidate?: boolean
         consoleUrl?: string
+        json?: boolean
       }) => {
-        await runCommand(runSynthEffect(opts))
+        if (opts.json) {
+          await runCommand(runSynthJsonEffect(opts))
+        } else {
+          await runCommand(runSynthEffect(opts))
+        }
       },
     )
 }
 
-// ── Imperative variant (used by dev command's internal calls) ───────
-
-export async function runSynth(opts: {
+interface SynthOptions {
   pipeline?: string
   file?: string
   env?: string
   outdir: string
   projectDir?: string
   consoleUrl?: string
-}): Promise<PipelineArtifact[]> {
+}
+
+// ── Imperative variant (used by dev command's internal calls) ───────
+
+export async function runSynth(
+  opts: SynthOptions,
+): Promise<PipelineArtifact[]> {
   const projectDir = opts.projectDir ?? process.cwd()
   const ctx = await resolveProjectContext(projectDir, {
     pipeline: opts.pipeline,
@@ -181,45 +203,52 @@ function writePipelineOutput(
   artifact: PipelineArtifact,
   outdir: string,
   projectDir: string,
-): void {
+): SynthArtifactFileJson[] {
+  const files: SynthArtifactFileJson[] = []
   const pipelineDir = join(projectDir, outdir, artifact.name)
   mkdirSync(pipelineDir, { recursive: true })
 
-  writeFileSync(join(pipelineDir, "pipeline.sql"), artifact.sql.sql, "utf-8")
+  const sqlPath = join(pipelineDir, "pipeline.sql")
+  writeFileSync(sqlPath, artifact.sql.sql, "utf-8")
+  files.push({ kind: "sql", path: sqlPath })
 
   const crdYaml = toYaml(artifact.crd)
-  writeFileSync(join(pipelineDir, "deployment.yaml"), crdYaml, "utf-8")
+  const deploymentPath = join(pipelineDir, "deployment.yaml")
+  writeFileSync(deploymentPath, crdYaml, "utf-8")
+  files.push({ kind: "deployment", path: deploymentPath })
 
   // Flink CDC Pipeline Connector pipelines have a pipeline.yaml artifact
   // and their ConfigMap wraps that YAML, not the SQL. Regular Flink SQL
   // pipelines keep the historical SQL ConfigMap shape.
   if (artifact.pipelineYaml != null) {
-    writeFileSync(
-      join(pipelineDir, "pipeline.yaml"),
-      artifact.pipelineYaml,
-      "utf-8",
-    )
+    const pipelineYamlPath = join(pipelineDir, "pipeline.yaml")
+    writeFileSync(pipelineYamlPath, artifact.pipelineYaml, "utf-8")
+    files.push({ kind: "pipeline-yaml", path: pipelineYamlPath })
     for (const res of artifact.secondaryResources) {
-      writeFileSync(
-        join(pipelineDir, `${res.kind.toLowerCase()}.yaml`),
-        toYaml(res),
-        "utf-8",
-      )
+      const resPath = join(pipelineDir, `${res.kind.toLowerCase()}.yaml`)
+      writeFileSync(resPath, toYaml(res), "utf-8")
+      files.push({ kind: "secondary-resource", path: resPath })
     }
   } else {
     const configMap = buildConfigMapYaml(artifact)
-    writeFileSync(join(pipelineDir, "configmap.yaml"), configMap, "utf-8")
+    const configMapPath = join(pipelineDir, "configmap.yaml")
+    writeFileSync(configMapPath, configMap, "utf-8")
+    files.push({ kind: "configmap", path: configMapPath })
   }
 
   if (artifact.tapManifest) {
     const outdirPath = join(projectDir, outdir)
     mkdirSync(outdirPath, { recursive: true })
+    const tapPath = join(outdirPath, `${artifact.name}.tap-manifest.json`)
     writeFileSync(
-      join(outdirPath, `${artifact.name}.tap-manifest.json`),
+      tapPath,
       JSON.stringify(artifact.tapManifest, null, 2),
       "utf-8",
     )
+    files.push({ kind: "tap-manifest", path: tapPath })
   }
+
+  return files
 }
 
 function buildConfigMapYaml(artifact: PipelineArtifact): string {
@@ -239,21 +268,23 @@ function buildConfigMapYaml(artifact: PipelineArtifact): string {
 
 // ── Effect variant ──────────────────────────────────────────────────
 
+interface SynthRunOutcome {
+  readonly artifacts: readonly PipelineArtifact[]
+  readonly rows: readonly SynthPipelineJson[]
+  /** Non-fatal warnings (tap-manifest push failures). */
+  readonly warnings: readonly string[]
+}
+
 /**
- * Effect-based synth program.
- *
- * Returns an Effect with typed errors and console output.
- * Uses FrFileSystem service for file writes.
+ * Discovery + synthesis + artifact writing, shared by the human and JSON
+ * output paths. In quiet mode nothing is printed and tap-push failures
+ * are collected into `warnings` instead.
  */
-export function runSynthEffect(opts: {
-  pipeline?: string
-  file?: string
-  env?: string
-  outdir: string
-  projectDir?: string
-  consoleUrl?: string
-}): Effect.Effect<
-  readonly PipelineArtifact[],
+function synthesizeAndWrite(
+  opts: SynthOptions,
+  quiet: boolean,
+): Effect.Effect<
+  SynthRunOutcome,
   DiscoveryError | FileSystemError,
   FrFileSystem
 > {
@@ -277,19 +308,25 @@ export function runSynthEffect(opts: {
     })
 
     if (ctx.pipelines.length === 0) {
-      yield* Effect.sync(() =>
-        console.log(pc.yellow("No pipelines found in pipelines/ directory.")),
-      )
-      return [] as readonly PipelineArtifact[]
+      if (!quiet) {
+        yield* Effect.sync(() =>
+          console.log(pc.yellow("No pipelines found in pipelines/ directory.")),
+        )
+      }
+      return { artifacts: [], rows: [], warnings: [] }
     }
 
-    yield* Effect.sync(() =>
-      console.log(
-        pc.dim(`Synthesizing ${ctx.pipelines.length} pipeline(s)...\n`),
-      ),
-    )
+    if (!quiet) {
+      yield* Effect.sync(() =>
+        console.log(
+          pc.dim(`Synthesizing ${ctx.pipelines.length} pipeline(s)...\n`),
+        ),
+      )
+    }
 
     const allArtifacts: PipelineArtifact[] = []
+    const rows: SynthPipelineJson[] = []
+    const warnings: string[] = []
     const synthesizedAt = new Date().toISOString()
 
     for (const discovered of ctx.pipelines) {
@@ -318,7 +355,13 @@ export function runSynthEffect(opts: {
 
       for (const artifact of result.pipelines) {
         allArtifacts.push(artifact)
-        yield* writePipelineOutputEffect(artifact, opts.outdir, projectDir, fs)
+        const files = yield* writePipelineOutputEffect(
+          artifact,
+          opts.outdir,
+          projectDir,
+          fs,
+        )
+        rows.push(buildSynthRow(artifact, files))
       }
 
       // Fallback: treat whole tree as single pipeline
@@ -358,25 +401,33 @@ export function runSynthEffect(opts: {
         }
 
         allArtifacts.push(artifact)
-        yield* writePipelineOutputEffect(artifact, opts.outdir, projectDir, fs)
+        const files = yield* writePipelineOutputEffect(
+          artifact,
+          opts.outdir,
+          projectDir,
+          fs,
+        )
+        rows.push(buildSynthRow(artifact, files))
       }
     }
 
     // Print summary
-    yield* Effect.sync(() => {
-      console.log(
-        pc.green(
-          `\nSynthesis complete. ${allArtifacts.length} pipeline(s) written.\n`,
-        ),
-      )
-      for (const artifact of allArtifacts) {
-        const stmtCount = artifact.sql.statements.length
+    if (!quiet) {
+      yield* Effect.sync(() => {
         console.log(
-          `  ${pc.cyan(artifact.name)} ${pc.dim(`(${stmtCount} statement${stmtCount !== 1 ? "s" : ""})`)} ${pc.dim(`→ ${opts.outdir}/${artifact.name}/`)}`,
+          pc.green(
+            `\nSynthesis complete. ${allArtifacts.length} pipeline(s) written.\n`,
+          ),
         )
-      }
-      console.log("")
-    })
+        for (const artifact of allArtifacts) {
+          const stmtCount = artifact.sql.statements.length
+          console.log(
+            `  ${pc.cyan(artifact.name)} ${pc.dim(`(${stmtCount} statement${stmtCount !== 1 ? "s" : ""})`)} ${pc.dim(`→ ${opts.outdir}/${artifact.name}/`)}`,
+          )
+        }
+        console.log("")
+      })
+    }
 
     // Push tap manifests to console if URL is available
     const targetUrl = resolveConsoleUrl({
@@ -387,15 +438,102 @@ export function runSynthEffect(opts: {
       for (const artifact of allArtifacts) {
         const manifest = artifact.tapManifest
         if (manifest) {
-          yield* Effect.tryPromise({
-            try: () => pushTapManifest(manifest, targetUrl),
-            catch: () => undefined as never, // pushTapManifest never throws
-          })
+          // pushTapManifest never throws
+          const pushResult = yield* Effect.promise(() =>
+            pushTapManifest(manifest, targetUrl, { quiet }),
+          )
+          if (!pushResult.ok && pushResult.message) {
+            warnings.push(pushResult.message)
+          }
         }
       }
     }
 
-    return allArtifacts as readonly PipelineArtifact[]
+    return { artifacts: allArtifacts, rows, warnings }
+  })
+}
+
+function buildSynthRow(
+  artifact: PipelineArtifact,
+  files: readonly SynthArtifactFileJson[],
+): SynthPipelineJson {
+  return {
+    name: artifact.name,
+    statementCount: artifact.sql.statements.length,
+    diagnostics: artifact.sql.diagnostics,
+    files,
+  }
+}
+
+/**
+ * Effect-based synth program (human output).
+ *
+ * Returns an Effect with typed errors and console output.
+ * Uses FrFileSystem service for file writes.
+ */
+export function runSynthEffect(
+  opts: SynthOptions,
+): Effect.Effect<
+  readonly PipelineArtifact[],
+  DiscoveryError | FileSystemError,
+  FrFileSystem
+> {
+  return synthesizeAndWrite(opts, false).pipe(
+    Effect.map((outcome) => outcome.artifacts),
+  )
+}
+
+/**
+ * Effect-based synth program (JSON output).
+ *
+ * Never fails: every outcome — including discovery errors and defects —
+ * is reported through the JSON envelope on stdout. Artifacts that were
+ * written before a failure stay on disk. Sets `process.exitCode = 1`
+ * when the command failed; SQL-verifier diagnostics on artifacts do NOT
+ * fail the command (parity with human mode).
+ */
+export function runSynthJsonEffect(
+  opts: SynthOptions,
+): Effect.Effect<void, never, FrFileSystem> {
+  return Effect.gen(function* () {
+    const startedAt = new Date()
+    const projectDir = opts.projectDir ?? process.cwd()
+
+    const outcome = yield* synthesizeAndWrite(opts, true).pipe(
+      Effect.map((value) => ({ failed: false as const, value })),
+      Effect.catchAll((err) =>
+        Effect.succeed({
+          failed: true as const,
+          error: serializeSynthError(err),
+        }),
+      ),
+      Effect.catchAllDefect((defect) =>
+        Effect.succeed({
+          failed: true as const,
+          error: serializeSynthError(defect),
+        }),
+      ),
+    )
+
+    const envelope: SynthJsonOutput = {
+      formatVersion: JSON_FORMAT_VERSION,
+      tool: jsonToolInfo(),
+      command: "synth",
+      ok: !outcome.failed,
+      startedAt: startedAt.toISOString(),
+      durationMs: Date.now() - startedAt.getTime(),
+      warnings: outcome.failed ? [] : outcome.value.warnings,
+      ...(outcome.failed ? { error: outcome.error } : {}),
+      outDir: join(projectDir, opts.outdir),
+      pipelines: outcome.failed ? [] : outcome.value.rows,
+    }
+
+    yield* Effect.sync(() => {
+      emitJson(envelope)
+      if (outcome.failed) {
+        process.exitCode = 1
+      }
+    })
   })
 }
 
@@ -404,39 +542,48 @@ function writePipelineOutputEffect(
   outdir: string,
   projectDir: string,
   fs: FrFileSystem["Type"],
-): Effect.Effect<void, FileSystemError> {
+): Effect.Effect<readonly SynthArtifactFileJson[], FileSystemError> {
   return Effect.gen(function* () {
+    const files: SynthArtifactFileJson[] = []
     const pipelineDir = join(projectDir, outdir, artifact.name)
     yield* fs.mkdir(pipelineDir, { recursive: true })
 
-    yield* fs.writeFile(join(pipelineDir, "pipeline.sql"), artifact.sql.sql)
+    const sqlPath = join(pipelineDir, "pipeline.sql")
+    yield* fs.writeFile(sqlPath, artifact.sql.sql)
+    files.push({ kind: "sql", path: sqlPath })
 
     const crdYaml = toYaml(artifact.crd)
-    yield* fs.writeFile(join(pipelineDir, "deployment.yaml"), crdYaml)
+    const deploymentPath = join(pipelineDir, "deployment.yaml")
+    yield* fs.writeFile(deploymentPath, crdYaml)
+    files.push({ kind: "deployment", path: deploymentPath })
 
     if (artifact.pipelineYaml != null) {
-      yield* fs.writeFile(
-        join(pipelineDir, "pipeline.yaml"),
-        artifact.pipelineYaml,
-      )
+      const pipelineYamlPath = join(pipelineDir, "pipeline.yaml")
+      yield* fs.writeFile(pipelineYamlPath, artifact.pipelineYaml)
+      files.push({ kind: "pipeline-yaml", path: pipelineYamlPath })
       for (const res of artifact.secondaryResources) {
-        yield* fs.writeFile(
-          join(pipelineDir, `${res.kind.toLowerCase()}.yaml`),
-          toYaml(res),
-        )
+        const resPath = join(pipelineDir, `${res.kind.toLowerCase()}.yaml`)
+        yield* fs.writeFile(resPath, toYaml(res))
+        files.push({ kind: "secondary-resource", path: resPath })
       }
     } else {
       const configMap = buildConfigMapYaml(artifact)
-      yield* fs.writeFile(join(pipelineDir, "configmap.yaml"), configMap)
+      const configMapPath = join(pipelineDir, "configmap.yaml")
+      yield* fs.writeFile(configMapPath, configMap)
+      files.push({ kind: "configmap", path: configMapPath })
     }
 
     if (artifact.tapManifest) {
       const outdirPath = join(projectDir, outdir)
       yield* fs.mkdir(outdirPath, { recursive: true })
+      const tapPath = join(outdirPath, `${artifact.name}.tap-manifest.json`)
       yield* fs.writeFile(
-        join(outdirPath, `${artifact.name}.tap-manifest.json`),
+        tapPath,
         JSON.stringify(artifact.tapManifest, null, 2),
       )
+      files.push({ kind: "tap-manifest", path: tapPath })
     }
+
+    return files as readonly SynthArtifactFileJson[]
   })
 }

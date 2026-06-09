@@ -21,6 +21,20 @@ export {
   loadPipeline,
   resolveProjectContext,
 } from "./cli/discovery.js"
+// ── Machine-readable CLI output ─────────────────────────────────────
+// Envelope types for `fr validate --json` / `fr synth --json`, so
+// programmatic consumers (flink-reactor-console, CI) can type their
+// parsers against the same contract the CLI emits. Type-only — erased
+// at runtime, no CLI code is pulled into this entry.
+export type {
+  PipelineValidationJson,
+  SerializedError,
+  SynthArtifactFileJson,
+  SynthFileKind,
+  SynthJsonOutput,
+  SynthPipelineJson,
+  ValidateJsonOutput,
+} from "./cli/json-output.js"
 // ── SQL Gateway client ──────────────────────────────────────────────
 // The REST transport behind `fr --deep-validate`, re-exported so the
 // language server's gateway-validation capability submits EXPLAIN through

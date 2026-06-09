@@ -3,6 +3,14 @@ import { Effect } from "effect"
 import pc from "picocolors"
 import { loadPipeline, resolveProjectContext } from "@/cli/discovery.js"
 import { runCommand } from "@/cli/effect-runner.js"
+import {
+  emitJson,
+  JSON_FORMAT_VERSION,
+  jsonToolInfo,
+  type PipelineValidationJson,
+  serializeSynthError,
+  type ValidateJsonOutput,
+} from "@/cli/json-output.js"
 import { synthesizeApp } from "@/core/app.js"
 import { validateConnectorProperties } from "@/core/connector-validation.js"
 import { DiscoveryError, ValidationError } from "@/core/errors.js"
@@ -30,6 +38,13 @@ export interface PipelineValidationResult {
   readonly warnings: readonly ValidationDiagnostic[]
 }
 
+interface ValidateOptions {
+  pipeline?: string
+  env?: string
+  projectDir?: string
+  deepValidate?: boolean
+}
+
 // ── Command registration ────────────────────────────────────────────
 
 export function registerValidateCommand(program: Command): void {
@@ -42,25 +57,29 @@ export function registerValidateCommand(program: Command): void {
       "--deep-validate",
       "Submit EXPLAIN to a running Flink cluster for semantic validation",
     )
+    .option(
+      "--json",
+      "Emit a machine-readable JSON report to stdout (suppresses human output; exit 1 on validation errors)",
+    )
     .action(
       async (opts: {
         pipeline?: string
         env?: string
         deepValidate?: boolean
+        json?: boolean
       }) => {
-        await runCommand(runValidateEffect(opts))
+        if (opts.json) {
+          await runCommand(runValidateJsonEffect(opts))
+        } else {
+          await runCommand(runValidateEffect(opts))
+        }
       },
     )
 }
 
 // ── Validate logic ──────────────────────────────────────────────────
 
-export async function runValidate(opts: {
-  pipeline?: string
-  env?: string
-  projectDir?: string
-  deepValidate?: boolean
-}): Promise<boolean> {
+export async function runValidate(opts: ValidateOptions): Promise<boolean> {
   const projectDir = opts.projectDir ?? process.cwd()
   const projectCtx = await resolveProjectContext(projectDir, {
     pipeline: opts.pipeline,
@@ -80,7 +99,6 @@ export async function runValidate(opts: {
   )
 
   const results: PipelineValidationResult[] = []
-  let hasErrors = false
 
   for (const discovered of projectCtx.pipelines) {
     const pipelineNode = await loadPipeline(discovered.entryPoint, projectDir)
@@ -90,66 +108,85 @@ export async function runValidate(opts: {
       flinkVersion,
     )
 
-    // Deep validation: dt-sql-parser parse check + EXPLAIN against a running Flink cluster
     if (opts.deepValidate && result.errors.length === 0) {
-      // Tier 2a: dt-sql-parser full statement parsing
-      const { deepVerifySql } = await import("@/codegen/sql/sql-verifier.js")
-      const { generateSql } = await import("@/codegen/sql/sql-generator.js")
-      const sqlResult = generateSql(pipelineNode, { flinkVersion })
-      const parseDiags = await deepVerifySql(sqlResult.statements)
-      if (parseDiags.length > 0) {
-        result = {
-          ...result,
-          errors: [
-            ...result.errors,
-            ...parseDiags.filter((d) => d.severity === "error"),
-          ],
-          warnings: [
-            ...result.warnings,
-            ...parseDiags.filter((d) => d.severity === "warning"),
-          ],
-        }
-      }
-
-      // Tier 2b: SQL Gateway EXPLAIN semantic validation
-      const deepDiags = await runDeepValidation(
+      result = await applyDeepValidation(
+        result,
         pipelineNode,
         discovered.name,
         flinkVersion,
         projectCtx,
       )
-      if (deepDiags.length > 0) {
-        result = {
-          ...result,
-          errors: [
-            ...result.errors,
-            ...deepDiags.filter((d) => d.severity === "error"),
-          ],
-          warnings: [
-            ...result.warnings,
-            ...deepDiags.filter((d) => d.severity === "warning"),
-          ],
-        }
-      }
     }
 
     results.push(result)
-
-    if (result.errors.length > 0) {
-      hasErrors = true
-    }
   }
 
-  // Print results
+  const hasErrors = printValidationResults(results)
+  return !hasErrors
+}
+
+/**
+ * Deep validation tiers, applied on top of a structural result:
+ *   2a. dt-sql-parser full statement parsing
+ *   2b. SQL Gateway EXPLAIN against a running Flink cluster
+ */
+async function applyDeepValidation(
+  result: PipelineValidationResult,
+  pipelineNode: ConstructNode,
+  name: string,
+  flinkVersion: FlinkMajorVersion,
+  projectCtx: DeepValidationProjectContext,
+): Promise<PipelineValidationResult> {
+  const { deepVerifySql } = await import("@/codegen/sql/sql-verifier.js")
+  const { generateSql } = await import("@/codegen/sql/sql-generator.js")
+  const sqlResult = generateSql(pipelineNode, { flinkVersion })
+  const parseDiags = await deepVerifySql(sqlResult.statements)
+  let merged = mergeDiagnostics(result, parseDiags)
+
+  const deepDiags = await runDeepValidation(
+    pipelineNode,
+    name,
+    flinkVersion,
+    projectCtx,
+  )
+  merged = mergeDiagnostics(merged, deepDiags)
+  return merged
+}
+
+function mergeDiagnostics(
+  result: PipelineValidationResult,
+  diags: readonly ValidationDiagnostic[],
+): PipelineValidationResult {
+  if (diags.length === 0) return result
+  return {
+    ...result,
+    errors: [...result.errors, ...diags.filter((d) => d.severity === "error")],
+    warnings: [
+      ...result.warnings,
+      ...diags.filter((d) => d.severity === "warning"),
+    ],
+  }
+}
+
+/**
+ * Render results to the terminal. Returns true when any pipeline has
+ * errors. Shared by the imperative and Effect human-output paths.
+ */
+function printValidationResults(
+  results: readonly PipelineValidationResult[],
+): boolean {
+  let hasErrors = false
+
   for (const result of results) {
     if (result.errors.length === 0 && result.warnings.length === 0) {
       console.log(
-        `  ${pc.green("\u2713")} ${pc.bold(result.name)} ${pc.dim("— valid")}`,
+        `  ${pc.green("✓")} ${pc.bold(result.name)} ${pc.dim("— valid")}`,
       )
     } else {
       if (result.errors.length > 0) {
+        hasErrors = true
         console.log(
-          `  ${pc.red("\u2717")} ${pc.bold(result.name)} ${pc.dim(`— ${result.errors.length} error(s)`)}`,
+          `  ${pc.red("✗")} ${pc.bold(result.name)} ${pc.dim(`— ${result.errors.length} error(s)`)}`,
         )
         for (const err of result.errors) {
           console.log(`    ${pc.red("error:")} ${err.message}`)
@@ -171,14 +208,13 @@ export async function runValidate(opts: {
   }
 
   console.log("")
-
   if (hasErrors) {
     console.log(pc.red("Validation failed."))
   } else {
     console.log(pc.green("All pipelines valid."))
   }
 
-  return !hasErrors
+  return hasErrors
 }
 
 // ── Per-pipeline validation ─────────────────────────────────────────
@@ -414,8 +450,103 @@ function validateFlinkVersionFeatures(
 
 // ── Effect variant ──────────────────────────────────────────────────
 
+type ProjectContext = Awaited<ReturnType<typeof resolveProjectContext>>
+
+function resolveProjectContextEffect(
+  projectDir: string,
+  opts: { pipeline?: string; env?: string },
+): Effect.Effect<ProjectContext, DiscoveryError> {
+  return Effect.tryPromise({
+    try: () =>
+      resolveProjectContext(projectDir, {
+        pipeline: opts.pipeline,
+        env: opts.env,
+      }),
+    catch: (err) =>
+      new DiscoveryError({
+        reason: "config_not_found",
+        message: (err as Error).message,
+        path: projectDir,
+      }),
+  })
+}
+
 /**
- * Effect-based validation program.
+ * Load and validate every discovered pipeline. Pure collection — no
+ * terminal output, no fail-on-diagnostics (diagnostics flow through the
+ * results; only catastrophic load/validation throws become errors).
+ * Shared by the human and JSON output paths.
+ */
+function collectValidateResults(
+  projectCtx: ProjectContext,
+  projectDir: string,
+  opts: { deepValidate?: boolean },
+): Effect.Effect<
+  readonly PipelineValidationResult[],
+  DiscoveryError | ValidationError
+> {
+  return Effect.gen(function* () {
+    const flinkVersion: FlinkMajorVersion =
+      projectCtx.config?.flink?.version ?? "2.0"
+
+    const results: PipelineValidationResult[] = []
+
+    for (const discovered of projectCtx.pipelines) {
+      const pipelineNode = yield* Effect.tryPromise({
+        try: () => loadPipeline(discovered.entryPoint, projectDir),
+        catch: (err) =>
+          new DiscoveryError({
+            reason: "import_failure",
+            message: (err as Error).message,
+            path: discovered.entryPoint,
+          }),
+      })
+
+      let result = yield* Effect.tryPromise({
+        try: () =>
+          validatePipeline(pipelineNode, discovered.name, flinkVersion),
+        catch: (err) =>
+          new ValidationError({
+            diagnostics: [
+              {
+                severity: "error",
+                message: `Validation failed: ${(err as Error).message}`,
+              },
+            ],
+          }),
+      })
+
+      if (opts.deepValidate && result.errors.length === 0) {
+        result = yield* Effect.tryPromise({
+          try: () =>
+            applyDeepValidation(
+              result,
+              pipelineNode,
+              discovered.name,
+              flinkVersion,
+              projectCtx,
+            ),
+          catch: (err) =>
+            new ValidationError({
+              diagnostics: [
+                {
+                  severity: "error",
+                  message: `Deep validation failed: ${(err as Error).message}`,
+                },
+              ],
+            }),
+        })
+      }
+
+      results.push(result)
+    }
+
+    return results as readonly PipelineValidationResult[]
+  })
+}
+
+/**
+ * Effect-based validation program (human output).
  *
  * Returns validation results with typed errors for discovery failures
  * and validation failures.
@@ -431,20 +562,7 @@ export function runValidateEffect(opts: {
 > {
   return Effect.gen(function* () {
     const projectDir = opts.projectDir ?? process.cwd()
-
-    const projectCtx = yield* Effect.tryPromise({
-      try: () =>
-        resolveProjectContext(projectDir, {
-          pipeline: opts.pipeline,
-          env: opts.env,
-        }),
-      catch: (err) =>
-        new DiscoveryError({
-          reason: "config_not_found",
-          message: (err as Error).message,
-          path: projectDir,
-        }),
-    })
+    const projectCtx = yield* resolveProjectContextEffect(projectDir, opts)
 
     if (projectCtx.pipelines.length === 0) {
       yield* Effect.sync(() =>
@@ -453,85 +571,15 @@ export function runValidateEffect(opts: {
       return [] as readonly PipelineValidationResult[]
     }
 
-    const flinkVersion: FlinkMajorVersion =
-      projectCtx.config?.flink?.version ?? "2.0"
-
     yield* Effect.sync(() =>
       console.log(
         pc.dim(`Validating ${projectCtx.pipelines.length} pipeline(s)...\n`),
       ),
     )
 
-    const results: PipelineValidationResult[] = []
+    const results = yield* collectValidateResults(projectCtx, projectDir, opts)
 
-    for (const discovered of projectCtx.pipelines) {
-      const pipelineNode = yield* Effect.tryPromise({
-        try: () => loadPipeline(discovered.entryPoint, projectDir),
-        catch: (err) =>
-          new DiscoveryError({
-            reason: "import_failure",
-            message: (err as Error).message,
-            path: discovered.entryPoint,
-          }),
-      })
-
-      const result = yield* Effect.tryPromise({
-        try: () =>
-          validatePipeline(pipelineNode, discovered.name, flinkVersion),
-        catch: (err) =>
-          new ValidationError({
-            diagnostics: [
-              {
-                severity: "error",
-                message: `Validation failed: ${(err as Error).message}`,
-              },
-            ],
-          }),
-      })
-      results.push(result)
-    }
-
-    // Print results
-    yield* Effect.sync(() => {
-      let hasErrors = false
-
-      for (const result of results) {
-        if (result.errors.length === 0 && result.warnings.length === 0) {
-          console.log(
-            `  ${pc.green("✓")} ${pc.bold(result.name)} ${pc.dim("— valid")}`,
-          )
-        } else {
-          if (result.errors.length > 0) {
-            hasErrors = true
-            console.log(
-              `  ${pc.red("✗")} ${pc.bold(result.name)} ${pc.dim(`— ${result.errors.length} error(s)`)}`,
-            )
-            for (const err of result.errors) {
-              console.log(`    ${pc.red("error:")} ${err.message}`)
-              if (err.component) {
-                console.log(`    ${pc.dim(`component: ${err.component}`)}`)
-              }
-            }
-          }
-
-          if (result.warnings.length > 0) {
-            console.log(
-              `  ${pc.yellow("!")} ${pc.bold(result.name)} ${pc.dim(`— ${result.warnings.length} warning(s)`)}`,
-            )
-            for (const warn of result.warnings) {
-              console.log(`    ${pc.yellow("warning:")} ${warn.message}`)
-            }
-          }
-        }
-      }
-
-      console.log("")
-      if (hasErrors) {
-        console.log(pc.red("Validation failed."))
-      } else {
-        console.log(pc.green("All pipelines valid."))
-      }
-    })
+    yield* Effect.sync(() => printValidationResults(results))
 
     // Fail with typed error if there are validation errors
     const allErrors = results.flatMap((r) => [...r.errors])
@@ -539,13 +587,81 @@ export function runValidateEffect(opts: {
       return yield* Effect.fail(new ValidationError({ diagnostics: allErrors }))
     }
 
-    return results as readonly PipelineValidationResult[]
+    return results
+  })
+}
+
+/**
+ * Effect-based validation program (JSON output).
+ *
+ * Never fails: every outcome — including discovery errors and defects —
+ * is reported through the JSON envelope on stdout. Sets
+ * `process.exitCode = 1` when the envelope is not ok.
+ */
+export function runValidateJsonEffect(
+  opts: ValidateOptions,
+): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    const startedAt = new Date()
+    const projectDir = opts.projectDir ?? process.cwd()
+
+    const outcome = yield* resolveProjectContextEffect(projectDir, opts).pipe(
+      Effect.flatMap((ctx) => collectValidateResults(ctx, projectDir, opts)),
+      Effect.map((results) => ({ failed: false as const, results })),
+      Effect.catchAll((err) =>
+        Effect.succeed({
+          failed: true as const,
+          error: serializeSynthError(err),
+        }),
+      ),
+      Effect.catchAllDefect((defect) =>
+        Effect.succeed({
+          failed: true as const,
+          error: serializeSynthError(defect),
+        }),
+      ),
+    )
+
+    const pipelines: readonly PipelineValidationJson[] = outcome.failed
+      ? []
+      : outcome.results.map((r) => ({
+          name: r.name,
+          ok: r.errors.length === 0,
+          errors: r.errors,
+          warnings: r.warnings,
+        }))
+
+    const ok = !outcome.failed && pipelines.every((p) => p.ok)
+
+    const envelope: ValidateJsonOutput = {
+      formatVersion: JSON_FORMAT_VERSION,
+      tool: jsonToolInfo(),
+      command: "validate",
+      ok,
+      startedAt: startedAt.toISOString(),
+      durationMs: Date.now() - startedAt.getTime(),
+      warnings: [],
+      ...(outcome.failed ? { error: outcome.error } : {}),
+      pipelines,
+    }
+
+    yield* Effect.sync(() => {
+      emitJson(envelope)
+      if (!ok) {
+        process.exitCode = 1
+      }
+    })
   })
 }
 
 // ── Deep validation via SQL Gateway ─────────────────────────────────
 
 const DEFAULT_SQL_GATEWAY_URL = "http://localhost:8083"
+
+interface DeepValidationProjectContext {
+  config?: { flink?: { version?: FlinkMajorVersion } } | null
+  resolvedConfig?: { cluster?: { url?: unknown } } | null
+}
 
 /**
  * Submit EXPLAIN <sql> to a running Flink cluster via SQL Gateway.
@@ -555,10 +671,7 @@ async function runDeepValidation(
   pipelineNode: ConstructNode,
   name: string,
   flinkVersion: FlinkMajorVersion,
-  projectCtx: {
-    config?: { flink?: { version?: FlinkMajorVersion } } | null
-    resolvedConfig?: { cluster?: { url?: unknown } } | null
-  },
+  projectCtx: DeepValidationProjectContext,
 ): Promise<ValidationDiagnostic[]> {
   const diagnostics: ValidationDiagnostic[] = []
 
