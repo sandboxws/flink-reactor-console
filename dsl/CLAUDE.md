@@ -16,6 +16,7 @@ Core DSL library + CLI for FlinkReactor. React-style TSX DSL that synthesizes to
 - **DAG, not tree** — pipelines are directed acyclic graphs. JSX nesting is sugar for the linear case only.
 - **Deterministic output** — same input must always produce the same SQL and YAML.
 - **Flink SQL is the target** — all components compile to Flink SQL (v0.1). No DataStream API.
+- **Invariant specs** — behavioral contracts live in [`docs/contributors/specs/`](docs/contributors/specs/README.md) with stable IDs (`ORD-`/`CLM-`/`NID-`/`TAP-`); cite the ID when changing statement ordering, changelog propagation, node-id assignment, or tap behavior.
 
 ## Code Conventions
 
