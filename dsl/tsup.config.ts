@@ -6,6 +6,14 @@ const srcAlias = { "@": resolve("src") }
 const pkg = JSON.parse(readFileSync("package.json", "utf-8"))
 const dslVersion = pkg.version as string
 
+// dt-sql-parser's published dist is bundler-only: ESM syntax in a
+// package without `"type": "module"`, with extensionless directory
+// imports plain Node ESM rejects. It therefore ships as a dedicated
+// pre-bundled vendor chunk (entry below), reached lazily at runtime via
+// the self-referencing `@flink-reactor/dsl/vendor-dt-sql-parser` subpath
+// (see package.json `exports` and src/core/flink-sql-loader.ts, which
+// falls back to the bare package in bundler-resolved contexts).
+
 export default defineConfig([
   // Library entry — importable as `import { ... } from '@flink-reactor/dsl'`
   // and as `import { ... } from '@flink-reactor/dsl/plugins'`. The plugins
@@ -74,6 +82,22 @@ export default defineConfig([
     splitting: false,
     minify: true,
     noExternal: ["effect", "dt-sql-parser"],
+    esbuildOptions(options) {
+      options.alias = srcAlias
+    },
+  },
+  // Pre-bundled dt-sql-parser vendor chunk (see VENDOR_DT_SQL_PARSER).
+  {
+    entry: { "vendor-dt-sql-parser": "src/vendor/dt-sql-parser.ts" },
+    format: ["esm"],
+    target: "node18",
+    outDir: "dist",
+    clean: false,
+    dts: false,
+    sourcemap: false,
+    splitting: false,
+    minify: true,
+    noExternal: ["dt-sql-parser"],
     esbuildOptions(options) {
       options.alias = srcAlias
     },

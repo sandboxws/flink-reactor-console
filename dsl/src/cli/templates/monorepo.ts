@@ -18,6 +18,13 @@ export function getMonorepoTemplates(opts: ScaffoldOptions): TemplateFile[] {
       test: "vitest run",
       "test:watch": "vitest",
     },
+    // The root flink-reactor.config.ts imports the DSL, so the workspace
+    // root must declare it directly — pnpm's strict node_modules layout
+    // does not hoist a dependency that only packages/* declare, leaving
+    // the root config unable to resolve it.
+    dependencies: {
+      "@flink-reactor/dsl": `^${DSL_VERSION}`,
+    },
   }
 
   const schemasPkg = {

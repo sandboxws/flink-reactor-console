@@ -234,16 +234,9 @@ async function getParser(): Promise<FlinkSQLParser | null> {
   if (cachedParser) return cachedParser
 
   try {
-    const mod = await import("dt-sql-parser")
-    const FlinkSQL =
-      (mod as Record<string, unknown>).FlinkSQL ??
-      ((mod as { default?: Record<string, unknown> }).default?.FlinkSQL as
-        | (new () => FlinkSQLParser)
-        | undefined)
-
-    if (!FlinkSQL) return null
-
-    cachedParser = new (FlinkSQL as new () => FlinkSQLParser)()
+    const { loadFlinkSQL } = await import("@/core/flink-sql-loader.js")
+    const FlinkSQL = await loadFlinkSQL()
+    cachedParser = new FlinkSQL() as unknown as FlinkSQLParser
     return cachedParser
   } catch {
     return null

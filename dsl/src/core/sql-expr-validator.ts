@@ -41,21 +41,9 @@ let cachedParser: FlinkSQLParser | null = null
 async function getParser(): Promise<FlinkSQLParser> {
   if (cachedParser) return cachedParser
 
-  const mod = await import("dt-sql-parser")
-  // dt-sql-parser exports via CJS-style default when dynamically imported
-  const FlinkSQL =
-    (mod as Record<string, unknown>).FlinkSQL ??
-    ((mod as { default?: Record<string, unknown> }).default?.FlinkSQL as
-      | (new () => FlinkSQLParser)
-      | undefined)
-
-  if (!FlinkSQL) {
-    throw new Error(
-      "Failed to import FlinkSQL from dt-sql-parser — unexpected module shape",
-    )
-  }
-
-  cachedParser = new (FlinkSQL as new () => FlinkSQLParser)()
+  const { loadFlinkSQL } = await import("./flink-sql-loader.js")
+  const FlinkSQL = await loadFlinkSQL()
+  cachedParser = new FlinkSQL() as unknown as FlinkSQLParser
   return cachedParser
 }
 

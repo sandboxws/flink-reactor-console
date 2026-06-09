@@ -29,6 +29,9 @@
     "./node": {
       "types": "./dist/node.d.ts",
       "import": "./dist/node.js"
+    },
+    "./vendor-dt-sql-parser": {
+      "import": "./dist/vendor-dt-sql-parser.js"
     }
   },
   "bin": {
@@ -66,6 +69,8 @@
     "test:watch": "vitest",
     "test:snapshots": "vitest run src/codegen/__tests__/example-snapshots.test.ts",
     "test:explain": "vitest run src/lib/sql-gateway/__tests__/explain-integration.test.ts",
+    "test:e2e": "vitest run --config e2e/vitest.config.ts",
+    "test:e2e:all": "FR_E2E_ALL=1 vitest run --config e2e/vitest.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
