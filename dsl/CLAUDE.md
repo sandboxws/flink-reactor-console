@@ -34,6 +34,7 @@ Core DSL library + CLI for FlinkReactor. React-style TSX DSL that synthesizes to
 ```bash
 pnpm build          # Build with tsup
 pnpm test           # Run tests with vitest
+pnpm test:e2e       # Black-box CLI e2e (packs the artifact, runs it as a subprocess)
 pnpm lint           # Biome check
 pnpm format         # Biome format
 pnpm changeset      # Create changeset
