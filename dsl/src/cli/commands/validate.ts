@@ -19,6 +19,7 @@ import {
   validateExpressionSyntax,
   validateSchemaReferences,
 } from "@/core/schema-validation.js"
+import { validateSecretHygiene } from "@/core/secret-hygiene.js"
 import { resolveSiblingChains } from "@/core/sibling-chain.js"
 import {
   SynthContext,
@@ -258,12 +259,16 @@ async function validatePipeline(
     standalone: true,
   })
 
+  // Run secret-hygiene lint (hardcoded credentials in sensitive slots)
+  const secretDiagnostics = validateSecretHygiene(pipelineNode)
+
   const allDiagnostics = [
     ...dagDiagnostics,
     ...versionDiagnostics,
     ...schemaDiagnostics,
     ...expressionDiagnostics,
     ...connectorDiagnostics,
+    ...secretDiagnostics,
   ]
 
   return {

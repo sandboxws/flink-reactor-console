@@ -248,7 +248,8 @@ _flink_reactor_synth() {
     '(-o --outdir)'{-o,--outdir}'[Output directory]: :_files -/' \\
     '--deep-validate[Submit EXPLAIN to a running Flink cluster for semantic validation]' \\
     '--console-url[Push tap manifests to reactor-console at this URL]: : ' \\
-    '--json[Emit a machine-readable JSON report to stdout (suppresses human output; artifacts are still written; SQL-verifier diagnostics do not fail the command)]'
+    '--json[Emit a machine-readable JSON report to stdout (suppresses human output; artifacts are still written; SQL-verifier diagnostics do not fail the command)]' \\
+    '--no-redact-metadata[Keep raw connector credentials in display metadata (the CRD-embedded SQL copy); executable artifacts always keep raw values]'
 }
 
 _flink_reactor_validate() {

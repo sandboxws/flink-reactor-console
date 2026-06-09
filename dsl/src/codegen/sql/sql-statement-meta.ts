@@ -1,4 +1,8 @@
 import type { SchemaDefinition } from "@/core/schema.js"
+import {
+  redactOptions,
+  redactUrlCredentials,
+} from "@/core/sensitive-options.js"
 import type { ConstructNode } from "@/core/types.js"
 import type { BuildContext } from "./sql-build-context.js"
 import type { DmlEntry } from "./sql-dml-types.js"
@@ -86,7 +90,10 @@ export function buildCatalogDetails(
     details.push({ key: "warehouse", value: String(props.warehouse) })
   if (props.uri) details.push({ key: "uri", value: String(props.uri) })
   if (props.baseUrl)
-    details.push({ key: "base-url", value: String(props.baseUrl) })
+    details.push({
+      key: "base-url",
+      value: redactUrlCredentials(String(props.baseUrl)),
+    })
   if (props.hiveConfDir)
     details.push({ key: "hive-conf", value: String(props.hiveConfDir) })
   return details
@@ -119,7 +126,10 @@ export function buildSourceDetails(
       break
     case "JdbcSource":
       details.push({ key: "table", value: (props.table as string) ?? "" })
-      details.push({ key: "url", value: (props.url as string) ?? "" })
+      details.push({
+        key: "url",
+        value: redactUrlCredentials((props.url as string) ?? ""),
+      })
       break
     case "FlussSource":
       if (props.catalogName)
@@ -146,8 +156,10 @@ export function buildSourceDetails(
       if (props.format)
         details.push({ key: "format", value: String(props.format) })
       if (props.options) {
+        // Display surface (banner comments + hover tooltips): mask
+        // credential-bearing values. The DDL emitter reads the raw props.
         for (const [k, v] of Object.entries(
-          props.options as Record<string, string>,
+          redactOptions(props.options as Record<string, string>),
         )) {
           details.push({ key: k, value: v })
         }
@@ -192,7 +204,10 @@ export function buildSinkDetails(
       break
     case "JdbcSink":
       details.push({ key: "table", value: (props.table as string) ?? "" })
-      details.push({ key: "url", value: (props.url as string) ?? "" })
+      details.push({
+        key: "url",
+        value: redactUrlCredentials((props.url as string) ?? ""),
+      })
       break
     case "FileSystemSink":
       details.push({ key: "path", value: (props.path as string) ?? "" })
@@ -205,8 +220,9 @@ export function buildSinkDetails(
       if (connector === "print" || connector === "blackhole")
         details.push({ key: "purpose", value: "debug / development sink" })
       if (props.options) {
+        // Display surface — masked; the DDL emitter reads the raw props.
         for (const [k, v] of Object.entries(
-          props.options as Record<string, string>,
+          redactOptions(props.options as Record<string, string>),
         )) {
           details.push({ key: k, value: v })
         }

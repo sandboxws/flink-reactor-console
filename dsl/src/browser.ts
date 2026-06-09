@@ -298,6 +298,18 @@ export {
   validateExpressionSyntax,
   validateSchemaReferences,
 } from "./core/schema-validation.js"
+// Core: secret hygiene (hardcoded-credential lint; display-surface redaction)
+export {
+  type SecretHygieneOptions,
+  validateSecretHygiene,
+} from "./core/secret-hygiene.js"
+export {
+  isSensitiveOptionKey,
+  redactOptions,
+  redactSqlText,
+  redactUrlCredentials,
+  SENSITIVE_VALUE_MASK,
+} from "./core/sensitive-options.js"
 export type {
   CliOutputService,
   ConfigProviderService,

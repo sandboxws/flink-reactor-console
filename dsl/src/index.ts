@@ -322,6 +322,11 @@ export type {
 } from "./core/schema.js"
 // Core: schema
 export { Field, isValidFlinkType, Schema } from "./core/schema.js"
+// Core: secret hygiene (hardcoded-credential lint; display-surface redaction)
+export {
+  type SecretHygieneOptions,
+  validateSecretHygiene,
+} from "./core/secret-hygiene.js"
 export type { SecretRef } from "./core/secret-ref.js"
 export {
   deriveEnvName,
@@ -329,6 +334,13 @@ export {
   renderSecretPlaceholder,
   secretRef,
 } from "./core/secret-ref.js"
+export {
+  isSensitiveOptionKey,
+  redactOptions,
+  redactSqlText,
+  redactUrlCredentials,
+  SENSITIVE_VALUE_MASK,
+} from "./core/sensitive-options.js"
 export type {
   CliOutputService,
   ConfigProviderService,

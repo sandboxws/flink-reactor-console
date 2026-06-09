@@ -49,6 +49,10 @@ export function registerSynthCommand(program: Command): void {
       "--json",
       "Emit a machine-readable JSON report to stdout (suppresses human output; artifacts are still written; SQL-verifier diagnostics do not fail the command)",
     )
+    .option(
+      "--no-redact-metadata",
+      "Keep raw connector credentials in display metadata (the CRD-embedded SQL copy); executable artifacts always keep raw values",
+    )
     .action(
       async (opts: {
         pipeline?: string
@@ -58,6 +62,7 @@ export function registerSynthCommand(program: Command): void {
         deepValidate?: boolean
         consoleUrl?: string
         json?: boolean
+        redactMetadata: boolean
       }) => {
         if (opts.json) {
           await runCommand(runSynthJsonEffect(opts))
@@ -75,6 +80,8 @@ interface SynthOptions {
   outdir: string
   projectDir?: string
   consoleUrl?: string
+  /** Commander's `--no-redact-metadata` lands here; defaults to true. */
+  redactMetadata?: boolean
 }
 
 // ── Imperative variant (used by dev command's internal calls) ───────
@@ -112,6 +119,7 @@ export async function runSynth(
         config: ctx.config ?? undefined,
         resolvedConfig: ctx.resolvedConfig ?? undefined,
         synthesizedAt,
+        crdOptions: { redactSourceSql: opts.redactMetadata ?? true },
       },
     )
 
@@ -350,6 +358,7 @@ function synthesizeAndWrite(
           config: ctx.config ?? undefined,
           resolvedConfig: ctx.resolvedConfig ?? undefined,
           synthesizedAt,
+          crdOptions: { redactSourceSql: opts.redactMetadata ?? true },
         },
       )
 

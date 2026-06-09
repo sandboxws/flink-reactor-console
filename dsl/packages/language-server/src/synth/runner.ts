@@ -9,6 +9,7 @@ import {
   validateConnectorProperties,
   validateExpressionSyntax,
   validateSchemaReferences,
+  validateSecretHygiene,
 } from "@flink-reactor/dsl/browser"
 import { buildArtifactSet } from "./artifacts.js"
 import {
@@ -213,6 +214,9 @@ async function collectDiagnostics(
 ): Promise<ValidationDiagnostic[]> {
   const schema = validateSchemaReferences(node)
   const connector = validateConnectorProperties(node, { standalone: true })
+  // Editor surface: deterministic Tier-1 checks only — the CLI-only tier
+  // consults process.env, which would make squiggles machine-dependent.
+  const secrets = validateSecretHygiene(node, { surface: "editor" })
   const structural = collectStructuralDiagnostics(node)
   const changelog = collectChangelogDiagnostics(node)
 
@@ -223,7 +227,14 @@ async function collectDiagnostics(
     // The SQL parser failed to load — skip expression validation rather than
     // failing the whole pass.
   }
-  return [...schema, ...connector, ...structural, ...changelog, ...expr]
+  return [
+    ...schema,
+    ...connector,
+    ...secrets,
+    ...structural,
+    ...changelog,
+    ...expr,
+  ]
 }
 
 function emptyResult(

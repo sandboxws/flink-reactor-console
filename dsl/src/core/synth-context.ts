@@ -7,6 +7,7 @@ import {
   validateExpressionSyntax,
   validateSchemaReferences,
 } from "./schema-validation.js"
+import { validateSecretHygiene } from "./secret-hygiene.js"
 import type { ConstructNode, NodeKind } from "./types.js"
 
 // ── Graph types ──────────────────────────────────────────────────────
@@ -37,6 +38,8 @@ export interface ValidationDiagnosticDetails {
    *  the members of a detected cycle). Consumers project these to LSP
    *  `relatedInformation` entries. */
   readonly relatedNodeIds?: readonly string[]
+  /** Secret-hygiene findings: the option keys holding hardcoded literals. */
+  readonly sensitiveOptionKeys?: readonly string[]
 }
 
 export interface ValidationDiagnostic {
@@ -382,6 +385,7 @@ export class SynthContext {
     // Connector validators (category: "connector") — run when no filter or "connector" included
     if (root && (!cats || cats.includes("connector"))) {
       builtIn.push(...validateConnectorProperties(root))
+      builtIn.push(...validateSecretHygiene(root))
     }
 
     if (!pluginValidators || pluginValidators.length === 0 || !root) {

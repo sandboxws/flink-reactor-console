@@ -3,6 +3,7 @@ import type { PipelineProps } from "@/components/pipeline.js"
 import { CrdGenerationError } from "@/core/errors.js"
 import { FlinkVersionCompat } from "@/core/flink-compat.js"
 import { isSecretRef, type SecretRef } from "@/core/secret-ref.js"
+import { redactSqlText } from "@/core/sensitive-options.js"
 import type { ConstructNode, FlinkMajorVersion } from "@/core/types.js"
 import { pipelineYamlConfigMapName } from "./secondary-resources.js"
 import { hasPipelineConnectorSource } from "./sql/sql-generator.js"
@@ -38,12 +39,21 @@ export interface CrdGeneratorOptions {
   /** Extra annotations on the CRD metadata */
   readonly annotations?: Record<string, string>
   /**
-   * Synthesized SQL for this pipeline. When set, written into
-   * `flinkConfiguration["pipeline.sql"]` so the resulting Flink job preserves
-   * the source SQL on its user-config map (visible via /jobs/:id/config and
-   * the dashboard's SQL tab).
+   * Synthesized SQL for this pipeline. When set, carried base64-encoded
+   * as `pipeline.sql.b64` inside `pipeline.global-job-parameters` so the
+   * resulting Flink job preserves the source SQL on its user-config map
+   * (visible via /jobs/:id/config and the dashboard's SQL tab). This copy
+   * is display-only — the job executes the ConfigMap-mounted SQL.
    */
   readonly sourceSql?: string
+  /**
+   * Redact credential-bearing WITH-clause values in the CRD-embedded SQL
+   * copy (default: true). The copy is display-only, but it leaks through
+   * `kubectl get -o yaml` and the Flink REST `/jobs/:id/config` endpoint
+   * when left raw. Set false to keep raw values (`synth
+   * --no-redact-metadata`).
+   */
+  readonly redactSourceSql?: boolean
 }
 
 /** The generated FlinkDeployment CRD as a plain object */
@@ -369,10 +379,15 @@ function buildInnerSpec(
   // under the key `pipeline.sql.b64` so colons/commas/newlines in the SQL
   // don't collide with Flink's map-type parser.
   if (options.sourceSql && options.sourceSql.trim().length > 0) {
+    // Display-only copy → redact credentials unless explicitly opted out.
+    const displaySql =
+      options.redactSourceSql === false
+        ? options.sourceSql
+        : redactSqlText(options.sourceSql)
     config["pipeline.global-job-parameters"] = mergeGlobalJobParameters(
       config["pipeline.global-job-parameters"],
       "pipeline.sql.b64",
-      Buffer.from(options.sourceSql, "utf-8").toString("base64"),
+      Buffer.from(displaySql, "utf-8").toString("base64"),
     )
   }
 

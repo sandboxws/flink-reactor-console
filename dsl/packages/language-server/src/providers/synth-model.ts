@@ -8,6 +8,7 @@
 // re-emitted. The flat decoded arrays already carry the statement index each
 // entry belongs to, so this is a straight shape transform.
 
+import { redactSqlText } from "@flink-reactor/dsl/browser"
 import type {
   SynthFragment,
   SynthPipeline,
@@ -93,7 +94,10 @@ export function buildSynthModel(
 
   const pipeline: SynthPipeline = {
     id: pipelineIdentity(result),
-    statements: result.statements,
+    // Preview surface: mask credential-bearing WITH values. The raw
+    // statements stay on `SynthesisResult` — gateway deep-validate
+    // submits those, not this projection.
+    statements: result.statements.map(redactSqlText),
     statementOrigins,
     statementContributors,
     statementMeta,

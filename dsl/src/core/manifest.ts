@@ -1,3 +1,4 @@
+import { redactOptions } from "./sensitive-options.js"
 import type {
   CatalogMeta,
   ConnectorMeta,
@@ -220,7 +221,9 @@ export function generatePipelineManifest(
         connectorType,
         role,
         resource,
-        connectorProperties: connectorProps,
+        // Display metadata (console tooltips) — never executed, so
+        // credential-bearing values are masked here at the source.
+        connectorProperties: redactOptions(connectorProps),
         schema,
       }
 
