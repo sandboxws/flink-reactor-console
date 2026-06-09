@@ -15,6 +15,7 @@ const PARITY_FIXTURES = [
   "factory-pipeline.tsx",
 ]
 
+// Spec: NID-5 (docs/contributors/specs/node-id-determinism.md)
 describe("source-position predictor parity (critical gate)", () => {
   for (const fixture of PARITY_FIXTURES) {
     it(`predicts the authoritative id set for ${fixture}`, async () => {

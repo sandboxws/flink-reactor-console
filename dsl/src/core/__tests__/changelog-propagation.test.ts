@@ -51,6 +51,7 @@ function makeSink(
 
 // ── Computation tests ───────────────────────────────────────────────
 
+// Spec: CLM-4 (docs/contributors/specs/changelog-propagation.md)
 describe("computeChangelogModes", () => {
   it("produces retract for unbounded Aggregate", () => {
     const ctx = new SynthContext()
@@ -273,6 +274,7 @@ describe("computeChangelogModes", () => {
 
 // ── Validation tests ────────────────────────────────────────────────
 
+// Spec: CLM-7 (docs/contributors/specs/changelog-propagation.md)
 describe("validateChangelogModes", () => {
   it("errors when append-only sink receives retract stream", () => {
     const ctx = new SynthContext()

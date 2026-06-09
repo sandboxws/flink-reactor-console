@@ -130,6 +130,7 @@ describe("GenericSource", () => {
   })
 })
 
+// Spec: CLM-2 (docs/contributors/specs/changelog-propagation.md)
 describe("PostgresCdcPipelineSource", () => {
   it("creates a Source node with hostname/database/tableList", () => {
     const node = PostgresCdcPipelineSource({

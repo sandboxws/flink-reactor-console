@@ -40,6 +40,7 @@ const EXAMPLES = [
   "38-dedup-aggregate",
 ]
 
+// Spec: ORD-1, ORD-2, ORD-5 (docs/contributors/specs/statement-ordering.md)
 describe("Example SQL Snapshots", () => {
   for (const id of EXAMPLES) {
     it(id, async () => {

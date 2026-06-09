@@ -9,6 +9,7 @@ beforeEach(() => {
   resetNodeIdCounter()
 })
 
+// Spec: NID-1, NID-2, NID-3 (docs/contributors/specs/node-id-determinism.md)
 describe("createElement", () => {
   it("creates a construct node with the given component name", () => {
     const node = createElement("KafkaSource", { topic: "orders" })

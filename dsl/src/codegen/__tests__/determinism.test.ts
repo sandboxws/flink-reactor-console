@@ -44,6 +44,7 @@ beforeEach(() => {
   resetNodeIdCounter()
 })
 
+// Spec: ORD-5, NID-4 (docs/contributors/specs/)
 describe("determinism: synth() output is bit-stable across runs", () => {
   for (const id of EXAMPLES) {
     it(id, async () => {
@@ -58,6 +59,7 @@ describe("determinism: synth() output is bit-stable across runs", () => {
   }
 })
 
+// Spec: TAP-7, NID-4 (docs/contributors/specs/tap-resolution.md, node-id-determinism.md)
 describe("determinism: synthesizeApp output is bit-stable across runs", () => {
   it("identical pipelineManifest + tapManifest across two synthesize calls", async () => {
     const mod = await import(`../../examples/${"13-simple-etl"}/after.tsx`)
@@ -91,6 +93,7 @@ describe("determinism: synthesizeApp output is bit-stable across runs", () => {
   })
 })
 
+// Spec: ORD-7 (docs/contributors/specs/statement-ordering.md)
 describe("determinism: generateSql is reentrant-safe across calls", () => {
   it("two sequential generateSql calls produce identical output", async () => {
     const mod = await import(`../../examples/${"03-group-aggregate"}/after.tsx`)

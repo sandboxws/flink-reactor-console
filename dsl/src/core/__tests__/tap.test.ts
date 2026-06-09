@@ -39,6 +39,7 @@ const OrderSchema = Schema({
 
 // ── 6.1: buildConsumerGroupId ─────────────────────────────────────
 
+// Spec: TAP-4 (docs/contributors/specs/tap-resolution.md)
 describe("buildConsumerGroupId", () => {
   it("generates correct format with pipeline name and node ID", () => {
     const id = buildConsumerGroupId("ecommerce", "sink_1")
@@ -234,6 +235,7 @@ describe("JDBC sink tap observation SQL", () => {
 
 // ── 6.7: generateTapMetadata dev mode ─────────────────────────────
 
+// Spec: TAP-1, TAP-2 (docs/contributors/specs/tap-resolution.md)
 describe("generateTapMetadata - dev mode", () => {
   it("auto-taps all sinks but not untapped transforms", () => {
     const source = KafkaSource({
@@ -401,6 +403,7 @@ describe("normalizeTapConfig", () => {
 
 // ── 6.10: normalizeTapConfig validation ───────────────────────────
 
+// Spec: TAP-5 (docs/contributors/specs/tap-resolution.md)
 describe("validateTapConfig", () => {
   it("validates timestamp offset mode requires startTimestamp", () => {
     const config = normalizeTapConfig(

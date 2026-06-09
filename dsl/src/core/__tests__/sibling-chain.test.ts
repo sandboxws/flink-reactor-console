@@ -42,6 +42,7 @@ function expectSinkCodegenIsBound(root: ConstructNode, sinkId: string): void {
   ).not.toMatch(/FROM\s+unknown/i)
 }
 
+// Spec: TAP-6 (docs/contributors/specs/tap-resolution.md)
 describe("sibling-chain resolution agrees with codegen", () => {
   it("Source → Sink: resolution and codegen both bind", () => {
     const root = pipeline(

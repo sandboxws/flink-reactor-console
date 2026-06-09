@@ -19,6 +19,7 @@ const OrderSchema = Schema({
   },
 })
 
+// Spec: CLM-1 (docs/contributors/specs/changelog-propagation.md)
 describe("inferChangelogMode", () => {
   it("returns retract for debezium-json", () => {
     expect(inferChangelogMode("debezium-json")).toBe("retract")

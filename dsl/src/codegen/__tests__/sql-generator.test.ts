@@ -348,6 +348,7 @@ describe("QUALIFY: Qualify escape-hatch component", () => {
 
 // ── 6.6: Multi-sink → STATEMENT SET ────────────────────────────────
 
+// Spec: ORD-3 (docs/contributors/specs/statement-ordering.md)
 describe("6.6: Multi-sink produces STATEMENT SET", () => {
   it("wraps multiple INSERT INTO in STATEMENT SET", () => {
     const source = KafkaSource({
@@ -416,6 +417,7 @@ describe("6.7: Catalog pipeline produces CREATE CATALOG", () => {
 
 // ── 6.8: CDC source with debezium-json ──────────────────────────────
 
+// Spec: CLM-1, CLM-6 (docs/contributors/specs/changelog-propagation.md)
 describe("6.8: CDC source with debezium-json", () => {
   it("produces Kafka source DDL with debezium-json format", () => {
     const source = KafkaSource({
