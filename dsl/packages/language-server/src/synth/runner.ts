@@ -10,6 +10,7 @@ import {
   validateExpressionSyntax,
   validateSchemaReferences,
   validateSecretHygiene,
+  validateTelemetryLabels,
 } from "@flink-reactor/dsl/browser"
 import { buildArtifactSet } from "./artifacts.js"
 import {
@@ -217,6 +218,7 @@ async function collectDiagnostics(
   // Editor surface: deterministic Tier-1 checks only — the CLI-only tier
   // consults process.env, which would make squiggles machine-dependent.
   const secrets = validateSecretHygiene(node, { surface: "editor" })
+  const telemetry = validateTelemetryLabels(node)
   const structural = collectStructuralDiagnostics(node)
   const changelog = collectChangelogDiagnostics(node)
 
@@ -231,6 +233,7 @@ async function collectDiagnostics(
     ...schema,
     ...connector,
     ...secrets,
+    ...telemetry,
     ...structural,
     ...changelog,
     ...expr,

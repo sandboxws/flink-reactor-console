@@ -301,6 +301,17 @@ function generateSqlImpl(
       details.push({ key: "state", value: String(pProps.stateBackend) })
     if (pProps.stateTtl)
       details.push({ key: "state-ttl", value: String(pProps.stateTtl) })
+    const telemetryLabels = (
+      pProps.telemetry as { labels?: Record<string, string> } | undefined
+    )?.labels
+    if (telemetryLabels && Object.keys(telemetryLabels).length > 0) {
+      details.push({
+        key: "labels",
+        value: Object.entries(telemetryLabels)
+          .map(([k, v]) => `${k}=${v}`)
+          .join(", "),
+      })
+    }
 
     emitComment(buildCommentBlock("PIPELINE", details), {
       label: "Pipeline",
@@ -532,10 +543,17 @@ export function generateTapManifest(
     return { manifest: null, diagnostics }
   }
 
+  const telemetry = pipelineNode.props.telemetry as
+    | { labels?: Record<string, string> }
+    | undefined
+
   const manifest: TapManifest = {
     pipelineName,
     flinkVersion: version,
     generatedAt: options.synthesizedAt ?? SYNTHESIZED_AT_SENTINEL,
+    ...(telemetry?.labels && Object.keys(telemetry.labels).length > 0
+      ? { labels: telemetry.labels }
+      : {}),
     taps,
   }
 

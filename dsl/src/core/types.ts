@@ -218,6 +218,8 @@ export interface PipelineManifest {
   readonly catalogs: CatalogMeta[]
   /** Generation timestamp */
   readonly generatedAt: string
+  /** Pipeline telemetry labels (console-side filter dimensions) */
+  readonly labels?: Readonly<Record<string, string>>
 }
 
 /** Manifest file emitted alongside synthesized SQL for all tap points */
@@ -228,6 +230,8 @@ export interface TapManifest {
   readonly flinkVersion: string
   /** Timestamp when manifest was generated */
   readonly generatedAt: string
+  /** Pipeline telemetry labels (console-side filter dimensions) */
+  readonly labels?: Readonly<Record<string, string>>
   /** All tapped operators */
   readonly taps: TapMetadata[]
 }

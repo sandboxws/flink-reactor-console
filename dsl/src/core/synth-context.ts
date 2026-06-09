@@ -8,6 +8,7 @@ import {
   validateSchemaReferences,
 } from "./schema-validation.js"
 import { validateSecretHygiene } from "./secret-hygiene.js"
+import { validateTelemetryLabels } from "./telemetry-validation.js"
 import type { ConstructNode, NodeKind } from "./types.js"
 
 // ── Graph types ──────────────────────────────────────────────────────
@@ -370,6 +371,9 @@ export class SynthContext {
         ...this.detectMaterializedTableIssues(),
         ...this.detectQualifyIssues(),
       )
+      if (root) {
+        builtIn.push(...validateTelemetryLabels(root))
+      }
     }
 
     // Changelog validators (category: "changelog") — run when no filter or "changelog" included

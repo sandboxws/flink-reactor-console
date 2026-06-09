@@ -41,6 +41,26 @@ export interface UpgradeStrategy {
   readonly ingress?: IngressConfig
 }
 
+// ── Telemetry types ─────────────────────────────────────────────────
+
+export interface TelemetryConfig {
+  /**
+   * Identity labels stamped onto the FlinkDeployment metadata and pod
+   * template (→ Prometheus kubernetes_sd label discovery) and carried on
+   * tap/pipeline manifests for console-side filtering.
+   *
+   * Validated at synth time (`validateTelemetryLabels`): keys must match
+   * `^[a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?$` (≤63 chars — the
+   * intersection of Prometheus label grammar and Kubernetes label-name
+   * rules), values must be empty or
+   * `^[A-Za-z0-9]([-A-Za-z0-9_.]*[A-Za-z0-9])?$` (≤63 chars), at most
+   * 20 labels, and reserved keys (`app`, `component`, `type`,
+   * `pipeline`, `environment`) are rejected — the Flink Kubernetes
+   * operator owns the first three as pod selector labels.
+   */
+  readonly labels?: Readonly<Record<string, string>>
+}
+
 export interface PipelineProps {
   readonly name: string
   readonly mode?: PipelineMode
@@ -51,6 +71,7 @@ export interface PipelineProps {
   readonly restartStrategy?: RestartStrategy
   readonly flinkConfig?: Record<string, string>
   readonly upgradeStrategy?: UpgradeStrategy
+  readonly telemetry?: TelemetryConfig
   readonly children?: ConstructNode | ConstructNode[]
 }
 

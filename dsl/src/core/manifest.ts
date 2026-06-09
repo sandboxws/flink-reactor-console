@@ -259,11 +259,18 @@ export function generatePipelineManifest(
 
   walk(tree)
 
+  const telemetryLabels = (
+    tree.props.telemetry as { labels?: Record<string, string> } | undefined
+  )?.labels
+
   return {
     pipelineName,
     sources,
     sinks,
     catalogs,
     generatedAt: options.synthesizedAt ?? SYNTHESIZED_AT_SENTINEL,
+    ...(telemetryLabels && Object.keys(telemetryLabels).length > 0
+      ? { labels: telemetryLabels }
+      : {}),
   }
 }

@@ -92,6 +92,7 @@ export type {
   PipelineProps,
   RestartStrategy,
   StateBackend,
+  TelemetryConfig,
 } from "./components/pipeline.js"
 // Components: pipeline
 export { Pipeline } from "./components/pipeline.js"
@@ -342,6 +343,14 @@ export type {
 } from "./core/synth-context.js"
 // Core: synth context
 export { SynthContext } from "./core/synth-context.js"
+// Core: telemetry label validation (Prometheus ∩ Kubernetes grammar)
+export {
+  MAX_TELEMETRY_LABELS,
+  RESERVED_TELEMETRY_LABEL_KEYS,
+  TELEMETRY_LABEL_KEY_REGEX,
+  TELEMETRY_LABEL_VALUE_REGEX,
+  validateTelemetryLabels,
+} from "./core/telemetry-validation.js"
 // Core: tree utilities
 export {
   findNodes,

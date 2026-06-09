@@ -468,7 +468,14 @@ interface PodTemplateContainer {
 }
 
 interface PodTemplate {
-  readonly spec: {
+  /** Pod metadata — telemetry labels land here so Prometheus
+   *  kubernetes_sd discovery picks them up off the pods. */
+  readonly metadata?: {
+    readonly labels?: Record<string, string>
+  }
+  /** Optional: a metadata-only pod template (no spec) is valid — the
+   *  operator merges it over its generated pod spec. */
+  readonly spec?: {
     readonly containers: readonly PodTemplateContainer[]
     readonly volumes?: ReadonlyArray<{
       readonly name: string
@@ -477,9 +484,26 @@ interface PodTemplate {
   }
 }
 
+/**
+ * Merge `<Pipeline telemetry.labels>` with generator-caller labels.
+ * Explicit `CrdGeneratorOptions.labels` win on key collision — the
+ * generator caller (CLI/orchestration) outranks the component author.
+ */
+function resolveCrdLabels(
+  props: PipelineProps,
+  options: CrdGeneratorOptions,
+): Record<string, string> | undefined {
+  const merged = {
+    ...props.telemetry?.labels,
+    ...options.labels,
+  }
+  return Object.keys(merged).length > 0 ? merged : undefined
+}
+
 function buildPipelineConnectorPodTemplate(
   pipelineName: string,
   secretRefs: readonly SecretRef[],
+  podLabels?: Record<string, string>,
 ): PodTemplate {
   const env = secretRefs.map((ref) => ({
     name: ref.envName,
@@ -501,6 +525,7 @@ function buildPipelineConnectorPodTemplate(
   }
 
   return {
+    ...(podLabels ? { metadata: { labels: podLabels } } : {}),
     spec: {
       containers: [container],
       volumes: [
@@ -562,11 +587,16 @@ function generatePipelineConnectorCrd(
   }
   const innerSpec = buildInnerSpec(props, cdcOptions)
   const secretRefs = collectSecretRefs(pipelineNode)
-  const podTemplate = buildPipelineConnectorPodTemplate(props.name, secretRefs)
+  const labels = resolveCrdLabels(props, options)
+  const podTemplate = buildPipelineConnectorPodTemplate(
+    props.name,
+    secretRefs,
+    props.telemetry?.labels,
+  )
 
   const metadata: FlinkDeploymentCrd["metadata"] = {
     name: props.name,
-    ...(options.labels ? { labels: options.labels } : {}),
+    ...(labels ? { labels } : {}),
     ...(options.annotations ? { annotations: options.annotations } : {}),
   }
 
@@ -595,12 +625,22 @@ function generateFlinkDeploymentCrd(
   options: CrdGeneratorOptions,
 ): FlinkDeploymentCrd {
   const innerSpec = buildInnerSpec(props, options)
+  const labels = resolveCrdLabels(props, options)
 
   const metadata: FlinkDeploymentCrd["metadata"] = {
     name: props.name,
-    ...(options.labels ? { labels: options.labels } : {}),
+    ...(labels ? { labels } : {}),
     ...(options.annotations ? { annotations: options.annotations } : {}),
   }
+
+  // Telemetry labels also land on the pods (metadata-only pod template —
+  // the operator merges it) so Prometheus kubernetes_sd discovery sees
+  // them without scrape-config changes.
+  const podLabels = props.telemetry?.labels
+  const podTemplate: PodTemplate | undefined =
+    podLabels && Object.keys(podLabels).length > 0
+      ? { metadata: { labels: { ...podLabels } } }
+      : undefined
 
   return {
     apiVersion: "flink.apache.org/v1beta1",
@@ -612,6 +652,7 @@ function generateFlinkDeploymentCrd(
       flinkConfiguration: innerSpec.flinkConfiguration,
       jobManager: innerSpec.jobManager,
       taskManager: innerSpec.taskManager,
+      ...(podTemplate ? { podTemplate } : {}),
       job: {
         jarURI: innerSpec.job.jarURI,
         parallelism: innerSpec.job.parallelism,
@@ -628,10 +669,13 @@ function generateBlueGreenCrd(
   const strategy = props.upgradeStrategy!
   const upgradeMode = strategy.upgradeMode ?? "savepoint"
   const innerSpec = buildInnerSpec(props, options, upgradeMode)
+  // Blue-green: metadata labels only (v1). Pod-level labels would need
+  // per-color template plumbing through the BG operator's template spec.
+  const labels = resolveCrdLabels(props, options)
 
   const metadata: FlinkBlueGreenDeploymentCrd["metadata"] = {
     name: props.name,
-    ...(options.labels ? { labels: options.labels } : {}),
+    ...(labels ? { labels } : {}),
     ...(options.annotations ? { annotations: options.annotations } : {}),
   }
 

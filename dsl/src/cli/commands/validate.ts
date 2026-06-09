@@ -25,6 +25,7 @@ import {
   SynthContext,
   type ValidationDiagnostic,
 } from "@/core/synth-context.js"
+import { validateTelemetryLabels } from "@/core/telemetry-validation.js"
 import type { ConstructNode, FlinkMajorVersion } from "@/core/types.js"
 import {
   SqlGatewayClient,
@@ -262,6 +263,9 @@ async function validatePipeline(
   // Run secret-hygiene lint (hardcoded credentials in sensitive slots)
   const secretDiagnostics = validateSecretHygiene(pipelineNode)
 
+  // Run telemetry label validation (Prometheus/Kubernetes grammar)
+  const telemetryDiagnostics = validateTelemetryLabels(pipelineNode)
+
   const allDiagnostics = [
     ...dagDiagnostics,
     ...versionDiagnostics,
@@ -269,6 +273,7 @@ async function validatePipeline(
     ...expressionDiagnostics,
     ...connectorDiagnostics,
     ...secretDiagnostics,
+    ...telemetryDiagnostics,
   ]
 
   return {
