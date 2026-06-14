@@ -32,6 +32,14 @@ const EXAMPLES = [
   "26-cdc-sync",
   "32-union-streams",
   "38-dedup-aggregate",
+  // Field-ops / AddField paths — projections built from `Object.entries`.
+  "30-flatmap-unnest",
+  "31-top-n-ranking",
+  "33-rename-fields",
+  "34-drop-fields",
+  "35-cast-types",
+  "36-coalesce-defaults",
+  "37-add-computed-field",
 ]
 
 function hashOutput(parts: readonly string[]): string {

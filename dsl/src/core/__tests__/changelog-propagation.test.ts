@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import { createBuildContext } from "@/codegen/sql/sql-build-context.js"
+import { resolveSinkMetadata } from "@/codegen/sql/sql-sink-metadata.js"
+import { KafkaSink } from "@/components/sinks.js"
+import { KafkaSource } from "@/components/sources.js"
+import { Aggregate, Filter } from "@/components/transforms.js"
 import {
   computeChangelogModes,
   validateChangelogModes,
 } from "@/core/changelog-propagation.js"
 import { resetNodeIdCounter } from "@/core/jsx-runtime.js"
+import { Field, Schema } from "@/core/schema.js"
 import { SynthContext } from "@/core/synth-context.js"
 import type { ConstructNode, NodeKind } from "@/core/types.js"
 
@@ -376,5 +382,107 @@ describe("validateChangelogModes", () => {
 
     const diagnostics = validateChangelogModes(ctx)
     expect(diagnostics).toHaveLength(0)
+  })
+})
+
+// Spec: CLM-3 / CLM-8 (docs/contributors/specs/changelog-propagation.md)
+//
+// The validation walk (`computeChangelogModes`, this file) and the codegen
+// walk (`resolveSinkMetadata`, sql-sink-metadata.ts) are independent
+// implementations of the same changelog rules. CLM-3 requires them to agree
+// on the sink-effective mode for any topology both can express. This turns
+// the previously "socially enforced" agreement into an executable contract
+// for the linear core; window-forwarding, SessionWindow, and anti/semi-join
+// shapes (CLM-8 divergences and differing topology encodings) are left to the
+// per-walk tests above.
+describe("changelog walks agree on sink-effective mode (CLM-3)", () => {
+  const orderSchema = Schema({
+    fields: {
+      user_id: Field.STRING(),
+      amount: Field.DECIMAL(10, 2),
+      event_time: Field.TIMESTAMP(3),
+    },
+    watermark: {
+      column: "event_time",
+      expression: "`event_time` - INTERVAL '5' SECOND",
+    },
+  })
+
+  const appendSource = (): ConstructNode =>
+    KafkaSource({
+      topic: "orders",
+      format: "json",
+      bootstrapServers: "kafka:9092",
+      schema: orderSchema,
+    })
+
+  function indexTree(
+    node: ConstructNode,
+    index = new Map<string, ConstructNode>(),
+  ): Map<string, ConstructNode> {
+    index.set(node.id, node)
+    for (const child of node.children) indexTree(child, index)
+    return index
+  }
+
+  // The construct tree nests Sink→…→Source (reverse of data flow), so edges
+  // are added child→parent to match the source-first orientation
+  // `computeChangelogModes` expects.
+  function dataflowCtx(root: ConstructNode): SynthContext {
+    const ctx = new SynthContext()
+    const visit = (node: ConstructNode): void => {
+      ctx.addNode(node)
+      for (const child of node.children) {
+        visit(child)
+        ctx.addEdge(child.id, node.id)
+      }
+    }
+    visit(root)
+    return ctx
+  }
+
+  function codegenMode(sink: ConstructNode): string | undefined {
+    const ctx = createBuildContext({
+      version: "2.0",
+      nodeIndex: indexTree(sink),
+      buildQuery: () => "",
+    })
+    return resolveSinkMetadata(ctx, sink).get(sink.id)?.changelogMode
+  }
+
+  function validationMode(sink: ConstructNode): string | undefined {
+    return computeChangelogModes(dataflowCtx(sink)).get(sink.id)
+  }
+
+  function expectAgreement(
+    sink: ConstructNode,
+    expected: "append-only" | "retract",
+  ): void {
+    expect(codegenMode(sink)).toBe(expected)
+    expect(validationMode(sink)).toBe(expected)
+  }
+
+  it("Filter preserves append-only on both walks", () => {
+    const sink = KafkaSink({
+      topic: "out",
+      children: [
+        Filter({ condition: "`amount` > 100", children: [appendSource()] }),
+      ],
+    })
+    expectAgreement(sink, "append-only")
+  })
+
+  it("unbounded Aggregate produces retract on both walks", () => {
+    const sink = KafkaSink({
+      topic: "out",
+      children: [
+        Aggregate({
+          groupBy: ["user_id"],
+          select: { total: "SUM(`amount`)" },
+          children: [appendSource()],
+        }),
+      ],
+    })
+    expectAgreement(sink, "retract")
   })
 })

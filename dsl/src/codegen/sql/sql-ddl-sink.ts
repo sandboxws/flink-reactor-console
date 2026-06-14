@@ -1,6 +1,6 @@
 import type { ConstructNode } from "@/core/types.js"
 import { toInsertOnlyFormat } from "./sql-duration.js"
-import { quoteIdentifier as q } from "./sql-identifiers.js"
+import { formatWithClause, quoteIdentifier as q } from "./sql-identifiers.js"
 import type { SinkMetadata } from "./sql-sink-metadata.js"
 
 /**
@@ -174,7 +174,7 @@ function generateCatalogManagedSinkDdl(
   const tableProps = collectCatalogManagedTableProps(node)
   const withClause =
     tableProps.length > 0
-      ? ` WITH (\n${tableProps.map(([k, v]) => `  '${k}' = '${v}'`).join(",\n")}\n)`
+      ? ` WITH (\n${formatWithClause(tableProps, { sort: true })}\n)`
       : ""
 
   stmts.push(
@@ -426,7 +426,5 @@ function generateSinkWithClause(
       break
   }
 
-  return Object.entries(withProps)
-    .map(([k, v]) => `  '${k}' = '${v}'`)
-    .join(",\n")
+  return formatWithClause(Object.entries(withProps), { sort: true })
 }

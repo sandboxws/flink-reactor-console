@@ -1,6 +1,10 @@
 import type { SchemaDefinition } from "@/core/schema.js"
 import type { ConstructNode } from "@/core/types.js"
-import { quoteIdentifier as q } from "./sql-identifiers.js"
+import {
+  formatWithClause,
+  quoteIdentifier as q,
+  quoteStringLiteral,
+} from "./sql-identifiers.js"
 
 /**
  * Source-side CREATE TABLE emission. Splits into three regular shapes
@@ -106,7 +110,7 @@ export function generateColumns(schema: SchemaDefinition): string {
 
   for (const meta of schema.metadataColumns) {
     let line = `  ${q(meta.column)} ${meta.type} METADATA`
-    if (meta.from) line += ` FROM '${meta.from}'`
+    if (meta.from) line += ` FROM ${quoteStringLiteral(meta.from)}`
     if (meta.isVirtual) line += " VIRTUAL"
     lines.push(line)
   }
@@ -233,7 +237,5 @@ function generateSourceWithClause(node: ConstructNode): string {
     }
   }
 
-  return Object.entries(withProps)
-    .map(([k, v]) => `  '${k}' = '${v}'`)
-    .join(",\n")
+  return formatWithClause(Object.entries(withProps), { sort: true })
 }

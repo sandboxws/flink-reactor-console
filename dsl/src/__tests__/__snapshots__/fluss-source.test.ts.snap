@@ -17,8 +17,8 @@ SET 'pipeline.name' = 'fluss-pg-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -99,8 +99,8 @@ SET 'pipeline.name' = 'fluss-pg-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -181,8 +181,8 @@ SET 'pipeline.name' = 'fluss-pg-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -263,8 +263,8 @@ SET 'pipeline.name' = 'fluss-pg-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -346,8 +346,8 @@ SET 'pipeline.name' = 'fluss-pg-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -432,8 +432,8 @@ SET 'pipeline.name' = 'fluss-pg-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -518,8 +518,8 @@ SET 'pipeline.name' = 'fluss-pg-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -604,8 +604,8 @@ SET 'pipeline.name' = 'fluss-pg-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -691,8 +691,8 @@ SET 'pipeline.name' = 'fluss-iceberg-mor';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -704,8 +704,8 @@ CREATE CATALOG \`fluss_cat\` WITH (
 -- ====================================================================
 
 CREATE CATALOG \`iceberg_cat\` WITH (
-  'type' = 'iceberg',
   'catalog-type' = 'rest',
+  'type' = 'iceberg',
   'uri' = 'http://iceberg-rest:8181'
 );
 
@@ -746,9 +746,9 @@ CREATE TABLE IF NOT EXISTS \`iceberg_cat\`.\`lakehouse\`.\`orders_mor\` (
   \`order_ts\` TIMESTAMP(3),
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
+  'equality-field-columns' = 'order_id',
   'format-version' = '2',
-  'write.upsert.enabled' = 'true',
-  'equality-field-columns' = 'order_id'
+  'write.upsert.enabled' = 'true'
 );
 
 -- ====================================================================
@@ -780,8 +780,8 @@ SET 'pipeline.name' = 'pg-fluss-paimon-serve';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================

@@ -30,9 +30,9 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -51,8 +51,8 @@ CREATE TABLE \`output\` (
   \`event_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'output',
-  'format' = 'json'
+  'format' = 'json',
+  'topic' = 'output'
 );
 
 -- ====================================================================

@@ -1,5 +1,9 @@
 import type { ConstructNode } from "@/core/types.js"
-import { quoteIdentifier as q } from "./sql-identifiers.js"
+import {
+  formatWithClause,
+  quoteIdentifier as q,
+  quoteStringLiteral,
+} from "./sql-identifiers.js"
 
 /**
  * Catalog and UDF DDL emission. Pure helpers — both take a node and
@@ -52,9 +56,7 @@ export function generateCatalogDdl(node: ConstructNode): string {
       break
   }
 
-  const withClause = Object.entries(withProps)
-    .map(([k, v]) => `  '${k}' = '${v}'`)
-    .join(",\n")
+  const withClause = formatWithClause(Object.entries(withProps), { sort: true })
 
   return `CREATE CATALOG ${q(name)} WITH (\n${withClause}\n);`
 }
@@ -62,5 +64,5 @@ export function generateCatalogDdl(node: ConstructNode): string {
 export function generateUdfDdl(node: ConstructNode): string {
   const name = node.props.name as string
   const className = node.props.className as string
-  return `CREATE FUNCTION ${q(name)} AS '${className}';`
+  return `CREATE FUNCTION ${q(name)} AS ${quoteStringLiteral(className)};`
 }

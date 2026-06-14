@@ -1,4 +1,7 @@
-import { quoteIdentifier as q } from "@/codegen/sql/sql-identifiers.js"
+import {
+  formatWithClause,
+  quoteIdentifier as q,
+} from "@/codegen/sql/sql-identifiers.js"
 import type { ValidationDiagnostic } from "./synth-context.js"
 import type {
   ConstructNode,
@@ -244,13 +247,8 @@ export function buildObservationSql(
     strategy,
   )
 
-  // Sort connector properties so output is order-independent. Flink
-  // reads connector WITH clauses as a property bag — order has no
-  // runtime meaning.
-  const withClause = Object.keys(withProps)
-    .sort()
-    .map((k) => `  '${k}' = '${withProps[k]}'`)
-    .join(",\n")
+  // Connector WITH clauses are a property bag — sort for canonical output.
+  const withClause = formatWithClause(Object.entries(withProps), { sort: true })
 
   const ddl = `CREATE TEMPORARY TABLE ${q(tableName)} (\n${columns}\n) WITH (\n${withClause}\n);`
   const query = `SELECT * FROM ${q(tableName)};`
@@ -528,9 +526,16 @@ export function generateTapMetadata(
 
       // Handle unsupported connectors
       if (strategy === "unsupported") {
+        // `unknown` means the connector couldn't be resolved (e.g. a
+        // sibling-chain transform with no source/sink in its subtree) — a
+        // distinct situation from a recognised-but-unsupported connector.
+        const message =
+          connectorType === "unknown"
+            ? `Tap on '${node.id}': could not resolve an upstream connector to observe — sibling-chain transforms have no connector context. Nest it under a source/sink or remove the tap.`
+            : `Tap is not supported for ${connectorType === "filesystem" ? "FileSystem" : connectorType} connectors`
         diagnostics.push({
           severity: "warning",
-          message: `Tap is not supported for ${connectorType === "filesystem" ? "FileSystem" : connectorType} connectors`,
+          message,
           nodeId: node.id,
           component: node.component,
         })

@@ -30,10 +30,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -54,9 +54,9 @@ CREATE TABLE \`live_branch\` (
   \`event_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'live-branch',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'live-branch'
 );
 
 -- ====================================================================
@@ -77,9 +77,9 @@ CREATE TABLE \`default_branch\` (
   \`event_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'default-branch',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'default-branch'
 );
 
 -- ====================================================================
@@ -142,10 +142,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -164,10 +164,10 @@ CREATE TABLE \`user_totals\` (
   PRIMARY KEY (\`user_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'user-totals',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'user-totals',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -215,10 +215,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -238,10 +238,10 @@ CREATE TABLE \`users\` (
   \`email\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'users',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'users'
 );
 
 -- ====================================================================
@@ -264,9 +264,9 @@ CREATE TABLE \`enriched\` (
   \`email\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'enriched',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'enriched'
 );
 
 -- ====================================================================
@@ -311,10 +311,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -335,9 +335,9 @@ CREATE TABLE \`high_value\` (
   \`event_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'high-value',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'high-value'
 );
 
 -- ====================================================================
@@ -358,9 +358,9 @@ CREATE TABLE \`other\` (
   \`event_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'other',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'other'
 );
 
 -- ====================================================================
@@ -423,10 +423,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -445,10 +445,10 @@ CREATE TABLE \`user_totals\` (
   PRIMARY KEY (\`user_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'user-totals',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'user-totals',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -496,10 +496,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -519,10 +519,10 @@ CREATE TABLE \`users\` (
   \`email\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'users',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'users'
 );
 
 -- ====================================================================
@@ -545,9 +545,9 @@ CREATE TABLE \`enriched_orders\` (
   \`email\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'enriched-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'enriched-orders'
 );
 
 -- ====================================================================
@@ -592,10 +592,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -612,9 +612,9 @@ CREATE TABLE \`slim_orders\` (
   \`total\` DECIMAL(10, 2)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'slim-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'slim-orders'
 );
 
 -- ====================================================================
@@ -667,10 +667,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -688,10 +688,10 @@ CREATE TABLE \`totals\` (
   PRIMARY KEY (\`user_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'totals',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'totals',
+  'value.format' = 'json'
 );
 
 -- ====================================================================

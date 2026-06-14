@@ -1,6 +1,7 @@
 import { FlinkVersionCompat } from "@/core/flink-compat.js"
 import type { ConstructNode, FlinkMajorVersion } from "@/core/types.js"
 import { indexTree } from "./schema-introspect.js"
+import { sqlOption } from "./sql/sql-identifiers.js"
 
 // ── Public types ─────────────────────────────────────────────────────
 
@@ -132,7 +133,7 @@ function runSetInjectionPass(
   const normalized = FlinkVersionCompat.normalizeConfig(config, version)
 
   return Object.entries(normalized).map(
-    ([key, value]) => `SET '${key}' = '${value}';`,
+    ([key, value]) => `SET ${sqlOption(key, value)};`,
   )
 }
 

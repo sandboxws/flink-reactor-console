@@ -472,8 +472,8 @@ SET 'execution.checkpointing.mode' = 'EXACTLY_ONCE';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_catalog\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -538,10 +538,10 @@ CREATE TABLE IF NOT EXISTS \`paimon_catalog\`.\`benchmark\`.\`orders\` (
   \`event_time\` TIMESTAMP(3),
   PRIMARY KEY (\`o_orderkey\`) NOT ENFORCED
 ) WITH (
-  'merge-engine' = 'deduplicate',
-  'changelog-producer' = 'input',
   'bucket' = '8',
-  'bucket-key' = 'o_orderkey'
+  'bucket-key' = 'o_orderkey',
+  'changelog-producer' = 'input',
+  'merge-engine' = 'deduplicate'
 );
 
 -- ====================================================================
@@ -624,8 +624,8 @@ SET 'execution.checkpointing.mode' = 'EXACTLY_ONCE';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_catalog\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -690,10 +690,10 @@ CREATE TABLE IF NOT EXISTS \`paimon_catalog\`.\`benchmark\`.\`orders\` (
   \`event_time\` TIMESTAMP(3),
   PRIMARY KEY (\`o_orderkey\`) NOT ENFORCED
 ) WITH (
-  'merge-engine' = 'deduplicate',
-  'changelog-producer' = 'input',
   'bucket' = '8',
-  'bucket-key' = 'o_orderkey'
+  'bucket-key' = 'o_orderkey',
+  'changelog-producer' = 'input',
+  'merge-engine' = 'deduplicate'
 );
 
 -- ====================================================================
@@ -776,8 +776,8 @@ SET 'execution.checkpointing.mode' = 'EXACTLY_ONCE';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_catalog\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -842,10 +842,10 @@ CREATE TABLE IF NOT EXISTS \`paimon_catalog\`.\`benchmark\`.\`orders\` (
   \`event_time\` TIMESTAMP(3),
   PRIMARY KEY (\`o_orderkey\`) NOT ENFORCED
 ) WITH (
-  'merge-engine' = 'partial-update',
-  'changelog-producer' = 'input',
   'bucket' = '8',
-  'bucket-key' = 'o_orderkey'
+  'bucket-key' = 'o_orderkey',
+  'changelog-producer' = 'input',
+  'merge-engine' = 'partial-update'
 );
 
 -- ====================================================================
@@ -928,8 +928,8 @@ SET 'execution.checkpointing.mode' = 'EXACTLY_ONCE';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_catalog\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -994,10 +994,10 @@ CREATE TABLE IF NOT EXISTS \`paimon_catalog\`.\`benchmark\`.\`orders\` (
   \`event_time\` TIMESTAMP(3),
   PRIMARY KEY (\`o_orderkey\`) NOT ENFORCED
 ) WITH (
-  'merge-engine' = 'partial-update',
-  'changelog-producer' = 'input',
   'bucket' = '8',
-  'bucket-key' = 'o_orderkey'
+  'bucket-key' = 'o_orderkey',
+  'changelog-producer' = 'input',
+  'merge-engine' = 'partial-update'
 );
 
 -- ====================================================================

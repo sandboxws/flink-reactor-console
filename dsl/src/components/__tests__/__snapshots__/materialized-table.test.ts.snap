@@ -40,10 +40,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`ts\` AS \`ts\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -102,10 +102,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`ts\` AS \`ts\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -169,10 +169,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`ts\` AS \`ts\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -230,10 +230,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`ts\` AS \`ts\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -293,10 +293,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`ts\` AS \`ts\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================

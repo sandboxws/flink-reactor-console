@@ -84,11 +84,12 @@ function generateNodeId(component: string, nameHint?: string): string {
   }
 
   usedNodeIds.add(id)
-  if (!nameHint) {
-    // Counter already incremented above for auto-generated IDs
-  } else {
-    nextNodeId++ // keep counter moving for unnamed nodes
-  }
+  // Named nodes derive their base from the name, so they did NOT consume the
+  // counter in the ternary above — advance it here. Unnamed nodes already
+  // advanced it via `${component}_${nextNodeId++}`. Net result: every node
+  // advances the counter exactly once, which the LSP node-id predictor
+  // (NID-5) relies on to stay in lockstep with synthesis.
+  if (nameHint) nextNodeId++
 
   return id
 }

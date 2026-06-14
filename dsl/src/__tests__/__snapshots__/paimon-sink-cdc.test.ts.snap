@@ -17,8 +17,8 @@ SET 'pipeline.name' = 'pg-fluss-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -103,8 +103,8 @@ SET 'pipeline.name' = 'pg-fluss-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -157,9 +157,9 @@ CREATE TABLE IF NOT EXISTS \`lake\`.\`warehouse\`.\`orders_lake\` (
   \`order_ts\` TIMESTAMP(3),
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
-  'merge-engine' = 'deduplicate',
   'bucket' = '8',
-  'bucket-key' = 'order_id'
+  'bucket-key' = 'order_id',
+  'merge-engine' = 'deduplicate'
 );
 
 -- ====================================================================
@@ -191,8 +191,8 @@ SET 'pipeline.name' = 'pg-fluss-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -245,8 +245,8 @@ CREATE TABLE IF NOT EXISTS \`lake\`.\`warehouse\`.\`orders_lake\` (
   \`order_ts\` TIMESTAMP(3),
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
-  'merge-engine' = 'deduplicate',
-  'full-compaction.delta-commits' = '10'
+  'full-compaction.delta-commits' = '10',
+  'merge-engine' = 'deduplicate'
 );
 
 -- ====================================================================
@@ -278,8 +278,8 @@ SET 'pipeline.name' = 'pg-fluss-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================
@@ -332,11 +332,11 @@ CREATE TABLE IF NOT EXISTS \`lake\`.\`warehouse\`.\`orders_lake\` (
   \`order_ts\` TIMESTAMP(3),
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
-  'merge-engine' = 'deduplicate',
-  'changelog-producer' = 'input',
   'bucket' = '8',
   'bucket-key' = 'order_id',
-  'full-compaction.delta-commits' = '10'
+  'changelog-producer' = 'input',
+  'full-compaction.delta-commits' = '10',
+  'merge-engine' = 'deduplicate'
 );
 
 -- ====================================================================
@@ -368,8 +368,8 @@ SET 'pipeline.name' = 'pg-fluss-paimon';
 -- ====================================================================
 
 CREATE CATALOG \`fluss_cat\` WITH (
-  'type' = 'fluss',
-  'bootstrap.servers' = 'fluss-coordinator:9123'
+  'bootstrap.servers' = 'fluss-coordinator:9123',
+  'type' = 'fluss'
 );
 
 -- ====================================================================

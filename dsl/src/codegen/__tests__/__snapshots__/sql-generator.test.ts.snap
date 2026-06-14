@@ -28,10 +28,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -50,9 +50,9 @@ CREATE TABLE \`large_orders\` (
   \`event_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'large-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'large-orders'
 );
 
 -- ====================================================================
@@ -98,10 +98,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -121,10 +121,10 @@ CREATE TABLE \`users\` (
   \`email\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'users',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'users'
 );
 
 -- ====================================================================
@@ -145,9 +145,9 @@ CREATE TABLE \`enriched_orders\` (
   \`email\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'enriched-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'enriched-orders'
 );
 
 -- ====================================================================
@@ -190,10 +190,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -213,9 +213,9 @@ CREATE TABLE \`hourly_totals\` (
   \`window_end\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'hourly-totals',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'hourly-totals'
 );
 
 -- ====================================================================
@@ -261,10 +261,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -285,9 +285,9 @@ CREATE TABLE \`deduped_events\` (
   \`rownum\` BIGINT
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'deduped-events',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'deduped-events'
 );
 
 -- ====================================================================
@@ -334,10 +334,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -357,9 +357,9 @@ CREATE TABLE \`top_orders\` (
   \`rownum\` BIGINT
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'top-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'top-orders'
 );
 
 -- ====================================================================
@@ -408,10 +408,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -431,9 +431,9 @@ CREATE TABLE \`errors_2\` (
   \`payload\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'errors',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'errors'
 );
 
 -- ====================================================================
@@ -453,9 +453,9 @@ CREATE TABLE \`all_events_2\` (
   \`payload\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'all-events',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'all-events'
 );
 
 -- ====================================================================
@@ -517,8 +517,8 @@ CREATE CATALOG \`lake\` WITH (
 
 CREATE TABLE \`page_view_alerts\` WITH (
   'connector' = 'kafka',
-  'topic' = 'page-view-alerts',
-  'format' = 'json'
+  'format' = 'json',
+  'topic' = 'page-view-alerts'
 );
 
 -- ====================================================================
@@ -561,10 +561,10 @@ CREATE TABLE \`dbserver1_inventory_orders\` (
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'dbserver1.inventory.orders',
   'format' = 'debezium-json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'dbserver1.inventory.orders'
 );
 
 -- ====================================================================
@@ -584,8 +584,8 @@ CREATE TABLE \`orders_snapshot\` (
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'jdbc',
-  'url' = 'jdbc:postgresql://localhost:5433/warehouse',
-  'table-name' = 'orders_snapshot'
+  'table-name' = 'orders_snapshot',
+  'url' = 'jdbc:postgresql://localhost:5433/warehouse'
 );
 
 -- ====================================================================
@@ -628,11 +628,11 @@ CREATE TABLE \`dbserver1_inventory_orders\` (
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'dbserver1.inventory.orders',
-  'format' = 'debezium-protobuf',
   'debezium-protobuf.schema-registry.url' = 'http://schema-registry:8081',
+  'format' = 'debezium-protobuf',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'dbserver1.inventory.orders'
 );
 
 -- ====================================================================
@@ -652,8 +652,8 @@ CREATE TABLE \`orders_snapshot\` (
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'jdbc',
-  'url' = 'jdbc:postgresql://localhost:5433/warehouse',
-  'table-name' = 'orders_snapshot'
+  'table-name' = 'orders_snapshot',
+  'url' = 'jdbc:postgresql://localhost:5433/warehouse'
 );
 
 -- ====================================================================
@@ -696,10 +696,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -718,9 +718,9 @@ CREATE TABLE \`enriched_orders\` (
   \`event_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'enriched-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'enriched-orders'
 );
 
 -- ====================================================================
@@ -764,10 +764,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -788,10 +788,10 @@ CREATE TABLE \`shipments\` (
   WATERMARK FOR \`shipped_time\` AS \`shipped_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'shipments',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'shipments'
 );
 
 -- ====================================================================
@@ -812,9 +812,9 @@ CREATE TABLE \`order_shipments\` (
   \`carrier\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'order-shipments',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'order-shipments'
 );
 
 -- ====================================================================
@@ -859,10 +859,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -881,10 +881,10 @@ CREATE TABLE \`cancellations\` (
   \`cancelled_at\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'cancellations',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'cancellations'
 );
 
 -- ====================================================================
@@ -903,9 +903,9 @@ CREATE TABLE \`active_orders\` (
   \`event_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'active-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'active-orders'
 );
 
 -- ====================================================================
@@ -950,10 +950,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -973,10 +973,10 @@ CREATE TABLE \`products\` (
   \`category\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'products',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'products'
 );
 
 -- ====================================================================
@@ -998,9 +998,9 @@ CREATE TABLE \`enriched_orders\` (
   \`category\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'enriched-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'enriched-orders'
 );
 
 -- ====================================================================
@@ -1043,10 +1043,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -1066,10 +1066,10 @@ CREATE TABLE \`users\` (
   \`email\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'users',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'users'
 );
 
 -- ====================================================================
@@ -1086,9 +1086,9 @@ CREATE TABLE \`enriched_orders\` (
   \`user_name\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'enriched-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'enriched-orders'
 );
 
 -- ====================================================================
@@ -1142,10 +1142,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -1162,9 +1162,9 @@ CREATE TABLE \`hashed_events\` (
   \`hashed\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'hashed-events',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'hashed-events'
 );
 
 -- ====================================================================
@@ -1209,10 +1209,10 @@ CREATE TABLE \`transactions\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'transactions',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'transactions'
 );
 
 -- ====================================================================
@@ -1231,9 +1231,9 @@ CREATE TABLE \`fraud_alerts\` (
   \`total_amount\` DECIMAL(10, 2)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'fraud-alerts',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'fraud-alerts'
 );
 
 -- ====================================================================
@@ -1299,10 +1299,10 @@ CREATE TABLE \`orders\` (
   \`amount\` DECIMAL(10, 2)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -1320,9 +1320,9 @@ CREATE TABLE \`enriched_orders\` (
   \`amount\` DECIMAL(10, 2)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'enriched-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'enriched-orders'
 );
 
 -- ====================================================================
@@ -1362,10 +1362,10 @@ CREATE TABLE \`documents\` (
   \`content\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'documents',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'documents'
 );
 
 -- ====================================================================
@@ -1382,9 +1382,9 @@ CREATE TABLE \`entities\` (
   \`content\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'entities',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'entities'
 );
 
 -- ====================================================================
@@ -1428,10 +1428,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -1452,9 +1452,9 @@ CREATE TABLE \`deduped_events\` (
   \`rownum\` BIGINT
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'deduped-events',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'deduped-events'
 );
 
 -- ====================================================================
@@ -1502,10 +1502,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -1526,9 +1526,9 @@ CREATE TABLE \`deduped_events\` (
   \`rownum\` BIGINT
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'deduped-events',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'deduped-events'
 );
 
 -- ====================================================================
@@ -1577,10 +1577,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -1600,9 +1600,9 @@ CREATE TABLE \`output\` (
   \`payload\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'output',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output'
 );
 
 -- ====================================================================
@@ -1648,10 +1648,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -1671,9 +1671,9 @@ CREATE TABLE \`output\` (
   \`payload\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'output',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output'
 );
 
 -- ====================================================================
@@ -1718,10 +1718,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -1741,9 +1741,9 @@ CREATE TABLE \`top_orders\` (
   \`rownum\` BIGINT
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'top-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'top-orders'
 );
 
 -- ====================================================================
@@ -1791,10 +1791,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -1814,9 +1814,9 @@ CREATE TABLE \`top_orders\` (
   \`rownum\` BIGINT
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'top-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'top-orders'
 );
 
 -- ====================================================================
@@ -1863,10 +1863,10 @@ CREATE TABLE \`logs\` (
   \`timestamp\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'logs',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'logs'
 );
 
 -- ====================================================================
@@ -1880,9 +1880,9 @@ CREATE TABLE \`logs\` (
 
 CREATE TABLE \`errors\` WITH (
   'connector' = 'kafka',
-  'topic' = 'errors',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'errors'
 );
 
 -- ====================================================================
@@ -1896,9 +1896,9 @@ CREATE TABLE \`errors\` WITH (
 
 CREATE TABLE \`warnings\` WITH (
   'connector' = 'kafka',
-  'topic' = 'warnings',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'warnings'
 );
 
 -- ====================================================================
@@ -1912,9 +1912,9 @@ CREATE TABLE \`warnings\` WITH (
 
 CREATE TABLE \`other\` WITH (
   'connector' = 'kafka',
-  'topic' = 'other',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'other'
 );
 
 -- ====================================================================
@@ -1980,11 +1980,11 @@ CREATE TABLE \`cdc_inventory_products\` (
   \`quantity\` INT
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'cdc.inventory.products',
   'format' = 'debezium-json',
   'properties.bootstrap.servers' = 'kafka:9092',
+  'properties.group.id' = 'inventory-analytics',
   'scan.startup.mode' = 'earliest-offset',
-  'properties.group.id' = 'inventory-analytics'
+  'topic' = 'cdc.inventory.products'
 );
 
 -- ====================================================================
@@ -2005,9 +2005,9 @@ CREATE TABLE \`low_stock_alerts\` (
   \`quantity\` INT
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'low-stock-alerts',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'low-stock-alerts'
 );
 
 -- ====================================================================
@@ -2028,10 +2028,10 @@ CREATE TABLE \`category_stats\` (
   PRIMARY KEY (\`category\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'category-stats',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'category-stats',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -2089,10 +2089,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -2106,9 +2106,9 @@ CREATE TABLE \`orders\` (
 
 CREATE TABLE \`processed_orders\` WITH (
   'connector' = 'kafka',
-  'topic' = 'processed-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'processed-orders'
 );
 
 -- ====================================================================
@@ -2122,9 +2122,9 @@ CREATE TABLE \`processed_orders\` WITH (
 
 CREATE TABLE \`order_errors\` WITH (
   'connector' = 'kafka',
-  'topic' = 'order-errors',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'order-errors'
 );
 
 -- ====================================================================
@@ -2179,10 +2179,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -2196,9 +2196,9 @@ CREATE TABLE \`events\` (
 
 CREATE TABLE \`good_events\` WITH (
   'connector' = 'kafka',
-  'topic' = 'good-events',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'good-events'
 );
 
 -- ====================================================================
@@ -2212,9 +2212,9 @@ CREATE TABLE \`good_events\` WITH (
 
 CREATE TABLE \`bad_events\` WITH (
   'connector' = 'kafka',
-  'topic' = 'bad-events',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'bad-events'
 );
 
 -- ====================================================================
@@ -2267,10 +2267,10 @@ CREATE TABLE \`raw_orders\` (
   \`email\` STRING
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'raw-orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'raw-orders'
 );
 
 -- ====================================================================
@@ -2284,9 +2284,9 @@ CREATE TABLE \`raw_orders\` (
 
 CREATE TABLE \`valid_orders\` WITH (
   'connector' = 'kafka',
-  'topic' = 'valid-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'valid-orders'
 );
 
 -- ====================================================================
@@ -2300,9 +2300,9 @@ CREATE TABLE \`valid_orders\` WITH (
 
 CREATE TABLE \`invalid_orders\` WITH (
   'connector' = 'kafka',
-  'topic' = 'invalid-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'invalid-orders'
 );
 
 -- ====================================================================
@@ -2378,10 +2378,10 @@ CREATE TABLE \`events\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'events',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'events'
 );
 
 -- ====================================================================
@@ -2395,9 +2395,9 @@ CREATE TABLE \`events\` (
 
 CREATE TABLE \`validated\` WITH (
   'connector' = 'kafka',
-  'topic' = 'validated',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'validated'
 );
 
 -- ====================================================================
@@ -2411,9 +2411,9 @@ CREATE TABLE \`validated\` WITH (
 
 CREATE TABLE \`rejected\` WITH (
   'connector' = 'kafka',
-  'topic' = 'rejected',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'rejected'
 );
 
 -- ====================================================================
@@ -2479,10 +2479,10 @@ CREATE TABLE \`orders\` (
   WATERMARK FOR \`event_time\` AS \`event_time\` - INTERVAL '5' SECOND
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 
 -- ====================================================================
@@ -2496,9 +2496,9 @@ CREATE TABLE \`orders\` (
 
 CREATE TABLE \`high_value\` WITH (
   'connector' = 'kafka',
-  'topic' = 'high-value',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'high-value'
 );
 
 -- ====================================================================
@@ -2512,9 +2512,9 @@ CREATE TABLE \`high_value\` WITH (
 
 CREATE TABLE \`all_orders\` WITH (
   'connector' = 'kafka',
-  'topic' = 'all-orders',
   'format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'all-orders'
 );
 
 -- ====================================================================

@@ -56,7 +56,7 @@ export function registerDevCommand(program: Command): void {
 
 // ── Dev server state ────────────────────────────────────────────────
 
-interface DevState {
+export interface DevState {
   projectDir: string
   pipeline?: string
   envName?: string
@@ -301,14 +301,23 @@ async function showSqlPreview(state: DevState): Promise<void> {
 
 // ── Shutdown ────────────────────────────────────────────────────────
 
-async function shutdown(state: DevState): Promise<void> {
+/**
+ * Tear down everything a dev session holds open: file watchers, the
+ * dev-started runtime (best-effort), and the raw-mode stdin handler.
+ *
+ * Pure cleanup — deliberately no `process.exit`, so the cleanup path is
+ * unit-testable and the caller owns the process-exit boundary. Releasing the
+ * stdin `data` listener and pausing stdin lets the event loop drain on its
+ * own once the caller stops awaiting.
+ */
+export async function cleanupDev(state: DevState): Promise<void> {
   state.shuttingDown = true
-  console.log(pc.dim("\nShutting down..."))
 
   // Close file watchers
   for (const watcher of state.watchers) {
     watcher.close()
   }
+  state.watchers = []
 
   // Stop runtime if dev started it (best-effort)
   if (state.cluster && state.runtimeName) {
@@ -323,10 +332,16 @@ async function shutdown(state: DevState): Promise<void> {
     }
   }
 
-  // Restore terminal
+  // Release the keyboard handler and restore the terminal.
   if (process.stdin.isTTY) {
     process.stdin.setRawMode(false)
   }
+  process.stdin.removeAllListeners("data")
+  process.stdin.pause()
+}
 
+async function shutdown(state: DevState): Promise<void> {
+  console.log(pc.dim("\nShutting down..."))
+  await cleanupDev(state)
   process.exit(0)
 }

@@ -2,6 +2,56 @@ import { describe, expect, it } from "vitest"
 import { resetNodeIdCounter } from "@/core/jsx-runtime.js"
 import { synth } from "@/testing/synth.js"
 
+/**
+ * Structural invariants every emitted pipeline must satisfy, independent of
+ * the (opaque) snapshot. Snapshots catch *changes* but silently bless a
+ * statement that was malformed from day one; this asserts the class of bugs
+ * that matters most — unbalanced quoting/brackets and JS values coerced into
+ * SQL. Also the permanent guard for connector-option escaping.
+ */
+function assertWellFormedSql(sql: string, label: string): void {
+  // Drop `--` line comments so banner prose can't skew the balance counts.
+  const noComments = sql
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("--"))
+    .join("\n")
+
+  // String literals must be balanced (every literal is an even quote count,
+  // including doubled inner quotes).
+  expect(
+    (noComments.match(/'/g) ?? []).length % 2,
+    `${label}: unbalanced single quotes`,
+  ).toBe(0)
+
+  // Blank out string-literal *contents* before bracket/backtick checks so a
+  // paren or backtick inside a literal can't skew the counts.
+  const noLiterals = noComments.replace(/'(?:[^']|'')*'/g, "''")
+  expect(
+    (noLiterals.match(/`/g) ?? []).length % 2,
+    `${label}: unbalanced backticks`,
+  ).toBe(0)
+  let depth = 0
+  let minDepth = 0
+  for (const ch of noLiterals) {
+    if (ch === "(") depth++
+    else if (ch === ")") depth--
+    if (depth < minDepth) minDepth = depth
+  }
+  expect(depth, `${label}: unbalanced parentheses`).toBe(0)
+  expect(minDepth, `${label}: ')' before matching '('`).toBe(0)
+
+  // No JS values coerced into SQL.
+  for (const artifact of ["undefined", "[object Object]", "NaN"]) {
+    expect(noComments.includes(artifact), `${label}: leaked ${artifact}`).toBe(
+      false,
+    )
+  }
+
+  const trimmed = noComments.trim()
+  expect(trimmed.length, `${label}: empty SQL`).toBeGreaterThan(0)
+  expect(trimmed.endsWith(";"), `${label}: not ;-terminated`).toBe(true)
+}
+
 const EXAMPLES = [
   "01-simple-source-sink",
   "02-filter-project",
@@ -47,6 +97,7 @@ describe("Example SQL Snapshots", () => {
       resetNodeIdCounter()
       const mod = await import(`../../examples/${id}/after.tsx`)
       const { sql } = synth(mod.default)
+      assertWellFormedSql(sql, id)
       expect(sql).toMatchSnapshot()
     })
   }

@@ -1,6 +1,7 @@
 import { FlinkVersionCompat } from "@/core/flink-compat.js"
 import type { ConstructNode, FlinkMajorVersion } from "@/core/types.js"
 import { toMilliseconds } from "./sql-duration.js"
+import { sqlOption } from "./sql-identifiers.js"
 
 /**
  * Generate the leading `SET 'key' = 'value';` block from a Pipeline node's
@@ -83,6 +84,6 @@ export function generateSetStatements(
   const normalized = FlinkVersionCompat.normalizeConfig(config, version)
 
   return Object.entries(normalized).map(
-    ([key, value]) => `SET '${key}' = '${value}';`,
+    ([key, value]) => `SET ${sqlOption(key, value)};`,
   )
 }

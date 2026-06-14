@@ -29,10 +29,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -55,10 +55,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -104,10 +104,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -128,10 +128,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -177,10 +177,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -201,10 +201,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -250,10 +250,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -274,10 +274,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -323,10 +323,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -345,10 +345,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -394,10 +394,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -418,10 +418,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`product_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -467,10 +467,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -491,10 +491,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -545,10 +545,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -569,10 +569,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -623,10 +623,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -645,10 +645,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -694,10 +694,10 @@ CREATE TABLE \`products\` (
   PRIMARY KEY (\`id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'products',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'products',
+  'value.format' = 'json'
 );
 
 -- ====================================================================
@@ -718,10 +718,10 @@ CREATE TABLE \`output\` (
   PRIMARY KEY (\`product_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
-  'topic' = 'output',
   'key.format' = 'json',
-  'value.format' = 'json',
-  'properties.bootstrap.servers' = 'kafka:9092'
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'topic' = 'output',
+  'value.format' = 'json'
 );
 
 -- ====================================================================

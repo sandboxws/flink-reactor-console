@@ -1,7 +1,7 @@
 import type { ConstructNode } from "@/core/types.js"
 import type { BuildContext } from "./sql-build-context.js"
 import type { DmlEntry } from "./sql-dml-types.js"
-import { quoteIdentifier as q } from "./sql-identifiers.js"
+import { quoteIdentifier as q, quoteStringLiteral } from "./sql-identifiers.js"
 import { getUpstream } from "./sql-query-helpers.js"
 import { resolveSinkRef } from "./sql-refs.js"
 
@@ -102,7 +102,7 @@ export function collectSideOutputDml(
         const metaCols: string[] = []
         metaCols.push("CURRENT_TIMESTAMP AS `_side_ts`")
         if (tag) {
-          metaCols.push(`'${tag}' AS \`_side_tag\``)
+          metaCols.push(`${quoteStringLiteral(String(tag))} AS \`_side_tag\``)
         }
         const selectList =
           metaCols.length > 0 ? `*, ${metaCols.join(", ")}` : "*"

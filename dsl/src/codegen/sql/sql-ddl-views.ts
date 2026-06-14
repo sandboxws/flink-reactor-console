@@ -1,7 +1,11 @@
 import { FlinkVersionCompat } from "@/core/flink-compat.js"
 import type { ConstructNode } from "@/core/types.js"
 import type { BuildContext } from "./sql-build-context.js"
-import { quoteIdentifier as q } from "./sql-identifiers.js"
+import {
+  quoteIdentifier as q,
+  quoteStringLiteral,
+  sqlOption,
+} from "./sql-identifiers.js"
 
 /**
  * `CREATE VIEW` and `CREATE MATERIALIZED TABLE` emission. Both wrap a
@@ -78,7 +82,7 @@ export function generateMaterializedTableDdl(
 
   // COMMENT clause
   if (props.comment) {
-    parts.push(`  COMMENT '${String(props.comment)}'`)
+    parts.push(`  COMMENT ${quoteStringLiteral(String(props.comment))}`)
   }
 
   // PARTITIONED BY clause
@@ -103,7 +107,7 @@ export function generateMaterializedTableDdl(
   const withOpts = props.with as Record<string, string> | undefined
   if (withOpts && Object.keys(withOpts).length > 0) {
     const entries = Object.entries(withOpts)
-      .map(([k, v]) => `    '${k}' = '${v}'`)
+      .map(([k, v]) => `    ${sqlOption(k, v)}`)
       .join(",\n")
     parts.push(`  WITH (\n${entries}\n  )`)
   }
