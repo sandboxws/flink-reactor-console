@@ -61,7 +61,7 @@ func (i *Initializer) Initialize(ctx context.Context) error {
 func (i *Initializer) GenerateSQL() []string {
 	var stmts []string
 	for _, cat := range i.data.Catalogs {
-		stmts = append(stmts, generateCreateCatalog(cat.Name))
+		stmts = append(stmts, generateCreateCatalog(cat.Name, cat.Connector))
 		for _, db := range cat.Databases {
 			stmts = append(stmts, generateCreateDatabase(cat.Name, db.Name))
 			for _, tbl := range db.Tables {
@@ -72,8 +72,37 @@ func (i *Initializer) GenerateSQL() []string {
 	return stmts
 }
 
-func generateCreateCatalog(name string) string {
-	return fmt.Sprintf("CREATE CATALOG `%s` WITH ('type' = 'generic_in_memory')", name)
+// managedCatalogTypes are connector types that register as real Flink catalogs
+// (CREATE CATALOG WITH ('type' = <type>, ...)) rather than the browse-only
+// generic_in_memory type used for the jdbc/kafka demo catalogs. Materialized
+// tables must live in a managed catalog (e.g. Apache Paimon), so its warehouse
+// and S3 properties are emitted into the catalog DDL.
+var managedCatalogTypes = map[string]bool{
+	"paimon": true,
+}
+
+func generateCreateCatalog(name string, conn bundledConnector) string {
+	if !managedCatalogTypes[conn.Type] {
+		return fmt.Sprintf("CREATE CATALOG `%s` WITH ('type' = 'generic_in_memory')", name)
+	}
+
+	// Managed catalog: emit the connector type plus its properties (warehouse,
+	// s3.*). Keys are sorted for deterministic output, matching generateCreateTable.
+	// IF NOT EXISTS keeps this idempotent across the per-session init replays.
+	props := map[string]string{"type": conn.Type}
+	for k, v := range conn.Properties {
+		props[k] = v
+	}
+	keys := make([]string, 0, len(props))
+	for k := range props {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	pairs := make([]string, 0, len(keys))
+	for _, k := range keys {
+		pairs = append(pairs, fmt.Sprintf("'%s' = '%s'", k, props[k]))
+	}
+	return fmt.Sprintf("CREATE CATALOG IF NOT EXISTS `%s` WITH (%s)", name, strings.Join(pairs, ", "))
 }
 
 func generateCreateDatabase(catalog, database string) string {

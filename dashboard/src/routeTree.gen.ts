@@ -58,6 +58,7 @@ import { Route as HubStatePipelineRouteImport } from './routes/hub/state/$pipeli
 import { Route as HubSandboxEditorRouteImport } from './routes/hub/sandbox/editor'
 import { Route as HubMonitoringCheckpointsRouteImport } from './routes/hub/monitoring/checkpoints'
 import { Route as HubMonitoringAlertsRouteImport } from './routes/hub/monitoring/alerts'
+import { Route as HubMaterializedTablesExploreRouteImport } from './routes/hub/materialized-tables/explore'
 import { Route as HubMaterializedTablesNameRouteImport } from './routes/hub/materialized-tables/$name'
 import { Route as HubJobsSubmitRouteImport } from './routes/hub/jobs/submit'
 import { Route as HubJobsRunningRouteImport } from './routes/hub/jobs/running'
@@ -345,6 +346,12 @@ const HubMonitoringAlertsRoute = HubMonitoringAlertsRouteImport.update({
   path: '/hub/monitoring/alerts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HubMaterializedTablesExploreRoute =
+  HubMaterializedTablesExploreRouteImport.update({
+    id: '/hub/materialized-tables/explore',
+    path: '/hub/materialized-tables/explore',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const HubMaterializedTablesNameRoute =
   HubMaterializedTablesNameRouteImport.update({
     id: '/hub/materialized-tables/$name',
@@ -603,6 +610,7 @@ export interface FileRoutesByFullPath {
   '/hub/jobs/running': typeof HubJobsRunningRoute
   '/hub/jobs/submit': typeof HubJobsSubmitRoute
   '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
+  '/hub/materialized-tables/explore': typeof HubMaterializedTablesExploreRoute
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
   '/hub/sandbox/editor': typeof HubSandboxEditorRoute
@@ -689,6 +697,7 @@ export interface FileRoutesByTo {
   '/hub/jobs/running': typeof HubJobsRunningRoute
   '/hub/jobs/submit': typeof HubJobsSubmitRoute
   '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
+  '/hub/materialized-tables/explore': typeof HubMaterializedTablesExploreRoute
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
   '/hub/sandbox/editor': typeof HubSandboxEditorRoute
@@ -778,6 +787,7 @@ export interface FileRoutesById {
   '/hub/jobs/running': typeof HubJobsRunningRoute
   '/hub/jobs/submit': typeof HubJobsSubmitRoute
   '/hub/materialized-tables/$name': typeof HubMaterializedTablesNameRoute
+  '/hub/materialized-tables/explore': typeof HubMaterializedTablesExploreRoute
   '/hub/monitoring/alerts': typeof HubMonitoringAlertsRoute
   '/hub/monitoring/checkpoints': typeof HubMonitoringCheckpointsRoute
   '/hub/sandbox/editor': typeof HubSandboxEditorRoute
@@ -868,6 +878,7 @@ export interface FileRouteTypes {
     | '/hub/jobs/running'
     | '/hub/jobs/submit'
     | '/hub/materialized-tables/$name'
+    | '/hub/materialized-tables/explore'
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
     | '/hub/sandbox/editor'
@@ -954,6 +965,7 @@ export interface FileRouteTypes {
     | '/hub/jobs/running'
     | '/hub/jobs/submit'
     | '/hub/materialized-tables/$name'
+    | '/hub/materialized-tables/explore'
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
     | '/hub/sandbox/editor'
@@ -1042,6 +1054,7 @@ export interface FileRouteTypes {
     | '/hub/jobs/running'
     | '/hub/jobs/submit'
     | '/hub/materialized-tables/$name'
+    | '/hub/materialized-tables/explore'
     | '/hub/monitoring/alerts'
     | '/hub/monitoring/checkpoints'
     | '/hub/sandbox/editor'
@@ -1131,6 +1144,7 @@ export interface RootRouteChildren {
   HubJobsRunningRoute: typeof HubJobsRunningRoute
   HubJobsSubmitRoute: typeof HubJobsSubmitRoute
   HubMaterializedTablesNameRoute: typeof HubMaterializedTablesNameRoute
+  HubMaterializedTablesExploreRoute: typeof HubMaterializedTablesExploreRoute
   HubMonitoringAlertsRoute: typeof HubMonitoringAlertsRoute
   HubMonitoringCheckpointsRoute: typeof HubMonitoringCheckpointsRoute
   HubSandboxEditorRoute: typeof HubSandboxEditorRoute
@@ -1507,6 +1521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubMonitoringAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hub/materialized-tables/explore': {
+      id: '/hub/materialized-tables/explore'
+      path: '/hub/materialized-tables/explore'
+      fullPath: '/hub/materialized-tables/explore'
+      preLoaderRoute: typeof HubMaterializedTablesExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hub/materialized-tables/$name': {
       id: '/hub/materialized-tables/$name'
       path: '/hub/materialized-tables/$name'
@@ -1864,6 +1885,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubJobsRunningRoute: HubJobsRunningRoute,
   HubJobsSubmitRoute: HubJobsSubmitRoute,
   HubMaterializedTablesNameRoute: HubMaterializedTablesNameRoute,
+  HubMaterializedTablesExploreRoute: HubMaterializedTablesExploreRoute,
   HubMonitoringAlertsRoute: HubMonitoringAlertsRoute,
   HubMonitoringCheckpointsRoute: HubMonitoringCheckpointsRoute,
   HubSandboxEditorRoute: HubSandboxEditorRoute,

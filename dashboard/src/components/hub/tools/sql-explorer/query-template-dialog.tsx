@@ -26,6 +26,8 @@ import { SqlHighlight } from "@/components/catalogs/sql-highlight"
 
 interface QueryTemplateDialogProps {
   onSelect: (sql: string) => void
+  /** Template set to show. Defaults to the catalog explore + sample queries. */
+  templates?: ExploreTemplate[]
 }
 
 function groupByCategory(
@@ -44,7 +46,10 @@ function groupByCategory(
   return groups
 }
 
-export function QueryTemplateDialog({ onSelect }: QueryTemplateDialogProps) {
+export function QueryTemplateDialog({
+  onSelect,
+  templates,
+}: QueryTemplateDialogProps) {
   const [open, setOpen] = useState(false)
   const [catalog, setCatalog] = useState("")
   const [database, setDatabase] = useState("")
@@ -52,8 +57,11 @@ export function QueryTemplateDialog({ onSelect }: QueryTemplateDialogProps) {
   const [selected, setSelected] = useState<ExploreTemplate | null>(null)
 
   const grouped = useMemo(
-    () => groupByCategory([...EXPLORE_TEMPLATES, ...SAMPLE_QUERY_TEMPLATES]),
-    [],
+    () =>
+      groupByCategory(
+        templates ?? [...EXPLORE_TEMPLATES, ...SAMPLE_QUERY_TEMPLATES],
+      ),
+    [templates],
   )
 
   const previewSql = useMemo(() => {

@@ -23,8 +23,31 @@ func TestGenerateSQL_CatalogCount(t *testing.T) {
 			catalogCount++
 		}
 	}
-	if catalogCount != 13 {
-		t.Errorf("got %d CREATE CATALOG statements, want 13", catalogCount)
+	if catalogCount != 14 {
+		t.Errorf("got %d CREATE CATALOG statements, want 14", catalogCount)
+	}
+
+	// The managed Paimon catalog is registered with its real type + warehouse,
+	// not generic_in_memory, so materialized tables can be created in it.
+	var paimonDDL string
+	for _, s := range stmts {
+		if strings.Contains(s, "`paimon_catalog`") && strings.HasPrefix(s, "CREATE CATALOG") {
+			paimonDDL = s
+			break
+		}
+	}
+	if paimonDDL == "" {
+		t.Fatal("CREATE CATALOG for paimon_catalog not found")
+	}
+	for _, want := range []string{
+		"'type' = 'paimon'",
+		"'warehouse' = 's3://flink-state/paimon'",
+		"'s3.endpoint' = 'http://seaweedfs.flink-demo.svc:8333'",
+		"IF NOT EXISTS",
+	} {
+		if !strings.Contains(paimonDDL, want) {
+			t.Errorf("paimon catalog DDL missing %q\nGot:\n%s", want, paimonDDL)
+		}
 	}
 }
 

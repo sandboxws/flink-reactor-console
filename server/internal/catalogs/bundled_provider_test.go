@@ -16,10 +16,11 @@ func TestBundledProvider_ListCatalogs(t *testing.T) {
 		t.Fatalf("ListCatalogs() error: %v", err)
 	}
 
-	// 4 JDBC + 9 Kafka domain catalogs = 13 total
+	// 4 JDBC + 9 Kafka domain catalogs + 1 managed Paimon catalog = 14 total
 	expected := []string{
 		"pagila", "chinook", "employees", "flink_sink",
 		"ecom", "banking", "iot", "rides", "grocery", "analytics", "cdc", "lake", "orders",
+		"paimon_catalog",
 	}
 	if len(catalogs) != len(expected) {
 		t.Fatalf("got %d catalogs, want %d", len(catalogs), len(expected))
@@ -57,6 +58,7 @@ func TestBundledProvider_ListDatabases(t *testing.T) {
 		{"cdc", []string{"default"}},
 		{"lake", []string{"default"}},
 		{"orders", []string{"default"}},
+		{"paimon_catalog", []string{"default"}},
 		{"nonexistent", nil},
 	}
 
@@ -102,6 +104,7 @@ func TestBundledProvider_ListTables(t *testing.T) {
 		{"cdc", "default", 1},
 		{"lake", "default", 3},
 		{"orders", "default", 1},
+		{"paimon_catalog", "default", 0},
 	}
 
 	for _, tt := range tests {

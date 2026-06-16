@@ -8,7 +8,7 @@
 
 import { HubBreadcrumb } from "@flink-reactor/ui"
 import { createFileRoute } from "@tanstack/react-router"
-import { Filter, RefreshCw } from "lucide-react"
+import { Filter, FlaskConical, RefreshCw } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { MaterializedTableRow } from "@/components/hub/data/materialized-table-row"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
@@ -22,6 +22,10 @@ function HubMaterializedTables() {
   const error = useMaterializedTableStore((s) => s.fetchError)
   const [search, setSearch] = useState("")
 
+  // Listed from the default catalog: Apache Paimon's catalog does not implement
+  // Flink's `SHOW MATERIALIZED TABLES`, so scoping the list to `paimon_catalog`
+  // would surface a server error. Paimon materialized tables are created and
+  // inspected (via SHOW TABLES / DESCRIBE / SELECT) on the Examples page.
   useEffect(() => {
     fetchTables()
   }, [fetchTables])
@@ -67,14 +71,23 @@ function HubMaterializedTables() {
             {counts.initializing} initializing
           </p>
         </div>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={() => fetchTables()}
-        >
-          <RefreshCw />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <HubLink
+            to="/hub/materialized-tables/explore"
+            className="btn btn-secondary btn-sm"
+          >
+            <FlaskConical />
+            Examples
+          </HubLink>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => fetchTables()}
+          >
+            <RefreshCw />
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-dash-border pb-3">
@@ -110,7 +123,7 @@ function HubMaterializedTables() {
           <p className="mt-1 text-[12px] font-mono text-fg-muted">
             {search
               ? "Try a different filter term."
-              : "Create a materialized view to see it here."}
+              : "Open Examples to create and explore materialized tables on the Paimon catalog."}
           </p>
         </div>
       ) : (

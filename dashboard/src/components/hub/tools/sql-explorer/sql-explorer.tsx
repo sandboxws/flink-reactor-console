@@ -33,6 +33,7 @@ import {
   Square,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import type { ExploreTemplate } from "@/components/catalogs/explore-templates"
 import {
   createThemeCompartment,
   getActiveTheme,
@@ -63,9 +64,11 @@ function statementAtCursor(doc: string, pos: number): string {
 interface SqlExplorerProps {
   /** Initial SQL — usually the `?q=` param decoded by the route. */
   initialSql?: string
+  /** Override the template-dialog query set (defaults to catalog templates). */
+  templates?: ExploreTemplate[]
 }
 
-export function SqlExplorer({ initialSql }: SqlExplorerProps) {
+export function SqlExplorer({ initialSql, templates }: SqlExplorerProps) {
   const sql$ = useCatalogExploreStore((s) => s.sql)
   const setSql = useCatalogExploreStore((s) => s.setSql)
   const status = useCatalogExploreStore((s) => s.status)
@@ -238,7 +241,7 @@ export function SqlExplorer({ initialSql }: SqlExplorerProps) {
             Console
           </span>
           <div className="flex items-center gap-2">
-            <QueryTemplateDialog onSelect={onLoad} />
+            <QueryTemplateDialog onSelect={onLoad} templates={templates} />
             <button
               type="button"
               onClick={save}

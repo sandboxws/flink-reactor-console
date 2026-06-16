@@ -535,3 +535,24 @@ catalogs:
               - { name: amount, type: DOUBLE }
               - { name: status, type: STRING }
               - { name: updatedAt, type: "TIMESTAMP(3)" }
+
+  # ── Managed Catalog (Apache Paimon) ────────────────────────────
+  # Unlike the browse-only generic_in_memory catalogs above, this registers a
+  # real Paimon catalog (CREATE CATALOG ... WITH ('type' = 'paimon', ...)) so
+  # materialized tables can be created and refreshed against it. Warehouse and
+  # credentials mirror the DSL sim (flink-reactor-dsl/src/cli/cluster/paimon-init.ts):
+  # the SeaweedFS bucket `flink-state`, path-style access, admin/admin. `s3://`
+  # (not `s3a://`) routes through Paimon's bundled S3FileIO. Tables are created
+  # at runtime via CREATE MATERIALIZED TABLE, so none are pre-declared here.
+  - name: paimon_catalog
+    connector:
+      type: paimon
+      properties:
+        warehouse: "s3://flink-state/paimon"
+        s3.endpoint: "http://seaweedfs.flink-demo.svc:8333"
+        s3.path-style-access: "true"
+        s3.access-key: "admin"
+        s3.secret-key: "admin"
+    databases:
+      - name: default
+        tables: []
