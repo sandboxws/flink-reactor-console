@@ -1,0 +1,32 @@
+# Application types and queries — the cluster→application→job hierarchy
+# introduced in Flink 2.3 (FLIP-549). Queries return empty / null on clusters
+# that don't run in application mode (the REST endpoints 404), so the dashboard
+# can feature-detect and hide the Applications view.
+
+"""A Flink application in the cluster→application→job hierarchy (Flink 2.3+, FLIP-549)."""
+type Application {
+  id: ID!
+  name: String!
+  state: String!
+  """Epoch-millis timestamp the application started. Null when unknown."""
+  startTime: String
+  """Number of jobs belonging to this application."""
+  jobCount: Int!
+}
+
+type CancelApplicationResult {
+  success: Boolean!
+}
+
+extend type Query {
+  """List applications in the cluster. Empty on clusters without application mode (Flink 2.3+)."""
+  applications(cluster: String): [Application!]!
+
+  """Get a single application by id. Null when not found (Flink 2.3+)."""
+  application(id: ID!, cluster: String): Application
+}
+
+extend type Mutation {
+  """Cancel an application and all its jobs (Flink 2.3+)."""
+  cancelApplication(id: ID!, cluster: String): CancelApplicationResult!
+}

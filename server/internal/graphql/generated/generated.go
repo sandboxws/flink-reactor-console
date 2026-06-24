@@ -88,6 +88,14 @@ type ComplexityRoot struct {
 		Resource func(childComplexity int) int
 	}
 
+	Application struct {
+		ID        func(childComplexity int) int
+		JobCount  func(childComplexity int) int
+		Name      func(childComplexity int) int
+		StartTime func(childComplexity int) int
+		State     func(childComplexity int) int
+	}
+
 	BackPressureInfo struct {
 		BackpressureLevel func(childComplexity int) int
 		EndTimestamp      func(childComplexity int) int
@@ -115,6 +123,10 @@ type ComplexityRoot struct {
 		Namespace                func(childComplexity int) int
 		PendingJobID             func(childComplexity int) int
 		State                    func(childComplexity int) int
+	}
+
+	CancelApplicationResult struct {
+		Success func(childComplexity int) int
 	}
 
 	CancelJobResult struct {
@@ -730,6 +742,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AcknowledgeAlert             func(childComplexity int, id string, note *string) int
+		CancelApplication            func(childComplexity int, id string, cluster *string) int
 		CancelJob                    func(childComplexity int, id string, cluster *string) int
 		CheckDeploymentCompatibility func(childComplexity int, pipeline string, environment *string, newManifest model.StateManifestInput, persist *bool) int
 		CheckSchemaCompatibility     func(childComplexity int, instrument string, subject string, schema string, schemaType string) int
@@ -813,6 +826,8 @@ type ComplexityRoot struct {
 		AlertHistory                  func(childComplexity int, filter *model.AlertHistoryFilterInput) int
 		AlertRule                     func(childComplexity int, id string) int
 		AlertRules                    func(childComplexity int, enabledOnly *bool) int
+		Application                   func(childComplexity int, id string, cluster *string) int
+		Applications                  func(childComplexity int, cluster *string) int
 		BlueGreenDeployment           func(childComplexity int, name string, namespace *string, cluster *string) int
 		BlueGreenDeploymentConfigDiff func(childComplexity int, name string, namespace *string, cluster *string) int
 		BlueGreenDeployments          func(childComplexity int, cluster *string, namespace *string) int
@@ -1307,6 +1322,7 @@ type MutationResolver interface {
 	AcknowledgeAlert(ctx context.Context, id string, note *string) (*model.AlertInstance, error)
 	SilenceAlert(ctx context.Context, id string) (*model.AlertInstance, error)
 	ResolveAlert(ctx context.Context, id string) (*model.AlertInstance, error)
+	CancelApplication(ctx context.Context, id string, cluster *string) (*model.CancelApplicationResult, error)
 	CheckDeploymentCompatibility(ctx context.Context, pipeline string, environment *string, newManifest model.StateManifestInput, persist *bool) (*model.CompatibilityReport, error)
 	ExecuteDatabaseQuery(ctx context.Context, instrument string, sql string) (*model.DatabaseQueryResult, error)
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
@@ -1334,6 +1350,8 @@ type QueryResolver interface {
 	AlertRule(ctx context.Context, id string) (*model.AlertRule, error)
 	ActiveAlerts(ctx context.Context) ([]*model.AlertInstance, error)
 	AlertHistory(ctx context.Context, filter *model.AlertHistoryFilterInput) (*model.AlertHistoryPage, error)
+	Applications(ctx context.Context, cluster *string) ([]*model.Application, error)
+	Application(ctx context.Context, id string, cluster *string) (*model.Application, error)
 	BlueGreenDeployments(ctx context.Context, cluster *string, namespace *string) ([]*model.BlueGreenDeployment, error)
 	BlueGreenDeployment(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenDeployment, error)
 	BlueGreenDeploymentConfigDiff(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenConfigDiff, error)
@@ -1639,6 +1657,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.AllocatedSlot.Resource(childComplexity), true
 
+	case "Application.id":
+		if e.ComplexityRoot.Application.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Application.ID(childComplexity), true
+	case "Application.jobCount":
+		if e.ComplexityRoot.Application.JobCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Application.JobCount(childComplexity), true
+	case "Application.name":
+		if e.ComplexityRoot.Application.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Application.Name(childComplexity), true
+	case "Application.startTime":
+		if e.ComplexityRoot.Application.StartTime == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Application.StartTime(childComplexity), true
+	case "Application.state":
+		if e.ComplexityRoot.Application.State == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Application.State(childComplexity), true
+
 	case "BackPressureInfo.backpressureLevel":
 		if e.ComplexityRoot.BackPressureInfo.BackpressureLevel == nil {
 			break
@@ -1761,6 +1810,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.BlueGreenDeployment.State(childComplexity), true
+
+	case "CancelApplicationResult.success":
+		if e.ComplexityRoot.CancelApplicationResult.Success == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CancelApplicationResult.Success(childComplexity), true
 
 	case "CancelJobResult.success":
 		if e.ComplexityRoot.CancelJobResult.Success == nil {
@@ -4045,6 +4101,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.AcknowledgeAlert(childComplexity, args["id"].(string), args["note"].(*string)), true
+	case "Mutation.cancelApplication":
+		if e.ComplexityRoot.Mutation.CancelApplication == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_cancelApplication_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CancelApplication(childComplexity, args["id"].(string), args["cluster"].(*string)), true
 	case "Mutation.cancelJob":
 		if e.ComplexityRoot.Mutation.CancelJob == nil {
 			break
@@ -4576,6 +4643,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.AlertRules(childComplexity, args["enabledOnly"].(*bool)), true
+	case "Query.application":
+		if e.ComplexityRoot.Query.Application == nil {
+			break
+		}
+
+		args, err := ec.field_Query_application_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.Application(childComplexity, args["id"].(string), args["cluster"].(*string)), true
+	case "Query.applications":
+		if e.ComplexityRoot.Query.Applications == nil {
+			break
+		}
+
+		args, err := ec.field_Query_applications_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.Applications(childComplexity, args["cluster"].(*string)), true
 	case "Query.blueGreenDeployment":
 		if e.ComplexityRoot.Query.BlueGreenDeployment == nil {
 			break
@@ -7224,6 +7313,39 @@ extend type Subscription {
   alertResolved: AlertInstance!
 }
 `, BuiltIn: false},
+	{Name: "../schema/applications.graphqls", Input: `# Application types and queries — the cluster→application→job hierarchy
+# introduced in Flink 2.3 (FLIP-549). Queries return empty / null on clusters
+# that don't run in application mode (the REST endpoints 404), so the dashboard
+# can feature-detect and hide the Applications view.
+
+"""A Flink application in the cluster→application→job hierarchy (Flink 2.3+, FLIP-549)."""
+type Application {
+  id: ID!
+  name: String!
+  state: String!
+  """Epoch-millis timestamp the application started. Null when unknown."""
+  startTime: String
+  """Number of jobs belonging to this application."""
+  jobCount: Int!
+}
+
+type CancelApplicationResult {
+  success: Boolean!
+}
+
+extend type Query {
+  """List applications in the cluster. Empty on clusters without application mode (Flink 2.3+)."""
+  applications(cluster: String): [Application!]!
+
+  """Get a single application by id. Null when not found (Flink 2.3+)."""
+  application(id: ID!, cluster: String): Application
+}
+
+extend type Mutation {
+  """Cancel an application and all its jobs (Flink 2.3+)."""
+  cancelApplication(id: ID!, cluster: String): CancelApplicationResult!
+}
+`, BuiltIn: false},
 	{Name: "../schema/bluegreen.graphqls", Input: `enum BlueGreenState {
   INITIALIZING_BLUE
   ACTIVE_BLUE
@@ -9279,6 +9401,22 @@ func (ec *executionContext) field_Mutation_acknowledgeAlert_args(ctx context.Con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_cancelApplication_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_cancelJob_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9764,6 +9902,33 @@ func (ec *executionContext) field_Query_alertRules_args(ctx context.Context, raw
 		return nil, err
 	}
 	args["enabledOnly"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_application_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_applications_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
 	return args, nil
 }
 
@@ -11984,6 +12149,151 @@ func (ec *executionContext) fieldContext_AllocatedSlot_resource(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_id(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Application_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Application_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_name(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Application_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Application_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_state(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Application_state,
+		func(ctx context.Context) (any, error) {
+			return obj.State, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Application_state(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_startTime(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Application_startTime,
+		func(ctx context.Context) (any, error) {
+			return obj.StartTime, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Application_startTime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_jobCount(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Application_jobCount,
+		func(ctx context.Context) (any, error) {
+			return obj.JobCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Application_jobCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BackPressureInfo_status(ctx context.Context, field graphql.CollectedField, obj *model.BackPressureInfo) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -12573,6 +12883,35 @@ func (ec *executionContext) fieldContext_BlueGreenDeployment_deploymentDeletionD
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CancelApplicationResult_success(ctx context.Context, field graphql.CollectedField, obj *model.CancelApplicationResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CancelApplicationResult_success,
+		func(ctx context.Context) (any, error) {
+			return obj.Success, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CancelApplicationResult_success(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CancelApplicationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -24249,6 +24588,51 @@ func (ec *executionContext) fieldContext_Mutation_resolveAlert(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_cancelApplication(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_cancelApplication,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CancelApplication(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNCancelApplicationResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_cancelApplication(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "success":
+				return ec.fieldContext_CancelApplicationResult_success(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CancelApplicationResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_cancelApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_checkDeploymentCompatibility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -26571,6 +26955,112 @@ func (ec *executionContext) fieldContext_Query_alertHistory(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_alertHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_applications(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_applications,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().Applications(ctx, fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNApplication2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplicationᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_applications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "state":
+				return ec.fieldContext_Application_state(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Application_startTime(ctx, field)
+			case "jobCount":
+				return ec.fieldContext_Application_jobCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_applications_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_application(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_application,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().Application(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalOApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "state":
+				return ec.fieldContext_Application_state(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Application_startTime(ctx, field)
+			case "jobCount":
+				return ec.fieldContext_Application_jobCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_application_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -40906,6 +41396,62 @@ func (ec *executionContext) _AllocatedSlot(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var applicationImplementors = []string{"Application"}
+
+func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionSet, obj *model.Application) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, applicationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Application")
+		case "id":
+			out.Values[i] = ec._Application_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Application_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "state":
+			out.Values[i] = ec._Application_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "startTime":
+			out.Values[i] = ec._Application_startTime(ctx, field, obj)
+		case "jobCount":
+			out.Values[i] = ec._Application_jobCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var backPressureInfoImplementors = []string{"BackPressureInfo"}
 
 func (ec *executionContext) _BackPressureInfo(ctx context.Context, sel ast.SelectionSet, obj *model.BackPressureInfo) graphql.Marshaler {
@@ -41052,6 +41598,45 @@ func (ec *executionContext) _BlueGreenDeployment(ctx context.Context, sel ast.Se
 			out.Values[i] = ec._BlueGreenDeployment_abortGracePeriod(ctx, field, obj)
 		case "deploymentDeletionDelay":
 			out.Values[i] = ec._BlueGreenDeployment_deploymentDeletionDelay(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var cancelApplicationResultImplementors = []string{"CancelApplicationResult"}
+
+func (ec *executionContext) _CancelApplicationResult(ctx context.Context, sel ast.SelectionSet, obj *model.CancelApplicationResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cancelApplicationResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CancelApplicationResult")
+		case "success":
+			out.Values[i] = ec._CancelApplicationResult_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -45596,6 +46181,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "cancelApplication":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_cancelApplication(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "checkDeploymentCompatibility":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_checkDeploymentCompatibility(ctx, field)
@@ -46222,6 +46814,47 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "applications":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_applications(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "application":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_application(ctx, field)
 				return res
 			}
 
@@ -51192,6 +51825,32 @@ func (ec *executionContext) marshalNAllocatedSlot2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._AllocatedSlot(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNApplication2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplicationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Application) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Application(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNBackPressureInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBackPressureInfo(ctx context.Context, sel ast.SelectionSet, v *model.BackPressureInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -51270,6 +51929,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNCancelApplicationResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult(ctx context.Context, sel ast.SelectionSet, v model.CancelApplicationResult) graphql.Marshaler {
+	return ec._CancelApplicationResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCancelApplicationResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult(ctx context.Context, sel ast.SelectionSet, v *model.CancelApplicationResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CancelApplicationResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNCancelJobResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelJobResult(ctx context.Context, sel ast.SelectionSet, v model.CancelJobResult) graphql.Marshaler {
@@ -54297,6 +54970,13 @@ func (ec *executionContext) marshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋfli
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Application(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenDeployment) graphql.Marshaler {

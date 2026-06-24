@@ -22,6 +22,7 @@ import {
   Gauge,
   GitFork,
   HeartPulse,
+  Layers,
   LayoutDashboard,
   LineChart,
   Play,
@@ -81,6 +82,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Cluster",
     items: [
       { href: "/task-managers", label: "Task Managers", icon: Server },
+      { href: "/applications", label: "Applications", icon: Layers },
       { href: "/job-manager", label: "Job Manager", icon: Settings },
       { href: "/insights/health", label: "Cluster Health", icon: HeartPulse },
     ],
@@ -163,7 +165,11 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex h-11 items-center gap-2 border-b border-dash-border px-3">
-        <img src="/favicon.svg" alt="FlinkReactor" className="size-5 shrink-0 rounded" />
+        <img
+          src="/favicon.svg"
+          alt="FlinkReactor"
+          className="size-5 shrink-0 rounded"
+        />
         {!collapsed && (
           <div className="flex flex-col leading-none">
             <span className="text-xs font-semibold tracking-wide text-zinc-300">

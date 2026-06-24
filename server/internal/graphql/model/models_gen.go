@@ -80,6 +80,17 @@ type AllocatedSlot struct {
 	Resource *TaskManagerResourceProfile `json:"resource"`
 }
 
+// A Flink application in the cluster→application→job hierarchy (Flink 2.3+, FLIP-549).
+type Application struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	State string `json:"state"`
+	// Epoch-millis timestamp the application started. Null when unknown.
+	StartTime *string `json:"startTime,omitempty"`
+	// Number of jobs belonging to this application.
+	JobCount int `json:"jobCount"`
+}
+
 type BackPressureInfo struct {
 	Status            string                 `json:"status"`
 	BackpressureLevel string                 `json:"backpressureLevel"`
@@ -107,6 +118,10 @@ type BlueGreenDeployment struct {
 	PendingJobID             *string        `json:"pendingJobId,omitempty"`
 	AbortGracePeriod         *string        `json:"abortGracePeriod,omitempty"`
 	DeploymentDeletionDelay  *string        `json:"deploymentDeletionDelay,omitempty"`
+}
+
+type CancelApplicationResult struct {
+	Success bool `json:"success"`
 }
 
 type CancelJobResult struct {

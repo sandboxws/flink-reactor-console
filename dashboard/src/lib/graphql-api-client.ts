@@ -1141,6 +1141,55 @@ export async function fetchRescaleHistory(
   return (data.rescaleHistory ?? []) as RescaleEvent[]
 }
 
+/** A Flink application in the cluster→application→job hierarchy (Flink 2.3+, FLIP-549). */
+export interface Application {
+  id: string
+  name: string
+  state: string
+  startTime: string | null
+  jobCount: number
+}
+
+const APPLICATIONS_QUERY = gql`
+  query Applications($cluster: String) {
+    applications(cluster: $cluster) {
+      id
+      name
+      state
+      startTime
+      jobCount
+    }
+  }
+`
+
+const CANCEL_APPLICATION_MUTATION = gql`
+  mutation CancelApplication($id: ID!, $cluster: String) {
+    cancelApplication(id: $id, cluster: $cluster) {
+      success
+    }
+  }
+`
+
+/**
+ * Fetch Flink applications (Flink 2.3+, FLIP-549). Returns an empty list on
+ * clusters that don't run in application mode.
+ */
+export async function fetchApplications(
+  cluster?: string,
+): Promise<Application[]> {
+  const data = await query<any>(APPLICATIONS_QUERY, { cluster })
+  return (data.applications ?? []) as Application[]
+}
+
+/** Cancel an application and all its jobs (Flink 2.3+, FLIP-549). */
+export async function cancelApplication(
+  id: string,
+  cluster?: string,
+): Promise<boolean> {
+  const data = await mutate<any>(CANCEL_APPLICATION_MUTATION, { id, cluster })
+  return Boolean(data.cancelApplication?.success)
+}
+
 /** Status of a Flink savepoint operation. */
 export type SavepointStatus = "IN_PROGRESS" | "COMPLETED" | "FAILED"
 

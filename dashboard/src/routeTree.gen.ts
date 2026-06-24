@@ -21,6 +21,7 @@ import { Route as InstrumentsIndexRouteImport } from './routes/instruments/index
 import { Route as HubIndexRouteImport } from './routes/hub/index'
 import { Route as DeploymentsIndexRouteImport } from './routes/deployments/index'
 import { Route as CatalogsIndexRouteImport } from './routes/catalogs/index'
+import { Route as ApplicationsIndexRouteImport } from './routes/applications/index'
 import { Route as TaskManagersIdRouteImport } from './routes/task-managers/$id'
 import { Route as SandboxEditorRouteImport } from './routes/sandbox/editor'
 import { Route as MonitoringCheckpointsRouteImport } from './routes/monitoring/checkpoints'
@@ -155,6 +156,11 @@ const DeploymentsIndexRoute = DeploymentsIndexRouteImport.update({
 const CatalogsIndexRoute = CatalogsIndexRouteImport.update({
   id: '/catalogs/',
   path: '/catalogs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplicationsIndexRoute = ApplicationsIndexRouteImport.update({
+  id: '/applications/',
+  path: '/applications/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TaskManagersIdRoute = TaskManagersIdRouteImport.update({
@@ -593,6 +599,7 @@ export interface FileRoutesByFullPath {
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/sandbox/editor': typeof SandboxEditorRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
+  '/applications/': typeof ApplicationsIndexRoute
   '/catalogs/': typeof CatalogsIndexRoute
   '/deployments/': typeof DeploymentsIndexRoute
   '/hub/': typeof HubIndexRoute
@@ -681,6 +688,7 @@ export interface FileRoutesByTo {
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/sandbox/editor': typeof SandboxEditorRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
+  '/applications': typeof ApplicationsIndexRoute
   '/catalogs': typeof CatalogsIndexRoute
   '/deployments': typeof DeploymentsIndexRoute
   '/instruments': typeof InstrumentsIndexRoute
@@ -770,6 +778,7 @@ export interface FileRoutesById {
   '/monitoring/checkpoints': typeof MonitoringCheckpointsRoute
   '/sandbox/editor': typeof SandboxEditorRoute
   '/task-managers/$id': typeof TaskManagersIdRoute
+  '/applications/': typeof ApplicationsIndexRoute
   '/catalogs/': typeof CatalogsIndexRoute
   '/deployments/': typeof DeploymentsIndexRoute
   '/hub/': typeof HubIndexRoute
@@ -861,6 +870,7 @@ export interface FileRouteTypes {
     | '/monitoring/checkpoints'
     | '/sandbox/editor'
     | '/task-managers/$id'
+    | '/applications/'
     | '/catalogs/'
     | '/deployments/'
     | '/hub/'
@@ -949,6 +959,7 @@ export interface FileRouteTypes {
     | '/monitoring/checkpoints'
     | '/sandbox/editor'
     | '/task-managers/$id'
+    | '/applications'
     | '/catalogs'
     | '/deployments'
     | '/instruments'
@@ -1037,6 +1048,7 @@ export interface FileRouteTypes {
     | '/monitoring/checkpoints'
     | '/sandbox/editor'
     | '/task-managers/$id'
+    | '/applications/'
     | '/catalogs/'
     | '/deployments/'
     | '/hub/'
@@ -1127,6 +1139,7 @@ export interface RootRouteChildren {
   MonitoringCheckpointsRoute: typeof MonitoringCheckpointsRoute
   SandboxEditorRoute: typeof SandboxEditorRoute
   TaskManagersIdRoute: typeof TaskManagersIdRoute
+  ApplicationsIndexRoute: typeof ApplicationsIndexRoute
   CatalogsIndexRoute: typeof CatalogsIndexRoute
   DeploymentsIndexRoute: typeof DeploymentsIndexRoute
   HubIndexRoute: typeof HubIndexRoute
@@ -1260,6 +1273,13 @@ declare module '@tanstack/react-router' {
       path: '/catalogs'
       fullPath: '/catalogs/'
       preLoaderRoute: typeof CatalogsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/applications/': {
+      id: '/applications/'
+      path: '/applications'
+      fullPath: '/applications/'
+      preLoaderRoute: typeof ApplicationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/task-managers/$id': {
@@ -1868,6 +1888,7 @@ const rootRouteChildren: RootRouteChildren = {
   MonitoringCheckpointsRoute: MonitoringCheckpointsRoute,
   SandboxEditorRoute: SandboxEditorRoute,
   TaskManagersIdRoute: TaskManagersIdRoute,
+  ApplicationsIndexRoute: ApplicationsIndexRoute,
   CatalogsIndexRoute: CatalogsIndexRoute,
   DeploymentsIndexRoute: DeploymentsIndexRoute,
   HubIndexRoute: HubIndexRoute,

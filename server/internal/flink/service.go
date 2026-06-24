@@ -244,6 +244,40 @@ func (s *Service) RescaleSummary(ctx context.Context, jobID string) (*RescaleSum
 	return &result, nil
 }
 
+// ApplicationsOverview lists applications via GET /applications/overview
+// (Flink 2.3+, FLIP-549). Returns an empty list when the cluster doesn't run
+// in application mode (the endpoint 404s), so callers can feature-detect.
+func (s *Service) ApplicationsOverview(ctx context.Context) ([]ApplicationOverview, error) {
+	var result ApplicationList
+	if err := s.client.GetJSON(ctx, "/applications/overview", &result); err != nil {
+		if IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return result.Applications, nil
+}
+
+// ApplicationDetail returns a single application via GET /applications/:id
+// (Flink 2.3+, FLIP-549). Returns nil when the application — or the endpoint —
+// is not found.
+func (s *Service) ApplicationDetail(ctx context.Context, appID string) (*ApplicationOverview, error) {
+	var result ApplicationOverview
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/applications/%s", appID), &result); err != nil {
+		if IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &result, nil
+}
+
+// CancelApplication cancels an application and all its jobs via
+// POST /applications/:id/cancel (Flink 2.3+, FLIP-549).
+func (s *Service) CancelApplication(ctx context.Context, appID string) error {
+	return s.client.PostJSON(ctx, fmt.Sprintf("/applications/%s/cancel", appID), nil, nil)
+}
+
 // --- Aggregated methods ---
 
 // GetJobDetail returns a fully aggregated job detail.
