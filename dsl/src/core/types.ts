@@ -42,7 +42,7 @@ export type ChangelogMode = "append-only" | "retract" | "upsert"
 
 // ── Flink version ────────────────────────────────────────────────────
 
-export type FlinkMajorVersion = "1.20" | "2.0" | "2.1" | "2.2"
+export type FlinkMajorVersion = "1.20" | "2.0" | "2.1" | "2.2" | "2.3"
 
 // ── Schema ───────────────────────────────────────────────────────────
 

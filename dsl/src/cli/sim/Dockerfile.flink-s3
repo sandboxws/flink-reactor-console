@@ -1,17 +1,17 @@
-# Extends the flink-reactor base image with S3 filesystem plugin
-# for SeaweedFS checkpoint/savepoint storage.
+# Extends the flink-reactor base image. As of Flink 2.3 the base image
+# (Dockerfile.flink) installs the native S3 plugin (FLIP-555) directly, so this
+# image is a thin pass-through retained for the sim build chain's tag layering.
 #
 # Build (from flink-reactor-dsl repo root):
 #   eval $(minikube docker-env)
-#   docker build -t flink-reactor:2.2.0 -f src/cli/cluster/Dockerfile.flink .
-#   docker build -t flink-reactor-s3:2.2.0 -f /path/to/Dockerfile.flink-s3 .
+#   docker build -t flink-reactor:2.3.0 -f src/cli/cluster/Dockerfile.flink .
+#   docker build -t flink-reactor-s3:2.3.0 -f src/cli/sim/Dockerfile.flink-s3 .
 #
 # Multi-platform (Apple Silicon / x86_64):
-#   docker build -t flink-reactor-s3:2.2.0 --platform linux/arm64 -f Dockerfile.flink-s3 .
-#   docker build -t flink-reactor-s3:2.2.0 --platform linux/amd64 -f Dockerfile.flink-s3 .
+#   docker build -t flink-reactor-s3:2.3.0 --platform linux/arm64 -f src/cli/sim/Dockerfile.flink-s3 .
+#   docker build -t flink-reactor-s3:2.3.0 --platform linux/amd64 -f src/cli/sim/Dockerfile.flink-s3 .
 
-FROM flink-reactor:2.2.0
+FROM flink-reactor:2.3.0
 
-# Enable the S3 Hadoop filesystem plugin for checkpoint I/O
-RUN mkdir -p /opt/flink/plugins/s3-fs-hadoop && \
-    cp /opt/flink/opt/flink-s3-fs-hadoop-*.jar /opt/flink/plugins/s3-fs-hadoop/
+# Native S3 plugin (FLIP-555) is already present from the base image under
+# /opt/flink/plugins/s3-fs-native — no extra setup needed here.

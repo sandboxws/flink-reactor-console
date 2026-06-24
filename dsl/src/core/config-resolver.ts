@@ -293,7 +293,7 @@ export function resolveConfig(
     flink: {
       version: ((flink?.version as string) ??
         config.flink?.version ??
-        "2.2") as FlinkMajorVersion,
+        "2.3") as FlinkMajorVersion,
     },
     cluster: {
       url: cluster?.url as string | undefined,

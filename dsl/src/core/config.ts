@@ -432,6 +432,7 @@ export function defineConfig(
       "2.0",
       "2.1",
       "2.2",
+      "2.3",
     ]
     if (!validVersions.includes(config.flink.version)) {
       throw new Error(

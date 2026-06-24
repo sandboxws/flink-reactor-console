@@ -136,7 +136,7 @@ export async function runSynth(
       )
       const { generateCrd } = await import("@/codegen/crd-generator.js")
 
-      const flinkVersion = ctx.config?.flink?.version ?? "2.0"
+      const flinkVersion = ctx.config?.flink?.version ?? "2.3"
       const sql = generateSql(pipelineNode, { flinkVersion })
       const crd = generateCrd(pipelineNode, { flinkVersion })
       const { manifest: tapManifest } = generateTapManifest(pipelineNode, {
@@ -375,7 +375,7 @@ function synthesizeAndWrite(
 
       // Fallback: treat whole tree as single pipeline
       if (result.pipelines.length === 0) {
-        const flinkVersion = ctx.config?.flink?.version ?? "2.0"
+        const flinkVersion = ctx.config?.flink?.version ?? "2.3"
         const sql = generateSql(pipelineNode, { flinkVersion })
         const crd = generateCrd(pipelineNode, { flinkVersion })
         const { manifest: tapManifest } = generateTapManifest(pipelineNode, {

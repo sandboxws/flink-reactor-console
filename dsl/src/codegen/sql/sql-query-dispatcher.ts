@@ -6,6 +6,10 @@ import {
   buildWindowQuery,
 } from "./sql-query-aggregate-window.js"
 import {
+  buildFromChangelogQuery,
+  buildToChangelogQuery,
+} from "./sql-query-changelog.js"
+import {
   buildMatchRecognizeQuery,
   buildQueryComponentQuery,
   buildRawSqlQuery,
@@ -88,6 +92,10 @@ const QUERY_BUILDERS = new Map<string, QueryBuilder>([
   ["LookupJoin", buildLookupJoinQuery],
   ["IntervalJoin", buildIntervalJoinQuery],
   ["LateralJoin", buildLateralJoinQuery],
+
+  // Changelog PTFs (Flink 2.3+, FLIP-564)
+  ["FromChangelog", buildFromChangelogQuery],
+  ["ToChangelog", buildToChangelogQuery],
 
   // Windows — three variants share buildWindowQuery
   ["TumbleWindow", buildWindowQuery],

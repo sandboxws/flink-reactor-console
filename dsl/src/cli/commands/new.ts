@@ -46,7 +46,7 @@ export type TemplateName =
   | "stock-ds-moderate"
   | "stock-temporal-topn"
 export type PackageManager = "pnpm" | "npm" | "yarn"
-export type FlinkVersion = "1.20" | "2.0" | "2.1" | "2.2"
+export type FlinkVersion = "1.20" | "2.0" | "2.1" | "2.2" | "2.3"
 
 export interface ScaffoldOptions {
   projectName: string
@@ -132,7 +132,13 @@ const TEMPLATE_DESCRIPTIONS: Record<TemplateName, string> = {
 export function registerNewCommand(program: Command): void {
   const TEMPLATE_NAMES = Object.keys(TEMPLATE_FACTORIES) as TemplateName[]
   const PM_CHOICES: PackageManager[] = ["pnpm", "npm", "yarn"]
-  const FLINK_VERSION_CHOICES: FlinkVersion[] = ["1.20", "2.0", "2.1", "2.2"]
+  const FLINK_VERSION_CHOICES: FlinkVersion[] = [
+    "1.20",
+    "2.0",
+    "2.1",
+    "2.2",
+    "2.3",
+  ]
 
   program
     .command("new")
@@ -207,7 +213,7 @@ export async function runNewCommand(
   if (nonInteractive) {
     const registryChoice = opts.registry as RegistryChoice | undefined
     const flinkVersion =
-      validateFlinkVersion(opts.flinkVersion as string) ?? "2.2"
+      validateFlinkVersion(opts.flinkVersion as string) ?? "2.3"
     // `--grafana` is only wired for Flink 2.x. If the user combines
     // `--flink-version=1.20 --grafana` we surface a one-time warning and
     // ignore the flag; aborting would be hostile in `--yes` mode where
@@ -292,7 +298,7 @@ async function collectOptions(
   }
 
   const flinkVersion = cliOpts.flinkVersion
-    ? (validateFlinkVersion(cliOpts.flinkVersion as string) ?? "2.2")
+    ? (validateFlinkVersion(cliOpts.flinkVersion as string) ?? "2.3")
     : await promptFlinkVersion()
 
   if (clack.isCancel(flinkVersion)) {
@@ -475,7 +481,8 @@ async function promptFlinkVersion(): Promise<FlinkVersion | symbol> {
   return clack.select({
     message: "Target Flink version?",
     options: [
-      { value: "2.2", label: "Flink 2.2", hint: "recommended" },
+      { value: "2.3", label: "Flink 2.3", hint: "recommended" },
+      { value: "2.2", label: "Flink 2.2" },
       { value: "2.1", label: "Flink 2.1" },
       { value: "2.0", label: "Flink 2.0" },
       { value: "1.20", label: "Flink 1.20 LTS" },
@@ -528,7 +535,7 @@ function validatePm(value: string | undefined): PackageManager | null {
 }
 
 function validateFlinkVersion(value: string | undefined): FlinkVersion | null {
-  const valid: FlinkVersion[] = ["1.20", "2.0", "2.1", "2.2"]
+  const valid: FlinkVersion[] = ["1.20", "2.0", "2.1", "2.2", "2.3"]
   return valid.includes(value as FlinkVersion) ? (value as FlinkVersion) : null
 }
 

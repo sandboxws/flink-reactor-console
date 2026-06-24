@@ -61,6 +61,7 @@ const VERSION_ORDER: readonly FlinkMajorVersion[] = [
   "2.0",
   "2.1",
   "2.2",
+  "2.3",
 ]
 
 function versionIndex(v: FlinkMajorVersion): number {
@@ -96,11 +97,25 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
       },
       {
         minVersion: "2.0",
+        maxVersion: "2.1",
         artifacts: [
           {
             groupId: "org.apache.flink",
             artifactId: "flink-sql-connector-kafka",
             version: "4.0.1-2.0",
+          },
+        ],
+      },
+      // Flink 2.2 introduced the connector 5.x line. Open-ended so Flink 2.3
+      // reuses it — upstream has not published a 5.0.0-2.3 build yet (verified
+      // on Maven Central 2026-06; run `flink-reactor connectors check`).
+      {
+        minVersion: "2.2",
+        artifacts: [
+          {
+            groupId: "org.apache.flink",
+            artifactId: "flink-sql-connector-kafka",
+            version: "5.0.0-2.2",
           },
         ],
       },
@@ -129,7 +144,7 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
           {
             groupId: "org.apache.flink",
             artifactId: "flink-connector-jdbc-core",
-            version: "3.2.0-2.0",
+            version: "4.0.0-2.0",
           },
         ],
       },
@@ -181,11 +196,23 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
     versions: [
       {
         minVersion: "1.20",
+        maxVersion: "1.20",
         artifacts: [
           {
             groupId: "org.apache.flink",
             artifactId: "flink-cdc-pipeline-connector-postgres",
-            version: "3.6.0",
+            version: "3.6.0-1.20",
+          },
+        ],
+      },
+      // Flink CDC 3.6.0 ships only 1.20 and 2.2 builds; 2.3 reuses -2.2.
+      {
+        minVersion: "2.0",
+        artifacts: [
+          {
+            groupId: "org.apache.flink",
+            artifactId: "flink-cdc-pipeline-connector-postgres",
+            version: "3.6.0-2.2",
           },
         ],
       },
@@ -204,11 +231,23 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
     versions: [
       {
         minVersion: "1.20",
+        maxVersion: "1.20",
         artifacts: [
           {
             groupId: "org.apache.flink",
             artifactId: "flink-cdc-pipeline-connector-fluss",
-            version: "3.6.0",
+            version: "3.6.0-1.20",
+          },
+        ],
+      },
+      // Flink CDC 3.6.0 ships only 1.20 and 2.2 builds; 2.3 reuses -2.2.
+      {
+        minVersion: "2.0",
+        artifacts: [
+          {
+            groupId: "org.apache.flink",
+            artifactId: "flink-cdc-pipeline-connector-fluss",
+            version: "3.6.0-2.2",
           },
         ],
       },
@@ -230,7 +269,7 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
           {
             groupId: "org.apache.iceberg",
             artifactId: "iceberg-flink-runtime-1.20",
-            version: "1.6.0",
+            version: "1.10.1",
           },
         ],
       },
@@ -240,7 +279,7 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
           {
             groupId: "org.apache.iceberg",
             artifactId: "iceberg-flink-runtime-2.0",
-            version: "1.6.0",
+            version: "1.10.1",
           },
         ],
       },
@@ -276,13 +315,16 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
           },
         ],
       },
+      // Open-ended: Flink 2.3 reuses fluss-flink-2.2 — Apache Fluss has not
+      // published a fluss-flink-2.3 artifact yet (verified Maven Central
+      // 2026-06). Replace with a real 2.3 entry once upstream ships one.
       {
         minVersion: "2.2",
         artifacts: [
           {
             groupId: "org.apache.fluss",
             artifactId: "fluss-flink-2.2",
-            version: "0.9.0-incubating",
+            version: "0.9.1-incubating",
           },
         ],
       },
@@ -329,13 +371,16 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
           },
         ],
       },
+      // Open-ended: Flink 2.3 reuses paimon-flink-2.2 — no paimon-flink-2.3
+      // artifact exists yet (verified Maven Central 2026-06). Replace with a
+      // real 2.3 entry once Apache Paimon publishes one.
       {
         minVersion: "2.2",
         artifacts: [
           {
             groupId: "org.apache.paimon",
             artifactId: "paimon-flink-2.2",
-            version: "1.4.1",
+            version: "1.4.2",
           },
         ],
       },
@@ -352,7 +397,7 @@ const JDBC_DIALECT_REGISTRY: readonly JdbcDialectEntry[] = [
     dialectArtifact: (v) => ({
       groupId: "org.apache.flink",
       artifactId: "flink-connector-jdbc-mysql",
-      version: `3.2.0-${versionGte(v, "2.0") ? "2.0" : v}`,
+      version: versionGte(v, "2.0") ? "4.0.0-2.0" : `3.2.0-${v}`,
     }),
     driverArtifact: {
       groupId: "com.mysql",
@@ -366,7 +411,7 @@ const JDBC_DIALECT_REGISTRY: readonly JdbcDialectEntry[] = [
     dialectArtifact: (v) => ({
       groupId: "org.apache.flink",
       artifactId: "flink-connector-jdbc-postgres",
-      version: `3.2.0-${versionGte(v, "2.0") ? "2.0" : v}`,
+      version: versionGte(v, "2.0") ? "4.0.0-2.0" : `3.2.0-${v}`,
     }),
     driverArtifact: {
       groupId: "org.postgresql",
@@ -380,7 +425,7 @@ const JDBC_DIALECT_REGISTRY: readonly JdbcDialectEntry[] = [
     dialectArtifact: (v) => ({
       groupId: "org.apache.flink",
       artifactId: "flink-connector-jdbc-oracle",
-      version: `3.2.0-${versionGte(v, "2.0") ? "2.0" : v}`,
+      version: versionGte(v, "2.0") ? "4.0.0-2.0" : `3.2.0-${v}`,
     }),
     driverArtifact: {
       groupId: "com.oracle.database.jdbc",
@@ -394,7 +439,7 @@ const JDBC_DIALECT_REGISTRY: readonly JdbcDialectEntry[] = [
     dialectArtifact: (v) => ({
       groupId: "org.apache.flink",
       artifactId: "flink-connector-jdbc-sqlserver",
-      version: `3.2.0-${versionGte(v, "2.0") ? "2.0" : v}`,
+      version: versionGte(v, "2.0") ? "4.0.0-2.0" : `3.2.0-${v}`,
     }),
     driverArtifact: {
       groupId: "com.microsoft.sqlserver",
@@ -408,7 +453,7 @@ const JDBC_DIALECT_REGISTRY: readonly JdbcDialectEntry[] = [
     dialectArtifact: (v) => ({
       groupId: "org.apache.flink",
       artifactId: "flink-connector-jdbc-db2",
-      version: `3.2.0-${versionGte(v, "2.0") ? "2.0" : v}`,
+      version: versionGte(v, "2.0") ? "4.0.0-2.0" : `3.2.0-${v}`,
     }),
     driverArtifact: {
       groupId: "com.ibm.db2",
@@ -697,4 +742,34 @@ export function serviceForConnector(
   connectorId: string,
 ): ServiceKind | undefined {
   return CONNECTOR_TO_SERVICE[connectorId]
+}
+
+// ── Enumeration helpers ─────────────────────────────────────────────
+//
+// Exposed for tooling (e.g. the `connectors check` CLI command) that needs
+// to walk the full registry rather than resolve a single id.
+
+/** All Flink major versions the registry knows about, oldest → newest. */
+export const SUPPORTED_FLINK_VERSIONS: readonly FlinkMajorVersion[] =
+  VERSION_ORDER
+
+/** Every connector id in the registry. */
+export function listConnectorIds(): readonly string[] {
+  return CONNECTOR_REGISTRY.map((e) => e.connectorId)
+}
+
+/** Every format id in the registry. */
+export function listFormatIds(): readonly string[] {
+  return FORMAT_REGISTRY.map((f) => f.formatId)
+}
+
+/** Every JDBC dialect with a representative URL prefix for resolution. */
+export function listJdbcDialects(): readonly {
+  dialect: string
+  urlPattern: string
+}[] {
+  return JDBC_DIALECT_REGISTRY.map((d) => ({
+    dialect: d.dialect,
+    urlPattern: d.urlPattern,
+  }))
 }

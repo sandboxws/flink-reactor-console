@@ -537,12 +537,12 @@ export async function runSimUp(opts: {
       console.log(pc.dim("    eval $(minikube docker-env)"))
       console.log(
         pc.dim(
-          "    docker build -t flink-reactor:2.2.0 -f src/cli/cluster/Dockerfile.flink .",
+          "    docker build -t flink-reactor:2.3.0 -f src/cli/cluster/Dockerfile.flink .",
         ),
       )
       console.log(
         pc.dim(
-          "    docker build -t flink-reactor-s3:2.2.0 -f src/cli/sim/Dockerfile.flink-s3 .",
+          "    docker build -t flink-reactor-s3:2.3.0 -f src/cli/sim/Dockerfile.flink-s3 .",
         ),
       )
       console.log(

@@ -72,6 +72,11 @@ export interface JdbcSinkProps extends BaseComponentProps {
   readonly table: string
   readonly upsertMode?: boolean
   readonly keyFields?: readonly string[]
+  /**
+   * Upsert conflict strategy → trailing `ON CONFLICT DO …` clause on the
+   * generated INSERT (Flink 2.3+, FLIP-558). Only meaningful for upsert sinks.
+   */
+  readonly onConflict?: "DO NOTHING" | "DO ERROR" | "DO DEDUPLICATE"
   /** Enable operator tailing for this sink */
   readonly tap?: boolean | TapConfig
   readonly children?: ConstructNode | ConstructNode[]
@@ -203,6 +208,11 @@ export interface PaimonSinkProps extends BaseComponentProps {
   readonly snapshotNumRetainedMin?: number
   /** Snapshot retention ceiling (`snapshot.num-retained.max`). */
   readonly snapshotNumRetainedMax?: number
+  /**
+   * Upsert conflict strategy → trailing `ON CONFLICT DO …` clause on the
+   * generated INSERT (Flink 2.3+, FLIP-558).
+   */
+  readonly onConflict?: "DO NOTHING" | "DO ERROR" | "DO DEDUPLICATE"
   /** Enable operator tailing for this sink */
   readonly tap?: boolean | TapConfig
   readonly children?: ConstructNode | ConstructNode[]

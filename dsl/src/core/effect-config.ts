@@ -252,7 +252,7 @@ export function resolveConfigEffect(
       flink: {
         version: ((flink?.version as string) ??
           config.flink?.version ??
-          "2.2") as ResolvedConfig["flink"]["version"],
+          "2.3") as ResolvedConfig["flink"]["version"],
       },
       cluster: {
         url: cluster?.url as string | undefined,

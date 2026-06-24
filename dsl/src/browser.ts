@@ -47,6 +47,13 @@ export type {
 } from "./components/cep.js"
 // Components: CEP
 export { MatchRecognize } from "./components/cep.js"
+// Components: changelog PTFs (Flink 2.3+)
+export type {
+  ChangelogOperation,
+  FromChangelogProps,
+  ToChangelogProps,
+} from "./components/changelog.js"
+export { FromChangelog, ToChangelog } from "./components/changelog.js"
 export type { RawSQLProps, UDFProps } from "./components/escape-hatches.js"
 // Components: escape hatches
 export { RawSQL, UDF } from "./components/escape-hatches.js"

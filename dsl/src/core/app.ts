@@ -220,7 +220,7 @@ export function synthesizeApp(
     options?.flinkVersion ??
     options?.resolvedConfig?.flink.version ??
     options?.config?.flink?.version ??
-    "2.2"
+    "2.3"
 
   // Prefer infra from resolvedConfig, then props, then legacy config
   const infra =
@@ -444,7 +444,7 @@ export function synthesizeAppEffect(
           options?.flinkVersion ??
           options?.resolvedConfig?.flink.version ??
           options?.config?.flink?.version ??
-          "2.2"
+          "2.3"
 
         const infra =
           props.infra ??

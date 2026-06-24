@@ -75,8 +75,8 @@ exports[`pg-fluss-paimon-ingest (Pipeline-YAML branch) > synthesizes a stable ar
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-fluss:3.6.0",
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-fluss:3.6.0-2.2",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -177,8 +177,8 @@ exports[`pg-fluss-paimon-ingest (Pipeline-YAML branch) > synthesizes a stable ar
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-fluss:3.6.0",
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-fluss:3.6.0-2.2",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -279,8 +279,8 @@ exports[`pg-fluss-paimon-ingest (Pipeline-YAML branch) > synthesizes a stable ar
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-fluss:3.6.0",
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-fluss:3.6.0-2.2",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -381,8 +381,8 @@ exports[`pg-fluss-paimon-ingest (Pipeline-YAML branch) > synthesizes a stable ar
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-fluss:3.6.0",
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-fluss:3.6.0-2.2",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -444,8 +444,8 @@ exports[`pg-fluss-paimon-serve (Flink-SQL branch) > synthesizes a stable artifac
     },
   },
   "jars": [
-    "org.apache.fluss:fluss-flink-2.2:0.9.0-incubating",
-    "org.apache.paimon:paimon-flink-2.2:1.4.1",
+    "org.apache.fluss:fluss-flink-2.2:0.9.1-incubating",
+    "org.apache.paimon:paimon-flink-2.2:1.4.2",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -596,8 +596,8 @@ exports[`pg-fluss-paimon-serve (Flink-SQL branch) > synthesizes a stable artifac
     },
   },
   "jars": [
-    "org.apache.fluss:fluss-flink-2.2:0.9.0-incubating",
-    "org.apache.paimon:paimon-flink-2.2:1.4.1",
+    "org.apache.fluss:fluss-flink-2.2:0.9.1-incubating",
+    "org.apache.paimon:paimon-flink-2.2:1.4.2",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -748,8 +748,8 @@ exports[`pg-fluss-paimon-serve (Flink-SQL branch) > synthesizes a stable artifac
     },
   },
   "jars": [
-    "org.apache.fluss:fluss-flink-2.2:0.9.0-incubating",
-    "org.apache.paimon:paimon-flink-2.2:1.4.1",
+    "org.apache.fluss:fluss-flink-2.2:0.9.1-incubating",
+    "org.apache.paimon:paimon-flink-2.2:1.4.2",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -900,8 +900,8 @@ exports[`pg-fluss-paimon-serve (Flink-SQL branch) > synthesizes a stable artifac
     },
   },
   "jars": [
-    "org.apache.fluss:fluss-flink-2.2:0.9.0-incubating",
-    "org.apache.paimon:paimon-flink-2.2:1.4.1",
+    "org.apache.fluss:fluss-flink-2.2:0.9.1-incubating",
+    "org.apache.paimon:paimon-flink-2.2:1.4.2",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE

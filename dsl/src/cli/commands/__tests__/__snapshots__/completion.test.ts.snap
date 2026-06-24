@@ -25,6 +25,7 @@ _flink_reactor() {
         'new:Create a new FlinkReactor project'
         'doctor:Check your development environment'
         'install:Install tools for FlinkReactor development'
+        'connectors:Inspect connector / runtime JAR availability on Maven Central'
         'generate:Generate a new component'
         'g:Generate a new component'
         'synth:Synthesize pipelines to Flink SQL and CRDs'
@@ -56,6 +57,9 @@ _flink_reactor() {
           ;;
         install)
           _flink_reactor_install
+          ;;
+        connectors)
+          _flink_reactor_connectors
           ;;
         generate|g)
           _flink_reactor_generate
@@ -117,7 +121,7 @@ _flink_reactor_new() {
   _arguments \\
     '(-t --template)'{-t,--template}'[Project template]: :(starter minimal cdc-lakehouse realtime-analytics monorepo ecommerce ride-sharing grocery-delivery banking iot-factory lakehouse-ingestion lakehouse-analytics pg-fluss-paimon stock-basics stock-ds-easy stock-ds-moderate stock-temporal-topn)' \\
     '--pm[Package manager]: :(pnpm npm yarn)' \\
-    '--flink-version[Flink version]: :(1.20 2.0 2.1 2.2)' \\
+    '--flink-version[Flink version]: :(1.20 2.0 2.1 2.2 2.3)' \\
     '--registry[npm registry]: :(npm verdaccio)' \\
     '(-y --yes)'{-y,--yes}'[Use defaults, skip prompts]' \\
     '--no-git[Skip git initialization]' \\
@@ -161,6 +165,40 @@ _flink_reactor_install_flink() {
   _arguments \\
     '--method[Installation method]: :(docker homebrew binary)' \\
     '--flink-version[Flink version (default\\: 1.20)]: : '
+}
+
+_flink_reactor_connectors() {
+  local -a subcommands
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \\
+    '1:subcommand:->subcommand' \\
+    '*::args:->args'
+
+  case $state in
+    subcommand)
+      subcommands=(
+        'check:Check whether the JARs the DSL resolves for a Flink version exist on Maven Central'
+      )
+      _describe 'subcommand' subcommands
+      ;;
+    args)
+      case $line[1] in
+        check)
+          _flink_reactor_connectors_check
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_flink_reactor_connectors_check() {
+  _arguments \\
+    '(-f --flink)'{-f,--flink}'[Flink version to check (default 2.3)]: : ' \\
+    '--all[Check across every supported Flink version]' \\
+    '--json[Emit machine-readable JSON instead of a table]' \\
+    '--strict[Exit non-zero if any resolved JAR is missing]'
 }
 
 _flink_reactor_generate() {

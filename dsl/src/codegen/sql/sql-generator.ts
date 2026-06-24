@@ -176,7 +176,7 @@ export function generateSql(
   pipelineNode: ConstructNode,
   options: GenerateSqlOptions = {},
 ): GenerateSqlResult {
-  const version = options.flinkVersion ?? "2.2"
+  const version = options.flinkVersion ?? "2.3"
   // The ctx.nodeIndex is rebuilt below after optimization; seed the context
   // with an empty map so reentrancy is checked before optimization runs.
   const ctx = createBuildContext({
@@ -528,7 +528,7 @@ export function generateTapManifest(
     return { manifest: null, diagnostics: [] }
   }
 
-  const version = options.flinkVersion ?? "2.2"
+  const version = options.flinkVersion ?? "2.3"
   const devMode = options.devMode ?? false
   const pipelineName = (pipelineNode.props.name as string) ?? "unnamed"
 

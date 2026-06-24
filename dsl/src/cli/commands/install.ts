@@ -136,7 +136,7 @@ export async function runInstallFlink(
   opts: Record<string, unknown>,
 ): Promise<void> {
   const info = detectPlatform()
-  const flinkVersion = (opts.flinkVersion as string) ?? "1.20"
+  const flinkVersion = (opts.flinkVersion as string) ?? "2.3"
 
   clack.intro(pc.bgCyan(pc.black(" flink-reactor install flink ")))
 

@@ -51,6 +51,40 @@ const GATED_FEATURES: readonly GatedFeature[] = [
     minVersion: "2.0",
     description: "QUALIFY clause",
   },
+  // ── Flink 2.3 ──────────────────────────────────────────────────────
+  {
+    name: "MATERIALIZED_TABLE_SCHEMA",
+    minVersion: "2.3",
+    description:
+      "Explicit column list / primary key / watermark in CREATE MATERIALIZED TABLE (FLIP-550)",
+  },
+  {
+    name: "MATERIALIZED_TABLE_START_MODE",
+    minVersion: "2.3",
+    description: "START_MODE clause for materialized tables (FLIP-557)",
+  },
+  {
+    name: "MATERIALIZED_TABLE_EVOLUTION",
+    minVersion: "2.3",
+    description:
+      "ALTER MATERIALIZED TABLE ADD/MODIFY/DROP/RENAME schema evolution (FLIP-550)",
+  },
+  {
+    name: "UPSERT_ON_CONFLICT",
+    minVersion: "2.3",
+    description: "ON CONFLICT clause for upsert sinks (FLIP-558)",
+  },
+  {
+    name: "FROM_TO_CHANGELOG",
+    minVersion: "2.3",
+    description:
+      "FROM_CHANGELOG / TO_CHANGELOG process table functions (FLIP-564)",
+  },
+  {
+    name: "CREATE_FUNCTION_ARTIFACT",
+    minVersion: "2.3",
+    description: "ARTIFACT keyword in CREATE FUNCTION ... USING (FLIP-559)",
+  },
 ]
 
 const VERSION_ORDER: readonly FlinkMajorVersion[] = [
@@ -58,6 +92,7 @@ const VERSION_ORDER: readonly FlinkMajorVersion[] = [
   "2.0",
   "2.1",
   "2.2",
+  "2.3",
 ]
 
 function versionIndex(v: FlinkMajorVersion): number {
