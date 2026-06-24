@@ -298,3 +298,30 @@ type SavepointInfo struct {
 type SavepointList struct {
 	Operations []SavepointInfo `json:"operations"`
 }
+
+// --- Rescale history (Flink 2.3+, FLIP-495 AdaptiveScheduler rescale REST) ---
+
+// RescaleEventInfo represents one AdaptiveScheduler rescale event from
+// GET /jobs/:jid/rescales/{history,details/:uuid}. Field names follow the
+// FLIP-495 REST shape; decoding is tolerant (unknown fields ignored) so this
+// survives minor differences in the released Flink 2.3 response.
+type RescaleEventInfo struct {
+	UUID              string `json:"uuid"`
+	Status            string `json:"status"`
+	TriggerTimestamp  int64  `json:"trigger-timestamp"`
+	Duration          int64  `json:"duration,omitempty"`
+	ParallelismBefore int    `json:"parallelism-before,omitempty"`
+	ParallelismAfter  int    `json:"parallelism-after,omitempty"`
+	FailureCause      string `json:"failure-cause,omitempty"`
+}
+
+// RescaleHistoryList wraps GET /jobs/:jid/rescales/history.
+type RescaleHistoryList struct {
+	Rescales []RescaleEventInfo `json:"rescales"`
+}
+
+// RescaleSummaryInfo wraps GET /jobs/:jid/rescales/summary.
+type RescaleSummaryInfo struct {
+	TotalRescales int   `json:"total-rescales,omitempty"`
+	LastRescaleAt int64 `json:"last-rescale-timestamp,omitempty"`
+}

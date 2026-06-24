@@ -120,6 +120,8 @@ func (r *queryResolver) Jobs(ctx context.Context, cluster *string) ([]*model.Job
 				Reconciling:  j.Tasks.Reconciling,
 				Initializing: j.Tasks.Initializing,
 			},
+			SchedulerType: nilIfEmpty(j.SchedulerType),
+			JobType:       nilIfEmpty(j.JobType),
 		}
 	}
 
@@ -298,4 +300,55 @@ func (r *queryResolver) Savepoint(ctx context.Context, jobID string, savepointID
 		return nil, err
 	}
 	return mapSavepoint(op, conn.Name, jobID, r.SavepointTriggers), nil
+}
+
+// RescaleHistory is the resolver for the rescaleHistory field.
+func (r *queryResolver) RescaleHistory(ctx context.Context, jobID string, cluster *string) ([]*model.RescaleEvent, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+	events, err := conn.Service.RescaleHistory(ctx, jobID)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*model.RescaleEvent, 0, len(events))
+	for i := range events {
+		result = append(result, mapRescaleEvent(&events[i]))
+	}
+	return result, nil
+}
+
+// RescaleDetail is the resolver for the rescaleDetail field.
+func (r *queryResolver) RescaleDetail(ctx context.Context, jobID string, rescaleUUID string, cluster *string) (*model.RescaleEvent, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+	ev, err := conn.Service.RescaleDetail(ctx, jobID, rescaleUUID)
+	if err != nil {
+		return nil, err
+	}
+	return mapRescaleEvent(ev), nil
+}
+
+// RescaleSummary is the resolver for the rescaleSummary field.
+func (r *queryResolver) RescaleSummary(ctx context.Context, jobID string, cluster *string) (*model.RescaleSummary, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+	sum, err := conn.Service.RescaleSummary(ctx, jobID)
+	if err != nil {
+		return nil, err
+	}
+	var last *string
+	if sum.LastRescaleAt > 0 {
+		v := strconv.FormatInt(sum.LastRescaleAt, 10)
+		last = &v
+	}
+	return &model.RescaleSummary{
+		TotalRescales: sum.TotalRescales,
+		LastRescaleAt: last,
+	}, nil
 }

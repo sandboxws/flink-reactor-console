@@ -130,6 +130,53 @@ func mapSavepoint(op *flink.SavepointInfo, cluster, jobID string, cache *savepoi
 	}
 }
 
+// nilIfEmpty returns a pointer to s, or nil when s is empty — for mapping a
+// possibly-absent string field onto a nullable GraphQL String.
+func nilIfEmpty(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+// mapRescaleEvent converts a Flink RescaleEventInfo into the GraphQL model
+// (Flink 2.3+, FLIP-495). Unknown status values degrade to IN_PROGRESS;
+// optional numeric/duration fields are nil until populated.
+func mapRescaleEvent(e *flink.RescaleEventInfo) *model.RescaleEvent {
+	status := model.RescaleStatus(e.Status)
+	switch status {
+	case model.RescaleStatusPending, model.RescaleStatusInProgress,
+		model.RescaleStatusCompleted, model.RescaleStatusFailed:
+	default:
+		status = model.RescaleStatusInProgress
+	}
+
+	var durationMs *string
+	if e.Duration > 0 {
+		d := strconv.FormatInt(e.Duration, 10)
+		durationMs = &d
+	}
+	var parallelismBefore, parallelismAfter *int
+	if e.ParallelismBefore > 0 {
+		v := e.ParallelismBefore
+		parallelismBefore = &v
+	}
+	if e.ParallelismAfter > 0 {
+		v := e.ParallelismAfter
+		parallelismAfter = &v
+	}
+
+	return &model.RescaleEvent{
+		UUID:              e.UUID,
+		Status:            status,
+		TriggeredAt:       strconv.FormatInt(e.TriggerTimestamp, 10),
+		DurationMs:        durationMs,
+		ParallelismBefore: parallelismBefore,
+		ParallelismAfter:  parallelismAfter,
+		Error:             nilIfEmpty(e.FailureCause),
+	}
+}
+
 // sortSavepointsByTriggeredAtDesc sorts in-place by triggeredAt descending.
 // Used by the savepoints query to fulfil the spec's "most recently triggered
 // first" requirement.

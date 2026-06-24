@@ -28,6 +28,10 @@ type JobOverview {
   recordsOutPerSecond: Float
   """Watermark lag in milliseconds (`now - min subtask watermark`). Null for batch jobs or before any source has emitted a watermark."""
   watermarkLag: Int
+  """Scheduler type (e.g. `Adaptive`/`Default`). Added to /jobs/overview in Flink 2.3 (FLIP-487); null on older clusters."""
+  schedulerType: String
+  """Job type (`STREAMING`/`BATCH`). Added to /jobs/overview in Flink 2.3 (FLIP-487); null on older clusters."""
+  jobType: String
 }
 
 type VertexMetrics {
@@ -344,6 +348,38 @@ type Savepoint {
   error: String
 }
 
+"""Lifecycle state of an adaptive-scheduler rescale event (Flink 2.3+, FLIP-495)."""
+enum RescaleStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+"""A single AdaptiveScheduler rescale event (Flink 2.3+, FLIP-495)."""
+type RescaleEvent {
+  """Rescale event identifier (UUID)."""
+  uuid: String!
+  status: RescaleStatus!
+  """Epoch-millis timestamp at which the rescale was triggered."""
+  triggeredAt: String!
+  """Wall-clock duration of the rescale in ms. Null until finished."""
+  durationMs: String
+  """Job parallelism before the rescale. Null when unknown."""
+  parallelismBefore: Int
+  """Job parallelism after the rescale. Null when unknown."""
+  parallelismAfter: Int
+  """Failure reason. Null unless `status: FAILED`."""
+  error: String
+}
+
+"""Aggregate rescale statistics for a job (Flink 2.3+, FLIP-495)."""
+type RescaleSummary {
+  totalRescales: Int!
+  """Epoch-millis timestamp of the most recent rescale. Null when none."""
+  lastRescaleAt: String
+}
+
 extend type Query {
   """List all jobs in a cluster"""
   jobs(cluster: String): [JobOverview!]!
@@ -368,6 +404,15 @@ extend type Query {
 
   """Get a single savepoint operation by ID."""
   savepoint(jobId: ID!, savepointId: String!, cluster: String): Savepoint!
+
+  """List AdaptiveScheduler rescale events for a job, newest first (Flink 2.3+, FLIP-495)."""
+  rescaleHistory(jobId: ID!, cluster: String): [RescaleEvent!]!
+
+  """Get a single rescale event by UUID (Flink 2.3+, FLIP-495)."""
+  rescaleDetail(jobId: ID!, rescaleUuid: String!, cluster: String): RescaleEvent!
+
+  """Aggregate rescale statistics for a job (Flink 2.3+, FLIP-495)."""
+  rescaleSummary(jobId: ID!, cluster: String): RescaleSummary!
 }
 
 type SavepointTriggerResult {

@@ -727,6 +727,10 @@ type JobOverview struct {
 	RecordsOutPerSecond *float64 `json:"recordsOutPerSecond,omitempty"`
 	// Watermark lag in milliseconds (`now - min subtask watermark`). Null for batch jobs or before any source has emitted a watermark.
 	WatermarkLag *int `json:"watermarkLag,omitempty"`
+	// Scheduler type (e.g. `Adaptive`/`Default`). Added to /jobs/overview in Flink 2.3 (FLIP-487); null on older clusters.
+	SchedulerType *string `json:"schedulerType,omitempty"`
+	// Job type (`STREAMING`/`BATCH`). Added to /jobs/overview in Flink 2.3 (FLIP-487); null on older clusters.
+	JobType *string `json:"jobType,omitempty"`
 }
 
 type JobPlan struct {
@@ -1070,8 +1074,32 @@ type RedisZSetEntry struct {
 	Score  float64 `json:"score"`
 }
 
+// A single AdaptiveScheduler rescale event (Flink 2.3+, FLIP-495).
+type RescaleEvent struct {
+	// Rescale event identifier (UUID).
+	UUID   string        `json:"uuid"`
+	Status RescaleStatus `json:"status"`
+	// Epoch-millis timestamp at which the rescale was triggered.
+	TriggeredAt string `json:"triggeredAt"`
+	// Wall-clock duration of the rescale in ms. Null until finished.
+	DurationMs *string `json:"durationMs,omitempty"`
+	// Job parallelism before the rescale. Null when unknown.
+	ParallelismBefore *int `json:"parallelismBefore,omitempty"`
+	// Job parallelism after the rescale. Null when unknown.
+	ParallelismAfter *int `json:"parallelismAfter,omitempty"`
+	// Failure reason. Null unless `status: FAILED`.
+	Error *string `json:"error,omitempty"`
+}
+
 type RescaleResult struct {
 	RequestID string `json:"requestId"`
+}
+
+// Aggregate rescale statistics for a job (Flink 2.3+, FLIP-495).
+type RescaleSummary struct {
+	TotalRescales int `json:"totalRescales"`
+	// Epoch-millis timestamp of the most recent rescale. Null when none.
+	LastRescaleAt *string `json:"lastRescaleAt,omitempty"`
 }
 
 type RestoreEvent struct {
@@ -2034,6 +2062,66 @@ func (e *OrderDirection) UnmarshalJSON(b []byte) error {
 }
 
 func (e OrderDirection) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Lifecycle state of an adaptive-scheduler rescale event (Flink 2.3+, FLIP-495).
+type RescaleStatus string
+
+const (
+	RescaleStatusPending    RescaleStatus = "PENDING"
+	RescaleStatusInProgress RescaleStatus = "IN_PROGRESS"
+	RescaleStatusCompleted  RescaleStatus = "COMPLETED"
+	RescaleStatusFailed     RescaleStatus = "FAILED"
+)
+
+var AllRescaleStatus = []RescaleStatus{
+	RescaleStatusPending,
+	RescaleStatusInProgress,
+	RescaleStatusCompleted,
+	RescaleStatusFailed,
+}
+
+func (e RescaleStatus) IsValid() bool {
+	switch e {
+	case RescaleStatusPending, RescaleStatusInProgress, RescaleStatusCompleted, RescaleStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e RescaleStatus) String() string {
+	return string(e)
+}
+
+func (e *RescaleStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RescaleStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RescaleStatus", str)
+	}
+	return nil
+}
+
+func (e RescaleStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *RescaleStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e RescaleStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

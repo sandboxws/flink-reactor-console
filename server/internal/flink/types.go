@@ -106,6 +106,10 @@ type JobOverview struct {
 	Duration         int64      `json:"duration"`
 	LastModification int64      `json:"last-modification"`
 	Tasks            TaskCounts `json:"tasks"`
+	// SchedulerType and JobType were added to /jobs/overview in Flink 2.3
+	// (FLIP-487). Empty on older clusters; absent fields are ignored on decode.
+	SchedulerType string `json:"scheduler-type,omitempty"`
+	JobType       string `json:"job-type,omitempty"`
 }
 
 // JobsOverview represents the GET /jobs/overview response.

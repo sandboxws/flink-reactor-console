@@ -583,10 +583,12 @@ type ComplexityRoot struct {
 		Duration            func(childComplexity int) int
 		EndTime             func(childComplexity int) int
 		ID                  func(childComplexity int) int
+		JobType             func(childComplexity int) int
 		LastModification    func(childComplexity int) int
 		Name                func(childComplexity int) int
 		RecordsInPerSecond  func(childComplexity int) int
 		RecordsOutPerSecond func(childComplexity int) int
+		SchedulerType       func(childComplexity int) int
 		StartTime           func(childComplexity int) int
 		State               func(childComplexity int) int
 		Tasks               func(childComplexity int) int
@@ -861,6 +863,9 @@ type ComplexityRoot struct {
 		RedisMemoryStats              func(childComplexity int, instrument string) int
 		RedisScan                     func(childComplexity int, instrument string, cursor *string, pattern *string, count *int) int
 		RedisServerInfo               func(childComplexity int, instrument string) int
+		RescaleDetail                 func(childComplexity int, jobID string, rescaleUUID string, cluster *string) int
+		RescaleHistory                func(childComplexity int, jobID string, cluster *string) int
+		RescaleSummary                func(childComplexity int, jobID string, cluster *string) int
 		RestoreEvents                 func(childComplexity int, pipeline string, environment *string) int
 		Savepoint                     func(childComplexity int, jobID string, savepointID string, cluster *string) int
 		Savepoints                    func(childComplexity int, jobID string, cluster *string) int
@@ -939,8 +944,23 @@ type ComplexityRoot struct {
 		Score  func(childComplexity int) int
 	}
 
+	RescaleEvent struct {
+		DurationMs        func(childComplexity int) int
+		Error             func(childComplexity int) int
+		ParallelismAfter  func(childComplexity int) int
+		ParallelismBefore func(childComplexity int) int
+		Status            func(childComplexity int) int
+		TriggeredAt       func(childComplexity int) int
+		UUID              func(childComplexity int) int
+	}
+
 	RescaleResult struct {
 		RequestID func(childComplexity int) int
+	}
+
+	RescaleSummary struct {
+		LastRescaleAt func(childComplexity int) int
+		TotalRescales func(childComplexity int) int
 	}
 
 	RestoreEvent struct {
@@ -1357,6 +1377,9 @@ type QueryResolver interface {
 	CheckpointDetail(ctx context.Context, jobID string, checkpointID string, cluster *string) (*model.CheckpointHistoryEntry, error)
 	Savepoints(ctx context.Context, jobID string, cluster *string) ([]*model.Savepoint, error)
 	Savepoint(ctx context.Context, jobID string, savepointID string, cluster *string) (*model.Savepoint, error)
+	RescaleHistory(ctx context.Context, jobID string, cluster *string) ([]*model.RescaleEvent, error)
+	RescaleDetail(ctx context.Context, jobID string, rescaleUUID string, cluster *string) (*model.RescaleEvent, error)
+	RescaleSummary(ctx context.Context, jobID string, cluster *string) (*model.RescaleSummary, error)
 	KafkaTopics(ctx context.Context, instrument string) ([]*model.KafkaTopic, error)
 	KafkaTopic(ctx context.Context, instrument string, name string) (*model.KafkaTopicDetail, error)
 	KafkaConsumerGroups(ctx context.Context, instrument string) ([]*model.KafkaConsumerGroup, error)
@@ -3458,6 +3481,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobOverview.ID(childComplexity), true
+	case "JobOverview.jobType":
+		if e.ComplexityRoot.JobOverview.JobType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobOverview.JobType(childComplexity), true
 	case "JobOverview.lastModification":
 		if e.ComplexityRoot.JobOverview.LastModification == nil {
 			break
@@ -3482,6 +3511,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobOverview.RecordsOutPerSecond(childComplexity), true
+	case "JobOverview.schedulerType":
+		if e.ComplexityRoot.JobOverview.SchedulerType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobOverview.SchedulerType(childComplexity), true
 	case "JobOverview.startTime":
 		if e.ComplexityRoot.JobOverview.StartTime == nil {
 			break
@@ -5072,6 +5107,39 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.RedisServerInfo(childComplexity, args["instrument"].(string)), true
+	case "Query.rescaleDetail":
+		if e.ComplexityRoot.Query.RescaleDetail == nil {
+			break
+		}
+
+		args, err := ec.field_Query_rescaleDetail_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RescaleDetail(childComplexity, args["jobId"].(string), args["rescaleUuid"].(string), args["cluster"].(*string)), true
+	case "Query.rescaleHistory":
+		if e.ComplexityRoot.Query.RescaleHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_rescaleHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RescaleHistory(childComplexity, args["jobId"].(string), args["cluster"].(*string)), true
+	case "Query.rescaleSummary":
+		if e.ComplexityRoot.Query.RescaleSummary == nil {
+			break
+		}
+
+		args, err := ec.field_Query_rescaleSummary_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.RescaleSummary(childComplexity, args["jobId"].(string), args["cluster"].(*string)), true
 	case "Query.restoreEvents":
 		if e.ComplexityRoot.Query.RestoreEvents == nil {
 			break
@@ -5485,12 +5553,68 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.RedisZSetEntry.Score(childComplexity), true
 
+	case "RescaleEvent.durationMs":
+		if e.ComplexityRoot.RescaleEvent.DurationMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleEvent.DurationMs(childComplexity), true
+	case "RescaleEvent.error":
+		if e.ComplexityRoot.RescaleEvent.Error == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleEvent.Error(childComplexity), true
+	case "RescaleEvent.parallelismAfter":
+		if e.ComplexityRoot.RescaleEvent.ParallelismAfter == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleEvent.ParallelismAfter(childComplexity), true
+	case "RescaleEvent.parallelismBefore":
+		if e.ComplexityRoot.RescaleEvent.ParallelismBefore == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleEvent.ParallelismBefore(childComplexity), true
+	case "RescaleEvent.status":
+		if e.ComplexityRoot.RescaleEvent.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleEvent.Status(childComplexity), true
+	case "RescaleEvent.triggeredAt":
+		if e.ComplexityRoot.RescaleEvent.TriggeredAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleEvent.TriggeredAt(childComplexity), true
+	case "RescaleEvent.uuid":
+		if e.ComplexityRoot.RescaleEvent.UUID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleEvent.UUID(childComplexity), true
+
 	case "RescaleResult.requestId":
 		if e.ComplexityRoot.RescaleResult.RequestID == nil {
 			break
 		}
 
 		return e.ComplexityRoot.RescaleResult.RequestID(childComplexity), true
+
+	case "RescaleSummary.lastRescaleAt":
+		if e.ComplexityRoot.RescaleSummary.LastRescaleAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleSummary.LastRescaleAt(childComplexity), true
+	case "RescaleSummary.totalRescales":
+		if e.ComplexityRoot.RescaleSummary.TotalRescales == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RescaleSummary.TotalRescales(childComplexity), true
 
 	case "RestoreEvent.blueGreenName":
 		if e.ComplexityRoot.RestoreEvent.BlueGreenName == nil {
@@ -7998,6 +8122,10 @@ type JobOverview {
   recordsOutPerSecond: Float
   """Watermark lag in milliseconds (` + "`" + `now - min subtask watermark` + "`" + `). Null for batch jobs or before any source has emitted a watermark."""
   watermarkLag: Int
+  """Scheduler type (e.g. ` + "`" + `Adaptive` + "`" + `/` + "`" + `Default` + "`" + `). Added to /jobs/overview in Flink 2.3 (FLIP-487); null on older clusters."""
+  schedulerType: String
+  """Job type (` + "`" + `STREAMING` + "`" + `/` + "`" + `BATCH` + "`" + `). Added to /jobs/overview in Flink 2.3 (FLIP-487); null on older clusters."""
+  jobType: String
 }
 
 type VertexMetrics {
@@ -8314,6 +8442,38 @@ type Savepoint {
   error: String
 }
 
+"""Lifecycle state of an adaptive-scheduler rescale event (Flink 2.3+, FLIP-495)."""
+enum RescaleStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+"""A single AdaptiveScheduler rescale event (Flink 2.3+, FLIP-495)."""
+type RescaleEvent {
+  """Rescale event identifier (UUID)."""
+  uuid: String!
+  status: RescaleStatus!
+  """Epoch-millis timestamp at which the rescale was triggered."""
+  triggeredAt: String!
+  """Wall-clock duration of the rescale in ms. Null until finished."""
+  durationMs: String
+  """Job parallelism before the rescale. Null when unknown."""
+  parallelismBefore: Int
+  """Job parallelism after the rescale. Null when unknown."""
+  parallelismAfter: Int
+  """Failure reason. Null unless ` + "`" + `status: FAILED` + "`" + `."""
+  error: String
+}
+
+"""Aggregate rescale statistics for a job (Flink 2.3+, FLIP-495)."""
+type RescaleSummary {
+  totalRescales: Int!
+  """Epoch-millis timestamp of the most recent rescale. Null when none."""
+  lastRescaleAt: String
+}
+
 extend type Query {
   """List all jobs in a cluster"""
   jobs(cluster: String): [JobOverview!]!
@@ -8338,6 +8498,15 @@ extend type Query {
 
   """Get a single savepoint operation by ID."""
   savepoint(jobId: ID!, savepointId: String!, cluster: String): Savepoint!
+
+  """List AdaptiveScheduler rescale events for a job, newest first (Flink 2.3+, FLIP-495)."""
+  rescaleHistory(jobId: ID!, cluster: String): [RescaleEvent!]!
+
+  """Get a single rescale event by UUID (Flink 2.3+, FLIP-495)."""
+  rescaleDetail(jobId: ID!, rescaleUuid: String!, cluster: String): RescaleEvent!
+
+  """Aggregate rescale statistics for a job (Flink 2.3+, FLIP-495)."""
+  rescaleSummary(jobId: ID!, cluster: String): RescaleSummary!
 }
 
 type SavepointTriggerResult {
@@ -10341,6 +10510,59 @@ func (ec *executionContext) field_Query_redisServerInfo_args(ctx context.Context
 		return nil, err
 	}
 	args["instrument"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_rescaleDetail_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "rescaleUuid", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["rescaleUuid"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_rescaleHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_rescaleSummary_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg1
 	return args, nil
 }
 
@@ -21204,6 +21426,64 @@ func (ec *executionContext) fieldContext_JobOverview_watermarkLag(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _JobOverview_schedulerType(ctx context.Context, field graphql.CollectedField, obj *model.JobOverview) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobOverview_schedulerType,
+		func(ctx context.Context) (any, error) {
+			return obj.SchedulerType, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobOverview_schedulerType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobOverview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobOverview_jobType(ctx context.Context, field graphql.CollectedField, obj *model.JobOverview) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobOverview_jobType,
+		func(ctx context.Context) (any, error) {
+			return obj.JobType, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobOverview_jobType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobOverview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobPlan_jid(ctx context.Context, field graphql.CollectedField, obj *model.JobPlan) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -28137,6 +28417,10 @@ func (ec *executionContext) fieldContext_Query_jobs(ctx context.Context, field g
 				return ec.fieldContext_JobOverview_recordsOutPerSecond(ctx, field)
 			case "watermarkLag":
 				return ec.fieldContext_JobOverview_watermarkLag(ctx, field)
+			case "schedulerType":
+				return ec.fieldContext_JobOverview_schedulerType(ctx, field)
+			case "jobType":
+				return ec.fieldContext_JobOverview_jobType(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobOverview", field.Name)
 		},
@@ -28568,6 +28852,167 @@ func (ec *executionContext) fieldContext_Query_savepoint(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_savepoint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_rescaleHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_rescaleHistory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RescaleHistory(ctx, fc.Args["jobId"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNRescaleEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEventᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_rescaleHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "uuid":
+				return ec.fieldContext_RescaleEvent_uuid(ctx, field)
+			case "status":
+				return ec.fieldContext_RescaleEvent_status(ctx, field)
+			case "triggeredAt":
+				return ec.fieldContext_RescaleEvent_triggeredAt(ctx, field)
+			case "durationMs":
+				return ec.fieldContext_RescaleEvent_durationMs(ctx, field)
+			case "parallelismBefore":
+				return ec.fieldContext_RescaleEvent_parallelismBefore(ctx, field)
+			case "parallelismAfter":
+				return ec.fieldContext_RescaleEvent_parallelismAfter(ctx, field)
+			case "error":
+				return ec.fieldContext_RescaleEvent_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RescaleEvent", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_rescaleHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_rescaleDetail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_rescaleDetail,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RescaleDetail(ctx, fc.Args["jobId"].(string), fc.Args["rescaleUuid"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_rescaleDetail(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "uuid":
+				return ec.fieldContext_RescaleEvent_uuid(ctx, field)
+			case "status":
+				return ec.fieldContext_RescaleEvent_status(ctx, field)
+			case "triggeredAt":
+				return ec.fieldContext_RescaleEvent_triggeredAt(ctx, field)
+			case "durationMs":
+				return ec.fieldContext_RescaleEvent_durationMs(ctx, field)
+			case "parallelismBefore":
+				return ec.fieldContext_RescaleEvent_parallelismBefore(ctx, field)
+			case "parallelismAfter":
+				return ec.fieldContext_RescaleEvent_parallelismAfter(ctx, field)
+			case "error":
+				return ec.fieldContext_RescaleEvent_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RescaleEvent", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_rescaleDetail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_rescaleSummary(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_rescaleSummary,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().RescaleSummary(ctx, fc.Args["jobId"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNRescaleSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_rescaleSummary(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "totalRescales":
+				return ec.fieldContext_RescaleSummary_totalRescales(ctx, field)
+			case "lastRescaleAt":
+				return ec.fieldContext_RescaleSummary_lastRescaleAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RescaleSummary", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_rescaleSummary_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -30998,6 +31443,209 @@ func (ec *executionContext) fieldContext_RedisZSetEntry_score(_ context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _RescaleEvent_uuid(ctx context.Context, field graphql.CollectedField, obj *model.RescaleEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleEvent_uuid,
+		func(ctx context.Context) (any, error) {
+			return obj.UUID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleEvent_uuid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RescaleEvent_status(ctx context.Context, field graphql.CollectedField, obj *model.RescaleEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleEvent_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleEvent_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RescaleStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RescaleEvent_triggeredAt(ctx context.Context, field graphql.CollectedField, obj *model.RescaleEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleEvent_triggeredAt,
+		func(ctx context.Context) (any, error) {
+			return obj.TriggeredAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleEvent_triggeredAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RescaleEvent_durationMs(ctx context.Context, field graphql.CollectedField, obj *model.RescaleEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleEvent_durationMs,
+		func(ctx context.Context) (any, error) {
+			return obj.DurationMs, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleEvent_durationMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RescaleEvent_parallelismBefore(ctx context.Context, field graphql.CollectedField, obj *model.RescaleEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleEvent_parallelismBefore,
+		func(ctx context.Context) (any, error) {
+			return obj.ParallelismBefore, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleEvent_parallelismBefore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RescaleEvent_parallelismAfter(ctx context.Context, field graphql.CollectedField, obj *model.RescaleEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleEvent_parallelismAfter,
+		func(ctx context.Context) (any, error) {
+			return obj.ParallelismAfter, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleEvent_parallelismAfter(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RescaleEvent_error(ctx context.Context, field graphql.CollectedField, obj *model.RescaleEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleEvent_error,
+		func(ctx context.Context) (any, error) {
+			return obj.Error, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleEvent_error(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RescaleResult_requestId(ctx context.Context, field graphql.CollectedField, obj *model.RescaleResult) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -31017,6 +31665,64 @@ func (ec *executionContext) _RescaleResult_requestId(ctx context.Context, field 
 func (ec *executionContext) fieldContext_RescaleResult_requestId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RescaleResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RescaleSummary_totalRescales(ctx context.Context, field graphql.CollectedField, obj *model.RescaleSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleSummary_totalRescales,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalRescales, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleSummary_totalRescales(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RescaleSummary_lastRescaleAt(ctx context.Context, field graphql.CollectedField, obj *model.RescaleSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RescaleSummary_lastRescaleAt,
+		func(ctx context.Context) (any, error) {
+			return obj.LastRescaleAt, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RescaleSummary_lastRescaleAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RescaleSummary",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -43810,6 +44516,10 @@ func (ec *executionContext) _JobOverview(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._JobOverview_recordsOutPerSecond(ctx, field, obj)
 		case "watermarkLag":
 			out.Values[i] = ec._JobOverview_watermarkLag(ctx, field, obj)
+		case "schedulerType":
+			out.Values[i] = ec._JobOverview_schedulerType(ctx, field, obj)
+		case "jobType":
+			out.Values[i] = ec._JobOverview_jobType(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46461,6 +47171,72 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "rescaleHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_rescaleHistory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "rescaleDetail":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_rescaleDetail(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "rescaleSummary":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_rescaleSummary(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "kafkaTopics":
 			field := field
 
@@ -47434,6 +48210,63 @@ func (ec *executionContext) _RedisZSetEntry(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var rescaleEventImplementors = []string{"RescaleEvent"}
+
+func (ec *executionContext) _RescaleEvent(ctx context.Context, sel ast.SelectionSet, obj *model.RescaleEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rescaleEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RescaleEvent")
+		case "uuid":
+			out.Values[i] = ec._RescaleEvent_uuid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._RescaleEvent_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "triggeredAt":
+			out.Values[i] = ec._RescaleEvent_triggeredAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "durationMs":
+			out.Values[i] = ec._RescaleEvent_durationMs(ctx, field, obj)
+		case "parallelismBefore":
+			out.Values[i] = ec._RescaleEvent_parallelismBefore(ctx, field, obj)
+		case "parallelismAfter":
+			out.Values[i] = ec._RescaleEvent_parallelismAfter(ctx, field, obj)
+		case "error":
+			out.Values[i] = ec._RescaleEvent_error(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var rescaleResultImplementors = []string{"RescaleResult"}
 
 func (ec *executionContext) _RescaleResult(ctx context.Context, sel ast.SelectionSet, obj *model.RescaleResult) graphql.Marshaler {
@@ -47450,6 +48283,47 @@ func (ec *executionContext) _RescaleResult(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var rescaleSummaryImplementors = []string{"RescaleSummary"}
+
+func (ec *executionContext) _RescaleSummary(ctx context.Context, sel ast.SelectionSet, obj *model.RescaleSummary) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rescaleSummaryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RescaleSummary")
+		case "totalRescales":
+			out.Values[i] = ec._RescaleSummary_totalRescales(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastRescaleAt":
+			out.Values[i] = ec._RescaleSummary_lastRescaleAt(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -52326,6 +53200,36 @@ func (ec *executionContext) marshalNRedisZSetEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._RedisZSetEntry(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNRescaleEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx context.Context, sel ast.SelectionSet, v model.RescaleEvent) graphql.Marshaler {
+	return ec._RescaleEvent(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRescaleEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RescaleEvent) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx context.Context, sel ast.SelectionSet, v *model.RescaleEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RescaleEvent(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNRescaleResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v model.RescaleResult) graphql.Marshaler {
 	return ec._RescaleResult(ctx, sel, &v)
 }
@@ -52338,6 +53242,30 @@ func (ec *executionContext) marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋ
 		return graphql.Null
 	}
 	return ec._RescaleResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus(ctx context.Context, v any) (model.RescaleStatus, error) {
+	var res model.RescaleStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus(ctx context.Context, sel ast.SelectionSet, v model.RescaleStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNRescaleSummary2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary(ctx context.Context, sel ast.SelectionSet, v model.RescaleSummary) graphql.Marshaler {
+	return ec._RescaleSummary(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRescaleSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary(ctx context.Context, sel ast.SelectionSet, v *model.RescaleSummary) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RescaleSummary(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRestoreEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RestoreEvent) graphql.Marshaler {

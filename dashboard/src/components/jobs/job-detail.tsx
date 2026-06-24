@@ -12,6 +12,8 @@
  * Subscribes to {@link useClusterStore}, {@link useTapStore}, and
  * {@link useSqlGatewayStore} for job actions and tap session state.
  */
+
+import type { FlinkJob, TapMetadata } from "@flink-reactor/ui"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
 import {
   lazy,
@@ -22,8 +24,6 @@ import {
   useState,
 } from "react"
 import { TapPanel } from "@/components/tap/tap-panel"
-import type { FlinkJob } from "@flink-reactor/ui"
-import type { TapMetadata } from "@flink-reactor/ui"
 import { hasTapManifest } from "@/lib/tap-manifest"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useSqlGatewayStore } from "@/stores/sql-gateway-store"
@@ -33,6 +33,7 @@ import { ConfigurationTab } from "./detail/configuration-tab"
 import { DataSkewTab } from "./detail/data-skew-tab"
 import { ExceptionsTab } from "./detail/exceptions-tab"
 import { JobHeader } from "./detail/job-header"
+import { RescalesTab } from "./detail/rescales-tab"
 import { SourcesSinksTab } from "./detail/sources-sinks-tab"
 import { SqlTab } from "./detail/sql-tab"
 import { TimelineTab } from "./detail/timeline-tab"
@@ -88,6 +89,11 @@ export function JobDetail({
 
   const triggerSavepoint = useClusterStore((s) => s.triggerSavepoint)
   const stopWithSavepoint = useClusterStore((s) => s.stopWithSavepoint)
+
+  // Rescales tab is gated on the cluster's RESCALE_HISTORY capability
+  // (AdaptiveScheduler rescale history REST is Flink 2.3+, FLIP-495).
+  const capabilities = useClusterStore((s) => s.overview?.capabilities)
+  const hasRescaleHistory = (capabilities ?? []).includes("RESCALE_HISTORY")
 
   const handleStopWithSavepoint = async () => {
     await stopWithSavepoint(job.id)
@@ -225,6 +231,11 @@ export function JobDetail({
           <TabsTrigger value="checkpoints" className="detail-tab">
             Checkpoints
           </TabsTrigger>
+          {hasRescaleHistory && (
+            <TabsTrigger value="rescales" className="detail-tab">
+              Rescales
+            </TabsTrigger>
+          )}
           <TabsTrigger value="sources-sinks" className="detail-tab">
             Sources &amp; Sinks
             {job.sourcesAndSinks.length > 0 && (
@@ -304,6 +315,12 @@ export function JobDetail({
             vertexNames={vertexNames}
           />
         </TabsContent>
+
+        {hasRescaleHistory && (
+          <TabsContent value="rescales" className="mt-4 flex-1 overflow-auto">
+            <RescalesTab jobId={job.id} />
+          </TabsContent>
+        )}
 
         <TabsContent
           value="sources-sinks"

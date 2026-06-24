@@ -36,6 +36,20 @@ func TestCapabilitiesForVersion(t *testing.T) {
 			excludes: []string{},
 		},
 		{
+			name:    "Flink 2.3 adds the 2.3 capability set",
+			version: "2.3.0",
+			contains: []string{
+				"MATERIALIZED_TABLE_BUCKETING",
+				"MATERIALIZED_TABLE_SCHEMA",
+				"MATERIALIZED_TABLE_START_MODE",
+				"UPSERT_ON_CONFLICT",
+				"FROM_TO_CHANGELOG",
+				"RESCALE_HISTORY",
+				"ADAPTIVE_PARTITIONING",
+			},
+			excludes: []string{},
+		},
+		{
 			name:     "short version format (2.0)",
 			version:  "2.0",
 			contains: []string{"QUALIFY", "MATERIALIZED_TABLE"},

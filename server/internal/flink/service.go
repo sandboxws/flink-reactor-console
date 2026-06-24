@@ -213,6 +213,37 @@ func (s *Service) RescaleJob(ctx context.Context, jobID string, newParallelism i
 	return resp.RequestID, nil
 }
 
+// RescaleHistory lists AdaptiveScheduler rescale events for a job via
+// GET /jobs/:jobID/rescales/history (Flink 2.3+, FLIP-495). Decoding is
+// tolerant: unknown fields are ignored.
+func (s *Service) RescaleHistory(ctx context.Context, jobID string) ([]RescaleEventInfo, error) {
+	var result RescaleHistoryList
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/rescales/history", jobID), &result); err != nil {
+		return nil, err
+	}
+	return result.Rescales, nil
+}
+
+// RescaleDetail returns a single rescale event via
+// GET /jobs/:jobID/rescales/details/:rescaleUUID (Flink 2.3+, FLIP-495).
+func (s *Service) RescaleDetail(ctx context.Context, jobID, rescaleUUID string) (*RescaleEventInfo, error) {
+	var result RescaleEventInfo
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/rescales/details/%s", jobID, rescaleUUID), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// RescaleSummary returns aggregate rescale statistics via
+// GET /jobs/:jobID/rescales/summary (Flink 2.3+, FLIP-495).
+func (s *Service) RescaleSummary(ctx context.Context, jobID string) (*RescaleSummaryInfo, error) {
+	var result RescaleSummaryInfo
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/rescales/summary", jobID), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 // --- Aggregated methods ---
 
 // GetJobDetail returns a fully aggregated job detail.

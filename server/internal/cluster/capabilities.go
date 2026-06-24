@@ -17,6 +17,14 @@ var gatedCapabilities = []gatedCapability{
 	{Name: "CREATE_MODEL", MinMajor: 2, MinMinor: 1},
 	{Name: "VECTOR_SEARCH", MinMajor: 2, MinMinor: 2},
 	{Name: "MATERIALIZED_TABLE_BUCKETING", MinMajor: 2, MinMinor: 2},
+	// Flink 2.3
+	{Name: "MATERIALIZED_TABLE_SCHEMA", MinMajor: 2, MinMinor: 3},
+	{Name: "MATERIALIZED_TABLE_START_MODE", MinMajor: 2, MinMinor: 3},
+	{Name: "MATERIALIZED_TABLE_EVOLUTION", MinMajor: 2, MinMinor: 3},
+	{Name: "UPSERT_ON_CONFLICT", MinMajor: 2, MinMinor: 3},
+	{Name: "FROM_TO_CHANGELOG", MinMajor: 2, MinMinor: 3},
+	{Name: "RESCALE_HISTORY", MinMajor: 2, MinMinor: 3},
+	{Name: "ADAPTIVE_PARTITIONING", MinMajor: 2, MinMinor: 3},
 }
 
 // CapabilitiesForVersion returns the list of SQL feature strings available

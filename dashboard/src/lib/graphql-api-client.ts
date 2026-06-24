@@ -1103,6 +1103,44 @@ export async function rescaleJob(
   return data.rescaleJob.requestId
 }
 
+/** A single AdaptiveScheduler rescale event (Flink 2.3+, FLIP-495). */
+export interface RescaleEvent {
+  uuid: string
+  status: string
+  /** Epoch-millis timestamp (string-encoded Long). */
+  triggeredAt: string
+  durationMs: string | null
+  parallelismBefore: number | null
+  parallelismAfter: number | null
+  error: string | null
+}
+
+const RESCALE_HISTORY_QUERY = gql`
+  query RescaleHistory($jobId: ID!, $cluster: String) {
+    rescaleHistory(jobId: $jobId, cluster: $cluster) {
+      uuid
+      status
+      triggeredAt
+      durationMs
+      parallelismBefore
+      parallelismAfter
+      error
+    }
+  }
+`
+
+/**
+ * Fetch the AdaptiveScheduler rescale history for a job (Flink 2.3+, FLIP-495).
+ * Returns an empty list on clusters that don't expose the endpoint.
+ */
+export async function fetchRescaleHistory(
+  jobId: string,
+  cluster?: string,
+): Promise<RescaleEvent[]> {
+  const data = await query<any>(RESCALE_HISTORY_QUERY, { jobId, cluster })
+  return (data.rescaleHistory ?? []) as RescaleEvent[]
+}
+
 /** Status of a Flink savepoint operation. */
 export type SavepointStatus = "IN_PROGRESS" | "COMPLETED" | "FAILED"
 
