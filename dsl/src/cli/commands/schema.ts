@@ -3,6 +3,7 @@ import { join, resolve } from "node:path"
 import type { Command } from "commander"
 import { Effect } from "effect"
 import pc from "picocolors"
+import { registerSchemaGenerateSubcommand } from "@/cli/commands/schema-generate.js"
 import { loadPipeline } from "@/cli/discovery.js"
 import { runCommand } from "@/cli/effect-runner.js"
 import {
@@ -14,10 +15,12 @@ import { CliError } from "@/core/errors.js"
 import type { ConstructNode } from "@/core/types.js"
 
 export function registerSchemaCommand(program: Command): void {
-  program
+  const schema = program
     .command("schema")
-    .description("Display input and output schemas of a pipeline")
-    .argument("<path>", "Path to a .tsx pipeline file, or a pipeline name")
+    .description(
+      "Inspect a pipeline's schemas, or generate schemas from data sources",
+    )
+    .argument("[path]", "Path to a .tsx pipeline file, or a pipeline name")
     .option("--json", "Output as JSON")
     .option(
       "--live",
@@ -30,13 +33,18 @@ export function registerSchemaCommand(program: Command): void {
     )
     .action(
       async (
-        pathArg: string,
+        pathArg: string | undefined,
         opts: {
           json?: boolean
           live?: boolean
           pgConnectionString?: string
         },
       ) => {
+        // Bare `flink-reactor schema` (no path, no subcommand) → show help.
+        if (!pathArg) {
+          schema.outputHelp()
+          return
+        }
         await runCommand(
           Effect.tryPromise({
             try: () => runSchema(pathArg, opts),
@@ -49,6 +57,8 @@ export function registerSchemaCommand(program: Command): void {
         )
       },
     )
+
+  registerSchemaGenerateSubcommand(schema)
 }
 
 export async function runSchema(

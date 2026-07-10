@@ -138,6 +138,15 @@ function generateSubcommandGroup(
   }
   lines.push("      )")
   lines.push("      _describe 'subcommand' subcommands")
+  // A command can be both a group (with subcommands) and a leaf with its
+  // own positional argument (e.g. `schema generate` vs `schema <path>`).
+  // Offer the parent's first-arg file completion alongside the subcommands.
+  const parentArgCompletion = fileCompletionForHint(
+    cmd.args[0]?.completionHint ?? null,
+  )
+  if (parentArgCompletion) {
+    lines.push(`      ${parentArgCompletion}`)
+  }
   lines.push("      ;;")
 
   lines.push("    args)")
@@ -257,30 +266,31 @@ function formatArguments(args: IntrospectedArgument[]): string[] {
     const pos = i + 1
     const optionalMark = arg.required ? "" : ":"
 
-    let completion: string
-    switch (arg.completionHint) {
-      case "sql-file":
-        completion = '_files -g "*.sql"'
-        break
-      case "tsx-file":
-        completion = '_files -g "*.tsx"'
-        break
-      case "directory":
-        completion = "_files -/"
-        break
-      case "file":
-        completion = "_files"
-        break
-      default:
-        completion = " "
-        break
-    }
+    const completion = fileCompletionForHint(arg.completionHint) ?? " "
 
     // Zsh positional: '1:description:action' (required) or '1::description:action' (optional)
     specs.push(`'${pos}${optionalMark}:${desc}:${completion}'`)
   }
 
   return specs
+}
+
+/** Map a file-completion hint to its zsh `_files` action, or null. */
+function fileCompletionForHint(
+  hint: IntrospectedArgument["completionHint"],
+): string | null {
+  switch (hint) {
+    case "sql-file":
+      return '_files -g "*.sql"'
+    case "tsx-file":
+      return '_files -g "*.tsx"'
+    case "directory":
+      return "_files -/"
+    case "file":
+      return "_files"
+    default:
+      return null
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────

@@ -224,7 +224,7 @@ export async function loadPipeline(
  * Auto-select the default environment name when --env is not specified.
  * Priority: 'development' > 'local' > first alphabetical.
  */
-function autoSelectEnvironment(
+export function autoSelectEnvironment(
   environments: Record<string, unknown>,
 ): string | undefined {
   const names = Object.keys(environments)

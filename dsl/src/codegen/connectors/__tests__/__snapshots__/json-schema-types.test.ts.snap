@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`jsonSchemaToColumns > returns columns in property order with mapped types 1`] = `
+[
+  {
+    "constraints": [],
+    "name": "id",
+    "type": "BIGINT",
+  },
+  {
+    "constraints": [],
+    "name": "price",
+    "type": "DOUBLE",
+  },
+  {
+    "constraints": [],
+    "name": "active",
+    "type": "BOOLEAN",
+  },
+  {
+    "constraints": [],
+    "name": "created",
+    "type": "TIMESTAMP(3)",
+  },
+]
+`;

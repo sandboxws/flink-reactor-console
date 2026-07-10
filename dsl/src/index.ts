@@ -230,10 +230,16 @@ export type {
   InfraConfig,
   JdbcCatalogDefinition,
   KafkaCatalogDefinition,
+  KafkaSourceDefinition,
   KafkaTableDefinition,
   PipelineOverrides,
+  PostgresSourceDefinition,
+  RegistryAuthConfig,
   SimConfig,
   SimInitConfig,
+  SourceDefinition,
+  SourceSchemaFormat,
+  SourcesConfig,
 } from "./core/config.js"
 // Core: config & environment
 export { defineConfig } from "./core/config.js"

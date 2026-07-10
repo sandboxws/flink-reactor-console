@@ -201,6 +201,12 @@ export interface KafkaServiceConfig {
   readonly externalPort?: number
   /** Image override; default ships in `docker-compose.yml`. */
   readonly image?: string
+  /**
+   * Confluent Schema Registry base URL. Read by `flink-reactor schema
+   * generate` to introspect Kafka topic schemas; not part of the runtime
+   * connector wiring. A `sources` entry may override it per-source.
+   */
+  readonly schemaRegistryUrl?: string | EnvVarRef
 }
 
 export interface PostgresServiceConfig {
@@ -270,6 +276,54 @@ export interface ServicesConfig {
    */
   readonly prometheus?: PrometheusServiceConfig | false
 }
+
+// ── Data sources (schema generate) ──────────────────────────────────
+//
+// Declarative registry of upstream data sources that `flink-reactor
+// schema generate` introspects to emit typed `schemas/<name>.ts`
+// modules. Connection details are borrowed from the `services` block by
+// default (or overridden inline). This block is CLI-only: it is not read
+// during synthesis and does not affect generated SQL/YAML.
+
+export type SourceSchemaFormat = "avro" | "json-schema"
+
+export interface RegistryAuthConfig {
+  readonly username: string | EnvVarRef
+  readonly password: string | EnvVarRef
+}
+
+export interface PostgresSourceDefinition {
+  /** `postgres` and `jdbc` share the same live-introspection path. */
+  readonly type: "postgres" | "jdbc"
+  /** `services` entry to borrow connection info from. Default: `postgres`. */
+  readonly service?: string
+  /** Inline connection string; overrides the `service` reference. */
+  readonly connectionString?: string | EnvVarRef
+  /** Table to introspect — bare (`orders`) or qualified (`public.orders`). */
+  readonly table: string
+  /** Schema search path when `table` is unqualified. Default: `public`. */
+  readonly schema?: string
+}
+
+export interface KafkaSourceDefinition {
+  readonly type: "kafka"
+  /** `services` entry to borrow the registry URL from. Default: `kafka`. */
+  readonly service?: string
+  /** Kafka topic; used to derive the default subject `<topic>-value`. */
+  readonly topic: string
+  /** Confluent Schema Registry base URL; overrides the `service` reference. */
+  readonly registryUrl?: string | EnvVarRef
+  /** Subject override. Default: `<topic>-value` (TopicNameStrategy). */
+  readonly subject?: string
+  /** Payload format. Default: inferred from the registry `schemaType`. */
+  readonly format?: SourceSchemaFormat
+  /** Basic auth for managed registries (e.g. Confluent Cloud). */
+  readonly auth?: RegistryAuthConfig
+}
+
+export type SourceDefinition = PostgresSourceDefinition | KafkaSourceDefinition
+
+export type SourcesConfig = Record<string, SourceDefinition>
 
 // ── Runtime ─────────────────────────────────────────────────────────
 
@@ -384,6 +438,12 @@ export interface FlinkReactorConfig {
    * `environments.<name>.services` are deep-merged.
    */
   readonly services?: ServicesConfig
+  /**
+   * Declarative data sources consumed by `flink-reactor schema generate`
+   * to emit typed `schemas/<name>.ts` modules. CLI-only — not read during
+   * synthesis. Connection info is borrowed from `services` by default.
+   */
+  readonly sources?: SourcesConfig
   /** Named environments with overrides */
   readonly environments?: Record<string, EnvironmentEntry>
 
@@ -473,6 +533,34 @@ export function defineConfig(
         throw new Error(
           `Invalid environment name '${envName}'. Must start with a letter and contain only letters, digits, hyphens, and underscores.`,
         )
+      }
+    }
+  }
+
+  // Validate data sources if provided
+  if (config.sources) {
+    const validSourceTypes: readonly SourceDefinition["type"][] = [
+      "postgres",
+      "jdbc",
+      "kafka",
+    ]
+    for (const [name, source] of Object.entries(config.sources)) {
+      if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(name)) {
+        throw new Error(
+          `Invalid source name '${name}'. Must start with a letter and contain only letters, digits, hyphens, and underscores.`,
+        )
+      }
+      if (!validSourceTypes.includes(source.type)) {
+        throw new Error(
+          `Invalid source type '${source.type}' for source '${name}'. Supported: ${validSourceTypes.join(", ")}`,
+        )
+      }
+      if (source.type === "kafka") {
+        if (!source.topic) {
+          throw new Error(`Kafka source '${name}' requires a 'topic'.`)
+        }
+      } else if (!source.table) {
+        throw new Error(`${source.type} source '${name}' requires a 'table'.`)
       }
     }
   }

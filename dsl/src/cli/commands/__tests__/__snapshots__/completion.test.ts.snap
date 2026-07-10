@@ -35,7 +35,7 @@ _flink_reactor() {
         'up:Start the runtime for the current environment (docker, minikube, or homebrew)'
         'down:Stop the runtime for the current environment (docker, minikube, or homebrew)'
         'cluster:Docker-runtime shortcut (alias of \`fr up --runtime=docker\`). Provides Docker-specific extras\\: seed, submit, status.'
-        'schema:Display input and output schemas of a pipeline'
+        'schema:Inspect a pipeline'\\''s schemas, or generate schemas from data sources'
         'sim:Minikube-runtime shortcut (alias of \`fr up --runtime=minikube\`). Provides K8s-specific extras\\: status.'
         'upgrade:Upgrade FlinkReactor packages to their latest versions'
         'stop:Stop pipelines by suspending their FlinkDeployments (triggers savepoint)'
@@ -391,11 +391,45 @@ _flink_reactor_cluster_open() {
 }
 
 _flink_reactor_schema() {
-  _arguments \\
+  local -a subcommands
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \\
     '--json[Output as JSON]' \\
     '--live[For Pipeline Connector sources (e.g. PostgresCdcPipelineSource), connect to the live database and introspect column metadata]' \\
     '--pg-connection-string[Postgres connection string (overrides FR_PG_CONNECTION_STRING)]: : ' \\
-    '1:Path to a .tsx pipeline file, or a pipeline name:_files -g "*.tsx"'
+    '1:subcommand:->subcommand' \\
+    '*::args:->args'
+
+  case $state in
+    subcommand)
+      subcommands=(
+        'generate:Generate schemas/<name>.ts modules from configured data sources'
+      )
+      _describe 'subcommand' subcommands
+      _files -g "*.tsx"
+      ;;
+    args)
+      case $line[1] in
+        generate)
+          _flink_reactor_schema_generate
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_flink_reactor_schema_generate() {
+  _arguments \\
+    '--all[Include all fields (skip the interactive subset picker)]' \\
+    '--fields[Comma-separated field names to include]: : ' \\
+    '--outdir[Output directory]: :_files -/' \\
+    '--registry-url[Confluent Schema Registry base URL (Kafka sources)]: : ' \\
+    '--pg-connection-string[Postgres connection string (Postgres/JDBC sources)]: : ' \\
+    '(-e --env)'{-e,--env}'[Environment name from flink-reactor.config.ts]: : ' \\
+    '--force[Overwrite existing schema files]' \\
+    '1::Source name from config.sources (omit to pick interactively): '
 }
 
 _flink_reactor_sim() {
