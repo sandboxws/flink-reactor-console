@@ -1,5 +1,6 @@
 # Local development registry config
-# Used by `pnpm local:publish` — allows anonymous publish for @flink-reactor packages
+# Used by `pnpm local:publish` — allows anonymous publish for the FlinkReactor
+# packages (`@flink-reactor/*` and the unscoped `flink-reactor` extension)
 
 storage: ../.verdaccio/storage
 plugins: ../.verdaccio/plugins
@@ -18,6 +19,14 @@ uplinks:
 
 packages:
   '@flink-reactor/*':
+    access: $all
+    publish: $anonymous
+    unpublish: $anonymous
+
+  # The VS Code extension publishes under the unscoped name `flink-reactor`
+  # (vsce rejects scoped names). Grant it the same anonymous local access so
+  # `pnpm local:publish` doesn't fall through to the auth-required `**` rule.
+  'flink-reactor':
     access: $all
     publish: $anonymous
     unpublish: $anonymous
