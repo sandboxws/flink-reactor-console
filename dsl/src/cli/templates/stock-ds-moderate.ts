@@ -309,7 +309,7 @@ The Apache Flink \`flink-examples-streaming\` module has more examples that fit 
 | \`ChangelogSocketExample.java\` | Custom socket connector with changelog semantics; no Flink SQL equivalent. |
 | GPU / DSv2 watermark customization | Platform features (GPU resource declarations, custom watermark generators) outside the SQL synthesis target. |
 
-These future-iteration pipelines are tracked under the \`stock-ds-advanced\` placeholder and will land once the bucket-A/B pattern is battle-tested.
+These bucket C/D examples are intentionally out of scope: they need DSL primitives that don't exist yet (stateful operator primitives, custom connectors with changelog semantics, platform features like GPU resource declarations). They are not a scheduled template — revisit once the DSL grows the required primitives.
 `
 
 function withComparisonTable(

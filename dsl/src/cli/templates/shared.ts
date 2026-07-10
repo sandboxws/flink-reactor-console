@@ -63,7 +63,7 @@ export function makeTsconfig(_opts: ScaffoldOptions): string {
         "@/*": ["./*"],
       },
     },
-    include: ["pipelines/**/*", "schemas/**/*", "env/**/*", "patterns/**/*"],
+    include: ["pipelines/**/*", "schemas/**/*", "patterns/**/*"],
   }
   return `${JSON.stringify(config, null, 2)}\n`
 }
@@ -130,16 +130,6 @@ dist/
 *.tsbuildinfo
 .env
 .env.local
-`
-}
-
-export function makeDevEnv(_opts: ScaffoldOptions): string {
-  return `import { defineEnvironment } from '@flink-reactor/dsl'
-
-export default defineEnvironment({
-  name: 'dev',
-  // Override pipeline defaults for local development
-})
 `
 }
 

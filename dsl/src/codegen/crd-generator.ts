@@ -186,11 +186,16 @@ export function withFlinkConfiguration(
 
 // ── Default image mapping ───────────────────────────────────────────
 
+// Pin each supported minor to a fixed patch so generated CRDs are
+// reproducible (the deterministic-output rule) instead of floating on a
+// mutable minor tag that can pull a different Flink binary over time.
+// `2.2.0` matches the local cluster image (src/cli/cluster/Dockerfile.flink).
+// Override per deployment via `options.flinkImage`.
 const FLINK_IMAGE_MAP: Record<FlinkMajorVersion, string> = {
-  "1.20": "flink:1.20",
-  "2.0": "flink:2.0",
-  "2.1": "flink:2.1",
-  "2.2": "flink:2.2",
+  "1.20": "flink:1.20.0",
+  "2.0": "flink:2.0.0",
+  "2.1": "flink:2.1.0",
+  "2.2": "flink:2.2.0",
 }
 
 // flinkVersion → operator-expected version string

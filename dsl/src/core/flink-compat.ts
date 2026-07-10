@@ -60,6 +60,15 @@ const VERSION_ORDER: readonly FlinkMajorVersion[] = [
   "2.2",
 ]
 
+/**
+ * Default Flink major version used when a project config does not pin
+ * `flink.version`. Single source of truth so the CLI (`fr synth`), the
+ * config resolver, and codegen never disagree — historically these drifted
+ * between "2.0" and "2.2". Matches the local cluster image (2.2.x,
+ * `src/cli/cluster/Dockerfile.flink`).
+ */
+export const DEFAULT_FLINK_VERSION: FlinkMajorVersion = "2.2"
+
 function versionIndex(v: FlinkMajorVersion): number {
   return VERSION_ORDER.indexOf(v)
 }

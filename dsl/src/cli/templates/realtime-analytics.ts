@@ -117,6 +117,8 @@ export default (
     <JdbcSink
       table="page_view_stats"
       url="jdbc:postgresql://postgres:5432/analytics"
+      upsertMode
+      keyFields={['pageUrl', 'windowStart', 'windowEnd']}
     />
   </Pipeline>
 );
@@ -130,12 +132,12 @@ export default (
         "`<KafkaSource>` reading a JSON page-view stream with a watermark on `viewTimestamp`.",
         '`<TumbleWindow size="1 MINUTE" on="viewTimestamp">` producing fixed event-time buckets.',
         "`<Aggregate>` emitting `COUNT(*)` per `pageUrl` plus `window_start` / `window_end` metadata.",
-        "`<JdbcSink>` writing the per-window stats to a Postgres `page_view_stats` table.",
+        "`<JdbcSink>` with `upsertMode` keyed on `(pageUrl, windowStart, windowEnd)` — one row per URL per window, upserted so checkpoint recovery never double-counts.",
       ],
       topology: `KafkaSource (page-views, json, watermark on viewTimestamp)
   └── TumbleWindow (1 MINUTE, on=viewTimestamp)
         └── Aggregate (GROUP BY pageUrl — COUNT(*), window_start, window_end)
-              └── JdbcSink (postgres analytics.page_view_stats)`,
+              └── JdbcSink (postgres analytics.page_view_stats, upsert)`,
       schemas: [
         "`schemas/page-views.ts` — `PageViewSchema` with watermark on `viewTimestamp`; `PageViewStatsSchema` for the per-window output shape",
       ],
@@ -144,7 +146,7 @@ pnpm test`,
     }),
     templatePipelineTestStub({
       pipelineName: "page-view-analytics",
-      loadBearingPatterns: [/TUMBLE\(/i, /GROUP BY/i, /jdbc/i],
+      loadBearingPatterns: [/TUMBLE\(/i, /GROUP BY/i, /jdbc/i, /PRIMARY KEY/i],
     }),
     templateReadme({
       templateName: "realtime-analytics",

@@ -15,7 +15,7 @@ exports[`pg-fluss-paimon-ingest (Pipeline-YAML branch) > synthesizes a stable ar
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_2",
-      "image": "flink:2.2",
+      "image": "flink:2.2.0",
       "job": {
         "args": [
           "--pipeline",
@@ -117,7 +117,7 @@ exports[`pg-fluss-paimon-ingest (Pipeline-YAML branch) > synthesizes a stable ar
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_2",
-      "image": "flink:2.2",
+      "image": "flink:2.2.0",
       "job": {
         "args": [
           "--pipeline",
@@ -219,7 +219,7 @@ exports[`pg-fluss-paimon-ingest (Pipeline-YAML branch) > synthesizes a stable ar
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_2",
-      "image": "flink:2.2",
+      "image": "flink:2.2.0",
       "job": {
         "args": [
           "--pipeline",
@@ -321,7 +321,7 @@ exports[`pg-fluss-paimon-ingest (Pipeline-YAML branch) > synthesizes a stable ar
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_2",
-      "image": "flink:2.2",
+      "image": "flink:2.2.0",
       "job": {
         "args": [
           "--pipeline",
@@ -423,7 +423,7 @@ exports[`pg-fluss-paimon-serve (Flink-SQL branch) > synthesizes a stable artifac
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_2",
-      "image": "flink:2.2",
+      "image": "flink:2.2.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -575,7 +575,7 @@ exports[`pg-fluss-paimon-serve (Flink-SQL branch) > synthesizes a stable artifac
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_2",
-      "image": "flink:2.2",
+      "image": "flink:2.2.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -727,7 +727,7 @@ exports[`pg-fluss-paimon-serve (Flink-SQL branch) > synthesizes a stable artifac
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_2",
-      "image": "flink:2.2",
+      "image": "flink:2.2.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -879,7 +879,7 @@ exports[`pg-fluss-paimon-serve (Flink-SQL branch) > synthesizes a stable artifac
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_2",
-      "image": "flink:2.2",
+      "image": "flink:2.2.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,

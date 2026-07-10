@@ -193,7 +193,7 @@ describe("air-gapped: private registry", () => {
     assertFlinkDeployment(crd)
     const patched = applyPrivateRegistry(crd, "registry.internal.com")
 
-    expect(patched.spec.image).toBe("registry.internal.com/flink:2.0")
+    expect(patched.spec.image).toBe("registry.internal.com/flink:2.0.0")
   })
 
   it("adds imagePullSecrets when provided", () => {
@@ -206,7 +206,7 @@ describe("air-gapped: private registry", () => {
       "my-pull-secret",
     )
 
-    expect(patched.spec.image).toBe("registry.internal.com/flink:2.0")
+    expect(patched.spec.image).toBe("registry.internal.com/flink:2.0.0")
     const podTemplate = patched.spec.podTemplate as Record<string, unknown>
     const spec = podTemplate.spec as Record<string, unknown>
     expect(spec.imagePullSecrets).toEqual([{ name: "my-pull-secret" }])

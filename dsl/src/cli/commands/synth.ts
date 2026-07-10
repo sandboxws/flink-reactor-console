@@ -23,6 +23,7 @@ import {
 } from "@/codegen/sql/sql-generator.js"
 import { type PipelineArtifact, synthesizeApp } from "@/core/app.js"
 import { DiscoveryError, type FileSystemError } from "@/core/errors.js"
+import { DEFAULT_FLINK_VERSION } from "@/core/flink-compat.js"
 import { generatePipelineManifest } from "@/core/manifest.js"
 import { FrFileSystem } from "@/core/services.js"
 
@@ -136,7 +137,7 @@ export async function runSynth(
       )
       const { generateCrd } = await import("@/codegen/crd-generator.js")
 
-      const flinkVersion = ctx.config?.flink?.version ?? "2.0"
+      const flinkVersion = ctx.config?.flink?.version ?? DEFAULT_FLINK_VERSION
       const sql = generateSql(pipelineNode, { flinkVersion })
       const crd = generateCrd(pipelineNode, { flinkVersion })
       const { manifest: tapManifest } = generateTapManifest(pipelineNode, {
@@ -375,7 +376,7 @@ function synthesizeAndWrite(
 
       // Fallback: treat whole tree as single pipeline
       if (result.pipelines.length === 0) {
-        const flinkVersion = ctx.config?.flink?.version ?? "2.0"
+        const flinkVersion = ctx.config?.flink?.version ?? DEFAULT_FLINK_VERSION
         const sql = generateSql(pipelineNode, { flinkVersion })
         const crd = generateCrd(pipelineNode, { flinkVersion })
         const { manifest: tapManifest } = generateTapManifest(pipelineNode, {

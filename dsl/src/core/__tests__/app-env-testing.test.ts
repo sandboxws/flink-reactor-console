@@ -365,7 +365,7 @@ describe("5.5: synth() test helper", () => {
     assertFlinkDeployment(result.crd)
 
     expect(result.crd.spec.flinkVersion).toBe("v1_20")
-    expect(result.crd.spec.image).toBe("flink:1.20")
+    expect(result.crd.spec.image).toBe("flink:1.20.0")
   })
 })
 

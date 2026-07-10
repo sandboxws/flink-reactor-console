@@ -19,12 +19,13 @@
   },
   "homepage": "https://github.com/sandboxws/flink-reactor-dsl/tree/main/packages/create-fr-app#readme",
   "keywords": [
-    "flink",
-    "scaffolder",
-    "cli",
-    "streaming",
-    "tsx",
-    "flink-reactor"
+    "flink-reactor",
+    "design-system",
+    "ui",
+    "components",
+    "nextjs",
+    "react",
+    "cli"
   ],
   "publishConfig": {
     "access": "public"
@@ -33,8 +34,7 @@
     "create-fr-app": "./dist/cli.js"
   },
   "files": [
-    "dist",
-    "templates"
+    "dist"
   ],
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts",

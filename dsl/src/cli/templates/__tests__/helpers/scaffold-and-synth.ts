@@ -19,6 +19,7 @@ export const EXPECTED_PIPELINES: Record<TemplateName, readonly string[]> = {
   minimal: [],
   monorepo: [],
   "cdc-lakehouse": ["cdc-to-lakehouse"],
+  "data-quality": ["order-cleanup"],
   "realtime-analytics": ["page-view-analytics"],
   ecommerce: [
     "ecom-customer-360",

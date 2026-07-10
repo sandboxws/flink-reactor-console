@@ -6,7 +6,7 @@ kind: FlinkDeployment
 metadata:
   name: shop-orders-cdc
 spec:
-  image: flink:2.0
+  image: flink:2.0.0
   flinkVersion: v2_0
   flinkConfiguration:
     execution.runtime-mode: STREAMING
@@ -52,7 +52,7 @@ kind: FlinkDeployment
 metadata:
   name: batch-job
 spec:
-  image: flink:2.0
+  image: flink:2.0.0
   flinkVersion: v2_0
   flinkConfiguration:
     execution.runtime-mode: BATCH
@@ -77,7 +77,7 @@ kind: FlinkDeployment
 metadata:
   name: orders
 spec:
-  image: flink:2.0
+  image: flink:2.0.0
   flinkVersion: v2_0
   flinkConfiguration:
     execution.runtime-mode: STREAMING

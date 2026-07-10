@@ -9,6 +9,7 @@ import pc from "picocolors"
 import { runCommand } from "@/cli/effect-runner.js"
 import { getBankingTemplates } from "@/cli/templates/banking.js"
 import { getCdcLakehouseTemplates } from "@/cli/templates/cdc-lakehouse.js"
+import { getDataQualityTemplates } from "@/cli/templates/data-quality.js"
 import { getEcommerceTemplates } from "@/cli/templates/ecommerce.js"
 import { getGroceryDeliveryTemplates } from "@/cli/templates/grocery-delivery.js"
 import { getIotFactoryTemplates } from "@/cli/templates/iot-factory.js"
@@ -31,6 +32,7 @@ export type TemplateName =
   | "starter"
   | "minimal"
   | "cdc-lakehouse"
+  | "data-quality"
   | "realtime-analytics"
   | "monorepo"
   | "ecommerce"
@@ -85,6 +87,7 @@ const TEMPLATE_FACTORIES: Record<TemplateName, TemplateFactory> = {
   starter: getStarterTemplates,
   minimal: getMinimalTemplates,
   "cdc-lakehouse": getCdcLakehouseTemplates,
+  "data-quality": getDataQualityTemplates,
   "realtime-analytics": getRealtimeAnalyticsTemplates,
   monorepo: getMonorepoTemplates,
   ecommerce: getEcommerceTemplates,
@@ -105,6 +108,8 @@ const TEMPLATE_DESCRIPTIONS: Record<TemplateName, string> = {
   starter: "Kafka source → transform → Kafka sink",
   minimal: "Empty project structure",
   "cdc-lakehouse": "Debezium CDC → Iceberg lakehouse (upsert)",
+  "data-quality":
+    "Field-transform record normalization (Cast/Coalesce/Rename/AddField/Drop), blue-green",
   "realtime-analytics": "Kafka → windowed aggregation → JDBC",
   monorepo: "pnpm workspace with packages/ and apps/",
   ecommerce: "3-way joins, Top-N, session windows (3 pipelines + pump)",
@@ -397,6 +402,21 @@ async function promptTemplate(): Promise<TemplateName | symbol> {
         hint: TEMPLATE_DESCRIPTIONS["cdc-lakehouse"],
       },
       {
+        value: "data-quality",
+        label: "Data Quality",
+        hint: TEMPLATE_DESCRIPTIONS["data-quality"],
+      },
+      {
+        value: "lakehouse-ingestion",
+        label: "Lakehouse Ingestion",
+        hint: TEMPLATE_DESCRIPTIONS["lakehouse-ingestion"],
+      },
+      {
+        value: "lakehouse-analytics",
+        label: "Lakehouse Analytics (Medallion)",
+        hint: TEMPLATE_DESCRIPTIONS["lakehouse-analytics"],
+      },
+      {
         value: "realtime-analytics",
         label: "Real-time Analytics",
         hint: TEMPLATE_DESCRIPTIONS["realtime-analytics"],
@@ -502,6 +522,7 @@ function validateTemplate(value: string | undefined): TemplateName | null {
     "starter",
     "minimal",
     "cdc-lakehouse",
+    "data-quality",
     "realtime-analytics",
     "monorepo",
     "ecommerce",

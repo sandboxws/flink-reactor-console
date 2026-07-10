@@ -29,6 +29,7 @@
 
 import { Either } from "effect"
 import { SqlGenerationError } from "@/core/errors.js"
+import { DEFAULT_FLINK_VERSION } from "@/core/flink-compat.js"
 import type { PluginDdlGenerator, PluginSqlGenerator } from "@/core/plugin.js"
 import type { ValidationDiagnostic } from "@/core/synth-context.js"
 import { SynthContext } from "@/core/synth-context.js"
@@ -176,7 +177,7 @@ export function generateSql(
   pipelineNode: ConstructNode,
   options: GenerateSqlOptions = {},
 ): GenerateSqlResult {
-  const version = options.flinkVersion ?? "2.2"
+  const version = options.flinkVersion ?? DEFAULT_FLINK_VERSION
   // The ctx.nodeIndex is rebuilt below after optimization; seed the context
   // with an empty map so reentrancy is checked before optimization runs.
   const ctx = createBuildContext({
@@ -528,7 +529,7 @@ export function generateTapManifest(
     return { manifest: null, diagnostics: [] }
   }
 
-  const version = options.flinkVersion ?? "2.2"
+  const version = options.flinkVersion ?? DEFAULT_FLINK_VERSION
   const devMode = options.devMode ?? false
   const pipelineName = (pipelineNode.props.name as string) ?? "unnamed"
 

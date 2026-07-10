@@ -170,8 +170,8 @@ import {
 import pipeline from '../../pipelines/word-count/index.js'
 
 function synth(node: ConstructNode): string {
-  const result = synthesizeApp({ children: [node] })
-  return result.artifacts[0].sql.sql
+  const result = synthesizeApp({ name: 'word-count', children: [node] })
+  return result.pipelines[0].sql.sql
 }
 
 describe('word-count pipeline', () => {

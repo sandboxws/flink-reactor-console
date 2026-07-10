@@ -20,6 +20,7 @@ export const DEFAULT_TEMPLATES: readonly TemplateContract[] = [
 export const ALL_TEMPLATES: readonly TemplateContract[] = [
   ...DEFAULT_TEMPLATES,
   { template: "minimal", pipelines: [] },
+  { template: "data-quality", pipelines: ["order-cleanup"] },
   {
     template: "ecommerce",
     pipelines: [

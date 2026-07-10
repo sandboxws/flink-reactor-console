@@ -94,7 +94,7 @@ describe("CRD generation: streaming pipeline", () => {
       "STREAMING",
     )
 
-    expect(crd.spec.image).toBe("flink:2.0")
+    expect(crd.spec.image).toBe("flink:2.0.0")
     expect(crd.spec.flinkVersion).toBe("v2_0")
 
     // Default resources
@@ -327,7 +327,7 @@ describe("CRD generation: Flink version mapping", () => {
     const crd = generateCrd(pipeline, { flinkVersion: "1.20" })
     assertFlinkDeployment(crd)
     expect(crd.spec.flinkVersion).toBe("v1_20")
-    expect(crd.spec.image).toBe("flink:1.20")
+    expect(crd.spec.image).toBe("flink:1.20.0")
   })
 
   it("maps 2.2 correctly", () => {
@@ -335,7 +335,7 @@ describe("CRD generation: Flink version mapping", () => {
     const crd = generateCrd(pipeline, { flinkVersion: "2.2" })
     assertFlinkDeployment(crd)
     expect(crd.spec.flinkVersion).toBe("v2_2")
-    expect(crd.spec.image).toBe("flink:2.2")
+    expect(crd.spec.image).toBe("flink:2.2.0")
   })
 })
 

@@ -160,6 +160,7 @@ export default (
   <Pipeline
     name="bank-fraud-detection"
     mode="streaming"
+    telemetry={{ labels: { team: "risk", domain: "fraud" } }}
     parallelism={4}
     stateBackend="rocksdb"
     checkpoint={{ interval: "30s", mode: "exactly-once" }}
@@ -205,11 +206,11 @@ export default (
     <Route>
       <Route.Branch condition="true">
         <Aggregate groupBy={['accountId']} select={{ accountId: 'accountId', totalAmount: 'SUM(amount)', txnCount: 'COUNT(*)', windowEnd: 'window_end' }} />
-        <JdbcSink table="large_txn_report" url="jdbc:postgresql://postgres:5432/flink_sink" />
+        <JdbcSink table="large_txn_report" url="jdbc:postgresql://postgres:5432/flink_sink" upsertMode keyFields={['accountId', 'windowEnd']} />
       </Route.Branch>
       <Route.Branch condition="true">
         <Aggregate groupBy={['country']} select={{ country: 'country', crossBorderCount: 'COUNT(*)', totalVolume: 'SUM(amount)', windowEnd: 'window_end' }} />
-        <JdbcSink table="cross_border_report" url="jdbc:postgresql://postgres:5432/flink_sink" />
+        <JdbcSink table="cross_border_report" url="jdbc:postgresql://postgres:5432/flink_sink" upsertMode keyFields={['country', 'windowEnd']} />
       </Route.Branch>
       <Route.Branch condition="amount > 10000">
         <KafkaSink topic="bank.compliance-reports" bootstrapServers="kafka:9092" />
@@ -252,8 +253,8 @@ pnpm test`,
       topology: `KafkaSource (transactions)
   └── TumbleWindow (1 HOUR, on=txnTime)
         └── Route
-              ├── Branch ─► Aggregate (GROUP BY accountId — SUM, COUNT) ─► JdbcSink (large_txn_report)
-              ├── Branch ─► Aggregate (GROUP BY country — COUNT, SUM)   ─► JdbcSink (cross_border_report)
+              ├── Branch ─► Aggregate (GROUP BY accountId — SUM, COUNT) ─► JdbcSink (large_txn_report, upsert)
+              ├── Branch ─► Aggregate (GROUP BY country — COUNT, SUM)   ─► JdbcSink (cross_border_report, upsert)
               └── Branch (amount > 10000) ─► KafkaSink (bank.compliance-reports)`,
       schemas: [
         "`schemas/banking.ts` — `TransactionSchema` (with `txnTime` watermark)",
@@ -277,6 +278,7 @@ pnpm test`,
       loadBearingPatterns: [
         /TUMBLE\(/i,
         /GROUP BY/i,
+        /PRIMARY KEY/i,
         /bank\.compliance-reports/,
       ],
     }),

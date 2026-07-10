@@ -100,6 +100,7 @@ export default (
   <Pipeline
     name="cdc-to-lakehouse"
     mode="streaming"
+    telemetry={{ labels: { team: 'data-platform', domain: 'lakehouse' } }}
     parallelism={2}
     stateBackend="rocksdb"
     checkpoint={{ interval: '30s', mode: 'exactly-once' }}

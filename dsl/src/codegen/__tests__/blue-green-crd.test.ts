@@ -117,7 +117,7 @@ describe("Blue-green CRD generation", () => {
     }) as FlinkBlueGreenDeploymentCrd
     const inner = crd.spec.template.spec
 
-    expect(inner.image).toBe("flink:2.0")
+    expect(inner.image).toBe("flink:2.0.0")
     expect(inner.flinkVersion).toBe("v2_0")
     expect(inner.flinkConfiguration["execution.checkpointing.interval"]).toBe(
       "60000",

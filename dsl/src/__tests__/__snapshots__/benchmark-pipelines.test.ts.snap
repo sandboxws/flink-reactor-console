@@ -15,7 +15,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -162,7 +162,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -309,7 +309,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -454,7 +454,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -599,7 +599,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -746,7 +746,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "jarURI": "local:///opt/flink/usrlib/sql-runner.jar",
         "parallelism": 4,
@@ -893,7 +893,7 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "args": [
           "--pipeline",
@@ -1006,7 +1006,7 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "args": [
           "--pipeline",
@@ -1119,7 +1119,7 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
         "execution.runtime-mode": "BATCH",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "args": [
           "--pipeline",
@@ -1233,7 +1233,7 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
         "execution.runtime-mode": "BATCH",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "args": [
           "--pipeline",
@@ -1347,7 +1347,7 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "args": [
           "--pipeline",
@@ -1460,7 +1460,7 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
         "execution.runtime-mode": "STREAMING",
       },
       "flinkVersion": "v2_0",
-      "image": "flink:2.0",
+      "image": "flink:2.0.0",
       "job": {
         "args": [
           "--pipeline",

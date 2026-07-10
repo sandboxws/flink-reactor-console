@@ -315,6 +315,8 @@ export default (
         <JdbcSink
           table="revenue_by_category"
           url="jdbc:postgresql://postgres:5432/flink_sink"
+          upsertMode
+          keyFields={['category', 'windowStart', 'windowEnd']}
         />
       </Route.Default>
       <Route.Branch condition="amount > 500">
@@ -487,7 +489,7 @@ pnpm test`,
       ],
       topology: `KafkaSource (ecom.order-enriched)
   └── Route
-        ├── Default ─► SlideWindow (5min/1min, on=orderTime) ─► Aggregate (GROUP BY category, SUM/COUNT) ─► JdbcSink (revenue_by_category)
+        ├── Default ─► SlideWindow (5min/1min, on=orderTime) ─► Aggregate (GROUP BY category, SUM/COUNT) ─► JdbcSink (revenue_by_category, upsert)
         └── Branch (amount > 500) ─► KafkaSink (ecom.revenue-alerts)`,
       schemas: [
         "`schemas/ecommerce.ts` — `OrderEnrichedSchema` (consumer side)",
@@ -543,7 +545,7 @@ pnpm test`,
     }),
     templatePipelineTestStub({
       pipelineName: "ecom-revenue-analytics",
-      loadBearingPatterns: [/HOP\(/i, /GROUP BY/i, /jdbc/i],
+      loadBearingPatterns: [/HOP\(/i, /GROUP BY/i, /jdbc/i, /PRIMARY KEY/i],
     }),
     templatePipelineTestStub({
       pipelineName: "ecom-customer-360",

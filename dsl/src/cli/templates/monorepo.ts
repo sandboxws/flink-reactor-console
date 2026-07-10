@@ -136,15 +136,6 @@ export function getMonorepoTemplates(opts: ScaffoldOptions): TemplateFile[] {
       content: makeConfig(opts),
     },
     {
-      path: "apps/default-app/env/dev.ts",
-      content: `import { defineEnvironment } from '@flink-reactor/dsl';
-
-export default defineEnvironment({
-  name: 'dev',
-});
-`,
-    },
-    {
       path: "apps/default-app/pipelines/.gitkeep",
       content: "",
     },

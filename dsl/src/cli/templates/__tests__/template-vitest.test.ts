@@ -25,6 +25,10 @@ interface TemplateCase {
 const TEMPLATES_TO_RUN: readonly TemplateCase[] = [
   { template: "starter", minPassed: 0 },
   { template: "stock-basics", minPassed: 4 },
+  // Exercises the field-transform load-bearing patterns
+  // (TRY_CAST/COALESCE/customerId) in the emitted per-pipeline test, which
+  // no other in-process suite runs.
+  { template: "data-quality", minPassed: 1 },
 ]
 
 describe("Scaffolded vitest run", () => {

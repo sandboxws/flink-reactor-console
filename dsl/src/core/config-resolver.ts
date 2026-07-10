@@ -14,6 +14,7 @@ import type {
 import { SUPPORTED_RUNTIMES } from "./config.js"
 import type { Resolved } from "./env-var.js"
 import { resolveEnvVars } from "./env-var.js"
+import { DEFAULT_FLINK_VERSION } from "./flink-compat.js"
 import type { FlinkMajorVersion } from "./types.js"
 
 export type ResolvedServicesConfig = Resolved<ServicesConfig>
@@ -293,7 +294,7 @@ export function resolveConfig(
     flink: {
       version: ((flink?.version as string) ??
         config.flink?.version ??
-        "2.2") as FlinkMajorVersion,
+        DEFAULT_FLINK_VERSION) as FlinkMajorVersion,
     },
     cluster: {
       url: cluster?.url as string | undefined,
