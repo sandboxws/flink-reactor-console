@@ -17,7 +17,19 @@ export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
   // Kafka for transaction streams; Postgres for the JDBC sinks (fraud + compliance).
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, postgres: {} },
+  // \`schemaRegistryUrl\` is the bundled registry's host port — read by
+  // \`fr schema generate\`, not by the runtime connectors (which read the topics
+  // with \`format="json"\` / \`format="debezium-json"\`, both registry-free).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, postgres: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect each input topic's row
+  // schema from the registry and emit \`schemas/<name>.ts\`. Both shipped schemas
+  // also carry a watermark, which introspection can't infer — re-add it after
+  // regenerating with \`--force\`.
+  sources: {
+    transactions: { type: 'kafka', topic: 'bank.transactions' },
+    accounts: { type: 'kafka', topic: 'bank.accounts' },
+  },
 
   environments: {
     minikube: {
@@ -25,7 +37,7 @@ export default defineConfig({
       sim: {
         init: {
           kafka: {
-            topics: ['bank.fraud-alerts', 'bank.compliance-reports'],
+            topics: ['bank.fraud-alerts', 'bank.compliance-reports', 'bank.transactions', 'bank.accounts'],
             catalogs: [{
               name: 'banking',
               tables: [
@@ -82,10 +94,13 @@ export default defineConfig({
 `,
     },
     {
-      path: "schemas/banking.ts",
+      // Row schema for the `bank.transactions` topic (source `transactions`).
+      // Single-export so `fr schema generate transactions --force` regenerates
+      // it cleanly; the account-state shape lives in schemas/accounts.ts.
+      path: "schemas/transactions.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const TransactionSchema = Schema({
+export const TransactionsSchema = Schema({
   fields: {
     txnId: Field.STRING(),
     accountId: Field.STRING(),
@@ -97,8 +112,16 @@ export const TransactionSchema = Schema({
   },
   watermark: { column: 'txnTime', expression: "txnTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      // Row schema for the `bank.accounts` debezium-json CDC topic (source
+      // `accounts`). Single-export so `fr schema generate accounts --force`
+      // regenerates it cleanly.
+      path: "schemas/accounts.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const AccountSchema = Schema({
+export const AccountsSchema = Schema({
   fields: {
     accountId: Field.STRING(),
     name: Field.STRING(),
@@ -118,18 +141,19 @@ export const AccountSchema = Schema({
   Pipeline, KafkaSource, KafkaSink,
   MatchRecognize, TemporalJoin,
 } from '@flink-reactor/dsl';
-import { TransactionSchema, AccountSchema } from '@/schemas/banking';
+import { TransactionsSchema } from '@/schemas/transactions';
+import { AccountsSchema } from '@/schemas/accounts';
 
 const transactions = KafkaSource({
   topic: "bank.transactions",
-  schema: TransactionSchema,
+  schema: TransactionsSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "bank-fraud",
 });
 
 const accounts = KafkaSource({
   topic: "bank.accounts",
-  schema: AccountSchema,
+  schema: AccountsSchema,
   format: "debezium-json",
   bootstrapServers: "kafka:9092",
   consumerGroup: "bank-fraud-accounts",
@@ -185,7 +209,7 @@ export default (
   Pipeline, KafkaSource, KafkaSink, JdbcSink,
   TumbleWindow, Aggregate, Route,
 } from '@flink-reactor/dsl';
-import { TransactionSchema } from '@/schemas/banking';
+import { TransactionsSchema } from '@/schemas/transactions';
 
 export default (
   <Pipeline
@@ -201,7 +225,7 @@ export default (
       "s3.path.style.access": "true",
     }}
   >
-    <KafkaSource topic="bank.transactions" schema={TransactionSchema} bootstrapServers="kafka:9092" consumerGroup="bank-compliance" />
+    <KafkaSource topic="bank.transactions" schema={TransactionsSchema} bootstrapServers="kafka:9092" consumerGroup="bank-compliance" />
     <TumbleWindow size="1 HOUR" on="txnTime" />
     <Route>
       <Route.Branch condition="true">
@@ -236,7 +260,7 @@ export default (
                                                                                                             ├─► TemporalJoin (accountId AS OF lastTxn) ─► KafkaSink (bank.fraud-alerts)
 KafkaSource (accounts, debezium-json)  ──────────────────────────────────────────────────────────────────────┘`,
       schemas: [
-        "`schemas/banking.ts` — `TransactionSchema` (with `txnTime` watermark), `AccountSchema` (with `accountId` PK and `updateTime` watermark)",
+        "`schemas/transactions.ts` — `TransactionsSchema` (with `txnTime` watermark); `schemas/accounts.ts` — `AccountsSchema` (with `accountId` PK and `updateTime` watermark)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -257,7 +281,7 @@ pnpm test`,
               ├── Branch ─► Aggregate (GROUP BY country — COUNT, SUM)   ─► JdbcSink (cross_border_report, upsert)
               └── Branch (amount > 10000) ─► KafkaSink (bank.compliance-reports)`,
       schemas: [
-        "`schemas/banking.ts` — `TransactionSchema` (with `txnTime` watermark)",
+        "`schemas/transactions.ts` — `TransactionsSchema` (with `txnTime` watermark)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -301,7 +325,15 @@ pnpm test`,
             "Hourly tumbling-window compliance fan-out via `<Route>` → per-account, per-country, and per-transaction sinks.",
         },
       ],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate the source schemas from the seeded Kafka topics",
+        "pnpm fr cluster up",
+        "pnpm fr schema generate transactions",
+        "pnpm fr schema generate accounts",
+      ],
     }),
   ]
 }

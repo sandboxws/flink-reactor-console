@@ -17,8 +17,19 @@ export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
   // Kafka-only template: \`fr cluster up\` and \`fr sim up\` start Flink + Kafka.
-  // No Postgres, Iceberg, or Fluss.
-  services: { kafka: { bootstrapServers: 'kafka:9092' } },
+  // No Postgres, Iceberg, or Fluss. \`schemaRegistryUrl\` is the published host
+  // port of the bundled registry — read by \`fr schema generate\`, not by the
+  // runtime connectors (which use \`format="debezium-json"\`, registry-free).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' } },
+
+  // \`sources\` powers \`fr schema generate\`: introspect the topic's row schema
+  // from the Schema Registry and emit \`schemas/products.ts\`. \`fr cluster up\`
+  // registers this topic's schema automatically, so \`fr schema generate
+  // products\` works out of the box. (JSON Schema has no INT/BIGINT split, so
+  // regenerated integers come back as BIGINT — narrow them if you want INT.)
+  sources: {
+    products: { type: 'kafka', topic: 'cdc.inventory.products' },
+  },
 
   environments: {
     // Docker-compose by default — matches the platform docs' recommended
@@ -87,7 +98,7 @@ export default defineConfig({
       path: "schemas/products.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const ProductSchema = Schema({
+export const ProductsSchema = Schema({
   fields: {
     id: Field.INT(),
     name: Field.STRING(),
@@ -102,13 +113,13 @@ export const ProductSchema = Schema({
     {
       path: "pipelines/hello-world/index.tsx",
       content: `import { Pipeline, KafkaSource, KafkaSink, Filter } from '@flink-reactor/dsl';
-import { ProductSchema } from '@/schemas/products';
+import { ProductsSchema } from '@/schemas/products';
 
 export default (
   <Pipeline name="hello-world">
     <KafkaSource
       topic="cdc.inventory.products"
-      schema={ProductSchema}
+      schema={ProductsSchema}
       format="debezium-json"
       bootstrapServers="kafka:9092"
       consumerGroup="hello-world"
@@ -159,7 +170,13 @@ pnpm test`,
             "CDC source filtered to in-stock products, written to a downstream Kafka topic.",
         },
       ],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate schemas/products.ts from the seeded Kafka topic",
+        "pnpm fr cluster up && pnpm fr schema generate products",
+      ],
     }),
   ]
 }

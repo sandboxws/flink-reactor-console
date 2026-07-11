@@ -17,7 +17,19 @@ export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
   // Kafka for events; Postgres for the JDBC dim/fact sinks the pipelines write to.
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, postgres: {} },
+  // \`schemaRegistryUrl\` is read by \`fr schema generate\` (host port of the
+  // bundled registry), not by the runtime connectors.
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, postgres: {} },
+
+  // \`sources\` powers \`fr schema generate\` for the three external Kafka input
+  // topics. The derived \`ecom.order-enriched\` topic and the JDBC customers
+  // dimension (\`flink_sink.customers\`, not seeded locally) are intentionally
+  // not wired as sources.
+  sources: {
+    orders: { type: 'kafka', topic: 'ecom.orders' },
+    'order-items': { type: 'kafka', topic: 'ecom.order-items' },
+    products: { type: 'kafka', topic: 'ecom.products' },
+  },
 
   environments: {
     minikube: {
@@ -25,7 +37,7 @@ export default defineConfig({
       sim: {
         init: {
           kafka: {
-            topics: ['ecom.order-enriched', 'ecom.revenue-alerts'],
+            topics: ['ecom.orders', 'ecom.order-items', 'ecom.products', 'ecom.order-enriched', 'ecom.revenue-alerts'],
             catalogs: [{
               name: 'ecom',
               tables: [
@@ -110,10 +122,12 @@ export default defineConfig({
     // ── Schemas ──────────────────────────────────────────────────────
 
     {
-      path: "schemas/ecommerce.ts",
+      // Source schema for `ecom.orders` — single-export so
+      // `fr schema generate orders --force` regenerates it cleanly.
+      path: "schemas/orders.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const OrderSchema = Schema({
+export const OrdersSchema = Schema({
   fields: {
     orderId: Field.STRING(),
     customerId: Field.STRING(),
@@ -124,8 +138,13 @@ export const OrderSchema = Schema({
   },
   watermark: { column: 'orderTime', expression: "orderTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      path: "schemas/order-items.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const OrderItemSchema = Schema({
+export const OrderItemsSchema = Schema({
   fields: {
     orderId: Field.STRING(),
     productId: Field.STRING(),
@@ -135,8 +154,13 @@ export const OrderItemSchema = Schema({
   },
   watermark: { column: 'itemTime', expression: "itemTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      path: "schemas/products.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const ProductSchema = Schema({
+export const ProductsSchema = Schema({
   fields: {
     productId: Field.STRING(),
     name: Field.STRING(),
@@ -148,8 +172,17 @@ export const ProductSchema = Schema({
   watermark: { column: 'updateTime', expression: "updateTime - INTERVAL '5' SECOND" },
   primaryKey: { columns: ['productId'] },
 });
+`,
+    },
+    {
+      // JDBC dimension read by ecom-customer-360 (flink_sink.customers). Split
+      // out for a clean per-source layout; intentionally NOT a \`sources\` entry
+      // because the local \`flink_sink.customers\` table isn't seeded (it's a
+      // user-supplied dimension), so \`schema generate\` can't introspect it.
+      path: "schemas/customers.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const CustomerSchema = Schema({
+export const CustomersSchema = Schema({
   fields: {
     customerId: Field.STRING(),
     name: Field.STRING(),
@@ -159,11 +192,15 @@ export const CustomerSchema = Schema({
   },
   primaryKey: { columns: ['customerId'] },
 });
+`,
+    },
+    {
+      // Output of ecom-order-enrichment (orders × items × products) and the
+      // input of ecom-revenue-analytics. A derived, internal handoff topic —
+      // not an external \`sources\` entry.
+      path: "schemas/order-enriched.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-// Output of ecom-order-enrichment: orders joined with their line-items
-// and denormalised product attributes. Bound to the ecom.order-enriched
-// topic on both the producer (enrichment pipeline sink) and the
-// consumer (revenue analytics pipeline source).
 export const OrderEnrichedSchema = Schema({
   fields: {
     orderId: Field.STRING(),
@@ -194,12 +231,14 @@ export const OrderEnrichedSchema = Schema({
   IntervalJoin,
   TemporalJoin,
 } from '@flink-reactor/dsl';
-import { OrderSchema, OrderItemSchema, ProductSchema } from '@/schemas/ecommerce';
+import { OrdersSchema } from '@/schemas/orders';
+import { OrderItemsSchema } from '@/schemas/order-items';
+import { ProductsSchema } from '@/schemas/products';
 
 const orders = KafkaSource({
   name: "orders",
   topic: "ecom.orders",
-  schema: OrderSchema,
+  schema: OrdersSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "ecom-enrichment-orders",
 });
@@ -207,7 +246,7 @@ const orders = KafkaSource({
 const items = KafkaSource({
   name: "items",
   topic: "ecom.order-items",
-  schema: OrderItemSchema,
+  schema: OrderItemsSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "ecom-enrichment-items",
 });
@@ -215,7 +254,7 @@ const items = KafkaSource({
 const products = KafkaSource({
   name: "products",
   topic: "ecom.products",
-  schema: ProductSchema,
+  schema: ProductsSchema,
   format: "debezium-json",
   bootstrapServers: "kafka:9092",
   consumerGroup: "ecom-enrichment-products",
@@ -276,7 +315,7 @@ export default (
   Aggregate,
   Route,
 } from '@flink-reactor/dsl';
-import { OrderEnrichedSchema } from '@/schemas/ecommerce';
+import { OrderEnrichedSchema } from '@/schemas/order-enriched';
 
 export default (
   <Pipeline
@@ -344,11 +383,12 @@ export default (
   SessionWindow,
   Aggregate,
 } from '@flink-reactor/dsl';
-import { OrderSchema, CustomerSchema } from '@/schemas/ecommerce';
+import { OrdersSchema } from '@/schemas/orders';
+import { CustomersSchema } from '@/schemas/customers';
 
 const orders = KafkaSource({
   topic: "ecom.orders",
-  schema: OrderSchema,
+  schema: OrdersSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "ecom-customer360",
 });
@@ -356,7 +396,7 @@ const orders = KafkaSource({
 const customers = JdbcSource({
   table: "customers",
   url: "jdbc:postgresql://postgres:5432/flink_sink",
-  schema: CustomerSchema,
+  schema: CustomersSchema,
   lookupCache: { type: "lru", maxRows: 10000, ttl: "10min" },
 });
 
@@ -417,7 +457,10 @@ export default (
   KafkaSink,
   StatementSet,
 } from '@flink-reactor/dsl';
-import { OrderSchema, OrderItemSchema, ProductSchema, CustomerSchema } from '@/schemas/ecommerce';
+import { OrdersSchema } from '@/schemas/orders';
+import { OrderItemsSchema } from '@/schemas/order-items';
+import { ProductsSchema } from '@/schemas/products';
+import { CustomersSchema } from '@/schemas/customers';
 
 export default (
   <Pipeline
@@ -435,19 +478,19 @@ export default (
   >
     <StatementSet>
       {/* Orders: 2000/s */}
-      <DataGenSource schema={OrderSchema} rowsPerSecond={2000} />
+      <DataGenSource schema={OrdersSchema} rowsPerSecond={2000} />
       <KafkaSink topic="ecom.orders" bootstrapServers="kafka:9092" />
 
       {/* Order Items: 6000/s (~3 items per order) */}
-      <DataGenSource schema={OrderItemSchema} rowsPerSecond={6000} />
+      <DataGenSource schema={OrderItemsSchema} rowsPerSecond={6000} />
       <KafkaSink topic="ecom.order-items" bootstrapServers="kafka:9092" />
 
       {/* Products CDC: 200/s (price/stock changes) */}
-      <DataGenSource schema={ProductSchema} rowsPerSecond={200} />
+      <DataGenSource schema={ProductsSchema} rowsPerSecond={200} />
       <KafkaSink topic="ecom.products" bootstrapServers="kafka:9092" />
 
       {/* Customers CDC: 100/s (profile updates) */}
-      <DataGenSource schema={CustomerSchema} rowsPerSecond={100} />
+      <DataGenSource schema={CustomersSchema} rowsPerSecond={100} />
       <KafkaSink topic="ecom.customers" bootstrapServers="kafka:9092" />
     </StatementSet>
   </Pipeline>
@@ -472,7 +515,7 @@ KafkaSource (items)         ─┼─► IntervalJoin (orders.orderId = items.or
                              │                                                       ├─► TemporalJoin (productId, AS OF orderTime) ─► KafkaSink (ecom.order-enriched)
 KafkaSource (products, debz) ────────────────────────────────────────────────────────┘`,
       schemas: [
-        "`schemas/ecommerce.ts` — `OrderSchema`, `OrderItemSchema`, `ProductSchema` (with `productId` PK), `OrderEnrichedSchema`",
+        "`schemas/orders.ts`, `schemas/order-items.ts`, `schemas/products.ts` (with `productId` PK) — the three joined Kafka inputs (regenerable via `fr schema generate`)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -492,7 +535,7 @@ pnpm test`,
         ├── Default ─► SlideWindow (5min/1min, on=orderTime) ─► Aggregate (GROUP BY category, SUM/COUNT) ─► JdbcSink (revenue_by_category, upsert)
         └── Branch (amount > 500) ─► KafkaSink (ecom.revenue-alerts)`,
       schemas: [
-        "`schemas/ecommerce.ts` — `OrderEnrichedSchema` (consumer side)",
+        "`schemas/order-enriched.ts` — `OrderEnrichedSchema` (consumer side)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -511,7 +554,7 @@ pnpm test`,
                        ├─► LookupJoin (customers JDBC, lru cache) ─► SessionWindow (30min, on=orderTime) ─► Aggregate (GROUP BY customerId/name/tier) ─► JdbcSink (customer_sessions, upsert)
 JdbcSource (customers) ─┘`,
       schemas: [
-        "`schemas/ecommerce.ts` — `OrderSchema`, `CustomerSchema` (with `customerId` PK)",
+        "`schemas/orders.ts` — `OrdersSchema`; `schemas/customers.ts` — `CustomersSchema` (with `customerId` PK)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -528,7 +571,7 @@ pnpm test`,
 DataGenSource (OrderItem)      ─► KafkaSink (ecom.order-items)
 DataGenSource (Product)        ─► KafkaSink (ecom.products)
 DataGenSource (Customer)       ─► KafkaSink (ecom.customers)`,
-      schemas: ["`schemas/ecommerce.ts` — same schemas the consumers read"],
+      schemas: ["the split `schemas/*.ts` — same schemas the consumers read"],
       runCommand: `pnpm synth
 pnpm test`,
     }),
@@ -584,7 +627,13 @@ pnpm test`,
             "Internal DataGen → Kafka pump for orders, order-items, products, and customers.",
         },
       ],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate a source schema from the seeded Kafka topic",
+        "pnpm fr cluster up && pnpm fr schema generate orders",
+      ],
     }),
   ]
 }

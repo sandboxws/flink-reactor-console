@@ -26,7 +26,18 @@ export default defineConfig({
   // 2.2 is the current house version and matches the local cluster image.
   flink: { version: '2.2' },
 
-  services: { kafka: { bootstrapServers: 'kafka:9092' } },
+  // \`schemaRegistryUrl\` is read by \`fr schema generate\` (host port of the
+  // bundled registry), not by the runtime connectors (which use format=json).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' } },
+
+  // \`sources\` powers \`fr schema generate\`: introspect the raw order-event
+  // topic and emit \`schemas/order-events.ts\`. The shipped schema types
+  // \`amount\`/\`quantity\` as STRING on purpose (untrusted input the pipeline
+  // coerces), so regenerating with \`--force\` may re-widen them — re-narrow to
+  // taste.
+  sources: {
+    'order-events': { type: 'kafka', topic: 'orders.raw' },
+  },
 
   environments: {
     development: {
@@ -49,7 +60,7 @@ export default defineConfig({
 // Raw, untrusted order events. \`amount\` and \`quantity\` arrive as strings
 // (JSON with no type enforcement) so the cleanup pipeline can coerce them
 // with a safe TRY_CAST.
-export const RawOrderEventSchema = Schema({
+export const OrderEventsSchema = Schema({
   fields: {
     orderId: Field.STRING(),
     userId: Field.STRING(),
@@ -69,7 +80,7 @@ export const RawOrderEventSchema = Schema({
     {
       path: "pipelines/order-cleanup/index.tsx",
       content: `import { Pipeline, KafkaSource, KafkaSink, Cast, Coalesce, Rename, AddField, Drop } from '@flink-reactor/dsl';
-import { RawOrderEventSchema } from '@/schemas/order-events';
+import { OrderEventsSchema } from '@/schemas/order-events';
 
 // Normalize a raw, untrusted order-event stream into a clean topic using the
 // field-transform components in a single linear pipeline:
@@ -96,7 +107,7 @@ export default (
   >
     <KafkaSource
       topic="orders.raw"
-      schema={RawOrderEventSchema}
+      schema={OrderEventsSchema}
       format="json"
       bootstrapServers="kafka:9092"
       consumerGroup="order-cleanup"
@@ -131,7 +142,7 @@ export default (
                           └── Drop   email (PII)
                                 └── KafkaSink (orders.clean)`,
       schemas: [
-        "`schemas/order-events.ts` — `RawOrderEventSchema` (untrusted, string `amount`/`quantity`)",
+        "`schemas/order-events.ts` — `OrderEventsSchema` (untrusted, string `amount`/`quantity`)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -153,7 +164,13 @@ pnpm test`,
         },
       ],
       prerequisites: ["Kafka broker (topics are created by `fr sim up`)"],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate schemas/order-events.ts from the seeded topic",
+        "pnpm fr cluster up && pnpm fr schema generate order-events",
+      ],
     }),
   ]
 }

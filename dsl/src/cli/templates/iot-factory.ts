@@ -17,7 +17,18 @@ export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
   // Kafka for telemetry; Postgres for the JDBC sinks the pipelines write to.
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, postgres: {} },
+  // \`schemaRegistryUrl\` is the published host port of the bundled registry —
+  // read by \`fr schema generate\`, not the runtime connectors (the sensor
+  // stream is registry-free \`format="json"\`).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, postgres: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect the topic's row schema
+  // from the Schema Registry and emit \`schemas/sensor-readings.ts\`. Only the
+  // \`<KafkaSource>\` input topic is a source here — the device registry reaches
+  // the pipeline over JDBC, and the alert/pump topics are outputs, not sources.
+  sources: {
+    'sensor-readings': { type: 'kafka', topic: 'iot.sensor-readings' },
+  },
 
   environments: {
     minikube: {
@@ -25,7 +36,7 @@ export default defineConfig({
       sim: {
         init: {
           kafka: {
-            topics: ['iot.maintenance-alerts'],
+            topics: ['iot.maintenance-alerts', 'iot.sensor-readings'],
             catalogs: [{
               name: 'iot',
               tables: [
@@ -81,10 +92,10 @@ export default defineConfig({
 `,
     },
     {
-      path: "schemas/iot.ts",
+      path: "schemas/sensor-readings.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const SensorReadingSchema = Schema({
+export const SensorReadingsSchema = Schema({
   fields: {
     deviceId: Field.STRING(),
     sensorType: Field.STRING(),
@@ -94,6 +105,11 @@ export const SensorReadingSchema = Schema({
   },
   watermark: { column: 'readingTime', expression: "readingTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      path: "schemas/device-registry.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
 export const DeviceRegistrySchema = Schema({
   fields: {
@@ -115,11 +131,12 @@ export const DeviceRegistrySchema = Schema({
   Pipeline, KafkaSource, JdbcSource, KafkaSink, JdbcSink,
   SlideWindow, Aggregate, LookupJoin, Route,
 } from '@flink-reactor/dsl';
-import { SensorReadingSchema, DeviceRegistrySchema } from '@/schemas/iot';
+import { SensorReadingsSchema } from '@/schemas/sensor-readings';
+import { DeviceRegistrySchema } from '@/schemas/device-registry';
 
 const readings = KafkaSource({
   topic: "iot.sensor-readings",
-  schema: SensorReadingSchema,
+  schema: SensorReadingsSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "iot-maintenance",
 });
@@ -191,7 +208,8 @@ export default (
       content: `import {
   Pipeline, DataGenSource, KafkaSink, StatementSet,
 } from '@flink-reactor/dsl';
-import { SensorReadingSchema, DeviceRegistrySchema } from '@/schemas/iot';
+import { SensorReadingsSchema } from '@/schemas/sensor-readings';
+import { DeviceRegistrySchema } from '@/schemas/device-registry';
 
 export default (
   <Pipeline
@@ -208,7 +226,7 @@ export default (
     }}
   >
     <StatementSet>
-      <DataGenSource schema={SensorReadingSchema} rowsPerSecond={5000} />
+      <DataGenSource schema={SensorReadingsSchema} rowsPerSecond={5000} />
       <KafkaSink topic="iot.sensor-readings" bootstrapServers="kafka:9092" />
 
       <DataGenSource schema={DeviceRegistrySchema} rowsPerSecond={20} />
@@ -239,7 +257,7 @@ export default (
                           ├── Branch (stddevValue > thresholdTemp) ─► KafkaSink (iot.maintenance-alerts)
                           └── Default ─► JdbcSink (sensor_dashboard)`,
       schemas: [
-        "`schemas/iot.ts` — `SensorReadingSchema` (with `readingTime` watermark), `DeviceRegistrySchema` (with `deviceId` PK)",
+        "`schemas/sensor-readings.ts` — `SensorReadingsSchema` (with `readingTime` watermark); `schemas/device-registry.ts` — `DeviceRegistrySchema` (with `deviceId` PK)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -254,7 +272,9 @@ pnpm test`,
       ],
       topology: `DataGenSource (SensorReading)   ─► KafkaSink (iot.sensor-readings)
 DataGenSource (DeviceRegistry) ─► KafkaSink (iot.device-registry)`,
-      schemas: ["`schemas/iot.ts` — same schemas the consumer reads"],
+      schemas: [
+        "`schemas/sensor-readings.ts` + `schemas/device-registry.ts` — same schemas the consumer reads",
+      ],
       runCommand: `pnpm synth
 pnpm test`,
     }),
@@ -292,7 +312,13 @@ pnpm test`,
             "Internal DataGen → Kafka pump for sensor-readings and device-registry topics.",
         },
       ],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate schemas from the seeded Kafka topic",
+        "pnpm fr cluster up && pnpm fr schema generate sensor-readings",
+      ],
     }),
   ]
 }

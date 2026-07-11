@@ -18,8 +18,20 @@ export function getLakehouseIngestionTemplates(
 export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
-  // Lakehouse ingestion: Kafka events land in Iceberg.
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, iceberg: {} },
+  // Lakehouse ingestion: Kafka events land in Iceberg. \`schemaRegistryUrl\` is
+  // the bundled registry's host port — read by \`fr schema generate\`, not the
+  // runtime connectors (which read the topics with \`format="json"\`, registry-free).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, iceberg: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect each landing topic's row
+  // schema from the registry and emit \`schemas/<name>.ts\`. All three shipped
+  // schemas also carry a watermark, which introspection can't infer — re-add it
+  // after regenerating with \`--force\`.
+  sources: {
+    events: { type: 'kafka', topic: 'lake.events' },
+    clickstream: { type: 'kafka', topic: 'lake.clickstream' },
+    transactions: { type: 'kafka', topic: 'lake.transactions' },
+  },
 
   environments: {
     minikube: {
@@ -94,10 +106,12 @@ export default defineConfig({
     // ── Schemas ──────────────────────────────────────────────────────
 
     {
-      path: "schemas/lakehouse.ts",
+      // Row schema for the `lake.events` topic (source `events`). Single-export
+      // so `fr schema generate events --force` regenerates it cleanly.
+      path: "schemas/events.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const EventSchema = Schema({
+export const EventsSchema = Schema({
   fields: {
     eventId: Field.STRING(),
     userId: Field.STRING(),
@@ -107,6 +121,13 @@ export const EventSchema = Schema({
   },
   watermark: { column: 'eventTime', expression: "eventTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      // Row schema for the `lake.clickstream` topic (source `clickstream`).
+      // Single-export so `fr schema generate clickstream --force` regenerates it cleanly.
+      path: "schemas/clickstream.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
 export const ClickstreamSchema = Schema({
   fields: {
@@ -119,8 +140,15 @@ export const ClickstreamSchema = Schema({
   },
   watermark: { column: 'clickTime', expression: "clickTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      // Row schema for the `lake.transactions` topic (source `transactions`).
+      // Single-export so `fr schema generate transactions --force` regenerates it cleanly.
+      path: "schemas/transactions.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const TransactionSchema = Schema({
+export const TransactionsSchema = Schema({
   fields: {
     txnId: Field.STRING(),
     accountId: Field.STRING(),
@@ -145,7 +173,9 @@ export const TransactionSchema = Schema({
   IcebergSink,
   StatementSet,
 } from '@flink-reactor/dsl';
-import { EventSchema, ClickstreamSchema, TransactionSchema } from '@/schemas/lakehouse';
+import { EventsSchema } from '@/schemas/events';
+import { ClickstreamSchema } from '@/schemas/clickstream';
+import { TransactionsSchema } from '@/schemas/transactions';
 
 // Iceberg REST catalog backed by SeaweedFS S3 storage
 const iceberg = IcebergCatalog({
@@ -175,7 +205,7 @@ export default (
       {/* Events → Iceberg raw_events (append-only) */}
       <KafkaSource
         topic="lake.events"
-        schema={EventSchema}
+        schema={EventsSchema}
         bootstrapServers="kafka:9092"
         consumerGroup="lake-ingest-events"
       />
@@ -201,7 +231,7 @@ export default (
       {/* Transactions → Iceberg raw_transactions (append-only) */}
       <KafkaSource
         topic="lake.transactions"
-        schema={TransactionSchema}
+        schema={TransactionsSchema}
         bootstrapServers="kafka:9092"
         consumerGroup="lake-ingest-txn"
       />
@@ -226,7 +256,9 @@ export default (
   KafkaSink,
   StatementSet,
 } from '@flink-reactor/dsl';
-import { EventSchema, ClickstreamSchema, TransactionSchema } from '@/schemas/lakehouse';
+import { EventsSchema } from '@/schemas/events';
+import { ClickstreamSchema } from '@/schemas/clickstream';
+import { TransactionsSchema } from '@/schemas/transactions';
 
 export default (
   <Pipeline
@@ -243,13 +275,13 @@ export default (
     }}
   >
     <StatementSet>
-      <DataGenSource schema={EventSchema} rowsPerSecond={3000} />
+      <DataGenSource schema={EventsSchema} rowsPerSecond={3000} />
       <KafkaSink topic="lake.events" bootstrapServers="kafka:9092" />
 
       <DataGenSource schema={ClickstreamSchema} rowsPerSecond={5000} />
       <KafkaSink topic="lake.clickstream" bootstrapServers="kafka:9092" />
 
-      <DataGenSource schema={TransactionSchema} rowsPerSecond={1000} />
+      <DataGenSource schema={TransactionsSchema} rowsPerSecond={1000} />
       <KafkaSink topic="lake.transactions" bootstrapServers="kafka:9092" />
     </StatementSet>
   </Pipeline>
@@ -274,7 +306,7 @@ export default (
         ├── KafkaSource (lake.clickstream)   ─► IcebergSink (raw.clickstream)
         └── KafkaSource (lake.transactions)  ─► IcebergSink (raw.transactions)`,
       schemas: [
-        "`schemas/lakehouse.ts` — `EventSchema`, `ClickstreamSchema`, `TransactionSchema` (each with their own watermark)",
+        "`schemas/events.ts` — `EventsSchema`; `schemas/clickstream.ts` — `ClickstreamSchema`; `schemas/transactions.ts` — `TransactionsSchema` (each with their own watermark)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -290,7 +322,9 @@ pnpm test`,
       topology: `DataGenSource (Event)        ─► KafkaSink (lake.events)
 DataGenSource (Clickstream)  ─► KafkaSink (lake.clickstream)
 DataGenSource (Transaction)  ─► KafkaSink (lake.transactions)`,
-      schemas: ["`schemas/lakehouse.ts` — same schemas the consumer reads"],
+      schemas: [
+        "`schemas/events.ts`, `schemas/clickstream.ts`, `schemas/transactions.ts` — same schemas the consumer reads",
+      ],
       runCommand: `pnpm synth
 pnpm test`,
     }),
@@ -332,6 +366,11 @@ pnpm test`,
         "pnpm install",
         "flink-reactor synth          # Preview generated SQL",
         "flink-reactor deploy --env dev",
+        "# Optional: regenerate the source schemas from the seeded Kafka topics",
+        "pnpm fr cluster up",
+        "pnpm fr schema generate events",
+        "pnpm fr schema generate clickstream",
+        "pnpm fr schema generate transactions",
       ],
     }),
   ]

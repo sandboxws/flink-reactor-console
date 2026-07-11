@@ -20,7 +20,18 @@ export default defineConfig({
 
   // CDC stream lands in Kafka, lakehouse stores in Iceberg
   // (Lakekeeper-backed Iceberg REST → Postgres pulls in implicitly).
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, iceberg: {} },
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, iceberg: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect the CDC topic's row
+  // schema from the bundled Schema Registry and re-emit \`schemas/orders.ts\`.
+  // \`fr cluster up\` registers this topic's row schema automatically, so
+  // \`fr schema generate orders\` works out of the box. The topic is read with
+  // \`format="debezium-json"\` at runtime (registry-free); the registry is
+  // consulted only by \`schema generate\`. (JSON Schema has no DECIMAL, so a
+  // regenerated \`amount\` widens to DOUBLE — restore \`DECIMAL(10, 2)\` by hand.)
+  sources: {
+    orders: { type: 'kafka', topic: 'dbserver1.inventory.orders' },
+  },
 
   environments: {
     minikube: {
@@ -29,6 +40,7 @@ export default defineConfig({
         init: {
           iceberg: { databases: ['inventory'] },
           kafka: {
+            topics: ['dbserver1.inventory.orders'],
             catalogs: [
               {
                 name: 'cdc',
@@ -69,7 +81,7 @@ export default defineConfig({
       path: "schemas/orders.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const OrderSchema = Schema({
+export const OrdersSchema = Schema({
   fields: {
     orderId: Field.BIGINT(),
     customerId: Field.BIGINT(),
@@ -86,7 +98,7 @@ export const OrderSchema = Schema({
     {
       path: "pipelines/cdc-to-lakehouse/index.tsx",
       content: `import { Pipeline, KafkaSource, IcebergCatalog, IcebergSink } from '@flink-reactor/dsl';
-import { OrderSchema } from '@/schemas/orders';
+import { OrdersSchema } from '@/schemas/orders';
 
 // Iceberg REST catalog backed by SeaweedFS S3 storage
 const iceberg = IcebergCatalog({
@@ -116,7 +128,7 @@ export default (
     {iceberg.node}
     <KafkaSource
       topic="dbserver1.inventory.orders"
-      schema={OrderSchema}
+      schema={OrdersSchema}
       format="debezium-json"
       bootstrapServers="kafka:9092"
       consumerGroup="cdc-lakehouse"
@@ -170,7 +182,13 @@ pnpm test`,
             "Order CDC stream (debezium-json) → Iceberg upsert table on a SeaweedFS-backed REST catalog.",
         },
       ],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate schemas/orders.ts from the seeded Kafka topic",
+        "pnpm fr cluster up && pnpm fr schema generate orders",
+      ],
     }),
   ]
 }

@@ -107,6 +107,14 @@ export default defineConfig({
   ${servicesComment}
   ${servicesLine}${pluginsBlock}
 
+  // \`sources\` lets \`fr schema generate\` emit typed \`schemas/*.ts\` modules by
+  // introspecting a live Kafka Schema Registry or Postgres — no hand-writing.
+  // Uncomment and point at your source once you add a pipeline, e.g.:
+  //   sources: {
+  //     orders: { type: 'kafka', topic: 'orders' },
+  //     // customers: { type: 'postgres', table: 'public.customers' },
+  //   },
+
   environments: {
     development: {
       cluster: { url: 'http://localhost:8081' },

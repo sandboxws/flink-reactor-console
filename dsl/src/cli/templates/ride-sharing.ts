@@ -17,7 +17,21 @@ export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
   // Kafka for the request stream; Postgres for the JDBC sinks (surge + alerts).
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, postgres: {} },
+  // \`schemaRegistryUrl\` is the published host port of the bundled registry —
+  // read only by \`fr schema generate\`, not by the runtime connectors (which
+  // use \`format="json"\` / \`format="debezium-json"\`, both registry-free).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, postgres: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect a topic's row schema
+  // from the Schema Registry and (re)emit \`schemas/<name>.ts\`. One entry per
+  // input topic a \`<KafkaSource>\` reads — the sink topics (rides.surge-prices,
+  // rides.driver-alerts) are intentionally absent. \`fr cluster up\` registers
+  // these subjects, so \`fr schema generate requests\` works out of the box.
+  sources: {
+    requests: { type: 'kafka', topic: 'rides.requests' },
+    'trip-events': { type: 'kafka', topic: 'rides.trip-events' },
+    'surge-zones': { type: 'kafka', topic: 'rides.surge-zones' },
+  },
 
   environments: {
     minikube: {
@@ -98,10 +112,10 @@ export default defineConfig({
 `,
     },
     {
-      path: "schemas/rides.ts",
+      path: "schemas/requests.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const RideRequestSchema = Schema({
+export const RequestsSchema = Schema({
   fields: {
     rideId: Field.STRING(),
     riderId: Field.STRING(),
@@ -114,8 +128,13 @@ export const RideRequestSchema = Schema({
   },
   watermark: { column: 'requestTime', expression: "requestTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      path: "schemas/trip-events.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const TripEventSchema = Schema({
+export const TripEventsSchema = Schema({
   fields: {
     rideId: Field.STRING(),
     driverId: Field.STRING(),
@@ -124,8 +143,13 @@ export const TripEventSchema = Schema({
   },
   watermark: { column: 'eventTime', expression: "eventTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      path: "schemas/surge-zones.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const SurgeZoneSchema = Schema({
+export const SurgeZonesSchema = Schema({
   fields: {
     zoneId: Field.STRING(),
     baseMultiplier: Field.DOUBLE(),
@@ -141,12 +165,13 @@ export const SurgeZoneSchema = Schema({
   Pipeline, KafkaSource, KafkaSink, JdbcSink,
   IntervalJoin, MatchRecognize, Route,
 } from '@flink-reactor/dsl';
-import { RideRequestSchema, TripEventSchema } from '@/schemas/rides';
+import { RequestsSchema } from '@/schemas/requests';
+import { TripEventsSchema } from '@/schemas/trip-events';
 
 const requests = KafkaSource({
   name: "requests",
   topic: "rides.requests",
-  schema: RideRequestSchema,
+  schema: RequestsSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "rides-tracking-req",
 });
@@ -154,7 +179,7 @@ const requests = KafkaSource({
 const events = KafkaSource({
   name: "events",
   topic: "rides.trip-events",
-  schema: TripEventSchema,
+  schema: TripEventsSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "rides-tracking-events",
 });
@@ -228,7 +253,8 @@ KafkaSource (events)   ─┘                                      └── Rou
                                                                     ├── Branch (tripStatus = 'dropoff')   ─► JdbcSink (completed_trips)
                                                                     └── Branch (tripStatus = 'cancelled') ─► KafkaSink (rides.driver-alerts)`,
       schemas: [
-        "`schemas/rides.ts` — `RideRequestSchema` (with `requestTime` watermark), `TripEventSchema` (with `eventTime` watermark)",
+        "`schemas/requests.ts` — `RequestsSchema` (with `requestTime` watermark)",
+        "`schemas/trip-events.ts` — `TripEventsSchema` (with `eventTime` watermark)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -247,7 +273,8 @@ pnpm test`,
                                                                                                        ├─► BroadcastJoin (zoneId) ─► KafkaSink (rides.surge-prices)
 KafkaSource (surge-zones, debezium-json)                                                              ─┘`,
       schemas: [
-        "`schemas/rides.ts` — `RideRequestSchema`, `SurgeZoneSchema` (with `zoneId` PK)",
+        "`schemas/requests.ts` — `RequestsSchema`",
+        "`schemas/surge-zones.ts` — `SurgeZonesSchema` (with `zoneId` PK)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -276,7 +303,13 @@ pnpm test`,
             "Tumbling-window per-zone demand counts × broadcast-joined surge zones, written to a Kafka surge-prices topic.",
         },
       ],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate a schema module from its seeded Kafka topic",
+        "pnpm fr cluster up && pnpm fr schema generate requests",
+      ],
     }),
     {
       path: "pipelines/rides-surge-pricing/index.tsx",
@@ -284,18 +317,19 @@ pnpm test`,
   Pipeline, KafkaSource, KafkaSink,
   TumbleWindow, Aggregate, BroadcastJoin,
 } from '@flink-reactor/dsl';
-import { RideRequestSchema, SurgeZoneSchema } from '@/schemas/rides';
+import { RequestsSchema } from '@/schemas/requests';
+import { SurgeZonesSchema } from '@/schemas/surge-zones';
 
 const requests = KafkaSource({
   topic: "rides.requests",
-  schema: RideRequestSchema,
+  schema: RequestsSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "rides-surge",
 });
 
 const surgeZones = KafkaSource({
   topic: "rides.surge-zones",
-  schema: SurgeZoneSchema,
+  schema: SurgeZonesSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "rides-surge-config",
 });

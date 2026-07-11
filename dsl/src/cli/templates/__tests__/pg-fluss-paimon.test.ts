@@ -35,6 +35,24 @@ describe("pg-fluss-paimon template", () => {
       expect(config.content).toContain("runtime: 'minikube'")
     })
 
+    it("declares `sources` for the three CDC tables so `schema generate` works", () => {
+      // `sources` is CLI-only (feeds `fr schema generate`, never synth), but
+      // it must resolve to the seeded `tpch` database — hence the pinned
+      // `services.postgres.database` above. Source keys match the shipped
+      // `schemas/{orders,lineitem,customer}.ts` filenames so `--force`
+      // regenerates the same modules.
+      expect(config.content).toContain("sources: {")
+      expect(config.content).toContain(
+        "orders: { type: 'postgres', table: 'public.orders' }",
+      )
+      expect(config.content).toContain(
+        "lineitem: { type: 'postgres', table: 'public.lineitem' }",
+      )
+      expect(config.content).toContain(
+        "customer: { type: 'postgres', table: 'public.customer' }",
+      )
+    })
+
     it("does not pre-provision Fluss/Paimon databases via sim.init", () => {
       // The Docker (`fr cluster up`) and minikube (`fr sim up`) lanes both
       // ship the runtime ready to consume — Fluss CDC creates databases on
@@ -79,6 +97,11 @@ describe("pg-fluss-paimon template", () => {
       expect(readme.content).toContain("`flink_cdc_pub`")
     })
 
+    it("documents regenerating schemas from Postgres via `schema generate`", () => {
+      expect(readme.content).toContain("Regenerating schemas from Postgres")
+      expect(readme.content).toContain("pnpm fr schema generate --all")
+    })
+
     it("documents the docker-compose lane as a first-class option", () => {
       expect(readme.content).toContain("pnpm fr cluster up --runtime=docker")
     })
@@ -89,7 +112,7 @@ describe("pg-fluss-paimon template", () => {
       // `pg-fluss-paimon` dashboard panels actually populate.
       expect(readme.content).toContain("Optional: enable Grafana metrics")
       expect(readme.content).toContain(
-        "services: { postgres: {}, fluss: {}, grafana: {} }",
+        "services: { postgres: { database: 'tpch' }, fluss: {}, grafana: {} }",
       )
       expect(readme.content).toContain("metricsPlugin({ reporters:")
       expect(readme.content).toContain("pnpm fr cluster open grafana")
@@ -115,7 +138,7 @@ describe("pg-fluss-paimon template", () => {
 
     it("adds grafana to the existing services block (preserving postgres + fluss)", () => {
       expect(config.content).toContain(
-        "services: { postgres: {}, fluss: {}, grafana: {} }",
+        "services: { postgres: { database: 'tpch' }, fluss: {}, grafana: {} }",
       )
     })
 
@@ -145,8 +168,10 @@ describe("pg-fluss-paimon template", () => {
       expect(config.content).not.toContain("metricsPlugin")
     })
 
-    it("ships the legacy services block (postgres + fluss only)", () => {
-      expect(config.content).toContain("services: { postgres: {}, fluss: {} }")
+    it("ships the services block (postgres pinned to tpch + fluss only)", () => {
+      expect(config.content).toContain(
+        "services: { postgres: { database: 'tpch' }, fluss: {} }",
+      )
       expect(config.content).not.toContain("grafana: {}")
     })
 

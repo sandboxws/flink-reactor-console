@@ -17,8 +17,8 @@ export function getPgFlussPaimonTemplates(
     ? "\nimport { metricsPlugin } from '@flink-reactor/dsl/plugins'"
     : ""
   const servicesLine = opts.grafanaEnabled
-    ? "services: { postgres: {}, fluss: {}, grafana: {} },"
-    : "services: { postgres: {}, fluss: {} },"
+    ? "services: { postgres: { database: 'tpch' }, fluss: {}, grafana: {} },"
+    : "services: { postgres: { database: 'tpch' }, fluss: {} },"
   const servicesComment = opts.grafanaEnabled
     ? `// Postgres for the CDC source (TPC-H), Fluss for streaming + Paimon
   // shared storage. No Kafka in this lane. \`grafana: {}\` was added by
@@ -50,6 +50,20 @@ export default defineConfig({
 
   ${servicesComment}
   ${servicesLine}${pluginsBlock}
+
+  // \`sources\` drives \`fr schema generate\`: introspect the upstream
+  // Postgres tables and emit the matching \`schemas/*.ts\` module. The
+  // seeded Postgres ships these TPC-H tables in the \`tpch\` database
+  // (see \`services.postgres.database\` above), so \`fr schema generate
+  // --all\` works against a running \`fr cluster up\` / \`fr sim up\` with
+  // no extra wiring. The schemas shipped here go one step further —
+  // they add an \`event_time\` column + watermark the ingest pipeline
+  // needs — so regenerate with \`--force\` and re-apply those two stanzas.
+  sources: {
+    orders: { type: 'postgres', table: 'public.orders' },
+    lineitem: { type: 'postgres', table: 'public.lineitem' },
+    customer: { type: 'postgres', table: 'public.customer' },
+  },
 
   environments: {
     // The Docker (\`pnpm fr cluster up\`) and minikube (\`pnpm fr sim up\`) lanes
@@ -441,6 +455,16 @@ The Docker and minikube lanes both ship a Postgres seeded with TPC-H data plus t
 
 No manual \`CREATE CATALOG\` / \`CREATE DATABASE\` SQL is required before \`pnpm fr deploy\` succeeds.
 
+### Regenerating schemas from Postgres
+
+The \`schemas/*.ts\` modules were bootstrapped from the upstream Postgres tables. The \`sources\` block in \`flink-reactor.config.ts\` records where each one came from, so once the cluster is up you can (re)generate them:
+
+\`\`\`bash
+pnpm fr schema generate --all           # or: pnpm fr schema generate orders
+\`\`\`
+
+This introspects \`tpch.public.{orders,lineitem,customer}\` over the published Postgres port and writes \`schemas/<name>.ts\` (pass \`--force\` to overwrite the shipped files). One caveat: the shipped schemas add an \`event_time\` column + watermark that introspection can't infer — the ingest pipeline populates \`event_time\` from Debezium's commit timestamp — so after regenerating with \`--force\`, re-apply those two stanzas.
+
 > **Note on deploy ordering.** The serve pipeline references \`fluss_catalog.public.orders\` via a SQL \`LIKE\` clause that resolves at submit time. Deploy ingest first and wait until it has emitted at least one record (the CDC initial-snapshot phase) before deploying serve, otherwise serve will fail planning with "Source table … not found".
 
 ### Optional: enable Grafana metrics
@@ -454,7 +478,7 @@ import { metricsPlugin } from '@flink-reactor/dsl/plugins'
 
 export default defineConfig({
   flink: { version: '2.2' },
-  services: { postgres: {}, fluss: {}, grafana: {} },
+  services: { postgres: { database: 'tpch' }, fluss: {}, grafana: {} },
   plugins: [
     metricsPlugin({ reporters: [{ type: 'prometheus', port: 9249 }] }),
   ],

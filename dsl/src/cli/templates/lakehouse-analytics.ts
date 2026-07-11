@@ -19,7 +19,15 @@ export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
   // Bronze/silver/gold lakehouse analytics on Iceberg, fed from Kafka CDC.
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, iceberg: {} },
+  // \`schemaRegistryUrl\` is the bundled registry's host port — read by
+  // \`fr schema generate\`, not the runtime connectors (which use debezium-json).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, iceberg: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect the \`orders.cdc\`
+  // topic's row schema from the Schema Registry and emit \`schemas/medallion.ts\`.
+  sources: {
+    medallion: { type: 'kafka', topic: 'orders.cdc' },
+  },
 
   environments: {
     minikube: {
@@ -71,8 +79,9 @@ export default defineConfig({
       path: "schemas/medallion.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-// Bronze: raw CDC events from source systems
-export const OrderCdcSchema = Schema({
+// Bronze: raw CDC events from source systems — the \`orders.cdc\` topic's row
+// schema. Regenerate with \`fr schema generate medallion\`.
+export const MedallionSchema = Schema({
   fields: {
     orderId: Field.STRING(),
     customerId: Field.STRING(),
@@ -84,6 +93,12 @@ export const OrderCdcSchema = Schema({
   primaryKey: { columns: ['orderId'] },
   watermark: { column: 'updatedAt', expression: "updatedAt - INTERVAL '5' SECOND" },
 });
+`,
+    },
+
+    {
+      path: "schemas/order-clean.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
 // Silver: deduplicated, cleaned records
 export const OrderCleanSchema = Schema({
@@ -98,6 +113,12 @@ export const OrderCleanSchema = Schema({
   primaryKey: { columns: ['orderId'] },
   watermark: { column: 'updatedAt', expression: "updatedAt - INTERVAL '5' SECOND" },
 });
+`,
+    },
+
+    {
+      path: "schemas/revenue-summary.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
 // Gold: aggregated summaries
 export const RevenueSummarySchema = Schema({
@@ -122,7 +143,7 @@ export const RevenueSummarySchema = Schema({
   IcebergCatalog,
   IcebergSink,
 } from '@flink-reactor/dsl';
-import { OrderCdcSchema } from '@/schemas/medallion';
+import { MedallionSchema } from '@/schemas/medallion';
 
 const iceberg = IcebergCatalog({
   name: "lakehouse",
@@ -148,7 +169,7 @@ export default (
     {iceberg.node}
     <KafkaSource
       topic="orders.cdc"
-      schema={OrderCdcSchema}
+      schema={MedallionSchema}
       format="debezium-json"
       bootstrapServers="kafka:9092"
       consumerGroup="medallion-bronze"
@@ -176,7 +197,7 @@ export default (
   IcebergSink,
   Deduplicate,
 } from '@flink-reactor/dsl';
-import { OrderCleanSchema } from '@/schemas/medallion';
+import { OrderCleanSchema } from '@/schemas/order-clean';
 
 const iceberg = IcebergCatalog({
   name: "lakehouse",
@@ -234,7 +255,7 @@ export default (
   TumbleWindow,
   Aggregate,
 } from '@flink-reactor/dsl';
-import { OrderCdcSchema } from '@/schemas/medallion';
+import { MedallionSchema } from '@/schemas/medallion';
 
 const iceberg = IcebergCatalog({
   name: "lakehouse",
@@ -260,7 +281,7 @@ export default (
     {iceberg.node}
     <KafkaSource
       topic="orders.cdc"
-      schema={OrderCdcSchema}
+      schema={MedallionSchema}
       format="debezium-json"
       bootstrapServers="kafka:9092"
       consumerGroup="medallion-gold"
@@ -296,7 +317,7 @@ export default (
   DataGenSource,
   KafkaSink,
 } from '@flink-reactor/dsl';
-import { OrderCdcSchema } from '@/schemas/medallion';
+import { MedallionSchema } from '@/schemas/medallion';
 
 export default (
   <Pipeline
@@ -312,7 +333,7 @@ export default (
       "s3.path.style.access": "true",
     }}
   >
-    <DataGenSource schema={OrderCdcSchema} rowsPerSecond={2000} />
+    <DataGenSource schema={MedallionSchema} rowsPerSecond={2000} />
     <KafkaSink topic="orders.cdc" bootstrapServers="kafka:9092" />
   </Pipeline>
 );
@@ -334,7 +355,7 @@ export default (
   └── KafkaSource (orders.cdc, debezium-json)
         └── IcebergSink (bronze.orders_raw, format v1 append)`,
       schemas: [
-        "`schemas/medallion.ts` — `OrderCdcSchema` (with `orderId` PK)",
+        "`schemas/medallion.ts` — `MedallionSchema` (with `orderId` PK)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -352,7 +373,7 @@ pnpm test`,
   └── KafkaSource (orders.cdc, debezium-json)
         └── Deduplicate (key=orderId, order=updatedAt, keep=last)
               └── IcebergSink (silver.orders_clean, format v2 upsert, PK=orderId)`,
-      schemas: ["`schemas/medallion.ts` — `OrderCleanSchema`"],
+      schemas: ["`schemas/order-clean.ts` — `OrderCleanSchema`"],
       runCommand: `pnpm synth
 pnpm test`,
     }),
@@ -371,7 +392,7 @@ pnpm test`,
               └── Aggregate (GROUP BY product — SUM, COUNT, window metadata)
                     └── IcebergSink (gold.revenue_hourly, format v1 append)`,
       schemas: [
-        "`schemas/medallion.ts` — `OrderCdcSchema` (input), `RevenueSummarySchema` (output shape)",
+        "`schemas/medallion.ts` — `MedallionSchema` (input); `schemas/revenue-summary.ts` — `RevenueSummarySchema` (output shape)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -386,7 +407,7 @@ pnpm test`,
       ],
       topology: `DataGenSource (OrderCdc) ─► KafkaSink (orders.cdc)`,
       schemas: [
-        "`schemas/medallion.ts` — same schema all three medallion pipelines read",
+        "`schemas/medallion.ts` — `MedallionSchema`, the `orders.cdc` row shape the pump generates",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -454,6 +475,8 @@ pnpm test`,
         "pnpm install",
         "flink-reactor synth          # Preview generated SQL",
         "flink-reactor deploy --env dev",
+        "# Optional: regenerate schemas/medallion.ts from the seeded Kafka topic",
+        "pnpm fr cluster up && pnpm fr schema generate medallion",
       ],
     }),
   ]

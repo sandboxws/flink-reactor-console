@@ -81,6 +81,6 @@ describe("integration: new --template starter --yes", () => {
     expect(pipeline).toContain("Pipeline")
     expect(pipeline).toContain("KafkaSource")
     expect(pipeline).toContain("KafkaSink")
-    expect(pipeline).toContain("ProductSchema")
+    expect(pipeline).toContain("ProductsSchema")
   })
 })

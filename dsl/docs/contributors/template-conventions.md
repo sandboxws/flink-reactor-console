@@ -239,6 +239,42 @@ Don't forget to add `'word-count'` to the `EXPECTED_PIPELINES` map in
 this, the cross-template integration test will not synthesize the new
 template.
 
+## Sources & `schema generate`
+
+Templates that read from a Kafka topic or a Postgres/JDBC table should declare a
+`sources` block in the emitted `flink-reactor.config.ts` so users can
+(re)generate their `schemas/*.ts` with `fr schema generate`. `sources` is
+CLI-only — it never affects synthesized SQL/YAML.
+
+**The exact-round-trip contract** (enforced by
+`src/cli/templates/__tests__/template-sources.test.ts`):
+
+- One `sources` entry per external **input** topic/table — never sink topics,
+  never derived/internal handoff topics.
+- The source **key** must equal the shipped schema **file basename**, and that
+  file must export `const <PascalCase(key)>Schema` — because
+  `fr schema generate <key> --force` overwrites `schemas/<key>.ts` with exactly
+  that const. Example: source `order-items` → `schemas/order-items.ts` →
+  `export const OrderItemsSchema`.
+- A schema file may hold **only** its own source's schema. Output/intermediate
+  schemas (e.g. a windowed-aggregate output shape) move to their own
+  non-source `schemas/<name>.ts` file.
+- Add `schemaRegistryUrl: 'http://localhost:8082'` to `services.kafka` (the
+  bundled Karapace registry's published host port) so Kafka sources resolve.
+- Register the topic's row schema in `SEED_SUBJECTS`
+  (`src/cli/cluster/schema-registry-seed.ts`) so `fr cluster up` seeds it and
+  the round-trip resolves against the local registry. For minikube, also list
+  the topic under `sim.init.kafka.topics`.
+
+**Caveats to note in the template's comments:** JSON Schema has no INT/BIGINT or
+DECIMAL distinction (integers regenerate as `BIGINT`, decimals as `DOUBLE`), and
+watermarks / computed columns can't be introspected — so `--force`
+regeneration is a *bootstrap* the author refines, not a byte-for-byte mirror.
+
+**Not applicable:** CSV/positional Kafka sources (nothing for a registry to
+introspect) and templates whose schemas use the upstream default-export
+convention (the `stock-*` examples). These deliberately ship without `sources`.
+
 ## Checklist for template authors
 
 Copy-paste this into your PR description when adding a new template:
@@ -248,6 +284,7 @@ Copy-paste this into your PR description when adding a new template:
 - [ ] Per-pipeline `README.md` built via `pipelineReadme()` for every pipeline directory
 - [ ] Per-pipeline snapshot test built via `templatePipelineTestStub()` with at least 2 load-bearing `toMatch` regexes
 - [ ] Template name added to `EXPECTED_PIPELINES` in `scaffold-and-synth.ts`
+- [ ] If it reads a Kafka/Postgres source: `sources` declared, keys match `schemas/<key>.ts` + `PascalCase(key)Schema`, `schemaRegistryUrl` set, and `SEED_SUBJECTS` extended (`template-sources.test.ts` green)
 - [ ] `pnpm build`, `pnpm test`, `pnpm lint` all pass
 - [ ] Manually scaffolded the template once and confirmed `pnpm install` + `pnpm test` works inside the scaffolded project
 ```

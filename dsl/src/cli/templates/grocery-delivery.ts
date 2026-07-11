@@ -19,7 +19,20 @@ export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
   // Kafka for orders; Postgres for the JDBC sinks (substitution + delivery alerts).
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, postgres: {} },
+  // \`schemaRegistryUrl\` is the bundled registry's host port — read by
+  // \`fr schema generate\`, not by the runtime connectors (which read the topics
+  // with \`format="json"\` / \`format="debezium-json"\`, both registry-free).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, postgres: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect each input topic's row
+  // schema from the registry and emit \`schemas/<name>.ts\`. All three shipped
+  // schemas also carry a watermark, which introspection can't infer — re-add it
+  // after regenerating with \`--force\`.
+  sources: {
+    'order-lines': { type: 'kafka', topic: 'grocery.order-lines' },
+    'store-inventory': { type: 'kafka', topic: 'grocery.store-inventory' },
+    ratings: { type: 'kafka', topic: 'grocery.ratings' },
+  },
 
   environments: {
     minikube: {
@@ -27,7 +40,7 @@ export default defineConfig({
       sim: {
         init: {
           kafka: {
-            topics: ['grocery.substitution-alerts'],
+            topics: ['grocery.substitution-alerts', 'grocery.order-lines', 'grocery.store-inventory', 'grocery.ratings'],
             catalogs: [{
               name: 'grocery',
               tables: [
@@ -109,24 +122,15 @@ export default defineConfig({
 `,
     },
     {
-      path: "schemas/grocery.ts",
+      // Row schema for the `grocery.order-lines` topic (source `order-lines`).
+      // Single-export so `fr schema generate order-lines --force` regenerates
+      // it cleanly; the other grocery shapes live in their own schemas/*.ts.
+      path: "schemas/order-lines.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
-
-export const GroceryOrderSchema = Schema({
-  fields: {
-    orderId: Field.STRING(),
-    storeId: Field.STRING(),
-    customerId: Field.STRING(),
-    itemCount: Field.INT(),
-    totalAmount: Field.DOUBLE(),
-    orderTime: Field.TIMESTAMP(3),
-  },
-  watermark: { column: 'orderTime', expression: "orderTime - INTERVAL '5' SECOND" },
-});
 
 // One record per product-line within an order; bridges orders ×
 // inventory on the full (storeId, productId) composite key.
-export const OrderLineSchema = Schema({
+export const OrderLinesSchema = Schema({
   fields: {
     orderId: Field.STRING(),
     storeId: Field.STRING(),
@@ -136,6 +140,14 @@ export const OrderLineSchema = Schema({
   },
   watermark: { column: 'lineTime', expression: "lineTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      // Row schema for the `grocery.store-inventory` debezium-json CDC topic
+      // (source `store-inventory`). Single-export so `fr schema generate
+      // store-inventory --force` regenerates it cleanly.
+      path: "schemas/store-inventory.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
 export const StoreInventorySchema = Schema({
   fields: {
@@ -148,8 +160,16 @@ export const StoreInventorySchema = Schema({
   primaryKey: { columns: ['storeId', 'productId'] },
   watermark: { column: 'updateTime', expression: "updateTime - INTERVAL '5' SECOND" },
 });
+`,
+    },
+    {
+      // Row schema for the `grocery.ratings` topic (source `ratings`).
+      // Single-export so `fr schema generate ratings --force` regenerates it
+      // cleanly.
+      path: "schemas/ratings.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const RatingSchema = Schema({
+export const RatingsSchema = Schema({
   fields: {
     orderId: Field.STRING(),
     storeId: Field.STRING(),
@@ -163,17 +183,38 @@ export const RatingSchema = Schema({
 `,
     },
     {
+      path: "schemas/grocery-order.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
+
+// Base grocery-order shape for the \`grocery.orders\` topic — not read by a
+// \`<KafkaSource>\` in either shipped pipeline, so it has no \`sources\` entry
+// and lives apart from the per-source schemas/*.ts files.
+export const GroceryOrderSchema = Schema({
+  fields: {
+    orderId: Field.STRING(),
+    storeId: Field.STRING(),
+    customerId: Field.STRING(),
+    itemCount: Field.INT(),
+    totalAmount: Field.DOUBLE(),
+    orderTime: Field.TIMESTAMP(3),
+  },
+  watermark: { column: 'orderTime', expression: "orderTime - INTERVAL '5' SECOND" },
+});
+`,
+    },
+    {
       path: "pipelines/grocery-order-fulfillment/index.tsx",
       content: `import {
   Pipeline, KafkaSource, KafkaSink, JdbcSink,
   TemporalJoin, Route,
 } from '@flink-reactor/dsl';
-import { OrderLineSchema, StoreInventorySchema } from '@/schemas/grocery';
+import { OrderLinesSchema } from '@/schemas/order-lines';
+import { StoreInventorySchema } from '@/schemas/store-inventory';
 
 const orderLines = KafkaSource({
   name: "orderLines",
   topic: "grocery.order-lines",
-  schema: OrderLineSchema,
+  schema: OrderLinesSchema,
   bootstrapServers: "kafka:9092",
   consumerGroup: "grocery-fulfillment",
 });
@@ -229,7 +270,7 @@ export default (
   Pipeline, KafkaSource, JdbcSink,
   Deduplicate, TumbleWindow, Aggregate,
 } from '@flink-reactor/dsl';
-import { RatingSchema } from '@/schemas/grocery';
+import { RatingsSchema } from '@/schemas/ratings';
 
 export default (
   <Pipeline
@@ -245,7 +286,7 @@ export default (
       "s3.path.style.access": "true",
     }}
   >
-    <KafkaSource topic="grocery.ratings" schema={RatingSchema} bootstrapServers="kafka:9092" consumerGroup="grocery-rankings" />
+    <KafkaSource topic="grocery.ratings" schema={RatingsSchema} bootstrapServers="kafka:9092" consumerGroup="grocery-rankings" />
     <Deduplicate key={['orderId']} order="ratingTime" keep="first" />
     <TumbleWindow size="15 MINUTE" on="ratingTime" />
     <Aggregate
@@ -280,7 +321,7 @@ KafkaSource (inventory, debezium-json) ─┘                       └── Ro
                                                                       ├── Branch (stockLevel > 0) ─► JdbcSink (fulfillment_queue)
                                                                       └── Branch (stockLevel = 0) ─► KafkaSink (grocery.substitution-alerts)`,
       schemas: [
-        "`schemas/grocery.ts` — `OrderLineSchema`, `StoreInventorySchema` (with `(storeId, productId)` composite PK)",
+        "`schemas/order-lines.ts` — `OrderLinesSchema` (with `lineTime` watermark); `schemas/store-inventory.ts` — `StoreInventorySchema` (with `(storeId, productId)` composite PK and `updateTime` watermark)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -301,7 +342,7 @@ pnpm test`,
               └── Aggregate (GROUP BY storeId — AVG, COUNT)
                     └── JdbcSink (store_rankings, upsert)`,
       schemas: [
-        "`schemas/grocery.ts` — `RatingSchema` (with watermark on `ratingTime`)",
+        "`schemas/ratings.ts` — `RatingsSchema` (with watermark on `ratingTime`)",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -340,7 +381,16 @@ pnpm test`,
             "Deduplicated per-store rolling-window rating averages with upsert sink.",
         },
       ],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate the source schemas from the seeded Kafka topics",
+        "pnpm fr cluster up",
+        "pnpm fr schema generate order-lines",
+        "pnpm fr schema generate store-inventory",
+        "pnpm fr schema generate ratings",
+      ],
     }),
   ]
 }

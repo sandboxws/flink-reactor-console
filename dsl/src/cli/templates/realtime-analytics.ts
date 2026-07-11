@@ -19,7 +19,17 @@ export default defineConfig({
   flink: { version: '${opts.flinkVersion}' },
 
   // Kafka for the source stream, Postgres for the JDBC sinks.
-  services: { kafka: { bootstrapServers: 'kafka:9092' }, postgres: {} },
+  // \`schemaRegistryUrl\` is the bundled registry's host port — read by
+  // \`fr schema generate\`, not by the runtime connectors.
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, postgres: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect the page-views topic's
+  // row schema from the registry and emit \`schemas/page-views.ts\`. (The
+  // shipped schema also carries a watermark, which introspection can't infer —
+  // re-add it after regenerating with \`--force\`.)
+  sources: {
+    'page-views': { type: 'kafka', topic: 'page-views' },
+  },
 
   environments: {
     minikube: {
@@ -27,6 +37,7 @@ export default defineConfig({
       sim: {
         init: {
           kafka: {
+            topics: ['page-views'],
             catalogs: [
               {
                 name: 'analytics',
@@ -69,10 +80,13 @@ export default defineConfig({
 `,
     },
     {
+      // Source schema for the `page-views` topic. Kept single-export so
+      // `fr schema generate page-views --force` regenerates it cleanly; the
+      // per-window output shape lives in schemas/page-view-stats.ts.
       path: "schemas/page-views.ts",
       content: `import { Schema, Field } from '@flink-reactor/dsl';
 
-export const PageViewSchema = Schema({
+export const PageViewsSchema = Schema({
   fields: {
     userId: Field.STRING(),
     pageUrl: Field.STRING(),
@@ -80,7 +94,14 @@ export const PageViewSchema = Schema({
   },
   watermark: { column: 'viewTimestamp', expression: 'viewTimestamp - INTERVAL \\'5\\' SECOND' },
 });
+`,
+    },
+    {
+      path: "schemas/page-view-stats.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
 
+// Output shape for the windowed aggregate — not a Kafka source, so it has no
+// \`sources\` entry and lives apart from schemas/page-views.ts.
 export const PageViewStatsSchema = Schema({
   fields: {
     pageUrl: Field.STRING(),
@@ -94,13 +115,13 @@ export const PageViewStatsSchema = Schema({
     {
       path: "pipelines/page-view-analytics/index.tsx",
       content: `import { Pipeline, KafkaSource, TumbleWindow, Aggregate, JdbcSink } from '@flink-reactor/dsl';
-import { PageViewSchema } from '@/schemas/page-views';
+import { PageViewsSchema } from '@/schemas/page-views';
 
 export default (
   <Pipeline name="page-view-analytics">
     <KafkaSource
       topic="page-views"
-      schema={PageViewSchema}
+      schema={PageViewsSchema}
       bootstrapServers="kafka:9092"
       consumerGroup="analytics"
     />
@@ -139,7 +160,8 @@ export default (
         └── Aggregate (GROUP BY pageUrl — COUNT(*), window_start, window_end)
               └── JdbcSink (postgres analytics.page_view_stats, upsert)`,
       schemas: [
-        "`schemas/page-views.ts` — `PageViewSchema` with watermark on `viewTimestamp`; `PageViewStatsSchema` for the per-window output shape",
+        "`schemas/page-views.ts` — `PageViewsSchema` with watermark on `viewTimestamp` (regenerable via `fr schema generate page-views`)",
+        "`schemas/page-view-stats.ts` — `PageViewStatsSchema` for the per-window output shape",
       ],
       runCommand: `pnpm synth
 pnpm test`,
@@ -159,7 +181,13 @@ pnpm test`,
             "1-minute tumbling-window page-view counts, written to Postgres via JDBC.",
         },
       ],
-      gettingStarted: ["pnpm install", "pnpm synth", "pnpm test"],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate schemas/page-views.ts from the seeded topic",
+        "pnpm fr cluster up && pnpm fr schema generate page-views",
+      ],
     }),
   ]
 }
