@@ -647,6 +647,80 @@ async function runInitFromConfig(
   await runInit(initConfig, namespace)
 }
 
+/**
+ * Seed known Kafka topics in the minikube lane: register each topic's row
+ * schema with the in-cluster Karapace registry and produce its deterministic
+ * sample rows. Best-effort — every step is guarded so a not-yet-ready broker
+ * or registry degrades to a skip rather than aborting `sim up`.
+ *
+ * Registration POSTs from *inside* the schema-registry pod (the CLI runs on
+ * the host and can't reach the ClusterIP directly); the pod ships python3, so
+ * we pipe the JSON body via stdin and pass the subject as argv to sidestep
+ * shell-quoting a schema blob. Producing reuses the kafka pod's
+ * `kafka-console-producer.sh`, mirroring the topic-creation exec above.
+ */
+async function seedSimKafkaTopics(
+  topics: readonly string[],
+  namespace: string,
+): Promise<void> {
+  const { SEED_SUBJECTS, subjectFor, registerBody } = await import(
+    "@/cli/cluster/schema-registry-seed.js"
+  )
+  const seedable = SEED_SUBJECTS.filter((s) => topics.includes(s.topic))
+  if (seedable.length === 0) return
+
+  const spinner = clack.spinner()
+  spinner.start(`Seeding ${seedable.length} Kafka topic(s) with sample data...`)
+
+  let produced = 0
+  let registered = 0
+  for (const entry of seedable) {
+    try {
+      execSync(
+        `kubectl exec -i -n ${namespace} deploy/schema-registry -- ` +
+          `python3 -c 'import sys,urllib.request; ` +
+          `u="http://localhost:8081/subjects/"+sys.argv[1]+"/versions"; ` +
+          `r=urllib.request.Request(u,data=sys.stdin.buffer.read(),` +
+          `headers={"Content-Type":"application/vnd.schemaregistry.v1+json"},method="POST"); ` +
+          `urllib.request.urlopen(r).read()' ${subjectFor(entry)}`,
+        {
+          input: registerBody(entry),
+          stdio: ["pipe", "pipe", "pipe"],
+          timeout: 15_000,
+        },
+      )
+      registered++
+    } catch {
+      // registry not ready or subject already registered — best-effort.
+    }
+
+    const rows = entry.sampleRows ?? []
+    if (rows.length > 0) {
+      try {
+        execSync(
+          `kubectl exec -i -n ${namespace} deploy/kafka -- ` +
+            `/opt/kafka/bin/kafka-console-producer.sh ` +
+            `--bootstrap-server localhost:9092 --topic ${entry.topic}`,
+          {
+            input: rows.map((r) => JSON.stringify(r)).join("\n"),
+            stdio: ["pipe", "pipe", "pipe"],
+            timeout: 15_000,
+          },
+        )
+        produced += rows.length
+      } catch {
+        // broker not ready — best-effort.
+      }
+    }
+  }
+
+  spinner.stop(
+    pc.green(
+      `Kafka seed: ${produced} message(s) produced, ${registered} schema(s) registered`,
+    ),
+  )
+}
+
 async function runInit(init: SimInitConfig, namespace: string): Promise<void> {
   const databases = init.iceberg?.databases ?? []
   const topics = init.kafka?.topics ?? []
@@ -704,6 +778,11 @@ async function runInit(init: SimInitConfig, namespace: string): Promise<void> {
         `Kafka topics: ${created} created${skipped > 0 ? `, ${skipped} skipped` : ""}`,
       ),
     )
+
+    // Produce sample data + register row schemas for topics we know about,
+    // so minikube pipelines have data and `fr schema generate` can introspect
+    // them (via `kubectl port-forward svc/schema-registry 8082:8081`).
+    await seedSimKafkaTopics(topics, namespace)
   }
 
   // ── Create Iceberg databases ─────────────────────────────────────

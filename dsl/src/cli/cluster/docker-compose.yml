@@ -180,6 +180,14 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # Single-broker KRaft: the internal topics default to RF=3 and can never
+      # be created on one broker. Without `__consumer_offsets` there is no group
+      # coordinator, so Karapace's master election never completes and every
+      # schema-registry write fails with `50003 forwarding to the master`
+      # (reads still pass — the trap). Pin all internal topics to RF=1.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     healthcheck:
       test:
         [
@@ -189,6 +197,63 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  # Confluent-compatible Schema Registry (Karapace, Apache-2.0). Consumed by
+  # `flink-reactor schema generate` to introspect Kafka topic schemas over the
+  # published host port (default 8082 → container 8081; 8081/8083/8181 are
+  # already taken by Flink/SQL-gateway/iceberg). Karapace speaks the Confluent
+  # REST API at the root path (`/subjects/...`), which is exactly what the
+  # introspection client and the seeder POST against — no `/apis/ccompat`
+  # prefix. Rides the same `kafka` profile as the broker, so it comes up
+  # whenever `services.kafka` is declared. Pinned to a numeric tag validated
+  # against this stack (v6 restructured the entrypoint — see `command` below).
+  schema-registry:
+    image: ${SCHEMA_REGISTRY_IMAGE:-ghcr.io/aiven-open/karapace:6.2.0}
+    profiles:
+      - kafka
+    depends_on:
+      kafka:
+        condition: service_healthy
+    # Karapace 6.x boots the schema registry as a uvicorn app via the
+    # `karapace` module. The image's default CMD is `["python3"]` (a bare REPL
+    # that reads EOF and exits 0 → container never serves), and the old
+    # `karapace` console-script no longer exposes `main`. Registry-vs-rest-proxy
+    # mode is now selected by this entrypoint, not a `KARAPACE_*` env var.
+    command: ["python3", "-m", "karapace"]
+    ports:
+      - "${SCHEMA_REGISTRY_PORT:-8082}:8081"
+    environment:
+      KARAPACE_BOOTSTRAP_URI: kafka:9092
+      KARAPACE_PORT: 8081
+      KARAPACE_HOST: 0.0.0.0
+      # `registry_host`/`registry_port` is the address Karapace advertises as
+      # the master and forwards writes to; on a single node it must resolve to
+      # this service on the compose network.
+      KARAPACE_REGISTRY_HOST: schema-registry
+      KARAPACE_REGISTRY_PORT: 8081
+      KARAPACE_CLIENT_ID: fr-schema-registry
+      KARAPACE_GROUP_ID: fr-schema-registry
+      KARAPACE_MASTER_ELIGIBILITY: "true"
+      KARAPACE_TOPIC_NAME: _schemas
+      KARAPACE_COMPATIBILITY: FULL
+      KARAPACE_LOG_LEVEL: WARNING
+    # Gate on write-readiness, not mere reachability. `/subjects` (200 in ~2s)
+    # and `/_health`'s status code (200 in ~10s) both flip green long before
+    # Karapace finishes electing a master (~60-70s cold on a single broker),
+    # and until then every write returns `50003 forwarding to the master`. The
+    # `/_health` body's `schema_registry_is_primary` is the only field that
+    # tracks election, so assert it. `start_period` covers the election window
+    # so those early not-primary checks don't count as failures.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python3 -c \"import urllib.request,json,sys; d=json.load(urllib.request.urlopen('http://localhost:8081/_health')); sys.exit(0 if d.get('status',{}).get('schema_registry_is_primary') else 1)\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
 
   postgres:
     # Pre-baked image: PGDATA is populated at build time so `fr down

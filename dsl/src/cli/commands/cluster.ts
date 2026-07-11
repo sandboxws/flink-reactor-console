@@ -470,12 +470,18 @@ export async function runClusterUp(opts: {
       flinkPort: parseInt(opts.port, 10),
       sqlGatewayPort: 8083,
       kafkaPort: profiles.includes("kafka") ? 9094 : undefined,
+      schemaRegistryPort: profiles.includes("kafka") ? 8082 : undefined,
       postgresPort: hasPostgres ? 5433 : undefined,
       seaweedfsPort: 8333,
       icebergRestPort: profiles.includes("iceberg") ? 8181 : undefined,
       flussPort: profiles.includes("fluss") ? 9123 : undefined,
       prometheusPort: profiles.includes("observability") ? 9090 : undefined,
       grafanaPort: profiles.includes("observability") ? 3000 : undefined,
+      // The Schema Registry's `/_health` only goes green once Karapace has
+      // elected a master over Kafka — ~60s cold on a single broker, past the
+      // 60s default. Give the Kafka path generous headroom so the registry
+      // gate doesn't time out the whole `cluster up`.
+      timeoutMs: profiles.includes("kafka") ? 180_000 : undefined,
     })
   } catch {
     console.error(pc.red("Services did not become ready in time."))
@@ -506,6 +512,18 @@ export async function runClusterUp(opts: {
     fluss: profiles.includes("fluss"),
   })
 
+  // Register the seed row schemas with the Schema Registry so
+  // `fr schema generate` can introspect the local Kafka topics. Cheap and
+  // idempotent — runs whenever Kafka is active (even without `--seed` data),
+  // so schema generation works right after `cluster up`. The registry was
+  // health-checked in `waitForServices` above, so it's ready for subjects.
+  if (profiles.includes("kafka")) {
+    const { registerSeedSchemas } = await import(
+      "@/cli/cluster/schema-registry-seed.js"
+    )
+    await registerSeedSchemas()
+  }
+
   console.log("")
   console.log(
     `  ${pc.green("✓")} Flink UI:       ${pc.dim(`http://localhost:${opts.port}`)}`,
@@ -516,6 +534,9 @@ export async function runClusterUp(opts: {
   if (profiles.includes("kafka")) {
     console.log(
       `  ${pc.green("✓")} Kafka:          ${pc.dim("localhost:9094")}`,
+    )
+    console.log(
+      `  ${pc.green("✓")} Schema Registry:${pc.dim(" http://localhost:8082 (Karapace · fr schema generate)")}`,
     )
   }
   if (hasPostgres) {

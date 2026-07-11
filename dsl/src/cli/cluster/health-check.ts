@@ -5,6 +5,7 @@ export async function waitForServices(opts: {
   flinkPort: number
   sqlGatewayPort: number
   kafkaPort?: number
+  schemaRegistryPort?: number
   postgresPort?: number
   seaweedfsPort?: number
   icebergRestPort?: number
@@ -28,6 +29,7 @@ export async function waitForServices(opts: {
   ]
   const {
     kafkaPort,
+    schemaRegistryPort,
     postgresPort,
     seaweedfsPort,
     icebergRestPort,
@@ -37,6 +39,12 @@ export async function waitForServices(opts: {
   } = opts
   if (kafkaPort !== undefined) {
     services.push({ name: "Kafka", check: () => checkKafka(kafkaPort) })
+  }
+  if (schemaRegistryPort !== undefined) {
+    services.push({
+      name: "Schema Registry",
+      check: () => checkSchemaRegistry(schemaRegistryPort),
+    })
   }
   if (postgresPort !== undefined) {
     services.push({ name: "PostgreSQL", check: () => checkTcp(postgresPort) })
@@ -138,6 +146,27 @@ async function checkIcebergRest(port: number): Promise<boolean> {
 
 async function checkKafka(port: number): Promise<boolean> {
   return checkTcp(port)
+}
+
+async function checkSchemaRegistry(port: number): Promise<boolean> {
+  // Write-readiness on Karapace is subtle. `GET /subjects` 200s in ~2s and
+  // `GET /_health` 200s in ~10s (schema reader healthy against an empty
+  // `_schemas`) — but on a cold single broker the Kafka-backed *master
+  // election* doesn't finish until ~60-70s later, and until it does every
+  // write returns `50003 forwarding to the master`. The only field that
+  // tracks election is `/_health`'s body `status.schema_registry_is_primary`.
+  // Gate on it: a true value means this node is the elected master, so the
+  // seeder's POSTs and `schema generate` registration will actually land.
+  try {
+    const res = await fetch(`http://localhost:${port}/_health`)
+    if (!res.ok) return false
+    const body = (await res.json()) as {
+      status?: { schema_registry_is_primary?: boolean }
+    }
+    return body.status?.schema_registry_is_primary === true
+  } catch {
+    return false
+  }
 }
 
 async function checkPrometheus(port: number): Promise<boolean> {

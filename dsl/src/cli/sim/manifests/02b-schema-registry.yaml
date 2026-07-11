@@ -1,0 +1,100 @@
+# Confluent-compatible Schema Registry (Karapace, Apache-2.0) for the minikube
+# lane. Mirrors the docker-compose `schema-registry` service. Stateless — the
+# registry's state lives in the `_schemas` Kafka topic — so a Deployment (no
+# PVC) is sufficient. `fr sim up` applies the whole manifests dir, so this comes
+# up alongside Kafka; the `02b-` prefix orders it right after `02-kafka.yaml`.
+# Karapace speaks the Confluent REST API at the root path (`/subjects/...`), so
+# the seeder and `schema generate` hit it without an `/apis/ccompat` prefix.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schema-registry
+  namespace: flink-demo
+  labels:
+    app: schema-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schema-registry
+  template:
+    metadata:
+      labels:
+        app: schema-registry
+    spec:
+      containers:
+        - name: schema-registry
+          image: ghcr.io/aiven-open/karapace:6.2.0
+          # Karapace 6.x boots the registry as a uvicorn app via the `karapace`
+          # module. The image's default CMD is `["python3"]` (a bare REPL that
+          # exits 0 → never serves), and the old `karapace` console-script no
+          # longer exposes `main`. Registry mode is now selected by this
+          # entrypoint, not a `KARAPACE_*` env var.
+          command: ["python3", "-m", "karapace"]
+          ports:
+            - name: http
+              containerPort: 8081
+          env:
+            - name: KARAPACE_BOOTSTRAP_URI
+              value: "kafka:9092"
+            - name: KARAPACE_PORT
+              value: "8081"
+            - name: KARAPACE_HOST
+              value: "0.0.0.0"
+            # Address Karapace advertises as master / forwards writes to; on a
+            # single node it must resolve to this Service.
+            - name: KARAPACE_REGISTRY_HOST
+              value: "schema-registry"
+            - name: KARAPACE_REGISTRY_PORT
+              value: "8081"
+            - name: KARAPACE_CLIENT_ID
+              value: "fr-schema-registry"
+            - name: KARAPACE_GROUP_ID
+              value: "fr-schema-registry"
+            - name: KARAPACE_MASTER_ELIGIBILITY
+              value: "true"
+            - name: KARAPACE_TOPIC_NAME
+              value: "_schemas"
+            - name: KARAPACE_COMPATIBILITY
+              value: "FULL"
+            - name: KARAPACE_LOG_LEVEL
+              value: "WARNING"
+          # Gate readiness on write-readiness, not reachability. `/_health`'s
+          # status code 200s in ~10s (reader healthy against an empty
+          # `_schemas`), but Karapace's master election isn't done until
+          # ~60-70s later; until then every write returns `50003 forwarding to
+          # the master`. Only the `/_health` body's `schema_registry_is_primary`
+          # tracks election, and an httpGet probe can't read a body — so use an
+          # exec probe. failureThreshold × periodSeconds (150s) covers the
+          # election window; the pod stays NotReady (Service withholds traffic)
+          # until this node is the elected master.
+          readinessProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - "import urllib.request,json,sys; d=json.load(urllib.request.urlopen('http://localhost:8081/_health')); sys.exit(0 if d.get('status',{}).get('schema_registry_is_primary') else 1)"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schema-registry
+  namespace: flink-demo
+  labels:
+    app: schema-registry
+spec:
+  selector:
+    app: schema-registry
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
