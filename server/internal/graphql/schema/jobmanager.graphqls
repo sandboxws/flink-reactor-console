@@ -16,10 +16,24 @@ type JMEnvironment {
   classpath: [String!]!
 }
 
+"""High-availability status derived from the cluster config (observe-only)."""
+type HAStatus {
+  """True when HA is configured (type is neither none nor empty)."""
+  enabled: Boolean!
+  """HA type/mode: NONE, zookeeper, or kubernetes (raw value from config)."""
+  mode: String!
+  """HA storage directory (high-availability.storageDir), when set."""
+  storageDir: String
+  """HA cluster id (high-availability.cluster-id), when set."""
+  clusterId: String
+}
+
 type JobManagerDetail {
   config: [JMConfigEntry!]!
   environment: JMEnvironment
   metrics: [MetricEntry!]!
+  """High-availability status derived from the cluster config."""
+  haStatus: HAStatus!
 }
 
 extend type Query {

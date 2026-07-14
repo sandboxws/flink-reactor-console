@@ -514,6 +514,18 @@ export type ThreadDumpInfo = {
   threadInfos: ThreadInfoRaw[]
 }
 
+/** High-availability status derived from the cluster config (observe-only). */
+export type HAStatus = {
+  /** True when HA is configured (mode is not NONE). */
+  enabled: boolean
+  /** HA type/mode: NONE, zookeeper, or kubernetes. */
+  mode: string
+  /** HA storage directory, when set. */
+  storageDir: string | null
+  /** HA cluster id, when set. */
+  clusterId: string | null
+}
+
 /** Full Job Manager detail including config, metrics, JVM info, logs, and thread dumps. */
 export type JobManagerInfo = {
   config: JobManagerConfig[]
@@ -524,6 +536,8 @@ export type JobManagerInfo = {
   classpath: ClasspathEntry[]
   logFiles: LogFileEntry[]
   threadDump: ThreadDumpInfo
+  /** High-availability status derived from the cluster config; null when unavailable. */
+  haStatus: HAStatus | null
 }
 
 // --- Cluster overview types ---

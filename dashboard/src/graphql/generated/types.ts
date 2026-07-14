@@ -111,6 +111,18 @@ export type AllocatedSlot = {
   resource: TaskManagerResourceProfile;
 };
 
+/** A Flink application in the cluster→application→job hierarchy (Flink 2.3+, FLIP-549). */
+export type Application = {
+  __typename?: 'Application';
+  id: Scalars['ID']['output'];
+  /** Number of jobs belonging to this application. */
+  jobCount: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  /** Epoch-millis timestamp the application started. Null when unknown. */
+  startTime: Maybe<Scalars['String']['output']>;
+  state: Scalars['String']['output'];
+};
+
 export type BackPressureInfo = {
   __typename?: 'BackPressureInfo';
   backpressureLevel: Scalars['String']['output'];
@@ -151,6 +163,11 @@ export type BlueGreenState =
   | 'SAVEPOINTING_GREEN'
   | 'TRANSITIONING_TO_BLUE'
   | 'TRANSITIONING_TO_GREEN';
+
+export type CancelApplicationResult = {
+  __typename?: 'CancelApplicationResult';
+  success: Scalars['Boolean']['output'];
+};
 
 export type CancelJobResult = {
   __typename?: 'CancelJobResult';
@@ -345,6 +362,29 @@ export type ColumnInfo = {
   type: Scalars['String']['output'];
 };
 
+export type CompatibilityIssue = {
+  __typename?: 'CompatibilityIssue';
+  /** MAX_PARALLELISM | UNMAPPED_STATE | SERIALIZER | SCHEMA_EVOLUTION */
+  category: Scalars['String']['output'];
+  component: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  operatorKey: Scalars['String']['output'];
+  severity: IssueSeverity;
+};
+
+export type CompatibilityReport = {
+  __typename?: 'CompatibilityReport';
+  canProceed: Scalars['Boolean']['output'];
+  /** Set when the check was persisted. */
+  checkId: Maybe<Scalars['ID']['output']>;
+  /** ISO timestamp; null for a non-persisted preview. */
+  checkedAt: Maybe<Scalars['String']['output']>;
+  environment: Scalars['String']['output'];
+  issues: Array<CompatibilityIssue>;
+  pipeline: Scalars['String']['output'];
+  verdict: CompatibilityVerdict;
+};
+
 /**
  * The result of a compatibility check. `messages` describes incompatibilities
  * when `isCompatible` is false; empty otherwise.
@@ -354,6 +394,11 @@ export type CompatibilityResult = {
   isCompatible: Scalars['Boolean']['output'];
   messages: Array<Scalars['String']['output']>;
 };
+
+export type CompatibilityVerdict =
+  | 'COMPATIBLE'
+  | 'INCOMPATIBLE'
+  | 'WARNING';
 
 export type ConfigEntry = {
   __typename?: 'ConfigEntry';
@@ -612,6 +657,19 @@ export type FlussTabletServerHealth = {
   server: Scalars['String']['output'];
 };
 
+/** High-availability status derived from the cluster config (observe-only). */
+export type HaStatus = {
+  __typename?: 'HAStatus';
+  /** HA cluster id (high-availability.cluster-id), when set. */
+  clusterId: Maybe<Scalars['String']['output']>;
+  /** True when HA is configured (type is neither none nor empty). */
+  enabled: Scalars['Boolean']['output'];
+  /** HA type/mode: NONE, zookeeper, or kubernetes (raw value from config). */
+  mode: Scalars['String']['output'];
+  /** HA storage directory (high-availability.storageDir), when set. */
+  storageDir: Maybe<Scalars['String']['output']>;
+};
+
 /** Information about a registered infrastructure instrument. */
 export type InstrumentInfo = {
   __typename?: 'InstrumentInfo';
@@ -623,6 +681,10 @@ export type InstrumentInfo = {
   type: Scalars['String']['output'];
   version: Scalars['String']['output'];
 };
+
+export type IssueSeverity =
+  | 'ERROR'
+  | 'WARNING';
 
 export type JmConfigEntry = {
   __typename?: 'JMConfigEntry';
@@ -807,6 +869,8 @@ export type JobManagerDetail = {
   __typename?: 'JobManagerDetail';
   config: Array<JmConfigEntry>;
   environment: Maybe<JmEnvironment>;
+  /** High-availability status derived from the cluster config. */
+  haStatus: HaStatus;
   metrics: Array<MetricEntry>;
 };
 
@@ -824,12 +888,16 @@ export type JobOverview = {
   duration: Scalars['String']['output'];
   endTime: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  /** Job type (`STREAMING`/`BATCH`). Added to /jobs/overview in Flink 2.3 (FLIP-487); null on older clusters. */
+  jobType: Maybe<Scalars['String']['output']>;
   lastModification: Scalars['String']['output'];
   name: Scalars['String']['output'];
   /** Records-per-second emitted by source vertices (job-wide input throughput). Null when no vertex metrics are available yet. */
   recordsInPerSecond: Maybe<Scalars['Float']['output']>;
   /** Records-per-second consumed by sink vertices (job-wide output throughput). Null when no vertex metrics are available yet. */
   recordsOutPerSecond: Maybe<Scalars['Float']['output']>;
+  /** Scheduler type (e.g. `Adaptive`/`Default`). Added to /jobs/overview in Flink 2.3 (FLIP-487); null on older clusters. */
+  schedulerType: Maybe<Scalars['String']['output']>;
   startTime: Scalars['String']['output'];
   state: Scalars['String']['output'];
   tasks: TaskCounts;
@@ -951,6 +1019,11 @@ export type KafkaTopicPartition = {
   topic: Scalars['String']['output'];
 };
 
+export type KeyFieldInput = {
+  name: Scalars['String']['input'];
+  type: Scalars['String']['input'];
+};
+
 export type MaterializedTable = {
   __typename?: 'MaterializedTable';
   catalog: Scalars['String']['output'];
@@ -1041,8 +1114,12 @@ export type Mutation = {
   __typename?: 'Mutation';
   /** Acknowledge a FIRING instance; transitions state to ACKNOWLEDGED. */
   acknowledgeAlert: AlertInstance;
+  /** Cancel an application and all its jobs (Flink 2.3+). */
+  cancelApplication: CancelApplicationResult;
   /** Cancel a running job */
   cancelJob: CancelJobResult;
+  /** Compare a proposed manifest against the stored latest version. Persists the check unless persist is false. */
+  checkDeploymentCompatibility: CompatibilityReport;
   /**
    * Check whether a candidate schema is compatible with the latest version of a
    * subject. This is read-only on the registry — the schema is not registered.
@@ -1099,9 +1176,23 @@ export type MutationAcknowledgeAlertArgs = {
 };
 
 
+export type MutationCancelApplicationArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationCancelJobArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationCheckDeploymentCompatibilityArgs = {
+  environment: InputMaybe<Scalars['String']['input']>;
+  newManifest: StateManifestInput;
+  persist: InputMaybe<Scalars['Boolean']['input']>;
+  pipeline: Scalars['String']['input'];
 };
 
 
@@ -1246,6 +1337,18 @@ export type MutationUpdateAlertRuleArgs = {
   input: UpdateAlertRuleInput;
 };
 
+export type OperatorStateInput = {
+  changelogMode: Scalars['String']['input'];
+  component: Scalars['String']['input'];
+  keyFields: Array<KeyFieldInput>;
+  logicalKey: Scalars['String']['input'];
+  maxParallelism: InputMaybe<Scalars['Int']['input']>;
+  nodeId: Scalars['String']['input'];
+  operatorHash: Scalars['String']['input'];
+  stateRole: Scalars['String']['input'];
+  ttl: InputMaybe<Scalars['String']['input']>;
+};
+
 /** Sorting configuration for query results. */
 export type OrderByInput = {
   /** Sort direction (ASC or DESC). */
@@ -1265,6 +1368,46 @@ export type PaginationInput = {
   after: InputMaybe<Scalars['String']['input']>;
   /** Maximum number of items to return. */
   first: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PipelineManifestVersion = {
+  __typename?: 'PipelineManifestVersion';
+  createdAt: Scalars['String']['output'];
+  environment: Scalars['String']['output'];
+  flinkVersion: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  /** The full canonical State Manifest JSON (sorted keys) for version diffing. */
+  manifestJson: Scalars['String']['output'];
+  pipeline: Scalars['String']['output'];
+  source: Scalars['String']['output'];
+  stateFingerprint: Scalars['String']['output'];
+  version: Scalars['Int']['output'];
+};
+
+/**
+ * A per-pipeline rollup for the State Registry index and the deployment kanban's
+ * "Blocked" join. One row per (pipeline, environment); fetched in a single query
+ * to avoid an N+1 over the per-pipeline report endpoints.
+ */
+export type PipelineStateSummary = {
+  __typename?: 'PipelineStateSummary';
+  environment: Scalars['String']['output'];
+  flinkVersion: Maybe<Scalars['String']['output']>;
+  lastCheckedAt: Maybe<Scalars['String']['output']>;
+  /** Number of issues in the most recent check; null when none has run. */
+  lastIssueCount: Maybe<Scalars['Int']['output']>;
+  /** Verdict of the most recent compatibility check; null when none has run. */
+  lastVerdict: Maybe<CompatibilityVerdict>;
+  latestVersion: Scalars['Int']['output'];
+  pipeline: Scalars['String']['output'];
+  /** Count of SUCCESS restore outcomes (restoreTotal - this = failures). */
+  restoreSuccess: Scalars['Int']['output'];
+  /** Count of non-PENDING restore outcomes observed for this pipeline. */
+  restoreTotal: Scalars['Int']['output'];
+  stateFingerprint: Scalars['String']['output'];
+  /** ISO timestamp of the latest manifest version. */
+  updatedAt: Scalars['String']['output'];
+  versionCount: Scalars['Int']['output'];
 };
 
 export type PlanNode = {
@@ -1306,6 +1449,10 @@ export type Query = {
   alertRule: Maybe<AlertRule>;
   /** All configured alert rules. */
   alertRules: Array<AlertRule>;
+  /** Get a single application by id. Null when not found (Flink 2.3+). */
+  application: Maybe<Application>;
+  /** List applications in the cluster. Empty on clusters without application mode (Flink 2.3+). */
+  applications: Array<Application>;
   blueGreenDeployment: Maybe<BlueGreenDeployment>;
   blueGreenDeploymentConfigDiff: BlueGreenConfigDiff;
   blueGreenDeployments: Array<BlueGreenDeployment>;
@@ -1378,6 +1525,8 @@ export type Query = {
   kafkaTopic: KafkaTopicDetail;
   /** List topics for a Kafka instrument. */
   kafkaTopics: Array<KafkaTopic>;
+  /** The most recent persisted compatibility report for a pipeline, if any. */
+  latestCompatibilityReport: Maybe<CompatibilityReport>;
   /** Get a single materialized table by name and catalog */
   materializedTable: Maybe<MaterializedTable>;
   /** List materialized tables, optionally filtered by catalog */
@@ -1388,6 +1537,10 @@ export type Query = {
   metricHistory: Array<MetricDataPoint>;
   /** Returns multiple metric time series in a single batch query. */
   metricSeries: Array<MetricTimeSeries>;
+  /** Stored State Manifest versions for a pipeline (newest first). */
+  pipelineManifestVersions: Array<PipelineManifestVersion>;
+  /** Per-pipeline state rollups across the registry (all environments when environment is null). */
+  pipelineStateSummaries: Array<PipelineStateSummary>;
   /** Get metadata (type, TTL, encoding, memory usage) for a single key. */
   redisKeyInfo: RedisKeyInfo;
   /**
@@ -1404,6 +1557,14 @@ export type Query = {
   redisScan: RedisScanResult;
   /** Get high-level Redis server stats (version, uptime, memory, keyspace). */
   redisServerInfo: RedisServerInfo;
+  /** Get a single rescale event by UUID (Flink 2.3+, FLIP-495). */
+  rescaleDetail: RescaleEvent;
+  /** List AdaptiveScheduler rescale events for a job, newest first (Flink 2.3+, FLIP-495). */
+  rescaleHistory: Array<RescaleEvent>;
+  /** Aggregate rescale statistics for a job (Flink 2.3+, FLIP-495). */
+  rescaleSummary: RescaleSummary;
+  /** Observed restore outcomes for a pipeline (newest first). */
+  restoreEvents: Array<RestoreEvent>;
   /** Get a single savepoint operation by ID. */
   savepoint: Savepoint;
   /** List savepoints for a job, ordered by triggeredAt descending. */
@@ -1457,6 +1618,17 @@ export type QueryAlertRuleArgs = {
 
 export type QueryAlertRulesArgs = {
   enabledOnly: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryApplicationArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryApplicationsArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1659,6 +1831,12 @@ export type QueryKafkaTopicsArgs = {
 };
 
 
+export type QueryLatestCompatibilityReportArgs = {
+  environment: InputMaybe<Scalars['String']['input']>;
+  pipeline: Scalars['String']['input'];
+};
+
+
 export type QueryMaterializedTableArgs = {
   catalog: Scalars['String']['input'];
   cluster: InputMaybe<Scalars['String']['input']>;
@@ -1691,6 +1869,17 @@ export type QueryMetricSeriesArgs = {
 };
 
 
+export type QueryPipelineManifestVersionsArgs = {
+  environment: InputMaybe<Scalars['String']['input']>;
+  pipeline: Scalars['String']['input'];
+};
+
+
+export type QueryPipelineStateSummariesArgs = {
+  environment: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryRedisKeyInfoArgs = {
   instrument: Scalars['String']['input'];
   key: Scalars['String']['input'];
@@ -1718,6 +1907,31 @@ export type QueryRedisScanArgs = {
 
 export type QueryRedisServerInfoArgs = {
   instrument: Scalars['String']['input'];
+};
+
+
+export type QueryRescaleDetailArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  jobId: Scalars['ID']['input'];
+  rescaleUuid: Scalars['String']['input'];
+};
+
+
+export type QueryRescaleHistoryArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  jobId: Scalars['ID']['input'];
+};
+
+
+export type QueryRescaleSummaryArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  jobId: Scalars['ID']['input'];
+};
+
+
+export type QueryRestoreEventsArgs = {
+  environment: InputMaybe<Scalars['String']['input']>;
+  pipeline: Scalars['String']['input'];
 };
 
 
@@ -1881,9 +2095,57 @@ export type RedisZSetEntry = {
   score: Scalars['Float']['output'];
 };
 
+/** A single AdaptiveScheduler rescale event (Flink 2.3+, FLIP-495). */
+export type RescaleEvent = {
+  __typename?: 'RescaleEvent';
+  /** Wall-clock duration of the rescale in ms. Null until finished. */
+  durationMs: Maybe<Scalars['String']['output']>;
+  /** Failure reason. Null unless `status: FAILED`. */
+  error: Maybe<Scalars['String']['output']>;
+  /** Job parallelism after the rescale. Null when unknown. */
+  parallelismAfter: Maybe<Scalars['Int']['output']>;
+  /** Job parallelism before the rescale. Null when unknown. */
+  parallelismBefore: Maybe<Scalars['Int']['output']>;
+  status: RescaleStatus;
+  /** Epoch-millis timestamp at which the rescale was triggered. */
+  triggeredAt: Scalars['String']['output'];
+  /** Rescale event identifier (UUID). */
+  uuid: Scalars['String']['output'];
+};
+
 export type RescaleResult = {
   __typename?: 'RescaleResult';
   requestId: Scalars['String']['output'];
+};
+
+/** Lifecycle state of an adaptive-scheduler rescale event (Flink 2.3+, FLIP-495). */
+export type RescaleStatus =
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'IN_PROGRESS'
+  | 'PENDING';
+
+/** Aggregate rescale statistics for a job (Flink 2.3+, FLIP-495). */
+export type RescaleSummary = {
+  __typename?: 'RescaleSummary';
+  /** Epoch-millis timestamp of the most recent rescale. Null when none. */
+  lastRescaleAt: Maybe<Scalars['String']['output']>;
+  totalRescales: Scalars['Int']['output'];
+};
+
+export type RestoreEvent = {
+  __typename?: 'RestoreEvent';
+  blueGreenName: Maybe<Scalars['String']['output']>;
+  cluster: Scalars['String']['output'];
+  environment: Scalars['String']['output'];
+  errorCategory: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  jid: Maybe<Scalars['String']['output']>;
+  observedAt: Scalars['String']['output'];
+  /** PENDING | SUCCESS | FAILED | UNKNOWN */
+  outcome: Scalars['String']['output'];
+  pipeline: Scalars['String']['output'];
+  restoredCheckpointId: Maybe<Scalars['Int']['output']>;
 };
 
 export type SqlCloseResult = {
@@ -1909,6 +2171,8 @@ export type SqlFetchResult = {
   __typename?: 'SQLFetchResult';
   columns: Array<SqlColumn>;
   hasMore: Scalars['Boolean']['output'];
+  /** Flink job id when this statement launched a job (INSERT / streaming SELECT); null for DDL or bounded batch. */
+  jobID: Maybe<Scalars['String']['output']>;
   nextToken: Maybe<Scalars['String']['output']>;
   rows: Array<Maybe<Array<Maybe<Scalars['String']['output']>>>>;
 };
@@ -2043,6 +2307,14 @@ export type SimulationStatus =
   | 'FAILED'
   | 'PENDING'
   | 'RUNNING';
+
+export type StateManifestInput = {
+  fingerprint: Scalars['String']['input'];
+  flinkVersion: Scalars['String']['input'];
+  operators: Array<OperatorStateInput>;
+  pipelineName: Scalars['String']['input'];
+  schemaVersion: Scalars['Int']['input'];
+};
 
 /** Status of the PostgreSQL historical storage backend. */
 export type StorageStatus = {
@@ -2584,7 +2856,7 @@ export type JobManagerDetailQueryVariables = Exact<{
 }>;
 
 
-export type JobManagerDetailQuery = { __typename?: 'Query', jobManager: { __typename?: 'JobManagerDetail', config: Array<{ __typename?: 'JMConfigEntry', key: string, value: string }>, environment: { __typename?: 'JMEnvironment', classpath: Array<string>, jvm: { __typename?: 'JMEnvironmentJVM', version: string, arch: string, options: Array<string> } } | null, metrics: Array<{ __typename?: 'MetricEntry', id: string, value: string }> } };
+export type JobManagerDetailQuery = { __typename?: 'Query', jobManager: { __typename?: 'JobManagerDetail', config: Array<{ __typename?: 'JMConfigEntry', key: string, value: string }>, environment: { __typename?: 'JMEnvironment', classpath: Array<string>, jvm: { __typename?: 'JMEnvironmentJVM', version: string, arch: string, options: Array<string> } } | null, metrics: Array<{ __typename?: 'MetricEntry', id: string, value: string }>, haStatus: { __typename?: 'HAStatus', enabled: boolean, mode: string, storageDir: string | null, clusterId: string | null } } };
 
 export type JobManagerStdoutQueryVariables = Exact<{
   cluster: InputMaybe<Scalars['String']['input']>;

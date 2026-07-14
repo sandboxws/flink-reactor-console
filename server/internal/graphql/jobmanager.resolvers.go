@@ -46,6 +46,7 @@ func (r *queryResolver) JobManager(ctx context.Context, cluster *string) (*model
 		Config:      config,
 		Environment: env,
 		Metrics:     mapMetrics(agg.Metrics),
+		HaStatus:    mapHAStatus(agg.Config),
 	}, nil
 }
 

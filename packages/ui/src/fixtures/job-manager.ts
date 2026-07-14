@@ -61,6 +61,7 @@ export function createJobManagerInfo(overrides?: Partial<JobManagerInfo>): JobMa
     ],
     logFiles: [{ name: "jobmanager.log", lastModified: new Date(), size: 2_048 }],
     threadDump: { threadInfos: [] },
+    haStatus: null,
     ...overrides,
   }
 }

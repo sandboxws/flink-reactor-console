@@ -227,6 +227,7 @@ const JOB_MANAGER_QUERY = gql`
       config { key value }
       environment { jvm { version arch options } classpath }
       metrics { id value }
+      haStatus { enabled mode storageDir clusterId }
     }
   }
 `
@@ -736,6 +737,14 @@ export async function fetchJobManagerDetail(): Promise<JobManagerInfo> {
     ),
     logFiles: [],
     threadDump: { threadInfos: [] },
+    haStatus: jm.haStatus
+      ? {
+          enabled: jm.haStatus.enabled,
+          mode: jm.haStatus.mode,
+          storageDir: jm.haStatus.storageDir ?? null,
+          clusterId: jm.haStatus.clusterId ?? null,
+        }
+      : null,
   }
 }
 

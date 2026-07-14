@@ -16,6 +16,12 @@ query JobManagerDetail($cluster: String) {
       id
       value
     }
+    haStatus {
+      enabled
+      mode
+      storageDir
+      clusterId
+    }
   }
 }
 

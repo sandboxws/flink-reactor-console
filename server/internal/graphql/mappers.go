@@ -328,6 +328,45 @@ func mapJobConfig(jc *flink.JobConfig) *model.JobConfig {
 	}
 }
 
+// mapHAStatus derives high-availability status from the raw /jobmanager/config
+// key-value list. It prefers the modern `high-availability.type` key and falls
+// back to the legacy `high-availability` key (renamed at Flink 1.x -> 2.0).
+// Only the HA-related subset of the config is exposed -- no other keys leak.
+func mapHAStatus(config []flink.JMConfigEntry) *model.HAStatus {
+	get := func(key string) (string, bool) {
+		for _, e := range config {
+			if e.Key == key {
+				return e.Value, true
+			}
+		}
+		return "", false
+	}
+
+	mode, ok := get("high-availability.type")
+	if !ok || strings.TrimSpace(mode) == "" {
+		mode, _ = get("high-availability") // legacy fallback
+	}
+	mode = strings.TrimSpace(mode)
+
+	switch strings.ToLower(mode) {
+	case "", "none", "disabled":
+		return &model.HAStatus{Enabled: false, Mode: "NONE"}
+	}
+
+	ha := &model.HAStatus{Enabled: true, Mode: mode}
+	if sd, ok := get("high-availability.storageDir"); ok {
+		if t := strings.TrimSpace(sd); t != "" {
+			ha.StorageDir = &t
+		}
+	}
+	if cid, ok := get("high-availability.cluster-id"); ok {
+		if t := strings.TrimSpace(cid); t != "" {
+			ha.ClusterID = &t
+		}
+	}
+	return ha
+}
+
 // mapVertex converts a Flink Vertex to a GraphQL JobVertex.
 func mapVertex(v *flink.Vertex) *model.JobVertex {
 	// Vertex tasks use map[string]int with UPPERCASE keys.

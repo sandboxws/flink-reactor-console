@@ -547,6 +547,18 @@ type FlussTabletServerHealth struct {
 	Leadership int    `json:"leadership"`
 }
 
+// High-availability status derived from the cluster config (observe-only).
+type HAStatus struct {
+	// True when HA is configured (type is neither none nor empty).
+	Enabled bool `json:"enabled"`
+	// HA type/mode: NONE, zookeeper, or kubernetes (raw value from config).
+	Mode string `json:"mode"`
+	// HA storage directory (high-availability.storageDir), when set.
+	StorageDir *string `json:"storageDir,omitempty"`
+	// HA cluster id (high-availability.cluster-id), when set.
+	ClusterID *string `json:"clusterId,omitempty"`
+}
+
 // Information about a registered infrastructure instrument.
 type InstrumentInfo struct {
 	Name            string   `json:"name"`
@@ -717,6 +729,8 @@ type JobManagerDetail struct {
 	Config      []*JMConfigEntry `json:"config"`
 	Environment *JMEnvironment   `json:"environment,omitempty"`
 	Metrics     []*MetricEntry   `json:"metrics"`
+	// High-availability status derived from the cluster config.
+	HaStatus *HAStatus `json:"haStatus"`
 }
 
 // Job-level rate metrics, aggregated from source/sink vertices.

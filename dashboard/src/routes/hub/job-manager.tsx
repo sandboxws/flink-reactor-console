@@ -16,6 +16,7 @@ import {
 } from "@flink-reactor/ui"
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
+import { HaStatusCard } from "@/components/hub/job-manager/ha-status-card"
 import { JmConfigTabHub } from "@/components/hub/job-manager/jm-config-tab-hub"
 import {
   JM_TABS,
@@ -67,6 +68,12 @@ function HubJobManager() {
             : "loading…"}
         </p>
       </div>
+
+      {jobManager?.haStatus ? (
+        <div className="mb-5">
+          <HaStatusCard ha={jobManager.haStatus} />
+        </div>
+      ) : null}
 
       <JmTabsHub
         active={active}

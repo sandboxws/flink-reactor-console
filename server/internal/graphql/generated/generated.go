@@ -457,6 +457,13 @@ type ComplexityRoot struct {
 		Server     func(childComplexity int) int
 	}
 
+	HAStatus struct {
+		ClusterID  func(childComplexity int) int
+		Enabled    func(childComplexity int) int
+		Mode       func(childComplexity int) int
+		StorageDir func(childComplexity int) int
+	}
+
 	InstrumentInfo struct {
 		Capabilities    func(childComplexity int) int
 		DisplayName     func(childComplexity int) int
@@ -583,6 +590,7 @@ type ComplexityRoot struct {
 	JobManagerDetail struct {
 		Config      func(childComplexity int) int
 		Environment func(childComplexity int) int
+		HaStatus    func(childComplexity int) int
 		Metrics     func(childComplexity int) int
 	}
 
@@ -3004,6 +3012,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.FlussTabletServerHealth.Server(childComplexity), true
 
+	case "HAStatus.clusterId":
+		if e.ComplexityRoot.HAStatus.ClusterID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HAStatus.ClusterID(childComplexity), true
+	case "HAStatus.enabled":
+		if e.ComplexityRoot.HAStatus.Enabled == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HAStatus.Enabled(childComplexity), true
+	case "HAStatus.mode":
+		if e.ComplexityRoot.HAStatus.Mode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HAStatus.Mode(childComplexity), true
+	case "HAStatus.storageDir":
+		if e.ComplexityRoot.HAStatus.StorageDir == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HAStatus.StorageDir(childComplexity), true
+
 	case "InstrumentInfo.capabilities":
 		if e.ComplexityRoot.InstrumentInfo.Capabilities == nil {
 			break
@@ -3499,6 +3532,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobManagerDetail.Environment(childComplexity), true
+	case "JobManagerDetail.haStatus":
+		if e.ComplexityRoot.JobManagerDetail.HaStatus == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobManagerDetail.HaStatus(childComplexity), true
 	case "JobManagerDetail.metrics":
 		if e.ComplexityRoot.JobManagerDetail.Metrics == nil {
 			break
@@ -8197,10 +8236,24 @@ type JMEnvironment {
   classpath: [String!]!
 }
 
+"""High-availability status derived from the cluster config (observe-only)."""
+type HAStatus {
+  """True when HA is configured (type is neither none nor empty)."""
+  enabled: Boolean!
+  """HA type/mode: NONE, zookeeper, or kubernetes (raw value from config)."""
+  mode: String!
+  """HA storage directory (high-availability.storageDir), when set."""
+  storageDir: String
+  """HA cluster id (high-availability.cluster-id), when set."""
+  clusterId: String
+}
+
 type JobManagerDetail {
   config: [JMConfigEntry!]!
   environment: JMEnvironment
   metrics: [MetricEntry!]!
+  """High-availability status derived from the cluster config."""
+  haStatus: HAStatus!
 }
 
 extend type Query {
@@ -18783,6 +18836,122 @@ func (ec *executionContext) fieldContext_FlussTabletServerHealth_leadership(_ co
 	return fc, nil
 }
 
+func (ec *executionContext) _HAStatus_enabled(ctx context.Context, field graphql.CollectedField, obj *model.HAStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_HAStatus_enabled,
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_HAStatus_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HAStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HAStatus_mode(ctx context.Context, field graphql.CollectedField, obj *model.HAStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_HAStatus_mode,
+		func(ctx context.Context) (any, error) {
+			return obj.Mode, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_HAStatus_mode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HAStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HAStatus_storageDir(ctx context.Context, field graphql.CollectedField, obj *model.HAStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_HAStatus_storageDir,
+		func(ctx context.Context) (any, error) {
+			return obj.StorageDir, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_HAStatus_storageDir(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HAStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HAStatus_clusterId(ctx context.Context, field graphql.CollectedField, obj *model.HAStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_HAStatus_clusterId,
+		func(ctx context.Context) (any, error) {
+			return obj.ClusterID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_HAStatus_clusterId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HAStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _InstrumentInfo_name(ctx context.Context, field graphql.CollectedField, obj *model.InstrumentInfo) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -21361,6 +21530,45 @@ func (ec *executionContext) fieldContext_JobManagerDetail_metrics(_ context.Cont
 				return ec.fieldContext_MetricEntry_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MetricEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobManagerDetail_haStatus(ctx context.Context, field graphql.CollectedField, obj *model.JobManagerDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobManagerDetail_haStatus,
+		func(ctx context.Context) (any, error) {
+			return obj.HaStatus, nil
+		},
+		nil,
+		ec.marshalNHAStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐHAStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobManagerDetail_haStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobManagerDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_HAStatus_enabled(ctx, field)
+			case "mode":
+				return ec.fieldContext_HAStatus_mode(ctx, field)
+			case "storageDir":
+				return ec.fieldContext_HAStatus_storageDir(ctx, field)
+			case "clusterId":
+				return ec.fieldContext_HAStatus_clusterId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HAStatus", field.Name)
 		},
 	}
 	return fc, nil
@@ -28760,6 +28968,8 @@ func (ec *executionContext) fieldContext_Query_jobManager(ctx context.Context, f
 				return ec.fieldContext_JobManagerDetail_environment(ctx, field)
 			case "metrics":
 				return ec.fieldContext_JobManagerDetail_metrics(ctx, field)
+			case "haStatus":
+				return ec.fieldContext_JobManagerDetail_haStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobManagerDetail", field.Name)
 		},
@@ -44099,6 +44309,54 @@ func (ec *executionContext) _FlussTabletServerHealth(ctx context.Context, sel as
 	return out
 }
 
+var hAStatusImplementors = []string{"HAStatus"}
+
+func (ec *executionContext) _HAStatus(ctx context.Context, sel ast.SelectionSet, obj *model.HAStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hAStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HAStatus")
+		case "enabled":
+			out.Values[i] = ec._HAStatus_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mode":
+			out.Values[i] = ec._HAStatus_mode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "storageDir":
+			out.Values[i] = ec._HAStatus_storageDir(ctx, field, obj)
+		case "clusterId":
+			out.Values[i] = ec._HAStatus_clusterId(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var instrumentInfoImplementors = []string{"InstrumentInfo"}
 
 func (ec *executionContext) _InstrumentInfo(ctx context.Context, sel ast.SelectionSet, obj *model.InstrumentInfo) graphql.Marshaler {
@@ -44974,6 +45232,11 @@ func (ec *executionContext) _JobManagerDetail(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._JobManagerDetail_environment(ctx, field, obj)
 		case "metrics":
 			out.Values[i] = ec._JobManagerDetail_metrics(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "haStatus":
+			out.Values[i] = ec._JobManagerDetail_haStatus(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -52778,6 +53041,16 @@ func (ec *executionContext) marshalNFlussTabletServerHealth2ᚖgithubᚗcomᚋsa
 		return graphql.Null
 	}
 	return ec._FlussTabletServerHealth(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHAStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐHAStatus(ctx context.Context, sel ast.SelectionSet, v *model.HAStatus) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HAStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {
