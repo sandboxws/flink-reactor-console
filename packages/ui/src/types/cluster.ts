@@ -262,6 +262,16 @@ export type JobConnector = {
   metrics: ConnectorMetrics | null
 }
 
+/** Per-job failover / restart summary (observe-only). All fields nullable — an
+ * absent metric means "unknown", not zero. uptime/downtime are Long-safe strings. */
+export type RestartInfo = {
+  numRestarts: number | null
+  fullRestarts: number | null
+  restartStrategy: string | null
+  uptimeMs: string | null
+  downtimeMs: string | null
+}
+
 /** Full detail of a Flink job, including graph, metrics, checkpoints, and configuration. */
 export type FlinkJob = {
   id: string
@@ -284,6 +294,8 @@ export type FlinkJob = {
   configuration: JobConfiguration[]
   /** Job-submit-time configuration (null if Flink's /jobs/:id/config endpoint was unavailable). */
   jobConfig: JobUserConfig | null
+  /** Per-job failover / restart summary; null when unavailable. */
+  restartInfo: RestartInfo | null
   /** Per-vertex watermark values, keyed by vertex ID. */
   watermarks: Record<string, VertexWatermark[]>
   /** Per-vertex back-pressure status, keyed by vertex ID. */

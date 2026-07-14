@@ -163,6 +163,7 @@ export function createFlinkJob(overrides?: Partial<FlinkJob>): FlinkJob {
       { key: "execution.checkpointing.interval", value: "60000" },
     ],
     jobConfig: null,
+    restartInfo: null,
     watermarks: {},
     backpressure: {},
     accumulators: {},

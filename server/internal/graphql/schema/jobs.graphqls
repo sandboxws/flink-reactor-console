@@ -262,6 +262,21 @@ type JobMetrics {
   recordsOutPerSecond: Float!
 }
 
+"""
+Per-job failover / restart summary, sourced from job metrics
+(numRestarts / fullRestarts / uptime / downtime) and job config
+(restart-strategy). All fields are nullable — an absent metric means
+"unknown", not zero. uptimeMs / downtimeMs are encoded as Long-safe
+strings (ms can exceed a 32-bit Int for long-running jobs).
+"""
+type RestartInfo {
+  numRestarts: Int
+  fullRestarts: Int
+  restartStrategy: String
+  uptimeMs: String
+  downtimeMs: String
+}
+
 type JobDetail {
   id: ID!
   name: String!
@@ -276,6 +291,8 @@ type JobDetail {
   checkpoints: CheckpointStats
   checkpointConfig: CheckpointConfig
   jobConfig: JobConfig
+  """Per-job failover / restart summary (observe-only). Null when unavailable."""
+  restartInfo: RestartInfo
   vertexDetails: [VertexDetail!]
   watermarks: [VertexWatermarks!]
   backPressure: [VertexBackPressure!]

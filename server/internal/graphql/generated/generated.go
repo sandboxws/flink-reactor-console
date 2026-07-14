@@ -546,6 +546,7 @@ type ComplexityRoot struct {
 		Name             func(childComplexity int) int
 		Now              func(childComplexity int) int
 		Plan             func(childComplexity int) int
+		RestartInfo      func(childComplexity int) int
 		SourcesAndSinks  func(childComplexity int) int
 		StartTime        func(childComplexity int) int
 		State            func(childComplexity int) int
@@ -984,6 +985,14 @@ type ComplexityRoot struct {
 	RescaleSummary struct {
 		LastRescaleAt func(childComplexity int) int
 		TotalRescales func(childComplexity int) int
+	}
+
+	RestartInfo struct {
+		DowntimeMs      func(childComplexity int) int
+		FullRestarts    func(childComplexity int) int
+		NumRestarts     func(childComplexity int) int
+		RestartStrategy func(childComplexity int) int
+		UptimeMs        func(childComplexity int) int
 	}
 
 	RestoreEvent struct {
@@ -3353,6 +3362,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.JobDetail.Plan(childComplexity), true
+	case "JobDetail.restartInfo":
+		if e.ComplexityRoot.JobDetail.RestartInfo == nil {
+			break
+		}
+
+		return e.ComplexityRoot.JobDetail.RestartInfo(childComplexity), true
 	case "JobDetail.sourcesAndSinks":
 		if e.ComplexityRoot.JobDetail.SourcesAndSinks == nil {
 			break
@@ -5743,6 +5758,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.RescaleSummary.TotalRescales(childComplexity), true
+
+	case "RestartInfo.downtimeMs":
+		if e.ComplexityRoot.RestartInfo.DowntimeMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestartInfo.DowntimeMs(childComplexity), true
+	case "RestartInfo.fullRestarts":
+		if e.ComplexityRoot.RestartInfo.FullRestarts == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestartInfo.FullRestarts(childComplexity), true
+	case "RestartInfo.numRestarts":
+		if e.ComplexityRoot.RestartInfo.NumRestarts == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestartInfo.NumRestarts(childComplexity), true
+	case "RestartInfo.restartStrategy":
+		if e.ComplexityRoot.RestartInfo.RestartStrategy == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestartInfo.RestartStrategy(childComplexity), true
+	case "RestartInfo.uptimeMs":
+		if e.ComplexityRoot.RestartInfo.UptimeMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RestartInfo.UptimeMs(childComplexity), true
 
 	case "RestoreEvent.blueGreenName":
 		if e.ComplexityRoot.RestoreEvent.BlueGreenName == nil {
@@ -8531,6 +8577,21 @@ type JobMetrics {
   recordsOutPerSecond: Float!
 }
 
+"""
+Per-job failover / restart summary, sourced from job metrics
+(numRestarts / fullRestarts / uptime / downtime) and job config
+(restart-strategy). All fields are nullable — an absent metric means
+"unknown", not zero. uptimeMs / downtimeMs are encoded as Long-safe
+strings (ms can exceed a 32-bit Int for long-running jobs).
+"""
+type RestartInfo {
+  numRestarts: Int
+  fullRestarts: Int
+  restartStrategy: String
+  uptimeMs: String
+  downtimeMs: String
+}
+
 type JobDetail {
   id: ID!
   name: String!
@@ -8545,6 +8606,8 @@ type JobDetail {
   checkpoints: CheckpointStats
   checkpointConfig: CheckpointConfig
   jobConfig: JobConfig
+  """Per-job failover / restart summary (observe-only). Null when unavailable."""
+  restartInfo: RestartInfo
   vertexDetails: [VertexDetail!]
   watermarks: [VertexWatermarks!]
   backPressure: [VertexBackPressure!]
@@ -20551,6 +20614,47 @@ func (ec *executionContext) fieldContext_JobDetail_jobConfig(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _JobDetail_restartInfo(ctx context.Context, field graphql.CollectedField, obj *model.JobDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_JobDetail_restartInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.RestartInfo, nil
+		},
+		nil,
+		ec.marshalORestartInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestartInfo,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_JobDetail_restartInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "numRestarts":
+				return ec.fieldContext_RestartInfo_numRestarts(ctx, field)
+			case "fullRestarts":
+				return ec.fieldContext_RestartInfo_fullRestarts(ctx, field)
+			case "restartStrategy":
+				return ec.fieldContext_RestartInfo_restartStrategy(ctx, field)
+			case "uptimeMs":
+				return ec.fieldContext_RestartInfo_uptimeMs(ctx, field)
+			case "downtimeMs":
+				return ec.fieldContext_RestartInfo_downtimeMs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RestartInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobDetail_vertexDetails(ctx context.Context, field graphql.CollectedField, obj *model.JobDetail) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -29190,6 +29294,8 @@ func (ec *executionContext) fieldContext_Query_job(ctx context.Context, field gr
 				return ec.fieldContext_JobDetail_checkpointConfig(ctx, field)
 			case "jobConfig":
 				return ec.fieldContext_JobDetail_jobConfig(ctx, field)
+			case "restartInfo":
+				return ec.fieldContext_JobDetail_restartInfo(ctx, field)
 			case "vertexDetails":
 				return ec.fieldContext_JobDetail_vertexDetails(ctx, field)
 			case "watermarks":
@@ -32423,6 +32529,151 @@ func (ec *executionContext) _RescaleSummary_lastRescaleAt(ctx context.Context, f
 func (ec *executionContext) fieldContext_RescaleSummary_lastRescaleAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RescaleSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestartInfo_numRestarts(ctx context.Context, field graphql.CollectedField, obj *model.RestartInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestartInfo_numRestarts,
+		func(ctx context.Context) (any, error) {
+			return obj.NumRestarts, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestartInfo_numRestarts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestartInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestartInfo_fullRestarts(ctx context.Context, field graphql.CollectedField, obj *model.RestartInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestartInfo_fullRestarts,
+		func(ctx context.Context) (any, error) {
+			return obj.FullRestarts, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestartInfo_fullRestarts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestartInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestartInfo_restartStrategy(ctx context.Context, field graphql.CollectedField, obj *model.RestartInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestartInfo_restartStrategy,
+		func(ctx context.Context) (any, error) {
+			return obj.RestartStrategy, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestartInfo_restartStrategy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestartInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestartInfo_uptimeMs(ctx context.Context, field graphql.CollectedField, obj *model.RestartInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestartInfo_uptimeMs,
+		func(ctx context.Context) (any, error) {
+			return obj.UptimeMs, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestartInfo_uptimeMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestartInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RestartInfo_downtimeMs(ctx context.Context, field graphql.CollectedField, obj *model.RestartInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RestartInfo_downtimeMs,
+		func(ctx context.Context) (any, error) {
+			return obj.DowntimeMs, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RestartInfo_downtimeMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RestartInfo",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -44945,6 +45196,8 @@ func (ec *executionContext) _JobDetail(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._JobDetail_checkpointConfig(ctx, field, obj)
 		case "jobConfig":
 			out.Values[i] = ec._JobDetail_jobConfig(ctx, field, obj)
+		case "restartInfo":
+			out.Values[i] = ec._JobDetail_restartInfo(ctx, field, obj)
 		case "vertexDetails":
 			out.Values[i] = ec._JobDetail_vertexDetails(ctx, field, obj)
 		case "watermarks":
@@ -49220,6 +49473,50 @@ func (ec *executionContext) _RescaleSummary(ctx context.Context, sel ast.Selecti
 			}
 		case "lastRescaleAt":
 			out.Values[i] = ec._RescaleSummary_lastRescaleAt(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var restartInfoImplementors = []string{"RestartInfo"}
+
+func (ec *executionContext) _RestartInfo(ctx context.Context, sel ast.SelectionSet, obj *model.RestartInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, restartInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RestartInfo")
+		case "numRestarts":
+			out.Values[i] = ec._RestartInfo_numRestarts(ctx, field, obj)
+		case "fullRestarts":
+			out.Values[i] = ec._RestartInfo_fullRestarts(ctx, field, obj)
+		case "restartStrategy":
+			out.Values[i] = ec._RestartInfo_restartStrategy(ctx, field, obj)
+		case "uptimeMs":
+			out.Values[i] = ec._RestartInfo_uptimeMs(ctx, field, obj)
+		case "downtimeMs":
+			out.Values[i] = ec._RestartInfo_downtimeMs(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55647,6 +55944,13 @@ func (ec *executionContext) marshalORedisZSetEntry2ᚕᚖgithubᚗcomᚋsandboxw
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalORestartInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestartInfo(ctx context.Context, sel ast.SelectionSet, v *model.RestartInfo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RestartInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx context.Context, sel ast.SelectionSet, v *model.SimulationRun) graphql.Marshaler {

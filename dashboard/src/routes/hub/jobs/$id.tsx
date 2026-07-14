@@ -35,6 +35,7 @@ import {
   Plug,
   Radio,
   RotateCcw,
+  ShieldAlert,
   SlidersHorizontal,
   Square,
   Waves,
@@ -88,6 +89,12 @@ const HubWatermarksTab = lazy(() =>
 const HubTapTab = lazy(() =>
   import("@/components/hub/jobs/tabs/tap-tab").then((m) => ({
     default: m.HubTapTab,
+  })),
+)
+
+const HubReliabilityTab = lazy(() =>
+  import("@/components/hub/jobs/tabs/reliability-tab").then((m) => ({
+    default: m.HubReliabilityTab,
   })),
 )
 
@@ -356,6 +363,10 @@ function HubJobDetail() {
               <span className="tab-count">{job.exceptions.length}</span>
             ) : null}
           </TabsTrigger>
+          <TabsTrigger value="reliability" className="tab">
+            <ShieldAlert />
+            <span>Reliability</span>
+          </TabsTrigger>
           <TabsTrigger value="config" className="tab">
             <SlidersHorizontal />
             <span>Config</span>
@@ -514,6 +525,13 @@ function HubJobDetail() {
         <TabsContent value="watermarks" className="mt-6 outline-none">
           <Suspense fallback={<TabFallback />}>
             <HubWatermarksTab job={job} />
+          </Suspense>
+        </TabsContent>
+
+        {/* Reliability tab */}
+        <TabsContent value="reliability" className="mt-6 outline-none">
+          <Suspense fallback={<TabFallback />}>
+            <HubReliabilityTab job={job} />
           </Suspense>
         </TabsContent>
 

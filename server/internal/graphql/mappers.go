@@ -162,6 +162,7 @@ func mapJobDetailAggregate(agg *flink.JobDetailAggregate) *model.JobDetail {
 		Checkpoints:      checkpoints,
 		CheckpointConfig: cpConfig,
 		JobConfig:        mapJobConfig(agg.JobConfig),
+		RestartInfo:      mapRestartInfo(agg.JobConfig, agg.RestartMetrics),
 		VertexDetails:    vertexDetails,
 		Watermarks:       watermarks,
 		BackPressure:     backPressure,
@@ -365,6 +366,62 @@ func mapHAStatus(config []flink.JMConfigEntry) *model.HAStatus {
 		}
 	}
 	return ha
+}
+
+// mapRestartInfo builds a per-job failover/restart summary from job-level
+// reliability metrics (numRestarts / fullRestarts / uptime / downtime) and the
+// job config's restart strategy. An absent metric maps to nil (unknown), never
+// zero. uptime/downtime are emitted as Long-safe millisecond strings.
+func mapRestartInfo(jc *flink.JobConfig, metrics []flink.MetricItem) *model.RestartInfo {
+	byID := make(map[string]string, len(metrics))
+	for _, m := range metrics {
+		byID[m.ID] = m.Value
+	}
+
+	intPtr := func(id string) *int {
+		v, ok := byID[id]
+		if !ok {
+			return nil
+		}
+		f, err := strconv.ParseFloat(strings.TrimSpace(v), 64)
+		if err != nil {
+			return nil
+		}
+		n := int(f)
+		return &n
+	}
+	msPtr := func(id string) *string {
+		v, ok := byID[id]
+		if !ok {
+			return nil
+		}
+		f, err := strconv.ParseFloat(strings.TrimSpace(v), 64)
+		if err != nil {
+			return nil
+		}
+		s := strconv.FormatInt(int64(f), 10)
+		return &s
+	}
+
+	var strategy *string
+	if jc != nil && strings.TrimSpace(jc.ExecutionConfig.RestartStrategy) != "" {
+		s := jc.ExecutionConfig.RestartStrategy
+		strategy = &s
+	}
+
+	ri := &model.RestartInfo{
+		NumRestarts:     intPtr("numRestarts"),
+		FullRestarts:    intPtr("fullRestarts"),
+		RestartStrategy: strategy,
+		UptimeMs:        msPtr("uptime"),
+		DowntimeMs:      msPtr("downtime"),
+	}
+
+	if ri.NumRestarts == nil && ri.FullRestarts == nil && ri.RestartStrategy == nil &&
+		ri.UptimeMs == nil && ri.DowntimeMs == nil {
+		return nil
+	}
+	return ri
 }
 
 // mapVertex converts a Flink Vertex to a GraphQL JobVertex.

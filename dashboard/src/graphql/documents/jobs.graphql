@@ -160,6 +160,13 @@ query JobDetail($id: ID!, $cluster: String) {
       externalizedDeleteOnCancellation
       unalignedCheckpoints
     }
+    restartInfo {
+      numRestarts
+      fullRestarts
+      restartStrategy
+      uptimeMs
+      downtimeMs
+    }
     vertexDetails {
       id
       name

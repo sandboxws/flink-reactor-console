@@ -91,6 +91,18 @@ var vertexRateMetricIDs = []string{
 // VertexRateMetricQuery is the pre-joined query string for vertex rate metrics.
 var VertexRateMetricQuery = strings.Join(vertexRateMetricIDs, ",")
 
+// Job-level reliability metric IDs fetched during JobDetail aggregation:
+// restart counts and up/down time. Absent metrics are tolerated.
+var jobMetricIDs = []string{
+	"numRestarts",
+	"fullRestarts",
+	"uptime",
+	"downtime",
+}
+
+// JobMetricQuery is the pre-joined query string for job-level reliability metrics.
+var JobMetricQuery = strings.Join(jobMetricIDs, ",")
+
 // JobDetailAggregate holds the result of a two-phase job detail aggregation.
 type JobDetailAggregate struct {
 	Job              *JobDetail
@@ -106,6 +118,9 @@ type JobDetailAggregate struct {
 	// the vertex's subtasks (numRecordsInPerSecond / numRecordsOutPerSecond),
 	// used to compute job-level throughput. Keyed by vertex ID.
 	VertexRates map[string][]AggregatedSubtaskMetric
+	// RestartMetrics holds job-level reliability metrics (numRestarts,
+	// fullRestarts, uptime, downtime). Best-effort; empty when unavailable.
+	RestartMetrics []MetricItem
 }
 
 // TMDetailAggregate holds the result of a TM detail aggregation.
@@ -147,11 +162,12 @@ func NewAggregator(client *Client) *Aggregator {
 // because the Phase 1 context is cancelled after Wait() returns.
 func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAggregate, error) {
 	var (
-		job        JobDetail
-		exceptions JobExceptions
-		checkpts   *CheckpointStats
-		cpConfig   *CheckpointConfig
-		jobCfg     *JobConfig
+		job            JobDetail
+		exceptions     JobExceptions
+		checkpts       *CheckpointStats
+		cpConfig       *CheckpointConfig
+		jobCfg         *JobConfig
+		restartMetrics []MetricItem
 	)
 
 	// Phase 1: critical fetches — fail fast on any error.
@@ -185,6 +201,16 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 		var jc JobConfig
 		if err := a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/config", jobID), &jc); err == nil {
 			jobCfg = &jc
+		}
+		return nil
+	})
+
+	// Supplementary: job-level reliability metrics (restarts / uptime).
+	// Best-effort — never fail the page if the metrics endpoint flakes.
+	g1.Go(func() error {
+		var m []MetricItem
+		if err := a.client.GetJSON(ctx1, fmt.Sprintf("/jobs/%s/metrics?get=%s", jobID, JobMetricQuery), &m); err == nil {
+			restartMetrics = m
 		}
 		return nil
 	})
@@ -298,6 +324,7 @@ func (a *Aggregator) JobDetail(ctx context.Context, jobID string) (*JobDetailAgg
 		BackPressure:     backpressure,
 		Accumulators:     accumulators,
 		VertexRates:      vertexRates,
+		RestartMetrics:   restartMetrics,
 	}, nil
 }
 

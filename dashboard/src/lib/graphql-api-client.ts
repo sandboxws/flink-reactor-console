@@ -156,6 +156,7 @@ const JOB_DETAIL_QUERY = gql`
         jid name executionMode restartStrategy jobParallelism objectReuseMode
         userConfig { key value }
       }
+      restartInfo { numRestarts fullRestarts restartStrategy uptimeMs downtimeMs }
       vertexDetails {
         id name parallelism now
         subtasks {
@@ -457,6 +458,7 @@ function mapJobOverview(j: any): FlinkJob {
     subtaskMetrics: {},
     configuration: [],
     jobConfig: null,
+    restartInfo: null,
     watermarks: {},
     backpressure: {},
     accumulators: {},
@@ -1039,6 +1041,15 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
     subtaskMetrics,
     configuration: [],
     jobConfig,
+    restartInfo: j.restartInfo
+      ? {
+          numRestarts: j.restartInfo.numRestarts ?? null,
+          fullRestarts: j.restartInfo.fullRestarts ?? null,
+          restartStrategy: j.restartInfo.restartStrategy ?? null,
+          uptimeMs: j.restartInfo.uptimeMs ?? null,
+          downtimeMs: j.restartInfo.downtimeMs ?? null,
+        }
+      : null,
     watermarks,
     backpressure,
     accumulators,

@@ -638,23 +638,25 @@ type JobConnector struct {
 }
 
 type JobDetail struct {
-	ID               string                `json:"id"`
-	Name             string                `json:"name"`
-	State            string                `json:"state"`
-	StartTime        string                `json:"startTime"`
-	EndTime          string                `json:"endTime"`
-	Duration         string                `json:"duration"`
-	Now              string                `json:"now"`
-	Vertices         []*JobVertex          `json:"vertices"`
-	Plan             *JobPlan              `json:"plan"`
-	Exceptions       []*ExceptionEntry     `json:"exceptions"`
-	Checkpoints      *CheckpointStats      `json:"checkpoints,omitempty"`
-	CheckpointConfig *CheckpointConfig     `json:"checkpointConfig,omitempty"`
-	JobConfig        *JobConfig            `json:"jobConfig,omitempty"`
-	VertexDetails    []*VertexDetail       `json:"vertexDetails,omitempty"`
-	Watermarks       []*VertexWatermarks   `json:"watermarks,omitempty"`
-	BackPressure     []*VertexBackPressure `json:"backPressure,omitempty"`
-	Accumulators     []*VertexAccumulators `json:"accumulators,omitempty"`
+	ID               string            `json:"id"`
+	Name             string            `json:"name"`
+	State            string            `json:"state"`
+	StartTime        string            `json:"startTime"`
+	EndTime          string            `json:"endTime"`
+	Duration         string            `json:"duration"`
+	Now              string            `json:"now"`
+	Vertices         []*JobVertex      `json:"vertices"`
+	Plan             *JobPlan          `json:"plan"`
+	Exceptions       []*ExceptionEntry `json:"exceptions"`
+	Checkpoints      *CheckpointStats  `json:"checkpoints,omitempty"`
+	CheckpointConfig *CheckpointConfig `json:"checkpointConfig,omitempty"`
+	JobConfig        *JobConfig        `json:"jobConfig,omitempty"`
+	// Per-job failover / restart summary (observe-only). Null when unavailable.
+	RestartInfo   *RestartInfo          `json:"restartInfo,omitempty"`
+	VertexDetails []*VertexDetail       `json:"vertexDetails,omitempty"`
+	Watermarks    []*VertexWatermarks   `json:"watermarks,omitempty"`
+	BackPressure  []*VertexBackPressure `json:"backPressure,omitempty"`
+	Accumulators  []*VertexAccumulators `json:"accumulators,omitempty"`
 	// Job-wide throughput rates derived from source/sink vertex metrics.
 	Metrics *JobMetrics `json:"metrics,omitempty"`
 	// Watermark lag in milliseconds (`now - min subtask watermark`).
@@ -1129,6 +1131,19 @@ type RescaleSummary struct {
 	TotalRescales int `json:"totalRescales"`
 	// Epoch-millis timestamp of the most recent rescale. Null when none.
 	LastRescaleAt *string `json:"lastRescaleAt,omitempty"`
+}
+
+// Per-job failover / restart summary, sourced from job metrics
+// (numRestarts / fullRestarts / uptime / downtime) and job config
+// (restart-strategy). All fields are nullable — an absent metric means
+// "unknown", not zero. uptimeMs / downtimeMs are encoded as Long-safe
+// strings (ms can exceed a 32-bit Int for long-running jobs).
+type RestartInfo struct {
+	NumRestarts     *int    `json:"numRestarts,omitempty"`
+	FullRestarts    *int    `json:"fullRestarts,omitempty"`
+	RestartStrategy *string `json:"restartStrategy,omitempty"`
+	UptimeMs        *string `json:"uptimeMs,omitempty"`
+	DowntimeMs      *string `json:"downtimeMs,omitempty"`
 }
 
 type RestoreEvent struct {
