@@ -7,9 +7,7 @@ package graphql
 
 import (
 	"context"
-	"strconv"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
 	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
 )
 
@@ -56,21 +54,4 @@ func (r *queryResolver) Application(ctx context.Context, id string, cluster *str
 		return nil, nil
 	}
 	return mapApplication(app), nil
-}
-
-// mapApplication converts a Flink ApplicationOverview into the GraphQL model
-// (Flink 2.3+, FLIP-549).
-func mapApplication(a *flink.ApplicationOverview) *model.Application {
-	var startTime *string
-	if a.StartTime > 0 {
-		s := strconv.FormatInt(a.StartTime, 10)
-		startTime = &s
-	}
-	return &model.Application{
-		ID:        a.ID,
-		Name:      a.Name,
-		State:     a.State,
-		StartTime: startTime,
-		JobCount:  a.JobCount,
-	}
 }
