@@ -1,0 +1,21 @@
+# Go
+*.exe
+*.test
+*.out
+
+# Node
+node_modules/
+dist/
+.turbo/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.tsbuildinfo
