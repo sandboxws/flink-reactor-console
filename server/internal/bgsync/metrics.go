@@ -1,9 +1,9 @@
-package sync
+package bgsync
 
 import (
 	"context"
 	"fmt"
-	gosync "sync"
+	"sync"
 	"time"
 
 	"golang.org/x/sync/errgroup"
@@ -75,7 +75,7 @@ func (s *Syncer) syncMetrics(ctx context.Context) {
 // sources concurrently, returning a unified slice of DBMetric.
 func (s *Syncer) collectClusterMetrics(ctx context.Context, svc *flink.Service, cluster string) ([]storage.DBMetric, error) {
 	var (
-		mu         gosync.Mutex
+		mu         sync.Mutex
 		allMetrics []storage.DBMetric
 	)
 

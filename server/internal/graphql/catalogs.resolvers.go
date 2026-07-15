@@ -12,6 +12,8 @@ import (
 )
 
 // Catalogs is the resolver for the catalogs field.
+//
+//nolint:revive // cluster is accepted by the schema but not yet plumbed through CatalogService
 func (r *queryResolver) Catalogs(ctx context.Context, cluster *string) ([]*model.CatalogInfo, error) {
 	catalogs, err := r.CatalogService.ListCatalogs(ctx)
 	if err != nil {
@@ -40,6 +42,8 @@ func (r *queryResolver) Catalogs(ctx context.Context, cluster *string) ([]*model
 }
 
 // CatalogDatabases is the resolver for the catalogDatabases field.
+//
+//nolint:revive // cluster is accepted by the schema but not yet plumbed through CatalogService
 func (r *queryResolver) CatalogDatabases(ctx context.Context, catalog string, cluster *string) ([]*model.CatalogDatabase, error) {
 	databases, err := r.CatalogService.ListDatabases(ctx, catalog)
 	if err != nil {
@@ -54,6 +58,8 @@ func (r *queryResolver) CatalogDatabases(ctx context.Context, catalog string, cl
 }
 
 // CatalogTables is the resolver for the catalogTables field.
+//
+//nolint:revive // cluster is accepted by the schema but not yet plumbed through CatalogService
 func (r *queryResolver) CatalogTables(ctx context.Context, catalog string, database string, cluster *string) ([]*model.CatalogTable, error) {
 	tables, err := r.CatalogService.ListTables(ctx, catalog, database)
 	if err != nil {
@@ -68,6 +74,8 @@ func (r *queryResolver) CatalogTables(ctx context.Context, catalog string, datab
 }
 
 // CatalogColumns is the resolver for the catalogColumns field.
+//
+//nolint:revive // cluster is accepted by the schema but not yet plumbed through CatalogService
 func (r *queryResolver) CatalogColumns(ctx context.Context, catalog string, database string, table string, cluster *string) ([]*model.ColumnInfo, error) {
 	columns, err := r.CatalogService.ListColumns(ctx, catalog, database, table)
 	if err != nil {
@@ -82,6 +90,8 @@ func (r *queryResolver) CatalogColumns(ctx context.Context, catalog string, data
 }
 
 // CatalogTableDdl is the resolver for the catalogTableDDL field.
+//
+//nolint:revive // cluster is accepted by the schema but not yet plumbed through CatalogService
 func (r *queryResolver) CatalogTableDdl(ctx context.Context, catalog string, database string, table string, cluster *string) (string, error) {
 	return r.CatalogService.TableDDL(ctx, catalog, database, table)
 }

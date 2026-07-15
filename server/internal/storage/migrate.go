@@ -24,7 +24,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := goose.UpContext(ctx, db, "migrations"); err != nil {
 		return fmt.Errorf("running migrations: %w", err)
@@ -39,7 +39,7 @@ func MigrationVersion(ctx context.Context, pool *pgxpool.Pool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	version, err := goose.GetDBVersionContext(ctx, db)
 	if err != nil {
@@ -57,7 +57,7 @@ func MigrateDown(ctx context.Context, pool *pgxpool.Pool) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := goose.DownContext(ctx, db, "migrations"); err != nil {
 		return fmt.Errorf("rolling back migration: %w", err)
@@ -71,7 +71,7 @@ func MigrateReset(ctx context.Context, pool *pgxpool.Pool) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := goose.ResetContext(ctx, db, "migrations"); err != nil {
 		return fmt.Errorf("resetting migrations: %w", err)
@@ -85,7 +85,7 @@ func MigrateStatus(ctx context.Context, pool *pgxpool.Pool) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := goose.StatusContext(ctx, db, "migrations"); err != nil {
 		return fmt.Errorf("migration status: %w", err)
@@ -97,7 +97,7 @@ func MigrateStatus(ctx context.Context, pool *pgxpool.Pool) error {
 func gooseDB(pool *pgxpool.Pool) (*sql.DB, error) {
 	db := stdlib.OpenDBFromPool(pool)
 	if err := db.Ping(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("pinging database for migrations: %w", err)
 	}
 	return db, nil

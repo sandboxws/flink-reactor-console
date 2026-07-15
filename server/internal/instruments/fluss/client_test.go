@@ -127,7 +127,7 @@ func TestListTablesPrimaryKeyAndLog(t *testing.T) {
 		t.Fatalf("want 2 tables, got %d", len(tables))
 	}
 
-	var pk, log *FlussTableSummary
+	var pk, log *TableSummary
 	for i := range tables {
 		switch tables[i].Name {
 		case "orders":

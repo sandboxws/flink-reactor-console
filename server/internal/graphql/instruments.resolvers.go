@@ -12,6 +12,8 @@ import (
 )
 
 // Instruments is the resolver for the instruments field.
+//
+//nolint:revive // gqlgen owns this signature
 func (r *queryResolver) Instruments(ctx context.Context) ([]*model.InstrumentInfo, error) {
 	if r.InstrumentRegistry == nil {
 		return []*model.InstrumentInfo{}, nil

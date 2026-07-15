@@ -151,6 +151,8 @@ func (r *queryResolver) DatabaseTable(ctx context.Context, instrument string, sc
 }
 
 // DatabaseQueryHistory is the resolver for the databaseQueryHistory field.
+//
+//nolint:revive // gqlgen owns this signature; the parameter is unused by this resolver
 func (r *queryResolver) DatabaseQueryHistory(ctx context.Context, instrument string) ([]*model.DatabaseQueryHistoryEntry, error) {
 	di, err := r.resolveDatabaseInstrument(instrument)
 	if err != nil {

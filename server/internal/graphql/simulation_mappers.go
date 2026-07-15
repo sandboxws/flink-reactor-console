@@ -8,7 +8,7 @@ import (
 )
 
 // mapSimulationRun converts a domain SimulationRun to a GraphQL model.
-func mapSimulationRun(run *simulation.SimulationRun) *model.SimulationRun {
+func mapSimulationRun(run *simulation.Run) *model.SimulationRun {
 	result := &model.SimulationRun{
 		ID:         strconv.FormatInt(run.ID, 10),
 		Scenario:   run.Scenario,

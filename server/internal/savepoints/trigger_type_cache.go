@@ -19,9 +19,10 @@ import (
 // String values match the GraphQL enum SavepointTriggerType.
 type TriggerType string
 
+// Savepoint trigger reasons known to the server.
 const (
 	TriggerManual            TriggerType = "MANUAL"
-	TriggerStopWithSavepoint TriggerType = "STOP_WITH_SAVEPOINT"
+	TriggerStopWithSavepoint TriggerType = "STOP_WITH_SAVEPOINT" //nolint:gosec // G101: enum value; "StopWithSavepoint" contains "pw", which trips the credential heuristic
 	TriggerBlueGreen         TriggerType = "BLUE_GREEN"
 )
 

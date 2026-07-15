@@ -126,7 +126,7 @@ func kubectlPath() string {
 func kubectl(ctx context.Context, args ...string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "kubectl", args...)
+	cmd := exec.CommandContext(ctx, "kubectl", args...) //nolint:gosec // G204: binary name is a literal and every caller passes package-internal literal args
 	out, err := cmd.CombinedOutput()
 	return strings.TrimSpace(string(out)), err
 }

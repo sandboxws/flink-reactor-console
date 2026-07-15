@@ -324,7 +324,7 @@ func jobMinWatermark(agg *JobDetailAggregate) (int64, bool) {
 		longMin int64 = math.MinInt64
 		longMax int64 = math.MaxInt64
 	)
-	var minWatermark int64 = longMax
+	minWatermark := longMax
 	found := false
 	for _, entries := range agg.Watermarks {
 		for _, e := range entries {

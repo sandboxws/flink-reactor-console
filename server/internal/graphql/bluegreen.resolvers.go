@@ -14,6 +14,8 @@ import (
 )
 
 // BlueGreenDeployments is the resolver for the blueGreenDeployments field.
+//
+//nolint:revive // namespace is accepted by the schema but not yet plumbed through to the K8s watcher
 func (r *queryResolver) BlueGreenDeployments(ctx context.Context, cluster *string, namespace *string) ([]*model.BlueGreenDeployment, error) {
 	if r.Manager == nil {
 		return nil, fmt.Errorf("cluster manager not configured")
@@ -51,6 +53,8 @@ func (r *queryResolver) BlueGreenDeployments(ctx context.Context, cluster *strin
 }
 
 // BlueGreenDeployment is the resolver for the blueGreenDeployment field.
+//
+//nolint:revive // namespace is accepted by the schema but not yet plumbed through to the K8s watcher
 func (r *queryResolver) BlueGreenDeployment(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenDeployment, error) {
 	if r.Manager == nil {
 		return nil, fmt.Errorf("cluster manager not configured")
@@ -74,6 +78,8 @@ func (r *queryResolver) BlueGreenDeployment(ctx context.Context, name string, na
 }
 
 // BlueGreenDeploymentConfigDiff is the resolver for the blueGreenDeploymentConfigDiff field.
+//
+//nolint:revive // namespace is accepted by the schema but not yet plumbed through to the K8s watcher
 func (r *queryResolver) BlueGreenDeploymentConfigDiff(ctx context.Context, name string, namespace *string, cluster *string) (*model.BlueGreenConfigDiff, error) {
 	if r.Manager == nil {
 		return nil, fmt.Errorf("cluster manager not configured")
@@ -100,6 +106,8 @@ func (r *queryResolver) BlueGreenDeploymentConfigDiff(ctx context.Context, name 
 }
 
 // BlueGreenStateChanged is the resolver for the blueGreenStateChanged field.
+//
+//nolint:revive // namespace is accepted by the schema but not yet plumbed through to the K8s watcher
 func (r *subscriptionResolver) BlueGreenStateChanged(ctx context.Context, cluster *string, namespace *string) (<-chan *model.BlueGreenDeployment, error) {
 	if r.Manager == nil {
 		return nil, fmt.Errorf("cluster manager not configured")

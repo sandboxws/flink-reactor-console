@@ -10,7 +10,7 @@ import (
 
 // activeSimulation tracks a running simulation with its cancel function.
 type activeSimulation struct {
-	run    *SimulationRun
+	run    *Run
 	cancel context.CancelFunc
 }
 
@@ -30,8 +30,8 @@ func NewEngine(store *Store, logger *slog.Logger) *Engine {
 	}
 }
 
-// SimulationInput is the input for starting a simulation.
-type SimulationInput struct {
+// Input is the input for starting a simulation.
+type Input struct {
 	Scenario   string
 	TargetJobs []string
 	Parameters map[string]any
@@ -40,7 +40,7 @@ type SimulationInput struct {
 
 // Run starts a simulation scenario. Returns the created run immediately;
 // the scenario executes in a background goroutine.
-func (e *Engine) Run(ctx context.Context, input SimulationInput) (*SimulationRun, error) {
+func (e *Engine) Run(ctx context.Context, input Input) (*Run, error) {
 	scenarioFn, ok := scenarioRegistry[input.Scenario]
 	if !ok {
 		return nil, fmt.Errorf("unknown scenario: %s", input.Scenario)
@@ -52,7 +52,7 @@ func (e *Engine) Run(ctx context.Context, input SimulationInput) (*SimulationRun
 		return nil, fmt.Errorf("simulation already running: %s (run %d)", e.activeRun.run.Scenario, e.activeRun.run.ID)
 	}
 
-	run := &SimulationRun{
+	run := &Run{
 		Scenario:   input.Scenario,
 		Status:     StatusPending,
 		StartedAt:  time.Now(),
@@ -82,7 +82,7 @@ func (e *Engine) Run(ctx context.Context, input SimulationInput) (*SimulationRun
 	return run, nil
 }
 
-func (e *Engine) executeScenario(ctx context.Context, run *SimulationRun, fn ScenarioFunc) {
+func (e *Engine) executeScenario(ctx context.Context, run *Run, fn ScenarioFunc) {
 	// Update status to RUNNING.
 	run.Status = StatusRunning
 	if err := e.store.UpdateRun(ctx, run); err != nil {
@@ -119,7 +119,7 @@ func (e *Engine) executeScenario(ctx context.Context, run *SimulationRun, fn Sce
 }
 
 // Stop cancels a running simulation.
-func (e *Engine) Stop(ctx context.Context, runID int64) (*SimulationRun, error) {
+func (e *Engine) Stop(ctx context.Context, runID int64) (*Run, error) {
 	e.mu.Lock()
 	active := e.activeRun
 	e.mu.Unlock()
@@ -137,23 +137,23 @@ func (e *Engine) Stop(ctx context.Context, runID int64) (*SimulationRun, error) 
 }
 
 // ListRuns returns all simulation runs.
-func (e *Engine) ListRuns(ctx context.Context) ([]SimulationRun, error) {
+func (e *Engine) ListRuns(ctx context.Context) ([]Run, error) {
 	return e.store.ListRuns(ctx)
 }
 
 // GetRun returns a specific simulation run with observations.
-func (e *Engine) GetRun(ctx context.Context, runID int64) (*SimulationRun, error) {
+func (e *Engine) GetRun(ctx context.Context, runID int64) (*Run, error) {
 	return e.store.GetRun(ctx, runID)
 }
 
 // Presets returns all available simulation presets.
-func (e *Engine) Presets() []SimulationPreset {
+func (e *Engine) Presets() []Preset {
 	return presets()
 }
 
 // AddObservation records a metric observation for a running simulation.
 func (e *Engine) AddObservation(ctx context.Context, runID int64, metric string, value float64, annotation string) error {
-	obs := &SimulationObservation{
+	obs := &Observation{
 		RunID:      runID,
 		CapturedAt: time.Now(),
 		Metric:     metric,

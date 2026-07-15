@@ -90,11 +90,11 @@ func (c *Client) get(ctx context.Context, path string, out any) error {
 	req.Header.Set("Accept", "application/json")
 	c.applyAuth(req)
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //nolint:gosec // G704: baseURL is an operator-configured instrument endpoint, not request-derived input
 	if err != nil {
 		return fmt.Errorf("fluss request %s: %w", path, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
@@ -124,9 +124,9 @@ func (c *Client) ListDatabases(ctx context.Context) ([]string, error) {
 }
 
 // ListTables returns the tables in a database with summary metadata.
-func (c *Client) ListTables(ctx context.Context, database string) ([]FlussTableSummary, error) {
+func (c *Client) ListTables(ctx context.Context, database string) ([]TableSummary, error) {
 	var resp struct {
-		Tables []FlussTableSummary `json:"tables"`
+		Tables []TableSummary `json:"tables"`
 	}
 	path := fmt.Sprintf("/api/v1/databases/%s/tables", url.PathEscape(database))
 	if err := c.get(ctx, path, &resp); err != nil {
@@ -141,8 +141,8 @@ func (c *Client) ListTables(ctx context.Context, database string) ([]FlussTableS
 }
 
 // GetTable returns full metadata for a single table.
-func (c *Client) GetTable(ctx context.Context, database, table string) (*FlussTableMetadata, error) {
-	var meta FlussTableMetadata
+func (c *Client) GetTable(ctx context.Context, database, table string) (*TableMetadata, error) {
+	var meta TableMetadata
 	path := fmt.Sprintf("/api/v1/databases/%s/tables/%s",
 		url.PathEscape(database), url.PathEscape(table))
 	if err := c.get(ctx, path, &meta); err != nil {

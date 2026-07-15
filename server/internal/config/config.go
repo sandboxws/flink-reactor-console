@@ -88,7 +88,7 @@ type ServerConfig struct {
 // FlinkConfig holds default Flink connection settings.
 type FlinkConfig struct {
 	RestURL       string `mapstructure:"rest_url"`
-	AuthToken     string `mapstructure:"auth_token"`
+	AuthToken     string `mapstructure:"auth_token"` //nolint:gosec // G117: bearer token for Flink API auth, not a hardcoded secret
 	SQLGatewayURL string `mapstructure:"sql_gateway_url"`
 	InitSQLPath   string `mapstructure:"init_sql_path"`
 }

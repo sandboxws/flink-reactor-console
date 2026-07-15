@@ -132,11 +132,11 @@ func (c *Client) get(ctx context.Context, path string, out any) error {
 	req.Header.Set("Accept", "application/vnd.schemaregistry.v1+json, application/json")
 	c.applyAuth(req)
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //nolint:gosec // G704: baseURL is an operator-configured instrument endpoint, not request-derived input
 	if err != nil {
 		return fmt.Errorf("schema registry request %s: %w", path, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
@@ -165,11 +165,11 @@ func (c *Client) post(ctx context.Context, path string, body, out any) error {
 	req.Header.Set("Content-Type", "application/vnd.schemaregistry.v1+json")
 	c.applyAuth(req)
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //nolint:gosec // G704: baseURL is an operator-configured instrument endpoint, not request-derived input
 	if err != nil {
 		return fmt.Errorf("schema registry request %s: %w", path, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)

@@ -255,7 +255,7 @@ func computeWatermarkLagMs(agg *flink.JobDetailAggregate) *int64 {
 		longMax int64 = math.MaxInt64
 	)
 
-	var minWatermark int64 = longMax
+	minWatermark := longMax
 	found := false
 	for _, entries := range agg.Watermarks {
 		for _, e := range entries {
@@ -661,7 +661,7 @@ func mapSQLRow(row *flink.SQLGatewayRow) []*string {
 
 // mapConnectorRefs converts detected ConnectorRefs to GraphQL JobConnector models.
 // It also attaches per-vertex I/O metrics when available.
-func mapConnectorRefs(refs []connector.ConnectorRef, agg *flink.JobDetailAggregate) []*model.JobConnector {
+func mapConnectorRefs(refs []connector.Ref, agg *flink.JobDetailAggregate) []*model.JobConnector {
 	if len(refs) == 0 {
 		return []*model.JobConnector{}
 	}

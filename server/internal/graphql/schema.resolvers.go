@@ -14,11 +14,15 @@ import (
 )
 
 // Health is the resolver for the health field.
+//
+//nolint:revive // gqlgen owns this signature; the parameter is unused by this resolver
 func (r *queryResolver) Health(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
 // Clusters is the resolver for the clusters field.
+//
+//nolint:revive // gqlgen owns this signature; the parameter is unused by this resolver
 func (r *queryResolver) Clusters(ctx context.Context) ([]*model.ClusterInfo, error) {
 	if r.Manager == nil {
 		return []*model.ClusterInfo{}, nil

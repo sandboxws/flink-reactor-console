@@ -101,7 +101,7 @@ func run() int {
 		}
 
 	default:
-		fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", command)
+		fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", command) //nolint:gosec // G705: CLI diagnostic written to stderr, not an HTML response
 		printUsage()
 		return 1
 	}

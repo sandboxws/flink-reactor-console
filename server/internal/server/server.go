@@ -25,7 +25,7 @@ import (
 	instruments "github.com/sandboxws/flink-reactor-console/server/internal/instruments"
 	"github.com/sandboxws/flink-reactor-console/server/internal/logs"
 	"github.com/sandboxws/flink-reactor-console/server/internal/manifests"
-	"github.com/sandboxws/flink-reactor-console/server/internal/metrics"
+	"github.com/sandboxws/flink-reactor-console/server/internal/metricsproxy"
 	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
 	"github.com/sandboxws/flink-reactor-console/server/internal/savepoints"
 	"github.com/sandboxws/flink-reactor-console/server/internal/simulation"
@@ -228,7 +228,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	logs.Register(e, manager)
 
 	// Metrics proxy endpoints (JSON, not GraphQL).
-	metrics.Register(e, manager)
+	metricsproxy.Register(e, manager)
 
 	// Tap manifest endpoint (serves DSL-generated tap manifests by pipeline name).
 	tap.Register(e, cfg.TapStore)

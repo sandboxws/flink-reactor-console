@@ -14,16 +14,16 @@ func buildPaimonTable(t *testing.T, db, table string, schema map[string]any, sna
 	t.Helper()
 	warehouse := t.TempDir()
 	tbl := filepath.Join(warehouse, db+".db", table)
-	if err := os.MkdirAll(filepath.Join(tbl, "schema"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(tbl, "schema"), 0o750); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(filepath.Join(tbl, "snapshot"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(tbl, "snapshot"), 0o750); err != nil {
 		t.Fatal(err)
 	}
 
 	if schema != nil {
 		data, _ := json.Marshal(schema)
-		if err := os.WriteFile(filepath.Join(tbl, "schema", "schema-0"), data, 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(tbl, "schema", "schema-0"), data, 0o600); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -31,7 +31,7 @@ func buildPaimonTable(t *testing.T, db, table string, schema map[string]any, sna
 	for i, s := range snapshots {
 		data, _ := json.Marshal(s)
 		path := filepath.Join(tbl, "snapshot", "snapshot-"+itoa(i+1))
-		if err := os.WriteFile(path, data, 0o644); err != nil {
+		if err := os.WriteFile(path, data, 0o600); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -19,7 +19,7 @@ type PipelineManifest struct {
 type ManifestEntry struct {
 	NodeID              string            `json:"nodeId"`
 	ComponentName       string            `json:"componentName"`
-	ConnectorType       string            `json:"connectorType"`
+	Type                string            `json:"connectorType"`
 	Role                string            `json:"role"`
 	Resource            string            `json:"resource"`
 	ConnectorProperties map[string]string `json:"connectorProperties"`
@@ -51,7 +51,7 @@ func NewDetector() *Detector {
 // DetectFromJob extracts all connectors from a job detail aggregate.
 // It tries manifest-based detection first (if manifestJSON is provided),
 // then falls back to vertex name parsing.
-func (d *Detector) DetectFromJob(agg *flink.JobDetailAggregate, manifestJSON json.RawMessage) []ConnectorRef {
+func (d *Detector) DetectFromJob(agg *flink.JobDetailAggregate, manifestJSON json.RawMessage) []Ref {
 	// Path 1: Manifest-based detection (structured, high confidence).
 	if len(manifestJSON) > 0 {
 		refs := d.detectFromManifest(manifestJSON)
@@ -65,19 +65,19 @@ func (d *Detector) DetectFromJob(agg *flink.JobDetailAggregate, manifestJSON jso
 }
 
 // detectFromManifest parses a PipelineManifest JSON and extracts ConnectorRefs.
-func (d *Detector) detectFromManifest(data json.RawMessage) []ConnectorRef {
+func (d *Detector) detectFromManifest(data json.RawMessage) []Ref {
 	var manifest PipelineManifest
 	if err := json.Unmarshal(data, &manifest); err != nil {
 		return nil
 	}
 
-	var refs []ConnectorRef
+	var refs []Ref
 
 	for _, src := range manifest.Sources {
-		refs = append(refs, ConnectorRef{
+		refs = append(refs, Ref{
 			VertexID:   src.NodeID,
 			VertexName: src.ComponentName,
-			Type:       normalizeConnectorType(src.ConnectorType),
+			Type:       normalizeConnectorType(src.Type),
 			Role:       RoleSource,
 			Resource:   src.Resource,
 			Properties: src.ConnectorProperties,
@@ -87,10 +87,10 @@ func (d *Detector) detectFromManifest(data json.RawMessage) []ConnectorRef {
 	}
 
 	for _, sink := range manifest.Sinks {
-		refs = append(refs, ConnectorRef{
+		refs = append(refs, Ref{
 			VertexID:   sink.NodeID,
 			VertexName: sink.ComponentName,
-			Type:       normalizeConnectorType(sink.ConnectorType),
+			Type:       normalizeConnectorType(sink.Type),
 			Role:       RoleSink,
 			Resource:   sink.Resource,
 			Properties: sink.ConnectorProperties,
@@ -103,7 +103,7 @@ func (d *Detector) detectFromManifest(data json.RawMessage) []ConnectorRef {
 }
 
 // detectFromVertices parses vertex names and plan nodes to detect connectors.
-func (d *Detector) detectFromVertices(agg *flink.JobDetailAggregate) []ConnectorRef {
+func (d *Detector) detectFromVertices(agg *flink.JobDetailAggregate) []Ref {
 	if agg == nil || agg.Job == nil {
 		return nil
 	}
@@ -114,7 +114,7 @@ func (d *Detector) detectFromVertices(agg *flink.JobDetailAggregate) []Connector
 		planNodes[n.ID] = n
 	}
 
-	var refs []ConnectorRef
+	var refs []Ref
 	seen := make(map[string]bool)
 
 	for _, v := range agg.Job.Vertices {
@@ -139,8 +139,8 @@ func (d *Detector) detectFromVertices(agg *flink.JobDetailAggregate) []Connector
 	return refs
 }
 
-// normalizeConnectorType maps string connector types to the canonical ConnectorType.
-func normalizeConnectorType(s string) ConnectorType {
+// normalizeConnectorType maps string connector types to the canonical Type.
+func normalizeConnectorType(s string) Type {
 	switch s {
 	case "kafka", "upsert-kafka":
 		return ConnectorKafka

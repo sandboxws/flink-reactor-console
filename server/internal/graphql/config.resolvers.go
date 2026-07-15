@@ -40,6 +40,8 @@ func (r *queryResolver) FlinkConfig(ctx context.Context, cluster *string) (*mode
 }
 
 // DashboardConfig is the resolver for the dashboardConfig field.
+//
+//nolint:revive // gqlgen owns this signature; the parameter is unused by this resolver
 func (r *queryResolver) DashboardConfig(ctx context.Context) (*model.DashboardConfig, error) {
 	var clusters []string
 	var instrumentNames []string

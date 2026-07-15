@@ -1,7 +1,7 @@
-// Package metrics provides JSON proxy endpoints for Flink metrics.
+// Package metricsproxy provides JSON proxy endpoints for Flink metrics.
 // Unlike the GraphQL layer, the metrics explorer needs to dynamically
 // list and poll arbitrary metric names — a REST proxy is a better fit.
-package metrics
+package metricsproxy
 
 import (
 	"encoding/json"

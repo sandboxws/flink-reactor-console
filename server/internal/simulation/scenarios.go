@@ -9,10 +9,10 @@ import (
 // ScenarioFunc is the function signature for a simulation scenario.
 // It receives a cancellable context, the engine (for adding observations),
 // and the run being executed. It should return nil on success or an error on failure.
-type ScenarioFunc func(ctx context.Context, e *Engine, run *SimulationRun) error
+type ScenarioFunc func(ctx context.Context, e *Engine, run *Run) error
 
-// SimulationPreset describes an available simulation scenario.
-type SimulationPreset struct {
+// Preset describes an available simulation scenario.
+type Preset struct {
 	Name              string
 	Description       string
 	Scenario          string
@@ -36,8 +36,8 @@ var scenarioRegistry = map[string]ScenarioFunc{
 }
 
 // presets returns all available simulation presets.
-func presets() []SimulationPreset {
-	return []SimulationPreset{
+func presets() []Preset {
+	return []Preset{
 		{
 			Name:        "Under-Provisioned Pipeline",
 			Description: "Reduce parallelism and memory of a heavy pipeline to observe backpressure, checkpoint degradation, and potential OOM",
@@ -152,7 +152,7 @@ func presets() []SimulationPreset {
 
 // --- Scenario implementations (stubs — full logic requires minikube infrastructure) ---
 
-func scenarioStub(ctx context.Context, e *Engine, run *SimulationRun, name string, durationSec int) error {
+func scenarioStub(ctx context.Context, e *Engine, run *Run, name string, durationSec int) error {
 	e.logger.Info("simulation started", "scenario", name, "run_id", run.ID)
 
 	if err := e.AddObservation(ctx, run.ID, "status", 1, fmt.Sprintf("%s scenario started", name)); err != nil {
@@ -181,7 +181,7 @@ func scenarioStub(ctx context.Context, e *Engine, run *SimulationRun, name strin
 	return nil
 }
 
-func getDurationSec(run *SimulationRun, key string, fallback int) int {
+func getDurationSec(run *Run, key string, fallback int) int {
 	if v, ok := run.Parameters[key]; ok {
 		switch val := v.(type) {
 		case float64:
@@ -193,46 +193,46 @@ func getDurationSec(run *SimulationRun, key string, fallback int) int {
 	return fallback
 }
 
-func scenarioUnderProvisioned(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioUnderProvisioned(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "under-provisioned", getDurationSec(run, "durationSec", 300))
 }
 
-func scenarioOverProvisioned(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioOverProvisioned(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "over-provisioned", getDurationSec(run, "durationSec", 300))
 }
 
-func scenarioMemoryPressure(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioMemoryPressure(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "memory-pressure", getDurationSec(run, "durationSec", 300))
 }
 
-func scenarioCheckpointPressure(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioCheckpointPressure(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "checkpoint-pressure", getDurationSec(run, "durationSec", 300))
 }
 
-func scenarioCheckpointTimeout(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioCheckpointTimeout(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "checkpoint-timeout", getDurationSec(run, "durationSec", 180))
 }
 
-func scenarioLoadSpike(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioLoadSpike(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "load-spike", getDurationSec(run, "durationSec", 120))
 }
 
-func scenarioSustainedOverload(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioSustainedOverload(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "sustained-overload", getDurationSec(run, "rampMinutes", 5)*60)
 }
 
-func scenarioKafkaRebalance(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioKafkaRebalance(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "kafka-rebalance", 120)
 }
 
-func scenarioTMCrash(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioTMCrash(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "tm-crash", getDurationSec(run, "observationSec", 180))
 }
 
-func scenarioKafkaRestart(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioKafkaRestart(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "kafka-restart", getDurationSec(run, "observationSec", 300))
 }
 
-func scenarioCascadeFailure(ctx context.Context, e *Engine, run *SimulationRun) error {
+func scenarioCascadeFailure(ctx context.Context, e *Engine, run *Run) error {
 	return scenarioStub(ctx, e, run, "cascade-failure", getDurationSec(run, "starvationSec", 180))
 }

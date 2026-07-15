@@ -151,7 +151,7 @@ func (p *PaimonClient) ListSnapshots(_ context.Context, database, table string) 
 	for _, id := range ids {
 		var raw rawPaimonSnapshot
 		path := filepath.Join(dir, fmt.Sprintf("snapshot-%d", id))
-		data, err := os.ReadFile(path)
+		data, err := os.ReadFile(path) //nolint:gosec // G304: dir is the operator-configured warehouse; leaf name is int64-formatted
 		if err != nil {
 			return nil, fmt.Errorf("read snapshot-%d: %w", id, err)
 		}
@@ -190,7 +190,7 @@ func (p *PaimonClient) CheckWarehouseReadable() error {
 	if err != nil {
 		return fmt.Errorf("paimon warehouse open: %w", err)
 	}
-	defer dh.Close()
+	defer func() { _ = dh.Close() }()
 	if _, err := dh.Readdirnames(1); err != nil && err.Error() != "EOF" {
 		return fmt.Errorf("paimon warehouse readdir: %w", err)
 	}
@@ -226,7 +226,7 @@ func (p *PaimonClient) latestSchema(database, table string) (*rawPaimonSchema, e
 		return nil, fmt.Errorf("no schema files in %s", dir)
 	}
 
-	data, err := os.ReadFile(filepath.Join(dir, fmt.Sprintf("schema-%d", latest)))
+	data, err := os.ReadFile(filepath.Join(dir, fmt.Sprintf("schema-%d", latest))) //nolint:gosec // G304: dir is the operator-configured warehouse; leaf name is int64-formatted
 	if err != nil {
 		return nil, fmt.Errorf("read schema-%d: %w", latest, err)
 	}

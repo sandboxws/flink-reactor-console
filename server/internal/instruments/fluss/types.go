@@ -1,13 +1,13 @@
 package fluss
 
-// FlussTableType distinguishes the two kinds of tables Fluss supports:
+// TableType distinguishes the two kinds of tables Fluss supports:
 // PrimaryKey tables (KV-style upsert) and Log tables (append-only).
-type FlussTableType string
+type TableType string
 
 // Supported Fluss table types.
 const (
-	TableTypePrimaryKey FlussTableType = "PrimaryKey"
-	TableTypeLog        FlussTableType = "Log"
+	TableTypePrimaryKey TableType = "PrimaryKey"
+	TableTypeLog        TableType = "Log"
 )
 
 // SchemaField describes one column in a Fluss table schema.
@@ -18,24 +18,24 @@ type SchemaField struct {
 	Comment  string `json:"comment,omitempty"`
 }
 
-// FlussTableSummary is a row in the table list — minimal metadata returned by
+// TableSummary is a row in the table list — minimal metadata returned by
 // the table-list endpoint without an extra round-trip per table.
-type FlussTableSummary struct {
-	Database      string         `json:"database"`
-	Name          string         `json:"name"`
-	TableType     FlussTableType `json:"tableType"`
-	BucketCount   int            `json:"bucketCount"`
-	BucketKey     []string       `json:"bucketKey,omitempty"`
-	PrimaryKey    []string       `json:"primaryKey,omitempty"`
-	LastUpdatedMs int64          `json:"lastUpdatedMs"`
+type TableSummary struct {
+	Database      string    `json:"database"`
+	Name          string    `json:"name"`
+	TableType     TableType `json:"tableType"`
+	BucketCount   int       `json:"bucketCount"`
+	BucketKey     []string  `json:"bucketKey,omitempty"`
+	PrimaryKey    []string  `json:"primaryKey,omitempty"`
+	LastUpdatedMs int64     `json:"lastUpdatedMs"`
 }
 
-// FlussTableMetadata is the full table descriptor returned by the table-detail
+// TableMetadata is the full table descriptor returned by the table-detail
 // endpoint. Includes the schema and connector properties on top of the summary.
-type FlussTableMetadata struct {
+type TableMetadata struct {
 	Database      string            `json:"database"`
 	Name          string            `json:"name"`
-	TableType     FlussTableType    `json:"tableType"`
+	TableType     TableType         `json:"tableType"`
 	BucketCount   int               `json:"bucketCount"`
 	BucketKey     []string          `json:"bucketKey,omitempty"`
 	PrimaryKey    []string          `json:"primaryKey,omitempty"`

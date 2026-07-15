@@ -1,10 +1,10 @@
-package sync
+package bgsync
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	gosync "sync"
+	"sync"
 	"time"
 
 	"golang.org/x/sync/errgroup"
@@ -24,7 +24,7 @@ var terminalStates = map[string]bool{
 
 // jobTracker tracks known job states across sync ticks for a single cluster.
 type jobTracker struct {
-	mu     gosync.Mutex
+	mu     sync.Mutex
 	states map[string]string // jobID → last known state
 }
 

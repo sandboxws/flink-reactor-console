@@ -13,6 +13,7 @@ package compatibility
 // Severity of a single compatibility issue.
 type Severity string
 
+// Issue severities, ordered least to most severe.
 const (
 	SeverityWarning Severity = "WARNING"
 	SeverityError   Severity = "ERROR"
@@ -21,6 +22,7 @@ const (
 // Verdict is the overall result of comparing two manifests.
 type Verdict string
 
+// Possible verdicts, ordered least to most restrictive.
 const (
 	VerdictCompatible   Verdict = "COMPATIBLE"
 	VerdictWarning      Verdict = "WARNING"

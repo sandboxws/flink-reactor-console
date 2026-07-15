@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sandboxws/flink-reactor-console/server/internal/alerts"
+	"github.com/sandboxws/flink-reactor-console/server/internal/bgsync"
 	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor-console/server/internal/config"
 	instruments "github.com/sandboxws/flink-reactor-console/server/internal/instruments"
@@ -25,7 +26,6 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/simulation"
 	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 	"github.com/sandboxws/flink-reactor-console/server/internal/store"
-	bgsync "github.com/sandboxws/flink-reactor-console/server/internal/sync"
 	"github.com/sandboxws/flink-reactor-console/server/internal/tap"
 )
 

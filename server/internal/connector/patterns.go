@@ -33,7 +33,7 @@ var (
 	tableSinkModify = regexp.MustCompile(`(?:Sink|Writer|Committer).*\(table=\[\[([^\]]+)\]\]`)
 
 	// operatorClassPattern matches Java class names that reveal connector type.
-	operatorClassPatterns = map[ConnectorType]*regexp.Regexp{
+	operatorClassPatterns = map[Type]*regexp.Regexp{
 		ConnectorKafka:      regexp.MustCompile(`(?i)kafka`),
 		ConnectorIceberg:    regexp.MustCompile(`(?i)iceberg`),
 		ConnectorPaimon:     regexp.MustCompile(`(?i)paimon`),
@@ -45,9 +45,9 @@ var (
 
 // parseVertexName extracts connector information from a Flink vertex name.
 // Returns nil if no connector can be detected.
-func parseVertexName(vertexID, vertexName string) *ConnectorRef {
+func parseVertexName(vertexID, vertexName string) *Ref {
 	// Detect role from prefix.
-	var role ConnectorRole
+	var role Role
 	var remainder string
 
 	if m := sourcePrefix.FindStringSubmatch(vertexName); m != nil {
@@ -70,7 +70,7 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 	// Try connector-specific patterns.
 	if m := kafkaPattern.FindStringSubmatch(remainder); m != nil {
 		resource := strings.TrimSpace(m[2])
-		return &ConnectorRef{
+		return &Ref{
 			VertexID:   vertexID,
 			VertexName: vertexName,
 			Type:       ConnectorKafka,
@@ -83,7 +83,7 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 
 	if m := icebergPattern.FindStringSubmatch(remainder); m != nil {
 		resource := strings.TrimSpace(m[2])
-		return &ConnectorRef{
+		return &Ref{
 			VertexID:   vertexID,
 			VertexName: vertexName,
 			Type:       ConnectorIceberg,
@@ -96,7 +96,7 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 
 	if m := paimonPattern.FindStringSubmatch(remainder); m != nil {
 		resource := strings.TrimSpace(m[2])
-		return &ConnectorRef{
+		return &Ref{
 			VertexID:   vertexID,
 			VertexName: vertexName,
 			Type:       ConnectorPaimon,
@@ -109,7 +109,7 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 
 	if m := flussPattern.FindStringSubmatch(remainder); m != nil {
 		resource := strings.TrimSpace(m[2])
-		return &ConnectorRef{
+		return &Ref{
 			VertexID:   vertexID,
 			VertexName: vertexName,
 			Type:       ConnectorFluss,
@@ -122,7 +122,7 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 
 	if m := jdbcPattern.FindStringSubmatch(remainder); m != nil {
 		resource := strings.TrimSpace(m[2])
-		return &ConnectorRef{
+		return &Ref{
 			VertexID:   vertexID,
 			VertexName: vertexName,
 			Type:       ConnectorJDBC,
@@ -135,7 +135,7 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 
 	if m := filesystemPattern.FindStringSubmatch(remainder); m != nil {
 		resource := strings.TrimSpace(m[2])
-		return &ConnectorRef{
+		return &Ref{
 			VertexID:   vertexID,
 			VertexName: vertexName,
 			Type:       ConnectorFileSystem,
@@ -155,7 +155,7 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 	}
 
 	// Generic detection — we know it's a source or sink but can't identify the type.
-	return &ConnectorRef{
+	return &Ref{
 		VertexID:   vertexID,
 		VertexName: vertexName,
 		Type:       ConnectorUnknown,
@@ -166,9 +166,9 @@ func parseVertexName(vertexID, vertexName string) *ConnectorRef {
 	}
 }
 
-// tableRefFromParts builds a ConnectorRef from a Flink table reference like
+// tableRefFromParts builds a Ref from a Flink table reference like
 // "default_catalog, default_database, orders".
-func tableRefFromParts(vertexID, vertexName, tableParts string, role ConnectorRole) *ConnectorRef {
+func tableRefFromParts(vertexID, vertexName, tableParts string, role Role) *Ref {
 	parts := strings.Split(tableParts, ",")
 	for i := range parts {
 		parts[i] = strings.TrimSpace(parts[i])
@@ -177,7 +177,7 @@ func tableRefFromParts(vertexID, vertexName, tableParts string, role ConnectorRo
 	resource := strings.Join(parts, ".")
 	connType := inferTypeFromTableName(parts)
 
-	return &ConnectorRef{
+	return &Ref{
 		VertexID:   vertexID,
 		VertexName: vertexName,
 		Type:       connType,
@@ -189,7 +189,7 @@ func tableRefFromParts(vertexID, vertexName, tableParts string, role ConnectorRo
 }
 
 // inferTypeFromTableName tries to identify the connector type from catalog/table names.
-func inferTypeFromTableName(parts []string) ConnectorType {
+func inferTypeFromTableName(parts []string) Type {
 	for _, p := range parts {
 		lp := strings.ToLower(p)
 		switch {
@@ -209,7 +209,7 @@ func inferTypeFromTableName(parts []string) ConnectorType {
 }
 
 // detectFromPlanNode tries to detect a connector from a plan node's operator class name.
-func detectFromPlanNode(vertexID, vertexName, operator, description string) *ConnectorRef {
+func detectFromPlanNode(vertexID, vertexName, operator, description string) *Ref {
 	for connType, pattern := range operatorClassPatterns {
 		if pattern.MatchString(operator) || pattern.MatchString(description) {
 			role := RoleSource
@@ -217,7 +217,7 @@ func detectFromPlanNode(vertexID, vertexName, operator, description string) *Con
 			if strings.Contains(lowerOp, "sink") || strings.Contains(lowerOp, "writer") || strings.Contains(lowerOp, "committer") {
 				role = RoleSink
 			}
-			return &ConnectorRef{
+			return &Ref{
 				VertexID:   vertexID,
 				VertexName: vertexName,
 				Type:       connType,

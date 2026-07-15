@@ -1,12 +1,12 @@
-// Package sync provides background synchronization of Flink cluster data
+// Package bgsync provides background synchronization of Flink cluster data
 // to PostgreSQL. Each domain (jobs, checkpoints, etc.) runs as an independent
 // goroutine with its own tick interval.
-package sync
+package bgsync
 
 import (
 	"context"
 	"log/slog"
-	gosync "sync"
+	"sync"
 
 	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor-console/server/internal/config"
@@ -21,7 +21,7 @@ type Syncer struct {
 	logger  *slog.Logger
 
 	cancel context.CancelFunc
-	wg     gosync.WaitGroup
+	wg     sync.WaitGroup
 }
 
 // New creates a Syncer that will sync data from the cluster manager to the stores.

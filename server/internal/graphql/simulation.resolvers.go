@@ -20,7 +20,7 @@ func (r *mutationResolver) RunSimulation(ctx context.Context, input model.Simula
 		return nil, fmt.Errorf("simulations require storage to be enabled")
 	}
 
-	run, err := r.SimulationEngine.Run(ctx, simulation.SimulationInput{
+	run, err := r.SimulationEngine.Run(ctx, simulation.Input{
 		Scenario:   input.Scenario,
 		TargetJobs: input.TargetJobs,
 		Parameters: input.Parameters,
@@ -112,6 +112,8 @@ func (r *queryResolver) SimulationRun(ctx context.Context, id string) (*model.Si
 }
 
 // SimulationPresets is the resolver for the simulationPresets field.
+//
+//nolint:revive // gqlgen owns this signature; the parameter is unused by this resolver
 func (r *queryResolver) SimulationPresets(ctx context.Context) ([]*model.SimulationPreset, error) {
 	if r.SimulationEngine == nil {
 		return []*model.SimulationPreset{}, nil
