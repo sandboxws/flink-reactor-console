@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchFlussTable } from "../../api"
-import type { FlussTableMetadata } from "../../types"
+import { fetchFlussTable } from "@/lib/instruments/api"
+import type { FlussTableMetadata } from "@/lib/instruments/types"
 import { FLUSS_TABLE_TYPE_BADGE, formatLastUpdated } from "./lib"
 
 // FlussTableDetail renders the metadata grid (table type, buckets, keys,
@@ -26,7 +26,9 @@ export function FlussTableDetail({
         setMeta(data)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoading(false))
   }, [instrumentName, database, table])
 
@@ -98,12 +100,18 @@ export function FlussTableDetail({
           <tbody className="divide-y divide-dash-border">
             {meta.schema.map((f) => (
               <tr key={f.name} className="hover:bg-white/[0.02]">
-                <td className="px-3 py-1.5 font-mono text-zinc-200">{f.name}</td>
-                <td className="px-3 py-1.5 font-mono text-zinc-400">{f.type}</td>
+                <td className="px-3 py-1.5 font-mono text-zinc-200">
+                  {f.name}
+                </td>
+                <td className="px-3 py-1.5 font-mono text-zinc-400">
+                  {f.type}
+                </td>
                 <td className="px-3 py-1.5 text-zinc-500">
                   {f.nullable ? "yes" : "no"}
                 </td>
-                <td className="px-3 py-1.5 text-zinc-500">{f.comment || "—"}</td>
+                <td className="px-3 py-1.5 text-zinc-500">
+                  {f.comment || "—"}
+                </td>
               </tr>
             ))}
           </tbody>

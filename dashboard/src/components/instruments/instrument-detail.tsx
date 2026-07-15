@@ -1,8 +1,8 @@
+import { Button, Skeleton } from "@flink-reactor/ui"
 import { AlertCircle, RefreshCw } from "lucide-react"
 import { useEffect } from "react"
-import { Button, Skeleton } from "@flink-reactor/ui"
-import { useInstrumentStore } from "../store"
-import { InstrumentShell } from "../components/instrument-shell"
+import { InstrumentShell } from "@/components/instruments/instrument-shell"
+import { useInstrumentStore } from "@/stores/instruments-store"
 
 function InstrumentDetailSkeleton() {
   return (

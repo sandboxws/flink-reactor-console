@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchSchemaVersions } from "../../api"
+import { fetchSchemaVersions } from "@/lib/instruments/api"
 import { EvolutionTimeline } from "./evolution-timeline"
 
 export function SubjectDetail({
@@ -21,7 +21,9 @@ export function SubjectDetail({
         setVersions(data)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoading(false))
   }, [instrumentName, subject])
 

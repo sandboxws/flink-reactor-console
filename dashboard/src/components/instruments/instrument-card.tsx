@@ -1,4 +1,4 @@
-import type { InstrumentInfo } from "../types"
+import type { InstrumentInfo } from "@/lib/instruments/types"
 import { InstrumentHealthBadge } from "./instrument-health-badge"
 import { getInstrumentIcon } from "./instrument-icons"
 

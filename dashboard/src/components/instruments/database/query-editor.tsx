@@ -1,8 +1,8 @@
+import { Button, QueryResults } from "@flink-reactor/ui"
 import { Clock, Loader2, Play } from "lucide-react"
 import { useCallback, useState } from "react"
-import { Button, QueryResults } from "@flink-reactor/ui"
-import type { DatabaseQueryResult } from "../../types"
-import { executeDatabaseQuery } from "../../api"
+import { executeDatabaseQuery } from "@/lib/instruments/api"
+import type { DatabaseQueryResult } from "@/lib/instruments/types"
 
 export function QueryEditor({ instrumentName }: { instrumentName: string }) {
   const [sql, setSql] = useState("")

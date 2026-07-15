@@ -5,9 +5,9 @@
  * around page content.
  */
 
-import { useInstrumentStore } from "@flink-reactor/instruments-ui"
 import { useEffect } from "react"
 import { useConfigStore } from "@/stores/config-store"
+import { useInstrumentStore } from "@/stores/instruments-store"
 import { useUiStore } from "@/stores/ui-store"
 import { CommandPalette } from "./command-palette"
 import { Header } from "./header"

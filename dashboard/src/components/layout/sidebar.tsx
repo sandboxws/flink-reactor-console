@@ -4,7 +4,6 @@
  * instruments section. Collapse state is persisted via {@link useUiStore}.
  */
 
-import { InstrumentSidebarSection } from "@flink-reactor/instruments-ui"
 import { Link, useLocation } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
@@ -32,6 +31,7 @@ import {
   Settings,
   Upload,
 } from "lucide-react"
+import { InstrumentSidebarSection } from "@/components/instruments/instrument-sidebar-section"
 import { cn } from "@/lib/cn"
 import { isLinkEnabled, isSectionEnabled } from "@/lib/dashboard-config"
 import { useUiStore } from "@/stores/ui-store"

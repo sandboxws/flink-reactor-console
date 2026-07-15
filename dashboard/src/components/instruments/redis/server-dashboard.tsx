@@ -1,12 +1,21 @@
-import { Activity, Clock, Database, Loader2, Server, Users, Zap } from "lucide-react"
+import {
+  Activity,
+  Clock,
+  Database,
+  Loader2,
+  Server,
+  Users,
+  Zap,
+} from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchRedisServerInfo } from "../../api"
-import type { RedisServerInfo } from "../../types"
+import { fetchRedisServerInfo } from "@/lib/instruments/api"
+import type { RedisServerInfo } from "@/lib/instruments/types"
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`
 }
 
@@ -41,7 +50,9 @@ export function ServerDashboard({
         setInfo(data)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoading(false))
   }, [instrumentName])
 
@@ -62,9 +73,21 @@ export function ServerDashboard({
   const cards = [
     { label: "Version", value: info.version, Icon: Server },
     { label: "Uptime", value: formatUptime(info.uptime), Icon: Clock },
-    { label: "Connected clients", value: info.connectedClients.toLocaleString(), Icon: Users },
-    { label: "Used memory", value: formatBytes(info.usedMemory), Icon: Database },
-    { label: "Total keys", value: info.totalKeys.toLocaleString(), Icon: Activity },
+    {
+      label: "Connected clients",
+      value: info.connectedClients.toLocaleString(),
+      Icon: Users,
+    },
+    {
+      label: "Used memory",
+      value: formatBytes(info.usedMemory),
+      Icon: Database,
+    },
+    {
+      label: "Total keys",
+      value: info.totalKeys.toLocaleString(),
+      Icon: Activity,
+    },
     { label: "Hit rate", value: hitRate(info), Icon: Zap },
   ]
 

@@ -1,5 +1,5 @@
 import { cn } from "@flink-reactor/ui"
-import { useInstrumentStore } from "../store"
+import { useInstrumentStore } from "@/stores/instruments-store"
 import { getInstrumentIcon } from "./instrument-icons"
 
 export function InstrumentSidebarSection({

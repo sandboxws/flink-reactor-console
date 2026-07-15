@@ -1,25 +1,25 @@
 import { gql } from "urql"
+import { graphqlClient } from "@/lib/graphql-client"
 import type {
+  CompatibilityResult,
+  DatabaseQueryHistoryEntry,
+  DatabaseQueryResult,
+  DatabaseSchema,
+  DatabaseTableDetail,
+  DatabaseTableSummary,
+  FlussTableMetadata,
+  FlussTableSummary,
+  FlussTabletServerHealth,
   InstrumentInfo,
   InstrumentType,
-  DatabaseSchema,
-  DatabaseTableSummary,
-  DatabaseTableDetail,
-  DatabaseQueryResult,
-  DatabaseQueryHistoryEntry,
-  RedisScanResult,
   RedisKeyInfo,
   RedisKeyValue,
-  RedisServerInfo,
   RedisMemoryStats,
-  SchemaSubject,
+  RedisScanResult,
+  RedisServerInfo,
   SchemaDetail,
-  CompatibilityResult,
-  FlussTableSummary,
-  FlussTableMetadata,
-  FlussTabletServerHealth,
+  SchemaSubject,
 } from "./types"
-import { getGraphQLClient } from "./graphql-client"
 
 // ---------------------------------------------------------------------------
 // Instruments
@@ -50,7 +50,7 @@ type RawInstrument = {
 }
 
 export async function fetchInstruments(): Promise<InstrumentInfo[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client.query(INSTRUMENTS_QUERY, {}).toPromise()
 
   if (result.error) {
@@ -156,7 +156,7 @@ const EXECUTE_DATABASE_QUERY_MUTATION = gql`
 export async function fetchDatabaseSchemas(
   instrument: string,
 ): Promise<DatabaseSchema[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(DATABASE_SCHEMAS_QUERY, { instrument })
     .toPromise()
@@ -168,7 +168,7 @@ export async function fetchDatabaseTables(
   instrument: string,
   schema: string,
 ): Promise<DatabaseTableSummary[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(DATABASE_TABLES_QUERY, { instrument, schema })
     .toPromise()
@@ -181,7 +181,7 @@ export async function fetchDatabaseTable(
   schema: string,
   table: string,
 ): Promise<DatabaseTableDetail> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(DATABASE_TABLE_QUERY, { instrument, schema, table })
     .toPromise()
@@ -192,7 +192,7 @@ export async function fetchDatabaseTable(
 export async function fetchDatabaseQueryHistory(
   instrument: string,
 ): Promise<DatabaseQueryHistoryEntry[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(DATABASE_QUERY_HISTORY_QUERY, { instrument })
     .toPromise()
@@ -204,7 +204,7 @@ export async function executeDatabaseQuery(
   instrument: string,
   sql: string,
 ): Promise<DatabaseQueryResult> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .mutation(EXECUTE_DATABASE_QUERY_MUTATION, { instrument, sql })
     .toPromise()
@@ -304,7 +304,7 @@ export async function fetchRedisScan(
   pattern: string,
   count: number,
 ): Promise<RedisScanResult> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(REDIS_SCAN_QUERY, {
       instrument,
@@ -321,7 +321,7 @@ export async function fetchRedisKeyInfo(
   instrument: string,
   key: string,
 ): Promise<RedisKeyInfo> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(REDIS_KEY_INFO_QUERY, { instrument, key })
     .toPromise()
@@ -333,7 +333,7 @@ export async function fetchRedisKeyValue(
   instrument: string,
   key: string,
 ): Promise<RedisKeyValue> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(REDIS_KEY_VALUE_QUERY, { instrument, key })
     .toPromise()
@@ -344,7 +344,7 @@ export async function fetchRedisKeyValue(
 export async function fetchRedisServerInfo(
   instrument: string,
 ): Promise<RedisServerInfo> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(REDIS_SERVER_INFO_QUERY, { instrument })
     .toPromise()
@@ -355,7 +355,7 @@ export async function fetchRedisServerInfo(
 export async function fetchRedisMemoryStats(
   instrument: string,
 ): Promise<RedisMemoryStats> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(REDIS_MEMORY_STATS_QUERY, { instrument })
     .toPromise()
@@ -432,7 +432,7 @@ const CHECK_COMPATIBILITY_MUTATION = gql`
 export async function fetchSchemaSubjects(
   instrument: string,
 ): Promise<SchemaSubject[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(SCHEMA_SUBJECTS_QUERY, { instrument })
     .toPromise()
@@ -444,7 +444,7 @@ export async function fetchSchemaVersions(
   instrument: string,
   subject: string,
 ): Promise<number[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(SCHEMA_VERSIONS_QUERY, { instrument, subject })
     .toPromise()
@@ -457,7 +457,7 @@ export async function fetchSchemaDetail(
   subject: string,
   version: number,
 ): Promise<SchemaDetail> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(SCHEMA_DETAIL_QUERY, { instrument, subject, version })
     .toPromise()
@@ -471,7 +471,7 @@ export async function checkSchemaCompatibility(
   schema: string,
   schemaType: string,
 ): Promise<CompatibilityResult> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .mutation(CHECK_COMPATIBILITY_MUTATION, {
       instrument,
@@ -547,7 +547,7 @@ const FLUSS_TABLET_SERVERS_QUERY = gql`
 export async function fetchFlussDatabases(
   instrument: string,
 ): Promise<string[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(FLUSS_DATABASES_QUERY, { instrument })
     .toPromise()
@@ -559,7 +559,7 @@ export async function fetchFlussTables(
   instrument: string,
   database: string,
 ): Promise<FlussTableSummary[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(FLUSS_TABLES_QUERY, { instrument, database })
     .toPromise()
@@ -572,7 +572,7 @@ export async function fetchFlussTable(
   database: string,
   table: string,
 ): Promise<FlussTableMetadata> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(FLUSS_TABLE_QUERY, { instrument, database, table })
     .toPromise()
@@ -583,7 +583,7 @@ export async function fetchFlussTable(
 export async function fetchFlussTabletServers(
   instrument: string,
 ): Promise<FlussTabletServerHealth[]> {
-  const client = getGraphQLClient()
+  const client = graphqlClient
   const result = await client
     .query(FLUSS_TABLET_SERVERS_QUERY, { instrument })
     .toPromise()

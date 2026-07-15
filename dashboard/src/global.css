@@ -6,7 +6,6 @@
 @import "@flink-reactor/ui/styles/hub" layer(components);
 @source "../node_modules/@flink-reactor/ui/src/**/*.{ts,tsx}";
 @source "../node_modules/@flink-reactor/ui/dist/**/*.js";
-@source "../node_modules/@flink-reactor/instruments-ui/dist/**/*.js";
 
 /* ── Self-hosted Geist fonts ─────────────────────── */
 

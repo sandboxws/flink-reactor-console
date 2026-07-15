@@ -1,4 +1,4 @@
-import type { SchemaType } from "../../types"
+import type { SchemaType } from "@/lib/instruments/types"
 
 export const SCHEMA_TYPE_BADGE: Record<SchemaType, string> = {
   AVRO: "bg-fr-coral/15 text-fr-coral",
@@ -28,13 +28,13 @@ export function computeLineDiff(a: string, b: string): DiffLine[] {
   const n = bl.length
 
   // dp[i][j] = LCS length of al[0..i) and bl[0..j)
-  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0))
+  const dp: number[][] = Array.from({ length: m + 1 }, () =>
+    new Array(n + 1).fill(0),
+  )
   for (let i = 0; i < m; i++) {
     for (let j = 0; j < n; j++) {
       dp[i + 1][j + 1] =
-        al[i] === bl[j]
-          ? dp[i][j] + 1
-          : Math.max(dp[i + 1][j], dp[i][j + 1])
+        al[i] === bl[j] ? dp[i][j] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
     }
   }
 

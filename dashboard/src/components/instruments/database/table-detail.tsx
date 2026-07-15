@@ -1,8 +1,8 @@
+import { cn } from "@flink-reactor/ui"
 import { Key, Link2, Loader2, Lock, Table2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { cn } from "@flink-reactor/ui"
-import type { DatabaseTableDetail } from "../../types"
-import { fetchDatabaseTable } from "../../api"
+import { fetchDatabaseTable } from "@/lib/instruments/api"
+import type { DatabaseTableDetail } from "@/lib/instruments/types"
 
 export function TableDetail({
   instrumentName,
@@ -228,7 +228,9 @@ function ConstraintsTable({
               {c.columns.join(", ")}
             </td>
             <td className="px-3 py-1.5 font-mono text-zinc-500">
-              {c.refTable ? `${c.refTable}(${c.refColumns.join(", ")})` : "\u2014"}
+              {c.refTable
+                ? `${c.refTable}(${c.refColumns.join(", ")})`
+                : "\u2014"}
             </td>
           </tr>
         ))}

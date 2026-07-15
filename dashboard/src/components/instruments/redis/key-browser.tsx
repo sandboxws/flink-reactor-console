@@ -1,7 +1,7 @@
 import { Key, Loader2, Search } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
-import { fetchRedisScan } from "../../api"
-import type { RedisScanResult } from "../../types"
+import { fetchRedisScan } from "@/lib/instruments/api"
+import type { RedisScanResult } from "@/lib/instruments/types"
 
 type LinkProps = {
   to: string
@@ -73,7 +73,10 @@ export function KeyBrowser({
 
   return (
     <div className="space-y-3">
-      <form onSubmit={handleSearch} className="glass-card flex items-center gap-2 p-2">
+      <form
+        onSubmit={handleSearch}
+        className="glass-card flex items-center gap-2 p-2"
+      >
         <Search className="size-3.5 text-zinc-500" />
         <input
           type="text"

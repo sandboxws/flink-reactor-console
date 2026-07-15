@@ -1,4 +1,4 @@
-import type { FlussTableType } from "../../types"
+import type { FlussTableType } from "@/lib/instruments/types"
 
 // Badge styles for the PrimaryKey vs Log distinction. Matches the spec
 // requirement that the dashboard render a badge per table type.

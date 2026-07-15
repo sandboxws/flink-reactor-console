@@ -1,7 +1,14 @@
 import { CheckCircle2, Loader2, XCircle } from "lucide-react"
 import { useEffect, useState } from "react"
-import { checkSchemaCompatibility, fetchSchemaSubjects } from "../../api"
-import type { CompatibilityResult, SchemaSubject, SchemaType } from "../../types"
+import {
+  checkSchemaCompatibility,
+  fetchSchemaSubjects,
+} from "@/lib/instruments/api"
+import type {
+  CompatibilityResult,
+  SchemaSubject,
+  SchemaType,
+} from "@/lib/instruments/types"
 
 const SCHEMA_TYPES: SchemaType[] = ["AVRO", "PROTOBUF", "JSON"]
 
@@ -18,6 +25,8 @@ export function CompatibilityChecker({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: subject is read only to
+  // seed an initial selection; listing it would refetch on every subject change.
   useEffect(() => {
     fetchSchemaSubjects(instrumentName)
       .then((data) => {
@@ -28,7 +37,6 @@ export function CompatibilityChecker({
         }
       })
       .catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instrumentName])
 
   const handleCheck = async () => {

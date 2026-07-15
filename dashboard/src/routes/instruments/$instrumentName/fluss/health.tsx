@@ -1,5 +1,5 @@
-import { FlussHealthRoute } from "@flink-reactor/instruments-ui"
 import { createFileRoute } from "@tanstack/react-router"
+import { FlussTabletServerHealth } from "@/components/instruments/fluss/fluss-tablet-server-health"
 
 /** Route: /instruments/$instrumentName/fluss/health — TabletServer/Coordinator/ZK status grid. */
 export const Route = createFileRoute(
@@ -7,6 +7,6 @@ export const Route = createFileRoute(
 )({
   component: () => {
     const { instrumentName } = Route.useParams()
-    return <FlussHealthRoute instrumentName={instrumentName} />
+    return <FlussTabletServerHealth instrumentName={instrumentName} />
   },
 })

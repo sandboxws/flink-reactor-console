@@ -1,5 +1,5 @@
-import { FlussTableRoute } from "@flink-reactor/instruments-ui"
 import { createFileRoute } from "@tanstack/react-router"
+import { FlussTableDetail } from "@/components/instruments/fluss/fluss-table-detail"
 
 type TableSearch = {
   database: string
@@ -18,7 +18,7 @@ export const Route = createFileRoute(
     const { instrumentName } = Route.useParams()
     const { database, table } = Route.useSearch()
     return (
-      <FlussTableRoute
+      <FlussTableDetail
         instrumentName={instrumentName}
         database={database}
         table={table}

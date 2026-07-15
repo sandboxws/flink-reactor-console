@@ -1,4 +1,4 @@
-import type { SchemaDetail } from "../../types"
+import type { SchemaDetail } from "@/lib/instruments/types"
 import { computeLineDiff, formatSchema } from "./lib"
 
 export function SchemaDiff({
@@ -16,7 +16,9 @@ export function SchemaDiff({
     <div className="glass-card overflow-hidden">
       <div className="grid grid-cols-2 border-b border-dash-border text-xs text-zinc-500">
         <div className="px-3 py-2">v{before.version}</div>
-        <div className="border-l border-dash-border px-3 py-2">v{after.version}</div>
+        <div className="border-l border-dash-border px-3 py-2">
+          v{after.version}
+        </div>
       </div>
       <div className="grid grid-cols-2 font-mono text-xs leading-relaxed">
         <div>
@@ -59,7 +61,8 @@ function DiffCell({
         : op === "empty"
           ? "bg-white/[0.02]"
           : "text-zinc-300"
-  const marker = op === "add" ? "+" : op === "del" ? "-" : op === "empty" ? " " : " "
+  const marker =
+    op === "add" ? "+" : op === "del" ? "-" : op === "empty" ? " " : " "
   return (
     <div className={`flex gap-2 px-3 py-0.5 ${bg}`}>
       <span className="w-3 select-none text-zinc-500">{marker}</span>

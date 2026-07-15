@@ -1,7 +1,14 @@
-import { AlertTriangle, Clock, Database, Hash, Key, Loader2 } from "lucide-react"
+import {
+  AlertTriangle,
+  Clock,
+  Database,
+  Hash,
+  Key,
+  Loader2,
+} from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchRedisKeyInfo, fetchRedisKeyValue } from "../../api"
-import type { RedisKeyInfo, RedisKeyValue } from "../../types"
+import { fetchRedisKeyInfo, fetchRedisKeyValue } from "@/lib/instruments/api"
+import type { RedisKeyInfo, RedisKeyValue } from "@/lib/instruments/types"
 
 const TYPE_BADGE_CLASS: Record<string, string> = {
   string: "bg-fr-coral/15 text-fr-coral",
@@ -49,7 +56,9 @@ export function ValueInspector({
         setInfo(i)
         setValue(v)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoading(false))
   }, [instrumentName, redisKey])
 
@@ -67,13 +76,16 @@ export function ValueInspector({
 
   if (!info || !value) return null
 
-  const badgeClass = TYPE_BADGE_CLASS[info.type] ?? "bg-white/[0.08] text-zinc-300"
+  const badgeClass =
+    TYPE_BADGE_CLASS[info.type] ?? "bg-white/[0.08] text-zinc-300"
 
   return (
     <div className="space-y-3">
       <div className="glass-card flex flex-wrap items-center gap-3 p-3">
         <Key className="size-4 text-zinc-400" />
-        <span className="break-all font-mono text-sm text-zinc-200">{info.key}</span>
+        <span className="break-all font-mono text-sm text-zinc-200">
+          {info.key}
+        </span>
         <span
           className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${badgeClass}`}
         >
@@ -102,7 +114,9 @@ export function ValueInspector({
       )}
 
       <div className="glass-card overflow-hidden">
-        {value.type === "string" && <StringValue value={value.stringValue ?? ""} />}
+        {value.type === "string" && (
+          <StringValue value={value.stringValue ?? ""} />
+        )}
         {value.type === "hash" && <HashValue entries={value.hashValue ?? []} />}
         {value.type === "list" && <ListValue items={value.listValue ?? []} />}
         {value.type === "set" && <SetValue members={value.setValue ?? []} />}
@@ -126,7 +140,9 @@ function HashValue({
   entries: { field: string; value: string }[]
 }) {
   if (entries.length === 0) {
-    return <div className="p-4 text-center text-xs text-zinc-500">Empty hash</div>
+    return (
+      <div className="p-4 text-center text-xs text-zinc-500">Empty hash</div>
+    )
   }
   return (
     <table className="w-full text-xs">
@@ -140,7 +156,9 @@ function HashValue({
         {entries.map((e) => (
           <tr key={e.field} className="hover:bg-white/[0.02]">
             <td className="px-3 py-1.5 font-mono text-zinc-200">{e.field}</td>
-            <td className="px-3 py-1.5 font-mono text-zinc-400 break-all">{e.value}</td>
+            <td className="px-3 py-1.5 font-mono text-zinc-400 break-all">
+              {e.value}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -150,7 +168,9 @@ function HashValue({
 
 function ListValue({ items }: { items: string[] }) {
   if (items.length === 0) {
-    return <div className="p-4 text-center text-xs text-zinc-500">Empty list</div>
+    return (
+      <div className="p-4 text-center text-xs text-zinc-500">Empty list</div>
+    )
   }
   return (
     <ol className="divide-y divide-dash-border">
@@ -158,7 +178,9 @@ function ListValue({ items }: { items: string[] }) {
         // eslint-disable-next-line react/no-array-index-key
         <li key={idx} className="flex gap-3 px-3 py-1.5 text-xs">
           <span className="w-10 text-right font-mono text-zinc-600">{idx}</span>
-          <span className="flex-1 break-all font-mono text-zinc-200">{item}</span>
+          <span className="flex-1 break-all font-mono text-zinc-200">
+            {item}
+          </span>
         </li>
       ))}
     </ol>
@@ -167,7 +189,9 @@ function ListValue({ items }: { items: string[] }) {
 
 function SetValue({ members }: { members: string[] }) {
   if (members.length === 0) {
-    return <div className="p-4 text-center text-xs text-zinc-500">Empty set</div>
+    return (
+      <div className="p-4 text-center text-xs text-zinc-500">Empty set</div>
+    )
   }
   return (
     <div className="flex flex-wrap gap-1.5 p-3">
@@ -189,7 +213,9 @@ function ZSetValue({
   entries: { member: string; score: number }[]
 }) {
   if (entries.length === 0) {
-    return <div className="p-4 text-center text-xs text-zinc-500">Empty zset</div>
+    return (
+      <div className="p-4 text-center text-xs text-zinc-500">Empty zset</div>
+    )
   }
   return (
     <table className="w-full text-xs">
@@ -202,8 +228,12 @@ function ZSetValue({
       <tbody className="divide-y divide-dash-border">
         {entries.map((e) => (
           <tr key={e.member} className="hover:bg-white/[0.02]">
-            <td className="w-32 px-3 py-1.5 font-mono text-fr-blue">{e.score}</td>
-            <td className="px-3 py-1.5 font-mono text-zinc-200 break-all">{e.member}</td>
+            <td className="w-32 px-3 py-1.5 font-mono text-fr-blue">
+              {e.score}
+            </td>
+            <td className="px-3 py-1.5 font-mono text-zinc-200 break-all">
+              {e.member}
+            </td>
           </tr>
         ))}
       </tbody>

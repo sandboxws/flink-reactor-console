@@ -1,5 +1,5 @@
-import { SchemaRegistrySubjectRoute } from "@flink-reactor/instruments-ui"
 import { createFileRoute } from "@tanstack/react-router"
+import { SubjectDetail } from "@/components/instruments/schemaregistry/subject-detail"
 
 type SubjectSearch = {
   subject: string
@@ -15,11 +15,13 @@ export const Route = createFileRoute(
   component: () => {
     const { instrumentName } = Route.useParams()
     const { subject } = Route.useSearch()
-    return (
-      <SchemaRegistrySubjectRoute
-        instrumentName={instrumentName}
-        subject={subject}
-      />
-    )
+    if (!subject) {
+      return (
+        <div className="glass-card p-4 text-sm text-zinc-500">
+          No subject selected. Browse subjects to inspect a schema.
+        </div>
+      )
+    }
+    return <SubjectDetail instrumentName={instrumentName} subject={subject} />
   },
 })

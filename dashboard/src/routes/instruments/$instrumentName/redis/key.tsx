@@ -1,5 +1,5 @@
-import { RedisKeyRoute } from "@flink-reactor/instruments-ui"
 import { createFileRoute } from "@tanstack/react-router"
+import { ValueInspector } from "@/components/instruments/redis/value-inspector"
 
 type KeySearch = {
   key: string
@@ -13,6 +13,13 @@ export const Route = createFileRoute("/instruments/$instrumentName/redis/key")({
   component: () => {
     const { instrumentName } = Route.useParams()
     const { key } = Route.useSearch()
-    return <RedisKeyRoute instrumentName={instrumentName} redisKey={key} />
+    if (!key) {
+      return (
+        <div className="glass-card p-4 text-sm text-zinc-500">
+          No key selected. Browse keys to inspect a value.
+        </div>
+      )
+    }
+    return <ValueInspector instrumentName={instrumentName} redisKey={key} />
   },
 })

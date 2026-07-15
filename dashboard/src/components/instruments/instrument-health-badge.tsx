@@ -1,5 +1,5 @@
-import { formatDistanceToNow } from "date-fns"
 import { cn } from "@flink-reactor/ui"
+import { formatDistanceToNow } from "date-fns"
 
 export function InstrumentHealthBadge({
   healthy,

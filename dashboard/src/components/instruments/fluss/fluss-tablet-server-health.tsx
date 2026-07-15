@@ -1,7 +1,7 @@
 import { CheckCircle2, Loader2, XCircle } from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchFlussTabletServers } from "../../api"
-import type { FlussTabletServerHealth as TabletHealth } from "../../types"
+import { fetchFlussTabletServers } from "@/lib/instruments/api"
+import type { FlussTabletServerHealth as TabletHealth } from "@/lib/instruments/types"
 
 // FlussTabletServerHealth renders a status grid for the cluster's
 // TabletServers. Each card shows alive/dead state and the leadership count
@@ -22,7 +22,9 @@ export function FlussTabletServerHealth({
         setServers(data)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoading(false))
   }, [instrumentName])
 
@@ -52,9 +54,14 @@ export function FlussTabletServerHealth({
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {servers.map((s) => {
         const share =
-          totalLeadership > 0 ? Math.round((s.leadership / totalLeadership) * 100) : 0
+          totalLeadership > 0
+            ? Math.round((s.leadership / totalLeadership) * 100)
+            : 0
         return (
-          <div key={s.server} className="glass-card flex items-center gap-3 p-3">
+          <div
+            key={s.server}
+            className="glass-card flex items-center gap-3 p-3"
+          >
             {s.alive ? (
               <CheckCircle2 className="size-5 text-emerald-400" />
             ) : (
@@ -65,7 +72,8 @@ export function FlussTabletServerHealth({
                 {s.server}
               </div>
               <div className="text-xs text-zinc-500">
-                {s.alive ? "alive" : "dead"} · {s.leadership} leaderships ({share}%)
+                {s.alive ? "alive" : "dead"} · {s.leadership} leaderships (
+                {share}%)
               </div>
             </div>
           </div>

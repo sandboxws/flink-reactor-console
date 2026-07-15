@@ -1,5 +1,5 @@
-import { SchemaRegistryCompatibilityRoute } from "@flink-reactor/instruments-ui"
 import { createFileRoute } from "@tanstack/react-router"
+import { CompatibilityChecker } from "@/components/instruments/schemaregistry/compatibility-checker"
 
 /** Route: /instruments/$instrumentName/schema-registry/compatibility — Schema compatibility checker. */
 export const Route = createFileRoute(
@@ -7,8 +7,6 @@ export const Route = createFileRoute(
 )({
   component: () => {
     const { instrumentName } = Route.useParams()
-    return (
-      <SchemaRegistryCompatibilityRoute instrumentName={instrumentName} />
-    )
+    return <CompatibilityChecker instrumentName={instrumentName} />
   },
 })

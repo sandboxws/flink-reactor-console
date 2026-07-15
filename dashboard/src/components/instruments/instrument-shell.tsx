@@ -1,5 +1,5 @@
-import type { InstrumentInfo } from "../types"
 import { cn } from "@flink-reactor/ui"
+import type { InstrumentInfo } from "@/lib/instruments/types"
 import { InstrumentHealthBadge } from "./instrument-health-badge"
 import { getInstrumentIcon } from "./instrument-icons"
 
@@ -46,38 +46,40 @@ export function InstrumentShell({
       </div>
 
       {/* Tab navigation */}
-      {tabs.length > 0 && (() => {
-        // Find the most specific (longest) matching tab path
-        const normalized = activePath.replace(/\/$/, "")
-        const activeTabPath = tabs
-          .filter((t) => {
-            const tp = t.path.replace(/\/$/, "")
-            return normalized === tp || normalized.startsWith(`${tp}/`)
-          })
-          .sort((a, b) => b.path.length - a.path.length)[0]?.path ?? null
+      {tabs.length > 0 &&
+        (() => {
+          // Find the most specific (longest) matching tab path
+          const normalized = activePath.replace(/\/$/, "")
+          const activeTabPath =
+            tabs
+              .filter((t) => {
+                const tp = t.path.replace(/\/$/, "")
+                return normalized === tp || normalized.startsWith(`${tp}/`)
+              })
+              .sort((a, b) => b.path.length - a.path.length)[0]?.path ?? null
 
-        return (
-        <div className="flex gap-1 border-b border-dash-border pb-px">
-          {tabs.map((tab) => {
-            const active = tab.path === activeTabPath
-            return (
-              <LinkComponent
-                key={tab.path}
-                to={tab.path}
-                className={cn(
-                  "rounded-t-md px-3 py-1.5 text-xs font-medium transition-colors",
-                  active
-                    ? "border-b-2 border-fr-coral text-zinc-100"
-                    : "text-zinc-500 hover:text-zinc-300",
-                )}
-              >
-                {tab.label}
-              </LinkComponent>
-            )
-          })}
-        </div>
-        )
-      })()}
+          return (
+            <div className="flex gap-1 border-b border-dash-border pb-px">
+              {tabs.map((tab) => {
+                const active = tab.path === activeTabPath
+                return (
+                  <LinkComponent
+                    key={tab.path}
+                    to={tab.path}
+                    className={cn(
+                      "rounded-t-md px-3 py-1.5 text-xs font-medium transition-colors",
+                      active
+                        ? "border-b-2 border-fr-coral text-zinc-100"
+                        : "text-zinc-500 hover:text-zinc-300",
+                    )}
+                  >
+                    {tab.label}
+                  </LinkComponent>
+                )
+              })}
+            </div>
+          )
+        })()}
 
       {/* Content */}
       {children}

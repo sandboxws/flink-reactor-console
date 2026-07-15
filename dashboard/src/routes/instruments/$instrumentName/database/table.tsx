@@ -1,5 +1,5 @@
-import { DatabaseTableRoute } from "@flink-reactor/instruments-ui"
 import { createFileRoute } from "@tanstack/react-router"
+import { TableDetail } from "@/components/instruments/database/table-detail"
 
 type TableSearch = {
   schema: string
@@ -17,8 +17,15 @@ export const Route = createFileRoute(
   component: () => {
     const { instrumentName } = Route.useParams()
     const { schema, table } = Route.useSearch()
+    if (!schema || !table) {
+      return (
+        <div className="glass-card p-4 text-sm text-zinc-500">
+          No table selected. Browse schemas to select a table.
+        </div>
+      )
+    }
     return (
-      <DatabaseTableRoute
+      <TableDetail
         instrumentName={instrumentName}
         schema={schema}
         table={table}

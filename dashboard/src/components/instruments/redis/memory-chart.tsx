@@ -1,20 +1,17 @@
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchRedisMemoryStats } from "../../api"
-import type { RedisMemoryStats } from "../../types"
+import { fetchRedisMemoryStats } from "@/lib/instruments/api"
+import type { RedisMemoryStats } from "@/lib/instruments/types"
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`
 }
 
-export function MemoryChart({
-  instrumentName,
-}: {
-  instrumentName: string
-}) {
+export function MemoryChart({ instrumentName }: { instrumentName: string }) {
   const [stats, setStats] = useState<RedisMemoryStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +23,9 @@ export function MemoryChart({
         setStats(data)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoading(false))
   }, [instrumentName])
 
@@ -53,7 +52,8 @@ export function MemoryChart({
   ]
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1
 
-  const peakRatio = stats.peakMemory > 0 ? Math.min(stats.usedMemory / stats.peakMemory, 1) : 0
+  const peakRatio =
+    stats.peakMemory > 0 ? Math.min(stats.usedMemory / stats.peakMemory, 1) : 0
 
   return (
     <div className="space-y-4">
@@ -101,7 +101,10 @@ export function MemoryChart({
       </div>
 
       <div className="glass-card grid grid-cols-2 gap-3 p-4 text-xs md:grid-cols-3">
-        <Stat label="Fragmentation ratio" value={stats.fragmentationRatio.toFixed(2)} />
+        <Stat
+          label="Fragmentation ratio"
+          value={stats.fragmentationRatio.toFixed(2)}
+        />
         <Stat label="Allocator" value={stats.allocator || "—"} />
         <Stat label="Used memory" value={formatBytes(stats.usedMemory)} />
       </div>

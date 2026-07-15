@@ -1,10 +1,10 @@
-import { InstrumentDetailRoute } from "@flink-reactor/instruments-ui"
 import {
   createFileRoute,
   Link,
   Outlet,
   useLocation,
 } from "@tanstack/react-router"
+import { InstrumentDetailRoute } from "@/components/instruments/instrument-detail"
 
 /** Route: /instruments/$instrumentName — Instrument layout with detail tabs and Outlet for child routes. */
 export const Route = createFileRoute("/instruments/$instrumentName")({

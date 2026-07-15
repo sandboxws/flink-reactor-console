@@ -1,6 +1,6 @@
 import { create } from "zustand"
-import type { InstrumentInfo } from "./types"
-import { fetchInstruments } from "./api"
+import { fetchInstruments } from "@/lib/instruments/api"
+import type { InstrumentInfo } from "@/lib/instruments/types"
 
 // ---------------------------------------------------------------------------
 // Instrument store

@@ -1,7 +1,7 @@
 import { FileText, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchSchemaSubjects } from "../../api"
-import type { SchemaSubject } from "../../types"
+import { fetchSchemaSubjects } from "@/lib/instruments/api"
+import type { SchemaSubject } from "@/lib/instruments/types"
 import { SCHEMA_TYPE_BADGE } from "./lib"
 
 type LinkProps = {
@@ -29,7 +29,9 @@ export function SubjectList({
         setSubjects(data)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoading(false))
   }, [instrumentName])
 

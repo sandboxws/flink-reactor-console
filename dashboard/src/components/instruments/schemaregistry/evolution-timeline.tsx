@@ -1,7 +1,7 @@
 import { ChevronRight, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchSchemaDetail } from "../../api"
-import type { SchemaDetail } from "../../types"
+import { fetchSchemaDetail } from "@/lib/instruments/api"
+import type { SchemaDetail } from "@/lib/instruments/types"
 import { SchemaDiff } from "./schema-diff"
 import { SchemaViewer } from "./schema-viewer"
 
@@ -72,7 +72,9 @@ function TimelineEntry({
         setDetail(d)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoading(false))
   }, [expanded, detail, instrumentName, subject, version])
 

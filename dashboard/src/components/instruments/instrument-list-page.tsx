@@ -1,7 +1,7 @@
+import { EmptyState, Skeleton } from "@flink-reactor/ui"
 import { Search, Settings } from "lucide-react"
 import { useMemo, useState } from "react"
-import { EmptyState, Skeleton } from "@flink-reactor/ui"
-import { useInstrumentStore } from "../store"
+import { useInstrumentStore } from "@/stores/instruments-store"
 import { InstrumentCard } from "./instrument-card"
 
 function InstrumentListSkeleton() {

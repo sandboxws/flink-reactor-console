@@ -1,8 +1,14 @@
+import { cn } from "@flink-reactor/ui"
 import { ChevronRight, Database, Eye, Loader2, Table2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
-import { cn } from "@flink-reactor/ui"
-import type { DatabaseSchema, DatabaseTableSummary } from "../../types"
-import { fetchDatabaseSchemas, fetchDatabaseTables } from "../../api"
+import {
+  fetchDatabaseSchemas,
+  fetchDatabaseTables,
+} from "@/lib/instruments/api"
+import type {
+  DatabaseSchema,
+  DatabaseTableSummary,
+} from "@/lib/instruments/types"
 
 export function SchemaBrowser({
   instrumentName,

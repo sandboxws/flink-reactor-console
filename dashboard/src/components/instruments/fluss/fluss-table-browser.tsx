@@ -1,7 +1,7 @@
 import { Layers, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { fetchFlussDatabases, fetchFlussTables } from "../../api"
-import type { FlussTableSummary } from "../../types"
+import { fetchFlussDatabases, fetchFlussTables } from "@/lib/instruments/api"
+import type { FlussTableSummary } from "@/lib/instruments/types"
 import { FLUSS_TABLE_TYPE_BADGE, formatLastUpdated } from "./lib"
 
 type LinkProps = {
@@ -36,7 +36,9 @@ export function FlussTableBrowser({
         setError(null)
         if (dbs.length > 0) setSelected(dbs[0])
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoadingDB(false))
   }, [instrumentName])
 
@@ -51,7 +53,9 @@ export function FlussTableBrowser({
         setTables(data)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
       .finally(() => setLoadingTables(false))
   }, [instrumentName, selected])
 
@@ -71,7 +75,9 @@ export function FlussTableBrowser({
     return (
       <div className="glass-card flex flex-col items-center gap-2 p-8 text-center">
         <Layers className="size-8 text-zinc-600" />
-        <p className="text-sm text-zinc-500">No databases in this Fluss cluster</p>
+        <p className="text-sm text-zinc-500">
+          No databases in this Fluss cluster
+        </p>
       </div>
     )
   }
@@ -117,7 +123,10 @@ export function FlussTableBrowser({
             </thead>
             <tbody className="divide-y divide-dash-border">
               {tables.map((t) => (
-                <tr key={`${t.database}.${t.name}`} className="hover:bg-white/[0.02]">
+                <tr
+                  key={`${t.database}.${t.name}`}
+                  className="hover:bg-white/[0.02]"
+                >
                   <td className="px-3 py-1.5">
                     <LinkComponent
                       to={`/instruments/${instrumentName}/fluss/table`}

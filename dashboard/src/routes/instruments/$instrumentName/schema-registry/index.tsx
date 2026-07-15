@@ -1,5 +1,5 @@
-import { SchemaRegistrySubjectsRoute } from "@flink-reactor/instruments-ui"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { SubjectList } from "@/components/instruments/schemaregistry/subject-list"
 
 /** Route: /instruments/$instrumentName/schema-registry — Schema Registry subject browser. */
 export const Route = createFileRoute(
@@ -7,11 +7,6 @@ export const Route = createFileRoute(
 )({
   component: () => {
     const { instrumentName } = Route.useParams()
-    return (
-      <SchemaRegistrySubjectsRoute
-        instrumentName={instrumentName}
-        LinkComponent={Link}
-      />
-    )
+    return <SubjectList instrumentName={instrumentName} LinkComponent={Link} />
   },
 })

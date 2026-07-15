@@ -3,4 +3,3 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'tools/*'
-  - '../flink-reactor-instruments/packages/*'

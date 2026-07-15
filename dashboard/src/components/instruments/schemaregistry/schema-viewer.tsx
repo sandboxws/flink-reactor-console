@@ -1,4 +1,4 @@
-import type { SchemaDetail } from "../../types"
+import type { SchemaDetail } from "@/lib/instruments/types"
 import { formatSchema, SCHEMA_TYPE_BADGE } from "./lib"
 
 export function SchemaViewer({ detail }: { detail: SchemaDetail }) {
@@ -9,8 +9,12 @@ export function SchemaViewer({ detail }: { detail: SchemaDetail }) {
   return (
     <div className="space-y-3">
       <div className="glass-card flex flex-wrap items-center gap-3 p-3">
-        <span className="font-mono text-sm text-zinc-200">{detail.subject}</span>
-        <span className="font-mono text-xs text-zinc-500">v{detail.version}</span>
+        <span className="font-mono text-sm text-zinc-200">
+          {detail.subject}
+        </span>
+        <span className="font-mono text-xs text-zinc-500">
+          v{detail.version}
+        </span>
         <span
           className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${badgeClass}`}
         >
