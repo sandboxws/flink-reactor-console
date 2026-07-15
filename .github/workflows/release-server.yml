@@ -25,13 +25,14 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter dashboard build
-      - run: mkdir -p server/dashboard && cp -r dashboard/out/* server/dashboard/
+      # `pnpm build` builds @flink-reactor/ui first; the dashboard imports its dist.
+      - run: pnpm build
+      - run: mkdir -p server/dashboard && cp -r dashboard/dist/* server/dashboard/
 
       # Build Go binaries + Docker image.
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.26"
           cache-dependency-path: server/go.sum
 
       - name: Login to GHCR

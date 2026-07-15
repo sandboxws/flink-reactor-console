@@ -25,18 +25,14 @@ docker:
     cd .. && pnpm build
     mkdir -p dashboard
     rsync -a --delete ../dashboard/dist/ dashboard/
-    docker build \
-        --build-context instruments=../../flink-reactor-instruments/server \
-        -t reactor-server .
+    docker build -t reactor-server .
 
 # Build Docker image inside minikube's Docker daemon
 docker-minikube:
     cd .. && pnpm build
     mkdir -p dashboard
     rsync -a --delete ../dashboard/dist/ dashboard/
-    eval $(minikube docker-env) && docker build \
-        --build-context instruments=../../flink-reactor-instruments/server \
-        -t reactor-server .
+    eval $(minikube docker-env) && docker build -t reactor-server .
 
 # Run the reactor-server container against a host-side Flink. Override port via
 # `just docker-run 9090`, or Flink URL via `FLINK_REST_URL=... just docker-run`.
