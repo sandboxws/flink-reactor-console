@@ -10,8 +10,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 )
 
 // Channel is the Postgres LISTEN channel for alert state transitions.

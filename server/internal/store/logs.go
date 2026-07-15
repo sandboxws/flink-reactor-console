@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // LogStore provides upsert and query operations for the logs table.
@@ -28,7 +28,8 @@ func (s *LogStore) UpsertLog(ctx context.Context, log storage.DBLog) error {
 		WHERE EXCLUDED.byte_offset > logs.byte_offset
 	`
 
-	_, err := s.pool.Exec(ctx, query,
+	_, err := s.pool.Exec(
+		ctx, query,
 		log.Cluster, log.SourceType, log.SourceID, log.LogFile, log.Content, log.ByteOffset,
 	)
 	if err != nil {

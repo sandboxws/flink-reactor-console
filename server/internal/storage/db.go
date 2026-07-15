@@ -9,7 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
+	"github.com/sandboxws/flink-reactor-console/server/internal/config"
 )
 
 // New creates a pgxpool connection pool from the given StorageConfig.

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 // SQLGatewayProvider implements CatalogProvider by executing SQL statements

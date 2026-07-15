@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // PipelineSummaryRow is a per-(pipeline, environment) rollup joining the latest
@@ -73,7 +73,8 @@ func (s *PipelineManifestStore) Insert(
 		m.StateFingerprint, m.OperatorStates, m.Source)
 	if err := row.Scan(&m.ID, &m.Version, &m.CreatedAt); err != nil {
 		return storage.DBPipelineManifest{}, fmt.Errorf(
-			"insert pipeline manifest %q: %w", m.PipelineName, err)
+			"insert pipeline manifest %q: %w", m.PipelineName, err,
+		)
 	}
 	return m, nil
 }

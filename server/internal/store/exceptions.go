@@ -8,7 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // ExceptionStore provides upsert and query operations for the exceptions table.
@@ -42,7 +42,8 @@ func (s *ExceptionStore) UpsertExceptions(ctx context.Context, exceptions []stor
 			"($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
 			base+1, base+2, base+3, base+4, base+5, base+6, base+7, base+8,
 		))
-		args = append(args,
+		args = append(
+			args,
 			e.JID, e.Cluster, e.ExceptionName, e.Stacktrace,
 			e.Timestamp, e.TaskName, e.Endpoint, e.TaskManagerID,
 		)

@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/k8s"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/k8s"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -61,13 +61,15 @@ func (m *Manager) Init(configs []Config, logger *slog.Logger) error {
 		}
 	}
 	if defaultCount > 1 {
-		logger.Warn("multiple clusters marked as default, using first one",
+		logger.Warn(
+			"multiple clusters marked as default, using first one",
 			"default", m.defaultName,
 			"count", defaultCount,
 		)
 	}
 
-	logger.Info("cluster manager initialized",
+	logger.Info(
+		"cluster manager initialized",
 		"clusters", len(configs),
 		"default", m.defaultName,
 	)
@@ -125,7 +127,8 @@ func (m *Manager) buildConnection(cfg Config, logger *slog.Logger) *Connection {
 			Logger:     logger,
 		})
 		if err != nil {
-			logger.Warn("failed to initialize K8s client, BG deployments unavailable",
+			logger.Warn(
+				"failed to initialize K8s client, BG deployments unavailable",
 				"cluster", cfg.Name,
 				"error", err,
 			)
@@ -210,7 +213,8 @@ func (m *Manager) HealthCheck(ctx context.Context) {
 			overview, err := conn.Service.GetClusterOverview(ctx)
 			if err != nil {
 				conn.setUnhealthy()
-				m.logger.Warn("cluster health check failed",
+				m.logger.Warn(
+					"cluster health check failed",
 					"cluster", conn.Name,
 					"error", err,
 				)

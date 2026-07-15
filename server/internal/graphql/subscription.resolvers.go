@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
 )
 
 // JobStatusChanged is the resolver for the jobStatusChanged field.

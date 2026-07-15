@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // JobStore provides upsert and query operations for the jobs and vertices tables.
@@ -81,7 +81,8 @@ func (s *JobStore) UpsertVertices(ctx context.Context, vertices []storage.DBVert
 			base+1, base+2, base+3, base+4, base+5, base+6, base+7,
 			base+8, base+9, base+10, base+11, base+12, base+13, base+14,
 		))
-		args = append(args,
+		args = append(
+			args,
 			v.ID, v.JID, v.Cluster, v.Name, v.Parallelism, v.MaxParallelism,
 			v.Status, v.StartTime, v.EndTime, v.DurationMs,
 			v.ReadBytes, v.WriteBytes, v.ReadRecords, v.WriteRecords,

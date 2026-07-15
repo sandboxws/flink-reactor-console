@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/compatibility"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/manifests"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/compatibility"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/manifests"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 )
 
 // Hand-written helpers backing compatibility.resolvers.go. Kept here (not in

@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql"
 )
 
 func writeJobsTestJSON(w http.ResponseWriter, v any) {

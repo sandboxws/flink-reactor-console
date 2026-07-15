@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // JobManagerStore provides upsert operations for the job_manager_snapshots table.

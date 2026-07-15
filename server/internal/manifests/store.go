@@ -9,9 +9,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/compatibility"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/compatibility"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 )
 
 // DefaultEnvironment is used when a manifest is pushed without an environment.
@@ -73,7 +73,8 @@ func StateManifestFromRow(row *storage.DBPipelineManifest) (compatibility.StateM
 	var sm compatibility.StateManifest
 	if err := json.Unmarshal(row.Manifest, &sm); err != nil {
 		return compatibility.StateManifest{}, fmt.Errorf(
-			"unmarshal manifest %q v%d: %w", row.PipelineName, row.Version, err)
+			"unmarshal manifest %q v%d: %w", row.PipelineName, row.Version, err,
+		)
 	}
 	return sm, nil
 }

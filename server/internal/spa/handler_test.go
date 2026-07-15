@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
+	"github.com/sandboxws/flink-reactor-console/server/internal/spa"
 )
 
 func setupTestDir(t *testing.T) string {

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql"
 )
 
 // TestBlueGreenDeploymentConfigDiff_NilManager exercises the "cluster manager

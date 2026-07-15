@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/server"
 )
 
 func TestHealthz(t *testing.T) {

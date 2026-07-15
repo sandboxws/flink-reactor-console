@@ -4,8 +4,8 @@
 package alerts
 
 import (
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // ClusterSnapshot is a point-in-time view of cluster state used by condition

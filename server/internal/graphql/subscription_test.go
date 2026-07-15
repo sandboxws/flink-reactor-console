@@ -13,10 +13,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	ws "github.com/gorilla/websocket"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/generated"
 )
 
 // wsMessage represents a graphql-ws protocol message.

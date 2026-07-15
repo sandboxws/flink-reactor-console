@@ -3,8 +3,8 @@ package graphql
 import (
 	"strconv"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/simulation"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/simulation"
 )
 
 // mapSimulationRun converts a domain SimulationRun to a GraphQL model.

@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 )
 
 // Engine is the top-level wrapper that ties together the Evaluator (writes

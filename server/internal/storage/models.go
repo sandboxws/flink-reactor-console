@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 // msToTime converts a Flink epoch-millisecond timestamp to time.Time.

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
 )
 
 // Register registers log proxy routes on the Echo instance.

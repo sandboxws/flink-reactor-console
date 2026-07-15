@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http/httptest"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 // NewTestManager creates a Manager from mock HTTP servers for use in tests.

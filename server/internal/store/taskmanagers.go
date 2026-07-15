@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // TaskManagerStore provides upsert operations for the task_manager_snapshots table.
@@ -32,7 +32,8 @@ func (s *TaskManagerStore) UpsertTaskManagers(ctx context.Context, snapshots []s
 			base+1, base+2, base+3, base+4, base+5, base+6, base+7,
 			base+8, base+9, base+10, base+11, base+12, base+13, base+14,
 		))
-		args = append(args,
+		args = append(
+			args,
 			tm.ID, tm.Cluster, tm.Path, tm.DataPort,
 			tm.SlotsTotal, tm.SlotsFree, tm.CPUCores,
 			tm.PhysicalMemory, tm.FreeMemory, tm.ManagedMemory,

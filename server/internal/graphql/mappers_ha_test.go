@@ -3,7 +3,7 @@ package graphql
 import (
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 func TestMapHAStatus_KubernetesEnabled(t *testing.T) {

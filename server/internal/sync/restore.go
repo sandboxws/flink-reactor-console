@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 )
 
 // defaultRestoreEnvironment scopes restore tracking to the same environment the
@@ -147,7 +147,8 @@ func (s *Syncer) recordRestoreFailure(
 	manifestID int64,
 	seen map[string]struct{},
 ) {
-	exs, _, err := s.stores.Exceptions.QueryExceptions(ctx,
+	exs, _, err := s.stores.Exceptions.QueryExceptions(
+		ctx,
 		store.ExceptionFilter{ClusterID: &clusterName, JobID: &jid},
 		store.CursorPagination{First: recentExceptionScan},
 	)

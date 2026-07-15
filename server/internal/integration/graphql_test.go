@@ -40,7 +40,8 @@ func TestIntegration_QueryJobDetail(t *testing.T) {
 	t.Parallel()
 	ts := newTestServer(t)
 
-	resp := graphqlQuery(t, ts.Server.Echo(),
+	resp := graphqlQuery(
+		t, ts.Server.Echo(),
 		`query($id: ID!) { job(id: $id) { id name state vertices { id name } } }`,
 		map[string]any{"id": "d1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"},
 	)

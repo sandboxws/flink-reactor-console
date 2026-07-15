@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/sqlgateway"
+	"github.com/sandboxws/flink-reactor-console/server/internal/sqlgateway"
 )
 
 func TestProxy_RequestForwarding(t *testing.T) {

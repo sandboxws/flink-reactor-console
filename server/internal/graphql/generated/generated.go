@@ -12,7 +12,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -9562,7 +9562,7 @@ func (ec *executionContext) field_Mutation_checkDeploymentCompatibility_args(ctx
 		return nil, err
 	}
 	args["environment"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "newManifest", ec.unmarshalNStateManifestInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStateManifestInput)
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "newManifest", ec.unmarshalNStateManifestInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStateManifestInput)
 	if err != nil {
 		return nil, err
 	}
@@ -9620,7 +9620,7 @@ func (ec *executionContext) field_Mutation_closeSQLSession_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_createAlertRule_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCreateAlertRuleInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCreateAlertRuleInput)
 	if err != nil {
 		return nil, err
 	}
@@ -9847,7 +9847,7 @@ func (ec *executionContext) field_Mutation_runJar_args(ctx context.Context, rawA
 func (ec *executionContext) field_Mutation_runSimulation_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNSimulationInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNSimulationInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationInput)
 	if err != nil {
 		return nil, err
 	}
@@ -9969,7 +9969,7 @@ func (ec *executionContext) field_Mutation_updateAlertRule_args(ctx context.Cont
 		return nil, err
 	}
 	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUpdateAlertRuleInput)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐUpdateAlertRuleInput)
 	if err != nil {
 		return nil, err
 	}
@@ -9991,7 +9991,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_alertHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOAlertHistoryFilterInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryFilterInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOAlertHistoryFilterInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryFilterInput)
 	if err != nil {
 		return nil, err
 	}
@@ -10230,12 +10230,12 @@ func (ec *executionContext) field_Query_checkpointDetail_args(ctx context.Contex
 func (ec *executionContext) field_Query_checkpointHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOCheckpointHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryFilter)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOCheckpointHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryFilter)
 	if err != nil {
 		return nil, err
 	}
 	args["filter"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
 	if err != nil {
 		return nil, err
 	}
@@ -10326,12 +10326,12 @@ func (ec *executionContext) field_Query_databaseTables_args(ctx context.Context,
 func (ec *executionContext) field_Query_exceptionHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryFilter)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryFilter)
 	if err != nil {
 		return nil, err
 	}
 	args["filter"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
 	if err != nil {
 		return nil, err
 	}
@@ -10449,17 +10449,17 @@ func (ec *executionContext) field_Query_jars_args(ctx context.Context, rawArgs m
 func (ec *executionContext) field_Query_jobHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryFilter)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryFilter)
 	if err != nil {
 		return nil, err
 	}
 	args["filter"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pagination", ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput)
 	if err != nil {
 		return nil, err
 	}
 	args["pagination"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "orderBy", ec.unmarshalOOrderByInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderByInput)
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "orderBy", ec.unmarshalOOrderByInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderByInput)
 	if err != nil {
 		return nil, err
 	}
@@ -10648,7 +10648,7 @@ func (ec *executionContext) field_Query_metricCatalog_args(ctx context.Context, 
 func (ec *executionContext) field_Query_metricHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalNMetricHistoryFilter2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricHistoryFilter)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalNMetricHistoryFilter2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricHistoryFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -10664,7 +10664,7 @@ func (ec *executionContext) field_Query_metricSeries_args(ctx context.Context, r
 		return nil, err
 	}
 	args["clusterID"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "series", ec.unmarshalNMetricSeriesRequest2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricSeriesRequestᚄ)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "series", ec.unmarshalNMetricSeriesRequest2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricSeriesRequestᚄ)
 	if err != nil {
 		return nil, err
 	}
@@ -11368,7 +11368,7 @@ func (ec *executionContext) _AlertCondition_type(ctx context.Context, field grap
 			return obj.Type, nil
 		},
 		nil,
-		ec.marshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType,
+		ec.marshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType,
 		true,
 		true,
 	)
@@ -11455,7 +11455,7 @@ func (ec *executionContext) _AlertHistoryPage_instances(ctx context.Context, fie
 			return obj.Instances, nil
 		},
 		nil,
-		ec.marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ,
+		ec.marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ,
 		true,
 		true,
 	)
@@ -11595,7 +11595,7 @@ func (ec *executionContext) _AlertInstance_rule(ctx context.Context, field graph
 			return obj.Rule, nil
 		},
 		nil,
-		ec.marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
+		ec.marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
 		true,
 		false,
 	)
@@ -11646,7 +11646,7 @@ func (ec *executionContext) _AlertInstance_state(ctx context.Context, field grap
 			return obj.State, nil
 		},
 		nil,
-		ec.marshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState,
+		ec.marshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState,
 		true,
 		true,
 	)
@@ -11965,7 +11965,7 @@ func (ec *executionContext) _AlertRule_condition(ctx context.Context, field grap
 			return obj.Condition, nil
 		},
 		nil,
-		ec.marshalNAlertCondition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertCondition,
+		ec.marshalNAlertCondition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertCondition,
 		true,
 		true,
 	)
@@ -12002,7 +12002,7 @@ func (ec *executionContext) _AlertRule_severity(ctx context.Context, field graph
 			return obj.Severity, nil
 		},
 		nil,
-		ec.marshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity,
+		ec.marshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity,
 		true,
 		true,
 	)
@@ -12234,7 +12234,7 @@ func (ec *executionContext) _AllocatedSlot_resource(ctx context.Context, field g
 			return obj.Resource, nil
 		},
 		nil,
-		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
+		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
 		true,
 		true,
 	)
@@ -12507,7 +12507,7 @@ func (ec *executionContext) _BackPressureInfo_subtasks(ctx context.Context, fiel
 			return obj.Subtasks, nil
 		},
 		nil,
-		ec.marshalNSubtaskBackPressure2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskBackPressureᚄ,
+		ec.marshalNSubtaskBackPressure2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskBackPressureᚄ,
 		true,
 		true,
 	)
@@ -12666,7 +12666,7 @@ func (ec *executionContext) _BlueGreenDeployment_state(ctx context.Context, fiel
 			return obj.State, nil
 		},
 		nil,
-		ec.marshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState,
+		ec.marshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState,
 		true,
 		true,
 	)
@@ -13681,7 +13681,7 @@ func (ec *executionContext) _CheckpointHistoryConnection_edges(ctx context.Conte
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNCheckpointHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdgeᚄ,
+		ec.marshalNCheckpointHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdgeᚄ,
 		true,
 		true,
 	)
@@ -13716,7 +13716,7 @@ func (ec *executionContext) _CheckpointHistoryConnection_pageInfo(ctx context.Co
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNCheckpointHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryPageInfo,
+		ec.marshalNCheckpointHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryPageInfo,
 		true,
 		true,
 	)
@@ -13751,7 +13751,7 @@ func (ec *executionContext) _CheckpointHistoryEdge_node(ctx context.Context, fie
 			return obj.Node, nil
 		},
 		nil,
-		ec.marshalNStoredCheckpoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredCheckpoint,
+		ec.marshalNStoredCheckpoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredCheckpoint,
 		true,
 		true,
 	)
@@ -14247,7 +14247,7 @@ func (ec *executionContext) _CheckpointLatest_completed(ctx context.Context, fie
 			return obj.Completed, nil
 		},
 		nil,
-		ec.marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
+		ec.marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
 		true,
 		false,
 	)
@@ -14302,7 +14302,7 @@ func (ec *executionContext) _CheckpointLatest_failed(ctx context.Context, field 
 			return obj.Failed, nil
 		},
 		nil,
-		ec.marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
+		ec.marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
 		true,
 		false,
 	)
@@ -14357,7 +14357,7 @@ func (ec *executionContext) _CheckpointLatest_savepoint(ctx context.Context, fie
 			return obj.Savepoint, nil
 		},
 		nil,
-		ec.marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
+		ec.marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
 		true,
 		false,
 	)
@@ -14412,7 +14412,7 @@ func (ec *executionContext) _CheckpointLatest_restored(ctx context.Context, fiel
 			return obj.Restored, nil
 		},
 		nil,
-		ec.marshalOCheckpointRestoredInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointRestoredInfo,
+		ec.marshalOCheckpointRestoredInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointRestoredInfo,
 		true,
 		false,
 	)
@@ -14654,7 +14654,7 @@ func (ec *executionContext) _CheckpointStats_counts(ctx context.Context, field g
 			return obj.Counts, nil
 		},
 		nil,
-		ec.marshalNCheckpointCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointCounts,
+		ec.marshalNCheckpointCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointCounts,
 		true,
 		true,
 	)
@@ -14695,7 +14695,7 @@ func (ec *executionContext) _CheckpointStats_history(ctx context.Context, field 
 			return obj.History, nil
 		},
 		nil,
-		ec.marshalNCheckpointHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntryᚄ,
+		ec.marshalNCheckpointHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntryᚄ,
 		true,
 		true,
 	)
@@ -14750,7 +14750,7 @@ func (ec *executionContext) _CheckpointStats_summary(ctx context.Context, field 
 			return obj.Summary, nil
 		},
 		nil,
-		ec.marshalOCheckpointSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSummary,
+		ec.marshalOCheckpointSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSummary,
 		true,
 		false,
 	)
@@ -14791,7 +14791,7 @@ func (ec *executionContext) _CheckpointStats_latest(ctx context.Context, field g
 			return obj.Latest, nil
 		},
 		nil,
-		ec.marshalOCheckpointLatest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointLatest,
+		ec.marshalOCheckpointLatest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointLatest,
 		true,
 		false,
 	)
@@ -14830,7 +14830,7 @@ func (ec *executionContext) _CheckpointSummary_stateSize(ctx context.Context, fi
 			return obj.StateSize, nil
 		},
 		nil,
-		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
 		true,
 		false,
 	)
@@ -14867,7 +14867,7 @@ func (ec *executionContext) _CheckpointSummary_endToEndDuration(ctx context.Cont
 			return obj.EndToEndDuration, nil
 		},
 		nil,
-		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
 		true,
 		false,
 	)
@@ -14904,7 +14904,7 @@ func (ec *executionContext) _CheckpointSummary_checkpointedSize(ctx context.Cont
 			return obj.CheckpointedSize, nil
 		},
 		nil,
-		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
 		true,
 		false,
 	)
@@ -14941,7 +14941,7 @@ func (ec *executionContext) _CheckpointSummary_processedData(ctx context.Context
 			return obj.ProcessedData, nil
 		},
 		nil,
-		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
 		true,
 		false,
 	)
@@ -14978,7 +14978,7 @@ func (ec *executionContext) _CheckpointSummary_persistedData(ctx context.Context
 			return obj.PersistedData, nil
 		},
 		nil,
-		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
 		true,
 		false,
 	)
@@ -15073,7 +15073,7 @@ func (ec *executionContext) _ClusterInfo_status(ctx context.Context, field graph
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus,
+		ec.marshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus,
 		true,
 		true,
 	)
@@ -15624,7 +15624,7 @@ func (ec *executionContext) _CompatibilityIssue_severity(ctx context.Context, fi
 			return obj.Severity, nil
 		},
 		nil,
-		ec.marshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity,
+		ec.marshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity,
 		true,
 		true,
 	)
@@ -15740,7 +15740,7 @@ func (ec *executionContext) _CompatibilityReport_verdict(ctx context.Context, fi
 			return obj.Verdict, nil
 		},
 		nil,
-		ec.marshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict,
+		ec.marshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict,
 		true,
 		true,
 	)
@@ -15798,7 +15798,7 @@ func (ec *executionContext) _CompatibilityReport_issues(ctx context.Context, fie
 			return obj.Issues, nil
 		},
 		nil,
-		ec.marshalNCompatibilityIssue2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssueᚄ,
+		ec.marshalNCompatibilityIssue2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssueᚄ,
 		true,
 		true,
 	)
@@ -16767,7 +16767,7 @@ func (ec *executionContext) _DatabaseQueryResult_columns(ctx context.Context, fi
 			return obj.Columns, nil
 		},
 		nil,
-		ec.marshalNDatabaseResultColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumnᚄ,
+		ec.marshalNDatabaseResultColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumnᚄ,
 		true,
 		true,
 	)
@@ -17092,7 +17092,7 @@ func (ec *executionContext) _DatabaseTableDetail_columns(ctx context.Context, fi
 			return obj.Columns, nil
 		},
 		nil,
-		ec.marshalNDatabaseColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumnᚄ,
+		ec.marshalNDatabaseColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumnᚄ,
 		true,
 		true,
 	)
@@ -17135,7 +17135,7 @@ func (ec *executionContext) _DatabaseTableDetail_indexes(ctx context.Context, fi
 			return obj.Indexes, nil
 		},
 		nil,
-		ec.marshalNDatabaseIndex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndexᚄ,
+		ec.marshalNDatabaseIndex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndexᚄ,
 		true,
 		true,
 	)
@@ -17174,7 +17174,7 @@ func (ec *executionContext) _DatabaseTableDetail_constraints(ctx context.Context
 			return obj.Constraints, nil
 		},
 		nil,
-		ec.marshalNDatabaseConstraint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraintᚄ,
+		ec.marshalNDatabaseConstraint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraintᚄ,
 		true,
 		true,
 	)
@@ -17534,7 +17534,7 @@ func (ec *executionContext) _ExceptionHistoryConnection_edges(ctx context.Contex
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNExceptionHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdgeᚄ,
+		ec.marshalNExceptionHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdgeᚄ,
 		true,
 		true,
 	)
@@ -17569,7 +17569,7 @@ func (ec *executionContext) _ExceptionHistoryConnection_pageInfo(ctx context.Con
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNExceptionHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryPageInfo,
+		ec.marshalNExceptionHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryPageInfo,
 		true,
 		true,
 	)
@@ -17604,7 +17604,7 @@ func (ec *executionContext) _ExceptionHistoryEdge_node(ctx context.Context, fiel
 			return obj.Node, nil
 		},
 		nil,
-		ec.marshalNStoredException2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredException,
+		ec.marshalNStoredException2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredException,
 		true,
 		true,
 	)
@@ -17771,7 +17771,7 @@ func (ec *executionContext) _Flamegraph_data(ctx context.Context, field graphql.
 			return obj.Data, nil
 		},
 		nil,
-		ec.marshalNFlamegraphNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNode,
+		ec.marshalNFlamegraphNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNode,
 		true,
 		true,
 	)
@@ -17866,7 +17866,7 @@ func (ec *executionContext) _FlamegraphNode_children(ctx context.Context, field 
 			return obj.Children, nil
 		},
 		nil,
-		ec.marshalOFlamegraphNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNodeᚄ,
+		ec.marshalOFlamegraphNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNodeᚄ,
 		true,
 		false,
 	)
@@ -18048,7 +18048,7 @@ func (ec *executionContext) _FlinkConfig_features(ctx context.Context, field gra
 			return obj.Features, nil
 		},
 		nil,
-		ec.marshalNFlinkFeatures2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkFeatures,
+		ec.marshalNFlinkFeatures2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkFeatures,
 		true,
 		true,
 	)
@@ -18493,7 +18493,7 @@ func (ec *executionContext) _FlussTableMetadata_schema(ctx context.Context, fiel
 			return obj.Schema, nil
 		},
 		nil,
-		ec.marshalNFlussSchemaField2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaFieldᚄ,
+		ec.marshalNFlussSchemaField2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaFieldᚄ,
 		true,
 		true,
 	)
@@ -19286,7 +19286,7 @@ func (ec *executionContext) _JMEnvironment_jvm(ctx context.Context, field graphq
 			return obj.Jvm, nil
 		},
 		nil,
-		ec.marshalNJMEnvironmentJVM2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMEnvironmentJvm,
+		ec.marshalNJMEnvironmentJVM2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMEnvironmentJvm,
 		true,
 		true,
 	)
@@ -19584,7 +19584,7 @@ func (ec *executionContext) _JarFile_entry(ctx context.Context, field graphql.Co
 			return obj.Entry, nil
 		},
 		nil,
-		ec.marshalNJarEntryPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPointᚄ,
+		ec.marshalNJarEntryPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPointᚄ,
 		true,
 		true,
 	)
@@ -19880,7 +19880,7 @@ func (ec *executionContext) _JobConfig_userConfig(ctx context.Context, field gra
 			return obj.UserConfig, nil
 		},
 		nil,
-		ec.marshalNConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntryᚄ,
+		ec.marshalNConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntryᚄ,
 		true,
 		true,
 	)
@@ -20118,7 +20118,7 @@ func (ec *executionContext) _JobConnector_metrics(ctx context.Context, field gra
 			return obj.Metrics, nil
 		},
 		nil,
-		ec.marshalOConnectorMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConnectorMetrics,
+		ec.marshalOConnectorMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐConnectorMetrics,
 		true,
 		false,
 	)
@@ -20360,7 +20360,7 @@ func (ec *executionContext) _JobDetail_vertices(ctx context.Context, field graph
 			return obj.Vertices, nil
 		},
 		nil,
-		ec.marshalNJobVertex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobVertexᚄ,
+		ec.marshalNJobVertex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobVertexᚄ,
 		true,
 		true,
 	)
@@ -20411,7 +20411,7 @@ func (ec *executionContext) _JobDetail_plan(ctx context.Context, field graphql.C
 			return obj.Plan, nil
 		},
 		nil,
-		ec.marshalNJobPlan2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobPlan,
+		ec.marshalNJobPlan2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobPlan,
 		true,
 		true,
 	)
@@ -20450,7 +20450,7 @@ func (ec *executionContext) _JobDetail_exceptions(ctx context.Context, field gra
 			return obj.Exceptions, nil
 		},
 		nil,
-		ec.marshalNExceptionEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntryᚄ,
+		ec.marshalNExceptionEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntryᚄ,
 		true,
 		true,
 	)
@@ -20493,7 +20493,7 @@ func (ec *executionContext) _JobDetail_checkpoints(ctx context.Context, field gr
 			return obj.Checkpoints, nil
 		},
 		nil,
-		ec.marshalOCheckpointStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointStats,
+		ec.marshalOCheckpointStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointStats,
 		true,
 		false,
 	)
@@ -20532,7 +20532,7 @@ func (ec *executionContext) _JobDetail_checkpointConfig(ctx context.Context, fie
 			return obj.CheckpointConfig, nil
 		},
 		nil,
-		ec.marshalOCheckpointConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointConfig,
+		ec.marshalOCheckpointConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointConfig,
 		true,
 		false,
 	)
@@ -20579,7 +20579,7 @@ func (ec *executionContext) _JobDetail_jobConfig(ctx context.Context, field grap
 			return obj.JobConfig, nil
 		},
 		nil,
-		ec.marshalOJobConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConfig,
+		ec.marshalOJobConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConfig,
 		true,
 		false,
 	)
@@ -20624,7 +20624,7 @@ func (ec *executionContext) _JobDetail_restartInfo(ctx context.Context, field gr
 			return obj.RestartInfo, nil
 		},
 		nil,
-		ec.marshalORestartInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestartInfo,
+		ec.marshalORestartInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestartInfo,
 		true,
 		false,
 	)
@@ -20665,7 +20665,7 @@ func (ec *executionContext) _JobDetail_vertexDetails(ctx context.Context, field 
 			return obj.VertexDetails, nil
 		},
 		nil,
-		ec.marshalOVertexDetail2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetailᚄ,
+		ec.marshalOVertexDetail2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetailᚄ,
 		true,
 		false,
 	)
@@ -20706,7 +20706,7 @@ func (ec *executionContext) _JobDetail_watermarks(ctx context.Context, field gra
 			return obj.Watermarks, nil
 		},
 		nil,
-		ec.marshalOVertexWatermarks2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexWatermarksᚄ,
+		ec.marshalOVertexWatermarks2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexWatermarksᚄ,
 		true,
 		false,
 	)
@@ -20741,7 +20741,7 @@ func (ec *executionContext) _JobDetail_backPressure(ctx context.Context, field g
 			return obj.BackPressure, nil
 		},
 		nil,
-		ec.marshalOVertexBackPressure2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexBackPressureᚄ,
+		ec.marshalOVertexBackPressure2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexBackPressureᚄ,
 		true,
 		false,
 	)
@@ -20776,7 +20776,7 @@ func (ec *executionContext) _JobDetail_accumulators(ctx context.Context, field g
 			return obj.Accumulators, nil
 		},
 		nil,
-		ec.marshalOVertexAccumulators2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulatorsᚄ,
+		ec.marshalOVertexAccumulators2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulatorsᚄ,
 		true,
 		false,
 	)
@@ -20811,7 +20811,7 @@ func (ec *executionContext) _JobDetail_metrics(ctx context.Context, field graphq
 			return obj.Metrics, nil
 		},
 		nil,
-		ec.marshalOJobMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobMetrics,
+		ec.marshalOJobMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobMetrics,
 		true,
 		false,
 	)
@@ -20875,7 +20875,7 @@ func (ec *executionContext) _JobDetail_sourcesAndSinks(ctx context.Context, fiel
 			return obj.SourcesAndSinks, nil
 		},
 		nil,
-		ec.marshalNJobConnector2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnectorᚄ,
+		ec.marshalNJobConnector2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnectorᚄ,
 		true,
 		true,
 	)
@@ -20922,7 +20922,7 @@ func (ec *executionContext) _JobHistoryConnection_edges(ctx context.Context, fie
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNJobHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdgeᚄ,
+		ec.marshalNJobHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdgeᚄ,
 		true,
 		true,
 	)
@@ -20957,7 +20957,7 @@ func (ec *executionContext) _JobHistoryConnection_pageInfo(ctx context.Context, 
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNJobHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryPageInfo,
+		ec.marshalNJobHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryPageInfo,
 		true,
 		true,
 	)
@@ -20994,7 +20994,7 @@ func (ec *executionContext) _JobHistoryEdge_node(ctx context.Context, field grap
 			return obj.Node, nil
 		},
 		nil,
-		ec.marshalNJobHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEntry,
+		ec.marshalNJobHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEntry,
 		true,
 		true,
 	)
@@ -21544,7 +21544,7 @@ func (ec *executionContext) _JobManagerDetail_config(ctx context.Context, field 
 			return obj.Config, nil
 		},
 		nil,
-		ec.marshalNJMConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntryᚄ,
+		ec.marshalNJMConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntryᚄ,
 		true,
 		true,
 	)
@@ -21579,7 +21579,7 @@ func (ec *executionContext) _JobManagerDetail_environment(ctx context.Context, f
 			return obj.Environment, nil
 		},
 		nil,
-		ec.marshalOJMEnvironment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMEnvironment,
+		ec.marshalOJMEnvironment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMEnvironment,
 		true,
 		false,
 	)
@@ -21614,7 +21614,7 @@ func (ec *executionContext) _JobManagerDetail_metrics(ctx context.Context, field
 			return obj.Metrics, nil
 		},
 		nil,
-		ec.marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntryᚄ,
+		ec.marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntryᚄ,
 		true,
 		true,
 	)
@@ -21649,7 +21649,7 @@ func (ec *executionContext) _JobManagerDetail_haStatus(ctx context.Context, fiel
 			return obj.HaStatus, nil
 		},
 		nil,
-		ec.marshalNHAStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐHAStatus,
+		ec.marshalNHAStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐHAStatus,
 		true,
 		true,
 	)
@@ -21949,7 +21949,7 @@ func (ec *executionContext) _JobOverview_tasks(ctx context.Context, field graphq
 			return obj.Tasks, nil
 		},
 		nil,
-		ec.marshalNTaskCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskCounts,
+		ec.marshalNTaskCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskCounts,
 		true,
 		true,
 	)
@@ -22232,7 +22232,7 @@ func (ec *executionContext) _JobPlan_nodes(ctx context.Context, field graphql.Co
 			return obj.Nodes, nil
 		},
 		nil,
-		ec.marshalNPlanNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeᚄ,
+		ec.marshalNPlanNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeᚄ,
 		true,
 		true,
 	)
@@ -22652,7 +22652,7 @@ func (ec *executionContext) _JobVertex_tasks(ctx context.Context, field graphql.
 			return obj.Tasks, nil
 		},
 		nil,
-		ec.marshalNTaskCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskCounts,
+		ec.marshalNTaskCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskCounts,
 		true,
 		true,
 	)
@@ -22703,7 +22703,7 @@ func (ec *executionContext) _JobVertex_metrics(ctx context.Context, field graphq
 			return obj.Metrics, nil
 		},
 		nil,
-		ec.marshalNVertexMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexMetrics,
+		ec.marshalNVertexMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexMetrics,
 		true,
 		true,
 	)
@@ -23046,7 +23046,7 @@ func (ec *executionContext) _KafkaConsumerGroupDetail_members(ctx context.Contex
 			return obj.Members, nil
 		},
 		nil,
-		ec.marshalNKafkaGroupMember2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaGroupMemberᚄ,
+		ec.marshalNKafkaGroupMember2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaGroupMemberᚄ,
 		true,
 		true,
 	)
@@ -23083,7 +23083,7 @@ func (ec *executionContext) _KafkaConsumerGroupDetail_offsets(ctx context.Contex
 			return obj.Offsets, nil
 		},
 		nil,
-		ec.marshalNKafkaPartitionOffset2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionOffsetᚄ,
+		ec.marshalNKafkaPartitionOffset2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionOffsetᚄ,
 		true,
 		true,
 	)
@@ -23182,7 +23182,7 @@ func (ec *executionContext) _KafkaGroupMember_assignments(ctx context.Context, f
 			return obj.Assignments, nil
 		},
 		nil,
-		ec.marshalNKafkaTopicPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicPartitionᚄ,
+		ec.marshalNKafkaTopicPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicPartitionᚄ,
 		true,
 		true,
 	)
@@ -23710,7 +23710,7 @@ func (ec *executionContext) _KafkaTopicDetail_partitions(ctx context.Context, fi
 			return obj.Partitions, nil
 		},
 		nil,
-		ec.marshalNKafkaPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionᚄ,
+		ec.marshalNKafkaPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionᚄ,
 		true,
 		true,
 	)
@@ -23749,7 +23749,7 @@ func (ec *executionContext) _KafkaTopicDetail_configEntries(ctx context.Context,
 			return obj.ConfigEntries, nil
 		},
 		nil,
-		ec.marshalNKafkaConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConfigEntryᚄ,
+		ec.marshalNKafkaConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConfigEntryᚄ,
 		true,
 		true,
 	)
@@ -23958,7 +23958,7 @@ func (ec *executionContext) _MaterializedTable_refreshStatus(ctx context.Context
 			return obj.RefreshStatus, nil
 		},
 		nil,
-		ec.marshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus,
+		ec.marshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus,
 		true,
 		true,
 	)
@@ -24509,7 +24509,7 @@ func (ec *executionContext) _MetricTimeSeries_points(ctx context.Context, field 
 			return obj.Points, nil
 		},
 		nil,
-		ec.marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPointᚄ,
+		ec.marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPointᚄ,
 		true,
 		true,
 	)
@@ -24545,7 +24545,7 @@ func (ec *executionContext) _Mutation_createAlertRule(ctx context.Context, field
 			return ec.Resolvers.Mutation().CreateAlertRule(ctx, fc.Args["input"].(model.CreateAlertRuleInput))
 		},
 		nil,
-		ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
+		ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
 		true,
 		true,
 	)
@@ -24608,7 +24608,7 @@ func (ec *executionContext) _Mutation_updateAlertRule(ctx context.Context, field
 			return ec.Resolvers.Mutation().UpdateAlertRule(ctx, fc.Args["id"].(string), fc.Args["input"].(model.UpdateAlertRuleInput))
 		},
 		nil,
-		ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
+		ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
 		true,
 		true,
 	)
@@ -24671,7 +24671,7 @@ func (ec *executionContext) _Mutation_deleteAlertRule(ctx context.Context, field
 			return ec.Resolvers.Mutation().DeleteAlertRule(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNDeleteResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult,
+		ec.marshalNDeleteResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult,
 		true,
 		true,
 	)
@@ -24716,7 +24716,7 @@ func (ec *executionContext) _Mutation_acknowledgeAlert(ctx context.Context, fiel
 			return ec.Resolvers.Mutation().AcknowledgeAlert(ctx, fc.Args["id"].(string), fc.Args["note"].(*string))
 		},
 		nil,
-		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
 		true,
 		true,
 	)
@@ -24781,7 +24781,7 @@ func (ec *executionContext) _Mutation_silenceAlert(ctx context.Context, field gr
 			return ec.Resolvers.Mutation().SilenceAlert(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
 		true,
 		true,
 	)
@@ -24846,7 +24846,7 @@ func (ec *executionContext) _Mutation_resolveAlert(ctx context.Context, field gr
 			return ec.Resolvers.Mutation().ResolveAlert(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
 		true,
 		true,
 	)
@@ -24911,7 +24911,7 @@ func (ec *executionContext) _Mutation_cancelApplication(ctx context.Context, fie
 			return ec.Resolvers.Mutation().CancelApplication(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNCancelApplicationResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult,
+		ec.marshalNCancelApplicationResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult,
 		true,
 		true,
 	)
@@ -24956,7 +24956,7 @@ func (ec *executionContext) _Mutation_checkDeploymentCompatibility(ctx context.C
 			return ec.Resolvers.Mutation().CheckDeploymentCompatibility(ctx, fc.Args["pipeline"].(string), fc.Args["environment"].(*string), fc.Args["newManifest"].(model.StateManifestInput), fc.Args["persist"].(*bool))
 		},
 		nil,
-		ec.marshalNCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport,
+		ec.marshalNCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport,
 		true,
 		true,
 	)
@@ -25013,7 +25013,7 @@ func (ec *executionContext) _Mutation_executeDatabaseQuery(ctx context.Context, 
 			return ec.Resolvers.Mutation().ExecuteDatabaseQuery(ctx, fc.Args["instrument"].(string), fc.Args["sql"].(string))
 		},
 		nil,
-		ec.marshalNDatabaseQueryResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult,
+		ec.marshalNDatabaseQueryResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult,
 		true,
 		true,
 	)
@@ -25066,7 +25066,7 @@ func (ec *executionContext) _Mutation_deleteJar(ctx context.Context, field graph
 			return ec.Resolvers.Mutation().DeleteJar(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNDeleteResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult,
+		ec.marshalNDeleteResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult,
 		true,
 		true,
 	)
@@ -25111,7 +25111,7 @@ func (ec *executionContext) _Mutation_runJar(ctx context.Context, field graphql.
 			return ec.Resolvers.Mutation().RunJar(ctx, fc.Args["id"].(string), fc.Args["entryClass"].(*string), fc.Args["programArgs"].(*string), fc.Args["parallelism"].(*int), fc.Args["savepointPath"].(*string), fc.Args["allowNonRestoredState"].(*bool), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNJarRunResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarRunResult,
+		ec.marshalNJarRunResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarRunResult,
 		true,
 		true,
 	)
@@ -25156,7 +25156,7 @@ func (ec *executionContext) _Mutation_cancelJob(ctx context.Context, field graph
 			return ec.Resolvers.Mutation().CancelJob(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNCancelJobResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelJobResult,
+		ec.marshalNCancelJobResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelJobResult,
 		true,
 		true,
 	)
@@ -25201,7 +25201,7 @@ func (ec *executionContext) _Mutation_triggerSavepoint(ctx context.Context, fiel
 			return ec.Resolvers.Mutation().TriggerSavepoint(ctx, fc.Args["jobId"].(string), fc.Args["targetDirectory"].(*string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult,
+		ec.marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult,
 		true,
 		true,
 	)
@@ -25246,7 +25246,7 @@ func (ec *executionContext) _Mutation_stopJobWithSavepoint(ctx context.Context, 
 			return ec.Resolvers.Mutation().StopJobWithSavepoint(ctx, fc.Args["jobId"].(string), fc.Args["targetDirectory"].(*string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult,
+		ec.marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult,
 		true,
 		true,
 	)
@@ -25291,7 +25291,7 @@ func (ec *executionContext) _Mutation_rescaleJob(ctx context.Context, field grap
 			return ec.Resolvers.Mutation().RescaleJob(ctx, fc.Args["jobId"].(string), fc.Args["newParallelism"].(int), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult,
+		ec.marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult,
 		true,
 		true,
 	)
@@ -25336,7 +25336,7 @@ func (ec *executionContext) _Mutation_suspendMaterializedTable(ctx context.Conte
 			return ec.Resolvers.Mutation().SuspendMaterializedTable(ctx, fc.Args["name"].(string), fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
+		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
 		true,
 		true,
 	)
@@ -25393,7 +25393,7 @@ func (ec *executionContext) _Mutation_resumeMaterializedTable(ctx context.Contex
 			return ec.Resolvers.Mutation().ResumeMaterializedTable(ctx, fc.Args["name"].(string), fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
+		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
 		true,
 		true,
 	)
@@ -25450,7 +25450,7 @@ func (ec *executionContext) _Mutation_refreshMaterializedTable(ctx context.Conte
 			return ec.Resolvers.Mutation().RefreshMaterializedTable(ctx, fc.Args["name"].(string), fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
+		ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
 		true,
 		true,
 	)
@@ -25507,7 +25507,7 @@ func (ec *executionContext) _Mutation_checkSchemaCompatibility(ctx context.Conte
 			return ec.Resolvers.Mutation().CheckSchemaCompatibility(ctx, fc.Args["instrument"].(string), fc.Args["subject"].(string), fc.Args["schema"].(string), fc.Args["schemaType"].(string))
 		},
 		nil,
-		ec.marshalNCompatibilityResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityResult,
+		ec.marshalNCompatibilityResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityResult,
 		true,
 		true,
 	)
@@ -25554,7 +25554,7 @@ func (ec *executionContext) _Mutation_runSimulation(ctx context.Context, field g
 			return ec.Resolvers.Mutation().RunSimulation(ctx, fc.Args["input"].(model.SimulationInput))
 		},
 		nil,
-		ec.marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun,
+		ec.marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun,
 		true,
 		true,
 	)
@@ -25611,7 +25611,7 @@ func (ec *executionContext) _Mutation_stopSimulation(ctx context.Context, field 
 			return ec.Resolvers.Mutation().StopSimulation(ctx, fc.Args["runId"].(string))
 		},
 		nil,
-		ec.marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun,
+		ec.marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun,
 		true,
 		true,
 	)
@@ -25668,7 +25668,7 @@ func (ec *executionContext) _Mutation_createSQLSession(ctx context.Context, fiel
 			return ec.Resolvers.Mutation().CreateSQLSession(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSQLSessionResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLSessionResult,
+		ec.marshalNSQLSessionResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLSessionResult,
 		true,
 		true,
 	)
@@ -25713,7 +25713,7 @@ func (ec *executionContext) _Mutation_submitStatement(ctx context.Context, field
 			return ec.Resolvers.Mutation().SubmitStatement(ctx, fc.Args["sessionHandle"].(string), fc.Args["statement"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSQLStatementResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLStatementResult,
+		ec.marshalNSQLStatementResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLStatementResult,
 		true,
 		true,
 	)
@@ -25758,7 +25758,7 @@ func (ec *executionContext) _Mutation_fetchSQLResults(ctx context.Context, field
 			return ec.Resolvers.Mutation().FetchSQLResults(ctx, fc.Args["sessionHandle"].(string), fc.Args["operationHandle"].(string), fc.Args["token"].(*string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSQLFetchResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLFetchResult,
+		ec.marshalNSQLFetchResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLFetchResult,
 		true,
 		true,
 	)
@@ -25811,7 +25811,7 @@ func (ec *executionContext) _Mutation_closeSQLSession(ctx context.Context, field
 			return ec.Resolvers.Mutation().CloseSQLSession(ctx, fc.Args["sessionHandle"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSQLCloseResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLCloseResult,
+		ec.marshalNSQLCloseResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLCloseResult,
 		true,
 		true,
 	)
@@ -25856,7 +25856,7 @@ func (ec *executionContext) _Mutation_explainStatement(ctx context.Context, fiel
 			return ec.Resolvers.Mutation().ExplainStatement(ctx, fc.Args["sessionHandle"].(string), fc.Args["statement"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSQLExplainResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult,
+		ec.marshalNSQLExplainResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult,
 		true,
 		true,
 	)
@@ -26337,7 +26337,7 @@ func (ec *executionContext) _PipelineStateSummary_lastVerdict(ctx context.Contex
 			return obj.LastVerdict, nil
 		},
 		nil,
-		ec.marshalOCompatibilityVerdict2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict,
+		ec.marshalOCompatibilityVerdict2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict,
 		true,
 		false,
 	)
@@ -26656,7 +26656,7 @@ func (ec *executionContext) _PlanNode_inputs(ctx context.Context, field graphql.
 			return obj.Inputs, nil
 		},
 		nil,
-		ec.marshalOPlanNodeInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInputᚄ,
+		ec.marshalOPlanNodeInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInputᚄ,
 		true,
 		false,
 	)
@@ -27014,7 +27014,7 @@ func (ec *executionContext) _Query_clusters(ctx context.Context, field graphql.C
 			return ec.Resolvers.Query().Clusters(ctx)
 		},
 		nil,
-		ec.marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfoᚄ,
+		ec.marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfoᚄ,
 		true,
 		true,
 	)
@@ -27058,7 +27058,7 @@ func (ec *executionContext) _Query_alertRules(ctx context.Context, field graphql
 			return ec.Resolvers.Query().AlertRules(ctx, fc.Args["enabledOnly"].(*bool))
 		},
 		nil,
-		ec.marshalNAlertRule2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRuleᚄ,
+		ec.marshalNAlertRule2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRuleᚄ,
 		true,
 		true,
 	)
@@ -27121,7 +27121,7 @@ func (ec *executionContext) _Query_alertRule(ctx context.Context, field graphql.
 			return ec.Resolvers.Query().AlertRule(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
+		ec.marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule,
 		true,
 		false,
 	)
@@ -27183,7 +27183,7 @@ func (ec *executionContext) _Query_activeAlerts(ctx context.Context, field graph
 			return ec.Resolvers.Query().ActiveAlerts(ctx)
 		},
 		nil,
-		ec.marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ,
+		ec.marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ,
 		true,
 		true,
 	)
@@ -27237,7 +27237,7 @@ func (ec *executionContext) _Query_alertHistory(ctx context.Context, field graph
 			return ec.Resolvers.Query().AlertHistory(ctx, fc.Args["filter"].(*model.AlertHistoryFilterInput))
 		},
 		nil,
-		ec.marshalNAlertHistoryPage2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage,
+		ec.marshalNAlertHistoryPage2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage,
 		true,
 		true,
 	)
@@ -27284,7 +27284,7 @@ func (ec *executionContext) _Query_applications(ctx context.Context, field graph
 			return ec.Resolvers.Query().Applications(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNApplication2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplicationᚄ,
+		ec.marshalNApplication2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplicationᚄ,
 		true,
 		true,
 	)
@@ -27337,7 +27337,7 @@ func (ec *executionContext) _Query_application(ctx context.Context, field graphq
 			return ec.Resolvers.Query().Application(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalOApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication,
+		ec.marshalOApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication,
 		true,
 		false,
 	)
@@ -27390,7 +27390,7 @@ func (ec *executionContext) _Query_blueGreenDeployments(ctx context.Context, fie
 			return ec.Resolvers.Query().BlueGreenDeployments(ctx, fc.Args["cluster"].(*string), fc.Args["namespace"].(*string))
 		},
 		nil,
-		ec.marshalNBlueGreenDeployment2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeploymentᚄ,
+		ec.marshalNBlueGreenDeployment2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeploymentᚄ,
 		true,
 		true,
 	)
@@ -27461,7 +27461,7 @@ func (ec *executionContext) _Query_blueGreenDeployment(ctx context.Context, fiel
 			return ec.Resolvers.Query().BlueGreenDeployment(ctx, fc.Args["name"].(string), fc.Args["namespace"].(*string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalOBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment,
+		ec.marshalOBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment,
 		true,
 		false,
 	)
@@ -27532,7 +27532,7 @@ func (ec *executionContext) _Query_blueGreenDeploymentConfigDiff(ctx context.Con
 			return ec.Resolvers.Query().BlueGreenDeploymentConfigDiff(ctx, fc.Args["name"].(string), fc.Args["namespace"].(*string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNBlueGreenConfigDiff2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff,
+		ec.marshalNBlueGreenConfigDiff2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff,
 		true,
 		true,
 	)
@@ -27579,7 +27579,7 @@ func (ec *executionContext) _Query_catalogs(ctx context.Context, field graphql.C
 			return ec.Resolvers.Query().Catalogs(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNCatalogInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogInfoᚄ,
+		ec.marshalNCatalogInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogInfoᚄ,
 		true,
 		true,
 	)
@@ -27634,7 +27634,7 @@ func (ec *executionContext) _Query_catalogDatabases(ctx context.Context, field g
 			return ec.Resolvers.Query().CatalogDatabases(ctx, fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNCatalogDatabase2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogDatabaseᚄ,
+		ec.marshalNCatalogDatabase2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogDatabaseᚄ,
 		true,
 		true,
 	)
@@ -27679,7 +27679,7 @@ func (ec *executionContext) _Query_catalogTables(ctx context.Context, field grap
 			return ec.Resolvers.Query().CatalogTables(ctx, fc.Args["catalog"].(string), fc.Args["database"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNCatalogTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogTableᚄ,
+		ec.marshalNCatalogTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogTableᚄ,
 		true,
 		true,
 	)
@@ -27724,7 +27724,7 @@ func (ec *executionContext) _Query_catalogColumns(ctx context.Context, field gra
 			return ec.Resolvers.Query().CatalogColumns(ctx, fc.Args["catalog"].(string), fc.Args["database"].(string), fc.Args["table"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNColumnInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfoᚄ,
+		ec.marshalNColumnInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfoᚄ,
 		true,
 		true,
 	)
@@ -27812,7 +27812,7 @@ func (ec *executionContext) _Query_pipelineManifestVersions(ctx context.Context,
 			return ec.Resolvers.Query().PipelineManifestVersions(ctx, fc.Args["pipeline"].(string), fc.Args["environment"].(*string))
 		},
 		nil,
-		ec.marshalNPipelineManifestVersion2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersionᚄ,
+		ec.marshalNPipelineManifestVersion2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersionᚄ,
 		true,
 		true,
 	)
@@ -27873,7 +27873,7 @@ func (ec *executionContext) _Query_latestCompatibilityReport(ctx context.Context
 			return ec.Resolvers.Query().LatestCompatibilityReport(ctx, fc.Args["pipeline"].(string), fc.Args["environment"].(*string))
 		},
 		nil,
-		ec.marshalOCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport,
+		ec.marshalOCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport,
 		true,
 		false,
 	)
@@ -27930,7 +27930,7 @@ func (ec *executionContext) _Query_restoreEvents(ctx context.Context, field grap
 			return ec.Resolvers.Query().RestoreEvents(ctx, fc.Args["pipeline"].(string), fc.Args["environment"].(*string))
 		},
 		nil,
-		ec.marshalNRestoreEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEventᚄ,
+		ec.marshalNRestoreEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEventᚄ,
 		true,
 		true,
 	)
@@ -27993,7 +27993,7 @@ func (ec *executionContext) _Query_pipelineStateSummaries(ctx context.Context, f
 			return ec.Resolvers.Query().PipelineStateSummaries(ctx, fc.Args["environment"].(*string))
 		},
 		nil,
-		ec.marshalNPipelineStateSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineStateSummaryᚄ,
+		ec.marshalNPipelineStateSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineStateSummaryᚄ,
 		true,
 		true,
 	)
@@ -28060,7 +28060,7 @@ func (ec *executionContext) _Query_flinkConfig(ctx context.Context, field graphq
 			return ec.Resolvers.Query().FlinkConfig(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNFlinkConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkConfig,
+		ec.marshalNFlinkConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkConfig,
 		true,
 		true,
 	)
@@ -28114,7 +28114,7 @@ func (ec *executionContext) _Query_dashboardConfig(ctx context.Context, field gr
 			return ec.Resolvers.Query().DashboardConfig(ctx)
 		},
 		nil,
-		ec.marshalNDashboardConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig,
+		ec.marshalNDashboardConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig,
 		true,
 		true,
 	)
@@ -28150,7 +28150,7 @@ func (ec *executionContext) _Query_databaseSchemas(ctx context.Context, field gr
 			return ec.Resolvers.Query().DatabaseSchemas(ctx, fc.Args["instrument"].(string))
 		},
 		nil,
-		ec.marshalNDatabaseSchema2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchemaᚄ,
+		ec.marshalNDatabaseSchema2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchemaᚄ,
 		true,
 		true,
 	)
@@ -28197,7 +28197,7 @@ func (ec *executionContext) _Query_databaseTables(ctx context.Context, field gra
 			return ec.Resolvers.Query().DatabaseTables(ctx, fc.Args["instrument"].(string), fc.Args["schema"].(string))
 		},
 		nil,
-		ec.marshalNDatabaseTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummaryᚄ,
+		ec.marshalNDatabaseTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummaryᚄ,
 		true,
 		true,
 	)
@@ -28248,7 +28248,7 @@ func (ec *executionContext) _Query_databaseTable(ctx context.Context, field grap
 			return ec.Resolvers.Query().DatabaseTable(ctx, fc.Args["instrument"].(string), fc.Args["schema"].(string), fc.Args["table"].(string))
 		},
 		nil,
-		ec.marshalNDatabaseTableDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail,
+		ec.marshalNDatabaseTableDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail,
 		true,
 		true,
 	)
@@ -28301,7 +28301,7 @@ func (ec *executionContext) _Query_databaseQueryHistory(ctx context.Context, fie
 			return ec.Resolvers.Query().DatabaseQueryHistory(ctx, fc.Args["instrument"].(string))
 		},
 		nil,
-		ec.marshalNDatabaseQueryHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntryᚄ,
+		ec.marshalNDatabaseQueryHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntryᚄ,
 		true,
 		true,
 	)
@@ -28395,7 +28395,7 @@ func (ec *executionContext) _Query_flussTables(ctx context.Context, field graphq
 			return ec.Resolvers.Query().FlussTables(ctx, fc.Args["instrument"].(string), fc.Args["database"].(string))
 		},
 		nil,
-		ec.marshalNFlussTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummaryᚄ,
+		ec.marshalNFlussTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummaryᚄ,
 		true,
 		true,
 	)
@@ -28452,7 +28452,7 @@ func (ec *executionContext) _Query_flussTable(ctx context.Context, field graphql
 			return ec.Resolvers.Query().FlussTable(ctx, fc.Args["instrument"].(string), fc.Args["database"].(string), fc.Args["table"].(string))
 		},
 		nil,
-		ec.marshalNFlussTableMetadata2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata,
+		ec.marshalNFlussTableMetadata2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata,
 		true,
 		true,
 	)
@@ -28515,7 +28515,7 @@ func (ec *executionContext) _Query_flussTabletServers(ctx context.Context, field
 			return ec.Resolvers.Query().FlussTabletServers(ctx, fc.Args["instrument"].(string))
 		},
 		nil,
-		ec.marshalNFlussTabletServerHealth2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealthᚄ,
+		ec.marshalNFlussTabletServerHealth2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealthᚄ,
 		true,
 		true,
 	)
@@ -28563,7 +28563,7 @@ func (ec *executionContext) _Query_storageStatus(ctx context.Context, field grap
 			return ec.Resolvers.Query().StorageStatus(ctx)
 		},
 		nil,
-		ec.marshalNStorageStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus,
+		ec.marshalNStorageStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus,
 		true,
 		true,
 	)
@@ -28605,7 +28605,7 @@ func (ec *executionContext) _Query_jobHistory(ctx context.Context, field graphql
 			return ec.Resolvers.Query().JobHistory(ctx, fc.Args["filter"].(*model.JobHistoryFilter), fc.Args["pagination"].(*model.PaginationInput), fc.Args["orderBy"].(*model.OrderByInput))
 		},
 		nil,
-		ec.marshalNJobHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection,
+		ec.marshalNJobHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection,
 		true,
 		true,
 	)
@@ -28652,7 +28652,7 @@ func (ec *executionContext) _Query_checkpointHistory(ctx context.Context, field 
 			return ec.Resolvers.Query().CheckpointHistory(ctx, fc.Args["filter"].(*model.CheckpointHistoryFilter), fc.Args["pagination"].(*model.PaginationInput))
 		},
 		nil,
-		ec.marshalNCheckpointHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection,
+		ec.marshalNCheckpointHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection,
 		true,
 		true,
 	)
@@ -28699,7 +28699,7 @@ func (ec *executionContext) _Query_exceptionHistory(ctx context.Context, field g
 			return ec.Resolvers.Query().ExceptionHistory(ctx, fc.Args["filter"].(*model.ExceptionHistoryFilter), fc.Args["pagination"].(*model.PaginationInput))
 		},
 		nil,
-		ec.marshalNExceptionHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection,
+		ec.marshalNExceptionHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection,
 		true,
 		true,
 	)
@@ -28746,7 +28746,7 @@ func (ec *executionContext) _Query_metricHistory(ctx context.Context, field grap
 			return ec.Resolvers.Query().MetricHistory(ctx, fc.Args["filter"].(model.MetricHistoryFilter))
 		},
 		nil,
-		ec.marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPointᚄ,
+		ec.marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPointᚄ,
 		true,
 		true,
 	)
@@ -28793,7 +28793,7 @@ func (ec *executionContext) _Query_clusterOverviewHistory(ctx context.Context, f
 			return ec.Resolvers.Query().ClusterOverviewHistory(ctx, fc.Args["clusterID"].(string), fc.Args["after"].(*string), fc.Args["before"].(*string))
 		},
 		nil,
-		ec.marshalNClusterOverviewSnapshot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshotᚄ,
+		ec.marshalNClusterOverviewSnapshot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshotᚄ,
 		true,
 		true,
 	)
@@ -28856,7 +28856,7 @@ func (ec *executionContext) _Query_metricCatalog(ctx context.Context, field grap
 			return ec.Resolvers.Query().MetricCatalog(ctx, fc.Args["clusterID"].(string))
 		},
 		nil,
-		ec.marshalNMetricCatalogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricCatalogEntryᚄ,
+		ec.marshalNMetricCatalogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricCatalogEntryᚄ,
 		true,
 		true,
 	)
@@ -28905,7 +28905,7 @@ func (ec *executionContext) _Query_metricSeries(ctx context.Context, field graph
 			return ec.Resolvers.Query().MetricSeries(ctx, fc.Args["clusterID"].(string), fc.Args["series"].([]*model.MetricSeriesRequest), fc.Args["after"].(string), fc.Args["before"].(string), fc.Args["maxPoints"].(*int))
 		},
 		nil,
-		ec.marshalNMetricTimeSeries2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricTimeSeriesᚄ,
+		ec.marshalNMetricTimeSeries2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricTimeSeriesᚄ,
 		true,
 		true,
 	)
@@ -28955,7 +28955,7 @@ func (ec *executionContext) _Query_instruments(ctx context.Context, field graphq
 			return ec.Resolvers.Query().Instruments(ctx)
 		},
 		nil,
-		ec.marshalNInstrumentInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentInfoᚄ,
+		ec.marshalNInstrumentInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentInfoᚄ,
 		true,
 		true,
 	)
@@ -29001,7 +29001,7 @@ func (ec *executionContext) _Query_jars(ctx context.Context, field graphql.Colle
 			return ec.Resolvers.Query().Jars(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNJarFile2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarFileᚄ,
+		ec.marshalNJarFile2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarFileᚄ,
 		true,
 		true,
 	)
@@ -29052,7 +29052,7 @@ func (ec *executionContext) _Query_jobManager(ctx context.Context, field graphql
 			return ec.Resolvers.Query().JobManager(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNJobManagerDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobManagerDetail,
+		ec.marshalNJobManagerDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobManagerDetail,
 		true,
 		true,
 	)
@@ -29185,7 +29185,7 @@ func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.Colle
 			return ec.Resolvers.Query().Jobs(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNJobOverview2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobOverviewᚄ,
+		ec.marshalNJobOverview2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobOverviewᚄ,
 		true,
 		true,
 	)
@@ -29254,7 +29254,7 @@ func (ec *executionContext) _Query_job(ctx context.Context, field graphql.Collec
 			return ec.Resolvers.Query().Job(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNJobDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobDetail,
+		ec.marshalNJobDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobDetail,
 		true,
 		true,
 	)
@@ -29339,7 +29339,7 @@ func (ec *executionContext) _Query_vertexDetail(ctx context.Context, field graph
 			return ec.Resolvers.Query().VertexDetail(ctx, fc.Args["jobId"].(string), fc.Args["vertexId"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNVertexDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetail,
+		ec.marshalNVertexDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetail,
 		true,
 		true,
 	)
@@ -29392,7 +29392,7 @@ func (ec *executionContext) _Query_subtaskTimes(ctx context.Context, field graph
 			return ec.Resolvers.Query().SubtaskTimes(ctx, fc.Args["jobId"].(string), fc.Args["vertexId"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSubtaskTimes2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimes,
+		ec.marshalNSubtaskTimes2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimes,
 		true,
 		true,
 	)
@@ -29443,7 +29443,7 @@ func (ec *executionContext) _Query_flamegraph(ctx context.Context, field graphql
 			return ec.Resolvers.Query().Flamegraph(ctx, fc.Args["jobId"].(string), fc.Args["vertexId"].(string), fc.Args["type"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNFlamegraph2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraph,
+		ec.marshalNFlamegraph2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraph,
 		true,
 		true,
 	)
@@ -29490,7 +29490,7 @@ func (ec *executionContext) _Query_checkpointDetail(ctx context.Context, field g
 			return ec.Resolvers.Query().CheckpointDetail(ctx, fc.Args["jobId"].(string), fc.Args["checkpointId"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
+		ec.marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
 		true,
 		true,
 	)
@@ -29557,7 +29557,7 @@ func (ec *executionContext) _Query_savepoints(ctx context.Context, field graphql
 			return ec.Resolvers.Query().Savepoints(ctx, fc.Args["jobId"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSavepoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointᚄ,
+		ec.marshalNSavepoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointᚄ,
 		true,
 		true,
 	)
@@ -29616,7 +29616,7 @@ func (ec *executionContext) _Query_savepoint(ctx context.Context, field graphql.
 			return ec.Resolvers.Query().Savepoint(ctx, fc.Args["jobId"].(string), fc.Args["savepointId"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint,
+		ec.marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint,
 		true,
 		true,
 	)
@@ -29675,7 +29675,7 @@ func (ec *executionContext) _Query_rescaleHistory(ctx context.Context, field gra
 			return ec.Resolvers.Query().RescaleHistory(ctx, fc.Args["jobId"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNRescaleEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEventᚄ,
+		ec.marshalNRescaleEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEventᚄ,
 		true,
 		true,
 	)
@@ -29732,7 +29732,7 @@ func (ec *executionContext) _Query_rescaleDetail(ctx context.Context, field grap
 			return ec.Resolvers.Query().RescaleDetail(ctx, fc.Args["jobId"].(string), fc.Args["rescaleUuid"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent,
+		ec.marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent,
 		true,
 		true,
 	)
@@ -29789,7 +29789,7 @@ func (ec *executionContext) _Query_rescaleSummary(ctx context.Context, field gra
 			return ec.Resolvers.Query().RescaleSummary(ctx, fc.Args["jobId"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNRescaleSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary,
+		ec.marshalNRescaleSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary,
 		true,
 		true,
 	)
@@ -29836,7 +29836,7 @@ func (ec *executionContext) _Query_kafkaTopics(ctx context.Context, field graphq
 			return ec.Resolvers.Query().KafkaTopics(ctx, fc.Args["instrument"].(string))
 		},
 		nil,
-		ec.marshalNKafkaTopic2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicᚄ,
+		ec.marshalNKafkaTopic2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicᚄ,
 		true,
 		true,
 	)
@@ -29887,7 +29887,7 @@ func (ec *executionContext) _Query_kafkaTopic(ctx context.Context, field graphql
 			return ec.Resolvers.Query().KafkaTopic(ctx, fc.Args["instrument"].(string), fc.Args["name"].(string))
 		},
 		nil,
-		ec.marshalNKafkaTopicDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicDetail,
+		ec.marshalNKafkaTopicDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicDetail,
 		true,
 		true,
 	)
@@ -29944,7 +29944,7 @@ func (ec *executionContext) _Query_kafkaConsumerGroups(ctx context.Context, fiel
 			return ec.Resolvers.Query().KafkaConsumerGroups(ctx, fc.Args["instrument"].(string))
 		},
 		nil,
-		ec.marshalNKafkaConsumerGroup2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupᚄ,
+		ec.marshalNKafkaConsumerGroup2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupᚄ,
 		true,
 		true,
 	)
@@ -29995,7 +29995,7 @@ func (ec *executionContext) _Query_kafkaConsumerGroup(ctx context.Context, field
 			return ec.Resolvers.Query().KafkaConsumerGroup(ctx, fc.Args["instrument"].(string), fc.Args["groupId"].(string))
 		},
 		nil,
-		ec.marshalNKafkaConsumerGroupDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupDetail,
+		ec.marshalNKafkaConsumerGroupDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupDetail,
 		true,
 		true,
 	)
@@ -30050,7 +30050,7 @@ func (ec *executionContext) _Query_materializedTables(ctx context.Context, field
 			return ec.Resolvers.Query().MaterializedTables(ctx, fc.Args["cluster"].(*string), fc.Args["catalog"].(*string))
 		},
 		nil,
-		ec.marshalNMaterializedTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableᚄ,
+		ec.marshalNMaterializedTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableᚄ,
 		true,
 		true,
 	)
@@ -30107,7 +30107,7 @@ func (ec *executionContext) _Query_materializedTable(ctx context.Context, field 
 			return ec.Resolvers.Query().MaterializedTable(ctx, fc.Args["name"].(string), fc.Args["catalog"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
+		ec.marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable,
 		true,
 		false,
 	)
@@ -30164,7 +30164,7 @@ func (ec *executionContext) _Query_redisScan(ctx context.Context, field graphql.
 			return ec.Resolvers.Query().RedisScan(ctx, fc.Args["instrument"].(string), fc.Args["cursor"].(*string), fc.Args["pattern"].(*string), fc.Args["count"].(*int))
 		},
 		nil,
-		ec.marshalNRedisScanResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult,
+		ec.marshalNRedisScanResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult,
 		true,
 		true,
 	)
@@ -30213,7 +30213,7 @@ func (ec *executionContext) _Query_redisKeyInfo(ctx context.Context, field graph
 			return ec.Resolvers.Query().RedisKeyInfo(ctx, fc.Args["instrument"].(string), fc.Args["key"].(string))
 		},
 		nil,
-		ec.marshalNRedisKeyInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo,
+		ec.marshalNRedisKeyInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo,
 		true,
 		true,
 	)
@@ -30266,7 +30266,7 @@ func (ec *executionContext) _Query_redisKeyValue(ctx context.Context, field grap
 			return ec.Resolvers.Query().RedisKeyValue(ctx, fc.Args["instrument"].(string), fc.Args["key"].(string))
 		},
 		nil,
-		ec.marshalNRedisKeyValue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue,
+		ec.marshalNRedisKeyValue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue,
 		true,
 		true,
 	)
@@ -30327,7 +30327,7 @@ func (ec *executionContext) _Query_redisServerInfo(ctx context.Context, field gr
 			return ec.Resolvers.Query().RedisServerInfo(ctx, fc.Args["instrument"].(string))
 		},
 		nil,
-		ec.marshalNRedisServerInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo,
+		ec.marshalNRedisServerInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo,
 		true,
 		true,
 	)
@@ -30384,7 +30384,7 @@ func (ec *executionContext) _Query_redisMemoryStats(ctx context.Context, field g
 			return ec.Resolvers.Query().RedisMemoryStats(ctx, fc.Args["instrument"].(string))
 		},
 		nil,
-		ec.marshalNRedisMemoryStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats,
+		ec.marshalNRedisMemoryStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats,
 		true,
 		true,
 	)
@@ -30441,7 +30441,7 @@ func (ec *executionContext) _Query_schemaSubjects(ctx context.Context, field gra
 			return ec.Resolvers.Query().SchemaSubjects(ctx, fc.Args["instrument"].(string))
 		},
 		nil,
-		ec.marshalNSchemaSubject2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubjectᚄ,
+		ec.marshalNSchemaSubject2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubjectᚄ,
 		true,
 		true,
 	)
@@ -30535,7 +30535,7 @@ func (ec *executionContext) _Query_schemaDetail(ctx context.Context, field graph
 			return ec.Resolvers.Query().SchemaDetail(ctx, fc.Args["instrument"].(string), fc.Args["subject"].(string), fc.Args["version"].(int))
 		},
 		nil,
-		ec.marshalNSchemaDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaDetail,
+		ec.marshalNSchemaDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaDetail,
 		true,
 		true,
 	)
@@ -30589,7 +30589,7 @@ func (ec *executionContext) _Query_simulationPreflight(ctx context.Context, fiel
 			return ec.Resolvers.Query().SimulationPreflight(ctx)
 		},
 		nil,
-		ec.marshalNPreflightCheck2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheckᚄ,
+		ec.marshalNPreflightCheck2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheckᚄ,
 		true,
 		true,
 	)
@@ -30632,7 +30632,7 @@ func (ec *executionContext) _Query_simulationRuns(ctx context.Context, field gra
 			return ec.Resolvers.Query().SimulationRuns(ctx)
 		},
 		nil,
-		ec.marshalNSimulationRun2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRunᚄ,
+		ec.marshalNSimulationRun2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRunᚄ,
 		true,
 		true,
 	)
@@ -30678,7 +30678,7 @@ func (ec *executionContext) _Query_simulationRun(ctx context.Context, field grap
 			return ec.Resolvers.Query().SimulationRun(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalOSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun,
+		ec.marshalOSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun,
 		true,
 		false,
 	)
@@ -30734,7 +30734,7 @@ func (ec *executionContext) _Query_simulationPresets(ctx context.Context, field 
 			return ec.Resolvers.Query().SimulationPresets(ctx)
 		},
 		nil,
-		ec.marshalNSimulationPreset2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationPresetᚄ,
+		ec.marshalNSimulationPreset2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationPresetᚄ,
 		true,
 		true,
 	)
@@ -30775,7 +30775,7 @@ func (ec *executionContext) _Query_tapManifests(ctx context.Context, field graph
 			return ec.Resolvers.Query().TapManifests(ctx)
 		},
 		nil,
-		ec.marshalNTapManifest2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTapManifestᚄ,
+		ec.marshalNTapManifest2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTapManifestᚄ,
 		true,
 		true,
 	)
@@ -30815,7 +30815,7 @@ func (ec *executionContext) _Query_taskManagers(ctx context.Context, field graph
 			return ec.Resolvers.Query().TaskManagers(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNTaskManagerOverview2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerOverviewᚄ,
+		ec.marshalNTaskManagerOverview2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerOverviewᚄ,
 		true,
 		true,
 	)
@@ -30880,7 +30880,7 @@ func (ec *executionContext) _Query_taskManager(ctx context.Context, field graphq
 			return ec.Resolvers.Query().TaskManager(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNTaskManagerDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerDetail,
+		ec.marshalNTaskManagerDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerDetail,
 		true,
 		true,
 	)
@@ -30949,7 +30949,7 @@ func (ec *executionContext) _Query_taskManagerLogs(ctx context.Context, field gr
 			return ec.Resolvers.Query().TaskManagerLogs(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNTMLogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTMLogEntryᚄ,
+		ec.marshalNTMLogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTMLogEntryᚄ,
 		true,
 		true,
 	)
@@ -30996,7 +30996,7 @@ func (ec *executionContext) _Query_taskManagerThreadDump(ctx context.Context, fi
 			return ec.Resolvers.Query().TaskManagerThreadDump(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNThreadDumpEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntryᚄ,
+		ec.marshalNThreadDumpEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntryᚄ,
 		true,
 		true,
 	)
@@ -31522,7 +31522,7 @@ func (ec *executionContext) _RedisKeyValue_hashValue(ctx context.Context, field 
 			return obj.HashValue, nil
 		},
 		nil,
-		ec.marshalORedisHashEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntryᚄ,
+		ec.marshalORedisHashEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntryᚄ,
 		true,
 		false,
 	)
@@ -31615,7 +31615,7 @@ func (ec *executionContext) _RedisKeyValue_zsetValue(ctx context.Context, field 
 			return obj.ZsetValue, nil
 		},
 		nil,
-		ec.marshalORedisZSetEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntryᚄ,
+		ec.marshalORedisZSetEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntryᚄ,
 		true,
 		false,
 	)
@@ -32288,7 +32288,7 @@ func (ec *executionContext) _RescaleEvent_status(ctx context.Context, field grap
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus,
+		ec.marshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus,
 		true,
 		true,
 	)
@@ -33129,7 +33129,7 @@ func (ec *executionContext) _SQLFetchResult_columns(ctx context.Context, field g
 			return obj.Columns, nil
 		},
 		nil,
-		ec.marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumnᚄ,
+		ec.marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumnᚄ,
 		true,
 		true,
 	)
@@ -33280,7 +33280,7 @@ func (ec *executionContext) _SQLResultBatch_columns(ctx context.Context, field g
 			return obj.Columns, nil
 		},
 		nil,
-		ec.marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumnᚄ,
+		ec.marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumnᚄ,
 		true,
 		true,
 	)
@@ -33460,7 +33460,7 @@ func (ec *executionContext) _Savepoint_status(ctx context.Context, field graphql
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus,
+		ec.marshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus,
 		true,
 		true,
 	)
@@ -33489,7 +33489,7 @@ func (ec *executionContext) _Savepoint_triggerType(ctx context.Context, field gr
 			return obj.TriggerType, nil
 		},
 		nil,
-		ec.marshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType,
+		ec.marshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType,
 		true,
 		true,
 	)
@@ -33837,7 +33837,7 @@ func (ec *executionContext) _SchemaDetail_references(ctx context.Context, field 
 			return obj.References, nil
 		},
 		nil,
-		ec.marshalNSchemaReference2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaReferenceᚄ,
+		ec.marshalNSchemaReference2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaReferenceᚄ,
 		true,
 		true,
 	)
@@ -34425,7 +34425,7 @@ func (ec *executionContext) _SimulationRun_status(ctx context.Context, field gra
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNSimulationStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationStatus,
+		ec.marshalNSimulationStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationStatus,
 		true,
 		true,
 	)
@@ -34541,7 +34541,7 @@ func (ec *executionContext) _SimulationRun_observations(ctx context.Context, fie
 			return obj.Observations, nil
 		},
 		nil,
-		ec.marshalNSimulationObservation2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationObservationᚄ,
+		ec.marshalNSimulationObservation2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationObservationᚄ,
 		true,
 		true,
 	)
@@ -35450,7 +35450,7 @@ func (ec *executionContext) _Subscription_alertFired(ctx context.Context, field 
 			return ec.Resolvers.Subscription().AlertFired(ctx)
 		},
 		nil,
-		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
 		true,
 		true,
 	)
@@ -35503,7 +35503,7 @@ func (ec *executionContext) _Subscription_alertResolved(ctx context.Context, fie
 			return ec.Resolvers.Subscription().AlertResolved(ctx)
 		},
 		nil,
-		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
+		ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance,
 		true,
 		true,
 	)
@@ -35557,7 +35557,7 @@ func (ec *executionContext) _Subscription_blueGreenStateChanged(ctx context.Cont
 			return ec.Resolvers.Subscription().BlueGreenStateChanged(ctx, fc.Args["cluster"].(*string), fc.Args["namespace"].(*string))
 		},
 		nil,
-		ec.marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment,
+		ec.marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment,
 		true,
 		true,
 	)
@@ -35628,7 +35628,7 @@ func (ec *executionContext) _Subscription_jobStatusChanged(ctx context.Context, 
 			return ec.Resolvers.Subscription().JobStatusChanged(ctx, fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNJobStatusEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent,
+		ec.marshalNJobStatusEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent,
 		true,
 		true,
 	)
@@ -35681,7 +35681,7 @@ func (ec *executionContext) _Subscription_sqlResults(ctx context.Context, field 
 			return ec.Resolvers.Subscription().SQLResults(ctx, fc.Args["cluster"].(*string), fc.Args["sessionHandle"].(string), fc.Args["operationHandle"].(string))
 		},
 		nil,
-		ec.marshalNSQLResultBatch2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch,
+		ec.marshalNSQLResultBatch2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch,
 		true,
 		true,
 	)
@@ -35730,7 +35730,7 @@ func (ec *executionContext) _Subscription_metricStream(ctx context.Context, fiel
 			return ec.Resolvers.Subscription().MetricStream(ctx, fc.Args["clusterID"].(string), fc.Args["metric"].(string), fc.Args["jobId"].(*string))
 		},
 		nil,
-		ec.marshalNMetricEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent,
+		ec.marshalNMetricEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent,
 		true,
 		true,
 	)
@@ -36159,7 +36159,7 @@ func (ec *executionContext) _SubtaskInfo_metrics(ctx context.Context, field grap
 			return obj.Metrics, nil
 		},
 		nil,
-		ec.marshalNVertexMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexMetrics,
+		ec.marshalNVertexMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexMetrics,
 		true,
 		true,
 	)
@@ -36328,7 +36328,7 @@ func (ec *executionContext) _SubtaskTimes_subtasks(ctx context.Context, field gr
 			return obj.Subtasks, nil
 		},
 		nil,
-		ec.marshalNSubtaskTimesEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimesEntryᚄ,
+		ec.marshalNSubtaskTimesEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimesEntryᚄ,
 		true,
 		true,
 	)
@@ -36454,7 +36454,7 @@ func (ec *executionContext) _SubtaskTimesEntry_timestamps(ctx context.Context, f
 			return obj.Timestamps, nil
 		},
 		nil,
-		ec.marshalNTimestampEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimestampEntryᚄ,
+		ec.marshalNTimestampEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimestampEntryᚄ,
 		true,
 		true,
 	)
@@ -37156,7 +37156,7 @@ func (ec *executionContext) _TaskManagerDetail_totalResource(ctx context.Context
 			return obj.TotalResource, nil
 		},
 		nil,
-		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
+		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
 		true,
 		true,
 	)
@@ -37197,7 +37197,7 @@ func (ec *executionContext) _TaskManagerDetail_freeResource(ctx context.Context,
 			return obj.FreeResource, nil
 		},
 		nil,
-		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
+		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
 		true,
 		true,
 	)
@@ -37238,7 +37238,7 @@ func (ec *executionContext) _TaskManagerDetail_hardware(ctx context.Context, fie
 			return obj.Hardware, nil
 		},
 		nil,
-		ec.marshalNTaskManagerHardware2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerHardware,
+		ec.marshalNTaskManagerHardware2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerHardware,
 		true,
 		true,
 	)
@@ -37277,7 +37277,7 @@ func (ec *executionContext) _TaskManagerDetail_memoryConfiguration(ctx context.C
 			return obj.MemoryConfiguration, nil
 		},
 		nil,
-		ec.marshalNTaskManagerMemory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerMemory,
+		ec.marshalNTaskManagerMemory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerMemory,
 		true,
 		true,
 	)
@@ -37328,7 +37328,7 @@ func (ec *executionContext) _TaskManagerDetail_allocatedSlots(ctx context.Contex
 			return obj.AllocatedSlots, nil
 		},
 		nil,
-		ec.marshalNAllocatedSlot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlotᚄ,
+		ec.marshalNAllocatedSlot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlotᚄ,
 		true,
 		true,
 	)
@@ -37365,7 +37365,7 @@ func (ec *executionContext) _TaskManagerDetail_metrics(ctx context.Context, fiel
 			return obj.Metrics, nil
 		},
 		nil,
-		ec.marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntryᚄ,
+		ec.marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntryᚄ,
 		true,
 		true,
 	)
@@ -38009,7 +38009,7 @@ func (ec *executionContext) _TaskManagerOverview_totalResource(ctx context.Conte
 			return obj.TotalResource, nil
 		},
 		nil,
-		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
+		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
 		true,
 		true,
 	)
@@ -38050,7 +38050,7 @@ func (ec *executionContext) _TaskManagerOverview_freeResource(ctx context.Contex
 			return obj.FreeResource, nil
 		},
 		nil,
-		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
+		ec.marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile,
 		true,
 		true,
 	)
@@ -38091,7 +38091,7 @@ func (ec *executionContext) _TaskManagerOverview_hardware(ctx context.Context, f
 			return obj.Hardware, nil
 		},
 		nil,
-		ec.marshalNTaskManagerHardware2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerHardware,
+		ec.marshalNTaskManagerHardware2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerHardware,
 		true,
 		true,
 	)
@@ -38130,7 +38130,7 @@ func (ec *executionContext) _TaskManagerOverview_memoryConfiguration(ctx context
 			return obj.MemoryConfiguration, nil
 		},
 		nil,
-		ec.marshalNTaskManagerMemory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerMemory,
+		ec.marshalNTaskManagerMemory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerMemory,
 		true,
 		true,
 	)
@@ -38558,7 +38558,7 @@ func (ec *executionContext) _VertexAccumulators_accumulators(ctx context.Context
 			return obj.Accumulators, nil
 		},
 		nil,
-		ec.marshalNUserAccumulator2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulatorᚄ,
+		ec.marshalNUserAccumulator2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulatorᚄ,
 		true,
 		true,
 	)
@@ -38624,7 +38624,7 @@ func (ec *executionContext) _VertexBackPressure_backPressure(ctx context.Context
 			return obj.BackPressure, nil
 		},
 		nil,
-		ec.marshalNBackPressureInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBackPressureInfo,
+		ec.marshalNBackPressureInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBackPressureInfo,
 		true,
 		true,
 	)
@@ -38779,7 +38779,7 @@ func (ec *executionContext) _VertexDetail_subtasks(ctx context.Context, field gr
 			return obj.Subtasks, nil
 		},
 		nil,
-		ec.marshalNSubtaskInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskInfoᚄ,
+		ec.marshalNSubtaskInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskInfoᚄ,
 		true,
 		true,
 	)
@@ -39176,7 +39176,7 @@ func (ec *executionContext) _VertexWatermarks_watermarks(ctx context.Context, fi
 			return obj.Watermarks, nil
 		},
 		nil,
-		ec.marshalNWatermarkEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐWatermarkEntryᚄ,
+		ec.marshalNWatermarkEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐWatermarkEntryᚄ,
 		true,
 		true,
 	)
@@ -40721,7 +40721,7 @@ func (ec *executionContext) unmarshalInputAlertConditionInput(ctx context.Contex
 		switch k {
 		case "type":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx, v)
+			data, err := ec.unmarshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40768,7 +40768,7 @@ func (ec *executionContext) unmarshalInputAlertHistoryFilterInput(ctx context.Co
 			it.RuleID = data
 		case "state":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
-			data, err := ec.unmarshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx, v)
+			data, err := ec.unmarshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40897,14 +40897,14 @@ func (ec *executionContext) unmarshalInputCreateAlertRuleInput(ctx context.Conte
 			it.Description = data
 		case "condition":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("condition"))
-			data, err := ec.unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx, v)
+			data, err := ec.unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Condition = data
 		case "severity":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("severity"))
-			data, err := ec.unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx, v)
+			data, err := ec.unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41033,7 +41033,7 @@ func (ec *executionContext) unmarshalInputJobHistoryFilter(ctx context.Context, 
 			it.Before = data
 		case "timeRange":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeRange"))
-			data, err := ec.unmarshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx, v)
+			data, err := ec.unmarshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41221,7 +41221,7 @@ func (ec *executionContext) unmarshalInputOperatorStateInput(ctx context.Context
 			it.StateRole = data
 		case "keyFields":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyFields"))
-			data, err := ec.unmarshalNKeyFieldInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInputᚄ(ctx, v)
+			data, err := ec.unmarshalNKeyFieldInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41275,14 +41275,14 @@ func (ec *executionContext) unmarshalInputOrderByInput(ctx context.Context, obj 
 		switch k {
 		case "field":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			data, err := ec.unmarshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx, v)
+			data, err := ec.unmarshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Field = data
 		case "direction":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-			data, err := ec.unmarshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx, v)
+			data, err := ec.unmarshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41409,7 +41409,7 @@ func (ec *executionContext) unmarshalInputStateManifestInput(ctx context.Context
 			it.FlinkVersion = data
 		case "operators":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operators"))
-			data, err := ec.unmarshalNOperatorStateInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInputᚄ(ctx, v)
+			data, err := ec.unmarshalNOperatorStateInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41456,14 +41456,14 @@ func (ec *executionContext) unmarshalInputUpdateAlertRuleInput(ctx context.Conte
 			it.Description = data
 		case "condition":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("condition"))
-			data, err := ec.unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx, v)
+			data, err := ec.unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Condition = data
 		case "severity":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("severity"))
-			data, err := ec.unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx, v)
+			data, err := ec.unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -52240,7 +52240,7 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAlertCondition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertCondition(ctx context.Context, sel ast.SelectionSet, v *model.AlertCondition) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertCondition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertCondition(ctx context.Context, sel ast.SelectionSet, v *model.AlertCondition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52250,26 +52250,26 @@ func (ec *executionContext) marshalNAlertCondition2ᚖgithubᚗcomᚋsandboxws�
 	return ec._AlertCondition(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx context.Context, v any) (*model.AlertConditionInput, error) {
+func (ec *executionContext) unmarshalNAlertConditionInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionInput(ctx context.Context, v any) (*model.AlertConditionInput, error) {
 	res, err := ec.unmarshalInputAlertConditionInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx context.Context, v any) (model.AlertConditionType, error) {
+func (ec *executionContext) unmarshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx context.Context, v any) (model.AlertConditionType, error) {
 	var res model.AlertConditionType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx context.Context, sel ast.SelectionSet, v model.AlertConditionType) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertConditionType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertConditionType(ctx context.Context, sel ast.SelectionSet, v model.AlertConditionType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNAlertHistoryPage2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage(ctx context.Context, sel ast.SelectionSet, v model.AlertHistoryPage) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertHistoryPage2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage(ctx context.Context, sel ast.SelectionSet, v model.AlertHistoryPage) graphql.Marshaler {
 	return ec._AlertHistoryPage(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAlertHistoryPage2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage(ctx context.Context, sel ast.SelectionSet, v *model.AlertHistoryPage) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertHistoryPage2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryPage(ctx context.Context, sel ast.SelectionSet, v *model.AlertHistoryPage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52279,15 +52279,15 @@ func (ec *executionContext) marshalNAlertHistoryPage2ᚖgithubᚗcomᚋsandboxws
 	return ec._AlertHistoryPage(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAlertInstance2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx context.Context, sel ast.SelectionSet, v model.AlertInstance) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertInstance2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx context.Context, sel ast.SelectionSet, v model.AlertInstance) graphql.Marshaler {
 	return ec._AlertInstance(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AlertInstance) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstanceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AlertInstance) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx, sel, v[i])
+		return ec.marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52299,7 +52299,7 @@ func (ec *executionContext) marshalNAlertInstance2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx context.Context, sel ast.SelectionSet, v *model.AlertInstance) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertInstance(ctx context.Context, sel ast.SelectionSet, v *model.AlertInstance) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52309,15 +52309,15 @@ func (ec *executionContext) marshalNAlertInstance2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._AlertInstance(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAlertRule2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v model.AlertRule) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertRule2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v model.AlertRule) graphql.Marshaler {
 	return ec._AlertRule(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAlertRule2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AlertRule) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertRule2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AlertRule) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx, sel, v[i])
+		return ec.marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52329,7 +52329,7 @@ func (ec *executionContext) marshalNAlertRule2ᚕᚖgithubᚗcomᚋsandboxwsᚋf
 	return ret
 }
 
-func (ec *executionContext) marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v *model.AlertRule) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v *model.AlertRule) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52339,31 +52339,31 @@ func (ec *executionContext) marshalNAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflin
 	return ec._AlertRule(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx context.Context, v any) (model.AlertSeverity, error) {
+func (ec *executionContext) unmarshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx context.Context, v any) (model.AlertSeverity, error) {
 	var res model.AlertSeverity
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx context.Context, sel ast.SelectionSet, v model.AlertSeverity) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertSeverity(ctx context.Context, sel ast.SelectionSet, v model.AlertSeverity) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, v any) (model.AlertState, error) {
+func (ec *executionContext) unmarshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, v any) (model.AlertState, error) {
 	var res model.AlertState
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, sel ast.SelectionSet, v model.AlertState) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, sel ast.SelectionSet, v model.AlertState) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNAllocatedSlot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AllocatedSlot) graphql.Marshaler {
+func (ec *executionContext) marshalNAllocatedSlot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AllocatedSlot) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNAllocatedSlot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlot(ctx, sel, v[i])
+		return ec.marshalNAllocatedSlot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlot(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52375,7 +52375,7 @@ func (ec *executionContext) marshalNAllocatedSlot2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalNAllocatedSlot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlot(ctx context.Context, sel ast.SelectionSet, v *model.AllocatedSlot) graphql.Marshaler {
+func (ec *executionContext) marshalNAllocatedSlot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAllocatedSlot(ctx context.Context, sel ast.SelectionSet, v *model.AllocatedSlot) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52385,11 +52385,11 @@ func (ec *executionContext) marshalNAllocatedSlot2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._AllocatedSlot(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNApplication2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplicationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Application) graphql.Marshaler {
+func (ec *executionContext) marshalNApplication2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplicationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Application) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx, sel, v[i])
+		return ec.marshalNApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52401,7 +52401,7 @@ func (ec *executionContext) marshalNApplication2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
+func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52411,7 +52411,7 @@ func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._Application(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBackPressureInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBackPressureInfo(ctx context.Context, sel ast.SelectionSet, v *model.BackPressureInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNBackPressureInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBackPressureInfo(ctx context.Context, sel ast.SelectionSet, v *model.BackPressureInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52421,11 +52421,11 @@ func (ec *executionContext) marshalNBackPressureInfo2ᚖgithubᚗcomᚋsandboxws
 	return ec._BackPressureInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBlueGreenConfigDiff2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenConfigDiff) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueGreenConfigDiff2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenConfigDiff) graphql.Marshaler {
 	return ec._BlueGreenConfigDiff(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBlueGreenConfigDiff2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenConfigDiff) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueGreenConfigDiff2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenConfigDiff(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenConfigDiff) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52435,15 +52435,15 @@ func (ec *executionContext) marshalNBlueGreenConfigDiff2ᚖgithubᚗcomᚋsandbo
 	return ec._BlueGreenConfigDiff(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBlueGreenDeployment2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenDeployment) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueGreenDeployment2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenDeployment) graphql.Marshaler {
 	return ec._BlueGreenDeployment(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBlueGreenDeployment2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeploymentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BlueGreenDeployment) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueGreenDeployment2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeploymentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BlueGreenDeployment) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx, sel, v[i])
+		return ec.marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52455,7 +52455,7 @@ func (ec *executionContext) marshalNBlueGreenDeployment2ᚕᚖgithubᚗcomᚋsan
 	return ret
 }
 
-func (ec *executionContext) marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenDeployment) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenDeployment) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52465,13 +52465,13 @@ func (ec *executionContext) marshalNBlueGreenDeployment2ᚖgithubᚗcomᚋsandbo
 	return ec._BlueGreenDeployment(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState(ctx context.Context, v any) (model.BlueGreenState, error) {
+func (ec *executionContext) unmarshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState(ctx context.Context, v any) (model.BlueGreenState, error) {
 	var res model.BlueGreenState
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenState) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueGreenState2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenState(ctx context.Context, sel ast.SelectionSet, v model.BlueGreenState) graphql.Marshaler {
 	return v
 }
 
@@ -52491,11 +52491,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCancelApplicationResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult(ctx context.Context, sel ast.SelectionSet, v model.CancelApplicationResult) graphql.Marshaler {
+func (ec *executionContext) marshalNCancelApplicationResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult(ctx context.Context, sel ast.SelectionSet, v model.CancelApplicationResult) graphql.Marshaler {
 	return ec._CancelApplicationResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCancelApplicationResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult(ctx context.Context, sel ast.SelectionSet, v *model.CancelApplicationResult) graphql.Marshaler {
+func (ec *executionContext) marshalNCancelApplicationResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelApplicationResult(ctx context.Context, sel ast.SelectionSet, v *model.CancelApplicationResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52505,11 +52505,11 @@ func (ec *executionContext) marshalNCancelApplicationResult2ᚖgithubᚗcomᚋsa
 	return ec._CancelApplicationResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCancelJobResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelJobResult(ctx context.Context, sel ast.SelectionSet, v model.CancelJobResult) graphql.Marshaler {
+func (ec *executionContext) marshalNCancelJobResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelJobResult(ctx context.Context, sel ast.SelectionSet, v model.CancelJobResult) graphql.Marshaler {
 	return ec._CancelJobResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCancelJobResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelJobResult(ctx context.Context, sel ast.SelectionSet, v *model.CancelJobResult) graphql.Marshaler {
+func (ec *executionContext) marshalNCancelJobResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCancelJobResult(ctx context.Context, sel ast.SelectionSet, v *model.CancelJobResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52519,11 +52519,11 @@ func (ec *executionContext) marshalNCancelJobResult2ᚖgithubᚗcomᚋsandboxws�
 	return ec._CancelJobResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCatalogDatabase2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogDatabaseᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CatalogDatabase) graphql.Marshaler {
+func (ec *executionContext) marshalNCatalogDatabase2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogDatabaseᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CatalogDatabase) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNCatalogDatabase2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogDatabase(ctx, sel, v[i])
+		return ec.marshalNCatalogDatabase2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogDatabase(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52535,7 +52535,7 @@ func (ec *executionContext) marshalNCatalogDatabase2ᚕᚖgithubᚗcomᚋsandbox
 	return ret
 }
 
-func (ec *executionContext) marshalNCatalogDatabase2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogDatabase(ctx context.Context, sel ast.SelectionSet, v *model.CatalogDatabase) graphql.Marshaler {
+func (ec *executionContext) marshalNCatalogDatabase2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogDatabase(ctx context.Context, sel ast.SelectionSet, v *model.CatalogDatabase) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52545,11 +52545,11 @@ func (ec *executionContext) marshalNCatalogDatabase2ᚖgithubᚗcomᚋsandboxws�
 	return ec._CatalogDatabase(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCatalogInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CatalogInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNCatalogInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CatalogInfo) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNCatalogInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogInfo(ctx, sel, v[i])
+		return ec.marshalNCatalogInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogInfo(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52561,7 +52561,7 @@ func (ec *executionContext) marshalNCatalogInfo2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNCatalogInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogInfo(ctx context.Context, sel ast.SelectionSet, v *model.CatalogInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNCatalogInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogInfo(ctx context.Context, sel ast.SelectionSet, v *model.CatalogInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52571,11 +52571,11 @@ func (ec *executionContext) marshalNCatalogInfo2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._CatalogInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCatalogTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogTableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CatalogTable) graphql.Marshaler {
+func (ec *executionContext) marshalNCatalogTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogTableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CatalogTable) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNCatalogTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogTable(ctx, sel, v[i])
+		return ec.marshalNCatalogTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogTable(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52587,7 +52587,7 @@ func (ec *executionContext) marshalNCatalogTable2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNCatalogTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogTable(ctx context.Context, sel ast.SelectionSet, v *model.CatalogTable) graphql.Marshaler {
+func (ec *executionContext) marshalNCatalogTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCatalogTable(ctx context.Context, sel ast.SelectionSet, v *model.CatalogTable) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52597,7 +52597,7 @@ func (ec *executionContext) marshalNCatalogTable2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._CatalogTable(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCheckpointCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointCounts(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointCounts) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointCounts(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointCounts) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52607,11 +52607,11 @@ func (ec *executionContext) marshalNCheckpointCounts2ᚖgithubᚗcomᚋsandboxws
 	return ec._CheckpointCounts(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.CheckpointHistoryConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.CheckpointHistoryConnection) graphql.Marshaler {
 	return ec._CheckpointHistoryConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52621,11 +52621,11 @@ func (ec *executionContext) marshalNCheckpointHistoryConnection2ᚖgithubᚗcom�
 	return ec._CheckpointHistoryConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CheckpointHistoryEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CheckpointHistoryEdge) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNCheckpointHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdge(ctx, sel, v[i])
+		return ec.marshalNCheckpointHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdge(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52637,7 +52637,7 @@ func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚕᚖgithubᚗcomᚋs
 	return ret
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52647,15 +52647,15 @@ func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚖgithubᚗcomᚋsand
 	return ec._CheckpointHistoryEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryEntry2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, v model.CheckpointHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointHistoryEntry2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, v model.CheckpointHistoryEntry) graphql.Marshaler {
 	return ec._CheckpointHistoryEntry(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CheckpointHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CheckpointHistoryEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx, sel, v[i])
+		return ec.marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52667,7 +52667,7 @@ func (ec *executionContext) marshalNCheckpointHistoryEntry2ᚕᚖgithubᚗcomᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52677,7 +52677,7 @@ func (ec *executionContext) marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsan
 	return ec._CheckpointHistoryEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryPageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckpointHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryPageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52687,11 +52687,11 @@ func (ec *executionContext) marshalNCheckpointHistoryPageInfo2ᚖgithubᚗcomᚋ
 	return ec._CheckpointHistoryPageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClusterInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClusterInfo) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNClusterInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfo(ctx, sel, v[i])
+		return ec.marshalNClusterInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfo(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52703,7 +52703,7 @@ func (ec *executionContext) marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNClusterInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfo(ctx context.Context, sel ast.SelectionSet, v *model.ClusterInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNClusterInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfo(ctx context.Context, sel ast.SelectionSet, v *model.ClusterInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52713,11 +52713,11 @@ func (ec *executionContext) marshalNClusterInfo2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._ClusterInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNClusterOverviewSnapshot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClusterOverviewSnapshot) graphql.Marshaler {
+func (ec *executionContext) marshalNClusterOverviewSnapshot2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClusterOverviewSnapshot) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNClusterOverviewSnapshot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshot(ctx, sel, v[i])
+		return ec.marshalNClusterOverviewSnapshot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshot(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52729,7 +52729,7 @@ func (ec *executionContext) marshalNClusterOverviewSnapshot2ᚕᚖgithubᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalNClusterOverviewSnapshot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.ClusterOverviewSnapshot) graphql.Marshaler {
+func (ec *executionContext) marshalNClusterOverviewSnapshot2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterOverviewSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.ClusterOverviewSnapshot) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52739,21 +52739,21 @@ func (ec *executionContext) marshalNClusterOverviewSnapshot2ᚖgithubᚗcomᚋsa
 	return ec._ClusterOverviewSnapshot(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus(ctx context.Context, v any) (model.ClusterStatus, error) {
+func (ec *executionContext) unmarshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus(ctx context.Context, v any) (model.ClusterStatus, error) {
 	var res model.ClusterStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus(ctx context.Context, sel ast.SelectionSet, v model.ClusterStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNClusterStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterStatus(ctx context.Context, sel ast.SelectionSet, v model.ClusterStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNColumnInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ColumnInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNColumnInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ColumnInfo) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNColumnInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfo(ctx, sel, v[i])
+		return ec.marshalNColumnInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfo(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52765,7 +52765,7 @@ func (ec *executionContext) marshalNColumnInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNColumnInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfo(ctx context.Context, sel ast.SelectionSet, v *model.ColumnInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNColumnInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐColumnInfo(ctx context.Context, sel ast.SelectionSet, v *model.ColumnInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52775,11 +52775,11 @@ func (ec *executionContext) marshalNColumnInfo2ᚖgithubᚗcomᚋsandboxwsᚋfli
 	return ec._ColumnInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompatibilityIssue2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompatibilityIssue) graphql.Marshaler {
+func (ec *executionContext) marshalNCompatibilityIssue2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompatibilityIssue) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNCompatibilityIssue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssue(ctx, sel, v[i])
+		return ec.marshalNCompatibilityIssue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssue(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52791,7 +52791,7 @@ func (ec *executionContext) marshalNCompatibilityIssue2ᚕᚖgithubᚗcomᚋsand
 	return ret
 }
 
-func (ec *executionContext) marshalNCompatibilityIssue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssue(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityIssue) graphql.Marshaler {
+func (ec *executionContext) marshalNCompatibilityIssue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityIssue(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityIssue) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52801,11 +52801,11 @@ func (ec *executionContext) marshalNCompatibilityIssue2ᚖgithubᚗcomᚋsandbox
 	return ec._CompatibilityIssue(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompatibilityReport2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityReport) graphql.Marshaler {
+func (ec *executionContext) marshalNCompatibilityReport2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityReport) graphql.Marshaler {
 	return ec._CompatibilityReport(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityReport) graphql.Marshaler {
+func (ec *executionContext) marshalNCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityReport) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52815,11 +52815,11 @@ func (ec *executionContext) marshalNCompatibilityReport2ᚖgithubᚗcomᚋsandbo
 	return ec._CompatibilityReport(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompatibilityResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityResult(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityResult) graphql.Marshaler {
+func (ec *executionContext) marshalNCompatibilityResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityResult(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityResult) graphql.Marshaler {
 	return ec._CompatibilityResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompatibilityResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityResult(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityResult) graphql.Marshaler {
+func (ec *executionContext) marshalNCompatibilityResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityResult(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52829,21 +52829,21 @@ func (ec *executionContext) marshalNCompatibilityResult2ᚖgithubᚗcomᚋsandbo
 	return ec._CompatibilityResult(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, v any) (model.CompatibilityVerdict, error) {
+func (ec *executionContext) unmarshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, v any) (model.CompatibilityVerdict, error) {
 	var res model.CompatibilityVerdict
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityVerdict) graphql.Marshaler {
+func (ec *executionContext) marshalNCompatibilityVerdict2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, sel ast.SelectionSet, v model.CompatibilityVerdict) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntry(ctx, sel, v[i])
+		return ec.marshalNConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52855,7 +52855,7 @@ func (ec *executionContext) marshalNConfigEntry2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntry(ctx context.Context, sel ast.SelectionSet, v *model.ConfigEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐConfigEntry(ctx context.Context, sel ast.SelectionSet, v *model.ConfigEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52865,16 +52865,16 @@ func (ec *executionContext) marshalNConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._ConfigEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCreateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCreateAlertRuleInput(ctx context.Context, v any) (model.CreateAlertRuleInput, error) {
+func (ec *executionContext) unmarshalNCreateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCreateAlertRuleInput(ctx context.Context, v any) (model.CreateAlertRuleInput, error) {
 	res, err := ec.unmarshalInputCreateAlertRuleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDashboardConfig2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig(ctx context.Context, sel ast.SelectionSet, v model.DashboardConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNDashboardConfig2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig(ctx context.Context, sel ast.SelectionSet, v model.DashboardConfig) graphql.Marshaler {
 	return ec._DashboardConfig(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDashboardConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig(ctx context.Context, sel ast.SelectionSet, v *model.DashboardConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNDashboardConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDashboardConfig(ctx context.Context, sel ast.SelectionSet, v *model.DashboardConfig) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52884,11 +52884,11 @@ func (ec *executionContext) marshalNDashboardConfig2ᚖgithubᚗcomᚋsandboxws�
 	return ec._DashboardConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseColumn) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseColumn) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDatabaseColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumn(ctx, sel, v[i])
+		return ec.marshalNDatabaseColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumn(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52900,7 +52900,7 @@ func (ec *executionContext) marshalNDatabaseColumn2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNDatabaseColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumn(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseColumn) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseColumn(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseColumn) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52910,11 +52910,11 @@ func (ec *executionContext) marshalNDatabaseColumn2ᚖgithubᚗcomᚋsandboxws�
 	return ec._DatabaseColumn(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseConstraint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraintᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseConstraint) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseConstraint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraintᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseConstraint) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDatabaseConstraint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraint(ctx, sel, v[i])
+		return ec.marshalNDatabaseConstraint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraint(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52926,7 +52926,7 @@ func (ec *executionContext) marshalNDatabaseConstraint2ᚕᚖgithubᚗcomᚋsand
 	return ret
 }
 
-func (ec *executionContext) marshalNDatabaseConstraint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraint(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseConstraint) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseConstraint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseConstraint(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseConstraint) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52936,11 +52936,11 @@ func (ec *executionContext) marshalNDatabaseConstraint2ᚖgithubᚗcomᚋsandbox
 	return ec._DatabaseConstraint(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseIndex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndexᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseIndex) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseIndex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndexᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseIndex) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDatabaseIndex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndex(ctx, sel, v[i])
+		return ec.marshalNDatabaseIndex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndex(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52952,7 +52952,7 @@ func (ec *executionContext) marshalNDatabaseIndex2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalNDatabaseIndex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndex(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseIndex) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseIndex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseIndex(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseIndex) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52962,11 +52962,11 @@ func (ec *executionContext) marshalNDatabaseIndex2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._DatabaseIndex(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseQueryHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseQueryHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseQueryHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseQueryHistoryEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDatabaseQueryHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntry(ctx, sel, v[i])
+		return ec.marshalNDatabaseQueryHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -52978,7 +52978,7 @@ func (ec *executionContext) marshalNDatabaseQueryHistoryEntry2ᚕᚖgithubᚗcom
 	return ret
 }
 
-func (ec *executionContext) marshalNDatabaseQueryHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseQueryHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseQueryHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseQueryHistoryEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -52988,11 +52988,11 @@ func (ec *executionContext) marshalNDatabaseQueryHistoryEntry2ᚖgithubᚗcomᚋ
 	return ec._DatabaseQueryHistoryEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseQueryResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult(ctx context.Context, sel ast.SelectionSet, v model.DatabaseQueryResult) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseQueryResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult(ctx context.Context, sel ast.SelectionSet, v model.DatabaseQueryResult) graphql.Marshaler {
 	return ec._DatabaseQueryResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDatabaseQueryResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseQueryResult) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseQueryResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseQueryResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53002,11 +53002,11 @@ func (ec *executionContext) marshalNDatabaseQueryResult2ᚖgithubᚗcomᚋsandbo
 	return ec._DatabaseQueryResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseResultColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseResultColumn) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseResultColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseResultColumn) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDatabaseResultColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumn(ctx, sel, v[i])
+		return ec.marshalNDatabaseResultColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumn(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53018,7 +53018,7 @@ func (ec *executionContext) marshalNDatabaseResultColumn2ᚕᚖgithubᚗcomᚋsa
 	return ret
 }
 
-func (ec *executionContext) marshalNDatabaseResultColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumn(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseResultColumn) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseResultColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseResultColumn(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseResultColumn) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53028,11 +53028,11 @@ func (ec *executionContext) marshalNDatabaseResultColumn2ᚖgithubᚗcomᚋsandb
 	return ec._DatabaseResultColumn(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseSchema2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchemaᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseSchema) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseSchema2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchemaᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseSchema) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDatabaseSchema2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchema(ctx, sel, v[i])
+		return ec.marshalNDatabaseSchema2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchema(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53044,7 +53044,7 @@ func (ec *executionContext) marshalNDatabaseSchema2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNDatabaseSchema2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchema(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseSchema) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseSchema2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseSchema(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseSchema) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53054,11 +53054,11 @@ func (ec *executionContext) marshalNDatabaseSchema2ᚖgithubᚗcomᚋsandboxws�
 	return ec._DatabaseSchema(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseTableDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail(ctx context.Context, sel ast.SelectionSet, v model.DatabaseTableDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseTableDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail(ctx context.Context, sel ast.SelectionSet, v model.DatabaseTableDetail) graphql.Marshaler {
 	return ec._DatabaseTableDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDatabaseTableDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseTableDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseTableDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableDetail(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseTableDetail) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53068,11 +53068,11 @@ func (ec *executionContext) marshalNDatabaseTableDetail2ᚖgithubᚗcomᚋsandbo
 	return ec._DatabaseTableDetail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDatabaseTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseTableSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DatabaseTableSummary) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDatabaseTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummary(ctx, sel, v[i])
+		return ec.marshalNDatabaseTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummary(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53084,7 +53084,7 @@ func (ec *executionContext) marshalNDatabaseTableSummary2ᚕᚖgithubᚗcomᚋsa
 	return ret
 }
 
-func (ec *executionContext) marshalNDatabaseTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummary(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseTableSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNDatabaseTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDatabaseTableSummary(ctx context.Context, sel ast.SelectionSet, v *model.DatabaseTableSummary) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53094,11 +53094,11 @@ func (ec *executionContext) marshalNDatabaseTableSummary2ᚖgithubᚗcomᚋsandb
 	return ec._DatabaseTableSummary(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDeleteResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult(ctx context.Context, sel ast.SelectionSet, v model.DeleteResult) graphql.Marshaler {
+func (ec *executionContext) marshalNDeleteResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult(ctx context.Context, sel ast.SelectionSet, v model.DeleteResult) graphql.Marshaler {
 	return ec._DeleteResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeleteResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult(ctx context.Context, sel ast.SelectionSet, v *model.DeleteResult) graphql.Marshaler {
+func (ec *executionContext) marshalNDeleteResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐDeleteResult(ctx context.Context, sel ast.SelectionSet, v *model.DeleteResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53108,11 +53108,11 @@ func (ec *executionContext) marshalNDeleteResult2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._DeleteResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNExceptionEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExceptionEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNExceptionEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExceptionEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNExceptionEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntry(ctx, sel, v[i])
+		return ec.marshalNExceptionEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53124,7 +53124,7 @@ func (ec *executionContext) marshalNExceptionEntry2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNExceptionEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntry(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNExceptionEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntry(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53134,11 +53134,11 @@ func (ec *executionContext) marshalNExceptionEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._ExceptionEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNExceptionHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.ExceptionHistoryConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNExceptionHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.ExceptionHistoryConnection) graphql.Marshaler {
 	return ec._ExceptionHistoryConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNExceptionHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNExceptionHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53148,11 +53148,11 @@ func (ec *executionContext) marshalNExceptionHistoryConnection2ᚖgithubᚗcom�
 	return ec._ExceptionHistoryConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNExceptionHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExceptionHistoryEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNExceptionHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExceptionHistoryEdge) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNExceptionHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdge(ctx, sel, v[i])
+		return ec.marshalNExceptionHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdge(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53164,7 +53164,7 @@ func (ec *executionContext) marshalNExceptionHistoryEdge2ᚕᚖgithubᚗcomᚋsa
 	return ret
 }
 
-func (ec *executionContext) marshalNExceptionHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNExceptionHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53174,7 +53174,7 @@ func (ec *executionContext) marshalNExceptionHistoryEdge2ᚖgithubᚗcomᚋsandb
 	return ec._ExceptionHistoryEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNExceptionHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryPageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNExceptionHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.ExceptionHistoryPageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53184,11 +53184,11 @@ func (ec *executionContext) marshalNExceptionHistoryPageInfo2ᚖgithubᚗcomᚋs
 	return ec._ExceptionHistoryPageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFlamegraph2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraph(ctx context.Context, sel ast.SelectionSet, v model.Flamegraph) graphql.Marshaler {
+func (ec *executionContext) marshalNFlamegraph2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraph(ctx context.Context, sel ast.SelectionSet, v model.Flamegraph) graphql.Marshaler {
 	return ec._Flamegraph(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNFlamegraph2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraph(ctx context.Context, sel ast.SelectionSet, v *model.Flamegraph) graphql.Marshaler {
+func (ec *executionContext) marshalNFlamegraph2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraph(ctx context.Context, sel ast.SelectionSet, v *model.Flamegraph) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53198,7 +53198,7 @@ func (ec *executionContext) marshalNFlamegraph2ᚖgithubᚗcomᚋsandboxwsᚋfli
 	return ec._Flamegraph(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFlamegraphNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNode(ctx context.Context, sel ast.SelectionSet, v *model.FlamegraphNode) graphql.Marshaler {
+func (ec *executionContext) marshalNFlamegraphNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNode(ctx context.Context, sel ast.SelectionSet, v *model.FlamegraphNode) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53208,11 +53208,11 @@ func (ec *executionContext) marshalNFlamegraphNode2ᚖgithubᚗcomᚋsandboxws�
 	return ec._FlamegraphNode(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFlinkConfig2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkConfig(ctx context.Context, sel ast.SelectionSet, v model.FlinkConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNFlinkConfig2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkConfig(ctx context.Context, sel ast.SelectionSet, v model.FlinkConfig) graphql.Marshaler {
 	return ec._FlinkConfig(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNFlinkConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkConfig(ctx context.Context, sel ast.SelectionSet, v *model.FlinkConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNFlinkConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkConfig(ctx context.Context, sel ast.SelectionSet, v *model.FlinkConfig) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53222,7 +53222,7 @@ func (ec *executionContext) marshalNFlinkConfig2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._FlinkConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFlinkFeatures2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkFeatures(ctx context.Context, sel ast.SelectionSet, v *model.FlinkFeatures) graphql.Marshaler {
+func (ec *executionContext) marshalNFlinkFeatures2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlinkFeatures(ctx context.Context, sel ast.SelectionSet, v *model.FlinkFeatures) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53248,11 +53248,11 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) marshalNFlussSchemaField2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaFieldᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussSchemaField) graphql.Marshaler {
+func (ec *executionContext) marshalNFlussSchemaField2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaFieldᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussSchemaField) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNFlussSchemaField2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaField(ctx, sel, v[i])
+		return ec.marshalNFlussSchemaField2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaField(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53264,7 +53264,7 @@ func (ec *executionContext) marshalNFlussSchemaField2ᚕᚖgithubᚗcomᚋsandbo
 	return ret
 }
 
-func (ec *executionContext) marshalNFlussSchemaField2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaField(ctx context.Context, sel ast.SelectionSet, v *model.FlussSchemaField) graphql.Marshaler {
+func (ec *executionContext) marshalNFlussSchemaField2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussSchemaField(ctx context.Context, sel ast.SelectionSet, v *model.FlussSchemaField) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53274,11 +53274,11 @@ func (ec *executionContext) marshalNFlussSchemaField2ᚖgithubᚗcomᚋsandboxws
 	return ec._FlussSchemaField(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFlussTableMetadata2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata(ctx context.Context, sel ast.SelectionSet, v model.FlussTableMetadata) graphql.Marshaler {
+func (ec *executionContext) marshalNFlussTableMetadata2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata(ctx context.Context, sel ast.SelectionSet, v model.FlussTableMetadata) graphql.Marshaler {
 	return ec._FlussTableMetadata(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNFlussTableMetadata2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata(ctx context.Context, sel ast.SelectionSet, v *model.FlussTableMetadata) graphql.Marshaler {
+func (ec *executionContext) marshalNFlussTableMetadata2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableMetadata(ctx context.Context, sel ast.SelectionSet, v *model.FlussTableMetadata) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53288,11 +53288,11 @@ func (ec *executionContext) marshalNFlussTableMetadata2ᚖgithubᚗcomᚋsandbox
 	return ec._FlussTableMetadata(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFlussTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussTableSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNFlussTableSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussTableSummary) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNFlussTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummary(ctx, sel, v[i])
+		return ec.marshalNFlussTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummary(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53304,7 +53304,7 @@ func (ec *executionContext) marshalNFlussTableSummary2ᚕᚖgithubᚗcomᚋsandb
 	return ret
 }
 
-func (ec *executionContext) marshalNFlussTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummary(ctx context.Context, sel ast.SelectionSet, v *model.FlussTableSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNFlussTableSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTableSummary(ctx context.Context, sel ast.SelectionSet, v *model.FlussTableSummary) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53314,11 +53314,11 @@ func (ec *executionContext) marshalNFlussTableSummary2ᚖgithubᚗcomᚋsandboxw
 	return ec._FlussTableSummary(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFlussTabletServerHealth2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealthᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussTabletServerHealth) graphql.Marshaler {
+func (ec *executionContext) marshalNFlussTabletServerHealth2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealthᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlussTabletServerHealth) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNFlussTabletServerHealth2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealth(ctx, sel, v[i])
+		return ec.marshalNFlussTabletServerHealth2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealth(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53330,7 +53330,7 @@ func (ec *executionContext) marshalNFlussTabletServerHealth2ᚕᚖgithubᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalNFlussTabletServerHealth2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealth(ctx context.Context, sel ast.SelectionSet, v *model.FlussTabletServerHealth) graphql.Marshaler {
+func (ec *executionContext) marshalNFlussTabletServerHealth2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlussTabletServerHealth(ctx context.Context, sel ast.SelectionSet, v *model.FlussTabletServerHealth) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53340,7 +53340,7 @@ func (ec *executionContext) marshalNFlussTabletServerHealth2ᚖgithubᚗcomᚋsa
 	return ec._FlussTabletServerHealth(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNHAStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐHAStatus(ctx context.Context, sel ast.SelectionSet, v *model.HAStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNHAStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐHAStatus(ctx context.Context, sel ast.SelectionSet, v *model.HAStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53366,11 +53366,11 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNInstrumentInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.InstrumentInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNInstrumentInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.InstrumentInfo) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNInstrumentInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentInfo(ctx, sel, v[i])
+		return ec.marshalNInstrumentInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentInfo(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53382,7 +53382,7 @@ func (ec *executionContext) marshalNInstrumentInfo2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNInstrumentInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentInfo(ctx context.Context, sel ast.SelectionSet, v *model.InstrumentInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNInstrumentInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentInfo(ctx context.Context, sel ast.SelectionSet, v *model.InstrumentInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53438,21 +53438,21 @@ func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.S
 	return ret
 }
 
-func (ec *executionContext) unmarshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity(ctx context.Context, v any) (model.IssueSeverity, error) {
+func (ec *executionContext) unmarshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity(ctx context.Context, v any) (model.IssueSeverity, error) {
 	var res model.IssueSeverity
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity(ctx context.Context, sel ast.SelectionSet, v model.IssueSeverity) graphql.Marshaler {
+func (ec *executionContext) marshalNIssueSeverity2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐIssueSeverity(ctx context.Context, sel ast.SelectionSet, v model.IssueSeverity) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNJMConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JMConfigEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNJMConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JMConfigEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNJMConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntry(ctx, sel, v[i])
+		return ec.marshalNJMConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53464,7 +53464,7 @@ func (ec *executionContext) marshalNJMConfigEntry2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalNJMConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntry(ctx context.Context, sel ast.SelectionSet, v *model.JMConfigEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNJMConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMConfigEntry(ctx context.Context, sel ast.SelectionSet, v *model.JMConfigEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53474,7 +53474,7 @@ func (ec *executionContext) marshalNJMConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._JMConfigEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJMEnvironmentJVM2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMEnvironmentJvm(ctx context.Context, sel ast.SelectionSet, v *model.JMEnvironmentJvm) graphql.Marshaler {
+func (ec *executionContext) marshalNJMEnvironmentJVM2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMEnvironmentJvm(ctx context.Context, sel ast.SelectionSet, v *model.JMEnvironmentJvm) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53530,11 +53530,11 @@ func (ec *executionContext) marshalNJSON2ᚕᚕmap(ctx context.Context, sel ast.
 	return ret
 }
 
-func (ec *executionContext) marshalNJarEntryPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JarEntryPoint) graphql.Marshaler {
+func (ec *executionContext) marshalNJarEntryPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JarEntryPoint) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNJarEntryPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPoint(ctx, sel, v[i])
+		return ec.marshalNJarEntryPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPoint(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53546,7 +53546,7 @@ func (ec *executionContext) marshalNJarEntryPoint2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalNJarEntryPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPoint(ctx context.Context, sel ast.SelectionSet, v *model.JarEntryPoint) graphql.Marshaler {
+func (ec *executionContext) marshalNJarEntryPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarEntryPoint(ctx context.Context, sel ast.SelectionSet, v *model.JarEntryPoint) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53556,11 +53556,11 @@ func (ec *executionContext) marshalNJarEntryPoint2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._JarEntryPoint(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJarFile2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JarFile) graphql.Marshaler {
+func (ec *executionContext) marshalNJarFile2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JarFile) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNJarFile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarFile(ctx, sel, v[i])
+		return ec.marshalNJarFile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarFile(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53572,7 +53572,7 @@ func (ec *executionContext) marshalNJarFile2ᚕᚖgithubᚗcomᚋsandboxwsᚋfli
 	return ret
 }
 
-func (ec *executionContext) marshalNJarFile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarFile(ctx context.Context, sel ast.SelectionSet, v *model.JarFile) graphql.Marshaler {
+func (ec *executionContext) marshalNJarFile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarFile(ctx context.Context, sel ast.SelectionSet, v *model.JarFile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53582,11 +53582,11 @@ func (ec *executionContext) marshalNJarFile2ᚖgithubᚗcomᚋsandboxwsᚋflink�
 	return ec._JarFile(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJarRunResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarRunResult(ctx context.Context, sel ast.SelectionSet, v model.JarRunResult) graphql.Marshaler {
+func (ec *executionContext) marshalNJarRunResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarRunResult(ctx context.Context, sel ast.SelectionSet, v model.JarRunResult) graphql.Marshaler {
 	return ec._JarRunResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNJarRunResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarRunResult(ctx context.Context, sel ast.SelectionSet, v *model.JarRunResult) graphql.Marshaler {
+func (ec *executionContext) marshalNJarRunResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarRunResult(ctx context.Context, sel ast.SelectionSet, v *model.JarRunResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53596,11 +53596,11 @@ func (ec *executionContext) marshalNJarRunResult2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._JarRunResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobConnector2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnectorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobConnector) graphql.Marshaler {
+func (ec *executionContext) marshalNJobConnector2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnectorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobConnector) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNJobConnector2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnector(ctx, sel, v[i])
+		return ec.marshalNJobConnector2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnector(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53612,7 +53612,7 @@ func (ec *executionContext) marshalNJobConnector2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNJobConnector2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnector(ctx context.Context, sel ast.SelectionSet, v *model.JobConnector) graphql.Marshaler {
+func (ec *executionContext) marshalNJobConnector2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConnector(ctx context.Context, sel ast.SelectionSet, v *model.JobConnector) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53622,11 +53622,11 @@ func (ec *executionContext) marshalNJobConnector2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._JobConnector(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobDetail(ctx context.Context, sel ast.SelectionSet, v model.JobDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNJobDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobDetail(ctx context.Context, sel ast.SelectionSet, v model.JobDetail) graphql.Marshaler {
 	return ec._JobDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNJobDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobDetail(ctx context.Context, sel ast.SelectionSet, v *model.JobDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNJobDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobDetail(ctx context.Context, sel ast.SelectionSet, v *model.JobDetail) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53636,11 +53636,11 @@ func (ec *executionContext) marshalNJobDetail2ᚖgithubᚗcomᚋsandboxwsᚋflin
 	return ec._JobDetail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.JobHistoryConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNJobHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.JobHistoryConnection) graphql.Marshaler {
 	return ec._JobHistoryConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNJobHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNJobHistoryConnection2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53650,11 +53650,11 @@ func (ec *executionContext) marshalNJobHistoryConnection2ᚖgithubᚗcomᚋsandb
 	return ec._JobHistoryConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobHistoryEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNJobHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobHistoryEdge) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNJobHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdge(ctx, sel, v[i])
+		return ec.marshalNJobHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdge(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53666,7 +53666,7 @@ func (ec *executionContext) marshalNJobHistoryEdge2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNJobHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNJobHistoryEdge2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53676,7 +53676,7 @@ func (ec *executionContext) marshalNJobHistoryEdge2ᚖgithubᚗcomᚋsandboxws�
 	return ec._JobHistoryEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNJobHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53686,17 +53686,17 @@ func (ec *executionContext) marshalNJobHistoryEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._JobHistoryEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx context.Context, v any) (model.JobHistoryOrderField, error) {
+func (ec *executionContext) unmarshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx context.Context, v any) (model.JobHistoryOrderField, error) {
 	var res model.JobHistoryOrderField
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx context.Context, sel ast.SelectionSet, v model.JobHistoryOrderField) graphql.Marshaler {
+func (ec *executionContext) marshalNJobHistoryOrderField2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryOrderField(ctx context.Context, sel ast.SelectionSet, v model.JobHistoryOrderField) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNJobHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryPageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNJobHistoryPageInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.JobHistoryPageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53706,11 +53706,11 @@ func (ec *executionContext) marshalNJobHistoryPageInfo2ᚖgithubᚗcomᚋsandbox
 	return ec._JobHistoryPageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobManagerDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobManagerDetail(ctx context.Context, sel ast.SelectionSet, v model.JobManagerDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNJobManagerDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobManagerDetail(ctx context.Context, sel ast.SelectionSet, v model.JobManagerDetail) graphql.Marshaler {
 	return ec._JobManagerDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNJobManagerDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobManagerDetail(ctx context.Context, sel ast.SelectionSet, v *model.JobManagerDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNJobManagerDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobManagerDetail(ctx context.Context, sel ast.SelectionSet, v *model.JobManagerDetail) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53720,11 +53720,11 @@ func (ec *executionContext) marshalNJobManagerDetail2ᚖgithubᚗcomᚋsandboxws
 	return ec._JobManagerDetail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobOverview2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobOverviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobOverview) graphql.Marshaler {
+func (ec *executionContext) marshalNJobOverview2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobOverviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobOverview) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNJobOverview2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobOverview(ctx, sel, v[i])
+		return ec.marshalNJobOverview2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobOverview(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53736,7 +53736,7 @@ func (ec *executionContext) marshalNJobOverview2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNJobOverview2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobOverview(ctx context.Context, sel ast.SelectionSet, v *model.JobOverview) graphql.Marshaler {
+func (ec *executionContext) marshalNJobOverview2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobOverview(ctx context.Context, sel ast.SelectionSet, v *model.JobOverview) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53746,7 +53746,7 @@ func (ec *executionContext) marshalNJobOverview2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._JobOverview(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobPlan2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobPlan(ctx context.Context, sel ast.SelectionSet, v *model.JobPlan) graphql.Marshaler {
+func (ec *executionContext) marshalNJobPlan2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobPlan(ctx context.Context, sel ast.SelectionSet, v *model.JobPlan) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53756,11 +53756,11 @@ func (ec *executionContext) marshalNJobPlan2ᚖgithubᚗcomᚋsandboxwsᚋflink�
 	return ec._JobPlan(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobStatusEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent(ctx context.Context, sel ast.SelectionSet, v model.JobStatusEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNJobStatusEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent(ctx context.Context, sel ast.SelectionSet, v model.JobStatusEvent) graphql.Marshaler {
 	return ec._JobStatusEvent(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNJobStatusEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent(ctx context.Context, sel ast.SelectionSet, v *model.JobStatusEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNJobStatusEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobStatusEvent(ctx context.Context, sel ast.SelectionSet, v *model.JobStatusEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53770,11 +53770,11 @@ func (ec *executionContext) marshalNJobStatusEvent2ᚖgithubᚗcomᚋsandboxws�
 	return ec._JobStatusEvent(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobVertex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobVertexᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobVertex) graphql.Marshaler {
+func (ec *executionContext) marshalNJobVertex2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobVertexᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.JobVertex) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNJobVertex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobVertex(ctx, sel, v[i])
+		return ec.marshalNJobVertex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobVertex(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53786,7 +53786,7 @@ func (ec *executionContext) marshalNJobVertex2ᚕᚖgithubᚗcomᚋsandboxwsᚋf
 	return ret
 }
 
-func (ec *executionContext) marshalNJobVertex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobVertex(ctx context.Context, sel ast.SelectionSet, v *model.JobVertex) graphql.Marshaler {
+func (ec *executionContext) marshalNJobVertex2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobVertex(ctx context.Context, sel ast.SelectionSet, v *model.JobVertex) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53796,11 +53796,11 @@ func (ec *executionContext) marshalNJobVertex2ᚖgithubᚗcomᚋsandboxwsᚋflin
 	return ec._JobVertex(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaConfigEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaConfigEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConfigEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaConfigEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNKafkaConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConfigEntry(ctx, sel, v[i])
+		return ec.marshalNKafkaConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConfigEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53812,7 +53812,7 @@ func (ec *executionContext) marshalNKafkaConfigEntry2ᚕᚖgithubᚗcomᚋsandbo
 	return ret
 }
 
-func (ec *executionContext) marshalNKafkaConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConfigEntry(ctx context.Context, sel ast.SelectionSet, v *model.KafkaConfigEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaConfigEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConfigEntry(ctx context.Context, sel ast.SelectionSet, v *model.KafkaConfigEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53822,11 +53822,11 @@ func (ec *executionContext) marshalNKafkaConfigEntry2ᚖgithubᚗcomᚋsandboxws
 	return ec._KafkaConfigEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaConsumerGroup2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaConsumerGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaConsumerGroup2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaConsumerGroup) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNKafkaConsumerGroup2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroup(ctx, sel, v[i])
+		return ec.marshalNKafkaConsumerGroup2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroup(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53838,7 +53838,7 @@ func (ec *executionContext) marshalNKafkaConsumerGroup2ᚕᚖgithubᚗcomᚋsand
 	return ret
 }
 
-func (ec *executionContext) marshalNKafkaConsumerGroup2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroup(ctx context.Context, sel ast.SelectionSet, v *model.KafkaConsumerGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaConsumerGroup2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroup(ctx context.Context, sel ast.SelectionSet, v *model.KafkaConsumerGroup) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53848,11 +53848,11 @@ func (ec *executionContext) marshalNKafkaConsumerGroup2ᚖgithubᚗcomᚋsandbox
 	return ec._KafkaConsumerGroup(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaConsumerGroupDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupDetail(ctx context.Context, sel ast.SelectionSet, v model.KafkaConsumerGroupDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaConsumerGroupDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupDetail(ctx context.Context, sel ast.SelectionSet, v model.KafkaConsumerGroupDetail) graphql.Marshaler {
 	return ec._KafkaConsumerGroupDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNKafkaConsumerGroupDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupDetail(ctx context.Context, sel ast.SelectionSet, v *model.KafkaConsumerGroupDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaConsumerGroupDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaConsumerGroupDetail(ctx context.Context, sel ast.SelectionSet, v *model.KafkaConsumerGroupDetail) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53862,11 +53862,11 @@ func (ec *executionContext) marshalNKafkaConsumerGroupDetail2ᚖgithubᚗcomᚋs
 	return ec._KafkaConsumerGroupDetail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaGroupMember2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaGroupMemberᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaGroupMember) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaGroupMember2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaGroupMemberᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaGroupMember) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNKafkaGroupMember2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaGroupMember(ctx, sel, v[i])
+		return ec.marshalNKafkaGroupMember2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaGroupMember(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53878,7 +53878,7 @@ func (ec *executionContext) marshalNKafkaGroupMember2ᚕᚖgithubᚗcomᚋsandbo
 	return ret
 }
 
-func (ec *executionContext) marshalNKafkaGroupMember2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaGroupMember(ctx context.Context, sel ast.SelectionSet, v *model.KafkaGroupMember) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaGroupMember2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaGroupMember(ctx context.Context, sel ast.SelectionSet, v *model.KafkaGroupMember) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53888,11 +53888,11 @@ func (ec *executionContext) marshalNKafkaGroupMember2ᚖgithubᚗcomᚋsandboxws
 	return ec._KafkaGroupMember(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaPartition) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaPartition) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNKafkaPartition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartition(ctx, sel, v[i])
+		return ec.marshalNKafkaPartition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartition(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53904,7 +53904,7 @@ func (ec *executionContext) marshalNKafkaPartition2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNKafkaPartition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartition(ctx context.Context, sel ast.SelectionSet, v *model.KafkaPartition) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaPartition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartition(ctx context.Context, sel ast.SelectionSet, v *model.KafkaPartition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53914,11 +53914,11 @@ func (ec *executionContext) marshalNKafkaPartition2ᚖgithubᚗcomᚋsandboxws�
 	return ec._KafkaPartition(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaPartitionOffset2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionOffsetᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaPartitionOffset) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaPartitionOffset2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionOffsetᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaPartitionOffset) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNKafkaPartitionOffset2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionOffset(ctx, sel, v[i])
+		return ec.marshalNKafkaPartitionOffset2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionOffset(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53930,7 +53930,7 @@ func (ec *executionContext) marshalNKafkaPartitionOffset2ᚕᚖgithubᚗcomᚋsa
 	return ret
 }
 
-func (ec *executionContext) marshalNKafkaPartitionOffset2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionOffset(ctx context.Context, sel ast.SelectionSet, v *model.KafkaPartitionOffset) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaPartitionOffset2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionOffset(ctx context.Context, sel ast.SelectionSet, v *model.KafkaPartitionOffset) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53940,11 +53940,11 @@ func (ec *executionContext) marshalNKafkaPartitionOffset2ᚖgithubᚗcomᚋsandb
 	return ec._KafkaPartitionOffset(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaTopic2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaTopic) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaTopic2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaTopic) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNKafkaTopic2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopic(ctx, sel, v[i])
+		return ec.marshalNKafkaTopic2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopic(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53956,7 +53956,7 @@ func (ec *executionContext) marshalNKafkaTopic2ᚕᚖgithubᚗcomᚋsandboxwsᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNKafkaTopic2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopic(ctx context.Context, sel ast.SelectionSet, v *model.KafkaTopic) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaTopic2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopic(ctx context.Context, sel ast.SelectionSet, v *model.KafkaTopic) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53966,11 +53966,11 @@ func (ec *executionContext) marshalNKafkaTopic2ᚖgithubᚗcomᚋsandboxwsᚋfli
 	return ec._KafkaTopic(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaTopicDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicDetail(ctx context.Context, sel ast.SelectionSet, v model.KafkaTopicDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaTopicDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicDetail(ctx context.Context, sel ast.SelectionSet, v model.KafkaTopicDetail) graphql.Marshaler {
 	return ec._KafkaTopicDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNKafkaTopicDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicDetail(ctx context.Context, sel ast.SelectionSet, v *model.KafkaTopicDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaTopicDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicDetail(ctx context.Context, sel ast.SelectionSet, v *model.KafkaTopicDetail) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -53980,11 +53980,11 @@ func (ec *executionContext) marshalNKafkaTopicDetail2ᚖgithubᚗcomᚋsandboxws
 	return ec._KafkaTopicDetail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKafkaTopicPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicPartitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaTopicPartition) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaTopicPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicPartitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaTopicPartition) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNKafkaTopicPartition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicPartition(ctx, sel, v[i])
+		return ec.marshalNKafkaTopicPartition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicPartition(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -53996,7 +53996,7 @@ func (ec *executionContext) marshalNKafkaTopicPartition2ᚕᚖgithubᚗcomᚋsan
 	return ret
 }
 
-func (ec *executionContext) marshalNKafkaTopicPartition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicPartition(ctx context.Context, sel ast.SelectionSet, v *model.KafkaTopicPartition) graphql.Marshaler {
+func (ec *executionContext) marshalNKafkaTopicPartition2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicPartition(ctx context.Context, sel ast.SelectionSet, v *model.KafkaTopicPartition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54006,14 +54006,14 @@ func (ec *executionContext) marshalNKafkaTopicPartition2ᚖgithubᚗcomᚋsandbo
 	return ec._KafkaTopicPartition(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNKeyFieldInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInputᚄ(ctx context.Context, v any) ([]*model.KeyFieldInput, error) {
+func (ec *executionContext) unmarshalNKeyFieldInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInputᚄ(ctx context.Context, v any) ([]*model.KeyFieldInput, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.KeyFieldInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNKeyFieldInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNKeyFieldInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -54021,20 +54021,20 @@ func (ec *executionContext) unmarshalNKeyFieldInput2ᚕᚖgithubᚗcomᚋsandbox
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNKeyFieldInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInput(ctx context.Context, v any) (*model.KeyFieldInput, error) {
+func (ec *executionContext) unmarshalNKeyFieldInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInput(ctx context.Context, v any) (*model.KeyFieldInput, error) {
 	res, err := ec.unmarshalInputKeyFieldInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMaterializedTable2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v model.MaterializedTable) graphql.Marshaler {
+func (ec *executionContext) marshalNMaterializedTable2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v model.MaterializedTable) graphql.Marshaler {
 	return ec._MaterializedTable(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNMaterializedTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MaterializedTable) graphql.Marshaler {
+func (ec *executionContext) marshalNMaterializedTable2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MaterializedTable) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx, sel, v[i])
+		return ec.marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54046,7 +54046,7 @@ func (ec *executionContext) marshalNMaterializedTable2ᚕᚖgithubᚗcomᚋsandb
 	return ret
 }
 
-func (ec *executionContext) marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {
+func (ec *executionContext) marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54056,21 +54056,21 @@ func (ec *executionContext) marshalNMaterializedTable2ᚖgithubᚗcomᚋsandboxw
 	return ec._MaterializedTable(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus(ctx context.Context, v any) (model.MaterializedTableRefreshStatus, error) {
+func (ec *executionContext) unmarshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus(ctx context.Context, v any) (model.MaterializedTableRefreshStatus, error) {
 	var res model.MaterializedTableRefreshStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus(ctx context.Context, sel ast.SelectionSet, v model.MaterializedTableRefreshStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNMaterializedTableRefreshStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTableRefreshStatus(ctx context.Context, sel ast.SelectionSet, v model.MaterializedTableRefreshStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNMetricCatalogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricCatalogEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricCatalogEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricCatalogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricCatalogEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricCatalogEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNMetricCatalogEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricCatalogEntry(ctx, sel, v[i])
+		return ec.marshalNMetricCatalogEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricCatalogEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54082,7 +54082,7 @@ func (ec *executionContext) marshalNMetricCatalogEntry2ᚕᚖgithubᚗcomᚋsand
 	return ret
 }
 
-func (ec *executionContext) marshalNMetricCatalogEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricCatalogEntry(ctx context.Context, sel ast.SelectionSet, v *model.MetricCatalogEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricCatalogEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricCatalogEntry(ctx context.Context, sel ast.SelectionSet, v *model.MetricCatalogEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54092,11 +54092,11 @@ func (ec *executionContext) marshalNMetricCatalogEntry2ᚖgithubᚗcomᚋsandbox
 	return ec._MetricCatalogEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricDataPoint) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricDataPoint) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNMetricDataPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPoint(ctx, sel, v[i])
+		return ec.marshalNMetricDataPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPoint(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54108,7 +54108,7 @@ func (ec *executionContext) marshalNMetricDataPoint2ᚕᚖgithubᚗcomᚋsandbox
 	return ret
 }
 
-func (ec *executionContext) marshalNMetricDataPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPoint(ctx context.Context, sel ast.SelectionSet, v *model.MetricDataPoint) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricDataPoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricDataPoint(ctx context.Context, sel ast.SelectionSet, v *model.MetricDataPoint) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54118,11 +54118,11 @@ func (ec *executionContext) marshalNMetricDataPoint2ᚖgithubᚗcomᚋsandboxws�
 	return ec._MetricDataPoint(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNMetricEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntry(ctx, sel, v[i])
+		return ec.marshalNMetricEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54134,7 +54134,7 @@ func (ec *executionContext) marshalNMetricEntry2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNMetricEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntry(ctx context.Context, sel ast.SelectionSet, v *model.MetricEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEntry(ctx context.Context, sel ast.SelectionSet, v *model.MetricEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54144,11 +54144,11 @@ func (ec *executionContext) marshalNMetricEntry2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._MetricEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNMetricEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent(ctx context.Context, sel ast.SelectionSet, v model.MetricEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent(ctx context.Context, sel ast.SelectionSet, v model.MetricEvent) graphql.Marshaler {
 	return ec._MetricEvent(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNMetricEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent(ctx context.Context, sel ast.SelectionSet, v *model.MetricEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricEvent(ctx context.Context, sel ast.SelectionSet, v *model.MetricEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54158,19 +54158,19 @@ func (ec *executionContext) marshalNMetricEvent2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._MetricEvent(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNMetricHistoryFilter2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricHistoryFilter(ctx context.Context, v any) (model.MetricHistoryFilter, error) {
+func (ec *executionContext) unmarshalNMetricHistoryFilter2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricHistoryFilter(ctx context.Context, v any) (model.MetricHistoryFilter, error) {
 	res, err := ec.unmarshalInputMetricHistoryFilter(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNMetricSeriesRequest2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricSeriesRequestᚄ(ctx context.Context, v any) ([]*model.MetricSeriesRequest, error) {
+func (ec *executionContext) unmarshalNMetricSeriesRequest2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricSeriesRequestᚄ(ctx context.Context, v any) ([]*model.MetricSeriesRequest, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.MetricSeriesRequest, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNMetricSeriesRequest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricSeriesRequest(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNMetricSeriesRequest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricSeriesRequest(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -54178,16 +54178,16 @@ func (ec *executionContext) unmarshalNMetricSeriesRequest2ᚕᚖgithubᚗcomᚋs
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNMetricSeriesRequest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricSeriesRequest(ctx context.Context, v any) (*model.MetricSeriesRequest, error) {
+func (ec *executionContext) unmarshalNMetricSeriesRequest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricSeriesRequest(ctx context.Context, v any) (*model.MetricSeriesRequest, error) {
 	res, err := ec.unmarshalInputMetricSeriesRequest(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMetricTimeSeries2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricTimeSeriesᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricTimeSeries) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricTimeSeries2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricTimeSeriesᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricTimeSeries) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNMetricTimeSeries2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricTimeSeries(ctx, sel, v[i])
+		return ec.marshalNMetricTimeSeries2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricTimeSeries(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54199,7 +54199,7 @@ func (ec *executionContext) marshalNMetricTimeSeries2ᚕᚖgithubᚗcomᚋsandbo
 	return ret
 }
 
-func (ec *executionContext) marshalNMetricTimeSeries2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricTimeSeries(ctx context.Context, sel ast.SelectionSet, v *model.MetricTimeSeries) graphql.Marshaler {
+func (ec *executionContext) marshalNMetricTimeSeries2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMetricTimeSeries(ctx context.Context, sel ast.SelectionSet, v *model.MetricTimeSeries) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54209,14 +54209,14 @@ func (ec *executionContext) marshalNMetricTimeSeries2ᚖgithubᚗcomᚋsandboxws
 	return ec._MetricTimeSeries(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOperatorStateInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInputᚄ(ctx context.Context, v any) ([]*model.OperatorStateInput, error) {
+func (ec *executionContext) unmarshalNOperatorStateInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInputᚄ(ctx context.Context, v any) ([]*model.OperatorStateInput, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.OperatorStateInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNOperatorStateInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNOperatorStateInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -54224,26 +54224,26 @@ func (ec *executionContext) unmarshalNOperatorStateInput2ᚕᚖgithubᚗcomᚋsa
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNOperatorStateInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInput(ctx context.Context, v any) (*model.OperatorStateInput, error) {
+func (ec *executionContext) unmarshalNOperatorStateInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOperatorStateInput(ctx context.Context, v any) (*model.OperatorStateInput, error) {
 	res, err := ec.unmarshalInputOperatorStateInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx context.Context, v any) (model.OrderDirection, error) {
+func (ec *executionContext) unmarshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx context.Context, v any) (model.OrderDirection, error) {
 	var res model.OrderDirection
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v model.OrderDirection) graphql.Marshaler {
+func (ec *executionContext) marshalNOrderDirection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v model.OrderDirection) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNPipelineManifestVersion2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PipelineManifestVersion) graphql.Marshaler {
+func (ec *executionContext) marshalNPipelineManifestVersion2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PipelineManifestVersion) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPipelineManifestVersion2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersion(ctx, sel, v[i])
+		return ec.marshalNPipelineManifestVersion2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersion(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54255,7 +54255,7 @@ func (ec *executionContext) marshalNPipelineManifestVersion2ᚕᚖgithubᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalNPipelineManifestVersion2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersion(ctx context.Context, sel ast.SelectionSet, v *model.PipelineManifestVersion) graphql.Marshaler {
+func (ec *executionContext) marshalNPipelineManifestVersion2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineManifestVersion(ctx context.Context, sel ast.SelectionSet, v *model.PipelineManifestVersion) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54265,11 +54265,11 @@ func (ec *executionContext) marshalNPipelineManifestVersion2ᚖgithubᚗcomᚋsa
 	return ec._PipelineManifestVersion(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPipelineStateSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineStateSummaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PipelineStateSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNPipelineStateSummary2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineStateSummaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PipelineStateSummary) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPipelineStateSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineStateSummary(ctx, sel, v[i])
+		return ec.marshalNPipelineStateSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineStateSummary(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54281,7 +54281,7 @@ func (ec *executionContext) marshalNPipelineStateSummary2ᚕᚖgithubᚗcomᚋsa
 	return ret
 }
 
-func (ec *executionContext) marshalNPipelineStateSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineStateSummary(ctx context.Context, sel ast.SelectionSet, v *model.PipelineStateSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNPipelineStateSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPipelineStateSummary(ctx context.Context, sel ast.SelectionSet, v *model.PipelineStateSummary) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54291,11 +54291,11 @@ func (ec *executionContext) marshalNPipelineStateSummary2ᚖgithubᚗcomᚋsandb
 	return ec._PipelineStateSummary(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlanNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNode) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNode) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPlanNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNode(ctx, sel, v[i])
+		return ec.marshalNPlanNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNode(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54307,7 +54307,7 @@ func (ec *executionContext) marshalNPlanNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ret
 }
 
-func (ec *executionContext) marshalNPlanNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNode(ctx context.Context, sel ast.SelectionSet, v *model.PlanNode) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNode(ctx context.Context, sel ast.SelectionSet, v *model.PlanNode) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54317,7 +54317,7 @@ func (ec *executionContext) marshalNPlanNode2ᚖgithubᚗcomᚋsandboxwsᚋflink
 	return ec._PlanNode(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlanNodeInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInput(ctx context.Context, sel ast.SelectionSet, v *model.PlanNodeInput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanNodeInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInput(ctx context.Context, sel ast.SelectionSet, v *model.PlanNodeInput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54327,11 +54327,11 @@ func (ec *executionContext) marshalNPlanNodeInput2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._PlanNodeInput(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPreflightCheck2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheckᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PreflightCheck) graphql.Marshaler {
+func (ec *executionContext) marshalNPreflightCheck2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheckᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PreflightCheck) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheck(ctx, sel, v[i])
+		return ec.marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheck(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54343,7 +54343,7 @@ func (ec *executionContext) marshalNPreflightCheck2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheck(ctx context.Context, sel ast.SelectionSet, v *model.PreflightCheck) graphql.Marshaler {
+func (ec *executionContext) marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPreflightCheck(ctx context.Context, sel ast.SelectionSet, v *model.PreflightCheck) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54353,7 +54353,7 @@ func (ec *executionContext) marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxws�
 	return ec._PreflightCheck(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRedisHashEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntry(ctx context.Context, sel ast.SelectionSet, v *model.RedisHashEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisHashEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntry(ctx context.Context, sel ast.SelectionSet, v *model.RedisHashEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54363,11 +54363,11 @@ func (ec *executionContext) marshalNRedisHashEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._RedisHashEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRedisKeyInfo2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo(ctx context.Context, sel ast.SelectionSet, v model.RedisKeyInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisKeyInfo2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo(ctx context.Context, sel ast.SelectionSet, v model.RedisKeyInfo) graphql.Marshaler {
 	return ec._RedisKeyInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRedisKeyInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo(ctx context.Context, sel ast.SelectionSet, v *model.RedisKeyInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisKeyInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyInfo(ctx context.Context, sel ast.SelectionSet, v *model.RedisKeyInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54377,11 +54377,11 @@ func (ec *executionContext) marshalNRedisKeyInfo2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._RedisKeyInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRedisKeyValue2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue(ctx context.Context, sel ast.SelectionSet, v model.RedisKeyValue) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisKeyValue2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue(ctx context.Context, sel ast.SelectionSet, v model.RedisKeyValue) graphql.Marshaler {
 	return ec._RedisKeyValue(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRedisKeyValue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue(ctx context.Context, sel ast.SelectionSet, v *model.RedisKeyValue) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisKeyValue2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisKeyValue(ctx context.Context, sel ast.SelectionSet, v *model.RedisKeyValue) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54391,11 +54391,11 @@ func (ec *executionContext) marshalNRedisKeyValue2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._RedisKeyValue(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRedisMemoryStats2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats(ctx context.Context, sel ast.SelectionSet, v model.RedisMemoryStats) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisMemoryStats2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats(ctx context.Context, sel ast.SelectionSet, v model.RedisMemoryStats) graphql.Marshaler {
 	return ec._RedisMemoryStats(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRedisMemoryStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats(ctx context.Context, sel ast.SelectionSet, v *model.RedisMemoryStats) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisMemoryStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisMemoryStats(ctx context.Context, sel ast.SelectionSet, v *model.RedisMemoryStats) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54405,11 +54405,11 @@ func (ec *executionContext) marshalNRedisMemoryStats2ᚖgithubᚗcomᚋsandboxws
 	return ec._RedisMemoryStats(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRedisScanResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult(ctx context.Context, sel ast.SelectionSet, v model.RedisScanResult) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisScanResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult(ctx context.Context, sel ast.SelectionSet, v model.RedisScanResult) graphql.Marshaler {
 	return ec._RedisScanResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRedisScanResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult(ctx context.Context, sel ast.SelectionSet, v *model.RedisScanResult) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisScanResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisScanResult(ctx context.Context, sel ast.SelectionSet, v *model.RedisScanResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54419,11 +54419,11 @@ func (ec *executionContext) marshalNRedisScanResult2ᚖgithubᚗcomᚋsandboxws�
 	return ec._RedisScanResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRedisServerInfo2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo(ctx context.Context, sel ast.SelectionSet, v model.RedisServerInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisServerInfo2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo(ctx context.Context, sel ast.SelectionSet, v model.RedisServerInfo) graphql.Marshaler {
 	return ec._RedisServerInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRedisServerInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo(ctx context.Context, sel ast.SelectionSet, v *model.RedisServerInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisServerInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisServerInfo(ctx context.Context, sel ast.SelectionSet, v *model.RedisServerInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54433,7 +54433,7 @@ func (ec *executionContext) marshalNRedisServerInfo2ᚖgithubᚗcomᚋsandboxws�
 	return ec._RedisServerInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRedisZSetEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntry(ctx context.Context, sel ast.SelectionSet, v *model.RedisZSetEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNRedisZSetEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntry(ctx context.Context, sel ast.SelectionSet, v *model.RedisZSetEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54443,15 +54443,15 @@ func (ec *executionContext) marshalNRedisZSetEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._RedisZSetEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRescaleEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx context.Context, sel ast.SelectionSet, v model.RescaleEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNRescaleEvent2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx context.Context, sel ast.SelectionSet, v model.RescaleEvent) graphql.Marshaler {
 	return ec._RescaleEvent(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRescaleEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RescaleEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNRescaleEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RescaleEvent) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx, sel, v[i])
+		return ec.marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54463,7 +54463,7 @@ func (ec *executionContext) marshalNRescaleEvent2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx context.Context, sel ast.SelectionSet, v *model.RescaleEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleEvent(ctx context.Context, sel ast.SelectionSet, v *model.RescaleEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54473,11 +54473,11 @@ func (ec *executionContext) marshalNRescaleEvent2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._RescaleEvent(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRescaleResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v model.RescaleResult) graphql.Marshaler {
+func (ec *executionContext) marshalNRescaleResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v model.RescaleResult) graphql.Marshaler {
 	return ec._RescaleResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v *model.RescaleResult) graphql.Marshaler {
+func (ec *executionContext) marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleResult(ctx context.Context, sel ast.SelectionSet, v *model.RescaleResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54487,21 +54487,21 @@ func (ec *executionContext) marshalNRescaleResult2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._RescaleResult(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus(ctx context.Context, v any) (model.RescaleStatus, error) {
+func (ec *executionContext) unmarshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus(ctx context.Context, v any) (model.RescaleStatus, error) {
 	var res model.RescaleStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus(ctx context.Context, sel ast.SelectionSet, v model.RescaleStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNRescaleStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleStatus(ctx context.Context, sel ast.SelectionSet, v model.RescaleStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNRescaleSummary2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary(ctx context.Context, sel ast.SelectionSet, v model.RescaleSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNRescaleSummary2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary(ctx context.Context, sel ast.SelectionSet, v model.RescaleSummary) graphql.Marshaler {
 	return ec._RescaleSummary(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRescaleSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary(ctx context.Context, sel ast.SelectionSet, v *model.RescaleSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNRescaleSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRescaleSummary(ctx context.Context, sel ast.SelectionSet, v *model.RescaleSummary) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54511,11 +54511,11 @@ func (ec *executionContext) marshalNRescaleSummary2ᚖgithubᚗcomᚋsandboxws�
 	return ec._RescaleSummary(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRestoreEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RestoreEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNRestoreEvent2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RestoreEvent) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNRestoreEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEvent(ctx, sel, v[i])
+		return ec.marshalNRestoreEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEvent(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54527,7 +54527,7 @@ func (ec *executionContext) marshalNRestoreEvent2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNRestoreEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEvent(ctx context.Context, sel ast.SelectionSet, v *model.RestoreEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNRestoreEvent2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestoreEvent(ctx context.Context, sel ast.SelectionSet, v *model.RestoreEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54537,11 +54537,11 @@ func (ec *executionContext) marshalNRestoreEvent2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._RestoreEvent(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSQLCloseResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLCloseResult(ctx context.Context, sel ast.SelectionSet, v model.SQLCloseResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLCloseResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLCloseResult(ctx context.Context, sel ast.SelectionSet, v model.SQLCloseResult) graphql.Marshaler {
 	return ec._SQLCloseResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSQLCloseResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLCloseResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLCloseResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLCloseResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLCloseResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLCloseResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54551,11 +54551,11 @@ func (ec *executionContext) marshalNSQLCloseResult2ᚖgithubᚗcomᚋsandboxws�
 	return ec._SQLCloseResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SQLColumn) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SQLColumn) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSQLColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumn(ctx, sel, v[i])
+		return ec.marshalNSQLColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumn(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54567,7 +54567,7 @@ func (ec *executionContext) marshalNSQLColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋf
 	return ret
 }
 
-func (ec *executionContext) marshalNSQLColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumn(ctx context.Context, sel ast.SelectionSet, v *model.SQLColumn) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLColumn(ctx context.Context, sel ast.SelectionSet, v *model.SQLColumn) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54577,11 +54577,11 @@ func (ec *executionContext) marshalNSQLColumn2ᚖgithubᚗcomᚋsandboxwsᚋflin
 	return ec._SQLColumn(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSQLExplainResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult(ctx context.Context, sel ast.SelectionSet, v model.SQLExplainResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLExplainResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult(ctx context.Context, sel ast.SelectionSet, v model.SQLExplainResult) graphql.Marshaler {
 	return ec._SQLExplainResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSQLExplainResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLExplainResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLExplainResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLExplainResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLExplainResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54591,11 +54591,11 @@ func (ec *executionContext) marshalNSQLExplainResult2ᚖgithubᚗcomᚋsandboxws
 	return ec._SQLExplainResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSQLFetchResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLFetchResult(ctx context.Context, sel ast.SelectionSet, v model.SQLFetchResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLFetchResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLFetchResult(ctx context.Context, sel ast.SelectionSet, v model.SQLFetchResult) graphql.Marshaler {
 	return ec._SQLFetchResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSQLFetchResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLFetchResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLFetchResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLFetchResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLFetchResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLFetchResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54605,11 +54605,11 @@ func (ec *executionContext) marshalNSQLFetchResult2ᚖgithubᚗcomᚋsandboxws�
 	return ec._SQLFetchResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSQLResultBatch2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch(ctx context.Context, sel ast.SelectionSet, v model.SQLResultBatch) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLResultBatch2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch(ctx context.Context, sel ast.SelectionSet, v model.SQLResultBatch) graphql.Marshaler {
 	return ec._SQLResultBatch(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSQLResultBatch2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch(ctx context.Context, sel ast.SelectionSet, v *model.SQLResultBatch) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLResultBatch2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLResultBatch(ctx context.Context, sel ast.SelectionSet, v *model.SQLResultBatch) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54619,11 +54619,11 @@ func (ec *executionContext) marshalNSQLResultBatch2ᚖgithubᚗcomᚋsandboxws�
 	return ec._SQLResultBatch(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSQLSessionResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLSessionResult(ctx context.Context, sel ast.SelectionSet, v model.SQLSessionResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLSessionResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLSessionResult(ctx context.Context, sel ast.SelectionSet, v model.SQLSessionResult) graphql.Marshaler {
 	return ec._SQLSessionResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSQLSessionResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLSessionResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLSessionResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLSessionResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLSessionResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLSessionResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54633,11 +54633,11 @@ func (ec *executionContext) marshalNSQLSessionResult2ᚖgithubᚗcomᚋsandboxws
 	return ec._SQLSessionResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSQLStatementResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLStatementResult(ctx context.Context, sel ast.SelectionSet, v model.SQLStatementResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLStatementResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLStatementResult(ctx context.Context, sel ast.SelectionSet, v model.SQLStatementResult) graphql.Marshaler {
 	return ec._SQLStatementResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSQLStatementResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLStatementResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLStatementResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSQLStatementResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSQLStatementResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLStatementResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54647,15 +54647,15 @@ func (ec *executionContext) marshalNSQLStatementResult2ᚖgithubᚗcomᚋsandbox
 	return ec._SQLStatementResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSavepoint2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx context.Context, sel ast.SelectionSet, v model.Savepoint) graphql.Marshaler {
+func (ec *executionContext) marshalNSavepoint2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx context.Context, sel ast.SelectionSet, v model.Savepoint) graphql.Marshaler {
 	return ec._Savepoint(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSavepoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Savepoint) graphql.Marshaler {
+func (ec *executionContext) marshalNSavepoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Savepoint) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx, sel, v[i])
+		return ec.marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54667,7 +54667,7 @@ func (ec *executionContext) marshalNSavepoint2ᚕᚖgithubᚗcomᚋsandboxwsᚋf
 	return ret
 }
 
-func (ec *executionContext) marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx context.Context, sel ast.SelectionSet, v *model.Savepoint) graphql.Marshaler {
+func (ec *executionContext) marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepoint(ctx context.Context, sel ast.SelectionSet, v *model.Savepoint) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54677,21 +54677,21 @@ func (ec *executionContext) marshalNSavepoint2ᚖgithubᚗcomᚋsandboxwsᚋflin
 	return ec._Savepoint(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus(ctx context.Context, v any) (model.SavepointStatus, error) {
+func (ec *executionContext) unmarshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus(ctx context.Context, v any) (model.SavepointStatus, error) {
 	var res model.SavepointStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus(ctx context.Context, sel ast.SelectionSet, v model.SavepointStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNSavepointStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointStatus(ctx context.Context, sel ast.SelectionSet, v model.SavepointStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNSavepointTriggerResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult(ctx context.Context, sel ast.SelectionSet, v model.SavepointTriggerResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSavepointTriggerResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult(ctx context.Context, sel ast.SelectionSet, v model.SavepointTriggerResult) graphql.Marshaler {
 	return ec._SavepointTriggerResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult(ctx context.Context, sel ast.SelectionSet, v *model.SavepointTriggerResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerResult(ctx context.Context, sel ast.SelectionSet, v *model.SavepointTriggerResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54701,21 +54701,21 @@ func (ec *executionContext) marshalNSavepointTriggerResult2ᚖgithubᚗcomᚋsan
 	return ec._SavepointTriggerResult(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType(ctx context.Context, v any) (model.SavepointTriggerType, error) {
+func (ec *executionContext) unmarshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType(ctx context.Context, v any) (model.SavepointTriggerType, error) {
 	var res model.SavepointTriggerType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType(ctx context.Context, sel ast.SelectionSet, v model.SavepointTriggerType) graphql.Marshaler {
+func (ec *executionContext) marshalNSavepointTriggerType2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSavepointTriggerType(ctx context.Context, sel ast.SelectionSet, v model.SavepointTriggerType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNSchemaDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaDetail(ctx context.Context, sel ast.SelectionSet, v model.SchemaDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNSchemaDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaDetail(ctx context.Context, sel ast.SelectionSet, v model.SchemaDetail) graphql.Marshaler {
 	return ec._SchemaDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSchemaDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaDetail(ctx context.Context, sel ast.SelectionSet, v *model.SchemaDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNSchemaDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaDetail(ctx context.Context, sel ast.SelectionSet, v *model.SchemaDetail) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54725,11 +54725,11 @@ func (ec *executionContext) marshalNSchemaDetail2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._SchemaDetail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSchemaReference2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaReferenceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SchemaReference) graphql.Marshaler {
+func (ec *executionContext) marshalNSchemaReference2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaReferenceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SchemaReference) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSchemaReference2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaReference(ctx, sel, v[i])
+		return ec.marshalNSchemaReference2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaReference(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54741,7 +54741,7 @@ func (ec *executionContext) marshalNSchemaReference2ᚕᚖgithubᚗcomᚋsandbox
 	return ret
 }
 
-func (ec *executionContext) marshalNSchemaReference2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaReference(ctx context.Context, sel ast.SelectionSet, v *model.SchemaReference) graphql.Marshaler {
+func (ec *executionContext) marshalNSchemaReference2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaReference(ctx context.Context, sel ast.SelectionSet, v *model.SchemaReference) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54751,11 +54751,11 @@ func (ec *executionContext) marshalNSchemaReference2ᚖgithubᚗcomᚋsandboxws�
 	return ec._SchemaReference(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSchemaSubject2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubjectᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SchemaSubject) graphql.Marshaler {
+func (ec *executionContext) marshalNSchemaSubject2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubjectᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SchemaSubject) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSchemaSubject2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubject(ctx, sel, v[i])
+		return ec.marshalNSchemaSubject2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubject(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54767,7 +54767,7 @@ func (ec *executionContext) marshalNSchemaSubject2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalNSchemaSubject2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubject(ctx context.Context, sel ast.SelectionSet, v *model.SchemaSubject) graphql.Marshaler {
+func (ec *executionContext) marshalNSchemaSubject2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubject(ctx context.Context, sel ast.SelectionSet, v *model.SchemaSubject) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54777,16 +54777,16 @@ func (ec *executionContext) marshalNSchemaSubject2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._SchemaSubject(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSimulationInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationInput(ctx context.Context, v any) (model.SimulationInput, error) {
+func (ec *executionContext) unmarshalNSimulationInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationInput(ctx context.Context, v any) (model.SimulationInput, error) {
 	res, err := ec.unmarshalInputSimulationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSimulationObservation2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationObservationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SimulationObservation) graphql.Marshaler {
+func (ec *executionContext) marshalNSimulationObservation2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationObservationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SimulationObservation) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSimulationObservation2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationObservation(ctx, sel, v[i])
+		return ec.marshalNSimulationObservation2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationObservation(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54798,7 +54798,7 @@ func (ec *executionContext) marshalNSimulationObservation2ᚕᚖgithubᚗcomᚋs
 	return ret
 }
 
-func (ec *executionContext) marshalNSimulationObservation2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationObservation(ctx context.Context, sel ast.SelectionSet, v *model.SimulationObservation) graphql.Marshaler {
+func (ec *executionContext) marshalNSimulationObservation2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationObservation(ctx context.Context, sel ast.SelectionSet, v *model.SimulationObservation) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54808,11 +54808,11 @@ func (ec *executionContext) marshalNSimulationObservation2ᚖgithubᚗcomᚋsand
 	return ec._SimulationObservation(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSimulationPreset2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationPresetᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SimulationPreset) graphql.Marshaler {
+func (ec *executionContext) marshalNSimulationPreset2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationPresetᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SimulationPreset) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSimulationPreset2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationPreset(ctx, sel, v[i])
+		return ec.marshalNSimulationPreset2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationPreset(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54824,7 +54824,7 @@ func (ec *executionContext) marshalNSimulationPreset2ᚕᚖgithubᚗcomᚋsandbo
 	return ret
 }
 
-func (ec *executionContext) marshalNSimulationPreset2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationPreset(ctx context.Context, sel ast.SelectionSet, v *model.SimulationPreset) graphql.Marshaler {
+func (ec *executionContext) marshalNSimulationPreset2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationPreset(ctx context.Context, sel ast.SelectionSet, v *model.SimulationPreset) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54834,15 +54834,15 @@ func (ec *executionContext) marshalNSimulationPreset2ᚖgithubᚗcomᚋsandboxws
 	return ec._SimulationPreset(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSimulationRun2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx context.Context, sel ast.SelectionSet, v model.SimulationRun) graphql.Marshaler {
+func (ec *executionContext) marshalNSimulationRun2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx context.Context, sel ast.SelectionSet, v model.SimulationRun) graphql.Marshaler {
 	return ec._SimulationRun(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSimulationRun2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRunᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SimulationRun) graphql.Marshaler {
+func (ec *executionContext) marshalNSimulationRun2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRunᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SimulationRun) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx, sel, v[i])
+		return ec.marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54854,7 +54854,7 @@ func (ec *executionContext) marshalNSimulationRun2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx context.Context, sel ast.SelectionSet, v *model.SimulationRun) graphql.Marshaler {
+func (ec *executionContext) marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx context.Context, sel ast.SelectionSet, v *model.SimulationRun) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54864,26 +54864,26 @@ func (ec *executionContext) marshalNSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._SimulationRun(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSimulationStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationStatus(ctx context.Context, v any) (model.SimulationStatus, error) {
+func (ec *executionContext) unmarshalNSimulationStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationStatus(ctx context.Context, v any) (model.SimulationStatus, error) {
 	var res model.SimulationStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSimulationStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationStatus(ctx context.Context, sel ast.SelectionSet, v model.SimulationStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNSimulationStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationStatus(ctx context.Context, sel ast.SelectionSet, v model.SimulationStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNStateManifestInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStateManifestInput(ctx context.Context, v any) (model.StateManifestInput, error) {
+func (ec *executionContext) unmarshalNStateManifestInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStateManifestInput(ctx context.Context, v any) (model.StateManifestInput, error) {
 	res, err := ec.unmarshalInputStateManifestInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNStorageStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus(ctx context.Context, sel ast.SelectionSet, v model.StorageStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNStorageStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus(ctx context.Context, sel ast.SelectionSet, v model.StorageStatus) graphql.Marshaler {
 	return ec._StorageStatus(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNStorageStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus(ctx context.Context, sel ast.SelectionSet, v *model.StorageStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNStorageStatus2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStorageStatus(ctx context.Context, sel ast.SelectionSet, v *model.StorageStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54893,7 +54893,7 @@ func (ec *executionContext) marshalNStorageStatus2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._StorageStatus(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNStoredCheckpoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredCheckpoint(ctx context.Context, sel ast.SelectionSet, v *model.StoredCheckpoint) graphql.Marshaler {
+func (ec *executionContext) marshalNStoredCheckpoint2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredCheckpoint(ctx context.Context, sel ast.SelectionSet, v *model.StoredCheckpoint) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54903,7 +54903,7 @@ func (ec *executionContext) marshalNStoredCheckpoint2ᚖgithubᚗcomᚋsandboxws
 	return ec._StoredCheckpoint(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNStoredException2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredException(ctx context.Context, sel ast.SelectionSet, v *model.StoredException) graphql.Marshaler {
+func (ec *executionContext) marshalNStoredException2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐStoredException(ctx context.Context, sel ast.SelectionSet, v *model.StoredException) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -54983,11 +54983,11 @@ func (ec *executionContext) marshalNString2ᚕᚕᚖstring(ctx context.Context, 
 	return ret
 }
 
-func (ec *executionContext) marshalNSubtaskBackPressure2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskBackPressureᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubtaskBackPressure) graphql.Marshaler {
+func (ec *executionContext) marshalNSubtaskBackPressure2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskBackPressureᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubtaskBackPressure) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSubtaskBackPressure2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskBackPressure(ctx, sel, v[i])
+		return ec.marshalNSubtaskBackPressure2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskBackPressure(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -54999,7 +54999,7 @@ func (ec *executionContext) marshalNSubtaskBackPressure2ᚕᚖgithubᚗcomᚋsan
 	return ret
 }
 
-func (ec *executionContext) marshalNSubtaskBackPressure2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskBackPressure(ctx context.Context, sel ast.SelectionSet, v *model.SubtaskBackPressure) graphql.Marshaler {
+func (ec *executionContext) marshalNSubtaskBackPressure2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskBackPressure(ctx context.Context, sel ast.SelectionSet, v *model.SubtaskBackPressure) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55009,11 +55009,11 @@ func (ec *executionContext) marshalNSubtaskBackPressure2ᚖgithubᚗcomᚋsandbo
 	return ec._SubtaskBackPressure(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSubtaskInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubtaskInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNSubtaskInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubtaskInfo) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSubtaskInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskInfo(ctx, sel, v[i])
+		return ec.marshalNSubtaskInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskInfo(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55025,7 +55025,7 @@ func (ec *executionContext) marshalNSubtaskInfo2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNSubtaskInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskInfo(ctx context.Context, sel ast.SelectionSet, v *model.SubtaskInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNSubtaskInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskInfo(ctx context.Context, sel ast.SelectionSet, v *model.SubtaskInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55035,11 +55035,11 @@ func (ec *executionContext) marshalNSubtaskInfo2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._SubtaskInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSubtaskTimes2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimes(ctx context.Context, sel ast.SelectionSet, v model.SubtaskTimes) graphql.Marshaler {
+func (ec *executionContext) marshalNSubtaskTimes2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimes(ctx context.Context, sel ast.SelectionSet, v model.SubtaskTimes) graphql.Marshaler {
 	return ec._SubtaskTimes(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSubtaskTimes2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimes(ctx context.Context, sel ast.SelectionSet, v *model.SubtaskTimes) graphql.Marshaler {
+func (ec *executionContext) marshalNSubtaskTimes2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimes(ctx context.Context, sel ast.SelectionSet, v *model.SubtaskTimes) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55049,11 +55049,11 @@ func (ec *executionContext) marshalNSubtaskTimes2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._SubtaskTimes(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSubtaskTimesEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimesEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubtaskTimesEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNSubtaskTimesEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimesEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubtaskTimesEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSubtaskTimesEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimesEntry(ctx, sel, v[i])
+		return ec.marshalNSubtaskTimesEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimesEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55065,7 +55065,7 @@ func (ec *executionContext) marshalNSubtaskTimesEntry2ᚕᚖgithubᚗcomᚋsandb
 	return ret
 }
 
-func (ec *executionContext) marshalNSubtaskTimesEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimesEntry(ctx context.Context, sel ast.SelectionSet, v *model.SubtaskTimesEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNSubtaskTimesEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSubtaskTimesEntry(ctx context.Context, sel ast.SelectionSet, v *model.SubtaskTimesEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55075,11 +55075,11 @@ func (ec *executionContext) marshalNSubtaskTimesEntry2ᚖgithubᚗcomᚋsandboxw
 	return ec._SubtaskTimesEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTMLogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTMLogEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TMLogEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNTMLogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTMLogEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TMLogEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNTMLogEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTMLogEntry(ctx, sel, v[i])
+		return ec.marshalNTMLogEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTMLogEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55091,7 +55091,7 @@ func (ec *executionContext) marshalNTMLogEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNTMLogEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTMLogEntry(ctx context.Context, sel ast.SelectionSet, v *model.TMLogEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNTMLogEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTMLogEntry(ctx context.Context, sel ast.SelectionSet, v *model.TMLogEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55101,11 +55101,11 @@ func (ec *executionContext) marshalNTMLogEntry2ᚖgithubᚗcomᚋsandboxwsᚋfli
 	return ec._TMLogEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTapManifest2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTapManifestᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TapManifest) graphql.Marshaler {
+func (ec *executionContext) marshalNTapManifest2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTapManifestᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TapManifest) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNTapManifest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTapManifest(ctx, sel, v[i])
+		return ec.marshalNTapManifest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTapManifest(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55117,7 +55117,7 @@ func (ec *executionContext) marshalNTapManifest2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalNTapManifest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTapManifest(ctx context.Context, sel ast.SelectionSet, v *model.TapManifest) graphql.Marshaler {
+func (ec *executionContext) marshalNTapManifest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTapManifest(ctx context.Context, sel ast.SelectionSet, v *model.TapManifest) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55127,7 +55127,7 @@ func (ec *executionContext) marshalNTapManifest2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return ec._TapManifest(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTaskCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskCounts(ctx context.Context, sel ast.SelectionSet, v *model.TaskCounts) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskCounts2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskCounts(ctx context.Context, sel ast.SelectionSet, v *model.TaskCounts) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55137,11 +55137,11 @@ func (ec *executionContext) marshalNTaskCounts2ᚖgithubᚗcomᚋsandboxwsᚋfli
 	return ec._TaskCounts(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTaskManagerDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerDetail(ctx context.Context, sel ast.SelectionSet, v model.TaskManagerDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskManagerDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerDetail(ctx context.Context, sel ast.SelectionSet, v model.TaskManagerDetail) graphql.Marshaler {
 	return ec._TaskManagerDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTaskManagerDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerDetail(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskManagerDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerDetail(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerDetail) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55151,7 +55151,7 @@ func (ec *executionContext) marshalNTaskManagerDetail2ᚖgithubᚗcomᚋsandboxw
 	return ec._TaskManagerDetail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTaskManagerHardware2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerHardware(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerHardware) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskManagerHardware2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerHardware(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerHardware) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55161,7 +55161,7 @@ func (ec *executionContext) marshalNTaskManagerHardware2ᚖgithubᚗcomᚋsandbo
 	return ec._TaskManagerHardware(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTaskManagerMemory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerMemory(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerMemory) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskManagerMemory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerMemory(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerMemory) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55171,11 +55171,11 @@ func (ec *executionContext) marshalNTaskManagerMemory2ᚖgithubᚗcomᚋsandboxw
 	return ec._TaskManagerMemory(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTaskManagerOverview2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerOverviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TaskManagerOverview) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskManagerOverview2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerOverviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TaskManagerOverview) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNTaskManagerOverview2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerOverview(ctx, sel, v[i])
+		return ec.marshalNTaskManagerOverview2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerOverview(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55187,7 +55187,7 @@ func (ec *executionContext) marshalNTaskManagerOverview2ᚕᚖgithubᚗcomᚋsan
 	return ret
 }
 
-func (ec *executionContext) marshalNTaskManagerOverview2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerOverview(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerOverview) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskManagerOverview2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerOverview(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerOverview) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55197,7 +55197,7 @@ func (ec *executionContext) marshalNTaskManagerOverview2ᚖgithubᚗcomᚋsandbo
 	return ec._TaskManagerOverview(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerResourceProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskManagerResourceProfile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTaskManagerResourceProfile(ctx context.Context, sel ast.SelectionSet, v *model.TaskManagerResourceProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55207,11 +55207,11 @@ func (ec *executionContext) marshalNTaskManagerResourceProfile2ᚖgithubᚗcom�
 	return ec._TaskManagerResourceProfile(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNThreadDumpEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ThreadDumpEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNThreadDumpEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ThreadDumpEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNThreadDumpEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntry(ctx, sel, v[i])
+		return ec.marshalNThreadDumpEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55223,7 +55223,7 @@ func (ec *executionContext) marshalNThreadDumpEntry2ᚕᚖgithubᚗcomᚋsandbox
 	return ret
 }
 
-func (ec *executionContext) marshalNThreadDumpEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntry(ctx context.Context, sel ast.SelectionSet, v *model.ThreadDumpEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNThreadDumpEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntry(ctx context.Context, sel ast.SelectionSet, v *model.ThreadDumpEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55233,11 +55233,11 @@ func (ec *executionContext) marshalNThreadDumpEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._ThreadDumpEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTimestampEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimestampEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TimestampEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNTimestampEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimestampEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TimestampEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNTimestampEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimestampEntry(ctx, sel, v[i])
+		return ec.marshalNTimestampEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimestampEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55249,7 +55249,7 @@ func (ec *executionContext) marshalNTimestampEntry2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNTimestampEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimestampEntry(ctx context.Context, sel ast.SelectionSet, v *model.TimestampEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNTimestampEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimestampEntry(ctx context.Context, sel ast.SelectionSet, v *model.TimestampEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55259,16 +55259,16 @@ func (ec *executionContext) marshalNTimestampEntry2ᚖgithubᚗcomᚋsandboxws�
 	return ec._TimestampEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUpdateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUpdateAlertRuleInput(ctx context.Context, v any) (model.UpdateAlertRuleInput, error) {
+func (ec *executionContext) unmarshalNUpdateAlertRuleInput2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐUpdateAlertRuleInput(ctx context.Context, v any) (model.UpdateAlertRuleInput, error) {
 	res, err := ec.unmarshalInputUpdateAlertRuleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUserAccumulator2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulatorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.UserAccumulator) graphql.Marshaler {
+func (ec *executionContext) marshalNUserAccumulator2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulatorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.UserAccumulator) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNUserAccumulator2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulator(ctx, sel, v[i])
+		return ec.marshalNUserAccumulator2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulator(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55280,7 +55280,7 @@ func (ec *executionContext) marshalNUserAccumulator2ᚕᚖgithubᚗcomᚋsandbox
 	return ret
 }
 
-func (ec *executionContext) marshalNUserAccumulator2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulator(ctx context.Context, sel ast.SelectionSet, v *model.UserAccumulator) graphql.Marshaler {
+func (ec *executionContext) marshalNUserAccumulator2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐUserAccumulator(ctx context.Context, sel ast.SelectionSet, v *model.UserAccumulator) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55290,7 +55290,7 @@ func (ec *executionContext) marshalNUserAccumulator2ᚖgithubᚗcomᚋsandboxws�
 	return ec._UserAccumulator(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNVertexAccumulators2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulators(ctx context.Context, sel ast.SelectionSet, v *model.VertexAccumulators) graphql.Marshaler {
+func (ec *executionContext) marshalNVertexAccumulators2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulators(ctx context.Context, sel ast.SelectionSet, v *model.VertexAccumulators) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55300,7 +55300,7 @@ func (ec *executionContext) marshalNVertexAccumulators2ᚖgithubᚗcomᚋsandbox
 	return ec._VertexAccumulators(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNVertexBackPressure2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexBackPressure(ctx context.Context, sel ast.SelectionSet, v *model.VertexBackPressure) graphql.Marshaler {
+func (ec *executionContext) marshalNVertexBackPressure2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexBackPressure(ctx context.Context, sel ast.SelectionSet, v *model.VertexBackPressure) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55310,11 +55310,11 @@ func (ec *executionContext) marshalNVertexBackPressure2ᚖgithubᚗcomᚋsandbox
 	return ec._VertexBackPressure(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNVertexDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetail(ctx context.Context, sel ast.SelectionSet, v model.VertexDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNVertexDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetail(ctx context.Context, sel ast.SelectionSet, v model.VertexDetail) graphql.Marshaler {
 	return ec._VertexDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNVertexDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetail(ctx context.Context, sel ast.SelectionSet, v *model.VertexDetail) graphql.Marshaler {
+func (ec *executionContext) marshalNVertexDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetail(ctx context.Context, sel ast.SelectionSet, v *model.VertexDetail) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55324,7 +55324,7 @@ func (ec *executionContext) marshalNVertexDetail2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return ec._VertexDetail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNVertexMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexMetrics(ctx context.Context, sel ast.SelectionSet, v *model.VertexMetrics) graphql.Marshaler {
+func (ec *executionContext) marshalNVertexMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexMetrics(ctx context.Context, sel ast.SelectionSet, v *model.VertexMetrics) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55334,7 +55334,7 @@ func (ec *executionContext) marshalNVertexMetrics2ᚖgithubᚗcomᚋsandboxwsᚋ
 	return ec._VertexMetrics(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNVertexWatermarks2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexWatermarks(ctx context.Context, sel ast.SelectionSet, v *model.VertexWatermarks) graphql.Marshaler {
+func (ec *executionContext) marshalNVertexWatermarks2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexWatermarks(ctx context.Context, sel ast.SelectionSet, v *model.VertexWatermarks) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55344,11 +55344,11 @@ func (ec *executionContext) marshalNVertexWatermarks2ᚖgithubᚗcomᚋsandboxws
 	return ec._VertexWatermarks(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWatermarkEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐWatermarkEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WatermarkEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNWatermarkEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐWatermarkEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WatermarkEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNWatermarkEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐWatermarkEntry(ctx, sel, v[i])
+		return ec.marshalNWatermarkEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐWatermarkEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55360,7 +55360,7 @@ func (ec *executionContext) marshalNWatermarkEntry2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalNWatermarkEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐWatermarkEntry(ctx context.Context, sel ast.SelectionSet, v *model.WatermarkEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNWatermarkEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐWatermarkEntry(ctx context.Context, sel ast.SelectionSet, v *model.WatermarkEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -55511,7 +55511,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalOAlertHistoryFilterInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryFilterInput(ctx context.Context, v any) (*model.AlertHistoryFilterInput, error) {
+func (ec *executionContext) unmarshalOAlertHistoryFilterInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertHistoryFilterInput(ctx context.Context, v any) (*model.AlertHistoryFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -55519,14 +55519,14 @@ func (ec *executionContext) unmarshalOAlertHistoryFilterInput2ᚖgithubᚗcomᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v *model.AlertRule) graphql.Marshaler {
+func (ec *executionContext) marshalOAlertRule2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertRule(ctx context.Context, sel ast.SelectionSet, v *model.AlertRule) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._AlertRule(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, v any) (*model.AlertState, error) {
+func (ec *executionContext) unmarshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, v any) (*model.AlertState, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -55535,21 +55535,21 @@ func (ec *executionContext) unmarshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋf
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, sel ast.SelectionSet, v *model.AlertState) graphql.Marshaler {
+func (ec *executionContext) marshalOAlertState2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐAlertState(ctx context.Context, sel ast.SelectionSet, v *model.AlertState) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
+func (ec *executionContext) marshalOApplication2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Application(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenDeployment) graphql.Marshaler {
+func (ec *executionContext) marshalOBlueGreenDeployment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐBlueGreenDeployment(ctx context.Context, sel ast.SelectionSet, v *model.BlueGreenDeployment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -55586,21 +55586,21 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOCheckpointConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointConfig(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointConfig) graphql.Marshaler {
+func (ec *executionContext) marshalOCheckpointConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointConfig(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointConfig) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CheckpointConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalOCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointHistoryEntry) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CheckpointHistoryEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOCheckpointHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryFilter(ctx context.Context, v any) (*model.CheckpointHistoryFilter, error) {
+func (ec *executionContext) unmarshalOCheckpointHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryFilter(ctx context.Context, v any) (*model.CheckpointHistoryFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -55608,49 +55608,49 @@ func (ec *executionContext) unmarshalOCheckpointHistoryFilter2ᚖgithubᚗcomᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOCheckpointLatest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointLatest(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointLatest) graphql.Marshaler {
+func (ec *executionContext) marshalOCheckpointLatest2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointLatest(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointLatest) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CheckpointLatest(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointMinMaxAvg) graphql.Marshaler {
+func (ec *executionContext) marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointMinMaxAvg) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CheckpointMinMaxAvg(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCheckpointRestoredInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointRestoredInfo(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointRestoredInfo) graphql.Marshaler {
+func (ec *executionContext) marshalOCheckpointRestoredInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointRestoredInfo(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointRestoredInfo) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CheckpointRestoredInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCheckpointStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointStats(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointStats) graphql.Marshaler {
+func (ec *executionContext) marshalOCheckpointStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointStats(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointStats) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CheckpointStats(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCheckpointSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSummary(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointSummary) graphql.Marshaler {
+func (ec *executionContext) marshalOCheckpointSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSummary(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointSummary) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CheckpointSummary(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityReport) graphql.Marshaler {
+func (ec *executionContext) marshalOCompatibilityReport2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityReport(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityReport) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CompatibilityReport(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOCompatibilityVerdict2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, v any) (*model.CompatibilityVerdict, error) {
+func (ec *executionContext) unmarshalOCompatibilityVerdict2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, v any) (*model.CompatibilityVerdict, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -55659,21 +55659,21 @@ func (ec *executionContext) unmarshalOCompatibilityVerdict2ᚖgithubᚗcomᚋsan
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOCompatibilityVerdict2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityVerdict) graphql.Marshaler {
+func (ec *executionContext) marshalOCompatibilityVerdict2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCompatibilityVerdict(ctx context.Context, sel ast.SelectionSet, v *model.CompatibilityVerdict) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOConnectorMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐConnectorMetrics(ctx context.Context, sel ast.SelectionSet, v *model.ConnectorMetrics) graphql.Marshaler {
+func (ec *executionContext) marshalOConnectorMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐConnectorMetrics(ctx context.Context, sel ast.SelectionSet, v *model.ConnectorMetrics) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ConnectorMetrics(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryFilter(ctx context.Context, v any) (*model.ExceptionHistoryFilter, error) {
+func (ec *executionContext) unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryFilter(ctx context.Context, v any) (*model.ExceptionHistoryFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -55681,14 +55681,14 @@ func (ec *executionContext) unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋs
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOFlamegraphNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlamegraphNode) graphql.Marshaler {
+func (ec *executionContext) marshalOFlamegraphNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlamegraphNode) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNFlamegraphNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNode(ctx, sel, v[i])
+		return ec.marshalNFlamegraphNode2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNode(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55789,7 +55789,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOJMEnvironment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMEnvironment(ctx context.Context, sel ast.SelectionSet, v *model.JMEnvironment) graphql.Marshaler {
+func (ec *executionContext) marshalOJMEnvironment2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJMEnvironment(ctx context.Context, sel ast.SelectionSet, v *model.JMEnvironment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -55844,14 +55844,14 @@ func (ec *executionContext) marshalOJSON2ᚕmap(ctx context.Context, sel ast.Sel
 	return ret
 }
 
-func (ec *executionContext) marshalOJobConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConfig(ctx context.Context, sel ast.SelectionSet, v *model.JobConfig) graphql.Marshaler {
+func (ec *executionContext) marshalOJobConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobConfig(ctx context.Context, sel ast.SelectionSet, v *model.JobConfig) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._JobConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryFilter(ctx context.Context, v any) (*model.JobHistoryFilter, error) {
+func (ec *executionContext) unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobHistoryFilter(ctx context.Context, v any) (*model.JobHistoryFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -55859,21 +55859,21 @@ func (ec *executionContext) unmarshalOJobHistoryFilter2ᚖgithubᚗcomᚋsandbox
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOJobMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobMetrics(ctx context.Context, sel ast.SelectionSet, v *model.JobMetrics) graphql.Marshaler {
+func (ec *executionContext) marshalOJobMetrics2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJobMetrics(ctx context.Context, sel ast.SelectionSet, v *model.JobMetrics) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._JobMetrics(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {
+func (ec *executionContext) marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._MaterializedTable(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOOrderByInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderByInput(ctx context.Context, v any) (*model.OrderByInput, error) {
+func (ec *executionContext) unmarshalOOrderByInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐOrderByInput(ctx context.Context, v any) (*model.OrderByInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -55881,7 +55881,7 @@ func (ec *executionContext) unmarshalOOrderByInput2ᚖgithubᚗcomᚋsandboxws�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput(ctx context.Context, v any) (*model.PaginationInput, error) {
+func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPaginationInput(ctx context.Context, v any) (*model.PaginationInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -55889,14 +55889,14 @@ func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋsandboxw
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOPlanNodeInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInputᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNodeInput) graphql.Marshaler {
+func (ec *executionContext) marshalOPlanNodeInput2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInputᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanNodeInput) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPlanNodeInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInput(ctx, sel, v[i])
+		return ec.marshalNPlanNodeInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐPlanNodeInput(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55908,14 +55908,14 @@ func (ec *executionContext) marshalOPlanNodeInput2ᚕᚖgithubᚗcomᚋsandboxws
 	return ret
 }
 
-func (ec *executionContext) marshalORedisHashEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedisHashEntry) graphql.Marshaler {
+func (ec *executionContext) marshalORedisHashEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedisHashEntry) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNRedisHashEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntry(ctx, sel, v[i])
+		return ec.marshalNRedisHashEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55927,14 +55927,14 @@ func (ec *executionContext) marshalORedisHashEntry2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalORedisZSetEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedisZSetEntry) graphql.Marshaler {
+func (ec *executionContext) marshalORedisZSetEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedisZSetEntry) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNRedisZSetEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntry(ctx, sel, v[i])
+		return ec.marshalNRedisZSetEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisZSetEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -55946,14 +55946,14 @@ func (ec *executionContext) marshalORedisZSetEntry2ᚕᚖgithubᚗcomᚋsandboxw
 	return ret
 }
 
-func (ec *executionContext) marshalORestartInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestartInfo(ctx context.Context, sel ast.SelectionSet, v *model.RestartInfo) graphql.Marshaler {
+func (ec *executionContext) marshalORestartInfo2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRestartInfo(ctx context.Context, sel ast.SelectionSet, v *model.RestartInfo) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._RestartInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx context.Context, sel ast.SelectionSet, v *model.SimulationRun) graphql.Marshaler {
+func (ec *executionContext) marshalOSimulationRun2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSimulationRun(ctx context.Context, sel ast.SelectionSet, v *model.SimulationRun) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -56044,7 +56044,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx context.Context, v any) (*model.TimeRange, error) {
+func (ec *executionContext) unmarshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx context.Context, v any) (*model.TimeRange, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -56053,21 +56053,21 @@ func (ec *executionContext) unmarshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋfl
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx context.Context, sel ast.SelectionSet, v *model.TimeRange) graphql.Marshaler {
+func (ec *executionContext) marshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx context.Context, sel ast.SelectionSet, v *model.TimeRange) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOVertexAccumulators2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulatorsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexAccumulators) graphql.Marshaler {
+func (ec *executionContext) marshalOVertexAccumulators2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulatorsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexAccumulators) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNVertexAccumulators2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulators(ctx, sel, v[i])
+		return ec.marshalNVertexAccumulators2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexAccumulators(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -56079,14 +56079,14 @@ func (ec *executionContext) marshalOVertexAccumulators2ᚕᚖgithubᚗcomᚋsand
 	return ret
 }
 
-func (ec *executionContext) marshalOVertexBackPressure2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexBackPressureᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexBackPressure) graphql.Marshaler {
+func (ec *executionContext) marshalOVertexBackPressure2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexBackPressureᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexBackPressure) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNVertexBackPressure2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexBackPressure(ctx, sel, v[i])
+		return ec.marshalNVertexBackPressure2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexBackPressure(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -56098,14 +56098,14 @@ func (ec *executionContext) marshalOVertexBackPressure2ᚕᚖgithubᚗcomᚋsand
 	return ret
 }
 
-func (ec *executionContext) marshalOVertexDetail2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetailᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexDetail) graphql.Marshaler {
+func (ec *executionContext) marshalOVertexDetail2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetailᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexDetail) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNVertexDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetail(ctx, sel, v[i])
+		return ec.marshalNVertexDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexDetail(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -56117,14 +56117,14 @@ func (ec *executionContext) marshalOVertexDetail2ᚕᚖgithubᚗcomᚋsandboxws�
 	return ret
 }
 
-func (ec *executionContext) marshalOVertexWatermarks2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexWatermarksᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexWatermarks) graphql.Marshaler {
+func (ec *executionContext) marshalOVertexWatermarks2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexWatermarksᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VertexWatermarks) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNVertexWatermarks2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚋappsᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexWatermarks(ctx, sel, v[i])
+		return ec.marshalNVertexWatermarks2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐVertexWatermarks(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {

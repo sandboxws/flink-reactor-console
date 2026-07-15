@@ -3,8 +3,8 @@ package alerts
 import (
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 func TestSlotExhaustionFires(t *testing.T) {
@@ -51,12 +51,12 @@ func TestTMMemoryFiresPerTM(t *testing.T) {
 		Cluster: "primary",
 		TaskManagers: []flink.TaskManagerItem{
 			{
-				ID: "tm-1",
+				ID:                  "tm-1",
 				MemoryConfiguration: flink.TaskManagerMemory{TaskHeap: 100, FrameworkHeap: 0},
 				FreeResource:        flink.TaskManagerResourceProfile{TaskHeapMemory: 5}, // 95% used
 			},
 			{
-				ID: "tm-2",
+				ID:                  "tm-2",
 				MemoryConfiguration: flink.TaskManagerMemory{TaskHeap: 100, FrameworkHeap: 0},
 				FreeResource:        flink.TaskManagerResourceProfile{TaskHeapMemory: 60}, // 40% used
 			},

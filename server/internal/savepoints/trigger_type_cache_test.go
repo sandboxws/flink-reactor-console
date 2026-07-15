@@ -3,7 +3,7 @@ package savepoints_test
 import (
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/savepoints"
+	"github.com/sandboxws/flink-reactor-console/server/internal/savepoints"
 )
 
 func TestTriggerTypeCache_LookupMissingDefaultsToManual(t *testing.T) {

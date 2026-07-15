@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
-	dbinst "github.com/sandboxws/flink-reactor-instruments/database"
-	flussinst "github.com/sandboxws/flink-reactor-instruments/fluss"
-	kafkainst "github.com/sandboxws/flink-reactor-instruments/kafka"
-	redisinst "github.com/sandboxws/flink-reactor-instruments/redis"
-	srinst "github.com/sandboxws/flink-reactor-instruments/schemaregistry"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	dbinst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/database"
+	flussinst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/fluss"
+	kafkainst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/kafka"
+	redisinst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/redis"
+	srinst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/schemaregistry"
 )
 
 // resolveCluster resolves a cluster connection from an optional cluster name.

@@ -1,5 +1,3 @@
-skip_mod_tidy: true
-
 schema:
   - internal/graphql/schema/*.graphqls
 

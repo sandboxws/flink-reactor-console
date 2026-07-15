@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 // Service provides materialized table operations via the SQL Gateway REST API.

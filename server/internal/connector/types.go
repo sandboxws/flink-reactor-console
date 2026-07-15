@@ -26,9 +26,9 @@ const (
 type DetectionMethod string
 
 const (
-	DetectionManifest    DetectionMethod = "manifest"
-	DetectionVertexName  DetectionMethod = "vertex_name"
-	DetectionPlanNode    DetectionMethod = "plan_node"
+	DetectionManifest   DetectionMethod = "manifest"
+	DetectionVertexName DetectionMethod = "vertex_name"
+	DetectionPlanNode   DetectionMethod = "plan_node"
 )
 
 // ConnectorRef is a unified reference to a detected source or sink.

@@ -8,7 +8,7 @@ package graphql
 import (
 	"context"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 )
 
 // Instruments is the resolver for the instruments field.

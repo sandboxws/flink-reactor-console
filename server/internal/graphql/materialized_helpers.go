@@ -3,8 +3,8 @@ package graphql
 import (
 	"fmt"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/materialized"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/materialized"
 )
 
 func (r *Resolver) resolveMaterializedService(cluster *string) (*materialized.Service, error) {

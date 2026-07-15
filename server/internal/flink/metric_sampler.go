@@ -198,7 +198,8 @@ func (s *MetricSampler) sample(ctx context.Context) {
 	jobs, err := s.source.GetJobs(ctx)
 	if err != nil {
 		if ctx.Err() == nil {
-			s.logger.Debug("metric sampler: jobs fetch failed",
+			s.logger.Debug(
+				"metric sampler: jobs fetch failed",
 				"cluster", s.clusterID,
 				"error", err,
 			)

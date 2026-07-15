@@ -3,7 +3,7 @@ package store
 import (
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 func TestAllowedTransitionsFromFiring(t *testing.T) {

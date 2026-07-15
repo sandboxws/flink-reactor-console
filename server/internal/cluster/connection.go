@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/k8s"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/k8s"
 )
 
 // Connection holds all per-cluster resources: Flink client stack, optional SQL

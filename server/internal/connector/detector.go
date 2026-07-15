@@ -3,7 +3,7 @@ package connector
 import (
 	"encoding/json"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 // PipelineManifest mirrors the DSL's PipelineManifest type stored as JSON.

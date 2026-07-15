@@ -8,9 +8,9 @@ import (
 	"log/slog"
 	gosync "sync"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/config"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 )
 
 // Syncer orchestrates background sync goroutines for each data domain.
@@ -103,7 +103,8 @@ func (s *Syncer) Start(ctx context.Context) {
 		s.runRestoreSync(ctx)
 	}()
 
-	s.logger.Info("sync started",
+	s.logger.Info(
+		"sync started",
 		"jobs_interval", s.config.Jobs,
 		"checkpoints_interval", s.config.Checkpoints,
 		"exceptions_interval", s.config.Exceptions,

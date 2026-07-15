@@ -9,7 +9,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 )
 
 // CheckDeploymentCompatibility is the resolver for the checkDeploymentCompatibility field.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 // Service provides a high-level API for blue-green deployment operations.

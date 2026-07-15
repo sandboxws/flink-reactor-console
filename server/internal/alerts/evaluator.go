@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 )
 
 // stabilization is the window after a rule stops firing for a (rule, dedup_key)

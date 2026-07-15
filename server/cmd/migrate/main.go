@@ -16,9 +16,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/config"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 func main() {

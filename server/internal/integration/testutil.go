@@ -14,10 +14,10 @@ import (
 	"time"
 
 	ws "github.com/gorilla/websocket"
-	instruments "github.com/sandboxws/flink-reactor-instruments"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	instruments "github.com/sandboxws/flink-reactor-console/server/internal/instruments"
+	"github.com/sandboxws/flink-reactor-console/server/internal/server"
 )
 
 // testServer wraps a reactor server backed by a mock Flink cluster.

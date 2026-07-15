@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 // Initializer registers bundled catalog tables in Flink via the SQL Gateway.
@@ -44,7 +44,8 @@ func (i *Initializer) Initialize(ctx context.Context) error {
 		if err := i.executeStatement(ctx, sessionHandle, stmt); err != nil {
 			// Log and continue — "already exists" or partial failures
 			// should not prevent other catalogs from being registered.
-			i.logger.Warn("catalog init statement failed",
+			i.logger.Warn(
+				"catalog init statement failed",
 				"statement", truncate(stmt, 120),
 				"error", err,
 			)

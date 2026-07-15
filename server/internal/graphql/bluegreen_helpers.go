@@ -1,8 +1,8 @@
 package graphql
 
 import (
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/k8s"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/k8s"
 )
 
 func mapBlueGreenDeployment(d *k8s.BlueGreenDeployment) *model.BlueGreenDeployment {

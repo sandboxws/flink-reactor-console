@@ -59,7 +59,8 @@ func (s *Store) CreateRun(ctx context.Context, run *SimulationRun) error {
 		return err
 	}
 
-	return s.pool.QueryRow(ctx,
+	return s.pool.QueryRow(
+		ctx,
 		`INSERT INTO simulation_runs (scenario, status, started_at, parameters)
 		 VALUES ($1, $2, $3, $4)
 		 RETURNING id`,
@@ -69,7 +70,8 @@ func (s *Store) CreateRun(ctx context.Context, run *SimulationRun) error {
 
 // UpdateRun updates the status and stopped_at timestamp of a run.
 func (s *Store) UpdateRun(ctx context.Context, run *SimulationRun) error {
-	_, err := s.pool.Exec(ctx,
+	_, err := s.pool.Exec(
+		ctx,
 		`UPDATE simulation_runs SET status = $1, stopped_at = $2 WHERE id = $3`,
 		string(run.Status), run.StoppedAt, run.ID,
 	)
@@ -81,7 +83,8 @@ func (s *Store) GetRun(ctx context.Context, id int64) (*SimulationRun, error) {
 	run := &SimulationRun{}
 	var params []byte
 
-	err := s.pool.QueryRow(ctx,
+	err := s.pool.QueryRow(
+		ctx,
 		`SELECT id, scenario, status, started_at, stopped_at, parameters
 		 FROM simulation_runs WHERE id = $1`, id,
 	).Scan(&run.ID, &run.Scenario, &run.Status, &run.StartedAt, &run.StoppedAt, &params)
@@ -104,7 +107,8 @@ func (s *Store) GetRun(ctx context.Context, id int64) (*SimulationRun, error) {
 
 // ListRuns returns all simulation runs ordered by start time (most recent first).
 func (s *Store) ListRuns(ctx context.Context) ([]SimulationRun, error) {
-	rows, err := s.pool.Query(ctx,
+	rows, err := s.pool.Query(
+		ctx,
 		`SELECT id, scenario, status, started_at, stopped_at, parameters
 		 FROM simulation_runs ORDER BY started_at DESC`,
 	)
@@ -130,7 +134,8 @@ func (s *Store) ListRuns(ctx context.Context) ([]SimulationRun, error) {
 
 // AddObservation inserts a metric observation for a simulation run.
 func (s *Store) AddObservation(ctx context.Context, obs *SimulationObservation) error {
-	return s.pool.QueryRow(ctx,
+	return s.pool.QueryRow(
+		ctx,
 		`INSERT INTO simulation_observations (run_id, captured_at, metric, value, annotation)
 		 VALUES ($1, $2, $3, $4, $5)
 		 RETURNING id`,
@@ -140,7 +145,8 @@ func (s *Store) AddObservation(ctx context.Context, obs *SimulationObservation) 
 
 // GetObservations returns all observations for a run, ordered by capture time.
 func (s *Store) GetObservations(ctx context.Context, runID int64) ([]SimulationObservation, error) {
-	rows, err := s.pool.Query(ctx,
+	rows, err := s.pool.Query(
+		ctx,
 		`SELECT id, run_id, captured_at, metric, value, COALESCE(annotation, '')
 		 FROM simulation_observations WHERE run_id = $1 ORDER BY captured_at`, runID,
 	)

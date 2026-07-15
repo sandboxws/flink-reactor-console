@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/connector"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/connector"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 )
 
 // mapJobDetailAggregate converts a full Flink JobDetailAggregate to a GraphQL JobDetail.

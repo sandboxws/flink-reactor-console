@@ -79,7 +79,8 @@ func (c *Client) GetText(ctx context.Context, path string) (string, error) {
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	c.logger.Debug("flink request",
+	c.logger.Debug(
+		"flink request",
 		slog.String("method", http.MethodGet),
 		slog.String("path", path),
 		slog.Int("status", resp.StatusCode),
@@ -153,7 +154,8 @@ func (c *Client) Delete(ctx context.Context, path string) error {
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	c.logger.Debug("flink request",
+	c.logger.Debug(
+		"flink request",
 		slog.String("method", http.MethodDelete),
 		slog.String("path", path),
 		slog.Int("status", resp.StatusCode),
@@ -201,7 +203,8 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	c.logger.Debug("flink request",
+	c.logger.Debug(
+		"flink request",
 		slog.String("method", method),
 		slog.String("path", path),
 		slog.Int("status", resp.StatusCode),
@@ -238,7 +241,8 @@ func (c *Client) classifyError(err error, url string, timeout time.Duration) err
 	if isTimeoutErr(err) {
 		return &TimeoutError{URL: url, Timeout: timeout}
 	}
-	c.logger.Error("flink connection error",
+	c.logger.Error(
+		"flink connection error",
 		slog.String("url", url),
 		slog.String("error", err.Error()),
 	)

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 )
 
 const sqlPollInterval = 200 * time.Millisecond

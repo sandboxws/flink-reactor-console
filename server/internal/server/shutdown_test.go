@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/server"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/server"
 )
 
 func TestGracefulShutdown(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // runExceptionSync performs the exception sync loop: initial sync, then tick at interval.

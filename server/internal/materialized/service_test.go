@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 // mockSQLGateway sets up an HTTP test server that simulates SQL Gateway responses.

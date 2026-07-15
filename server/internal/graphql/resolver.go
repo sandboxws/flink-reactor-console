@@ -3,15 +3,15 @@ package graphql
 
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
-	instruments "github.com/sandboxws/flink-reactor-instruments"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/alerts"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/savepoints"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/simulation"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
+	"github.com/sandboxws/flink-reactor-console/server/internal/alerts"
+	"github.com/sandboxws/flink-reactor-console/server/internal/catalogs"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/config"
+	instruments "github.com/sandboxws/flink-reactor-console/server/internal/instruments"
+	"github.com/sandboxws/flink-reactor-console/server/internal/savepoints"
+	"github.com/sandboxws/flink-reactor-console/server/internal/simulation"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/tap"
 )
 
 //go:generate go run github.com/99designs/gqlgen generate
@@ -26,7 +26,7 @@ type Resolver struct {
 	Stores             *store.Stores // nil when storage disabled
 	StoragePool        *pgxpool.Pool
 	StorageConfig      config.StorageConfig
-	SimulationEngine   *simulation.Engine        // nil when storage disabled
+	SimulationEngine   *simulation.Engine // nil when storage disabled
 	SavepointTriggers  *savepoints.TriggerTypeCache
 	AlertEngine        *alerts.Engine // nil when storage disabled
 }

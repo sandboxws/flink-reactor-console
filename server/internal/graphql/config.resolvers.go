@@ -9,7 +9,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 )
 
 // FlinkConfig is the resolver for the flinkConfig field.

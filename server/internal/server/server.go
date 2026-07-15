@@ -16,22 +16,22 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	instruments "github.com/sandboxws/flink-reactor-instruments"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/alerts"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/catalogs"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/cluster"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/config"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/generated"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/logs"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/manifests"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/metrics"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/savepoints"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/simulation"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/spa"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/tap"
+	"github.com/sandboxws/flink-reactor-console/server/internal/alerts"
+	"github.com/sandboxws/flink-reactor-console/server/internal/catalogs"
+	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
+	"github.com/sandboxws/flink-reactor-console/server/internal/config"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/generated"
+	instruments "github.com/sandboxws/flink-reactor-console/server/internal/instruments"
+	"github.com/sandboxws/flink-reactor-console/server/internal/logs"
+	"github.com/sandboxws/flink-reactor-console/server/internal/manifests"
+	"github.com/sandboxws/flink-reactor-console/server/internal/metrics"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/savepoints"
+	"github.com/sandboxws/flink-reactor-console/server/internal/simulation"
+	"github.com/sandboxws/flink-reactor-console/server/internal/spa"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/tap"
 )
 
 // Config holds server configuration options.
@@ -104,7 +104,8 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 			if strings.HasPrefix(path, "/graphql") {
 				path = "/graphql"
 			}
-			logger.Info("request",
+			logger.Info(
+				"request",
 				"method", v.Method,
 				"path", path,
 				"status", v.Status,
@@ -116,7 +117,8 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	}))
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		LogErrorFunc: func(_ echo.Context, err error, stack []byte) error {
-			logger.Error("panic recovered",
+			logger.Error(
+				"panic recovered",
 				"error", fmt.Sprintf("%v", err),
 				"stack", string(stack),
 			)

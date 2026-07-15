@@ -8,7 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 // CheckpointStore provides upsert and query operations for the checkpoints table.
@@ -43,7 +43,8 @@ func (s *CheckpointStore) UpsertCheckpoints(ctx context.Context, checkpoints []s
 			base+1, base+2, base+3, base+4, base+5, base+6, base+7,
 			base+8, base+9, base+10, base+11, base+12, base+13, base+14,
 		))
-		args = append(args,
+		args = append(
+			args,
 			c.CheckpointID, c.JID, c.Cluster, c.Status, c.IsSavepoint,
 			c.TriggerTimestamp, c.LatestAck, c.StateSize, c.EndToEndDuration,
 			c.ProcessedData, c.PersistedData, c.NumSubtasks, c.NumAckSubtasks,

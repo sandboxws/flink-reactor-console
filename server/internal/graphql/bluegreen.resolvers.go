@@ -9,8 +9,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
 )
 
 // BlueGreenDeployments is the resolver for the blueGreenDeployments field.

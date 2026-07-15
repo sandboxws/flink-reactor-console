@@ -29,7 +29,8 @@ func removedOperatorIssue(op OperatorState) Issue {
 		Severity:    SeverityError,
 		Message: fmt.Sprintf(
 			"operator %q was removed; its savepoint state can no longer be mapped (deploy with --allow-non-restored-state to drop it)",
-			op.LogicalKey),
+			op.LogicalKey,
+		),
 	}
 }
 
@@ -55,7 +56,8 @@ func classify(before, after OperatorState) []Issue {
 			Severity:    SeverityError,
 			Message: fmt.Sprintf(
 				"operator %q changed max parallelism; keyed state cannot be remapped on restore",
-				after.LogicalKey),
+				after.LogicalKey,
+			),
 		})
 	}
 
@@ -69,7 +71,8 @@ func classify(before, after OperatorState) []Issue {
 			Severity:    SeverityError,
 			Message: fmt.Sprintf(
 				"operator %q changed its keyed-state key, role, or changelog mode; restoring from the existing savepoint will fail",
-				after.LogicalKey),
+				after.LogicalKey,
+			),
 		})
 	}
 
@@ -85,7 +88,8 @@ func classify(before, after OperatorState) []Issue {
 			Severity:    SeverityWarning,
 			Message: fmt.Sprintf(
 				"operator %q changed shape (accumulators/options); verify on a non-production environment before deploying",
-				after.LogicalKey),
+				after.LogicalKey,
+			),
 		})
 	}
 

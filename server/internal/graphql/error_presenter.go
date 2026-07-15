@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 

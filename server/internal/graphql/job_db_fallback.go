@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/store"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 )
 
 // jobDetailFromDB builds a JobDetail from database records when the Flink REST

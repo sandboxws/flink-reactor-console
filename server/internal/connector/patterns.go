@@ -7,9 +7,10 @@ import (
 
 // Vertex name patterns for non-DSL jobs.
 // Flink generates vertex names like:
-//   "Source: KafkaSource-orders"
-//   "Sink: IcebergSink-analytics.db.events"
-//   "Source: TableSourceScan(table=[[default_catalog, default_database, orders]], ...)"
+//
+//	"Source: KafkaSource-orders"
+//	"Sink: IcebergSink-analytics.db.events"
+//	"Source: TableSourceScan(table=[[default_catalog, default_database, orders]], ...)"
 var (
 	// sourcePrefix matches "Source: <rest>" or "Source:" at the start of a vertex name.
 	sourcePrefix = regexp.MustCompile(`(?i)^Source:\s*(.+)`)

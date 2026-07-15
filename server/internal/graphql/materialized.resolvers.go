@@ -8,8 +8,8 @@ package graphql
 import (
 	"context"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/materialized"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/materialized"
 )
 
 // SuspendMaterializedTable is the resolver for the suspendMaterializedTable field.

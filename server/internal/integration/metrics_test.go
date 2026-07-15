@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
 )
 
 func TestIntegration_MetricsEndpoint(t *testing.T) {

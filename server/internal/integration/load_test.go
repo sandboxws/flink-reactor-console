@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 func TestLoad_TwoPhaseAggregation_50Vertices(t *testing.T) {

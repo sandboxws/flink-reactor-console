@@ -9,8 +9,8 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 )
 
 // TaskManagers is the resolver for the taskManagers field.

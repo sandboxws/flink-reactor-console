@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/observability"
-	"github.com/sandboxws/flink-reactor/apps/server/internal/storage"
+	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
+	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
 const defaultLogName = "default"
@@ -75,7 +75,10 @@ func (s *Syncer) syncLogs(ctx context.Context) {
 
 // syncLogSource fetches a single log, compares length to stored offset, and upserts if grown.
 // Returns 1 if upserted, 0 otherwise.
-func (s *Syncer) syncLogSource(ctx context.Context, client interface{ GetText(context.Context, string) (string, error) }, clusterName, sourceType, sourceID, path string) int {
+func (s *Syncer) syncLogSource(ctx context.Context, client interface {
+	GetText(context.Context, string) (string, error)
+}, clusterName, sourceType, sourceID, path string,
+) int {
 	content, err := client.GetText(ctx, path)
 	if err != nil {
 		s.logger.Warn("sync: fetch log failed", "cluster", clusterName, "source_type", sourceType, "source_id", sourceID, "error", err)

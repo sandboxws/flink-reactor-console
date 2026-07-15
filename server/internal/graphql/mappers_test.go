@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/flink"
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 )
 
 func TestMapJobConfig_Nil(t *testing.T) {
@@ -49,11 +49,11 @@ func TestMapJobConfig_SortedKeys(t *testing.T) {
 
 	jc := &flink.JobConfig{}
 	jc.ExecutionConfig.UserConfig = map[string]string{
-		"pipeline.name":          "demo",
-		"flinkreactor.sql":       "SELECT 1",
-		"pipeline.sql":           "INSERT INTO sink SELECT * FROM src",
-		"execution.savepoint":    "/tmp/sp",
-		"state.backend.rocksdb":  "true",
+		"pipeline.name":         "demo",
+		"flinkreactor.sql":      "SELECT 1",
+		"pipeline.sql":          "INSERT INTO sink SELECT * FROM src",
+		"execution.savepoint":   "/tmp/sp",
+		"state.backend.rocksdb": "true",
 	}
 
 	got := mapJobConfig(jc)

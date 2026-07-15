@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/sandboxws/flink-reactor/apps/server/internal/compatibility"
+	"github.com/sandboxws/flink-reactor-console/server/internal/compatibility"
 )
 
 // Register mounts the pipeline-manifest ingest endpoint. A nil store makes the
