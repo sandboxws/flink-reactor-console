@@ -9,12 +9,16 @@ Dashboard + Server for FlinkReactor. A combined repo containing the React dashbo
 - `packages/ui/` — Shared UI component library (@flink-reactor/ui)
 - `tools/ui-embeddings/` — LanceDB embeddings for UI component search
 
+The repo is self-contained: no sibling checkout is needed to build it, and there
+is no `go.work`.
+
 ## Architecture
 
 - **Data flow**: Flink REST → Go server (GraphQL) → Dashboard
 - **GraphQL contract**: Schema lives in `server/internal/graphql/schema/`, codegen in `dashboard/codegen.ts`
-- **Docker build**: Server binary embeds dashboard static build (`dashboard/out/` → `server/dashboard/`)
+- **Docker build**: `just docker` builds the dashboard, rsyncs `dashboard/dist/` → `server/dashboard/`, and copies it into the image. The dashboard is served from disk, not `go:embed`.
 - **Proxy pattern**: All Flink REST calls go through the Go server (auth injection, aggregation, no CORS)
+- **Instruments**: connectors to the systems around a job (Kafka, database, Redis, Schema Registry, Fluss, datalake). Go side in `server/internal/instruments/`, UI in `dashboard/src/components/instruments/`.
 
 ## Commands
 
@@ -53,7 +57,7 @@ pnpm ui:embed             # Rebuild UI embeddings
 ## Path-Scoped Rules
 
 - `dashboard/.claude/rules/data-layer.md` — Type layers, mapper conventions
-- `dashboard/.claude/rules/api-routes.md` — Proxy pattern, mock mode
+- `dashboard/.claude/rules/api-routes.md` — Proxy pattern, GraphQL data layer
 - `dashboard/.claude/rules/components.md` — Page delegation, styling, store access
 
 ## Specs (OpenSpec)
@@ -66,6 +70,9 @@ Specs for this project live in a separate repository at `~/Development/reactors/
 |------|---------|---------|
 | `flink-reactor-dsl` | Core DSL + CLI | BSL 1.1 |
 | **`flink-reactor-console`** | **Dashboard + Server (this repo)** | **BSL 1.1** |
-| `flink-reactor-instruments` | Instruments subsystem (Go + TS) | BSL 1.1 |
 | `flink-reactor-platform` | Docs + orchestration | BSL 1.1 |
 | `flink-reactor-specs` | Specifications | BSL 1.1 |
+
+`flink-reactor-instruments` was merged into this repo and retired. Its Go
+packages live in `server/internal/instruments/` and its UI in
+`dashboard/src/components/instruments/`.

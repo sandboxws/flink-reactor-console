@@ -64,7 +64,7 @@ The `getConfig()` function in `src/lib/config.ts` checks `FLINK_REACTOR_CONFIG` 
 ```
 Flink JobManager REST API
   ↓ (server-side, auth headers)
-Go backend (apps/server) — GraphQL API
+Go backend (server/) — GraphQL API
   ↓ (GraphQL)
 urql client → graphql-api-client.ts → domain types
   ↓
@@ -121,11 +121,18 @@ src/
 │   ├── job-manager/                    # JM tabs (config, metrics, logs, stdout, classpath, JVM, threads, profiler)
 │   ├── logs/                           # LogExplorer, LogList, LogToolbar, LogDetailPanel, LogHistogram
 │   ├── errors/                         # ErrorExplorer, ErrorGroupList, StackTrace
+│   ├── instruments/                    # Instrument UI (legacy tree): shell, card, sidebar section
+│   │   ├── database/                   # SchemaBrowser, QueryEditor, TableDetail
+│   │   ├── fluss/                      # FlussTableBrowser, FlussTableDetail, TabletServerHealth
+│   │   ├── redis/                      # KeyBrowser, ValueInspector, ServerDashboard, MemoryChart
+│   │   └── schemaregistry/             # SubjectList, SubjectDetail, CompatibilityChecker, SchemaDiff
+│   ├── hub/instruments/                # Hub's own instrument UI (independent of the above)
 │   ├── shared/                         # MetricCard, EmptyState, SearchInput, TextViewer, ThreadDumpViewer
 │   └── (ui/ removed — primitives from @flink-reactor/ui)
 ├── stores/
 │   ├── cluster-store.ts                # Overview, jobs, TMs, JM, polling, job detail fetch
 │   ├── config-store.ts                 # Runtime config from GraphQL dashboardConfig
+│   ├── instruments-store.ts            # Instrument list + health
 │   ├── log-store.ts                    # Log buffer (FIFO at 100k), streaming toggle
 │   ├── filter-store.ts                 # Severity, search, source, time range
 │   ├── error-store.ts                  # Exception groups, sort
@@ -138,6 +145,7 @@ src/
 └── lib/
     ├── graphql-client.ts               # urql client (VITE_GRAPHQL_URL)
     ├── graphql-api-client.ts           # Typed GraphQL query wrappers
+    ├── instruments/                    # Instrument GraphQL calls + domain types
     ├── hooks.ts                        # useFilteredLogs, useSearchMatches, useAutoScroll
     ├── constants.ts                    # Color maps, buffer limits
     └── cn.ts                           # clsx + twMerge shorthand
@@ -165,17 +173,30 @@ All stores use `create<T>()` from Zustand. Key patterns:
 
 ## Mock Mode
 
-Mock mode has been removed from the dashboard. The Go backend (`apps/server`) handles all Flink communication and has its own mock data (`mock_data.go`) when no Flink cluster is connected. The dashboard always operates in live mode, fetching data from the Go backend's GraphQL API.
+There is no mock mode. The dashboard always fetches from the Go backend's
+GraphQL API, and the backend always talks to a real Flink cluster.
+
+`server/internal/flink/mock.go` exists but is a `httptest.Server` used only by
+Go tests — no env var, flag, or config key switches the running server onto it.
+Developing the dashboard therefore requires a reachable Flink cluster.
 
 ## Component Conventions
 
 - Route files in `src/routes/` use `createFileRoute` — each owns its data fetching (store init, polling)
 - Dynamic routes use `Route.useParams()` for path params, `Route.useSearch()` for query params
-- Domain subdirectories: `overview/`, `jobs/`, `jobs/detail/`, `task-managers/`, `job-manager/`, `logs/`, `errors/`
+- Domain subdirectories: `overview/`, `jobs/`, `jobs/detail/`, `task-managers/`, `job-manager/`, `logs/`, `errors/`, `instruments/`
 - Shared components in `shared/` (MetricCard, EmptyState, TextViewer, SearchInput, etc.)
 - No `"use client"` directives (Vite SPA — everything is client-side)
 - Use `cn()` from `@/lib/cn` for className merging
 - Navigation: `Link` with `to=` (not `href=`), `useNavigate()` for programmatic nav, `useLocation()` for current path
+
+### The `LinkComponent` prop
+
+Some components (instrument browsers, `@flink-reactor/ui` primitives, `HubShell`)
+take a `LinkComponent` prop instead of importing `Link` directly. Keep it. TanStack
+types `to` against the generated route tree, so `<Link to={someString}>` does not
+typecheck for a path built at runtime. Passing `Link` in as a prop widens `to` to
+`string`. `lib/hub/hub-link.tsx` is the same adapter for the Hub tree.
 
 ## Keeping Docs Current
 

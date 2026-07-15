@@ -38,4 +38,4 @@ The `Math.max(1, ...)` prevents division by zero for freshly-started jobs.
 ## Test Fixtures
 
 - `mock-tap-manifest.ts` — Factory function for tap manifests used in tests.
-- All mock/test data for Flink responses lives in the Go backend (`apps/server/internal/flink/mock_data.go`).
+- All mock/test data for Flink responses lives in the Go backend (`server/internal/flink/mock_data.go`, test-only).
