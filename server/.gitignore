@@ -1,1 +1,3 @@
-reactor-server
+# Anchored: an unanchored `reactor-server` also matches the source dir cmd/reactor-server/,
+# hiding it from `git add` and every gitignore-aware search tool.
+/reactor-server
