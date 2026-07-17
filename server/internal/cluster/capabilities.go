@@ -24,6 +24,10 @@ var gatedCapabilities = []gatedCapability{
 	{Name: "UPSERT_ON_CONFLICT", MinMajor: 2, MinMinor: 3},
 	{Name: "FROM_TO_CHANGELOG", MinMajor: 2, MinMinor: 3},
 	{Name: "RESCALE_HISTORY", MinMajor: 2, MinMinor: 3},
+	// ADAPTIVE_PARTITIONING (taskmanager.network.adaptive-partitioner.*) is a
+	// TaskManager network-layer config with no per-job/vertex REST surface, so
+	// it stays a reserved flag — it is only observable via cluster config, not
+	// per-job telemetry. Do not build a backpressure/vertex UI against it.
 	{Name: "ADAPTIVE_PARTITIONING", MinMajor: 2, MinMinor: 3},
 	{Name: "APPLICATION_MODE", MinMajor: 2, MinMinor: 3},
 }

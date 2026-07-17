@@ -33,7 +33,9 @@ New in Flink 2.3, served by the Go server (`server/internal/flink/service.go`) a
 | `/jobs/:jid/rescales/details/:uuid` | GET | `rescaleDetail` | `RESCALE_HISTORY` | Single rescale event detail |
 | `/jobs/:jid/rescales/summary` | GET | `rescaleSummary` | `RESCALE_HISTORY` | Rescale totals |
 
-Capabilities are surfaced on `ClusterInfo.capabilities`; the dashboard hides gated surfaces when a capability is absent — the Applications nav entry + page (`APPLICATION_MODE`), the job Rescales tab (`RESCALE_HISTORY`), and the `FROM_CHANGELOG`/`TO_CHANGELOG` SQL completions (`FROM_TO_CHANGELOG`). Other declared 2.3 capabilities (`MATERIALIZED_TABLE_SCHEMA`, `ADAPTIVE_PARTITIONING`, …) are reserved for surfaces still in progress.
+Capabilities are surfaced on `ClusterInfo.capabilities`; the dashboard hides gated surfaces when a capability is absent — the Applications nav entry + page (`APPLICATION_MODE`), the job Rescales tab (`RESCALE_HISTORY`), the `FROM_CHANGELOG`/`TO_CHANGELOG` SQL completions (`FROM_TO_CHANGELOG`), and the materialized-table **Schema** section (Flink 2.3+, shown when `DESCRIBE MATERIALIZED TABLE` returns columns — `MATERIALIZED_TABLE_SCHEMA`).
+
+`ADAPTIVE_PARTITIONING` (Flink 2.3 adaptive data partitioning for Rebalance/Rescale partitioners) is a **TaskManager network config** (`taskmanager.network.adaptive-partitioner.max-traverse-size`, default 4) with **no per-job/vertex REST surface** — verified against a live 2.3 JobManager. It remains a reserved capability flag, observable only via cluster config, not per-job telemetry.
 
 ## Two-Phase Fetch Strategy
 
