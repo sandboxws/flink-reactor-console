@@ -1,6 +1,8 @@
 # Flink REST API Endpoint Coverage Analysis
 
 > Generated 2026-02-26. Compares Flink Web UI (Angular) endpoints against FlinkReactor Dashboard implementation.
+>
+> **Note (2026-07):** This is a point-in-time snapshot and is now partly stale — the Go server has since implemented much more than the "11 live" baseline below. In particular the Flink 2.3 **Application Mode** (FLIP-549) and **rescale history** (FLIP-495) endpoints are implemented and capability-gated; see `FLINK_REST_API.md` → "Flink 2.3 Endpoints". Sections below are annotated where superseded.
 
 ## Summary
 
@@ -27,7 +29,7 @@
 | JobManager | 12 endpoints | 0 (mock only) | **Gap** |
 | TaskManagers | 12 endpoints | 0 (mock only) | **Gap** |
 | History Server | 4 endpoints | 0 | **Gap** (N/A for v1) |
-| Application Mode | 3 endpoints | 0 | **Gap** (N/A for v1) |
+| Application Mode | 3 endpoints | 3 (server, pre-GA) | **Implemented** (Flink 2.3, capability-gated) |
 | **Total** | **~60 endpoints** | **11 live** | **~18%** |
 
 ---
@@ -260,15 +262,15 @@ We fetch vertex-level accumulators but miss the per-subtask breakdown.
 
 **Impact**: None for v1. History server support is a separate feature.
 
-### G. Application Mode (Not Applicable for v1)
+### G. Application Mode (Flink 2.3, FLIP-549) — Implemented (pre-GA)
 
-| Flink Endpoint | Method | Purpose |
-|---|---|---|
-| `GET /applications/overview` | GET | List applications with job counts |
-| `GET /applications/:appId` | GET | Application detail with embedded jobs |
-| `POST /applications/:appId/cancel` | POST | Cancel application |
+| Flink Endpoint | Method | GraphQL | Purpose |
+|---|---|---|---|
+| `GET /applications/overview` | GET | `applications` | List applications with job counts |
+| `GET /applications/:appId` | GET | `application(id)` | Application detail with embedded jobs |
+| `POST /applications/:appId/cancel` | POST | `cancelApplication` | Cancel application |
 
-**Impact**: None for v1. Application mode has a different navigation model (applications contain jobs).
+**Status**: Implemented in the Go server (`server/internal/flink/service.go`) and gated on the `APPLICATION_MODE` cluster capability (Flink 2.3+). List + cancel are wired end-to-end to the Applications page (`routes/applications/index.tsx`); the `application(id)` detail query has no UI consumer yet (see task B4). Paths/shapes were modeled against the 2.3 RC and are pending verification against the GA REST API — see `FLINK_REST_API.md` → "Flink 2.3 Endpoints".
 
 ---
 

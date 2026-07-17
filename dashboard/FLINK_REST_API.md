@@ -20,6 +20,21 @@ Pre-extracted reference for every Flink REST endpoint the dashboard consumes. Co
 
 All endpoints marked "(aggregated)" are fetched by the `/api/flink/jobs/[jobId]/detail` proxy route.
 
+## Flink 2.3 Endpoints (capability-gated)
+
+New in Flink 2.3, served by the Go server (`server/internal/flink/service.go`) and reached over GraphQL, not the `/api/flink` proxy. Each is gated on a cluster capability derived from the reported Flink version (`server/internal/cluster/capabilities.go`). Paths and response shapes were modeled against the 2.3 RC and are **pending verification against the GA REST API**.
+
+| Endpoint | Method | GraphQL | Capability | Purpose |
+|----------|--------|---------|------------|---------|
+| `/applications/overview` | GET | `applications` | `APPLICATION_MODE` | List application-mode apps (FLIP-549) with job counts |
+| `/applications/:appId` | GET | `application(id)` | `APPLICATION_MODE` | Application detail |
+| `/applications/:appId/cancel` | POST | `cancelApplication` | `APPLICATION_MODE` | Cancel an application |
+| `/jobs/:jid/rescales/history` | GET | `rescaleHistory` | `RESCALE_HISTORY` | AdaptiveScheduler rescale history (FLIP-495) |
+| `/jobs/:jid/rescales/details/:uuid` | GET | `rescaleDetail` | `RESCALE_HISTORY` | Single rescale event detail |
+| `/jobs/:jid/rescales/summary` | GET | `rescaleSummary` | `RESCALE_HISTORY` | Rescale totals |
+
+Capabilities are surfaced on `ClusterInfo.capabilities`; the dashboard hides gated surfaces when a capability is absent — the Applications nav entry + page (`APPLICATION_MODE`), the job Rescales tab (`RESCALE_HISTORY`), and the `FROM_CHANGELOG`/`TO_CHANGELOG` SQL completions (`FROM_TO_CHANGELOG`). Other declared 2.3 capabilities (`MATERIALIZED_TABLE_SCHEMA`, `ADAPTIVE_PARTITIONING`, …) are reserved for surfaces still in progress.
+
 ## Two-Phase Fetch Strategy
 
 The job detail proxy route (`src/app/api/flink/jobs/[jobId]/detail/route.ts`) uses two phases:
