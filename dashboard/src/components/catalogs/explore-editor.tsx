@@ -26,6 +26,7 @@ import {
   getActiveTheme,
   useCmPaletteObserver,
 } from "@/lib/cm-themes"
+import { flinkSqlAutocomplete } from "@/lib/flink-sql-completion"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
 
 const themeCompartment = createThemeCompartment()
@@ -57,6 +58,7 @@ export function ExploreEditor() {
   isRunningRef.current = isRunning
 
   // Create the CodeMirror editor on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the editor is created once on mount; store values are read via refs/getState and the doc is seeded from sql$ only at init (external changes are synced by the effect below).
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -68,6 +70,7 @@ export function ExploreEditor() {
         bracketMatching(),
         history(),
         sql(),
+        flinkSqlAutocomplete(),
         placeholder("SELECT * FROM ..."),
         themeCompartment.of(getActiveTheme()),
         keymap.of([

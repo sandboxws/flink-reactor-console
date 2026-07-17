@@ -40,6 +40,7 @@ import {
   useCmPaletteObserver,
 } from "@/lib/cm-themes"
 import { cn } from "@/lib/cn"
+import { flinkSqlAutocomplete } from "@/lib/flink-sql-completion"
 import { useCatalogExploreStore } from "@/stores/catalog-explore-store"
 import { ConsoleInspector } from "./console-inspector"
 import { QueryTemplateDialog } from "./query-template-dialog"
@@ -146,6 +147,7 @@ export function SqlExplorer({ initialSql, templates }: SqlExplorerProps) {
         bracketMatching(),
         history(),
         cmSql(),
+        flinkSqlAutocomplete(),
         placeholder("SELECT * FROM ...  (⌘⏎ run statement · ⌘⇧⏎ run all)"),
         themeCompartment.of(getActiveTheme()),
         keymap.of([
