@@ -39,6 +39,14 @@ type CompatibilityResult {
   messages: [String!]!
 }
 
+"""
+The registry's global default compatibility level (e.g. BACKWARD, FULL,
+NONE). Individual subjects may override this — see `SchemaSubject.compatibility`.
+"""
+type SchemaRegistryConfig {
+  compatibility: String!
+}
+
 extend type Query {
   """
   List all subjects in the Schema Registry, with their latest version metadata.
@@ -58,6 +66,11 @@ extend type Query {
     subject: String!
     version: Int!
   ): SchemaDetail!
+
+  """
+  Get the registry's global default compatibility level.
+  """
+  schemaRegistryConfig(instrument: String!): SchemaRegistryConfig!
 }
 
 extend type Mutation {

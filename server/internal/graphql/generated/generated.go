@@ -474,6 +474,12 @@ type ComplexityRoot struct {
 		Version         func(childComplexity int) int
 	}
 
+	InstrumentTestResult struct {
+		LatencyMs func(childComplexity int) int
+		Message   func(childComplexity int) int
+		Ok        func(childComplexity int) int
+	}
+
 	JMConfigEntry struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
@@ -774,6 +780,7 @@ type ComplexityRoot struct {
 		StopSimulation               func(childComplexity int, runID string) int
 		SubmitStatement              func(childComplexity int, sessionHandle string, statement string, cluster *string) int
 		SuspendMaterializedTable     func(childComplexity int, name string, catalog string, cluster *string) int
+		TestInstrumentConnection     func(childComplexity int, typeArg string, name string, config map[string]any) int
 		TriggerSavepoint             func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
 		UpdateAlertRule              func(childComplexity int, id string, input model.UpdateAlertRuleInput) int
 	}
@@ -894,6 +901,7 @@ type ComplexityRoot struct {
 		Savepoint                     func(childComplexity int, jobID string, savepointID string, cluster *string) int
 		Savepoints                    func(childComplexity int, jobID string, cluster *string) int
 		SchemaDetail                  func(childComplexity int, instrument string, subject string, version int) int
+		SchemaRegistryConfig          func(childComplexity int, instrument string) int
 		SchemaSubjects                func(childComplexity int, instrument string) int
 		SchemaVersions                func(childComplexity int, instrument string, subject string) int
 		SimulationPreflight           func(childComplexity int) int
@@ -1072,6 +1080,10 @@ type ComplexityRoot struct {
 		Name    func(childComplexity int) int
 		Subject func(childComplexity int) int
 		Version func(childComplexity int) int
+	}
+
+	SchemaRegistryConfig struct {
+		Compatibility func(childComplexity int) int
 	}
 
 	SchemaSubject struct {
@@ -1342,6 +1354,7 @@ type MutationResolver interface {
 	CancelApplication(ctx context.Context, id string, cluster *string) (*model.CancelApplicationResult, error)
 	CheckDeploymentCompatibility(ctx context.Context, pipeline string, environment *string, newManifest model.StateManifestInput, persist *bool) (*model.CompatibilityReport, error)
 	ExecuteDatabaseQuery(ctx context.Context, instrument string, sql string) (*model.DatabaseQueryResult, error)
+	TestInstrumentConnection(ctx context.Context, typeArg string, name string, config map[string]any) (*model.InstrumentTestResult, error)
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
 	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
 	CancelJob(ctx context.Context, id string, cluster *string) (*model.CancelJobResult, error)
@@ -1429,6 +1442,7 @@ type QueryResolver interface {
 	SchemaSubjects(ctx context.Context, instrument string) ([]*model.SchemaSubject, error)
 	SchemaVersions(ctx context.Context, instrument string, subject string) ([]int, error)
 	SchemaDetail(ctx context.Context, instrument string, subject string, version int) (*model.SchemaDetail, error)
+	SchemaRegistryConfig(ctx context.Context, instrument string) (*model.SchemaRegistryConfig, error)
 	SimulationPreflight(ctx context.Context) ([]*model.PreflightCheck, error)
 	SimulationRuns(ctx context.Context) ([]*model.SimulationRun, error)
 	SimulationRun(ctx context.Context, id string) (*model.SimulationRun, error)
@@ -3089,6 +3103,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.InstrumentInfo.Version(childComplexity), true
 
+	case "InstrumentTestResult.latencyMs":
+		if e.ComplexityRoot.InstrumentTestResult.LatencyMs == nil {
+			break
+		}
+
+		return e.ComplexityRoot.InstrumentTestResult.LatencyMs(childComplexity), true
+	case "InstrumentTestResult.message":
+		if e.ComplexityRoot.InstrumentTestResult.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.InstrumentTestResult.Message(childComplexity), true
+	case "InstrumentTestResult.ok":
+		if e.ComplexityRoot.InstrumentTestResult.Ok == nil {
+			break
+		}
+
+		return e.ComplexityRoot.InstrumentTestResult.Ok(childComplexity), true
+
 	case "JMConfigEntry.key":
 		if e.ComplexityRoot.JMConfigEntry.Key == nil {
 			break
@@ -4408,6 +4441,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.SuspendMaterializedTable(childComplexity, args["name"].(string), args["catalog"].(string), args["cluster"].(*string)), true
+	case "Mutation.testInstrumentConnection":
+		if e.ComplexityRoot.Mutation.TestInstrumentConnection == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_testInstrumentConnection_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.TestInstrumentConnection(childComplexity, args["type"].(string), args["name"].(string), args["config"].(map[string]any)), true
 	case "Mutation.triggerSavepoint":
 		if e.ComplexityRoot.Mutation.TriggerSavepoint == nil {
 			break
@@ -5327,6 +5371,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.SchemaDetail(childComplexity, args["instrument"].(string), args["subject"].(string), args["version"].(int)), true
+	case "Query.schemaRegistryConfig":
+		if e.ComplexityRoot.Query.SchemaRegistryConfig == nil {
+			break
+		}
+
+		args, err := ec.field_Query_schemaRegistryConfig_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.SchemaRegistryConfig(childComplexity, args["instrument"].(string)), true
 	case "Query.schemaSubjects":
 		if e.ComplexityRoot.Query.SchemaSubjects == nil {
 			break
@@ -6059,6 +6114,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.SchemaReference.Version(childComplexity), true
+
+	case "SchemaRegistryConfig.compatibility":
+		if e.ComplexityRoot.SchemaRegistryConfig.Compatibility == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SchemaRegistryConfig.Compatibility(childComplexity), true
 
 	case "SchemaSubject.compatibility":
 		if e.ComplexityRoot.SchemaSubject.Compatibility == nil {
@@ -8215,6 +8277,32 @@ extend type Query {
   """
   instruments: [InstrumentInfo!]!
 }
+
+"""
+The result of a live instrument connection test. ` + "`" + `ok` + "`" + ` is true when the
+transient instrument initialized and its health check passed. ` + "`" + `message` + "`" + `
+carries the failure reason when ` + "`" + `ok` + "`" + ` is false. ` + "`" + `latencyMs` + "`" + ` is the round-trip
+time of the successful check.
+"""
+type InstrumentTestResult {
+  ok: Boolean!
+  message: String
+  latencyMs: Int
+}
+
+extend type Mutation {
+  """
+  Test a candidate instrument connection without persisting or registering it.
+  Constructs a transient instrument of the given type, runs
+  Init → HealthCheck → Shutdown under a bounded timeout, and reports the
+  outcome. The ` + "`" + `config` + "`" + ` is the same free-form object used in YAML config.
+  """
+  testInstrumentConnection(
+    type: String!
+    name: String!
+    config: JSON!
+  ): InstrumentTestResult!
+}
 `, BuiltIn: false},
 	{Name: "../schema/jars.graphqls", Input: `# JAR management types, queries, and mutations
 
@@ -9100,6 +9188,14 @@ type CompatibilityResult {
   messages: [String!]!
 }
 
+"""
+The registry's global default compatibility level (e.g. BACKWARD, FULL,
+NONE). Individual subjects may override this — see ` + "`" + `SchemaSubject.compatibility` + "`" + `.
+"""
+type SchemaRegistryConfig {
+  compatibility: String!
+}
+
 extend type Query {
   """
   List all subjects in the Schema Registry, with their latest version metadata.
@@ -9119,6 +9215,11 @@ extend type Query {
     subject: String!
     version: Int!
   ): SchemaDetail!
+
+  """
+  Get the registry's global default compatibility level.
+  """
+  schemaRegistryConfig(instrument: String!): SchemaRegistryConfig!
 }
 
 extend type Mutation {
@@ -9937,6 +10038,27 @@ func (ec *executionContext) field_Mutation_suspendMaterializedTable_args(ctx con
 		return nil, err
 	}
 	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_testInstrumentConnection_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "type", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["type"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "config", ec.unmarshalNJSON2map)
+	if err != nil {
+		return nil, err
+	}
+	args["config"] = arg2
 	return args, nil
 }
 
@@ -10918,6 +11040,17 @@ func (ec *executionContext) field_Query_schemaDetail_args(ctx context.Context, r
 		return nil, err
 	}
 	args["version"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_schemaRegistryConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
 	return args, nil
 }
 
@@ -19218,6 +19351,93 @@ func (ec *executionContext) fieldContext_InstrumentInfo_capabilities(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _InstrumentTestResult_ok(ctx context.Context, field graphql.CollectedField, obj *model.InstrumentTestResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_InstrumentTestResult_ok,
+		func(ctx context.Context) (any, error) {
+			return obj.Ok, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_InstrumentTestResult_ok(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InstrumentTestResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _InstrumentTestResult_message(ctx context.Context, field graphql.CollectedField, obj *model.InstrumentTestResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_InstrumentTestResult_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_InstrumentTestResult_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InstrumentTestResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _InstrumentTestResult_latencyMs(ctx context.Context, field graphql.CollectedField, obj *model.InstrumentTestResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_InstrumentTestResult_latencyMs,
+		func(ctx context.Context) (any, error) {
+			return obj.LatencyMs, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_InstrumentTestResult_latencyMs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InstrumentTestResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JMConfigEntry_key(ctx context.Context, field graphql.CollectedField, obj *model.JMConfigEntry) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -25055,6 +25275,55 @@ func (ec *executionContext) fieldContext_Mutation_executeDatabaseQuery(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_testInstrumentConnection(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_testInstrumentConnection,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().TestInstrumentConnection(ctx, fc.Args["type"].(string), fc.Args["name"].(string), fc.Args["config"].(map[string]any))
+		},
+		nil,
+		ec.marshalNInstrumentTestResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentTestResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_testInstrumentConnection(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ok":
+				return ec.fieldContext_InstrumentTestResult_ok(ctx, field)
+			case "message":
+				return ec.fieldContext_InstrumentTestResult_message(ctx, field)
+			case "latencyMs":
+				return ec.fieldContext_InstrumentTestResult_latencyMs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type InstrumentTestResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_testInstrumentConnection_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_deleteJar(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -30579,6 +30848,51 @@ func (ec *executionContext) fieldContext_Query_schemaDetail(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_schemaRegistryConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_schemaRegistryConfig,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().SchemaRegistryConfig(ctx, fc.Args["instrument"].(string))
+		},
+		nil,
+		ec.marshalNSchemaRegistryConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaRegistryConfig,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_schemaRegistryConfig(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "compatibility":
+				return ec.fieldContext_SchemaRegistryConfig_compatibility(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SchemaRegistryConfig", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_schemaRegistryConfig_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_simulationPreflight(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -33946,6 +34260,35 @@ func (ec *executionContext) fieldContext_SchemaReference_version(_ context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SchemaRegistryConfig_compatibility(ctx context.Context, field graphql.CollectedField, obj *model.SchemaRegistryConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SchemaRegistryConfig_compatibility,
+		func(ctx context.Context) (any, error) {
+			return obj.Compatibility, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SchemaRegistryConfig_compatibility(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SchemaRegistryConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -44674,6 +45017,49 @@ func (ec *executionContext) _InstrumentInfo(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var instrumentTestResultImplementors = []string{"InstrumentTestResult"}
+
+func (ec *executionContext) _InstrumentTestResult(ctx context.Context, sel ast.SelectionSet, obj *model.InstrumentTestResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, instrumentTestResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("InstrumentTestResult")
+		case "ok":
+			out.Values[i] = ec._InstrumentTestResult_ok(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._InstrumentTestResult_message(ctx, field, obj)
+		case "latencyMs":
+			out.Values[i] = ec._InstrumentTestResult_latencyMs(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var jMConfigEntryImplementors = []string{"JMConfigEntry"}
 
 func (ec *executionContext) _JMConfigEntry(ctx context.Context, sel ast.SelectionSet, obj *model.JMConfigEntry) graphql.Marshaler {
@@ -46718,6 +47104,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "testInstrumentConnection":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_testInstrumentConnection(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "deleteJar":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteJar(ctx, field)
@@ -48691,6 +49084,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "schemaRegistryConfig":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_schemaRegistryConfig(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "simulationPreflight":
 			field := field
 
@@ -50107,6 +50522,45 @@ func (ec *executionContext) _SchemaReference(ctx context.Context, sel ast.Select
 			}
 		case "version":
 			out.Values[i] = ec._SchemaReference_version(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var schemaRegistryConfigImplementors = []string{"SchemaRegistryConfig"}
+
+func (ec *executionContext) _SchemaRegistryConfig(ctx context.Context, sel ast.SelectionSet, obj *model.SchemaRegistryConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, schemaRegistryConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SchemaRegistryConfig")
+		case "compatibility":
+			out.Values[i] = ec._SchemaRegistryConfig_compatibility(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -53392,6 +53846,20 @@ func (ec *executionContext) marshalNInstrumentInfo2ᚖgithubᚗcomᚋsandboxws�
 	return ec._InstrumentInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNInstrumentTestResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentTestResult(ctx context.Context, sel ast.SelectionSet, v model.InstrumentTestResult) graphql.Marshaler {
+	return ec._InstrumentTestResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNInstrumentTestResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐInstrumentTestResult(ctx context.Context, sel ast.SelectionSet, v *model.InstrumentTestResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._InstrumentTestResult(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v any) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -54749,6 +55217,20 @@ func (ec *executionContext) marshalNSchemaReference2ᚖgithubᚗcomᚋsandboxws�
 		return graphql.Null
 	}
 	return ec._SchemaReference(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSchemaRegistryConfig2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaRegistryConfig(ctx context.Context, sel ast.SelectionSet, v model.SchemaRegistryConfig) graphql.Marshaler {
+	return ec._SchemaRegistryConfig(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSchemaRegistryConfig2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaRegistryConfig(ctx context.Context, sel ast.SelectionSet, v *model.SchemaRegistryConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SchemaRegistryConfig(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSchemaSubject2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐSchemaSubjectᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SchemaSubject) graphql.Marshaler {

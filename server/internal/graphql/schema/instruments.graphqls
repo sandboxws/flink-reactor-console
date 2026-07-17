@@ -17,3 +17,29 @@ extend type Query {
   """
   instruments: [InstrumentInfo!]!
 }
+
+"""
+The result of a live instrument connection test. `ok` is true when the
+transient instrument initialized and its health check passed. `message`
+carries the failure reason when `ok` is false. `latencyMs` is the round-trip
+time of the successful check.
+"""
+type InstrumentTestResult {
+  ok: Boolean!
+  message: String
+  latencyMs: Int
+}
+
+extend type Mutation {
+  """
+  Test a candidate instrument connection without persisting or registering it.
+  Constructs a transient instrument of the given type, runs
+  Init → HealthCheck → Shutdown under a bounded timeout, and reports the
+  outcome. The `config` is the same free-form object used in YAML config.
+  """
+  testInstrumentConnection(
+    type: String!
+    name: String!
+    config: JSON!
+  ): InstrumentTestResult!
+}

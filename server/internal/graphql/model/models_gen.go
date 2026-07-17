@@ -570,6 +570,16 @@ type InstrumentInfo struct {
 	Capabilities    []string `json:"capabilities"`
 }
 
+// The result of a live instrument connection test. `ok` is true when the
+// transient instrument initialized and its health check passed. `message`
+// carries the failure reason when `ok` is false. `latencyMs` is the round-trip
+// time of the successful check.
+type InstrumentTestResult struct {
+	Ok        bool    `json:"ok"`
+	Message   *string `json:"message,omitempty"`
+	LatencyMs *int    `json:"latencyMs,omitempty"`
+}
+
 type JMConfigEntry struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -1237,6 +1247,12 @@ type SchemaReference struct {
 	Name    string `json:"name"`
 	Subject string `json:"subject"`
 	Version int    `json:"version"`
+}
+
+// The registry's global default compatibility level (e.g. BACKWARD, FULL,
+// NONE). Individual subjects may override this — see `SchemaSubject.compatibility`.
+type SchemaRegistryConfig struct {
+	Compatibility string `json:"compatibility"`
 }
 
 // A subject in the Schema Registry, with metadata about its latest version.

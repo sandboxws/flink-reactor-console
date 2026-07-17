@@ -97,3 +97,20 @@ func (r *queryResolver) SchemaDetail(ctx context.Context, instrument string, sub
 		References: refs,
 	}, nil
 }
+
+// SchemaRegistryConfig is the resolver for the schemaRegistryConfig field.
+func (r *queryResolver) SchemaRegistryConfig(ctx context.Context, instrument string) (*model.SchemaRegistryConfig, error) {
+	si, err := r.resolveSchemaRegistryInstrument(instrument)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, err := si.Client().GetGlobalConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SchemaRegistryConfig{
+		Compatibility: cfg.Compatibility,
+	}, nil
+}

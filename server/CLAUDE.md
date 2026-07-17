@@ -102,7 +102,7 @@ Schema-first approach: 24 `.graphqls` files in `internal/graphql/schema/` define
 - `jars.graphqls` — JAR management queries and mutations
 - `sqlgateway.graphqls` — SQL Gateway session/statement mutations
 - `kafka.graphqls` — Kafka topic and consumer group queries
-- `instruments.graphqls` — Instrument registry query
+- `instruments.graphqls` — Instrument registry query + connection-test mutation
 - `database.graphqls` — Database schema browsing, table detail, query execution, query history
 - `taskmanagers.graphqls` — Task manager overview, detail, logs, thread dump
 - `jobmanager.graphqls` — Job manager config, environment, metrics, HA status
@@ -116,7 +116,7 @@ Schema-first approach: 24 `.graphqls` files in `internal/graphql/schema/` define
 - `simulation.graphqls` — Chaos-simulation preflight, runs, presets
 - `sources_sinks.graphqls` — Connector detection on `JobDetail`
 - `redis.graphqls` — Redis scan, key info/value, server info, memory stats
-- `schemaregistry.graphqls` — Subjects, versions, schema detail, compatibility check
+- `schemaregistry.graphqls` — Subjects, versions, schema detail, compatibility check, global default config
 - `fluss.graphqls` — Fluss databases, tables, tablet servers
 
 ## Key Patterns

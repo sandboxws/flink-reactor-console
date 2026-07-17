@@ -328,6 +328,18 @@ func (c *Client) GetConfig(ctx context.Context, subject string) (*SubjectConfig,
 	return &SubjectConfig{Compatibility: resp.Compatibility}, nil
 }
 
+// GetGlobalConfig returns the registry's global default compatibility level
+// (the `/config` endpoint, with no subject).
+func (c *Client) GetGlobalConfig(ctx context.Context) (*SubjectConfig, error) {
+	var resp struct {
+		Compatibility string `json:"compatibilityLevel"`
+	}
+	if err := c.get(ctx, "/config", &resp); err != nil {
+		return nil, err
+	}
+	return &SubjectConfig{Compatibility: resp.Compatibility}, nil
+}
+
 // SubjectNames returns just the names (used by HighlightResources).
 func (c *Client) SubjectNames(ctx context.Context) ([]string, error) {
 	var names []string

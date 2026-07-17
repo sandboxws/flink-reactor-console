@@ -7,9 +7,60 @@ package graphql
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	"time"
 
 	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/factory"
 )
+
+// instrumentTestTimeout bounds a connection probe so a dead host cannot hang
+// the GraphQL request.
+const instrumentTestTimeout = 10 * time.Second
+
+// TestInstrumentConnection is the resolver for the testInstrumentConnection field.
+//
+//nolint:revive // gqlgen owns this signature
+func (r *mutationResolver) TestInstrumentConnection(ctx context.Context, typeArg string, name string, config map[string]any) (*model.InstrumentTestResult, error) {
+	// Build a transient instrument — it is never registered and never persisted.
+	inst, err := factory.New(typeArg, name, slog.Default())
+	if err != nil {
+		return instrumentTestFailure(err.Error()), nil
+	}
+
+	// The config may carry secrets (passwords, tokens); marshal it for Init but
+	// never log it.
+	cfgJSON, err := json.Marshal(config)
+	if err != nil {
+		return instrumentTestFailure(fmt.Sprintf("invalid config: %v", err)), nil
+	}
+
+	testCtx, cancel := context.WithTimeout(ctx, instrumentTestTimeout)
+	defer cancel()
+
+	start := time.Now()
+	if err := inst.Init(testCtx, cfgJSON); err != nil {
+		return instrumentTestFailure(err.Error()), nil
+	}
+	// Release the transient connection once Init succeeded (mirrors the
+	// registry's Shutdown-only-after-Init lifecycle). Use a fresh context so a
+	// timed-out probe still shuts down cleanly.
+	defer func() { _ = inst.Shutdown(context.Background()) }()
+
+	if err := inst.HealthCheck(testCtx); err != nil {
+		return instrumentTestFailure(err.Error()), nil
+	}
+
+	latency := int(time.Since(start).Milliseconds())
+	return &model.InstrumentTestResult{Ok: true, LatencyMs: &latency}, nil
+}
+
+// instrumentTestFailure builds an unsuccessful test result with a message.
+func instrumentTestFailure(msg string) *model.InstrumentTestResult {
+	return &model.InstrumentTestResult{Ok: false, Message: &msg}
+}
 
 // Instruments is the resolver for the instruments field.
 //

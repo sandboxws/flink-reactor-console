@@ -14,12 +14,7 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/cluster"
 	"github.com/sandboxws/flink-reactor-console/server/internal/config"
 	instruments "github.com/sandboxws/flink-reactor-console/server/internal/instruments"
-	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/database"
-	dlinst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/datalake"
-	flussinst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/fluss"
-	kafkainst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/kafka"
-	redisinst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/redis"
-	srinst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/schemaregistry"
+	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/factory"
 	"github.com/sandboxws/flink-reactor-console/server/internal/manifests"
 	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
 	"github.com/sandboxws/flink-reactor-console/server/internal/server"
@@ -64,22 +59,12 @@ func run() int {
 	registry := instruments.NewRegistry(logger, instruments.WithHealthReporter(&observability.InstrumentHealthAdapter{}))
 
 	for _, instCfg := range cfg.Instruments {
-		switch instCfg.Type {
-		case "kafka":
-			registry.Register(kafkainst.NewInstrument(instCfg.Name))
-		case "database":
-			registry.Register(database.NewInstrument(instCfg.Name, logger))
-		case "redis":
-			registry.Register(redisinst.NewInstrument(instCfg.Name))
-		case "schemaregistry":
-			registry.Register(srinst.NewInstrument(instCfg.Name))
-		case "datalake":
-			registry.Register(dlinst.NewInstrument(instCfg.Name))
-		case "fluss":
-			registry.Register(flussinst.NewInstrument(instCfg.Name))
-		default:
+		inst, err := factory.New(instCfg.Type, instCfg.Name, logger)
+		if err != nil {
 			logger.Warn("unknown instrument type", "type", instCfg.Type, "name", instCfg.Name)
+			continue
 		}
+		registry.Register(inst)
 	}
 
 	if len(cfg.Instruments) > 0 {
