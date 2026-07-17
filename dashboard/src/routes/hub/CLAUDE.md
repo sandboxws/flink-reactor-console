@@ -174,7 +174,9 @@ dashboard/src/routes/hub/
 │   └── benchmarks/index.tsx            (P4)
 ├── instruments/
 │   ├── index.tsx                       ← grid of registered instruments (P4)
+│   ├── connect.tsx                     ← Connect Instrument wizard (config generator)
 │   └── $instrumentName/
+│       ├── kafka/{index,topic,consumer-group}.tsx  ← topics + consumer groups (read-only)
 │       ├── fluss/{index,table,health}.tsx
 │       ├── redis/{index,key,server}.tsx
 │       ├── schema-registry/{index,subject,compatibility}.tsx

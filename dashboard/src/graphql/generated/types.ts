@@ -682,6 +682,19 @@ export type InstrumentInfo = {
   version: Scalars['String']['output'];
 };
 
+/**
+ * The result of a live instrument connection test. `ok` is true when the
+ * transient instrument initialized and its health check passed. `message`
+ * carries the failure reason when `ok` is false. `latencyMs` is the round-trip
+ * time of the successful check.
+ */
+export type InstrumentTestResult = {
+  __typename?: 'InstrumentTestResult';
+  latencyMs: Maybe<Scalars['Int']['output']>;
+  message: Maybe<Scalars['String']['output']>;
+  ok: Scalars['Boolean']['output'];
+};
+
 export type IssueSeverity =
   | 'ERROR'
   | 'WARNING';
@@ -1166,6 +1179,13 @@ export type Mutation = {
   submitStatement: SqlStatementResult;
   /** Suspend a materialized table's refresh */
   suspendMaterializedTable: MaterializedTable;
+  /**
+   * Test a candidate instrument connection without persisting or registering it.
+   * Constructs a transient instrument of the given type, runs
+   * Init → HealthCheck → Shutdown under a bounded timeout, and reports the
+   * outcome. The `config` is the same free-form object used in YAML config.
+   */
+  testInstrumentConnection: InstrumentTestResult;
   /** Trigger a savepoint for a running job */
   triggerSavepoint: SavepointTriggerResult;
   updateAlertRule: AlertRule;
@@ -1324,6 +1344,13 @@ export type MutationSuspendMaterializedTableArgs = {
   catalog: Scalars['String']['input'];
   cluster: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+};
+
+
+export type MutationTestInstrumentConnectionArgs = {
+  config: Scalars['JSON']['input'];
+  name: Scalars['String']['input'];
+  type: Scalars['String']['input'];
 };
 
 
@@ -1573,6 +1600,8 @@ export type Query = {
   savepoints: Array<Savepoint>;
   /** Get the full schema for a specific subject and version. */
   schemaDetail: SchemaDetail;
+  /** Get the registry's global default compatibility level. */
+  schemaRegistryConfig: SchemaRegistryConfig;
   /** List all subjects in the Schema Registry, with their latest version metadata. */
   schemaSubjects: Array<SchemaSubject>;
   /** List the version numbers registered for a subject. */
@@ -1957,6 +1986,11 @@ export type QuerySchemaDetailArgs = {
 };
 
 
+export type QuerySchemaRegistryConfigArgs = {
+  instrument: Scalars['String']['input'];
+};
+
+
 export type QuerySchemaSubjectsArgs = {
   instrument: Scalars['String']['input'];
 };
@@ -2272,6 +2306,15 @@ export type SchemaReference = {
   name: Scalars['String']['output'];
   subject: Scalars['String']['output'];
   version: Scalars['Int']['output'];
+};
+
+/**
+ * The registry's global default compatibility level (e.g. BACKWARD, FULL,
+ * NONE). Individual subjects may override this — see `SchemaSubject.compatibility`.
+ */
+export type SchemaRegistryConfig = {
+  __typename?: 'SchemaRegistryConfig';
+  compatibility: Scalars['String']['output'];
 };
 
 /** A subject in the Schema Registry, with metadata about its latest version. */

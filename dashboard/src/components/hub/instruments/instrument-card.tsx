@@ -20,7 +20,7 @@ import type { InstrumentInfo } from "@/lib/instruments-data"
 const ICON_MAP: Record<string, LucideIcon> = {
   fluss: Layers,
   redis: Database,
-  "schema-registry": FileJson,
+  schemaregistry: FileJson,
   database: HardDrive,
   kafka: Radio,
 }
@@ -28,7 +28,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 const TYPE_LABEL: Record<string, string> = {
   fluss: "Fluss",
   redis: "Redis",
-  "schema-registry": "Schema registry",
+  schemaregistry: "Schema registry",
   database: "Database",
   kafka: "Kafka",
 }
@@ -106,10 +106,12 @@ function instrumentIndexHref(instrument: InstrumentInfo): string | null {
       return `/hub/instruments/${instrument.name}/fluss`
     case "redis":
       return `/hub/instruments/${instrument.name}/redis`
-    case "schema-registry":
+    case "schemaregistry":
       return `/hub/instruments/${instrument.name}/schema-registry`
     case "database":
       return `/hub/instruments/${instrument.name}/database`
+    case "kafka":
+      return `/hub/instruments/${instrument.name}/kafka`
     default:
       return null
   }

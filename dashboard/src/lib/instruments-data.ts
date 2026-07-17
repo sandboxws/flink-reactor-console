@@ -193,6 +193,29 @@ export async function checkSchemaCompatibility(
   return data.checkSchemaCompatibility
 }
 
+export interface SchemaRegistryConfig {
+  compatibility: string
+}
+
+const SCHEMA_REGISTRY_CONFIG_QUERY = gql`
+  query SchemaRegistryConfig($instrument: String!) {
+    schemaRegistryConfig(instrument: $instrument) {
+      compatibility
+    }
+  }
+`
+
+/** The registry's global default compatibility level. */
+export async function fetchSchemaRegistryConfig(
+  instrument: string,
+): Promise<SchemaRegistryConfig> {
+  const data = await query<{ schemaRegistryConfig: SchemaRegistryConfig }>(
+    SCHEMA_REGISTRY_CONFIG_QUERY,
+    { instrument },
+  )
+  return data.schemaRegistryConfig
+}
+
 // ── Fluss ───────────────────────────────────────────────────────────
 
 export interface FlussTableSummary {
@@ -435,4 +458,225 @@ export async function executeDatabaseQuery(
     { instrument, sql },
   )
   return data.executeDatabaseQuery
+}
+
+// ── Kafka ───────────────────────────────────────────────────────────
+//
+// Read-only surface backed by `kafka.graphqls` (franz-go/kadm client).
+// There are no throughput/rate fields — the KPI strip and lag view are
+// derived client-side from these queries.
+
+export interface KafkaTopic {
+  name: string
+  partitionCount: number
+  replicationFactor: number
+  internal: boolean
+}
+
+export interface KafkaPartition {
+  id: number
+  leader: number
+  replicas: number[]
+  inSyncReplicas: number[]
+}
+
+export interface KafkaConfigEntry {
+  key: string
+  value: string
+}
+
+export interface KafkaTopicDetail extends KafkaTopic {
+  partitions: KafkaPartition[]
+  configEntries: KafkaConfigEntry[]
+  messageCount: number
+}
+
+export interface KafkaConsumerGroup {
+  groupId: string
+  state: string
+  memberCount: number
+  totalLag: number
+}
+
+export interface KafkaTopicPartition {
+  topic: string
+  partition: number
+}
+
+export interface KafkaGroupMember {
+  clientId: string
+  clientHost: string
+  assignments: KafkaTopicPartition[]
+}
+
+export interface KafkaPartitionOffset {
+  topic: string
+  partition: number
+  committedOffset: number
+  endOffset: number
+  lag: number
+}
+
+export interface KafkaConsumerGroupDetail {
+  groupId: string
+  state: string
+  protocol: string
+  protocolType: string
+  members: KafkaGroupMember[]
+  offsets: KafkaPartitionOffset[]
+}
+
+const KAFKA_TOPICS_QUERY = gql`
+  query KafkaTopics($instrument: String!) {
+    kafkaTopics(instrument: $instrument) {
+      name
+      partitionCount
+      replicationFactor
+      internal
+    }
+  }
+`
+
+const KAFKA_TOPIC_QUERY = gql`
+  query KafkaTopic($instrument: String!, $name: String!) {
+    kafkaTopic(instrument: $instrument, name: $name) {
+      name
+      partitionCount
+      replicationFactor
+      internal
+      messageCount
+      partitions {
+        id
+        leader
+        replicas
+        inSyncReplicas
+      }
+      configEntries {
+        key
+        value
+      }
+    }
+  }
+`
+
+const KAFKA_CONSUMER_GROUPS_QUERY = gql`
+  query KafkaConsumerGroups($instrument: String!) {
+    kafkaConsumerGroups(instrument: $instrument) {
+      groupId
+      state
+      memberCount
+      totalLag
+    }
+  }
+`
+
+const KAFKA_CONSUMER_GROUP_QUERY = gql`
+  query KafkaConsumerGroup($instrument: String!, $groupId: String!) {
+    kafkaConsumerGroup(instrument: $instrument, groupId: $groupId) {
+      groupId
+      state
+      protocol
+      protocolType
+      members {
+        clientId
+        clientHost
+        assignments {
+          topic
+          partition
+        }
+      }
+      offsets {
+        topic
+        partition
+        committedOffset
+        endOffset
+        lag
+      }
+    }
+  }
+`
+
+export async function fetchKafkaTopics(
+  instrument: string,
+): Promise<KafkaTopic[]> {
+  const data = await query<{ kafkaTopics: KafkaTopic[] }>(
+    KAFKA_TOPICS_QUERY,
+    { instrument },
+    "network-only",
+  )
+  return data.kafkaTopics ?? []
+}
+
+export async function fetchKafkaTopic(
+  instrument: string,
+  name: string,
+): Promise<KafkaTopicDetail> {
+  const data = await query<{ kafkaTopic: KafkaTopicDetail }>(
+    KAFKA_TOPIC_QUERY,
+    {
+      instrument,
+      name,
+    },
+  )
+  return data.kafkaTopic
+}
+
+export async function fetchKafkaConsumerGroups(
+  instrument: string,
+): Promise<KafkaConsumerGroup[]> {
+  const data = await query<{ kafkaConsumerGroups: KafkaConsumerGroup[] }>(
+    KAFKA_CONSUMER_GROUPS_QUERY,
+    { instrument },
+    "network-only",
+  )
+  return data.kafkaConsumerGroups ?? []
+}
+
+export async function fetchKafkaConsumerGroup(
+  instrument: string,
+  groupId: string,
+): Promise<KafkaConsumerGroupDetail> {
+  const data = await query<{ kafkaConsumerGroup: KafkaConsumerGroupDetail }>(
+    KAFKA_CONSUMER_GROUP_QUERY,
+    { instrument, groupId },
+  )
+  return data.kafkaConsumerGroup
+}
+
+// ── Connect instrument (config generator) ───────────────────────────
+
+export interface InstrumentTestResult {
+  ok: boolean
+  message: string | null
+  latencyMs: number | null
+}
+
+const TEST_INSTRUMENT_CONNECTION_MUTATION = gql`
+  mutation TestInstrumentConnection(
+    $type: String!
+    $name: String!
+    $config: JSON!
+  ) {
+    testInstrumentConnection(type: $type, name: $name, config: $config) {
+      ok
+      message
+      latencyMs
+    }
+  }
+`
+
+/**
+ * Test a candidate instrument connection without persisting or registering it.
+ * The server builds a transient instrument and runs its lifecycle probe.
+ */
+export async function testInstrumentConnection(
+  type: string,
+  name: string,
+  config: Record<string, unknown>,
+): Promise<InstrumentTestResult> {
+  const data = await mutate<{ testInstrumentConnection: InstrumentTestResult }>(
+    TEST_INSTRUMENT_CONNECTION_MUTATION,
+    { type, name, config },
+  )
+  return data.testInstrumentConnection
 }

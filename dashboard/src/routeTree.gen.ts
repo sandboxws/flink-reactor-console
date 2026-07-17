@@ -65,6 +65,7 @@ import { Route as HubJobsSubmitRouteImport } from './routes/hub/jobs/submit'
 import { Route as HubJobsRunningRouteImport } from './routes/hub/jobs/running'
 import { Route as HubJobsCompletedRouteImport } from './routes/hub/jobs/completed'
 import { Route as HubJobsIdRouteImport } from './routes/hub/jobs/$id'
+import { Route as HubInstrumentsConnectRouteImport } from './routes/hub/instruments/connect'
 import { Route as HubInsightsMetricsRouteImport } from './routes/hub/insights/metrics'
 import { Route as HubInsightsHealthRouteImport } from './routes/hub/insights/health'
 import { Route as HubInsightsBottlenecksRouteImport } from './routes/hub/insights/bottlenecks'
@@ -87,12 +88,15 @@ import { Route as InstrumentsInstrumentNameDatabaseQueryRouteImport } from './ro
 import { Route as HubAdminSimulationsRunIdRouteImport } from './routes/hub/admin/simulations/$runId'
 import { Route as HubInstrumentsInstrumentNameSchemaRegistryIndexRouteImport } from './routes/hub/instruments/$instrumentName/schema-registry/index'
 import { Route as HubInstrumentsInstrumentNameRedisIndexRouteImport } from './routes/hub/instruments/$instrumentName/redis/index'
+import { Route as HubInstrumentsInstrumentNameKafkaIndexRouteImport } from './routes/hub/instruments/$instrumentName/kafka/index'
 import { Route as HubInstrumentsInstrumentNameFlussIndexRouteImport } from './routes/hub/instruments/$instrumentName/fluss/index'
 import { Route as HubInstrumentsInstrumentNameDatabaseIndexRouteImport } from './routes/hub/instruments/$instrumentName/database/index'
 import { Route as HubInstrumentsInstrumentNameSchemaRegistrySubjectRouteImport } from './routes/hub/instruments/$instrumentName/schema-registry/subject'
 import { Route as HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRouteImport } from './routes/hub/instruments/$instrumentName/schema-registry/compatibility'
 import { Route as HubInstrumentsInstrumentNameRedisServerRouteImport } from './routes/hub/instruments/$instrumentName/redis/server'
 import { Route as HubInstrumentsInstrumentNameRedisKeyRouteImport } from './routes/hub/instruments/$instrumentName/redis/key'
+import { Route as HubInstrumentsInstrumentNameKafkaTopicRouteImport } from './routes/hub/instruments/$instrumentName/kafka/topic'
+import { Route as HubInstrumentsInstrumentNameKafkaConsumerGroupRouteImport } from './routes/hub/instruments/$instrumentName/kafka/consumer-group'
 import { Route as HubInstrumentsInstrumentNameFlussTableRouteImport } from './routes/hub/instruments/$instrumentName/fluss/table'
 import { Route as HubInstrumentsInstrumentNameFlussHealthRouteImport } from './routes/hub/instruments/$instrumentName/fluss/health'
 import { Route as HubInstrumentsInstrumentNameDatabaseTableRouteImport } from './routes/hub/instruments/$instrumentName/database/table'
@@ -384,6 +388,11 @@ const HubJobsIdRoute = HubJobsIdRouteImport.update({
   path: '/hub/jobs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HubInstrumentsConnectRoute = HubInstrumentsConnectRouteImport.update({
+  id: '/hub/instruments/connect',
+  path: '/hub/instruments/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HubInsightsMetricsRoute = HubInsightsMetricsRouteImport.update({
   id: '/hub/insights/metrics',
   path: '/hub/insights/metrics',
@@ -510,6 +519,12 @@ const HubInstrumentsInstrumentNameRedisIndexRoute =
     path: '/hub/instruments/$instrumentName/redis/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const HubInstrumentsInstrumentNameKafkaIndexRoute =
+  HubInstrumentsInstrumentNameKafkaIndexRouteImport.update({
+    id: '/hub/instruments/$instrumentName/kafka/',
+    path: '/hub/instruments/$instrumentName/kafka/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const HubInstrumentsInstrumentNameFlussIndexRoute =
   HubInstrumentsInstrumentNameFlussIndexRouteImport.update({
     id: '/hub/instruments/$instrumentName/fluss/',
@@ -544,6 +559,18 @@ const HubInstrumentsInstrumentNameRedisKeyRoute =
   HubInstrumentsInstrumentNameRedisKeyRouteImport.update({
     id: '/hub/instruments/$instrumentName/redis/key',
     path: '/hub/instruments/$instrumentName/redis/key',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameKafkaTopicRoute =
+  HubInstrumentsInstrumentNameKafkaTopicRouteImport.update({
+    id: '/hub/instruments/$instrumentName/kafka/topic',
+    path: '/hub/instruments/$instrumentName/kafka/topic',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HubInstrumentsInstrumentNameKafkaConsumerGroupRoute =
+  HubInstrumentsInstrumentNameKafkaConsumerGroupRouteImport.update({
+    id: '/hub/instruments/$instrumentName/kafka/consumer-group',
+    path: '/hub/instruments/$instrumentName/kafka/consumer-group',
     getParentRoute: () => rootRouteImport,
   } as any)
 const HubInstrumentsInstrumentNameFlussTableRoute =
@@ -612,6 +639,7 @@ export interface FileRoutesByFullPath {
   '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
   '/hub/insights/health': typeof HubInsightsHealthRoute
   '/hub/insights/metrics': typeof HubInsightsMetricsRoute
+  '/hub/instruments/connect': typeof HubInstrumentsConnectRoute
   '/hub/jobs/$id': typeof HubJobsIdRoute
   '/hub/jobs/completed': typeof HubJobsCompletedRoute
   '/hub/jobs/running': typeof HubJobsRunningRoute
@@ -652,12 +680,15 @@ export interface FileRoutesByFullPath {
   '/hub/instruments/$instrumentName/database/table': typeof HubInstrumentsInstrumentNameDatabaseTableRoute
   '/hub/instruments/$instrumentName/fluss/health': typeof HubInstrumentsInstrumentNameFlussHealthRoute
   '/hub/instruments/$instrumentName/fluss/table': typeof HubInstrumentsInstrumentNameFlussTableRoute
+  '/hub/instruments/$instrumentName/kafka/consumer-group': typeof HubInstrumentsInstrumentNameKafkaConsumerGroupRoute
+  '/hub/instruments/$instrumentName/kafka/topic': typeof HubInstrumentsInstrumentNameKafkaTopicRoute
   '/hub/instruments/$instrumentName/redis/key': typeof HubInstrumentsInstrumentNameRedisKeyRoute
   '/hub/instruments/$instrumentName/redis/server': typeof HubInstrumentsInstrumentNameRedisServerRoute
   '/hub/instruments/$instrumentName/schema-registry/compatibility': typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
   '/hub/instruments/$instrumentName/schema-registry/subject': typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute
   '/hub/instruments/$instrumentName/database/': typeof HubInstrumentsInstrumentNameDatabaseIndexRoute
   '/hub/instruments/$instrumentName/fluss/': typeof HubInstrumentsInstrumentNameFlussIndexRoute
+  '/hub/instruments/$instrumentName/kafka/': typeof HubInstrumentsInstrumentNameKafkaIndexRoute
   '/hub/instruments/$instrumentName/redis/': typeof HubInstrumentsInstrumentNameRedisIndexRoute
   '/hub/instruments/$instrumentName/schema-registry/': typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
@@ -700,6 +731,7 @@ export interface FileRoutesByTo {
   '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
   '/hub/insights/health': typeof HubInsightsHealthRoute
   '/hub/insights/metrics': typeof HubInsightsMetricsRoute
+  '/hub/instruments/connect': typeof HubInstrumentsConnectRoute
   '/hub/jobs/$id': typeof HubJobsIdRoute
   '/hub/jobs/completed': typeof HubJobsCompletedRoute
   '/hub/jobs/running': typeof HubJobsRunningRoute
@@ -740,12 +772,15 @@ export interface FileRoutesByTo {
   '/hub/instruments/$instrumentName/database/table': typeof HubInstrumentsInstrumentNameDatabaseTableRoute
   '/hub/instruments/$instrumentName/fluss/health': typeof HubInstrumentsInstrumentNameFlussHealthRoute
   '/hub/instruments/$instrumentName/fluss/table': typeof HubInstrumentsInstrumentNameFlussTableRoute
+  '/hub/instruments/$instrumentName/kafka/consumer-group': typeof HubInstrumentsInstrumentNameKafkaConsumerGroupRoute
+  '/hub/instruments/$instrumentName/kafka/topic': typeof HubInstrumentsInstrumentNameKafkaTopicRoute
   '/hub/instruments/$instrumentName/redis/key': typeof HubInstrumentsInstrumentNameRedisKeyRoute
   '/hub/instruments/$instrumentName/redis/server': typeof HubInstrumentsInstrumentNameRedisServerRoute
   '/hub/instruments/$instrumentName/schema-registry/compatibility': typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
   '/hub/instruments/$instrumentName/schema-registry/subject': typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute
   '/hub/instruments/$instrumentName/database': typeof HubInstrumentsInstrumentNameDatabaseIndexRoute
   '/hub/instruments/$instrumentName/fluss': typeof HubInstrumentsInstrumentNameFlussIndexRoute
+  '/hub/instruments/$instrumentName/kafka': typeof HubInstrumentsInstrumentNameKafkaIndexRoute
   '/hub/instruments/$instrumentName/redis': typeof HubInstrumentsInstrumentNameRedisIndexRoute
   '/hub/instruments/$instrumentName/schema-registry': typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
@@ -791,6 +826,7 @@ export interface FileRoutesById {
   '/hub/insights/bottlenecks': typeof HubInsightsBottlenecksRoute
   '/hub/insights/health': typeof HubInsightsHealthRoute
   '/hub/insights/metrics': typeof HubInsightsMetricsRoute
+  '/hub/instruments/connect': typeof HubInstrumentsConnectRoute
   '/hub/jobs/$id': typeof HubJobsIdRoute
   '/hub/jobs/completed': typeof HubJobsCompletedRoute
   '/hub/jobs/running': typeof HubJobsRunningRoute
@@ -831,12 +867,15 @@ export interface FileRoutesById {
   '/hub/instruments/$instrumentName/database/table': typeof HubInstrumentsInstrumentNameDatabaseTableRoute
   '/hub/instruments/$instrumentName/fluss/health': typeof HubInstrumentsInstrumentNameFlussHealthRoute
   '/hub/instruments/$instrumentName/fluss/table': typeof HubInstrumentsInstrumentNameFlussTableRoute
+  '/hub/instruments/$instrumentName/kafka/consumer-group': typeof HubInstrumentsInstrumentNameKafkaConsumerGroupRoute
+  '/hub/instruments/$instrumentName/kafka/topic': typeof HubInstrumentsInstrumentNameKafkaTopicRoute
   '/hub/instruments/$instrumentName/redis/key': typeof HubInstrumentsInstrumentNameRedisKeyRoute
   '/hub/instruments/$instrumentName/redis/server': typeof HubInstrumentsInstrumentNameRedisServerRoute
   '/hub/instruments/$instrumentName/schema-registry/compatibility': typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
   '/hub/instruments/$instrumentName/schema-registry/subject': typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute
   '/hub/instruments/$instrumentName/database/': typeof HubInstrumentsInstrumentNameDatabaseIndexRoute
   '/hub/instruments/$instrumentName/fluss/': typeof HubInstrumentsInstrumentNameFlussIndexRoute
+  '/hub/instruments/$instrumentName/kafka/': typeof HubInstrumentsInstrumentNameKafkaIndexRoute
   '/hub/instruments/$instrumentName/redis/': typeof HubInstrumentsInstrumentNameRedisIndexRoute
   '/hub/instruments/$instrumentName/schema-registry/': typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
@@ -883,6 +922,7 @@ export interface FileRouteTypes {
     | '/hub/insights/bottlenecks'
     | '/hub/insights/health'
     | '/hub/insights/metrics'
+    | '/hub/instruments/connect'
     | '/hub/jobs/$id'
     | '/hub/jobs/completed'
     | '/hub/jobs/running'
@@ -923,12 +963,15 @@ export interface FileRouteTypes {
     | '/hub/instruments/$instrumentName/database/table'
     | '/hub/instruments/$instrumentName/fluss/health'
     | '/hub/instruments/$instrumentName/fluss/table'
+    | '/hub/instruments/$instrumentName/kafka/consumer-group'
+    | '/hub/instruments/$instrumentName/kafka/topic'
     | '/hub/instruments/$instrumentName/redis/key'
     | '/hub/instruments/$instrumentName/redis/server'
     | '/hub/instruments/$instrumentName/schema-registry/compatibility'
     | '/hub/instruments/$instrumentName/schema-registry/subject'
     | '/hub/instruments/$instrumentName/database/'
     | '/hub/instruments/$instrumentName/fluss/'
+    | '/hub/instruments/$instrumentName/kafka/'
     | '/hub/instruments/$instrumentName/redis/'
     | '/hub/instruments/$instrumentName/schema-registry/'
   fileRoutesByTo: FileRoutesByTo
@@ -971,6 +1014,7 @@ export interface FileRouteTypes {
     | '/hub/insights/bottlenecks'
     | '/hub/insights/health'
     | '/hub/insights/metrics'
+    | '/hub/instruments/connect'
     | '/hub/jobs/$id'
     | '/hub/jobs/completed'
     | '/hub/jobs/running'
@@ -1011,12 +1055,15 @@ export interface FileRouteTypes {
     | '/hub/instruments/$instrumentName/database/table'
     | '/hub/instruments/$instrumentName/fluss/health'
     | '/hub/instruments/$instrumentName/fluss/table'
+    | '/hub/instruments/$instrumentName/kafka/consumer-group'
+    | '/hub/instruments/$instrumentName/kafka/topic'
     | '/hub/instruments/$instrumentName/redis/key'
     | '/hub/instruments/$instrumentName/redis/server'
     | '/hub/instruments/$instrumentName/schema-registry/compatibility'
     | '/hub/instruments/$instrumentName/schema-registry/subject'
     | '/hub/instruments/$instrumentName/database'
     | '/hub/instruments/$instrumentName/fluss'
+    | '/hub/instruments/$instrumentName/kafka'
     | '/hub/instruments/$instrumentName/redis'
     | '/hub/instruments/$instrumentName/schema-registry'
   id:
@@ -1061,6 +1108,7 @@ export interface FileRouteTypes {
     | '/hub/insights/bottlenecks'
     | '/hub/insights/health'
     | '/hub/insights/metrics'
+    | '/hub/instruments/connect'
     | '/hub/jobs/$id'
     | '/hub/jobs/completed'
     | '/hub/jobs/running'
@@ -1101,12 +1149,15 @@ export interface FileRouteTypes {
     | '/hub/instruments/$instrumentName/database/table'
     | '/hub/instruments/$instrumentName/fluss/health'
     | '/hub/instruments/$instrumentName/fluss/table'
+    | '/hub/instruments/$instrumentName/kafka/consumer-group'
+    | '/hub/instruments/$instrumentName/kafka/topic'
     | '/hub/instruments/$instrumentName/redis/key'
     | '/hub/instruments/$instrumentName/redis/server'
     | '/hub/instruments/$instrumentName/schema-registry/compatibility'
     | '/hub/instruments/$instrumentName/schema-registry/subject'
     | '/hub/instruments/$instrumentName/database/'
     | '/hub/instruments/$instrumentName/fluss/'
+    | '/hub/instruments/$instrumentName/kafka/'
     | '/hub/instruments/$instrumentName/redis/'
     | '/hub/instruments/$instrumentName/schema-registry/'
   fileRoutesById: FileRoutesById
@@ -1152,6 +1203,7 @@ export interface RootRouteChildren {
   HubInsightsBottlenecksRoute: typeof HubInsightsBottlenecksRoute
   HubInsightsHealthRoute: typeof HubInsightsHealthRoute
   HubInsightsMetricsRoute: typeof HubInsightsMetricsRoute
+  HubInstrumentsConnectRoute: typeof HubInstrumentsConnectRoute
   HubJobsIdRoute: typeof HubJobsIdRoute
   HubJobsCompletedRoute: typeof HubJobsCompletedRoute
   HubJobsRunningRoute: typeof HubJobsRunningRoute
@@ -1179,12 +1231,15 @@ export interface RootRouteChildren {
   HubInstrumentsInstrumentNameDatabaseTableRoute: typeof HubInstrumentsInstrumentNameDatabaseTableRoute
   HubInstrumentsInstrumentNameFlussHealthRoute: typeof HubInstrumentsInstrumentNameFlussHealthRoute
   HubInstrumentsInstrumentNameFlussTableRoute: typeof HubInstrumentsInstrumentNameFlussTableRoute
+  HubInstrumentsInstrumentNameKafkaConsumerGroupRoute: typeof HubInstrumentsInstrumentNameKafkaConsumerGroupRoute
+  HubInstrumentsInstrumentNameKafkaTopicRoute: typeof HubInstrumentsInstrumentNameKafkaTopicRoute
   HubInstrumentsInstrumentNameRedisKeyRoute: typeof HubInstrumentsInstrumentNameRedisKeyRoute
   HubInstrumentsInstrumentNameRedisServerRoute: typeof HubInstrumentsInstrumentNameRedisServerRoute
   HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute: typeof HubInstrumentsInstrumentNameSchemaRegistryCompatibilityRoute
   HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute: typeof HubInstrumentsInstrumentNameSchemaRegistrySubjectRoute
   HubInstrumentsInstrumentNameDatabaseIndexRoute: typeof HubInstrumentsInstrumentNameDatabaseIndexRoute
   HubInstrumentsInstrumentNameFlussIndexRoute: typeof HubInstrumentsInstrumentNameFlussIndexRoute
+  HubInstrumentsInstrumentNameKafkaIndexRoute: typeof HubInstrumentsInstrumentNameKafkaIndexRoute
   HubInstrumentsInstrumentNameRedisIndexRoute: typeof HubInstrumentsInstrumentNameRedisIndexRoute
   HubInstrumentsInstrumentNameSchemaRegistryIndexRoute: typeof HubInstrumentsInstrumentNameSchemaRegistryIndexRoute
 }
@@ -1583,6 +1638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubJobsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hub/instruments/connect': {
+      id: '/hub/instruments/connect'
+      path: '/hub/instruments/connect'
+      fullPath: '/hub/instruments/connect'
+      preLoaderRoute: typeof HubInstrumentsConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hub/insights/metrics': {
       id: '/hub/insights/metrics'
       path: '/hub/insights/metrics'
@@ -1737,6 +1799,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubInstrumentsInstrumentNameRedisIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hub/instruments/$instrumentName/kafka/': {
+      id: '/hub/instruments/$instrumentName/kafka/'
+      path: '/hub/instruments/$instrumentName/kafka'
+      fullPath: '/hub/instruments/$instrumentName/kafka/'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameKafkaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hub/instruments/$instrumentName/fluss/': {
       id: '/hub/instruments/$instrumentName/fluss/'
       path: '/hub/instruments/$instrumentName/fluss'
@@ -1777,6 +1846,20 @@ declare module '@tanstack/react-router' {
       path: '/hub/instruments/$instrumentName/redis/key'
       fullPath: '/hub/instruments/$instrumentName/redis/key'
       preLoaderRoute: typeof HubInstrumentsInstrumentNameRedisKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/kafka/topic': {
+      id: '/hub/instruments/$instrumentName/kafka/topic'
+      path: '/hub/instruments/$instrumentName/kafka/topic'
+      fullPath: '/hub/instruments/$instrumentName/kafka/topic'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameKafkaTopicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/instruments/$instrumentName/kafka/consumer-group': {
+      id: '/hub/instruments/$instrumentName/kafka/consumer-group'
+      path: '/hub/instruments/$instrumentName/kafka/consumer-group'
+      fullPath: '/hub/instruments/$instrumentName/kafka/consumer-group'
+      preLoaderRoute: typeof HubInstrumentsInstrumentNameKafkaConsumerGroupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/instruments/$instrumentName/fluss/table': {
@@ -1901,6 +1984,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubInsightsBottlenecksRoute: HubInsightsBottlenecksRoute,
   HubInsightsHealthRoute: HubInsightsHealthRoute,
   HubInsightsMetricsRoute: HubInsightsMetricsRoute,
+  HubInstrumentsConnectRoute: HubInstrumentsConnectRoute,
   HubJobsIdRoute: HubJobsIdRoute,
   HubJobsCompletedRoute: HubJobsCompletedRoute,
   HubJobsRunningRoute: HubJobsRunningRoute,
@@ -1932,6 +2016,10 @@ const rootRouteChildren: RootRouteChildren = {
     HubInstrumentsInstrumentNameFlussHealthRoute,
   HubInstrumentsInstrumentNameFlussTableRoute:
     HubInstrumentsInstrumentNameFlussTableRoute,
+  HubInstrumentsInstrumentNameKafkaConsumerGroupRoute:
+    HubInstrumentsInstrumentNameKafkaConsumerGroupRoute,
+  HubInstrumentsInstrumentNameKafkaTopicRoute:
+    HubInstrumentsInstrumentNameKafkaTopicRoute,
   HubInstrumentsInstrumentNameRedisKeyRoute:
     HubInstrumentsInstrumentNameRedisKeyRoute,
   HubInstrumentsInstrumentNameRedisServerRoute:
@@ -1944,6 +2032,8 @@ const rootRouteChildren: RootRouteChildren = {
     HubInstrumentsInstrumentNameDatabaseIndexRoute,
   HubInstrumentsInstrumentNameFlussIndexRoute:
     HubInstrumentsInstrumentNameFlussIndexRoute,
+  HubInstrumentsInstrumentNameKafkaIndexRoute:
+    HubInstrumentsInstrumentNameKafkaIndexRoute,
   HubInstrumentsInstrumentNameRedisIndexRoute:
     HubInstrumentsInstrumentNameRedisIndexRoute,
   HubInstrumentsInstrumentNameSchemaRegistryIndexRoute:

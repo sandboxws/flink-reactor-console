@@ -48,14 +48,23 @@ function HubInstruments() {
         LinkComponent={HubLink}
       />
 
-      <div className="mt-1 mb-6">
-        <h1 className="font-sans text-[24px] font-semibold tracking-tight text-zinc-100">
-          Instruments
-        </h1>
-        <p className="mt-0.5 text-[12px] text-fg-muted">
-          Pluggable infrastructure connectors registered in the cluster
-          configuration. Each card links to an instrument-specific browser.
-        </p>
+      <div className="mt-1 mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-sans text-[24px] font-semibold tracking-tight text-zinc-100">
+            Instruments
+          </h1>
+          <p className="mt-0.5 text-[12px] text-fg-muted">
+            Pluggable infrastructure connectors registered in the cluster
+            configuration. Each card links to an instrument-specific browser.
+          </p>
+        </div>
+        <HubLink
+          to="/hub/instruments/connect"
+          className="btn btn-primary btn-sm shrink-0"
+        >
+          <Plus className="size-3.5" />
+          Connect new
+        </HubLink>
       </div>
 
       {error ? (
@@ -74,10 +83,10 @@ function HubInstruments() {
           {instruments.map((i) => (
             <InstrumentCard key={i.name} instrument={i} />
           ))}
-          <div className="add-card">
+          <HubLink to="/hub/instruments/connect" className="add-card">
             <Plus className="size-4" />
             Add instrument
-          </div>
+          </HubLink>
         </div>
       )}
     </HubAppShell>

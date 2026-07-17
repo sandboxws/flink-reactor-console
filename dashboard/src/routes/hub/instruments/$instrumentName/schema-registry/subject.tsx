@@ -22,6 +22,7 @@ import {
   useSearch,
 } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
+import { SchemaSubjectConsumers } from "@/components/hub/instruments/schema-subject-consumers"
 import { SchemaDiffViewer } from "@/components/hub/tools/diff/schema-diff-viewer"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
@@ -114,6 +115,7 @@ function HubSchemaSubject() {
           </p>
         ) : (
           <div className="space-y-4">
+            <VersionTimeline versions={versions} />
             <div className="glass-card-static flex flex-wrap items-end gap-4 p-4">
               <VersionPicker
                 label="From (older)"
@@ -155,6 +157,8 @@ function HubSchemaSubject() {
                 versionB={v2}
               />
             ) : null}
+
+            <SchemaSubjectConsumers subject={subject} />
           </div>
         )}
       </div>
@@ -193,6 +197,36 @@ function VersionPicker({
           ))}
         </SelectContent>
       </Select>
+    </div>
+  )
+}
+
+function VersionTimeline({ versions }: { versions: number[] }) {
+  const latest = versions[versions.length - 1]
+  return (
+    <div className="glass-card-static p-4">
+      <h3 className="section-heading mb-3">Version timeline</h3>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {versions.map((v, i) => (
+          <div key={v} className="flex items-center gap-1.5">
+            {i > 0 ? (
+              <span className="text-[11px] text-fg-faint">→</span>
+            ) : null}
+            <span
+              className={
+                v === latest
+                  ? "rounded bg-fr-violet/15 px-1.5 py-0.5 font-mono text-[11px] text-fr-violet"
+                  : "rounded bg-dash-elevated px-1.5 py-0.5 font-mono text-[11px] text-fg-muted"
+              }
+            >
+              v{v}
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[10px] text-fg-faint">
+        Schema Registry does not expose per-version registration timestamps.
+      </p>
     </div>
   )
 }
