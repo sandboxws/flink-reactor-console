@@ -44,6 +44,7 @@ import { Route as Hub_shellTestRouteImport } from './routes/hub/__shell-test'
 import { Route as DeploymentsNameRouteImport } from './routes/deployments/$name'
 import { Route as CatalogsExploreRouteImport } from './routes/catalogs/explore'
 import { Route as CatalogsAvailableRouteImport } from './routes/catalogs/available'
+import { Route as ApplicationsIdRouteImport } from './routes/applications/$id'
 import { Route as InstrumentsInstrumentNameIndexRouteImport } from './routes/instruments/$instrumentName/index'
 import { Route as HubTaskManagersIndexRouteImport } from './routes/hub/task-managers/index'
 import { Route as HubStateIndexRouteImport } from './routes/hub/state/index'
@@ -276,6 +277,11 @@ const CatalogsExploreRoute = CatalogsExploreRouteImport.update({
 const CatalogsAvailableRoute = CatalogsAvailableRouteImport.update({
   id: '/catalogs/available',
   path: '/catalogs/available',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
+  id: '/applications/$id',
+  path: '/applications/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstrumentsInstrumentNameIndexRoute =
@@ -604,6 +610,7 @@ export interface FileRoutesByFullPath {
   '/job-manager': typeof JobManagerRoute
   '/logs': typeof LogsRoute
   '/overview': typeof OverviewRoute
+  '/applications/$id': typeof ApplicationsIdRoute
   '/catalogs/available': typeof CatalogsAvailableRoute
   '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
@@ -698,6 +705,7 @@ export interface FileRoutesByTo {
   '/job-manager': typeof JobManagerRoute
   '/logs': typeof LogsRoute
   '/overview': typeof OverviewRoute
+  '/applications/$id': typeof ApplicationsIdRoute
   '/catalogs/available': typeof CatalogsAvailableRoute
   '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
@@ -791,6 +799,7 @@ export interface FileRoutesById {
   '/job-manager': typeof JobManagerRoute
   '/logs': typeof LogsRoute
   '/overview': typeof OverviewRoute
+  '/applications/$id': typeof ApplicationsIdRoute
   '/catalogs/available': typeof CatalogsAvailableRoute
   '/catalogs/explore': typeof CatalogsExploreRoute
   '/deployments/$name': typeof DeploymentsNameRoute
@@ -887,6 +896,7 @@ export interface FileRouteTypes {
     | '/job-manager'
     | '/logs'
     | '/overview'
+    | '/applications/$id'
     | '/catalogs/available'
     | '/catalogs/explore'
     | '/deployments/$name'
@@ -981,6 +991,7 @@ export interface FileRouteTypes {
     | '/job-manager'
     | '/logs'
     | '/overview'
+    | '/applications/$id'
     | '/catalogs/available'
     | '/catalogs/explore'
     | '/deployments/$name'
@@ -1073,6 +1084,7 @@ export interface FileRouteTypes {
     | '/job-manager'
     | '/logs'
     | '/overview'
+    | '/applications/$id'
     | '/catalogs/available'
     | '/catalogs/explore'
     | '/deployments/$name'
@@ -1168,6 +1180,7 @@ export interface RootRouteChildren {
   JobManagerRoute: typeof JobManagerRoute
   LogsRoute: typeof LogsRoute
   OverviewRoute: typeof OverviewRoute
+  ApplicationsIdRoute: typeof ApplicationsIdRoute
   CatalogsAvailableRoute: typeof CatalogsAvailableRoute
   CatalogsExploreRoute: typeof CatalogsExploreRoute
   DeploymentsNameRoute: typeof DeploymentsNameRoute
@@ -1489,6 +1502,13 @@ declare module '@tanstack/react-router' {
       path: '/catalogs/available'
       fullPath: '/catalogs/available'
       preLoaderRoute: typeof CatalogsAvailableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/applications/$id': {
+      id: '/applications/$id'
+      path: '/applications/$id'
+      fullPath: '/applications/$id'
+      preLoaderRoute: typeof ApplicationsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/instruments/$instrumentName/': {
@@ -1949,6 +1969,7 @@ const rootRouteChildren: RootRouteChildren = {
   JobManagerRoute: JobManagerRoute,
   LogsRoute: LogsRoute,
   OverviewRoute: OverviewRoute,
+  ApplicationsIdRoute: ApplicationsIdRoute,
   CatalogsAvailableRoute: CatalogsAvailableRoute,
   CatalogsExploreRoute: CatalogsExploreRoute,
   DeploymentsNameRoute: DeploymentsNameRoute,

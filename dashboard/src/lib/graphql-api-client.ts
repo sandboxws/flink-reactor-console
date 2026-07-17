@@ -1182,6 +1182,18 @@ const APPLICATIONS_QUERY = gql`
   }
 `
 
+const APPLICATION_QUERY = gql`
+  query Application($id: ID!, $cluster: String) {
+    application(id: $id, cluster: $cluster) {
+      id
+      name
+      state
+      startTime
+      jobCount
+    }
+  }
+`
+
 const CANCEL_APPLICATION_MUTATION = gql`
   mutation CancelApplication($id: ID!, $cluster: String) {
     cancelApplication(id: $id, cluster: $cluster) {
@@ -1199,6 +1211,18 @@ export async function fetchApplications(
 ): Promise<Application[]> {
   const data = await query<any>(APPLICATIONS_QUERY, { cluster })
   return (data.applications ?? []) as Application[]
+}
+
+/**
+ * Fetch a single Flink application by id (Flink 2.3+, FLIP-549). Returns null
+ * when the application is not found or the cluster lacks application mode.
+ */
+export async function fetchApplication(
+  id: string,
+  cluster?: string,
+): Promise<Application | null> {
+  const data = await query<any>(APPLICATION_QUERY, { id, cluster })
+  return (data.application ?? null) as Application | null
 }
 
 /** Cancel an application and all its jobs (Flink 2.3+, FLIP-549). */

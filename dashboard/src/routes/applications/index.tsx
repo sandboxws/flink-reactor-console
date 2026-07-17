@@ -5,7 +5,7 @@
  * running in application mode; on older clusters the backend returns an empty
  * list, so this page renders an explanatory empty state rather than an error.
  */
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { Layers } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import {
@@ -84,7 +84,15 @@ function ApplicationsPage() {
             <tbody>
               {apps.map((app) => (
                 <tr key={app.id} className="border-dash-border border-t">
-                  <td className="p-3 text-zinc-200">{app.name}</td>
+                  <td className="p-3">
+                    <Link
+                      to="/applications/$id"
+                      params={{ id: app.id }}
+                      className="text-zinc-200 hover:text-fr-coral"
+                    >
+                      {app.name}
+                    </Link>
+                  </td>
                   <td className="p-3 text-zinc-300">{app.state}</td>
                   <td className="p-3 tabular-nums text-zinc-300">
                     {app.jobCount}
