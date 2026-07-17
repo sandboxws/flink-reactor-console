@@ -196,6 +196,7 @@ const FLINK_IMAGE_MAP: Record<FlinkMajorVersion, string> = {
   "2.0": "flink:2.0.0",
   "2.1": "flink:2.1.0",
   "2.2": "flink:2.2.0",
+  "2.3": "flink:2.3.0",
 }
 
 // flinkVersion → operator-expected version string
@@ -204,6 +205,7 @@ const FLINK_VERSION_MAP: Record<FlinkMajorVersion, string> = {
   "2.0": "v2_0",
   "2.1": "v2_1",
   "2.2": "v2_2",
+  "2.3": "v2_3",
 }
 
 // ── Duration parsing ────────────────────────────────────────────────

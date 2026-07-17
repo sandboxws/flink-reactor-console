@@ -1,5 +1,9 @@
 import { createElement } from "@/core/jsx-runtime.js"
-import type { BaseComponentProps, ConstructNode } from "@/core/types.js"
+import type {
+  BaseComponentProps,
+  ConstructNode,
+  FlinkType,
+} from "@/core/types.js"
 import type { CatalogHandle } from "./catalogs.js"
 
 // ── MaterializedTable ──────────────────────────────────────────────
@@ -26,6 +30,34 @@ export interface MaterializedTableProps extends BaseComponentProps {
     readonly columns: readonly string[]
     readonly count: number
   }
+  /**
+   * Explicit column definitions, emitted as a column list on the
+   * `CREATE MATERIALIZED TABLE name (...)` clause. Maps column name → Flink
+   * SQL type. Flink 2.3+ only (FLIP-550). When omitted, the schema is inferred
+   * from the defining query (the pre-2.3 behavior).
+   */
+  readonly columns?: Record<string, FlinkType>
+  /** Primary key column(s) → `PRIMARY KEY (...) NOT ENFORCED`. Flink 2.3+ (FLIP-550). */
+  readonly primaryKey?: readonly string[]
+  /** Watermark spec → `WATERMARK FOR <column> AS <expression>`. Flink 2.3+ (FLIP-550). */
+  readonly watermark?: {
+    readonly column: string
+    readonly expression: string
+  }
+  /**
+   * Data-reprocessing start mode (Flink 2.3+, FLIP-557). Controls how the
+   * refresh job seeds historical data: replay from the beginning, start from
+   * now, or start from an explicit timestamp.
+   */
+  readonly startMode?:
+    | "FROM_BEGINNING"
+    | "FROM_NOW"
+    | "RESUME_OR_FROM_BEGINNING"
+    | "RESUME_OR_FROM_NOW"
+    | {
+        readonly mode: "FROM_TIMESTAMP" | "RESUME_OR_FROM_TIMESTAMP"
+        readonly timestamp: string
+      }
   /** Upstream query that defines the materialized table */
   readonly children?: ConstructNode | ConstructNode[]
 }

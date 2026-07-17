@@ -146,7 +146,7 @@ describe("pg-fluss-paimon-serve (Flink-SQL branch)", () => {
     }
   }
 
-  it("emits the Flink-SQL Fluss artifact at 0.9.0-incubating", () => {
+  it("emits the Flink-SQL Fluss artifact at 0.9.1-incubating", () => {
     const node = servePipeline({
       paimonMergeEngine: "deduplicate",
       commitMode: "throughput",
@@ -154,7 +154,7 @@ describe("pg-fluss-paimon-serve (Flink-SQL branch)", () => {
     const { jars } = resolveConnectors(node, { flinkVersion: FLINK_VERSION })
     const fluss = jars.find((j) => j.artifact.artifactId === "fluss-flink-2.2")
     expect(fluss?.artifact.groupId).toBe("org.apache.fluss")
-    expect(fluss?.artifact.version).toBe("0.9.0-incubating")
+    expect(fluss?.artifact.version).toBe("0.9.1-incubating")
   })
 
   it("emits the Paimon Flink connector matching the active Flink major", () => {

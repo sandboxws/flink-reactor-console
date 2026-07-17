@@ -1,3 +1,4 @@
+import { FlinkVersionCompat } from "@/core/flink-compat.js"
 import type { ConstructNode } from "@/core/types.js"
 import {
   type ResolvedColumn,
@@ -314,7 +315,7 @@ function collectSinkDml(
     }
 
     const insertPrefix = `INSERT INTO ${sinkRef}\n`
-    const fullSql = `${insertPrefix}${upstream};`
+    const fullSql = `${insertPrefix}${upstream}${buildOnConflictClause(ctx, node)};`
 
     // Shift all query fragments by the INSERT INTO prefix length
     const contributors: SqlFragment[] = fragments.map((f) => ({
@@ -642,7 +643,7 @@ function collectRouteDml(
       }
 
       const insertPrefix = `INSERT INTO ${sinkRef}\n`
-      const fullSql = `${insertPrefix}${sinkQuery};`
+      const fullSql = `${insertPrefix}${sinkQuery}${buildOnConflictClause(ctx, sink)};`
 
       const contributors: SqlFragment[] = fragments.map((f) => ({
         ...f,
@@ -661,4 +662,24 @@ function collectRouteDml(
       entries.push({ sql: fullSql, contributors })
     }
   }
+}
+
+/**
+ * Build the trailing `ON CONFLICT DO …` clause for an upsert sink
+ * (Flink 2.3+, FLIP-558). Returns "" when the sink declares no `onConflict`
+ * prop. Throws when the clause targets a Flink version that predates it.
+ */
+function buildOnConflictClause(ctx: BuildContext, node: ConstructNode): string {
+  const onConflict = node.props.onConflict as string | undefined
+  if (!onConflict) {
+    return ""
+  }
+  const check = FlinkVersionCompat.checkFeature(
+    "UPSERT_ON_CONFLICT",
+    ctx.version,
+  )
+  if (check) {
+    throw new Error(check.message)
+  }
+  return `\nON CONFLICT ${onConflict}`
 }

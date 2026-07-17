@@ -90,7 +90,7 @@ describe("completion zsh", () => {
   })
 
   it("contains Flink version choices", () => {
-    expect(script).toContain("(1.20 2.0 2.1 2.2)")
+    expect(script).toContain("(1.20 2.0 2.1 2.2 2.3)")
   })
 
   it("contains graph format choices", () => {

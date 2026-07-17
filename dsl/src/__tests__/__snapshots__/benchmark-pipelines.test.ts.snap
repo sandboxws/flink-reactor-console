@@ -38,7 +38,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
   "jars": [
     "org.apache.flink:flink-sql-avro-confluent-registry:2.0.0",
     "org.apache.flink:flink-sql-connector-kafka:4.0.1-2.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -185,7 +185,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
   "jars": [
     "org.apache.flink:flink-sql-avro-confluent-registry:2.0.0",
     "org.apache.flink:flink-sql-connector-kafka:4.0.1-2.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -331,7 +331,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
   },
   "jars": [
     "org.apache.flink:flink-sql-connector-kafka:4.0.1-2.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -476,7 +476,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
   },
   "jars": [
     "org.apache.flink:flink-sql-connector-kafka:4.0.1-2.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -622,7 +622,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
   "jars": [
     "org.apache.flink:flink-sql-connector-kafka:4.0.1-2.0",
     "org.apache.flink:flink-sql-protobuf-confluent-registry:2.0.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -769,7 +769,7 @@ exports[`pg-cdc-iceberg-f1 (Kafka-hop) > synthesizes a stable artifact bundle fo
   "jars": [
     "org.apache.flink:flink-sql-connector-kafka:4.0.1-2.0",
     "org.apache.flink:flink-sql-protobuf-confluent-registry:2.0.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "sql": "-- ====================================================================
 -- PIPELINE
@@ -953,8 +953,8 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -1066,8 +1066,8 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -1179,8 +1179,8 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -1293,8 +1293,8 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -1407,8 +1407,8 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "pipelineYaml": "source:
   type: postgres
@@ -1520,8 +1520,8 @@ exports[`pg-cdc-iceberg-f2 (Pipeline Connector) > synthesizes a stable artifact 
     },
   },
   "jars": [
-    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0",
-    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.6.0",
+    "org.apache.flink:flink-cdc-pipeline-connector-postgres:3.6.0-2.2",
+    "org.apache.iceberg:iceberg-flink-runtime-2.0:1.10.1",
   ],
   "pipelineYaml": "source:
   type: postgres

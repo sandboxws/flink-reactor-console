@@ -1,4 +1,4 @@
-// The known Flink SQL token vocabulary (Flink 1.20–2.2), the single source of
+// The known Flink SQL token vocabulary (Flink 1.20–2.3), the single source of
 // truth for *classifying* an embedded-SQL word into a token category. The LSP
 // semantic-tokens layer consumes `classifyWord` directly; the VS Code TextMate
 // grammar (`syntaxes/flinkreactor-sql.injection.json`) mirrors these same lists
@@ -246,6 +246,9 @@ export const FLINK_FUNCTIONS: ReadonlySet<string> = new Set([
   "ELEMENT",
   "MAP_KEYS",
   "MAP_VALUES",
+  // Changelog process table functions (Flink 2.3+, FLIP-564)
+  "FROM_CHANGELOG",
+  "TO_CHANGELOG",
 ])
 
 /**

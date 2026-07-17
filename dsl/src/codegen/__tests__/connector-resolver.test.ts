@@ -46,7 +46,7 @@ describe("Kafka connector resolution", () => {
     const result = resolveConnectors(pipeline, { flinkVersion: "2.2" })
     expect(result.jars).toHaveLength(1)
     expect(result.jars[0].artifact.artifactId).toBe("flink-sql-connector-kafka")
-    expect(result.jars[0].artifact.version).toBe("4.0.1-2.0")
+    expect(result.jars[0].artifact.version).toBe("5.0.0-2.2")
     expect(result.conflicts).toHaveLength(0)
   })
 
@@ -374,7 +374,7 @@ describe("UDF JAR inclusion", () => {
 // ── Postgres CDC Pipeline Connector ─────────────────────────────────
 
 describe("PostgresCdcPipelineSource connector resolution", () => {
-  it("resolves flink-cdc-pipeline-connector-postgres:3.6.0 at Flink 1.20", () => {
+  it("resolves flink-cdc-pipeline-connector-postgres:3.6.0-1.20 at Flink 1.20", () => {
     const source = PostgresCdcPipelineSource({
       hostname: "pg-primary",
       database: "shop",
@@ -394,11 +394,11 @@ describe("PostgresCdcPipelineSource connector resolution", () => {
       (j) => j.artifact.artifactId === "flink-cdc-pipeline-connector-postgres",
     )
     expect(cdcJar).toBeDefined()
-    expect(cdcJar?.artifact.version).toBe("3.6.0")
+    expect(cdcJar?.artifact.version).toBe("3.6.0-1.20")
     expect(cdcJar?.artifact.groupId).toBe("org.apache.flink")
   })
 
-  it("resolves the same coordinate at Flink 2.0", () => {
+  it("resolves the -2.2 coordinate at Flink 2.0 (reused; CDC has no 2.3 build)", () => {
     const source = PostgresCdcPipelineSource({
       hostname: "pg-primary",
       database: "shop",
@@ -417,7 +417,7 @@ describe("PostgresCdcPipelineSource connector resolution", () => {
     const cdcJar = result.jars.find(
       (j) => j.artifact.artifactId === "flink-cdc-pipeline-connector-postgres",
     )
-    expect(cdcJar?.artifact.version).toBe("3.6.0")
+    expect(cdcJar?.artifact.version).toBe("3.6.0-2.2")
   })
 
   it("attributes provenance to the CDC source node", () => {
@@ -476,7 +476,7 @@ describe("FlussSink branch-aware artifact resolution", () => {
       (j) => j.artifact.artifactId === "flink-cdc-pipeline-connector-fluss",
     )
     expect(flussJar).toBeDefined()
-    expect(flussJar?.artifact.version).toBe("3.6.0")
+    expect(flussJar?.artifact.version).toBe("3.6.0-1.20")
     expect(flussJar?.artifact.groupId).toBe("org.apache.flink")
   })
 
@@ -598,7 +598,7 @@ describe("Fluss connector registry GAV", () => {
     expect(artifacts).toContainEqual({
       groupId: "org.apache.fluss",
       artifactId: "fluss-flink-2.2",
-      version: "0.9.0-incubating",
+      version: "0.9.1-incubating",
     })
   })
 

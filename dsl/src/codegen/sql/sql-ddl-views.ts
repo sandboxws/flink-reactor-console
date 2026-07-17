@@ -78,7 +78,43 @@ export function generateMaterializedTableDdl(
     ? `${q(catalogName)}.${q(database)}.${q(name)}`
     : `${q(catalogName)}.${q(name)}`
 
-  const parts: string[] = [`CREATE MATERIALIZED TABLE ${tableRef}`]
+  // Explicit schema — column list / PRIMARY KEY / WATERMARK (Flink 2.3+, FLIP-550)
+  const columns = props.columns as Record<string, string> | undefined
+  const primaryKey = props.primaryKey as readonly string[] | undefined
+  const watermark = props.watermark as
+    | { column: string; expression: string }
+    | undefined
+  let createLine = `CREATE MATERIALIZED TABLE ${tableRef}`
+  if (columns || primaryKey || watermark) {
+    const schemaCheck = FlinkVersionCompat.checkFeature(
+      "MATERIALIZED_TABLE_SCHEMA",
+      ctx.version,
+    )
+    if (schemaCheck) {
+      throw new Error(schemaCheck.message)
+    }
+    const schemaLines: string[] = []
+    if (columns) {
+      for (const [col, type] of Object.entries(columns)) {
+        schemaLines.push(`  ${q(col)} ${String(type)}`)
+      }
+    }
+    if (primaryKey && primaryKey.length > 0) {
+      schemaLines.push(
+        `  PRIMARY KEY (${primaryKey.map(q).join(", ")}) NOT ENFORCED`,
+      )
+    }
+    if (watermark) {
+      schemaLines.push(
+        `  WATERMARK FOR ${q(watermark.column)} AS ${watermark.expression}`,
+      )
+    }
+    if (schemaLines.length > 0) {
+      createLine += ` (\n${schemaLines.join(",\n")}\n)`
+    }
+  }
+
+  const parts: string[] = [createLine]
 
   // COMMENT clause
   if (props.comment) {
@@ -121,6 +157,31 @@ export function generateMaterializedTableDdl(
   const refreshMode = props.refreshMode as string | undefined
   if (refreshMode && refreshMode !== "automatic") {
     parts.push(`  REFRESH_MODE = ${refreshMode.toUpperCase()}`)
+  }
+
+  // START_MODE clause — data-reprocessing control (Flink 2.3+, FLIP-557)
+  const startMode = props.startMode as
+    | "FROM_BEGINNING"
+    | "FROM_NOW"
+    | "RESUME_OR_FROM_BEGINNING"
+    | "RESUME_OR_FROM_NOW"
+    | { mode: "FROM_TIMESTAMP" | "RESUME_OR_FROM_TIMESTAMP"; timestamp: string }
+    | undefined
+  if (startMode) {
+    const startModeCheck = FlinkVersionCompat.checkFeature(
+      "MATERIALIZED_TABLE_START_MODE",
+      ctx.version,
+    )
+    if (startModeCheck) {
+      throw new Error(startModeCheck.message)
+    }
+    if (typeof startMode === "string") {
+      parts.push(`  START_MODE = ${startMode}`)
+    } else {
+      parts.push(
+        `  START_MODE = ${startMode.mode} ${quoteStringLiteral(startMode.timestamp)}`,
+      )
+    }
   }
 
   // AS SELECT (upstream query from children)

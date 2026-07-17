@@ -188,7 +188,7 @@ describe("pg-cdc-iceberg-f2 (Pipeline Connector)", () => {
     }
   }
 
-  it("pins the Flink CDC Postgres pipeline connector at 3.6.0", () => {
+  it("pins the Flink CDC Postgres pipeline connector at 3.6.0-2.2", () => {
     const node = f2Pipeline({
       snapshotMode: "initial",
       commitMode: "latency",
@@ -198,7 +198,7 @@ describe("pg-cdc-iceberg-f2 (Pipeline Connector)", () => {
     const postgresCdcJar = jars.find(
       (j) => j.artifact.artifactId === "flink-cdc-pipeline-connector-postgres",
     )
-    expect(postgresCdcJar?.artifact.version).toBe("3.6.0")
+    expect(postgresCdcJar?.artifact.version).toBe("3.6.0-2.2")
   })
 
   it("includes the iceberg-flink runtime matching the target Flink version", () => {
