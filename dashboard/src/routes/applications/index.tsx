@@ -13,6 +13,7 @@ import {
   cancelApplication,
   fetchApplications,
 } from "@/lib/graphql-api-client"
+import { useClusterStore } from "@/stores/cluster-store"
 
 export const Route = createFileRoute("/applications/")({
   component: ApplicationsPage,
@@ -22,6 +23,12 @@ function ApplicationsPage() {
   const [apps, setApps] = useState<Application[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Application mode (FLIP-549) is a Flink 2.3+ capability. Gate the whole
+  // page on it so older clusters get a clear explanation instead of a
+  // pointless empty fetch against an endpoint they don't implement.
+  const capabilities = useClusterStore((s) => s.overview?.capabilities)
+  const supportsAppMode = (capabilities ?? []).includes("APPLICATION_MODE")
+
   const load = useCallback(() => {
     setError(null)
     fetchApplications()
@@ -30,8 +37,8 @@ function ApplicationsPage() {
   }, [])
 
   useEffect(() => {
-    load()
-  }, [load])
+    if (supportsAppMode) load()
+  }, [load, supportsAppMode])
 
   const handleCancel = async (id: string) => {
     await cancelApplication(id)
@@ -49,14 +56,19 @@ function ApplicationsPage() {
         </span>
       </div>
 
-      {error ? (
+      {!supportsAppMode ? (
+        <div className="glass-card flex flex-col items-center justify-center gap-2 py-16 text-xs text-zinc-500">
+          <Layers className="size-5" />
+          Application mode requires a Flink 2.3+ cluster (FLIP-549).
+        </div>
+      ) : error ? (
         <div className="glass-card flex items-center justify-center py-16 text-xs text-job-failed">
           {error}
         </div>
       ) : !apps || apps.length === 0 ? (
         <div className="glass-card flex flex-col items-center justify-center gap-2 py-16 text-xs text-zinc-500">
           <Layers className="size-5" />
-          No applications. Application mode requires Flink 2.3+ (FLIP-549).
+          No applications running on this cluster.
         </div>
       ) : (
         <div className="glass-card overflow-auto">

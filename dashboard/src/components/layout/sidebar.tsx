@@ -34,6 +34,7 @@ import {
 import { InstrumentSidebarSection } from "@/components/instruments/instrument-sidebar-section"
 import { cn } from "@/lib/cn"
 import { isLinkEnabled, isSectionEnabled } from "@/lib/dashboard-config"
+import { useClusterStore } from "@/stores/cluster-store"
 import { useUiStore } from "@/stores/ui-store"
 
 /** A single navigation link in the sidebar. */
@@ -44,6 +45,12 @@ type NavItem = {
   label: string
   /** Lucide icon component rendered for this link. */
   icon: LucideIcon
+  /**
+   * Optional cluster capability (see server `capabilities.go`) required for
+   * this link to appear. Omitted → always shown. Used to hide version-gated
+   * pages (e.g. Flink 2.3 application mode) on clusters that lack them.
+   */
+  capability?: string
 }
 
 /** A labeled group of related {@link NavItem} entries in the sidebar. */
@@ -82,7 +89,12 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Cluster",
     items: [
       { href: "/task-managers", label: "Task Managers", icon: Server },
-      { href: "/applications", label: "Applications", icon: Layers },
+      {
+        href: "/applications",
+        label: "Applications",
+        icon: Layers,
+        capability: "APPLICATION_MODE",
+      },
       { href: "/job-manager", label: "Job Manager", icon: Settings },
       { href: "/insights/health", label: "Cluster Health", icon: HeartPulse },
     ],
@@ -155,6 +167,7 @@ export function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggle = useUiStore((s) => s.toggleSidebar)
   const pathname = useLocation({ select: (l) => l.pathname })
+  const capabilities = useClusterStore((s) => s.overview?.capabilities)
 
   return (
     <aside
@@ -185,7 +198,11 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-1.5">
         {NAV_GROUPS.filter((g) => isSectionEnabled(g.id)).map((group) => {
-          const items = group.items.filter((i) => isLinkEnabled(i.href))
+          const items = group.items.filter(
+            (i) =>
+              isLinkEnabled(i.href) &&
+              (!i.capability || (capabilities ?? []).includes(i.capability)),
+          )
           if (items.length === 0) return null
           return (
             <div key={group.id} className="mb-1">
