@@ -1,7 +1,7 @@
+import type { MaterializedTable } from "@flink-reactor/ui"
 import { gql } from "urql"
 import { create } from "zustand"
 import { mapMaterializedTables } from "@/data/materialized-table-mappers"
-import type { MaterializedTable } from "@flink-reactor/ui"
 import { graphqlClient } from "@/lib/graphql-client"
 
 /**
@@ -66,6 +66,13 @@ const TABLES_QUERY = gql`
       refreshMode
       freshness
       definingQuery
+      columns {
+        name
+        type
+        nullable
+        primaryKey
+        watermark
+      }
     }
   }
 `
@@ -84,6 +91,13 @@ const TABLE_DETAIL_QUERY = gql`
       refreshMode
       freshness
       definingQuery
+      columns {
+        name
+        type
+        nullable
+        primaryKey
+        watermark
+      }
     }
   }
 `
@@ -102,6 +116,13 @@ const SUSPEND_MUTATION = gql`
       refreshMode
       freshness
       definingQuery
+      columns {
+        name
+        type
+        nullable
+        primaryKey
+        watermark
+      }
     }
   }
 `
@@ -120,6 +141,13 @@ const RESUME_MUTATION = gql`
       refreshMode
       freshness
       definingQuery
+      columns {
+        name
+        type
+        nullable
+        primaryKey
+        watermark
+      }
     }
   }
 `
@@ -142,6 +170,13 @@ const REFRESH_MUTATION = gql`
       refreshMode
       freshness
       definingQuery
+      columns {
+        name
+        type
+        nullable
+        primaryKey
+        watermark
+      }
     }
   }
 `

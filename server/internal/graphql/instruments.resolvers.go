@@ -16,10 +16,6 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/factory"
 )
 
-// instrumentTestTimeout bounds a connection probe so a dead host cannot hang
-// the GraphQL request.
-const instrumentTestTimeout = 10 * time.Second
-
 // TestInstrumentConnection is the resolver for the testInstrumentConnection field.
 //
 //nolint:revive // gqlgen owns this signature
@@ -55,11 +51,6 @@ func (r *mutationResolver) TestInstrumentConnection(ctx context.Context, typeArg
 
 	latency := int(time.Since(start).Milliseconds())
 	return &model.InstrumentTestResult{Ok: true, LatencyMs: &latency}, nil
-}
-
-// instrumentTestFailure builds an unsuccessful test result with a message.
-func instrumentTestFailure(msg string) *model.InstrumentTestResult {
-	return &model.InstrumentTestResult{Ok: false, Message: &msg}
 }
 
 // Instruments is the resolver for the instruments field.

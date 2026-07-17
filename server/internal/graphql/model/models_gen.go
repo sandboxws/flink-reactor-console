@@ -881,6 +881,16 @@ type KeyFieldInput struct {
 	Type string `json:"type"`
 }
 
+// A column in a materialized table's schema (Flink 2.3+, from DESCRIBE).
+type MaterializedColumn struct {
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	Nullable   bool   `json:"nullable"`
+	PrimaryKey bool   `json:"primaryKey"`
+	// Watermark expression when the column is a rowtime attribute, else null.
+	Watermark *string `json:"watermark,omitempty"`
+}
+
 type MaterializedTable struct {
 	Name          string                         `json:"name"`
 	Catalog       string                         `json:"catalog"`
@@ -889,6 +899,8 @@ type MaterializedTable struct {
 	RefreshMode   *string                        `json:"refreshMode,omitempty"`
 	Freshness     *string                        `json:"freshness,omitempty"`
 	DefiningQuery *string                        `json:"definingQuery,omitempty"`
+	// Schema columns parsed from DESCRIBE MATERIALIZED TABLE (Flink 2.3+); empty on older clusters.
+	Columns []*MaterializedColumn `json:"columns"`
 }
 
 // A metric available in the catalog (discovered from stored data).

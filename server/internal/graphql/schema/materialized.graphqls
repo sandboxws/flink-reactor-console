@@ -6,6 +6,16 @@ enum MaterializedTableRefreshStatus {
   INITIALIZING
 }
 
+"""A column in a materialized table's schema (Flink 2.3+, from DESCRIBE)."""
+type MaterializedColumn {
+  name: String!
+  type: String!
+  nullable: Boolean!
+  primaryKey: Boolean!
+  """Watermark expression when the column is a rowtime attribute, else null."""
+  watermark: String
+}
+
 type MaterializedTable {
   name: String!
   catalog: String!
@@ -14,6 +24,8 @@ type MaterializedTable {
   refreshMode: String
   freshness: String
   definingQuery: String
+  """Schema columns parsed from DESCRIBE MATERIALIZED TABLE (Flink 2.3+); empty on older clusters."""
+  columns: [MaterializedColumn!]!
 }
 
 extend type Query {

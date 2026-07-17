@@ -134,6 +134,48 @@ function HubMaterializedTableDetail() {
             )}
           </section>
 
+          {table.columns.length > 0 && (
+            <section className="glass-card-static p-5 mb-5">
+              <h3 className="section-heading mb-3">Schema</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[12px] font-mono">
+                  <thead className="text-fg-muted">
+                    <tr>
+                      <th className="pb-2 pr-4 font-medium">Column</th>
+                      <th className="pb-2 pr-4 font-medium">Type</th>
+                      <th className="pb-2 pr-4 font-medium">Null</th>
+                      <th className="pb-2 pr-4 font-medium">Key</th>
+                      <th className="pb-2 font-medium">Watermark</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-fg">
+                    {table.columns.map((c) => (
+                      <tr key={c.name} className="border-t border-white/5">
+                        <td className="py-1.5 pr-4">{c.name}</td>
+                        <td className="py-1.5 pr-4 text-fg-muted">{c.type}</td>
+                        <td className="py-1.5 pr-4 text-fg-muted">
+                          {c.nullable ? "YES" : "NO"}
+                        </td>
+                        <td className="py-1.5 pr-4">
+                          {c.primaryKey ? (
+                            <span className="label-chip border border-fr-teal/25 bg-fr-teal/10 text-fr-teal">
+                              PK
+                            </span>
+                          ) : (
+                            <span className="text-fg-faint">—</span>
+                          )}
+                        </td>
+                        <td className="py-1.5 text-fg-muted">
+                          {c.watermark ?? "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
           <section className="glass-card-static p-5">
             <h3 className="section-heading mb-3">Refresh history</h3>
             <p className="text-[11px] font-mono text-fg-faint">

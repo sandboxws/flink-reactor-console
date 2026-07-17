@@ -13,6 +13,20 @@ export type MaterializedTableRefreshStatus =
   | "SUSPENDED"
   | "INITIALIZING"
 
+/** A column in a materialized table's schema (Flink 2.3+, from DESCRIBE). */
+export interface MaterializedColumn {
+  /** Column name. */
+  readonly name: string
+  /** SQL data type (e.g. "INT", "TIMESTAMP(3)"). */
+  readonly type: string
+  /** Whether the column accepts NULL. */
+  readonly nullable: boolean
+  /** Whether the column is part of the primary key. */
+  readonly primaryKey: boolean
+  /** Watermark expression when the column is a rowtime attribute, else null. */
+  readonly watermark: string | null
+}
+
 /** A Flink materialized table with refresh scheduling metadata. */
 export interface MaterializedTable {
   /** Fully-qualified table name. */
@@ -29,6 +43,8 @@ export interface MaterializedTable {
   readonly freshness: string | null
   /** SQL query that defines the materialized view, or null. */
   readonly definingQuery: string | null
+  /** Schema columns (Flink 2.3+); empty on older clusters. */
+  readonly columns: readonly MaterializedColumn[]
 }
 
 /** Badge color for a refresh status indicator. */

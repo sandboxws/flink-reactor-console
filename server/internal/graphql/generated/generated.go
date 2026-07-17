@@ -714,8 +714,17 @@ type ComplexityRoot struct {
 		Topic     func(childComplexity int) int
 	}
 
+	MaterializedColumn struct {
+		Name       func(childComplexity int) int
+		Nullable   func(childComplexity int) int
+		PrimaryKey func(childComplexity int) int
+		Type       func(childComplexity int) int
+		Watermark  func(childComplexity int) int
+	}
+
 	MaterializedTable struct {
 		Catalog       func(childComplexity int) int
+		Columns       func(childComplexity int) int
 		Database      func(childComplexity int) int
 		DefiningQuery func(childComplexity int) int
 		Freshness     func(childComplexity int) int
@@ -4033,12 +4042,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.KafkaTopicPartition.Topic(childComplexity), true
 
+	case "MaterializedColumn.name":
+		if e.ComplexityRoot.MaterializedColumn.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedColumn.Name(childComplexity), true
+	case "MaterializedColumn.nullable":
+		if e.ComplexityRoot.MaterializedColumn.Nullable == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedColumn.Nullable(childComplexity), true
+	case "MaterializedColumn.primaryKey":
+		if e.ComplexityRoot.MaterializedColumn.PrimaryKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedColumn.PrimaryKey(childComplexity), true
+	case "MaterializedColumn.type":
+		if e.ComplexityRoot.MaterializedColumn.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedColumn.Type(childComplexity), true
+	case "MaterializedColumn.watermark":
+		if e.ComplexityRoot.MaterializedColumn.Watermark == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedColumn.Watermark(childComplexity), true
+
 	case "MaterializedTable.catalog":
 		if e.ComplexityRoot.MaterializedTable.Catalog == nil {
 			break
 		}
 
 		return e.ComplexityRoot.MaterializedTable.Catalog(childComplexity), true
+	case "MaterializedTable.columns":
+		if e.ComplexityRoot.MaterializedTable.Columns == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MaterializedTable.Columns(childComplexity), true
 	case "MaterializedTable.database":
 		if e.ComplexityRoot.MaterializedTable.Database == nil {
 			break
@@ -8975,6 +9021,16 @@ enum MaterializedTableRefreshStatus {
   INITIALIZING
 }
 
+"""A column in a materialized table's schema (Flink 2.3+, from DESCRIBE)."""
+type MaterializedColumn {
+  name: String!
+  type: String!
+  nullable: Boolean!
+  primaryKey: Boolean!
+  """Watermark expression when the column is a rowtime attribute, else null."""
+  watermark: String
+}
+
 type MaterializedTable {
   name: String!
   catalog: String!
@@ -8983,6 +9039,8 @@ type MaterializedTable {
   refreshMode: String
   freshness: String
   definingQuery: String
+  """Schema columns parsed from DESCRIBE MATERIALIZED TABLE (Flink 2.3+); empty on older clusters."""
+  columns: [MaterializedColumn!]!
 }
 
 extend type Query {
@@ -24081,6 +24139,151 @@ func (ec *executionContext) fieldContext_KafkaTopicPartition_partition(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _MaterializedColumn_name(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedColumn_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedColumn_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedColumn_type(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedColumn_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedColumn_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedColumn_nullable(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedColumn_nullable,
+		func(ctx context.Context) (any, error) {
+			return obj.Nullable, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedColumn_nullable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedColumn_primaryKey(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedColumn_primaryKey,
+		func(ctx context.Context) (any, error) {
+			return obj.PrimaryKey, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedColumn_primaryKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedColumn_watermark(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedColumn) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedColumn_watermark,
+		func(ctx context.Context) (any, error) {
+			return obj.Watermark, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedColumn_watermark(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedColumn",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MaterializedTable_name(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -24279,6 +24482,47 @@ func (ec *executionContext) fieldContext_MaterializedTable_definingQuery(_ conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaterializedTable_columns(ctx context.Context, field graphql.CollectedField, obj *model.MaterializedTable) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MaterializedTable_columns,
+		func(ctx context.Context) (any, error) {
+			return obj.Columns, nil
+		},
+		nil,
+		ec.marshalNMaterializedColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedColumnᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MaterializedTable_columns(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaterializedTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_MaterializedColumn_name(ctx, field)
+			case "type":
+				return ec.fieldContext_MaterializedColumn_type(ctx, field)
+			case "nullable":
+				return ec.fieldContext_MaterializedColumn_nullable(ctx, field)
+			case "primaryKey":
+				return ec.fieldContext_MaterializedColumn_primaryKey(ctx, field)
+			case "watermark":
+				return ec.fieldContext_MaterializedColumn_watermark(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MaterializedColumn", field.Name)
 		},
 	}
 	return fc, nil
@@ -25633,6 +25877,8 @@ func (ec *executionContext) fieldContext_Mutation_suspendMaterializedTable(ctx c
 				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
 			case "definingQuery":
 				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			case "columns":
+				return ec.fieldContext_MaterializedTable_columns(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
 		},
@@ -25690,6 +25936,8 @@ func (ec *executionContext) fieldContext_Mutation_resumeMaterializedTable(ctx co
 				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
 			case "definingQuery":
 				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			case "columns":
+				return ec.fieldContext_MaterializedTable_columns(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
 		},
@@ -25747,6 +25995,8 @@ func (ec *executionContext) fieldContext_Mutation_refreshMaterializedTable(ctx c
 				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
 			case "definingQuery":
 				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			case "columns":
+				return ec.fieldContext_MaterializedTable_columns(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
 		},
@@ -30347,6 +30597,8 @@ func (ec *executionContext) fieldContext_Query_materializedTables(ctx context.Co
 				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
 			case "definingQuery":
 				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			case "columns":
+				return ec.fieldContext_MaterializedTable_columns(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
 		},
@@ -30404,6 +30656,8 @@ func (ec *executionContext) fieldContext_Query_materializedTable(ctx context.Con
 				return ec.fieldContext_MaterializedTable_freshness(ctx, field)
 			case "definingQuery":
 				return ec.fieldContext_MaterializedTable_definingQuery(ctx, field)
+			case "columns":
+				return ec.fieldContext_MaterializedTable_columns(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MaterializedTable", field.Name)
 		},
@@ -46715,6 +46969,62 @@ func (ec *executionContext) _KafkaTopicPartition(ctx context.Context, sel ast.Se
 	return out
 }
 
+var materializedColumnImplementors = []string{"MaterializedColumn"}
+
+func (ec *executionContext) _MaterializedColumn(ctx context.Context, sel ast.SelectionSet, obj *model.MaterializedColumn) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, materializedColumnImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MaterializedColumn")
+		case "name":
+			out.Values[i] = ec._MaterializedColumn_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._MaterializedColumn_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nullable":
+			out.Values[i] = ec._MaterializedColumn_nullable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "primaryKey":
+			out.Values[i] = ec._MaterializedColumn_primaryKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "watermark":
+			out.Values[i] = ec._MaterializedColumn_watermark(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var materializedTableImplementors = []string{"MaterializedTable"}
 
 func (ec *executionContext) _MaterializedTable(ctx context.Context, sel ast.SelectionSet, obj *model.MaterializedTable) graphql.Marshaler {
@@ -46752,6 +47062,11 @@ func (ec *executionContext) _MaterializedTable(ctx context.Context, sel ast.Sele
 			out.Values[i] = ec._MaterializedTable_freshness(ctx, field, obj)
 		case "definingQuery":
 			out.Values[i] = ec._MaterializedTable_definingQuery(ctx, field, obj)
+		case "columns":
+			out.Values[i] = ec._MaterializedTable_columns(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -54492,6 +54807,32 @@ func (ec *executionContext) unmarshalNKeyFieldInput2ᚕᚖgithubᚗcomᚋsandbox
 func (ec *executionContext) unmarshalNKeyFieldInput2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKeyFieldInput(ctx context.Context, v any) (*model.KeyFieldInput, error) {
 	res, err := ec.unmarshalInputKeyFieldInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMaterializedColumn2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedColumnᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MaterializedColumn) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNMaterializedColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedColumn(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMaterializedColumn2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedColumn(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedColumn) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MaterializedColumn(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNMaterializedTable2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v model.MaterializedTable) graphql.Marshaler {

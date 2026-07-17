@@ -67,8 +67,12 @@ func (s *Service) GetTable(ctx context.Context, name, catalog string) (*Table, e
 		Catalog: catalog,
 	}
 
-	// Parse DESCRIBE output — field mapping depends on Flink version.
-	// Common columns: name, refresh_status, refresh_mode, freshness, definition.
+	// DESCRIBE MATERIALIZED TABLE renders the table's schema, one row per
+	// column: [name, type, null, key, extras, watermark] (verified against a
+	// Flink 2.3 SQL Gateway). Some catalogs/versions may instead emit
+	// key/value metadata rows (refresh_status, freshness, …), so handle both:
+	// known metadata keys update the scalar fields, every other row is treated
+	// as a column-schema row.
 	for _, row := range rows {
 		if len(row) < 2 {
 			continue
@@ -87,10 +91,48 @@ func (s *Service) GetTable(ctx context.Context, name, catalog string) (*Table, e
 			table.DefiningQuery = val
 		case "database":
 			table.Database = val
+		default:
+			table.Columns = append(table.Columns, parseColumnRow(row))
 		}
 	}
 
 	return table, nil
+}
+
+// parseColumnRow converts a DESCRIBE result row into a Column. The row fields
+// are [name, type, null, key, extras, watermark]; only name and type are
+// guaranteed present.
+func parseColumnRow(row []any) Column {
+	field := func(i int) string {
+		if i < len(row) && row[i] != nil {
+			return fmt.Sprintf("%v", row[i])
+		}
+		return ""
+	}
+
+	// The "type" carries a trailing *ROWTIME*/*PROCTIME* marker for time
+	// attributes — drop it; the watermark field already conveys rowtime.
+	typ := field(1)
+	if i := strings.IndexByte(typ, '*'); i >= 0 {
+		typ = strings.TrimSpace(typ[:i])
+	}
+
+	nullable := true
+	if len(row) > 2 {
+		if b, ok := row[2].(bool); ok {
+			nullable = b
+		} else {
+			nullable = !strings.EqualFold(field(2), "false")
+		}
+	}
+
+	return Column{
+		Name:       field(0),
+		Type:       typ,
+		Nullable:   nullable,
+		PrimaryKey: strings.Contains(strings.ToUpper(field(3)), "PRI"),
+		Watermark:  field(5),
+	}
 }
 
 // SuspendTable executes ALTER MATERIALIZED TABLE ... SUSPEND.

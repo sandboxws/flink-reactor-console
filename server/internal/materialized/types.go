@@ -21,4 +21,20 @@ type Table struct {
 	RefreshMode   string
 	Freshness     string
 	DefiningQuery string
+	// Columns is the table's schema, parsed from the DESCRIBE MATERIALIZED
+	// TABLE result (Flink 2.3+ exposes explicit columns/PK/watermark).
+	Columns []Column
+}
+
+// Column is one column in a materialized table's schema. It is parsed from a
+// DESCRIBE MATERIALIZED TABLE result row, whose fields are:
+// name, type, null, key, extras, watermark.
+type Column struct {
+	Name       string
+	Type       string
+	Nullable   bool
+	PrimaryKey bool
+	// Watermark holds the watermark expression when the column is a rowtime
+	// attribute (the DESCRIBE "watermark" field), otherwise empty.
+	Watermark string
 }

@@ -11,6 +11,15 @@ import type {
   MaterializedTableRefreshStatus,
 } from "./materialized-table-types"
 
+/** Raw GraphQL response shape for a materialized table column. */
+interface GqlMaterializedColumn {
+  name: string
+  type: string
+  nullable: boolean
+  primaryKey: boolean
+  watermark: string | null
+}
+
 /** Raw GraphQL response shape for a materialized table. */
 interface GqlMaterializedTable {
   name: string
@@ -20,6 +29,7 @@ interface GqlMaterializedTable {
   refreshMode: string | null
   freshness: string | null
   definingQuery: string | null
+  columns?: readonly GqlMaterializedColumn[] | null
 }
 
 const VALID_STATUSES = new Set<string>([
@@ -46,6 +56,13 @@ export function mapMaterializedTable(
     refreshMode: raw.refreshMode,
     freshness: raw.freshness,
     definingQuery: raw.definingQuery,
+    columns: (raw.columns ?? []).map((c) => ({
+      name: c.name,
+      type: c.type,
+      nullable: c.nullable,
+      primaryKey: c.primaryKey,
+      watermark: c.watermark,
+    })),
   }
 }
 

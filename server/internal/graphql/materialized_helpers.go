@@ -34,6 +34,19 @@ func mapMaterializedTable(t *materialized.Table) *model.MaterializedTable {
 	if t.DefiningQuery != "" {
 		result.DefiningQuery = &t.DefiningQuery
 	}
+	for _, c := range t.Columns {
+		col := &model.MaterializedColumn{
+			Name:       c.Name,
+			Type:       c.Type,
+			Nullable:   c.Nullable,
+			PrimaryKey: c.PrimaryKey,
+		}
+		if c.Watermark != "" {
+			wm := c.Watermark
+			col.Watermark = &wm
+		}
+		result.Columns = append(result.Columns, col)
+	}
 	return result
 }
 
