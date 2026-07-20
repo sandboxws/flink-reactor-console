@@ -1,11 +1,12 @@
 # flink-reactor-console
 
-Dashboard + Server for FlinkReactor. A combined repo containing the React dashboard and Go GraphQL server.
+Dashboard + Server + DSL for FlinkReactor. A combined repo containing the React dashboard, the Go GraphQL server, and the TSX DSL + CLI.
 
 ## What This Repo Contains
 
 - `dashboard/` — TanStack Router + Zustand + Tailwind v4 dashboard (React SPA)
 - `server/` — Go GraphQL server (reactor-server) with Flink REST proxy
+- `dsl/` — `@flink-reactor/dsl`: TSX DSL + `flink-reactor` CLI, plus `dsl/packages/*` (scaffolder, ts-plugin, language-server, VS Code extension) — see `dsl/CLAUDE.md`
 - `packages/ui/` — Shared UI component library (@flink-reactor/ui)
 - `tools/ui-embeddings/` — LanceDB embeddings for UI component search
 
@@ -25,7 +26,12 @@ is no `go.work`.
 ```bash
 # Dashboard
 pnpm dev                  # Dashboard dev server
-pnpm build                # Build UI + dashboard
+pnpm build                # Build dsl + UI + dashboard (topological)
+
+# DSL (or run the unprefixed commands from dsl/)
+pnpm build:dsl            # Build @flink-reactor/dsl + its packages
+pnpm test:dsl             # DSL vitest suite
+pnpm local:publish        # Publish dsl packages to local Verdaccio (external-install testing)
 
 # Server (from server/)
 just dev                  # Run Go server
@@ -68,11 +74,14 @@ Specs for this project live in a separate repository at `~/Development/reactors/
 
 | Repo | Purpose | License |
 |------|---------|---------|
-| `flink-reactor-dsl` | Core DSL + CLI | BSL 1.1 |
-| **`flink-reactor-console`** | **Dashboard + Server (this repo)** | **BSL 1.1** |
+| **`flink-reactor-console`** | **Dashboard + Server + DSL (this repo)** | **BSL 1.1** |
 | `flink-reactor-platform` | Docs + orchestration | BSL 1.1 |
 | `flink-reactor-specs` | Specifications | BSL 1.1 |
 
 `flink-reactor-instruments` was merged into this repo and retired. Its Go
 packages live in `server/internal/instruments/` and its UI in
 `dashboard/src/components/instruments/`.
+
+`flink-reactor-dsl` was merged into this repo and retired. The DSL + CLI live
+in `dsl/` with full git history; its npm packages publish from here via the
+root changesets pipeline.

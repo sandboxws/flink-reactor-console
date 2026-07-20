@@ -6,30 +6,51 @@ We welcome contributions of all kinds — bug reports, feature suggestions, docu
 
 ```bash
 # Clone the repository
-git clone https://github.com/sandboxws/flink-reactor-dsl.git
-cd flink-reactor-dsl
+git clone https://github.com/sandboxws/flink-reactor-console.git
+cd flink-reactor-console
 
 # Install dependencies
 pnpm install
 
-# Build all packages
+# Build all packages (dsl → ui → dashboard, topological)
 pnpm build
+
+# Optional: install git hooks (biome, dsl typecheck, golangci-lint)
+pre-commit install
 ```
+
+## Repository Layout
+
+| Directory | Purpose |
+|-----------|---------|
+| `dsl/` | `@flink-reactor/dsl` — TSX DSL + `flink-reactor` CLI, plus `dsl/packages/*` |
+| `dashboard/` | React dashboard (TanStack Router + Zustand) |
+| `server/` | Go GraphQL server with Flink REST proxy |
+| `packages/ui/` | Shared UI component library (`@flink-reactor/ui`) |
+| `tools/` | Dev tooling (UI embeddings) |
 
 ## Running Tests
 
 ```bash
-# Run all tests
+# Dashboard tests
 pnpm test
 
-# Run tests in watch mode
-pnpm test:watch
+# DSL tests (or plain `pnpm test` from dsl/)
+pnpm test:dsl
 
-# Run snapshot tests only
+# DSL black-box CLI e2e
+pnpm test:dsl:e2e
+
+# Watch mode / snapshot-only runs (from dsl/)
+pnpm test:watch
 pnpm test:snapshots
 
 # Type-check without emitting
-pnpm typecheck
+pnpm typecheck        # dashboard
+pnpm typecheck:dsl    # dsl
+
+# Go server tests (from server/)
+just test
 ```
 
 ## Code Style
@@ -69,7 +90,7 @@ First-time contributors will be asked to sign our [Contributor License Agreement
 
 ## Architecture
 
-See the [Architecture section](README.md#-architecture) in the README for an overview of how the DSL, construct tree, and code generators work together.
+See the [Architecture section](dsl/README.md#-architecture) in the DSL README for an overview of how the DSL, construct tree, and code generators work together.
 
 Key principles:
 - **Synthesis only** — no runtime code. We generate SQL strings and YAML.
@@ -80,13 +101,15 @@ Key principles:
 
 | Directory | Purpose |
 |-----------|---------|
-| `src/core/` | JSX runtime, schemas, synth context, DAG |
-| `src/components/` | Sources, sinks, transforms, joins, windows |
-| `src/codegen/` | SQL generator, CRD generator, JAR resolution |
-| `src/cli/` | CLI commands |
-| `src/testing/` | Test helpers |
-| `packages/create-fr-app/` | Project scaffolder |
-| `packages/ts-plugin/` | TypeScript language service plugin |
+| `dsl/src/core/` | JSX runtime, schemas, synth context, DAG |
+| `dsl/src/components/` | Sources, sinks, transforms, joins, windows |
+| `dsl/src/codegen/` | SQL generator, CRD generator, JAR resolution |
+| `dsl/src/cli/` | CLI commands |
+| `dsl/src/testing/` | Test helpers |
+| `dsl/packages/create-fr-app/` | Project scaffolder |
+| `dsl/packages/ts-plugin/` | TypeScript language service plugin |
+| `dsl/packages/language-server/` | LSP backend |
+| `dsl/packages/vscode-extension/` | VS Code extension (ships via vsce, not npm) |
 
 ## Release & Publishing
 
@@ -136,11 +159,14 @@ PR merges to main
 
 | Package | npm name | Location |
 |---------|----------|----------|
-| Core DSL | `@flink-reactor/dsl` | root |
-| Scaffolder | `@flink-reactor/create-fr-app` | `packages/create-fr-app/` |
-| TS Plugin | `@flink-reactor/ts-plugin` | `packages/ts-plugin/` |
+| Core DSL | `@flink-reactor/dsl` | `dsl/` |
+| Scaffolder | `@flink-reactor/create-fr-app` | `dsl/packages/create-fr-app/` |
+| TS Plugin | `@flink-reactor/ts-plugin` | `dsl/packages/ts-plugin/` |
+| Language Server | `@flink-reactor/language-server` | `dsl/packages/language-server/` |
+| UI library | `@flink-reactor/ui` | `packages/ui/` |
+| Dashboard | `@flink-reactor/dashboard` | `dashboard/` |
 
-The root package (`@flink-reactor/dsl`) is published separately via [`scripts/publish-root.mjs`](scripts/publish-root.mjs) because Changesets only auto-publishes workspace member packages under `packages/`.
+Every package versions independently — a DSL release never forces a dashboard/UI release and vice versa; only packages with pending changesets are bumped and published. The VS Code extension (`dsl/packages/vscode-extension/`) is `private` on npm: it ships through the VS Code Marketplace via `vsce` and is versioned manually at marketplace-release time.
 
 ### Local testing with Verdaccio
 
@@ -150,7 +176,7 @@ To test packages locally before a real release, publish to a local [Verdaccio](h
 pnpm local:publish
 ```
 
-This builds all packages, starts a Verdaccio server at `http://localhost:4873`, and publishes everything there. Install from it with:
+This builds the DSL packages, starts a Verdaccio server at `http://localhost:4873`, and publishes the DSL package set there (it does not cover `@flink-reactor/ui` or the dashboard). Install from it with:
 
 ```bash
 npm install @flink-reactor/dsl --registry http://localhost:4873

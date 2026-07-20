@@ -7,11 +7,11 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@flink-reactor/dsl"><img src="https://img.shields.io/npm/v/@flink-reactor/dsl?color=d97085&label=npm" alt="npm version" /></a>
-  <a href="https://github.com/sandboxws/flink-reactor-dsl/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-BSL%201.1-blue" alt="license" /></a>
+  <a href="https://github.com/sandboxws/flink-reactor-console/blob/main/dsl/LICENSE"><img src="https://img.shields.io/badge/license-BSL%201.1-blue" alt="license" /></a>
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/Flink-1.20%20%7C%202.0%20%7C%202.1%20%7C%202.2-e6526f" alt="Flink versions" />
   <img src="https://img.shields.io/badge/output-standard%20Flink%20SQL-brightgreen" alt="standard Flink SQL" />
-  <a href="https://github.com/sandboxws/flink-reactor-dsl/stargazers"><img src="https://img.shields.io/github/stars/sandboxws/flink-reactor-dsl?style=social" alt="GitHub stars" /></a>
+  <a href="https://github.com/sandboxws/flink-reactor-console/stargazers"><img src="https://img.shields.io/github/stars/sandboxws/flink-reactor-console?style=social" alt="GitHub stars" /></a>
 </p>
 
 <p align="center">
@@ -505,7 +505,7 @@ Two rules constrain everything above, beyond the [determinism and synthesis-only
 <summary><b>Repository layout</b></summary>
 
 ```
-flink-reactor-dsl/
+dsl/
 ├── src/                      # Core DSL engine, components, codegen, CLI, testing
 ├── packages/
 │   ├── language-server/      # LSP backend: synthesis-backed diagnostics, hover, navigation
@@ -518,16 +518,16 @@ flink-reactor-dsl/
 
 </details>
 
-FlinkReactor is one half of a pair. The DSL solves authorship; the [FlinkReactor Console](https://github.com/sandboxws/flink-reactor-platform) solves operations, which is the back-pressure, multi-cluster, 3-AM-visibility side of running Flink. They're independent but designed to complement each other.
+FlinkReactor is one half of a pair. The DSL solves authorship; the [FlinkReactor Console](https://github.com/sandboxws/flink-reactor-console) solves operations, which is the back-pressure, multi-cluster, 3-AM-visibility side of running Flink. They ship from the same monorepo but install independently.
 
 <br />
 
 ## <img src="assets/icons/heart-handshake.svg" width="24" height="24" style="vertical-align: middle; margin-bottom: 2px;"> Contributing
 
-Bug reports, feature ideas, and PRs are all welcome. See the **[Contributing Guide](CONTRIBUTING.md)** for setup, workflow, and the release process.
+Bug reports, feature ideas, and PRs are all welcome. See the **[Contributing Guide](../CONTRIBUTING.md)** for setup, workflow, and the release process.
 
-- **Report bugs:** [open an issue](https://github.com/sandboxws/flink-reactor-dsl/issues/new)
-- **Suggest features:** [start a discussion](https://github.com/sandboxws/flink-reactor-dsl/issues)
+- **Report bugs:** [open an issue](https://github.com/sandboxws/flink-reactor-console/issues/new)
+- **Suggest features:** [start a discussion](https://github.com/sandboxws/flink-reactor-console/issues)
 - **Submit PRs:** we use conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`). Changes to statement ordering, changelog propagation, node-id assignment, or tap behavior must cite the relevant [invariant spec](docs/contributors/specs/) ID.
 
 <br />

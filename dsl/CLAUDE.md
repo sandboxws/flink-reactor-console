@@ -1,13 +1,15 @@
-# flink-reactor-dsl
+# dsl/ — FlinkReactor DSL + CLI
 
-Core DSL library + CLI for FlinkReactor. React-style TSX DSL that synthesizes to Flink SQL + Kubernetes FlinkDeployment CRDs.
+Core DSL library + CLI (`@flink-reactor/dsl`). React-style TSX DSL that synthesizes to Flink SQL + Kubernetes FlinkDeployment CRDs. Formerly the standalone `flink-reactor-dsl` repo, now a workspace member of this monorepo; its npm packages version and publish independently via the root changesets pipeline.
 
-## What This Repo Contains
+## What This Directory Contains
 
 - `src/` — Core DSL engine, components, codegen, CLI, testing utilities
 - `packages/create-fr-app/` — Project scaffolder (`create-fr-app`)
 - `packages/ts-plugin/` — TypeScript language service plugin
-- `scripts/` — Build and publish scripts
+- `packages/language-server/` — LSP backend (`flink-reactor-lsp`)
+- `packages/vscode-extension/` — VS Code extension (private: ships via vsce, not npm)
+- `scripts/` — Build and local Verdaccio publish scripts
 
 ## Architecture Rules
 
@@ -31,22 +33,16 @@ Core DSL library + CLI for FlinkReactor. React-style TSX DSL that synthesizes to
 
 ## Commands
 
+Run from `dsl/` (root equivalents: `pnpm build:dsl`, `pnpm test:dsl`, `pnpm test:dsl:e2e`, `pnpm typecheck:dsl`, `pnpm local:publish`).
+
 ```bash
-pnpm build          # Build with tsup
+pnpm build          # Build with tsup (also builds packages/*)
 pnpm test           # Run tests with vitest
 pnpm test:e2e       # Black-box CLI e2e (packs the artifact, runs it as a subprocess)
-pnpm lint           # Biome check
+pnpm lint           # Biome check (nested config — stricter than the repo root)
 pnpm format         # Biome format
-pnpm changeset      # Create changeset
-pnpm release        # Publish to npm
-pnpm local:publish  # Publish to local Verdaccio
+pnpm local:publish  # Publish to local Verdaccio (localhost:4873)
 ```
 
-## Related Repositories
-
-| Repo | Purpose | License |
-|------|---------|---------|
-| **`flink-reactor-dsl`** | **Core DSL + CLI (this repo)** | **BSL 1.1** |
-| `flink-reactor-console` | Dashboard + Server | BSL 1.1 |
-| `flink-reactor-platform` | Docs + orchestration | BSL 1.1 |
-| `flink-reactor-specs` | Specifications | BSL 1.1 |
+Versioning and npm releases happen at the repo root: `pnpm changeset`,
+`pnpm version-packages`, `pnpm release` (CI-run).
