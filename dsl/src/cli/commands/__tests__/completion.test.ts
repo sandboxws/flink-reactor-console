@@ -105,6 +105,10 @@ describe("completion zsh", () => {
     expect(script).toContain("(ecommerce iot all)")
   })
 
+  it("contains sample-seeding scope choices (cluster up / sim up)", () => {
+    expect(script).toContain("(declared all none)")
+  })
+
   it("contains install method choices", () => {
     expect(script).toContain("(docker homebrew binary)")
   })

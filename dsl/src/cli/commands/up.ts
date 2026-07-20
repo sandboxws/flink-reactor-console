@@ -26,7 +26,10 @@ export function registerUpCommand(program: Command): void {
       ).choices(["auto", "docker", "podman"]),
     )
     .option("--port <port>", "Flink REST port", "8081")
-    .option("--seed", "Submit example pipelines after startup (docker only)")
+    .option(
+      "--seed",
+      "Submit example SQL pipelines and start the continuous CDC publisher after startup (docker only)",
+    )
     .action(
       async (opts: {
         env?: string

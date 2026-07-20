@@ -3,9 +3,10 @@ import { existsSync, readdirSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import * as clack from "@clack/prompts"
-import type { Command } from "commander"
+import { type Command, Option } from "commander"
 import { Effect } from "effect"
 import pc from "picocolors"
+import type { SampleScope } from "@/cli/cluster/seed-sample-data.js"
 import { loadConfig } from "@/cli/discovery.js"
 import { runCommand } from "@/cli/effect-runner.js"
 import { detectContainerEngine } from "@/cli/runtime/container-engine.js"
@@ -87,6 +88,14 @@ export function registerSimCommand(program: Command): void {
       "Environment name from flink-reactor.config.ts (reads sim.init)",
     )
     .option("--no-init", "Skip resource initialization even if config exists")
+    .addOption(
+      new Option(
+        "--samples <scope>",
+        "Seed deterministic sample rows into Kafka topics (declared: this project's topics; all: entire sample catalog; none: skip)",
+      )
+        .choices(["declared", "all", "none"])
+        .default("declared"),
+    )
     .action(
       async (opts: {
         cpus: string
@@ -97,6 +106,7 @@ export function registerSimCommand(program: Command): void {
         operator: boolean
         env?: string
         init: boolean
+        samples: SampleScope
       }) => {
         await runCommand(
           Effect.tryPromise({
@@ -227,6 +237,8 @@ export async function runSimUp(opts: {
   operator: boolean
   env?: string
   init: boolean
+  /** Sample-row seeding scope (`--samples`); defaults to `"declared"`. */
+  samples?: SampleScope
 }): Promise<void> {
   clack.intro(pc.bgCyan(pc.black(" flink-reactor sim up ")))
 
@@ -568,7 +580,11 @@ export async function runSimUp(opts: {
 
   // ── Step 7: Config-driven init ──────────────────────────────────
   if (opts.init) {
-    await runInitFromConfig(opts.env, opts.namespace)
+    await runInitFromConfig(
+      opts.env,
+      opts.namespace,
+      opts.samples ?? "declared",
+    )
   } else {
     console.log(`  ${pc.dim("⊘")} Resource init skipped (--no-init)`)
   }
@@ -616,6 +632,7 @@ export async function runSimUp(opts: {
 async function runInitFromConfig(
   envName: string | undefined,
   namespace: string,
+  samples: SampleScope,
 ): Promise<void> {
   const config = await loadConfig(process.cwd())
   if (!config) {
@@ -644,7 +661,7 @@ async function runInitFromConfig(
   }
 
   const initConfig = envEntry.sim.init
-  await runInit(initConfig, namespace)
+  await runInit(initConfig, namespace, samples)
 }
 
 /**
@@ -660,22 +677,27 @@ async function runInitFromConfig(
  * `kafka-console-producer.sh`, mirroring the topic-creation exec above.
  */
 async function seedSimKafkaTopics(
-  topics: readonly string[],
+  topics: readonly string[] | "all",
   namespace: string,
 ): Promise<void> {
   const { SEED_SUBJECTS, subjectFor, registerBody } = await import(
     "@/cli/cluster/schema-registry-seed.js"
   )
-  const seedable = SEED_SUBJECTS.filter((s) => topics.includes(s.topic))
-  if (seedable.length === 0) return
+  const { seedKafkaSampleData, selectSubjectsForTopics, sumOffsetOutput } =
+    await import("@/cli/cluster/seed-sample-data.js")
+  if (selectSubjectsForTopics(SEED_SUBJECTS, topics).length === 0) return
 
   const spinner = clack.spinner()
-  spinner.start(`Seeding ${seedable.length} Kafka topic(s) with sample data...`)
+  spinner.start("Seeding Kafka topic(s) with sample data...")
 
-  let produced = 0
-  let registered = 0
-  for (const entry of seedable) {
-    try {
+  // Transport is pod-exec: registration POSTs from inside the schema-registry
+  // pod (the CLI can't reach the ClusterIP), producing pipes through the kafka
+  // pod's console producer. Kafka runs as a StatefulSet, so the exec target is
+  // `sts/kafka` — NOT `deploy/kafka`, which does not exist and fails NotFound.
+  // Shared selection/orchestration lives in seed-sample-data.ts.
+  const res = await seedKafkaSampleData({
+    topics,
+    register: (entry) => {
       execSync(
         `kubectl exec -i -n ${namespace} deploy/schema-registry -- ` +
           `python3 -c 'import sys,urllib.request; ` +
@@ -689,39 +711,52 @@ async function seedSimKafkaTopics(
           timeout: 15_000,
         },
       )
-      registered++
-    } catch {
-      // registry not ready or subject already registered — best-effort.
-    }
-
-    const rows = entry.sampleRows ?? []
-    if (rows.length > 0) {
+    },
+    shouldSkip: (topic) => {
+      // Idempotency guard (parity with the Docker lane): don't re-produce
+      // into a topic that already holds records. Errors report `false` so
+      // first-run seeding proceeds.
       try {
-        execSync(
-          `kubectl exec -i -n ${namespace} deploy/kafka -- ` +
-            `/opt/kafka/bin/kafka-console-producer.sh ` +
-            `--bootstrap-server localhost:9092 --topic ${entry.topic}`,
-          {
-            input: rows.map((r) => JSON.stringify(r)).join("\n"),
-            stdio: ["pipe", "pipe", "pipe"],
-            timeout: 15_000,
-          },
-        )
-        produced += rows.length
+        const out = execSync(
+          `kubectl exec -n ${namespace} sts/kafka -- ` +
+            `/opt/kafka/bin/kafka-get-offsets.sh ` +
+            `--bootstrap-server localhost:9092 --topic ${topic} --time -1`,
+          { stdio: ["pipe", "pipe", "pipe"], timeout: 15_000 },
+        ).toString()
+        return sumOffsetOutput(out) > 0
       } catch {
-        // broker not ready — best-effort.
+        return false
       }
-    }
-  }
+    },
+    produce: (topic, lines) => {
+      execSync(
+        `kubectl exec -i -n ${namespace} sts/kafka -- ` +
+          `/opt/kafka/bin/kafka-console-producer.sh ` +
+          `--bootstrap-server localhost:9092 --topic ${topic}`,
+        {
+          input: lines.join("\n"),
+          stdio: ["pipe", "pipe", "pipe"],
+          timeout: 15_000,
+        },
+      )
+    },
+  })
 
-  spinner.stop(
-    pc.green(
-      `Kafka seed: ${produced} message(s) produced, ${registered} schema(s) registered`,
-    ),
-  )
+  const parts = [
+    `${res.produced} message(s) produced`,
+    `${res.registered} schema(s) registered`,
+  ]
+  if (res.skipped.length > 0) {
+    parts.push(`${res.skipped.length} already populated`)
+  }
+  spinner.stop(pc.green(`Kafka seed: ${parts.join(", ")}`))
 }
 
-async function runInit(init: SimInitConfig, namespace: string): Promise<void> {
+async function runInit(
+  init: SimInitConfig,
+  namespace: string,
+  samples: SampleScope,
+): Promise<void> {
   const databases = init.iceberg?.databases ?? []
   const topics = init.kafka?.topics ?? []
   const kafkaCatalogs = init.kafka?.catalogs ?? []
@@ -738,7 +773,10 @@ async function runInit(init: SimInitConfig, namespace: string): Promise<void> {
     kafkaCatalogs.length === 0 &&
     jdbcCatalogs.length === 0 &&
     flussDatabases.length === 0 &&
-    paimonDatabases.length === 0
+    paimonDatabases.length === 0 &&
+    // `--samples all` seeds the whole catalog even when the init lists are
+    // empty (broker auto-create covers the catalog topics).
+    samples !== "all"
   )
     return
 
@@ -756,7 +794,8 @@ async function runInit(init: SimInitConfig, namespace: string): Promise<void> {
       try {
         execSync(
           [
-            `kubectl exec -n ${namespace} deploy/kafka --`,
+            // Kafka is a StatefulSet — exec via `sts/`, not `deploy/`.
+            `kubectl exec -n ${namespace} sts/kafka --`,
             `/opt/kafka/bin/kafka-topics.sh`,
             `--create`,
             `--if-not-exists`,
@@ -778,11 +817,14 @@ async function runInit(init: SimInitConfig, namespace: string): Promise<void> {
         `Kafka topics: ${created} created${skipped > 0 ? `, ${skipped} skipped` : ""}`,
       ),
     )
+  }
 
-    // Produce sample data + register row schemas for topics we know about,
-    // so minikube pipelines have data and `fr schema generate` can introspect
-    // them (via `kubectl port-forward svc/schema-registry 8082:8081`).
-    await seedSimKafkaTopics(topics, namespace)
+  // Produce sample data + register row schemas for topics we know about, so
+  // minikube pipelines have data and `fr schema generate` can introspect them
+  // (via `kubectl port-forward svc/schema-registry 8082:8081`). `--samples`
+  // scopes this: declared topics (default), the whole catalog, or none.
+  if (samples !== "none") {
+    await seedSimKafkaTopics(samples === "all" ? "all" : topics, namespace)
   }
 
   // ── Create Iceberg databases ─────────────────────────────────────

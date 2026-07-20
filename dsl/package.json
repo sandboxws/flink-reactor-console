@@ -39,6 +39,7 @@
   },
   "files": [
     "dist",
+    "assets/seeds.json",
     "src/cli/cluster/docker-compose.yml",
     "src/cli/cluster/Dockerfile.flink",
     "src/cli/cluster/data",
@@ -86,6 +87,7 @@
     "local:publish:logs": "tsx scripts/local-publish.ts verdaccio logs",
     "rewrite-imports": "node scripts/rewrite-imports.mjs",
     "tpch:gen": "tsx scripts/generate-tpch.ts",
+    "seeds:export": "tsx scripts/export-seeds.ts",
     "prepublishOnly": "pnpm build"
   },
   "keywords": [

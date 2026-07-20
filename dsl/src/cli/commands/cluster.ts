@@ -19,6 +19,10 @@ import {
   ensureSqlDumps,
   SAMPLE_DATABASES,
 } from "@/cli/cluster/pg-samples.js"
+import {
+  type SampleScope,
+  sumOffsetOutput,
+} from "@/cli/cluster/seed-sample-data.js"
 import { runCommand } from "@/cli/effect-runner.js"
 import {
   type ContainerEngineChoice,
@@ -64,7 +68,18 @@ export function registerClusterCommand(program: Command): void {
       "Start local Flink cluster (JM + 2×TM + SQL Gateway + Kafka + PostgreSQL)",
     )
     .option("--port <port>", "Flink REST port", "8081")
-    .option("--seed", "Submit example pipelines after startup")
+    .option(
+      "--seed",
+      "Submit example SQL pipelines and start the continuous CDC publisher after startup",
+    )
+    .addOption(
+      new Option(
+        "--samples <scope>",
+        "Seed deterministic sample rows into Kafka topics (declared: this project's topics; all: entire sample catalog; none: skip)",
+      )
+        .choices(["declared", "all", "none"])
+        .default("declared"),
+    )
     .addOption(
       new Option("--domain <domain>", "Filter seed data by domain")
         .choices(["ecommerce", "iot", "all"])
@@ -76,6 +91,7 @@ export function registerClusterCommand(program: Command): void {
       async (opts: {
         port: string
         seed?: boolean
+        samples: SampleScope
         domain: string
         timescaledb: boolean
         containerEngine?: ContainerEngineChoice
@@ -86,6 +102,7 @@ export function registerClusterCommand(program: Command): void {
               runClusterUp({
                 port: opts.port,
                 seed: opts.seed ?? false,
+                samples: opts.samples,
                 domain: opts.domain as CdcDomain,
                 timescaledb: opts.timescaledb,
                 containerEngine: opts.containerEngine,
@@ -316,11 +333,196 @@ function applyTimescaledbFlag(
   return out
 }
 
+// ── Kafka sample-data seeding (Docker lane) ──────────────────────────
+
+/**
+ * Whether a topic already holds records, via `kafka-get-offsets.sh` (sum of
+ * per-partition end offsets). The idempotency guard for sample seeding so
+ * re-running `cluster up` doesn't duplicate rows. A failed check (topic absent,
+ * tool error) reports `false` so first-run seeding still proceeds.
+ *
+ * Deliberately the wrapper script, not `kafka-run-class.sh kafka.tools.GetOffsetShell`
+ * — that class location was removed post-KIP-815 and does not exist in the
+ * bundled `apache/kafka:3.9.0` image.
+ */
+function kafkaTopicHasData(
+  engine: ResolvedEngine,
+  compose: string,
+  topic: string,
+  env: NodeJS.ProcessEnv,
+): boolean {
+  try {
+    const out = execFileSync(
+      engine.bin,
+      [
+        ...engine.composeArgv([
+          "-f",
+          compose,
+          "exec",
+          "-T",
+          "kafka",
+          "/opt/kafka/bin/kafka-get-offsets.sh",
+          "--bootstrap-server",
+          "localhost:9092",
+          "--topic",
+          topic,
+          "--time",
+          "-1",
+        ]),
+      ],
+      {
+        cwd: clusterDir(),
+        stdio: ["pipe", "pipe", "pipe"],
+        timeout: 15_000,
+        env,
+      },
+    ).toString()
+    return sumOffsetOutput(out) > 0
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Create a topic with a single partition (parity with the console's
+ * EnsureTopic; predictable over lazy auto-create). Best-effort and idempotent
+ * via `--if-not-exists`.
+ */
+function ensureKafkaTopic(
+  engine: ResolvedEngine,
+  compose: string,
+  topic: string,
+  env: NodeJS.ProcessEnv,
+): void {
+  try {
+    execFileSync(
+      engine.bin,
+      [
+        ...engine.composeArgv([
+          "-f",
+          compose,
+          "exec",
+          "-T",
+          "kafka",
+          "/opt/kafka/bin/kafka-topics.sh",
+          "--create",
+          "--if-not-exists",
+          "--topic",
+          topic,
+          "--bootstrap-server",
+          "localhost:9092",
+          "--partitions",
+          "1",
+          "--replication-factor",
+          "1",
+        ]),
+      ],
+      { cwd: clusterDir(), stdio: "pipe", timeout: 15_000, env },
+    )
+  } catch {
+    // Broker auto-create covers this — best-effort.
+  }
+}
+
+/**
+ * Create every declared Kafka topic up front (idempotent, best-effort). Runs
+ * regardless of `--samples`, so broker state mirrors the project config —
+ * declared topics are browsable in the console immediately with a predictable
+ * partition layout instead of materializing lazily via broker auto-create on
+ * first produce.
+ */
+function ensureDeclaredKafkaTopics(
+  engine: ResolvedEngine,
+  compose: string,
+  topics: readonly string[],
+): void {
+  if (topics.length === 0) return
+  const env = { ...process.env, ...engine.composeEnv() }
+  const spinner = clack.spinner()
+  spinner.start(`Creating ${topics.length} declared Kafka topic(s)...`)
+  for (const topic of topics) {
+    ensureKafkaTopic(engine, compose, topic, env)
+  }
+  spinner.stop(
+    pc.green(`Kafka topics: ${topics.length} declared topic(s) ready`),
+  )
+}
+
+/**
+ * Produce the DSL's deterministic sample rows into the given topics so the
+ * console shows them with data right after `cluster up`. `"all"` seeds the
+ * whole catalog; otherwise only the listed (project-declared) topics. Schema
+ * registration already ran host-side (`registerSeedSchemas`), so this only
+ * creates topics and produces rows, guarded for re-runnability.
+ */
+async function seedClusterKafkaTopics(
+  engine: ResolvedEngine,
+  compose: string,
+  topics: readonly string[] | "all",
+): Promise<void> {
+  const { seedKafkaSampleData } = await import(
+    "@/cli/cluster/seed-sample-data.js"
+  )
+  const env = { ...process.env, ...engine.composeEnv() }
+
+  const spinner = clack.spinner()
+  spinner.start("Seeding Kafka topics with sample data...")
+
+  const res = await seedKafkaSampleData({
+    topics,
+    shouldSkip: (topic) => kafkaTopicHasData(engine, compose, topic, env),
+    produce: (topic, lines) => {
+      ensureKafkaTopic(engine, compose, topic, env)
+      execFileSync(
+        engine.bin,
+        [
+          ...engine.composeArgv([
+            "-f",
+            compose,
+            "exec",
+            "-T",
+            "kafka",
+            "/opt/kafka/bin/kafka-console-producer.sh",
+            "--bootstrap-server",
+            "localhost:9092",
+            "--topic",
+            topic,
+          ]),
+        ],
+        {
+          cwd: clusterDir(),
+          input: lines.join("\n"),
+          stdio: ["pipe", "pipe", "pipe"],
+          timeout: 15_000,
+          env,
+        },
+      )
+    },
+  })
+
+  const parts: string[] = []
+  if (res.seededTopics.length > 0) {
+    parts.push(
+      `${res.produced} message(s) into ${res.seededTopics.length} topic(s)`,
+    )
+  }
+  if (res.skipped.length > 0) {
+    parts.push(`${res.skipped.length} already populated`)
+  }
+  spinner.stop(
+    parts.length > 0
+      ? pc.green(`Kafka seed: ${parts.join(", ")}`)
+      : pc.dim("Kafka seed: no declared topics with sample data"),
+  )
+}
+
 export async function runClusterUp(opts: {
   port: string
   seed: boolean
   domain?: CdcDomain
   timescaledb?: boolean
+  /** Sample-row seeding scope (`--samples`); defaults to `"declared"`. */
+  samples?: SampleScope
   containerEngine?: ContainerEngineChoice
 }): Promise<void> {
   clack.intro(pc.bgCyan(pc.black(" flink-reactor cluster up ")))
@@ -522,6 +724,28 @@ export async function runClusterUp(opts: {
       "@/cli/cluster/schema-registry-seed.js"
     )
     await registerSeedSchemas()
+
+    // Broker state mirrors the project config: declared topics are created
+    // explicitly no matter what `--samples` says, so the console's topic
+    // browser (and its default seed scope, which is broker-derived) sees
+    // them immediately.
+    const { resolveDeclaredKafkaTopics } = await import(
+      "@/cli/cluster/seed-sample-data.js"
+    )
+    const declared = await resolveDeclaredKafkaTopics()
+    ensureDeclaredKafkaTopics(engine, compose, declared)
+
+    // Convention over configuration: produce the DSL's deterministic sample
+    // rows into this project's declared Kafka source topics, so switching to
+    // the console right after `cluster up` shows them with data.
+    // `--samples none` opts out; `--samples all` seeds the entire catalog.
+    const samples = opts.samples ?? "declared"
+    if (samples !== "none") {
+      const topics = samples === "all" ? "all" : declared
+      if (topics === "all" || topics.length > 0) {
+        await seedClusterKafkaTopics(engine, compose, topics)
+      }
+    }
   }
 
   console.log("")
@@ -970,6 +1194,10 @@ const OPEN_TARGETS: Record<string, { url: string; label: string }> = {
     url: "http://lakekeeper.localtest.me:8181/ui",
     label: "Iceberg / Lakekeeper UI",
   },
+  // Not a compose service: the FlinkReactor console (reactor-server) runs
+  // separately and auto-wires itself to this stack's published ports in dev.
+  // Its Kafka instrument is the topic-browsing/seeding UI for this cluster.
+  console: { url: "http://localhost:8080", label: "FlinkReactor Console" },
 }
 
 export const CLUSTER_OPEN_TARGETS: readonly string[] = Object.keys(OPEN_TARGETS)

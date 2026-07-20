@@ -12,14 +12,19 @@ const okResponse = () => ({ ok: true, status: 200 }) as Response
 
 describe("subjectFor", () => {
   it("defaults to Confluent TopicNameStrategy (`<topic>-value`)", () => {
-    expect(subjectFor({ topic: "page-views", jsonSchema: {} })).toBe(
-      "page-views-value",
-    )
+    expect(
+      subjectFor({ topic: "page-views", domain: "analytics", jsonSchema: {} }),
+    ).toBe("page-views-value")
   })
 
   it("honors an explicit subject override", () => {
     expect(
-      subjectFor({ topic: "t", subject: "custom-subject", jsonSchema: {} }),
+      subjectFor({
+        topic: "t",
+        domain: "ecommerce",
+        subject: "custom-subject",
+        jsonSchema: {},
+      }),
     ).toBe("custom-subject")
   })
 })
@@ -28,6 +33,7 @@ describe("registerBody", () => {
   it("wraps the row schema as a stringified JSON-Schema payload", () => {
     const entry: SeedSubject = {
       topic: "t",
+      domain: "ecommerce",
       jsonSchema: { type: "object", properties: { a: { type: "integer" } } },
     }
     const body = JSON.parse(registerBody(entry))
@@ -73,7 +79,7 @@ describe("registerSeedSchemas", () => {
     await registerSeedSchemas({
       fetchImpl,
       registryUrl: "http://registry:9999",
-      subjects: [{ topic: "t", jsonSchema: {} }],
+      subjects: [{ topic: "t", domain: "ecommerce", jsonSchema: {} }],
     })
     expect(fetchImpl.mock.calls[0]![0]).toBe(
       "http://registry:9999/subjects/t-value/versions",
@@ -86,7 +92,7 @@ describe("registerSeedSchemas", () => {
     )
     const result = await registerSeedSchemas({
       fetchImpl,
-      subjects: [{ topic: "t", jsonSchema: {} }],
+      subjects: [{ topic: "t", domain: "ecommerce", jsonSchema: {} }],
     })
     expect(result.registered).toEqual([])
     expect(result.failed).toEqual(["t-value"])
@@ -98,7 +104,7 @@ describe("registerSeedSchemas", () => {
     })
     const result = await registerSeedSchemas({
       fetchImpl,
-      subjects: [{ topic: "t", jsonSchema: {} }],
+      subjects: [{ topic: "t", domain: "ecommerce", jsonSchema: {} }],
     })
     expect(result.failed).toEqual(["t-value"])
   })

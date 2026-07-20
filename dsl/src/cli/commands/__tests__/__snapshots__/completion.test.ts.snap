@@ -332,7 +332,7 @@ _flink_reactor_up() {
     '--runtime[Override the env'\\''s runtime (docker | minikube | homebrew | kubernetes)]: : ' \\
     '--container-engine[Container engine override for the docker lane (auto | docker | podman)]: :(auto docker podman)' \\
     '--port[Flink REST port]: : ' \\
-    '--seed[Submit example pipelines after startup (docker only)]'
+    '--seed[Submit example SQL pipelines and start the continuous CDC publisher after startup (docker only)]'
 }
 
 _flink_reactor_down() {
@@ -361,7 +361,7 @@ _flink_reactor_cluster() {
         'seed:Submit example SQL pipelines and publish CDC data'
         'status:Show cluster health, running jobs, and resource utilization'
         'submit:Submit a single SQL file via SQL Gateway'
-        'open:Open a cluster URL in the browser. Targets\\: flink, sql-gateway, grafana, prometheus, seaweedfs, iceberg'
+        'open:Open a cluster URL in the browser. Targets\\: flink, sql-gateway, grafana, prometheus, seaweedfs, iceberg, console'
       )
       _describe 'subcommand' subcommands
       ;;
@@ -393,7 +393,8 @@ _flink_reactor_cluster() {
 _flink_reactor_cluster_up() {
   _arguments \\
     '--port[Flink REST port]: : ' \\
-    '--seed[Submit example pipelines after startup]' \\
+    '--seed[Submit example SQL pipelines and start the continuous CDC publisher after startup]' \\
+    '--samples[Seed deterministic sample rows into Kafka topics (declared\\: this project'\\''s topics; all\\: entire sample catalog; none\\: skip)]: :(declared all none)' \\
     '--domain[Filter seed data by domain]: :(ecommerce iot all)' \\
     '--no-timescaledb[Use plain PostgreSQL instead of TimescaleDB]' \\
     '--container-engine[Container engine override (auto | docker | podman)]: :(auto docker podman)'
@@ -513,7 +514,8 @@ _flink_reactor_sim_up() {
     '--namespace[Target namespace]: : ' \\
     '--no-operator[Skip Flink Operator installation]' \\
     '(-e --env)'{-e,--env}'[Environment name from flink-reactor.config.ts (reads sim.init)]: : ' \\
-    '--no-init[Skip resource initialization even if config exists]'
+    '--no-init[Skip resource initialization even if config exists]' \\
+    '--samples[Seed deterministic sample rows into Kafka topics (declared\\: this project'\\''s topics; all\\: entire sample catalog; none\\: skip)]: :(declared all none)'
 }
 
 _flink_reactor_sim_down() {

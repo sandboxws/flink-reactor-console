@@ -22,9 +22,27 @@ export const LOCAL_SCHEMA_REGISTRY_URL = "http://localhost:8082"
 /** Confluent/Karapace subject-register content type. */
 const REGISTRY_CONTENT_TYPE = "application/vnd.schemaregistry.v1+json"
 
+/**
+ * Template domain a seed topic belongs to. A closed union (not `string`) so
+ * adding a `SEED_SUBJECTS` entry without a valid domain is a type error —
+ * this replaces the old export-script map whose misses silently degraded to
+ * `"other"`.
+ */
+export type SeedDomain =
+  | "analytics"
+  | "banking"
+  | "data-quality"
+  | "ecommerce"
+  | "grocery"
+  | "iot"
+  | "lakehouse"
+  | "ride-sharing"
+
 export interface SeedSubject {
   /** Kafka topic the schema describes. */
   readonly topic: string
+  /** Template domain the topic belongs to (drives console seed grouping). */
+  readonly domain: SeedDomain
   /** Subject name. Defaults to `<topic>-value` (Confluent TopicNameStrategy). */
   readonly subject?: string
   /**
@@ -50,6 +68,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Ecommerce inventory CDC — consumed by the `starter` template.
     topic: "cdc.inventory.products",
+    domain: "ecommerce",
     jsonSchema: {
       type: "object",
       properties: {
@@ -87,6 +106,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // IoT device registry.
     topic: "iot.registry.devices",
+    domain: "iot",
     jsonSchema: {
       type: "object",
       properties: {
@@ -120,6 +140,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // IoT telemetry stream.
     topic: "iot.telemetry.readings",
+    domain: "iot",
     jsonSchema: {
       type: "object",
       properties: {
@@ -153,6 +174,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Page-view clickstream — consumed by the `realtime-analytics` template.
     topic: "page-views",
+    domain: "analytics",
     jsonSchema: {
       type: "object",
       properties: {
@@ -183,6 +205,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
     // Raw, untrusted order events — consumed by the `data-quality` template.
     // `amount`/`quantity` are strings on purpose (the pipeline TRY_CASTs them).
     topic: "orders.raw",
+    domain: "data-quality",
     jsonSchema: {
       type: "object",
       properties: {
@@ -224,6 +247,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
     // `amount` is DECIMAL(10,2) in the shipped schema; JSON Schema has no
     // decimal, so it registers as `number` and regenerates as DOUBLE.
     topic: "dbserver1.inventory.orders",
+    domain: "ecommerce",
     jsonSchema: {
       type: "object",
       properties: {
@@ -260,6 +284,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Ecommerce orders — consumed by the `ecommerce` template (source `orders`).
     topic: "ecom.orders",
+    domain: "ecommerce",
     jsonSchema: {
       type: "object",
       properties: {
@@ -293,6 +318,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Ecommerce order line-items — `ecommerce` template (source `order-items`).
     topic: "ecom.order-items",
+    domain: "ecommerce",
     jsonSchema: {
       type: "object",
       properties: {
@@ -323,6 +349,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Ecommerce product CDC — `ecommerce` template (source `products`).
     topic: "ecom.products",
+    domain: "ecommerce",
     jsonSchema: {
       type: "object",
       properties: {
@@ -356,6 +383,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Bank transactions — consumed by the `banking` template (source `transactions`).
     topic: "bank.transactions",
+    domain: "banking",
     jsonSchema: {
       type: "object",
       properties: {
@@ -392,6 +420,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Bank accounts CDC dimension — `banking` template (source `accounts`).
     topic: "bank.accounts",
+    domain: "banking",
     jsonSchema: {
       type: "object",
       properties: {
@@ -425,6 +454,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Medallion CDC orders — `lakehouse-analytics` template (source `medallion`).
     topic: "orders.cdc",
+    domain: "lakehouse",
     jsonSchema: {
       type: "object",
       properties: {
@@ -458,6 +488,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Ride requests — `ride-sharing` template (source `requests`).
     topic: "rides.requests",
+    domain: "ride-sharing",
     jsonSchema: {
       type: "object",
       properties: {
@@ -497,6 +528,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Ride trip-status events — `ride-sharing` template (source `trip-events`).
     topic: "rides.trip-events",
+    domain: "ride-sharing",
     jsonSchema: {
       type: "object",
       properties: {
@@ -524,6 +556,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Surge-zone CDC dimension — `ride-sharing` template (source `surge-zones`).
     topic: "rides.surge-zones",
+    domain: "ride-sharing",
     jsonSchema: {
       type: "object",
       properties: {
@@ -548,6 +581,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // IoT sensor telemetry — `iot-factory` template (source `sensor-readings`).
     topic: "iot.sensor-readings",
+    domain: "iot",
     jsonSchema: {
       type: "object",
       properties: {
@@ -578,6 +612,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Grocery order lines — `grocery-delivery` template (source `order-lines`).
     topic: "grocery.order-lines",
+    domain: "grocery",
     jsonSchema: {
       type: "object",
       properties: {
@@ -608,6 +643,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Grocery store inventory CDC — `grocery-delivery` template (source `store-inventory`).
     topic: "grocery.store-inventory",
+    domain: "grocery",
     jsonSchema: {
       type: "object",
       properties: {
@@ -638,6 +674,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Grocery delivery ratings — `grocery-delivery` template (source `ratings`).
     topic: "grocery.ratings",
+    domain: "grocery",
     jsonSchema: {
       type: "object",
       properties: {
@@ -671,6 +708,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Lakehouse raw events — `lakehouse-ingestion` template (source `events`).
     topic: "lake.events",
+    domain: "lakehouse",
     jsonSchema: {
       type: "object",
       properties: {
@@ -701,6 +739,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Lakehouse clickstream — `lakehouse-ingestion` template (source `clickstream`).
     topic: "lake.clickstream",
+    domain: "lakehouse",
     jsonSchema: {
       type: "object",
       properties: {
@@ -734,6 +773,7 @@ export const SEED_SUBJECTS: readonly SeedSubject[] = [
   {
     // Lakehouse transactions — `lakehouse-ingestion` template (source `transactions`).
     topic: "lake.transactions",
+    domain: "lakehouse",
     jsonSchema: {
       type: "object",
       properties: {
