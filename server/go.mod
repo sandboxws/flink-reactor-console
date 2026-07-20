@@ -17,6 +17,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/twmb/franz-go v1.21.1
 	github.com/twmb/franz-go/pkg/kadm v1.18.0
+	github.com/twmb/franz-go/pkg/kfake v0.0.0-20260715165438-dd56926b16a1
 	github.com/vektah/gqlparser/v2 v2.5.32
 	golang.org/x/sync v0.20.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -62,7 +63,6 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/twmb/franz-go/pkg/kfake v0.0.0-20260715165438-dd56926b16a1 // indirect
 	github.com/twmb/franz-go/pkg/kmsg v1.13.1 // indirect
 	github.com/urfave/cli/v3 v3.6.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
