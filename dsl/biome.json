@@ -1,0 +1,137 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!node_modules",
+      "!.next",
+      "!dist",
+      "!build",
+      "!.source",
+      "!**/.embeddings",
+      "!**/*.generated.ts"
+    ]
+  },
+  "css": { "parser": { "tailwindDirectives": true } },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "jsxQuoteStyle": "double",
+      "semicolons": "asNeeded",
+      "trailingCommas": "all"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "warn"
+      },
+      "style": {
+        "noUselessElse": "error",
+        "useConsistentArrayType": "error",
+        "noDefaultExport": "error",
+        "noNonNullAssertion": "warn",
+        "useImportType": "error",
+        "useNodejsImportProtocol": "error"
+      },
+      "a11y": {
+        "useButtonType": "warn",
+        "noSvgWithoutTitle": "warn",
+        "useSemanticElements": "warn",
+        "noLabelWithoutControl": "warn",
+        "noStaticElementInteractions": "warn",
+        "useKeyWithClickEvents": "warn"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "warn"
+      },
+      "suspicious": {
+        "noConsole": "error",
+        "noConfusingVoidType": "off",
+        "noShadowRestrictedNames": "warn",
+        "noAssignInExpressions": "warn",
+        "noArrayIndexKey": "warn",
+        "noUnsafeDeclarationMerging": "off",
+        "noExplicitAny": "error"
+      }
+    }
+  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "overrides": [
+    {
+      "includes": [
+        "src/cli/**",
+        "packages/create-fr-app/src/**",
+        "scripts/**",
+        "packages/language-server/scripts/**",
+        "packages/vscode-extension/esbuild.mjs",
+        "packages/vscode-extension/scripts/**",
+        "packages/vscode-extension/test/**"
+      ],
+      "linter": { "rules": { "suspicious": { "noConsole": "off" } } }
+    },
+    {
+      "includes": [
+        "packages/language-server/src/providers/completion/**",
+        "packages/language-server/__tests__/completion/**"
+      ],
+      "linter": {
+        "rules": { "suspicious": { "noTemplateCurlyInString": "off" } }
+      }
+    },
+    {
+      "includes": [
+        "src/examples/**",
+        "pipelines/*/index.tsx",
+        "**/*.config.ts",
+        "**/*.config.mjs",
+        "**/source.config.ts",
+        "**/codegen.ts"
+      ],
+      "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
+    },
+    {
+      "includes": [
+        "src/examples/**/*.tsx",
+        "src/cli/templates/__tests__/fixtures/**/*.tsx",
+        "src/core/__tests__/jsx-types.test-d.tsx",
+        "src/components/__tests__/jsx-children-types.test-d.tsx",
+        "pipelines/**/*.tsx",
+        "packages/language-server/__tests__/fixtures/**/*.tsx",
+        "packages/vscode-extension/test/fixtures/**/*.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": { "noUnusedImports": "off" },
+          "style": { "noDefaultExport": "off" },
+          "suspicious": { "noShadowRestrictedNames": "off" }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.test-d.ts",
+        "**/*.test-d.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" },
+          "suspicious": { "noExplicitAny": "off" }
+        }
+      }
+    }
+  ]
+}

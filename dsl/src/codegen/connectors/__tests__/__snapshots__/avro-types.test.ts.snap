@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`avroRecordToColumns > returns columns in declaration order with mapped types 1`] = `
+[
+  {
+    "constraints": [],
+    "name": "order_id",
+    "type": "BIGINT",
+  },
+  {
+    "constraints": [],
+    "name": "amount",
+    "type": "DECIMAL(12, 4)",
+  },
+  {
+    "constraints": [],
+    "name": "created_at",
+    "type": "TIMESTAMP(3)",
+  },
+  {
+    "constraints": [],
+    "name": "note",
+    "type": "STRING",
+  },
+]
+`;

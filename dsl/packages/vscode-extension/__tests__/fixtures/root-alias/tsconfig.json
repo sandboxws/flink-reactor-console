@@ -1,0 +1,10 @@
+{
+  // Scaffolded-project shape: the `@/` alias maps to the project root.
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@flink-reactor/dsl",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}

@@ -1,0 +1,104 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`card builders (hover-pipeline.tsx) > buildColumnRefCard: a known column shows its Flink type 1`] = `
+"**\`amount\`** — \`DECIMAL(10, 2)\`
+
+Column from the upstream schema."
+`;
+
+exports[`card builders (hover-pipeline.tsx) > buildColumnRefCard: an unknown identifier is marked, with available columns 1`] = `
+"**\`nonexistent\`** — _unknown column_
+
+Not found in the upstream schema. Available: \`order_id\`, \`amount\`, \`order_time\`."
+`;
+
+exports[`card builders (hover-pipeline.tsx) > buildSinkCard: sink shows accepted modes + compatibility + DDL/INSERT 1`] = `
+"**JdbcSink** · _Sink_
+
+Writes to a relational database via JDBC.
+
+| column | type |
+|---|---|
+| \`order_id\` | \`BIGINT\` |
+| \`amount\` | \`DECIMAL(10, 2)\` |
+| \`order_time\` | \`TIMESTAMP(3)\` |
+
+Accepts changelog modes: append-only, retract, upsert
+Upstream mode \`append-only\` — ✓ compatible
+
+\`\`\`sql
+CREATE TABLE \`orders_filtered\` (
+  \`order_id\` BIGINT,
+  \`amount\` DECIMAL(10, 2),
+  \`order_time\` TIMESTAMP(3),
+  PRIMARY KEY (\`order_id\`) NOT ENFORCED
+) WITH (
+  'connector' = 'jdbc',
+  'url' = 'jdbc:postgresql://db:5432/app',
+  'table-name' = 'orders_filtered'
+);
+
+INSERT INTO \`orders_filtered\`
+SELECT * FROM \`orders\` WHERE amount > 0;
+\`\`\`
+
+⬆ upstream: \`Filter\` · ⬇ downstream: —"
+`;
+
+exports[`card builders (hover-pipeline.tsx) > buildTagCard: source shows schema + changelog + DDL + neighbors 1`] = `
+"**KafkaSource** · _Source_
+
+Reads from an Apache Kafka topic.
+
+| column | type |
+|---|---|
+| \`order_id\` | \`BIGINT\` |
+| \`amount\` | \`DECIMAL(10, 2)\` |
+| \`order_time\` | \`TIMESTAMP(3)\` |
+
+Changelog mode: **append-only**
+
+\`\`\`sql
+CREATE TABLE \`orders\` (
+  \`order_id\` BIGINT,
+  \`amount\` DECIMAL(10, 2),
+  \`order_time\` TIMESTAMP(3)
+) WITH (
+  'connector' = 'kafka',
+  'topic' = 'orders',
+  'format' = 'json',
+  'properties.bootstrap.servers' = 'kafka:9092',
+  'scan.startup.mode' = 'earliest-offset'
+);
+\`\`\`
+
+⬆ upstream: — · ⬇ downstream: \`Filter\`"
+`;
+
+exports[`card builders (hover-pipeline.tsx) > buildTagCard: transform shows the emitted WHERE + neighbors 1`] = `
+"**Filter** · _Transform_
+
+Filters rows by a boolean predicate (SQL \`WHERE\`).
+
+Changelog mode: **append-only**
+
+\`\`\`sql
+WHERE amount > 0
+\`\`\`
+
+⬆ upstream: \`KafkaSource\` · ⬇ downstream: \`JdbcSink\`"
+`;
+
+exports[`prop cards (pure — no synthesis needed) > buildPropCard: a SQL-expression prop is marked as such 1`] = `
+"**\`condition\`** on \`Filter\` · _SQL expression_
+
+A SQL expression evaluated against the upstream schema. Hover a column name inside it to see its inferred Flink type."
+`;
+
+exports[`prop cards (pure — no synthesis needed) > buildPropCard: connector prop shows description/type/required 1`] = `
+"**\`topic\`** on \`KafkaSource\`
+
+Kafka topic to read from.
+
+Type: \`string\` · **required**"
+`;

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-sql-gateway
+  namespace: flink-demo
+  labels:
+    app: flink-sql-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flink-sql-gateway
+  template:
+    metadata:
+      labels:
+        app: flink-sql-gateway
+    spec:
+      containers:
+        - name: sql-gateway
+          image: flink-reactor:2.2.0
+          command: ["/opt/flink/bin/sql-gateway.sh"]
+          args:
+            - "start-foreground"
+            - "-Dsql-gateway.endpoint.rest.address=0.0.0.0"
+            - "-Dsql-gateway.endpoint.rest.port=8083"
+            - "-Drest.address=flink-demo-rest"
+            - "-Drest.port=8081"
+          ports:
+            - name: rest
+              containerPort: 8083
+          volumeMounts:
+            - name: init-sql
+              mountPath: /opt/flink/init
+              readOnly: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 384Mi
+            limits:
+              memory: 384Mi
+      volumes:
+        - name: init-sql
+          configMap:
+            name: flink-init-sql
+            optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flink-sql-gateway
+  namespace: flink-demo
+spec:
+  selector:
+    app: flink-sql-gateway
+  ports:
+    - name: rest
+      port: 8083
+      targetPort: 8083

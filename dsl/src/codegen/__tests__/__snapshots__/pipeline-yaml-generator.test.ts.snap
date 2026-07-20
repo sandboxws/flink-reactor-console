@@ -1,0 +1,114 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generatePipelineYaml > emits a fluss sink stanza for PostgresCdcPipelineSource → FlussSink 1`] = `
+"source:
+  type: postgres
+  hostname: pg-primary
+  port: 5432
+  username: postgres
+  password: \${env:PG_PRIMARY_PASSWORD}
+  tables: shop.public.orders
+  decoding.plugin.name: pgoutput
+  slot.name: fr_shop_orders_cdc_slot
+  debezium.publication.autocreate.mode: filtered
+  scan.startup.mode: initial
+sink:
+  type: fluss
+  name: shop-orders-cdc-fluss-sink
+  bootstrap.servers: fluss-coordinator:9123
+pipeline:
+  name: shop-orders-cdc
+  parallelism: 4
+  schema.change.behavior: evolve
+"
+`;
+
+exports[`generatePipelineYaml > emits source/sink/pipeline stanzas for Postgres → Iceberg 1`] = `
+"source:
+  type: postgres
+  hostname: pg-primary
+  port: 5432
+  username: postgres
+  password: \${env:PG_PRIMARY_PASSWORD}
+  tables: shop.public.orders
+  decoding.plugin.name: pgoutput
+  slot.name: fr_shop_orders_cdc_slot
+  debezium.publication.autocreate.mode: filtered
+  scan.startup.mode: initial
+  scan.incremental.snapshot.chunk.size: 100000
+sink:
+  type: iceberg
+  catalog.name: lake
+  database: shop
+  table: orders
+  catalog.properties.type: rest
+  catalog.properties.uri: http://iceberg-rest:8181
+  table.properties.format-version: '2'
+  table.properties.write.upsert.enabled: 'true'
+  table.properties.equality-field-columns: order_id
+  table.properties.primary-key: order_id
+pipeline:
+  name: shop-orders-cdc
+  parallelism: 4
+  schema.change.behavior: evolve
+"
+`;
+
+exports[`generatePipelineYaml > emits the full MoR configuration snapshot 1`] = `
+"source:
+  type: postgres
+  hostname: pg-primary
+  port: 5432
+  username: postgres
+  password: \${env:PG_PRIMARY_PASSWORD}
+  tables: shop.public.orders
+  decoding.plugin.name: pgoutput
+  slot.name: fr_shop_orders_cdc_slot
+  debezium.publication.autocreate.mode: filtered
+  scan.startup.mode: initial
+sink:
+  type: iceberg
+  catalog.name: lake
+  database: shop
+  table: orders
+  catalog.properties.type: rest
+  catalog.properties.uri: http://iceberg-rest:8181
+  table.properties.format-version: '2'
+  table.properties.write.upsert.enabled: 'true'
+  table.properties.equality-field-columns: order_id
+  table.properties.primary-key: order_id
+  table.properties.commit-interval-ms: '10000'
+  table.properties.write.distribution-mode: hash
+  table.properties.write.target-file-size-bytes: '268435456'
+  table.properties.write.parquet.compression-codec: zstd
+pipeline:
+  name: shop-orders-cdc
+  schema.change.behavior: evolve
+"
+`;
+
+exports[`generatePipelineYaml > forwards SASL credentials from FlussCatalog to the sink stanza 1`] = `
+"source:
+  type: postgres
+  hostname: pg-primary
+  port: 5432
+  username: postgres
+  password: \${env:PG_PRIMARY_PASSWORD}
+  tables: shop.public.orders
+  decoding.plugin.name: pgoutput
+  slot.name: fr_shop_orders_cdc_slot
+  debezium.publication.autocreate.mode: filtered
+  scan.startup.mode: initial
+sink:
+  type: fluss
+  name: shop-orders-cdc-fluss-sink
+  bootstrap.servers: fluss-coordinator:9123
+  properties.client.security.protocol: SASL_PLAINTEXT
+  properties.client.security.sasl.mechanism: PLAIN
+  properties.client.security.sasl.username: fr-writer
+  properties.client.security.sasl.password: \${env:FLUSS_SASL_PASSWORD}
+pipeline:
+  name: shop-orders-cdc
+  schema.change.behavior: evolve
+"
+`;

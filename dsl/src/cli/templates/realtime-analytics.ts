@@ -1,0 +1,193 @@
+import type { ScaffoldOptions, TemplateFile } from "@/cli/commands/new.js"
+import {
+  pipelineReadme,
+  sharedFiles,
+  templatePipelineTestStub,
+  templateReadme,
+} from "./shared.js"
+
+export function getRealtimeAnalyticsTemplates(
+  opts: ScaffoldOptions,
+): TemplateFile[] {
+  return [
+    ...sharedFiles(opts),
+    {
+      path: "flink-reactor.config.ts",
+      content: `import { defineConfig } from '@flink-reactor/dsl';
+
+export default defineConfig({
+  flink: { version: '${opts.flinkVersion}' },
+
+  // Kafka for the source stream, Postgres for the JDBC sinks.
+  // \`schemaRegistryUrl\` is the bundled registry's host port — read by
+  // \`fr schema generate\`, not by the runtime connectors.
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, postgres: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect the page-views topic's
+  // row schema from the registry and emit \`schemas/page-views.ts\`. (The
+  // shipped schema also carries a watermark, which introspection can't infer —
+  // re-add it after regenerating with \`--force\`.)
+  sources: {
+    'page-views': { type: 'kafka', topic: 'page-views' },
+  },
+
+  environments: {
+    minikube: {
+      cluster: { url: 'http://localhost:8081' },
+      sim: {
+        init: {
+          kafka: {
+            topics: ['page-views'],
+            catalogs: [
+              {
+                name: 'analytics',
+                tables: [
+                  {
+                    table: 'page_views',
+                    topic: 'page-views',
+                    columns: {
+                      userId: 'STRING',
+                      pageUrl: 'STRING',
+                      viewTimestamp: 'TIMESTAMP(3)',
+                    },
+                    format: 'json',
+                    watermark: { column: 'viewTimestamp', expression: "viewTimestamp - INTERVAL '5' SECOND" },
+                  },
+                ],
+              },
+            ],
+          },
+          jdbc: {
+            catalogs: [
+              {
+                name: 'flink_sink',
+                baseUrl: 'jdbc:postgresql://postgres:5432/',
+                defaultDatabase: 'analytics',
+              },
+            ],
+          },
+        },
+      },
+      pipelines: { '*': { parallelism: 2 } },
+    },
+    production: {
+      cluster: { url: 'https://flink-prod:8081' },
+      kubernetes: { namespace: 'flink-prod' },
+      pipelines: { '*': { parallelism: 4 } },
+    },
+  },
+});
+`,
+    },
+    {
+      // Source schema for the `page-views` topic. Kept single-export so
+      // `fr schema generate page-views --force` regenerates it cleanly; the
+      // per-window output shape lives in schemas/page-view-stats.ts.
+      path: "schemas/page-views.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
+
+export const PageViewsSchema = Schema({
+  fields: {
+    userId: Field.STRING(),
+    pageUrl: Field.STRING(),
+    viewTimestamp: Field.TIMESTAMP(3),
+  },
+  watermark: { column: 'viewTimestamp', expression: 'viewTimestamp - INTERVAL \\'5\\' SECOND' },
+});
+`,
+    },
+    {
+      path: "schemas/page-view-stats.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
+
+// Output shape for the windowed aggregate — not a Kafka source, so it has no
+// \`sources\` entry and lives apart from schemas/page-views.ts.
+export const PageViewStatsSchema = Schema({
+  fields: {
+    pageUrl: Field.STRING(),
+    viewCount: Field.BIGINT(),
+    windowStart: Field.TIMESTAMP(3),
+    windowEnd: Field.TIMESTAMP(3),
+  },
+});
+`,
+    },
+    {
+      path: "pipelines/page-view-analytics/index.tsx",
+      content: `import { Pipeline, KafkaSource, TumbleWindow, Aggregate, JdbcSink } from '@flink-reactor/dsl';
+import { PageViewsSchema } from '@/schemas/page-views';
+
+export default (
+  <Pipeline name="page-view-analytics">
+    <KafkaSource
+      topic="page-views"
+      schema={PageViewsSchema}
+      bootstrapServers="kafka:9092"
+      consumerGroup="analytics"
+    />
+    <TumbleWindow size="1 MINUTE" on="viewTimestamp" />
+    <Aggregate
+      groupBy={['pageUrl']}
+      select={{
+        pageUrl: 'pageUrl',
+        viewCount: 'COUNT(*)',
+        windowStart: 'window_start',
+        windowEnd: 'window_end',
+      }}
+    />
+    <JdbcSink
+      table="page_view_stats"
+      url="jdbc:postgresql://postgres:5432/analytics"
+      upsertMode
+      keyFields={['pageUrl', 'windowStart', 'windowEnd']}
+    />
+  </Pipeline>
+);
+`,
+    },
+    pipelineReadme({
+      pipelineName: "page-view-analytics",
+      tagline:
+        "Per-URL view counts in 1-minute event-time tumbling windows, written to Postgres via JDBC.",
+      demonstrates: [
+        "`<KafkaSource>` reading a JSON page-view stream with a watermark on `viewTimestamp`.",
+        '`<TumbleWindow size="1 MINUTE" on="viewTimestamp">` producing fixed event-time buckets.',
+        "`<Aggregate>` emitting `COUNT(*)` per `pageUrl` plus `window_start` / `window_end` metadata.",
+        "`<JdbcSink>` with `upsertMode` keyed on `(pageUrl, windowStart, windowEnd)` — one row per URL per window, upserted so checkpoint recovery never double-counts.",
+      ],
+      topology: `KafkaSource (page-views, json, watermark on viewTimestamp)
+  └── TumbleWindow (1 MINUTE, on=viewTimestamp)
+        └── Aggregate (GROUP BY pageUrl — COUNT(*), window_start, window_end)
+              └── JdbcSink (postgres analytics.page_view_stats, upsert)`,
+      schemas: [
+        "`schemas/page-views.ts` — `PageViewsSchema` with watermark on `viewTimestamp` (regenerable via `fr schema generate page-views`)",
+        "`schemas/page-view-stats.ts` — `PageViewStatsSchema` for the per-window output shape",
+      ],
+      runCommand: `pnpm synth
+pnpm test`,
+    }),
+    templatePipelineTestStub({
+      pipelineName: "page-view-analytics",
+      loadBearingPatterns: [/TUMBLE\(/i, /GROUP BY/i, /jdbc/i, /PRIMARY KEY/i],
+    }),
+    templateReadme({
+      templateName: "realtime-analytics",
+      tagline:
+        "Continuous per-URL traffic analytics: Kafka page-views → 1-minute tumbling windows → Postgres. Demonstrates the canonical event-time + watermark + windowed-aggregate + JDBC-sink pattern.",
+      pipelines: [
+        {
+          name: "page-view-analytics",
+          pitch:
+            "1-minute tumbling-window page-view counts, written to Postgres via JDBC.",
+        },
+      ],
+      gettingStarted: [
+        "pnpm install",
+        "pnpm synth",
+        "pnpm test",
+        "# Optional: regenerate schemas/page-views.ts from the seeded topic",
+        "pnpm fr cluster up && pnpm fr schema generate page-views",
+      ],
+    }),
+  ]
+}

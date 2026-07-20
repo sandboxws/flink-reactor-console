@@ -1,0 +1,226 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`pg-fluss-paimon template > README.md > matches the locked-in snapshot 1`] = `
+"# Pg Fluss Paimon
+
+Postgres → Apache Fluss → Flink SQL → Apache Paimon. A shared streaming-storage topology: one ingest job materializes the upsert state into a Fluss PrimaryKey table; any number of serve-side jobs fan out from it without re-running CDC against the source database.
+
+## Pipelines
+
+- **ingest** — Postgres CDC (Flink CDC 3.6 Pipeline Connector) → Fluss PrimaryKey table (shared upsert state).
+- **serve** — Fluss → Filter (open orders) → Paimon \`deduplicate\` merge engine for sub-second OLAP fan-out.
+
+## Quickstart
+
+Three commands take you from a fresh checkout to a running pipeline:
+
+\`\`\`bash
+pnpm install
+pnpm fr cluster up --runtime=docker     # or: pnpm fr sim up   (minikube)
+pnpm fr deploy ingest && pnpm fr deploy serve
+\`\`\`
+
+The Docker and minikube lanes both ship a Postgres seeded with TPC-H data plus the \`flink_cdc\` replication role + publication, a Fluss cluster, a Paimon warehouse on SeaweedFS, and a Flink runtime — no manual setup.
+
+### What the runtime ships
+
+- **Postgres** \`tpch\` database seeded with TPC-H SF=0.1 data (\`public.orders\`, \`public.lineitem\`, \`public.customer\`).
+- **Postgres** \`flink_cdc\` user with \`REPLICATION\` + \`LOGIN\` and the \`flink_cdc_pub\` publication on those three tables.
+- **Fluss catalog** \`fluss_catalog\`. Empty at boot — the ingest pipeline's CDC connector creates \`fluss_catalog.public.<table>\` entries on the first record by mirroring the upstream Postgres schema names.
+- **Paimon warehouse** at \`s3://flink-state/paimon\` (SeaweedFS-backed). The serve pipeline emits \`CREATE DATABASE/TABLE IF NOT EXISTS\`, so its targets are self-bootstrapping.
+
+No manual \`CREATE CATALOG\` / \`CREATE DATABASE\` SQL is required before \`pnpm fr deploy\` succeeds.
+
+### Regenerating schemas from Postgres
+
+The \`schemas/*.ts\` modules were bootstrapped from the upstream Postgres tables. The \`sources\` block in \`flink-reactor.config.ts\` records where each one came from, so once the cluster is up you can (re)generate them:
+
+\`\`\`bash
+pnpm fr schema generate --all           # or: pnpm fr schema generate orders
+\`\`\`
+
+This introspects \`tpch.public.{orders,lineitem,customer}\` over the published Postgres port and writes \`schemas/<name>.ts\` (pass \`--force\` to overwrite the shipped files). One caveat: the shipped schemas add an \`event_time\` column + watermark that introspection can't infer — the ingest pipeline populates \`event_time\` from Debezium's commit timestamp — so after regenerating with \`--force\`, re-apply those two stanzas.
+
+> **Note on deploy ordering.** The serve pipeline references \`fluss_catalog.public.orders\` via a SQL \`LIKE\` clause that resolves at submit time. Deploy ingest first and wait until it has emitted at least one record (the CDC initial-snapshot phase) before deploying serve, otherwise serve will fail planning with "Source table … not found".
+
+### Optional: enable Grafana metrics
+
+The local cluster ships an opt-in Prometheus + Grafana stack that's themed to match FlinkReactor Console (Gruvppuccin). Two changes opt this project in — a \`services.grafana\` entry plus the bundled \`metricsPlugin\`:
+
+\`\`\`ts
+// flink-reactor.config.ts
+import { defineConfig } from '@flink-reactor/dsl'
+import { metricsPlugin } from '@flink-reactor/dsl/plugins'
+
+export default defineConfig({
+  flink: { version: '2.2' },
+  services: { postgres: { database: 'tpch' }, fluss: {}, grafana: {} },
+  plugins: [
+    metricsPlugin({ reporters: [{ type: 'prometheus', port: 9249 }] }),
+  ],
+  // ...environments unchanged
+})
+\`\`\`
+
+Then \`pnpm fr cluster up\` will additionally start Prometheus on \`http://localhost:9090\` and Grafana on \`http://localhost:3000\` (admin/admin, anonymous viewer enabled). Two dashboards are auto-provisioned: **Flink Cluster Overview** (JM/TM heap, slots, jobs, checkpoints) and **pg-fluss-paimon Pipeline** (per-job throughput, restarts, checkpoint duration). Use \`pnpm fr cluster open grafana\` to launch the UI.
+
+## Prerequisites
+
+- Postgres with \`wal_level=logical\`, a \`flink_cdc\` user with \`REPLICATION\` and read on the published tables, and a Kubernetes Secret (or \`.env\` entry) supplying \`PG_PRIMARY_PASSWORD\`.
+- Apache Fluss cluster reachable at the configured \`bootstrapServers\`. The pipeline TSX files use the in-cluster DNS name \`fluss-coordinator:9123\` (the compose service / k8s Service name), which is what the Flink JobManager uses to dial Fluss. From your host shell you can still reach the same coordinator at \`localhost:9123\` via the published port.
+- An S3-compatible store hosting the Paimon warehouse at \`s3://flink-state/paimon\` (the \`flink-state\` bucket is created by \`fr cluster up\` / \`fr sim up\` via SeaweedFS; the \`paimon\` sub-prefix matches the cluster-init default in \`src/cli/cluster/paimon-init.ts\`). The Paimon catalog DDL hardcodes \`admin\`/\`admin\` credentials against the local store; swap to your own warehouse + credentials by editing \`paimon-init.ts\` for the local lane or the Paimon DDL in \`pipelines/serve/index.tsx\` for production.
+
+## Getting Started
+
+\`\`\`bash
+cp .env.example .env   # then fill in PG_PRIMARY_PASSWORD
+pnpm install
+pnpm synth             # Preview generated SQL + Pipeline YAML
+pnpm test              # Run the snapshot suite
+\`\`\`
+"
+`;
+
+exports[`pg-fluss-paimon template > flink-reactor.config.ts > matches the locked-in snapshot 1`] = `
+"import { defineConfig } from '@flink-reactor/dsl'
+
+export default defineConfig({
+  flink: { version: '2.2' },
+
+  // Postgres for the CDC source (TPC-H), Fluss for streaming + Paimon
+  // shared storage. No Kafka in this lane.
+  services: { postgres: { database: 'tpch' }, fluss: {} },
+
+  // \`sources\` drives \`fr schema generate\`: introspect the upstream
+  // Postgres tables and emit the matching \`schemas/*.ts\` module. The
+  // seeded Postgres ships these TPC-H tables in the \`tpch\` database
+  // (see \`services.postgres.database\` above), so \`fr schema generate
+  // --all\` works against a running \`fr cluster up\` / \`fr sim up\` with
+  // no extra wiring. The schemas shipped here go one step further —
+  // they add an \`event_time\` column + watermark the ingest pipeline
+  // needs — so regenerate with \`--force\` and re-apply those two stanzas.
+  sources: {
+    orders: { type: 'postgres', table: 'public.orders' },
+    lineitem: { type: 'postgres', table: 'public.lineitem' },
+    customer: { type: 'postgres', table: 'public.customer' },
+  },
+
+  environments: {
+    // The Docker (\`pnpm fr cluster up\`) and minikube (\`pnpm fr sim up\`) lanes
+    // both ship a Postgres seeded with TPC-H data (\`tpch.public.{orders,
+    // lineitem,customer}\`), the \`flink_cdc\` replication role, and the
+    // \`flink_cdc_pub\` publication — everything the ingest pipeline needs.
+    //
+    // Fluss starts empty: the Flink CDC Pipeline Connector creates the
+    // \`fluss_catalog.public.<table>\` entries on the first record, mirroring
+    // upstream Postgres schemas. Paimon's serve pipeline emits
+    // \`CREATE DATABASE/TABLE IF NOT EXISTS\` so its targets are self-bootstrapping.
+    test: {
+      runtime: 'minikube',
+      pipelines: {
+        '*': {
+          parallelism: 4,
+          checkpoint: { interval: '30s', mode: 'exactly-once' },
+        },
+      },
+    },
+    development: {
+      cluster: { url: 'http://localhost:8081' },
+      pipelines: {
+        '*': {
+          parallelism: 4,
+          checkpoint: { interval: '30s', mode: 'exactly-once' },
+        },
+      },
+    },
+    production: {
+      cluster: { url: 'https://flink-prod:8081' },
+      kubernetes: { namespace: 'flink-prod' },
+      pipelines: {
+        '*': {
+          parallelism: 4,
+          checkpoint: { interval: '30s', mode: 'exactly-once' },
+        },
+      },
+    },
+  },
+})
+"
+`;
+
+exports[`pg-fluss-paimon template > with grafanaEnabled: true > matches the locked-in snapshot for the opt-in path 1`] = `
+"import { defineConfig } from '@flink-reactor/dsl'
+import { metricsPlugin } from '@flink-reactor/dsl/plugins'
+
+export default defineConfig({
+  flink: { version: '2.2' },
+
+  // Postgres for the CDC source (TPC-H), Fluss for streaming + Paimon
+  // shared storage. No Kafka in this lane. \`grafana: {}\` was added by
+  // \`fr new --grafana\` — \`fr cluster up\` will also start Prometheus +
+  // Grafana under the \`observability\` Compose profile.
+  services: { postgres: { database: 'tpch' }, fluss: {}, grafana: {} },
+
+  // Configure the Flink Prometheus reporter for the JM/TM. Port 9249
+  // matches the scrape target the bundled Grafana datasource uses
+  // (see \`src/cli/cluster/observability/prometheus/prometheus.yml\`).
+  plugins: [
+    metricsPlugin({ reporters: [{ type: 'prometheus', port: 9249 }] }),
+  ],
+
+  // \`sources\` drives \`fr schema generate\`: introspect the upstream
+  // Postgres tables and emit the matching \`schemas/*.ts\` module. The
+  // seeded Postgres ships these TPC-H tables in the \`tpch\` database
+  // (see \`services.postgres.database\` above), so \`fr schema generate
+  // --all\` works against a running \`fr cluster up\` / \`fr sim up\` with
+  // no extra wiring. The schemas shipped here go one step further —
+  // they add an \`event_time\` column + watermark the ingest pipeline
+  // needs — so regenerate with \`--force\` and re-apply those two stanzas.
+  sources: {
+    orders: { type: 'postgres', table: 'public.orders' },
+    lineitem: { type: 'postgres', table: 'public.lineitem' },
+    customer: { type: 'postgres', table: 'public.customer' },
+  },
+
+  environments: {
+    // The Docker (\`pnpm fr cluster up\`) and minikube (\`pnpm fr sim up\`) lanes
+    // both ship a Postgres seeded with TPC-H data (\`tpch.public.{orders,
+    // lineitem,customer}\`), the \`flink_cdc\` replication role, and the
+    // \`flink_cdc_pub\` publication — everything the ingest pipeline needs.
+    //
+    // Fluss starts empty: the Flink CDC Pipeline Connector creates the
+    // \`fluss_catalog.public.<table>\` entries on the first record, mirroring
+    // upstream Postgres schemas. Paimon's serve pipeline emits
+    // \`CREATE DATABASE/TABLE IF NOT EXISTS\` so its targets are self-bootstrapping.
+    test: {
+      runtime: 'minikube',
+      pipelines: {
+        '*': {
+          parallelism: 4,
+          checkpoint: { interval: '30s', mode: 'exactly-once' },
+        },
+      },
+    },
+    development: {
+      cluster: { url: 'http://localhost:8081' },
+      pipelines: {
+        '*': {
+          parallelism: 4,
+          checkpoint: { interval: '30s', mode: 'exactly-once' },
+        },
+      },
+    },
+    production: {
+      cluster: { url: 'https://flink-prod:8081' },
+      kubernetes: { namespace: 'flink-prod' },
+      pipelines: {
+        '*': {
+          parallelism: 4,
+          checkpoint: { interval: '30s', mode: 'exactly-once' },
+        },
+      },
+    },
+  },
+})
+"
+`;

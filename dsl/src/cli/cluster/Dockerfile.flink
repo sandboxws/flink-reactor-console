@@ -1,0 +1,125 @@
+FROM flink:2.3.0
+
+# Kafka SQL connector (includes upsert-kafka). 5.0.0-2.2 is the newest build;
+# reused on the 2.3 base (no 5.0.0-2.3 published yet — run
+# `flink-reactor connectors check` to track). Keep in lock-step with the
+# registry pin in `src/codegen/connector-registry.ts`.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/5.0.0-2.2/flink-sql-connector-kafka-5.0.0-2.2.jar
+
+# Download JDBC connector (core + PostgreSQL dialect) for Flink 2.x (binary-compat across 2.0/2.1/2.2)
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/flink/flink-connector-jdbc-core/4.0.0-2.0/flink-connector-jdbc-core-4.0.0-2.0.jar \
+  && wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/flink/flink-connector-jdbc-postgres/4.0.0-2.0/flink-connector-jdbc-postgres-4.0.0-2.0.jar \
+  && wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar
+
+# Download Iceberg Flink runtime + AWS bundle for S3FileIO.
+# Iceberg 1.10+ ships an iceberg-flink-runtime-2.0 artifact compatible with Flink 2.x
+# (forward-compatible to 2.2); the older iceberg-flink-runtime-1.20 silently fails to
+# register the SPI factory on Flink 2.x.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-2.0/1.10.1/iceberg-flink-runtime-2.0-1.10.1.jar \
+  && wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.10.1/iceberg-aws-bundle-1.10.1.jar
+
+# Apache Fluss 0.9.0-incubating Flink connector — same coordinate as the
+# minikube bench image (`src/cli/sim/Dockerfile.flink-bench`). Apache Fluss
+# 0.9.0 publishes per-Flink-major artifacts (no `fluss-flink-2.0`); the
+# `fluss-flink-2.2` connector matches the `flink:2.2.0` base above.
+# Incubating artifacts publish to Maven Central — fall back to
+# https://repository.apache.org/content/repositories/releases/ if the wget
+# below 404s.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/fluss/fluss-flink-2.2/0.9.1-incubating/fluss-flink-2.2-0.9.1-incubating.jar
+
+# Apache Paimon 1.4.2 Flink connector (paimon-flink-2.2, reused on the 2.3 base
+# — no paimon-flink-2.3 published yet). The registry-pinned coordinate
+# (`src/codegen/connector-registry.ts`) is the source of truth for this version
+# — keep both in lock-step. Identical version pin in
+# `src/cli/sim/Dockerfile.flink-bench` to prevent runtime/sim drift.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/paimon/paimon-flink-2.2/1.4.2/paimon-flink-2.2-1.4.2.jar
+
+# Apache Paimon S3 plugin — bundles the Hadoop S3 filesystem (S3AFileSystem)
+# under a `paimon-plugin-s3/` prefix so Paimon's plugin classloader can load
+# it without colliding with anything else on the user classpath. Required
+# whenever a Paimon catalog uses an `s3a://` or `s3://` warehouse URI;
+# otherwise Paimon's HadoopFileIO fails with `ClassNotFoundException:
+# org.apache.hadoop.fs.s3a.S3AFileSystem` at CREATE CATALOG time. Version
+# pinned to match `paimon-flink-2.2` above.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/paimon/paimon-s3/1.4.2/paimon-s3-1.4.2.jar
+
+# Hadoop client (api + runtime) — required by Iceberg FlinkCatalogFactory's
+# clusterHadoopConf() even when using a REST catalog with S3FileIO. These two
+# shaded artifacts replace the legacy 1GB Hadoop tarball install.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-client-api/3.3.6/hadoop-client-api-3.3.6.jar \
+  && wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-client-runtime/3.3.6/hadoop-client-runtime-3.3.6.jar
+
+# Flink native S3 filesystem plugin (FLIP-555, new in Flink 2.3) — built on the
+# AWS SDK v2 with no Hadoop/Presto dependencies. Handles s3:// checkpoint/savepoint
+# dirs via the `s3.*` config namespace wired in docker-compose.yml. Mounted as a
+# plugin so it doesn't leak into the user classpath.
+# NB: against a non-AWS endpoint (SeaweedFS), verify `s3.endpoint` +
+# `s3.path-style-access` are honored by the v2 client at runtime.
+RUN mkdir -p /opt/flink/plugins/s3-fs-native \
+  && wget -q -O /opt/flink/plugins/s3-fs-native/flink-s3-fs-native-2.3.0.jar \
+  https://repo1.maven.org/maven2/org/apache/flink/flink-s3-fs-native/2.3.0/flink-s3-fs-native-2.3.0.jar
+
+# NB: Flink 2.x ships the Prometheus reporter as a plugin under
+# `/opt/flink/plugins/metrics-prometheus/flink-metrics-prometheus-2.2.0.jar`
+# rather than under `/opt/flink/opt/` (the Flink 1.x layout). Plugin
+# JARs are already on the reporter-factory lookup path, so no `cp` is
+# needed — the FLINK_PROPERTIES `metrics.reporter.prometheus.factory.class`
+# wired in `docker-compose.yml` resolves directly. Documented here so a
+# future contributor doesn't try to "fix" the missing copy.
+
+# Pre-create the checkpoint and data directories with Flink ownership.
+# The compose stack mounts named volumes onto these paths; without this
+# `chown` the root-owned mount roots prevent the `flink` user (uid 9999)
+# from writing checkpoint subdirectories at job submit time, surfacing as
+# `Failed to create directory for shared state` from the JobManager.
+RUN mkdir -p /opt/flink/checkpoints /opt/flink/data \
+  && chown -R flink:flink /opt/flink/checkpoints /opt/flink/data
+
+# Apache Flink CDC 3.6.0 (Flink 2.2 binding; reused on the 2.3 base — Flink CDC
+# 3.6.0 ships only 1.20/2.2 builds, no 2.3 yet) — the runtime for Pipeline
+# Connector pipelines emitted by the DSL (e.g. the pg-fluss-paimon
+# template's ingest job). The binary distribution ships only the dist
+# jar + launcher script + config; pipeline connectors live on Maven
+# Central under the `<version>-<flink-major>` coordinate (3.6.0-2.2).
+#
+# `/opt/flink-cdc/lib/flink-cdc-cli.jar` is the path the DSL's emitted
+# FlinkDeployment CRD names via `local://` — keep it as a symlink so
+# version bumps stay localised here.
+# `flink:2.2.0` runs as the `flink` user (uid 9999), which can only write
+# to /opt/flink (its home). Drop to root for the /opt extraction, then
+# chown so the runtime user can launch flink-cdc.sh.
+USER root
+RUN wget -q -O /tmp/flink-cdc.tar.gz https://archive.apache.org/dist/flink/flink-cdc-3.6.0/flink-cdc-3.6.0-2.2-bin.tar.gz \
+  && tar -xzf /tmp/flink-cdc.tar.gz -C /opt/ \
+  && rm /tmp/flink-cdc.tar.gz \
+  && mv /opt/flink-cdc-3.6.0-2.2 /opt/flink-cdc \
+  && ln -s /opt/flink-cdc/lib/flink-cdc-dist-3.6.0-2.2.jar /opt/flink-cdc/lib/flink-cdc-cli.jar
+
+# Pipeline Connectors used by the pg-fluss-paimon template. Add more
+# coordinates here as templates introduce new sources/sinks.
+RUN wget -q -P /opt/flink-cdc/lib/ \
+  https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-postgres/3.6.0-2.2/flink-cdc-pipeline-connector-postgres-3.6.0-2.2.jar \
+  && wget -q -P /opt/flink-cdc/lib/ \
+  https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-fluss/3.6.0-2.2/flink-cdc-pipeline-connector-fluss-3.6.0-2.2.jar \
+  && chown -R flink:flink /opt/flink-cdc
+USER flink
+
+# `flink-cdc.sh` defaults to looking for the running Flink REST endpoint
+# at `localhost:8081`. Inside the cluster JobManager container that's the
+# correct loopback. The script also requires `FLINK_HOME` and a discoverable
+# `flink-cdc.yaml` — both ship inside /opt/flink-cdc as the tarball
+# layout demands.
+ENV FLINK_HOME=/opt/flink \
+    FLINK_CDC_HOME=/opt/flink-cdc \
+    PATH="/opt/flink-cdc/bin:${PATH}"

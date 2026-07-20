@@ -1,0 +1,164 @@
+import type { ScaffoldOptions, TemplateFile } from "@/cli/commands/new.js"
+import {
+  DSL_VERSION,
+  makeConfig,
+  makeGitignore,
+  templateReadme,
+} from "./shared.js"
+
+export function getMonorepoTemplates(opts: ScaffoldOptions): TemplateFile[] {
+  const workspacePkg = {
+    name: opts.projectName,
+    version: "0.1.0",
+    private: true,
+    scripts: {
+      dev: "flink-reactor dev",
+      synth: "flink-reactor synth",
+      validate: "flink-reactor validate",
+      test: "vitest run",
+      "test:watch": "vitest",
+    },
+    // The root flink-reactor.config.ts imports the DSL, so the workspace
+    // root must declare it directly — pnpm's strict node_modules layout
+    // does not hoist a dependency that only packages/* declare, leaving
+    // the root config unable to resolve it.
+    dependencies: {
+      "@flink-reactor/dsl": `^${DSL_VERSION}`,
+    },
+  }
+
+  const schemasPkg = {
+    name: `@${opts.projectName}/schemas`,
+    version: "0.1.0",
+    private: true,
+    type: "module",
+    main: "index.ts",
+    dependencies: {
+      "@flink-reactor/dsl": `^${DSL_VERSION}`,
+    },
+  }
+
+  const patternsPkg = {
+    name: `@${opts.projectName}/patterns`,
+    version: "0.1.0",
+    private: true,
+    type: "module",
+    main: "index.ts",
+    dependencies: {
+      "@flink-reactor/dsl": `^${DSL_VERSION}`,
+      [`@${opts.projectName}/schemas`]: "workspace:*",
+    },
+  }
+
+  const appPkg = {
+    name: `@${opts.projectName}/default-app`,
+    version: "0.1.0",
+    private: true,
+    type: "module",
+    dependencies: {
+      "@flink-reactor/dsl": `^${DSL_VERSION}`,
+      [`@${opts.projectName}/schemas`]: "workspace:*",
+      [`@${opts.projectName}/patterns`]: "workspace:*",
+    },
+    devDependencies: {
+      typescript: "^5.7.0",
+      vitest: "^3.0.0",
+    },
+  }
+
+  const tsconfig = {
+    compilerOptions: {
+      target: "ES2022",
+      module: "ESNext",
+      moduleResolution: "bundler",
+      lib: ["ES2022"],
+      strict: true,
+      esModuleInterop: true,
+      skipLibCheck: true,
+      forceConsistentCasingInFileNames: true,
+      resolveJsonModule: true,
+      jsx: "react-jsx",
+      jsxImportSource: "@flink-reactor/dsl",
+      baseUrl: ".",
+      paths: {
+        "@/*": ["./*"],
+      },
+    },
+    include: ["apps/**/*", "packages/**/*"],
+  }
+
+  return [
+    {
+      path: "package.json",
+      content: `${JSON.stringify(workspacePkg, null, 2)}\n`,
+    },
+    {
+      path: "pnpm-workspace.yaml",
+      content: 'packages:\n  - "packages/*"\n  - "apps/*"\n',
+    },
+    {
+      path: "tsconfig.json",
+      content: `${JSON.stringify(tsconfig, null, 2)}\n`,
+    },
+    { path: "flink-reactor.config.ts", content: makeConfig(opts) },
+    { path: ".gitignore", content: makeGitignore() },
+
+    // packages/schemas
+    {
+      path: "packages/schemas/package.json",
+      content: `${JSON.stringify(schemasPkg, null, 2)}\n`,
+    },
+    {
+      path: "packages/schemas/index.ts",
+      content: `// Export shared schemas here
+// import { Schema, Field } from '@flink-reactor/dsl';
+`,
+    },
+
+    // packages/patterns
+    {
+      path: "packages/patterns/package.json",
+      content: `${JSON.stringify(patternsPkg, null, 2)}\n`,
+    },
+    {
+      path: "packages/patterns/index.ts",
+      content: `// Export reusable pipeline patterns here
+`,
+    },
+
+    // apps/default-app
+    {
+      path: "apps/default-app/package.json",
+      content: `${JSON.stringify(appPkg, null, 2)}\n`,
+    },
+    {
+      path: "apps/default-app/flink-reactor.config.ts",
+      content: makeConfig(opts),
+    },
+    {
+      path: "apps/default-app/pipelines/.gitkeep",
+      content: "",
+    },
+    {
+      path: "apps/default-app/tests/.gitkeep",
+      content: "",
+    },
+    templateReadme({
+      templateName: "monorepo",
+      tagline:
+        "A pnpm-workspace FlinkReactor scaffold with shared `packages/schemas` and `packages/patterns` libraries plus an `apps/default-app` consumer. Use this when you have multiple apps that should share schema definitions and reusable pipeline patterns rather than copy-pasting them across projects.",
+      pipelines: [],
+      prerequisites: [
+        "`pnpm` (the workspace uses `pnpm-workspace.yaml`)",
+        "Node.js ≥ 18",
+      ],
+      gettingStarted: [
+        "pnpm install",
+        "# Add shared schemas to packages/schemas/index.ts",
+        "# Add reusable patterns to packages/patterns/index.ts",
+        "# Add pipelines to apps/default-app/pipelines/<name>/index.tsx",
+        "pnpm --filter @your-project/default-app synth",
+      ],
+    }),
+  ]
+}

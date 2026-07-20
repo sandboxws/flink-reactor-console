@@ -1,0 +1,6 @@
+# Generated / vendored artifacts — never committed.
+dist/
+dist-test/
+server/
+.vscode-test/
+*.vsix

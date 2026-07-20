@@ -1,0 +1,1010 @@
+{
+  "version": 1,
+  "subjects": [
+    {
+      "topic": "cdc.inventory.products",
+      "subject": "cdc.inventory.products-value",
+      "domain": "ecommerce",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "integer"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "id": 1001,
+          "name": "Wireless Mouse",
+          "category": "peripherals",
+          "price": 29.99,
+          "quantity": 150
+        },
+        {
+          "id": 1002,
+          "name": "Mechanical Keyboard",
+          "category": "peripherals",
+          "price": 89.99,
+          "quantity": 80
+        },
+        {
+          "id": 1003,
+          "name": "27\" Monitor",
+          "category": "displays",
+          "price": 349.99,
+          "quantity": 45
+        }
+      ]
+    },
+    {
+      "topic": "iot.registry.devices",
+      "subject": "iot.registry.devices-value",
+      "domain": "iot",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "device_id": {
+            "type": "string"
+          },
+          "device_name": {
+            "type": "string"
+          },
+          "device_type": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "firmware": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "device_id": "dev-001",
+          "device_name": "Warehouse-TempSensor-A1",
+          "device_type": "temperature",
+          "location": "warehouse-a",
+          "firmware": "2.1.0",
+          "status": "active"
+        },
+        {
+          "device_id": "dev-003",
+          "device_name": "Factory-PressureSensor-B1",
+          "device_type": "pressure",
+          "location": "factory-b",
+          "firmware": "2.0.3",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "topic": "iot.telemetry.readings",
+      "subject": "iot.telemetry.readings-value",
+      "domain": "iot",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "device_id": {
+            "type": "string"
+          },
+          "sensor_type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "reading_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "type": "string"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "device_id": "dev-001",
+          "sensor_type": "temperature",
+          "value": 22.5,
+          "unit": "°C",
+          "reading_time": "2026-01-01 00:00:00.000",
+          "location": "warehouse-a"
+        },
+        {
+          "device_id": "dev-003",
+          "sensor_type": "pressure",
+          "value": 1013.2,
+          "unit": "hPa",
+          "reading_time": "2026-01-01 00:00:05.000",
+          "location": "factory-b"
+        }
+      ]
+    },
+    {
+      "topic": "page-views",
+      "subject": "page-views-value",
+      "domain": "analytics",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "pageUrl": {
+            "type": "string"
+          },
+          "viewTimestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "userId": "u-1",
+          "pageUrl": "/home",
+          "viewTimestamp": "2026-01-01 00:00:00.000"
+        },
+        {
+          "userId": "u-2",
+          "pageUrl": "/products/1001",
+          "viewTimestamp": "2026-01-01 00:00:01.000"
+        },
+        {
+          "userId": "u-1",
+          "pageUrl": "/cart",
+          "viewTimestamp": "2026-01-01 00:00:02.000"
+        }
+      ]
+    },
+    {
+      "topic": "orders.raw",
+      "subject": "orders.raw-value",
+      "domain": "data-quality",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "eventTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "orderId": "o-1",
+          "userId": "u-1",
+          "amount": "29.99",
+          "quantity": "2",
+          "currency": "USD",
+          "status": "placed",
+          "email": "a@example.com",
+          "eventTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "orderId": "o-2",
+          "userId": "u-2",
+          "amount": "89.99",
+          "quantity": "1",
+          "currency": "",
+          "status": "placed",
+          "email": "b@example.com",
+          "eventTime": "2026-01-01 00:00:01.000"
+        }
+      ]
+    },
+    {
+      "topic": "dbserver1.inventory.orders",
+      "subject": "dbserver1.inventory.orders-value",
+      "domain": "ecommerce",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer"
+          },
+          "customerId": {
+            "type": "integer"
+          },
+          "product": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "orderId": 5001,
+          "customerId": 42,
+          "product": "Wireless Mouse",
+          "amount": 29.99,
+          "status": "PENDING",
+          "createdAt": "2026-01-01 09:15:00.000",
+          "updatedAt": "2026-01-01 09:15:00.000"
+        },
+        {
+          "orderId": 5002,
+          "customerId": 108,
+          "product": "Mechanical Keyboard",
+          "amount": 89.99,
+          "status": "SHIPPED",
+          "createdAt": "2026-01-01 09:16:30.000",
+          "updatedAt": "2026-01-01 10:02:00.000"
+        }
+      ]
+    },
+    {
+      "topic": "ecom.orders",
+      "subject": "ecom.orders-value",
+      "domain": "ecommerce",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "orderTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "orderId": "ord-1",
+          "customerId": "cust-1",
+          "amount": 129.99,
+          "currency": "USD",
+          "status": "placed",
+          "orderTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "orderId": "ord-2",
+          "customerId": "cust-2",
+          "amount": 599,
+          "currency": "USD",
+          "status": "placed",
+          "orderTime": "2026-01-01 00:00:02.000"
+        }
+      ]
+    },
+    {
+      "topic": "ecom.order-items",
+      "subject": "ecom.order-items-value",
+      "domain": "ecommerce",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "unitPrice": {
+            "type": "number"
+          },
+          "itemTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "orderId": "ord-1",
+          "productId": "prod-1",
+          "quantity": 2,
+          "unitPrice": 29.99,
+          "itemTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "orderId": "ord-1",
+          "productId": "prod-2",
+          "quantity": 1,
+          "unitPrice": 69.99,
+          "itemTime": "2026-01-01 00:00:00.000"
+        }
+      ]
+    },
+    {
+      "topic": "ecom.products",
+      "subject": "ecom.products-value",
+      "domain": "ecommerce",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "stock": {
+            "type": "integer"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "productId": "prod-1",
+          "name": "Wireless Mouse",
+          "category": "peripherals",
+          "price": 29.99,
+          "stock": 150,
+          "updateTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "productId": "prod-2",
+          "name": "USB-C Hub",
+          "category": "accessories",
+          "price": 69.99,
+          "stock": 200,
+          "updateTime": "2026-01-01 00:00:01.000"
+        }
+      ]
+    },
+    {
+      "topic": "bank.transactions",
+      "subject": "bank.transactions-value",
+      "domain": "banking",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "txnId": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "txnTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "txnId": "txn-1001",
+          "accountId": "acct-42",
+          "amount": 1499.95,
+          "currency": "USD",
+          "merchant": "SkyMart",
+          "country": "US",
+          "txnTime": "2026-07-10 09:15:22.000"
+        },
+        {
+          "txnId": "txn-1003",
+          "accountId": "acct-88",
+          "amount": 42.1,
+          "currency": "EUR",
+          "merchant": "CafeBleu",
+          "country": "FR",
+          "txnTime": "2026-07-10 09:17:41.000"
+        }
+      ]
+    },
+    {
+      "topic": "bank.accounts",
+      "subject": "bank.accounts-value",
+      "domain": "banking",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "number"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "accountId": "acct-42",
+          "name": "Ada Lovelace",
+          "tier": "platinum",
+          "status": "active",
+          "balance": 18234.55,
+          "updateTime": "2026-07-10 08:00:00.000"
+        },
+        {
+          "accountId": "acct-88",
+          "name": "Grace Hopper",
+          "tier": "gold",
+          "status": "active",
+          "balance": 5120,
+          "updateTime": "2026-07-10 08:05:12.000"
+        }
+      ]
+    },
+    {
+      "topic": "orders.cdc",
+      "subject": "orders.cdc-value",
+      "domain": "lakehouse",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "orderId": "ord-1001",
+          "customerId": "cust-42",
+          "product": "Wireless Mouse",
+          "amount": 29.99,
+          "status": "PLACED",
+          "updatedAt": "2026-01-01 00:00:00.000"
+        },
+        {
+          "orderId": "ord-1002",
+          "customerId": "cust-07",
+          "product": "Mechanical Keyboard",
+          "amount": 89.99,
+          "status": "SHIPPED",
+          "updatedAt": "2026-01-01 00:00:05.000"
+        }
+      ]
+    },
+    {
+      "topic": "rides.requests",
+      "subject": "rides.requests-value",
+      "domain": "ride-sharing",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "rideId": {
+            "type": "string"
+          },
+          "riderId": {
+            "type": "string"
+          },
+          "zoneId": {
+            "type": "string"
+          },
+          "pickupLat": {
+            "type": "number"
+          },
+          "pickupLng": {
+            "type": "number"
+          },
+          "dropoffLat": {
+            "type": "number"
+          },
+          "dropoffLng": {
+            "type": "number"
+          },
+          "requestTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "rideId": "r-1001",
+          "riderId": "u-42",
+          "zoneId": "z-downtown",
+          "pickupLat": 37.7749,
+          "pickupLng": -122.4194,
+          "dropoffLat": 37.7849,
+          "dropoffLng": -122.4094,
+          "requestTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "rideId": "r-1002",
+          "riderId": "u-77",
+          "zoneId": "z-mission",
+          "pickupLat": 37.7599,
+          "pickupLng": -122.4148,
+          "dropoffLat": 37.7935,
+          "dropoffLng": -122.397,
+          "requestTime": "2026-01-01 00:00:03.000"
+        }
+      ]
+    },
+    {
+      "topic": "rides.trip-events",
+      "subject": "rides.trip-events-value",
+      "domain": "ride-sharing",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "rideId": {
+            "type": "string"
+          },
+          "driverId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "eventTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "rideId": "r-1001",
+          "driverId": "d-9",
+          "status": "accepted",
+          "eventTime": "2026-01-01 00:00:05.000"
+        },
+        {
+          "rideId": "r-1001",
+          "driverId": "d-9",
+          "status": "pickup",
+          "eventTime": "2026-01-01 00:02:00.000"
+        }
+      ]
+    },
+    {
+      "topic": "rides.surge-zones",
+      "subject": "rides.surge-zones-value",
+      "domain": "ride-sharing",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "zoneId": {
+            "type": "string"
+          },
+          "baseMultiplier": {
+            "type": "number"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "zoneId": "z-downtown",
+          "baseMultiplier": 1.5,
+          "updateTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "zoneId": "z-mission",
+          "baseMultiplier": 1.2,
+          "updateTime": "2026-01-01 00:00:00.000"
+        }
+      ]
+    },
+    {
+      "topic": "iot.sensor-readings",
+      "subject": "iot.sensor-readings-value",
+      "domain": "iot",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "sensorType": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "readingTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "deviceId": "pump-01",
+          "sensorType": "vibration",
+          "value": 3.42,
+          "unit": "mm/s",
+          "readingTime": "2026-07-10 09:15:00.000"
+        },
+        {
+          "deviceId": "pump-02",
+          "sensorType": "temperature",
+          "value": 71.8,
+          "unit": "C",
+          "readingTime": "2026-07-10 09:15:05.000"
+        }
+      ]
+    },
+    {
+      "topic": "grocery.order-lines",
+      "subject": "grocery.order-lines-value",
+      "domain": "grocery",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "lineTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "orderId": "o-1001",
+          "storeId": "s-01",
+          "productId": "p-apple",
+          "quantity": 3,
+          "lineTime": "2026-07-10 09:15:00.000"
+        },
+        {
+          "orderId": "o-1002",
+          "storeId": "s-02",
+          "productId": "p-bread",
+          "quantity": 2,
+          "lineTime": "2026-07-10 09:16:30.000"
+        }
+      ]
+    },
+    {
+      "topic": "grocery.store-inventory",
+      "subject": "grocery.store-inventory-value",
+      "domain": "grocery",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "stockLevel": {
+            "type": "integer"
+          },
+          "substitutionId": {
+            "type": "string"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "storeId": "s-01",
+          "productId": "p-apple",
+          "stockLevel": 42,
+          "substitutionId": "p-apple-organic",
+          "updateTime": "2026-07-10 09:10:00.000"
+        },
+        {
+          "storeId": "s-01",
+          "productId": "p-milk",
+          "stockLevel": 0,
+          "substitutionId": "p-milk-oat",
+          "updateTime": "2026-07-10 09:12:00.000"
+        }
+      ]
+    },
+    {
+      "topic": "grocery.ratings",
+      "subject": "grocery.ratings-value",
+      "domain": "grocery",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "shopperRating": {
+            "type": "number"
+          },
+          "storeRating": {
+            "type": "number"
+          },
+          "itemQuality": {
+            "type": "number"
+          },
+          "ratingTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "orderId": "o-1001",
+          "storeId": "s-01",
+          "shopperRating": 4.8,
+          "storeRating": 4.5,
+          "itemQuality": 4.7,
+          "ratingTime": "2026-07-10 10:05:00.000"
+        },
+        {
+          "orderId": "o-1002",
+          "storeId": "s-02",
+          "shopperRating": 3.9,
+          "storeRating": 4.1,
+          "itemQuality": 3.5,
+          "ratingTime": "2026-07-10 10:07:20.000"
+        }
+      ]
+    },
+    {
+      "topic": "lake.events",
+      "subject": "lake.events-value",
+      "domain": "lakehouse",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          },
+          "eventTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "eventId": "evt-0001",
+          "userId": "u-1001",
+          "eventType": "page_view",
+          "payload": "{\"path\":\"/home\"}",
+          "eventTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "eventId": "evt-0002",
+          "userId": "u-1002",
+          "eventType": "add_to_cart",
+          "payload": "{\"sku\":\"1001\",\"qty\":2}",
+          "eventTime": "2026-01-01 00:00:01.500"
+        }
+      ]
+    },
+    {
+      "topic": "lake.clickstream",
+      "subject": "lake.clickstream-value",
+      "domain": "lakehouse",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "pageUrl": {
+            "type": "string"
+          },
+          "referrer": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "clickTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "sessionId": "sess-abc123",
+          "userId": "u-1001",
+          "pageUrl": "/home",
+          "referrer": "https://google.com",
+          "userAgent": "Mozilla/5.0",
+          "clickTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "sessionId": "sess-def456",
+          "userId": "u-1002",
+          "pageUrl": "/cart",
+          "referrer": "/products/1001",
+          "userAgent": "Mozilla/5.0",
+          "clickTime": "2026-01-01 00:00:06.750"
+        }
+      ]
+    },
+    {
+      "topic": "lake.transactions",
+      "subject": "lake.transactions-value",
+      "domain": "lakehouse",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "txnId": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "txnType": {
+            "type": "string"
+          },
+          "txnTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "sampleRows": [
+        {
+          "txnId": "txn-5001",
+          "accountId": "acct-42",
+          "amount": 129.99,
+          "currency": "USD",
+          "txnType": "purchase",
+          "txnTime": "2026-01-01 00:00:00.000"
+        },
+        {
+          "txnId": "txn-5002",
+          "accountId": "acct-88",
+          "amount": 2500,
+          "currency": "EUR",
+          "txnType": "transfer",
+          "txnTime": "2026-01-01 00:00:02.100"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@flink-reactor/dsl/jsx-runtime": ["./src/jsx-runtime.ts"],
+      "@flink-reactor/dsl/jsx-dev-runtime": ["./src/jsx-dev-runtime.ts"]
+    },
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "plugins": [{ "name": "@flink-reactor/ts-plugin" }],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "@flink-reactor/dsl",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

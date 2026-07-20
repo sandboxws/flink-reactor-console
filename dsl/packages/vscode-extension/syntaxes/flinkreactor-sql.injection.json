@@ -1,0 +1,126 @@
+{
+  "$comment": "Embedded Flink SQL highlighting — Layer 1 (TextMate injection) of the embedded-sql-highlighting capability (vscode-tier-2-feature-9). Heuristic, offline, server-independent: re-scopes the interiors of recognized SQL-context props/components into SQL scopes. Anchored to the SQL-context shapes the shared registry (packages/language-server/src/sql/context-registry.ts) defines; the keyword/function/type lists below mirror packages/language-server/src/sql/vocabulary.ts by hand (a static grammar cannot import TS). Unrecognized fragments (computed/interpolated values) keep ordinary string scoping. The LSP semantic-tokens layer overrides this within its reported ranges.",
+  "scopeName": "flinkreactor.sql.injection",
+  "injectionSelector": "L:source.tsx -comment -string",
+  "patterns": [
+    { "include": "#scalar-attribute" },
+    { "include": "#select-object" },
+    { "include": "#validate-expression-object" },
+    { "include": "#watermark-expression" }
+  ],
+  "repository": {
+    "scalar-attribute": {
+      "$comment": "Filter/Query.Where/Query.Having/Qualify `condition`, Join* `on`, RawSQL `sql`: a scalar SQL string attribute. The injection takes over from the prop name through the closing quote and re-scopes the interior.",
+      "begin": "\\b(condition|on|sql)\\s*(=)\\s*(\")",
+      "beginCaptures": {
+        "1": { "name": "entity.other.attribute-name.tsx" },
+        "2": { "name": "keyword.operator.assignment.tsx" },
+        "3": {
+          "name": "string.quoted.double.tsx punctuation.definition.string.begin.tsx"
+        }
+      },
+      "end": "(\")",
+      "endCaptures": {
+        "1": {
+          "name": "string.quoted.double.tsx punctuation.definition.string.end.tsx"
+        }
+      },
+      "contentName": "string.quoted.double.tsx",
+      "patterns": [{ "include": "#sql-body" }]
+    },
+    "select-object": {
+      "$comment": "Map/Aggregate `select={{ col: \"<sql>\" }}` and Query.Select `columns={{ ... }}`: object whose values are SQL projections. Re-scope each double-quoted value's interior.",
+      "begin": "\\b(select|columns)\\s*=\\s*\\{\\s*\\{",
+      "beginCaptures": {
+        "1": { "name": "entity.other.attribute-name.tsx" }
+      },
+      "end": "\\}\\s*\\}",
+      "patterns": [{ "include": "#sql-string-value" }]
+    },
+    "validate-expression-object": {
+      "$comment": "Validate `rules={{ expression: { rule: \"<sql>\" } }}`: only the `expression` sub-object's values are SQL.",
+      "begin": "\\b(expression)\\s*(:)\\s*(\\{)",
+      "beginCaptures": {
+        "1": { "name": "meta.object-literal.key.tsx" },
+        "2": { "name": "punctuation.separator.key-value.tsx" }
+      },
+      "end": "(\\})",
+      "patterns": [{ "include": "#sql-string-value" }]
+    },
+    "watermark-expression": {
+      "$comment": "Schema watermark `{ watermark: { expression: \"<sql>\" } }`: the scalar `expression` value is SQL. `column` (a bare name) is intentionally not matched.",
+      "begin": "\\b(expression)\\s*(:)\\s*(\")",
+      "beginCaptures": {
+        "1": { "name": "meta.object-literal.key.tsx" },
+        "2": { "name": "punctuation.separator.key-value.tsx" },
+        "3": {
+          "name": "string.quoted.double.tsx punctuation.definition.string.begin.tsx"
+        }
+      },
+      "end": "(\")",
+      "endCaptures": {
+        "1": {
+          "name": "string.quoted.double.tsx punctuation.definition.string.end.tsx"
+        }
+      },
+      "contentName": "string.quoted.double.tsx",
+      "patterns": [{ "include": "#sql-body" }]
+    },
+    "sql-string-value": {
+      "$comment": "A double-quoted object value whose interior is SQL (used inside select/validate object blocks). A non-string (computed) value is left untouched.",
+      "begin": "(\")",
+      "beginCaptures": {
+        "1": {
+          "name": "string.quoted.double.tsx punctuation.definition.string.begin.tsx"
+        }
+      },
+      "end": "(\")",
+      "endCaptures": {
+        "1": {
+          "name": "string.quoted.double.tsx punctuation.definition.string.end.tsx"
+        }
+      },
+      "contentName": "string.quoted.double.tsx",
+      "patterns": [{ "include": "#sql-body" }]
+    },
+    "sql-body": {
+      "$comment": "The SQL token vocabulary, applied inside a recognized SQL fragment. Each token carries its standard SQL scope (so stock/custom themes color it via the `keyword`/`support.function`/`storage.type`/… prefix, zero config) plus a trailing `meta.embedded.flinkreactor-sql` marker — the rightmost/most-specific scope — that lets the extension neutralize ONLY FlinkReactor's grammar coloring when `flinkReactor.sql.highlighting` excludes TextMate, without affecting real .sql files. Ordering: comments and SQL string literals first (so their contents are not mis-tokenized), then type/function/keyword (disjoint, vocabulary-driven so DECIMAL(…) stays a type), then operators and numbers. Everything unmatched keeps the enclosing string scope — the graceful plain-string fallback.",
+      "patterns": [
+        {
+          "name": "comment.block.sql meta.embedded.flinkreactor-sql",
+          "begin": "/\\*",
+          "end": "\\*/"
+        },
+        {
+          "name": "comment.line.double-dash.sql meta.embedded.flinkreactor-sql",
+          "match": "--.*$"
+        },
+        {
+          "name": "string.quoted.single.sql meta.embedded.flinkreactor-sql",
+          "begin": "'",
+          "end": "'"
+        },
+        {
+          "name": "storage.type.sql meta.embedded.flinkreactor-sql",
+          "match": "(?i)\\b(BOOLEAN|TINYINT|SMALLINT|INTEGER|INT|BIGINT|FLOAT|DOUBLE|DECIMAL|DEC|NUMERIC|DATE|TIMESTAMP_LTZ|TIMESTAMP|CHAR|VARCHAR|STRING|BINARY|VARBINARY|BYTES|ARRAY|MAP|MULTISET|RAW)\\b"
+        },
+        {
+          "name": "support.function.sql meta.embedded.flinkreactor-sql",
+          "match": "(?i)\\b(CAST|TRY_CAST|COALESCE|NULLIF|IFNULL|GREATEST|LEAST|UPPER|LOWER|TRIM|LTRIM|RTRIM|SUBSTRING|SUBSTR|CONCAT_WS|CONCAT|REPLACE|REGEXP_REPLACE|REGEXP_EXTRACT|CHAR_LENGTH|CHARACTER_LENGTH|LENGTH|POSITION|OVERLAY|INITCAP|REVERSE|ABS|CEIL|CEILING|FLOOR|ROUND|TRUNCATE|POWER|SQRT|EXP|LN|LOG10|LOG2|LOG|MOD|RAND_INTEGER|RAND|SIGN|COUNT|SUM|AVG|MIN|MAX|STDDEV_POP|STDDEV_SAMP|VAR_POP|VAR_SAMP|COLLECT|LISTAGG|FIRST_VALUE|LAST_VALUE|LEAD|LAG|ROW_NUMBER|RANK|DENSE_RANK|NTILE|CUME_DIST|PERCENT_RANK|NOW|CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME|LOCALTIMESTAMP|LOCALTIME|EXTRACT|YEAR|QUARTER|MONTH|WEEK|DAYOFYEAR|DAYOFMONTH|DAYOFWEEK|HOUR|MINUTE|SECOND|DATE_FORMAT|TO_TIMESTAMP_LTZ|TO_TIMESTAMP|TO_DATE|UNIX_TIMESTAMP|FROM_UNIXTIME|TIMESTAMPADD|TIMESTAMPDIFF|CONVERT_TZ|PROCTIME_MATERIALIZE|PROCTIME|CURRENT_WATERMARK|TUMBLE_START|TUMBLE_END|TUMBLE_ROWTIME|TUMBLE|HOP_START|HOP_END|HOP|SESSION_START|SESSION_END|SESSION|ARRAY_CONTAINS|CARDINALITY|ELEMENT|MAP_KEYS|MAP_VALUES|FROM_CHANGELOG|TO_CHANGELOG)\\b"
+        },
+        {
+          "name": "keyword.other.sql meta.embedded.flinkreactor-sql",
+          "match": "(?i)\\b(SELECT|FROM|WHERE|AS|AND|OR|NOT|IN|IS|NULL|LIKE|BETWEEN|EXISTS|DISTINCT|ALL|GROUP|BY|HAVING|ORDER|ASC|DESC|LIMIT|OFFSET|FETCH|FIRST|NEXT|ROWS|ROW|ONLY|UNION|INTERSECT|EXCEPT|WITH|VALUES|TABLE|JOIN|INNER|LEFT|RIGHT|FULL|OUTER|CROSS|ON|USING|NATURAL|LATERAL|UNNEST|CASE|WHEN|THEN|ELSE|END|INTERVAL|OVER|PARTITION|WINDOW|RANGE|PRECEDING|FOLLOWING|CURRENT|UNBOUNDED|TO|AT|TIME|ZONE|TRUE|FALSE|UNKNOWN|ESCAPE|SYMMETRIC|ASYMMETRIC|FOR|SYSTEM_TIME|OF|DESCRIPTOR|DEFAULT|PARTITIONED|TEMPORARY|IF)\\b"
+        },
+        {
+          "name": "keyword.operator.sql meta.embedded.flinkreactor-sql",
+          "match": "(<=|>=|<>|!=|\\|\\||[=<>+\\-*/%])"
+        },
+        {
+          "name": "constant.numeric.sql meta.embedded.flinkreactor-sql",
+          "match": "\\b\\d+(?:\\.\\d+)?\\b"
+        }
+      ]
+    }
+  }
+}

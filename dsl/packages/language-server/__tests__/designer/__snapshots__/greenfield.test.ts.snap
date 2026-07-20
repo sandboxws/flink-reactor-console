@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`greenfield generator > emits a deterministic, byte-identical file for the same canvas 1`] = `
+"// @flink-reactor designer
+import { Pipeline, KafkaSource, Filter, KafkaSink } from '@flink-reactor/dsl';
+import { OrdersSchema } from './schemas';
+
+export default (
+  <Pipeline name="designed-orders">
+    <KafkaSource topic="orders" bootstrapServers="kafka:9092" schema={OrdersSchema} />
+    <Filter condition="amount > 100" />
+    <KafkaSink topic="big-orders" bootstrapServers="kafka:9092" />
+  </Pipeline>
+);
+"
+`;

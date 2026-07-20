@@ -1,0 +1,720 @@
+services:
+  jobmanager:
+    build:
+      context: .
+      dockerfile: Dockerfile.flink
+    ports:
+      - "${FLINK_PORT:-8081}:8081"
+    command: jobmanager
+    # Override DNS for lakekeeper.localtest.me inside containers so it
+    # resolves to the host gateway instead of looping back to the container.
+    # Browser uses the same hostname via public DNS (→ 127.0.0.1) so the
+    # UI's API calls are same-origin with BASE_URI. See iceberg-init.ts.
+    extra_hosts:
+      - "lakekeeper.localtest.me:host-gateway"
+      - "host.containers.internal:host-gateway"
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        execution.checkpointing.interval: 30s
+        execution.checkpointing.mode: EXACTLY_ONCE
+        state.backend.type: hashmap
+        state.checkpoints.dir: file:///opt/flink/checkpoints
+        s3.endpoint: http://seaweedfs:8333
+        s3.path.style.access: true
+        s3.access-key: admin
+        s3.secret-key: admin
+        # Force Fluss classes (including shaded netty under
+        # org.apache.fluss.shaded.netty4) to load via the parent
+        # AppClassLoader. Without this the SQL connector and the CDC
+        # pipeline-connector each pull their own copy of those shaded
+        # interfaces into ChildFirstClassLoaders, then the JM/TM hits
+        # "loader constraint violation" the first time the same shaded
+        # interface is requested through the parent loader.
+        classloader.parent-first-patterns.additional: org.apache.fluss.
+        # Prometheus reporter for the local JM/TM (the bundled JAR is
+        # copied to /opt/flink/lib/ in Dockerfile.flink). Range 9249-9259
+        # gives Flink room to pick a free port if multiple reporter
+        # instances bind on the same container; in our compose layout
+        # each JM/TM has its own container so 9249 is the steady-state
+        # port. The user-pipeline metrics path on the K8s/CRD lane is
+        # handled by `metricsPlugin` instead.
+        metrics.reporter.prometheus.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+        metrics.reporter.prometheus.port: 9249-9259
+    volumes:
+      - flink-checkpoints:/opt/flink/checkpoints
+      - flink-data:/opt/flink/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/overview"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  taskmanager-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.flink
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    command: taskmanager
+    extra_hosts:
+      - "lakekeeper.localtest.me:host-gateway"
+      - "host.containers.internal:host-gateway"
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        execution.checkpointing.interval: 30s
+        execution.checkpointing.mode: EXACTLY_ONCE
+        state.backend.type: hashmap
+        state.checkpoints.dir: file:///opt/flink/checkpoints
+        s3.endpoint: http://seaweedfs:8333
+        s3.path.style.access: true
+        s3.access-key: admin
+        s3.secret-key: admin
+        # Force Fluss classes (including shaded netty under
+        # org.apache.fluss.shaded.netty4) to load via the parent
+        # AppClassLoader. Without this the SQL connector and the CDC
+        # pipeline-connector each pull their own copy of those shaded
+        # interfaces into ChildFirstClassLoaders, then the JM/TM hits
+        # "loader constraint violation" the first time the same shaded
+        # interface is requested through the parent loader.
+        classloader.parent-first-patterns.additional: org.apache.fluss.
+        # Prometheus reporter for the local JM/TM (the bundled JAR is
+        # copied to /opt/flink/lib/ in Dockerfile.flink). Range 9249-9259
+        # gives Flink room to pick a free port if multiple reporter
+        # instances bind on the same container; in our compose layout
+        # each JM/TM has its own container so 9249 is the steady-state
+        # port. The user-pipeline metrics path on the K8s/CRD lane is
+        # handled by `metricsPlugin` instead.
+        metrics.reporter.prometheus.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+        metrics.reporter.prometheus.port: 9249-9259
+    volumes:
+      - flink-checkpoints:/opt/flink/checkpoints
+      - flink-data:/opt/flink/data
+
+  taskmanager-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.flink
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    command: taskmanager
+    extra_hosts:
+      - "lakekeeper.localtest.me:host-gateway"
+      - "host.containers.internal:host-gateway"
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        execution.checkpointing.interval: 30s
+        execution.checkpointing.mode: EXACTLY_ONCE
+        state.backend.type: hashmap
+        state.checkpoints.dir: file:///opt/flink/checkpoints
+        s3.endpoint: http://seaweedfs:8333
+        s3.path.style.access: true
+        s3.access-key: admin
+        s3.secret-key: admin
+        # Force Fluss classes (including shaded netty under
+        # org.apache.fluss.shaded.netty4) to load via the parent
+        # AppClassLoader. Without this the SQL connector and the CDC
+        # pipeline-connector each pull their own copy of those shaded
+        # interfaces into ChildFirstClassLoaders, then the JM/TM hits
+        # "loader constraint violation" the first time the same shaded
+        # interface is requested through the parent loader.
+        classloader.parent-first-patterns.additional: org.apache.fluss.
+        # Prometheus reporter for the local JM/TM (the bundled JAR is
+        # copied to /opt/flink/lib/ in Dockerfile.flink). Range 9249-9259
+        # gives Flink room to pick a free port if multiple reporter
+        # instances bind on the same container; in our compose layout
+        # each JM/TM has its own container so 9249 is the steady-state
+        # port. The user-pipeline metrics path on the K8s/CRD lane is
+        # handled by `metricsPlugin` instead.
+        metrics.reporter.prometheus.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+        metrics.reporter.prometheus.port: 9249-9259
+    volumes:
+      - flink-checkpoints:/opt/flink/checkpoints
+      - flink-data:/opt/flink/data
+
+  sql-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.flink
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    ports:
+      - "${SQL_GATEWAY_PORT:-8083}:8083"
+    extra_hosts:
+      - "lakekeeper.localtest.me:host-gateway"
+      - "host.containers.internal:host-gateway"
+    command:
+      [
+        "bash",
+        "-c",
+        "/opt/flink/bin/sql-gateway.sh start-foreground -Dsql-gateway.endpoint.rest.address=0.0.0.0 -Dsql-gateway.endpoint.rest.port=8083 -Djobmanager.rpc.address=jobmanager -Drest.address=jobmanager -Drest.port=8081",
+      ]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/info"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  kafka:
+    image: ${KAFKA_IMAGE:-apache/kafka:3.9.0}
+    profiles:
+      - kafka
+    ports:
+      - "${KAFKA_EXTERNAL_PORT:-9094}:9094"
+    environment:
+      # KRaft mode (built-in, no Zookeeper)
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # Dual listeners: internal (for Flink) + external (for host)
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:${KAFKA_EXTERNAL_PORT:-9094}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # Single-broker KRaft: the internal topics default to RF=3 and can never
+      # be created on one broker. Without `__consumer_offsets` there is no group
+      # coordinator, so Karapace's master election never completes and every
+      # schema-registry write fails with `50003 forwarding to the master`
+      # (reads still pass — the trap). Pin all internal topics to RF=1.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Confluent-compatible Schema Registry (Karapace, Apache-2.0). Consumed by
+  # `flink-reactor schema generate` to introspect Kafka topic schemas over the
+  # published host port (default 8082 → container 8081; 8081/8083/8181 are
+  # already taken by Flink/SQL-gateway/iceberg). Karapace speaks the Confluent
+  # REST API at the root path (`/subjects/...`), which is exactly what the
+  # introspection client and the seeder POST against — no `/apis/ccompat`
+  # prefix. Rides the same `kafka` profile as the broker, so it comes up
+  # whenever `services.kafka` is declared. Pinned to a numeric tag validated
+  # against this stack (v6 restructured the entrypoint — see `command` below).
+  schema-registry:
+    image: ${SCHEMA_REGISTRY_IMAGE:-ghcr.io/aiven-open/karapace:6.2.0}
+    profiles:
+      - kafka
+    depends_on:
+      kafka:
+        condition: service_healthy
+    # Karapace 6.x boots the schema registry as a uvicorn app via the
+    # `karapace` module. The image's default CMD is `["python3"]` (a bare REPL
+    # that reads EOF and exits 0 → container never serves), and the old
+    # `karapace` console-script no longer exposes `main`. Registry-vs-rest-proxy
+    # mode is now selected by this entrypoint, not a `KARAPACE_*` env var.
+    command: ["python3", "-m", "karapace"]
+    ports:
+      - "${SCHEMA_REGISTRY_PORT:-8082}:8081"
+    environment:
+      KARAPACE_BOOTSTRAP_URI: kafka:9092
+      KARAPACE_PORT: 8081
+      KARAPACE_HOST: 0.0.0.0
+      # `registry_host`/`registry_port` is the address Karapace advertises as
+      # the master and forwards writes to; on a single node it must resolve to
+      # this service on the compose network.
+      KARAPACE_REGISTRY_HOST: schema-registry
+      KARAPACE_REGISTRY_PORT: 8081
+      KARAPACE_CLIENT_ID: fr-schema-registry
+      KARAPACE_GROUP_ID: fr-schema-registry
+      KARAPACE_MASTER_ELIGIBILITY: "true"
+      KARAPACE_TOPIC_NAME: _schemas
+      KARAPACE_COMPATIBILITY: FULL
+      KARAPACE_LOG_LEVEL: WARNING
+    # Gate on write-readiness, not mere reachability. `/subjects` (200 in ~2s)
+    # and `/_health`'s status code (200 in ~10s) both flip green long before
+    # Karapace finishes electing a master (~60-70s cold on a single broker),
+    # and until then every write returns `50003 forwarding to the master`. The
+    # `/_health` body's `schema_registry_is_primary` is the only field that
+    # tracks election, so assert it. `start_period` covers the election window
+    # so those early not-primary checks don't count as failures.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python3 -c \"import urllib.request,json,sys; d=json.load(urllib.request.urlopen('http://localhost:8081/_health')); sys.exit(0 if d.get('status',{}).get('schema_registry_is_primary') else 1)\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  postgres:
+    # Pre-baked image: PGDATA is populated at build time so `fr down
+    # --volumes && fr up` is seconds, not minutes. See
+    # src/cli/cluster/Dockerfile.postgres for the bake mechanics. The
+    # `image:` tag is reused as the build's cache key — Docker rebuilds
+    # only when the build context (init/) changes.
+    image: flink-reactor-postgres:tsdb-pg17
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+      args:
+        BASE_IMAGE: timescale/timescaledb:latest-pg17
+    container_name: flink-reactor-postgres
+    # wal_level=logical + matching senders/slots are required for the
+    # Postgres CDC Pipeline Connector consumed by the pg-fluss-paimon
+    # template. See OpenSpec change 53-prepare-postgres-for-cdc. These
+    # CLI flags override the bulk-load-friendly flags used at bake time
+    # (CLI flags are read fresh on every start; not persisted in PGDATA).
+    command: postgres -c shared_preload_libraries=timescaledb -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
+    profiles:
+      - timescaledb
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: reactor
+      POSTGRES_PASSWORD: reactor
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reactor -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  postgres-plain:
+    image: flink-reactor-postgres:plain-pg17
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+      args:
+        BASE_IMAGE: postgres:17-alpine
+    container_name: flink-reactor-postgres
+    # See `postgres` service above for rationale on wal_level=logical etc.
+    command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
+    profiles:
+      - postgres-plain
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: reactor
+      POSTGRES_PASSWORD: reactor
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reactor -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    command: server -s3 -s3.config=/etc/seaweedfs/s3.json -dir=/data
+    ports:
+      - "${SEAWEEDFS_S3_PORT:-8333}:8333"
+      - "${SEAWEEDFS_MASTER_PORT:-9333}:9333"
+      - "${SEAWEEDFS_FILER_PORT:-8888}:8888"
+    volumes:
+      - seaweedfs-data:/data
+      - ./seaweedfs-s3-config.json:/etc/seaweedfs/s3.json:ro
+    networks:
+      default:
+        aliases:
+          - seaweedfs.flink-demo.svc
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:8333/ | head -c 1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  seaweedfs-init:
+    image: amazon/aws-cli:2.22.0
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint:
+      - sh
+      - -c
+      - "aws --endpoint-url http://seaweedfs:8333 s3 mb s3://flink-state 2>/dev/null || true"
+    restart: "no"
+
+  # ── Apache Fluss (ZK + CoordinatorServer + 3× TabletServer) ──────────
+  # Mirrors `src/cli/sim/manifests/{10-zookeeper-fluss,11-fluss}.yaml` so
+  # `pg-fluss-paimon` pipelines run unmodified across both lanes. The
+  # `fluss-config/server.yaml` mount is a symlink to the canonical
+  # `src/cli/sim/fluss-config/server.yaml` — single source of truth.
+  zookeeper-fluss:
+    image: zookeeper:3.9
+    profiles:
+      - fluss
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper-fluss:2888:3888;2181
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+      # ZK 3.5+ disables 4-letter-word commands by default. The healthcheck
+      # below uses `ruok`; without this whitelist the server silently
+      # rejects the probe and the container never becomes healthy. Mirrors
+      # `src/cli/sim/manifests/10-zookeeper-fluss.yaml`'s `zk-fluss-config`
+      # ConfigMap.
+      ZOO_4LW_COMMANDS_WHITELIST: "ruok,mntr,srvr,stat"
+      ZOO_TICK_TIME: "2000"
+      ZOO_INIT_LIMIT: "10"
+      ZOO_SYNC_LIMIT: "5"
+    volumes:
+      - zk-fluss-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc -w 2 localhost 2181 | grep -q imok"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  fluss-coordinator:
+    image: apache/fluss:0.9.0-incubating
+    profiles:
+      - fluss
+    depends_on:
+      zookeeper-fluss:
+        condition: service_healthy
+    ports:
+      - "${FLUSS_COORDINATOR_PORT:-9123}:9123"
+    # Single-node ZK in Docker; the shared server.yaml's zookeeper.address
+    # (3-entry list, sized for minikube) is overridden per-lane via -D on
+    # the command. We do NOT use FLUSS_PROPERTIES here: the entrypoint's
+    # sed-based merge needs to rename server.yaml in place, which fails
+    # against the :ro bind mount and silently drops the override.
+    environment:
+      FLUSS_HOME: /opt/fluss
+    command:
+      - sh
+      - -c
+      - |
+        exec /opt/fluss/bin/coordinator-server.sh start-foreground \
+          -D zookeeper.address=zookeeper-fluss:2181
+    volumes:
+      - ./fluss-config/server.yaml:/opt/fluss/conf/server.yaml:ro
+      - fluss-coordinator-data:/tmp/fluss-data
+    healthcheck:
+      # The apache/fluss image ships *without* `nc`, `ss`, or `netstat`,
+      # so we use bash's `/dev/tcp` builtin (bash IS in the image).
+      # Fluss binds Netty to the resolved address of `coordinator.host`
+      # — an IPv4-mapped IPv6 socket on the container's external IP —
+      # not loopback. `hostname -i` returns that IP directly, sidestepping
+      # any /etc/hosts/DNS quirks. `$$(...)` escapes compose's `$`
+      # interpolation so bash inside the container does the expansion.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/$$(hostname -i)/9123'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      # Generous warmup window: a cold image pull + JVM start + ZK
+      # connection can run 60–90s on first run. During start_period,
+      # failed probes don't count toward `retries` — past it, we still
+      # have 20 × 5s = 100s of post-warmup tolerance before declaring
+      # unhealthy.
+      start_period: 90s
+
+  fluss-tabletserver-1:
+    image: apache/fluss:0.9.0-incubating
+    profiles:
+      - fluss
+    depends_on:
+      fluss-coordinator:
+        condition: service_healthy
+    environment:
+      FLUSS_HOME: /opt/fluss
+    # Per-tablet id/host plus the lane-specific zookeeper.address all go
+    # through `-D` overrides — see fluss-coordinator for why FLUSS_PROPERTIES
+    # is unusable here.
+    command:
+      - sh
+      - -c
+      - |
+        exec /opt/fluss/bin/tablet-server.sh start-foreground \
+          -D zookeeper.address=zookeeper-fluss:2181 \
+          -D tablet-server.id=1 \
+          -D tablet-server.host=fluss-tabletserver-1
+    volumes:
+      - ./fluss-config/server.yaml:/opt/fluss/conf/server.yaml:ro
+      - fluss-tablet-1-data:/tmp/fluss-data
+    healthcheck:
+      # Same rationale as fluss-coordinator's healthcheck above —
+      # bash's `/dev/tcp` because nc isn't in the apache/fluss image,
+      # `hostname -i` because Netty binds to the container's IP not
+      # loopback. Tablet servers listen on 9124.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/$$(hostname -i)/9124'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 90s
+
+  fluss-tabletserver-2:
+    image: apache/fluss:0.9.0-incubating
+    profiles:
+      - fluss
+    depends_on:
+      fluss-coordinator:
+        condition: service_healthy
+    environment:
+      FLUSS_HOME: /opt/fluss
+    command:
+      - sh
+      - -c
+      - |
+        exec /opt/fluss/bin/tablet-server.sh start-foreground \
+          -D zookeeper.address=zookeeper-fluss:2181 \
+          -D tablet-server.id=2 \
+          -D tablet-server.host=fluss-tabletserver-2
+    volumes:
+      - ./fluss-config/server.yaml:/opt/fluss/conf/server.yaml:ro
+      - fluss-tablet-2-data:/tmp/fluss-data
+    healthcheck:
+      # Same rationale as fluss-coordinator's healthcheck above —
+      # bash's `/dev/tcp` because nc isn't in the apache/fluss image,
+      # `hostname -i` because Netty binds to the container's IP not
+      # loopback. Tablet servers listen on 9124.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/$$(hostname -i)/9124'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 90s
+
+  fluss-tabletserver-3:
+    image: apache/fluss:0.9.0-incubating
+    profiles:
+      - fluss
+    depends_on:
+      fluss-coordinator:
+        condition: service_healthy
+    environment:
+      FLUSS_HOME: /opt/fluss
+    command:
+      - sh
+      - -c
+      - |
+        exec /opt/fluss/bin/tablet-server.sh start-foreground \
+          -D zookeeper.address=zookeeper-fluss:2181 \
+          -D tablet-server.id=3 \
+          -D tablet-server.host=fluss-tabletserver-3
+    volumes:
+      - ./fluss-config/server.yaml:/opt/fluss/conf/server.yaml:ro
+      - fluss-tablet-3-data:/tmp/fluss-data
+    healthcheck:
+      # Same rationale as fluss-coordinator's healthcheck above —
+      # bash's `/dev/tcp` because nc isn't in the apache/fluss image,
+      # `hostname -i` because Netty binds to the container's IP not
+      # loopback. Tablet servers listen on 9124.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/$$(hostname -i)/9124'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 90s
+
+  # Creates the `lakekeeper` Postgres database before Lakekeeper boots.
+  # Idempotent — uses pg_database lookup before issuing CREATE.
+  #
+  # `depends_on` lists BOTH postgres flavors. Compose drops the inactive
+  # one silently (it's filtered out by the postgres flavor profile), so
+  # whichever flavor is active gates this init's start. The polling loop
+  # below is belt-and-braces — same `flink-reactor-postgres` container
+  # name is used by both flavors, so the connection target is stable.
+  lakekeeper-pg-init:
+    image: postgres:17-alpine
+    profiles:
+      - iceberg
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+      postgres-plain:
+        condition: service_healthy
+        required: false
+    environment:
+      PGPASSWORD: reactor
+    entrypoint:
+      - sh
+      - -c
+      - |
+        until pg_isready -h flink-reactor-postgres -U reactor; do
+          echo "Waiting for Postgres..."; sleep 2;
+        done
+        psql -h flink-reactor-postgres -U reactor -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='lakekeeper'" | grep -q 1 || \
+          psql -h flink-reactor-postgres -U reactor -d postgres -c 'CREATE DATABASE lakekeeper'
+    restart: "no"
+
+  # Runs Lakekeeper's DB migrations once before the main server starts.
+  # Idempotent — re-running on an already-migrated DB is a no-op.
+  lakekeeper-migrate:
+    image: quay.io/lakekeeper/catalog:latest
+    profiles:
+      - iceberg
+    depends_on:
+      lakekeeper-pg-init:
+        condition: service_completed_successfully
+    environment:
+      LAKEKEEPER__PG_DATABASE_URL_READ: postgres://reactor:reactor@flink-reactor-postgres:5432/lakekeeper
+      LAKEKEEPER__PG_DATABASE_URL_WRITE: postgres://reactor:reactor@flink-reactor-postgres:5432/lakekeeper
+      LAKEKEEPER__PG_ENCRYPTION_KEY: dev-only-not-secret
+      RUST_LOG: info
+    command: ["migrate"]
+    restart: "no"
+
+  # Service name kept as `iceberg-rest` for backward-compat with iceberg-init.ts
+  # and minikube manifests; the image is Lakekeeper, which serves the catalog
+  # at /catalog/v1, the management API at /management/v1, and a UI at /ui.
+  iceberg-rest:
+    image: quay.io/lakekeeper/catalog:latest
+    profiles:
+      - iceberg
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+      lakekeeper-migrate:
+        condition: service_completed_successfully
+    ports:
+      - "${ICEBERG_REST_PORT:-8181}:8181"
+    environment:
+      LAKEKEEPER__PG_DATABASE_URL_READ: postgres://reactor:reactor@flink-reactor-postgres:5432/lakekeeper
+      LAKEKEEPER__PG_DATABASE_URL_WRITE: postgres://reactor:reactor@flink-reactor-postgres:5432/lakekeeper
+      LAKEKEEPER__PG_ENCRYPTION_KEY: dev-only-not-secret
+      # `lakekeeper.localtest.me` resolves to 127.0.0.1 via public DNS (works
+      # in any browser without /etc/hosts edits). Inside containers we
+      # override DNS via extra_hosts so the same URL routes to the host
+      # gateway. One URL satisfies the in-network Flink client AND the
+      # browser-served UI — making the UI's API calls same-origin.
+      LAKEKEEPER__BASE_URI: http://lakekeeper.localtest.me:8181
+      LAKEKEEPER__AUTHZ_BACKEND: allow-all
+      RUST_LOG: info
+    command: ["serve"]
+    # No in-container healthcheck — Lakekeeper's image is distroless (no shell,
+    # no wget/curl). Liveness is verified externally by health-check.ts, and
+    # downstream waits go through `iceberg-rest-init` which polls /health.
+
+  # One-shot bootstrap: wait for Lakekeeper's /health, accept terms, then
+  # register the warehouse pointing at SeaweedFS. Idempotent — re-runs return
+  # 409 / 404, which we swallow.
+  iceberg-rest-init:
+    image: curlimages/curl:8.10.1
+    profiles:
+      - iceberg
+    depends_on:
+      iceberg-rest:
+        condition: service_started
+    entrypoint:
+      - sh
+      - -c
+      - |
+        set -e
+        until curl -fsS http://iceberg-rest:8181/health >/dev/null 2>&1; do
+          echo "Waiting for Lakekeeper..."; sleep 2;
+        done
+        curl -fsS -X POST http://iceberg-rest:8181/management/v1/bootstrap \
+          -H 'content-type: application/json' \
+          -d '{"accept-terms-of-use":true}' || true
+        curl -fsS -X POST http://iceberg-rest:8181/management/v1/warehouse \
+          -H 'content-type: application/json' \
+          -d '{
+            "warehouse-name":"flink-warehouse",
+            "project-id":"00000000-0000-0000-0000-000000000000",
+            "storage-profile":{
+              "type":"s3",
+              "bucket":"flink-state",
+              "key-prefix":"warehouse",
+              "endpoint":"http://seaweedfs:8333",
+              "region":"us-east-1",
+              "path-style-access":true,
+              "flavor":"minio",
+              "sts-enabled":false
+            },
+            "storage-credential":{
+              "type":"s3",
+              "credential-type":"access-key",
+              "aws-access-key-id":"admin",
+              "aws-secret-access-key":"admin"
+            }
+          }' || true
+    restart: "no"
+
+  # ── Observability (Prometheus + Grafana) ─────────────────────────────
+  # Opt-in via `services.grafana: {}` in flink-reactor.config.ts. Both
+  # services share the `observability` profile so a single profile flag
+  # brings up the pair. Grafana auto-provisions a Prometheus datasource
+  # plus dashboards from `./observability/grafana/provisioning/` and
+  # ships a Gruvppuccin theme matching FlinkReactor Console.
+  prometheus:
+    image: ${PROMETHEUS_IMAGE:-prom/prometheus:v2.55.1}
+    profiles:
+      - observability
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=24h"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  grafana:
+    image: ${GRAFANA_IMAGE:-grafana/grafana:11.4.0}
+    profiles:
+      - observability
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_DEFAULT_THEME: dark
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - ./observability/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./observability/grafana/theme:/etc/grafana/theme:ro
+      # Fonts also bind into Grafana's static-asset path — Grafana only
+      # serves files under /usr/share/grafana/public/, so the @font-face
+      # `url()` references in gruvppuccin.css resolve from there.
+      - ./observability/grafana/theme/fonts:/usr/share/grafana/public/fr-fonts:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      # Grafana's `/api/health` returns JSON like `{"database":"ok",...}`.
+      # `wget -q -O-` fetches without writing a file; grep verifies the
+      # database key is OK before the container is considered healthy.
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:3000/api/health | grep -q '\"database\":\"ok\"'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  flink-checkpoints:
+  flink-data:
+  postgres-data:
+  seaweedfs-data:
+  zk-fluss-data:
+  fluss-coordinator-data:
+  fluss-tablet-1-data:
+  fluss-tablet-2-data:
+  fluss-tablet-3-data:
+  prometheus-data:
+  grafana-data:

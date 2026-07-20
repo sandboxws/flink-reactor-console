@@ -1,0 +1,377 @@
+import type { ScaffoldOptions, TemplateFile } from "@/cli/commands/new.js"
+import {
+  pipelineReadme,
+  sharedFiles,
+  templatePipelineTestStub,
+  templateReadme,
+} from "./shared.js"
+
+export function getLakehouseIngestionTemplates(
+  opts: ScaffoldOptions,
+): TemplateFile[] {
+  return [
+    ...sharedFiles(opts),
+    {
+      path: "flink-reactor.config.ts",
+      content: `import { defineConfig } from '@flink-reactor/dsl';
+
+export default defineConfig({
+  flink: { version: '${opts.flinkVersion}' },
+
+  // Lakehouse ingestion: Kafka events land in Iceberg. \`schemaRegistryUrl\` is
+  // the bundled registry's host port — read by \`fr schema generate\`, not the
+  // runtime connectors (which read the topics with \`format="json"\`, registry-free).
+  services: { kafka: { bootstrapServers: 'kafka:9092', schemaRegistryUrl: 'http://localhost:8082' }, iceberg: {} },
+
+  // \`sources\` powers \`fr schema generate\`: introspect each landing topic's row
+  // schema from the registry and emit \`schemas/<name>.ts\`. All three shipped
+  // schemas also carry a watermark, which introspection can't infer — re-add it
+  // after regenerating with \`--force\`.
+  sources: {
+    events: { type: 'kafka', topic: 'lake.events' },
+    clickstream: { type: 'kafka', topic: 'lake.clickstream' },
+    transactions: { type: 'kafka', topic: 'lake.transactions' },
+  },
+
+  environments: {
+    minikube: {
+      cluster: { url: 'http://localhost:8081' },
+      sim: {
+        init: {
+          iceberg: { databases: ['raw'] },
+          kafka: {
+            catalogs: [
+              {
+                name: 'lake',
+                tables: [
+                  {
+                    table: 'events',
+                    topic: 'lake.events',
+                    columns: {
+                      eventId: 'STRING',
+                      userId: 'STRING',
+                      eventType: 'STRING',
+                      payload: 'STRING',
+                      eventTime: 'TIMESTAMP(3)',
+                    },
+                    format: 'json',
+                    watermark: { column: 'eventTime', expression: "eventTime - INTERVAL '5' SECOND" },
+                  },
+                  {
+                    table: 'clickstream',
+                    topic: 'lake.clickstream',
+                    columns: {
+                      sessionId: 'STRING',
+                      userId: 'STRING',
+                      pageUrl: 'STRING',
+                      referrer: 'STRING',
+                      userAgent: 'STRING',
+                      clickTime: 'TIMESTAMP(3)',
+                    },
+                    format: 'json',
+                    watermark: { column: 'clickTime', expression: "clickTime - INTERVAL '5' SECOND" },
+                  },
+                  {
+                    table: 'transactions',
+                    topic: 'lake.transactions',
+                    columns: {
+                      txnId: 'STRING',
+                      accountId: 'STRING',
+                      amount: 'DOUBLE',
+                      currency: 'STRING',
+                      txnType: 'STRING',
+                      txnTime: 'TIMESTAMP(3)',
+                    },
+                    format: 'json',
+                    watermark: { column: 'txnTime', expression: "txnTime - INTERVAL '5' SECOND" },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      pipelines: { '*': { parallelism: 4 } },
+    },
+    production: {
+      cluster: { url: 'https://flink-prod:8081' },
+      kubernetes: { namespace: 'flink-prod' },
+      pipelines: { '*': { parallelism: 4 } },
+    },
+  },
+});
+`,
+    },
+
+    // ── Schemas ──────────────────────────────────────────────────────
+
+    {
+      // Row schema for the `lake.events` topic (source `events`). Single-export
+      // so `fr schema generate events --force` regenerates it cleanly.
+      path: "schemas/events.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
+
+export const EventsSchema = Schema({
+  fields: {
+    eventId: Field.STRING(),
+    userId: Field.STRING(),
+    eventType: Field.STRING(),
+    payload: Field.STRING(),
+    eventTime: Field.TIMESTAMP(3),
+  },
+  watermark: { column: 'eventTime', expression: "eventTime - INTERVAL '5' SECOND" },
+});
+`,
+    },
+    {
+      // Row schema for the `lake.clickstream` topic (source `clickstream`).
+      // Single-export so `fr schema generate clickstream --force` regenerates it cleanly.
+      path: "schemas/clickstream.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
+
+export const ClickstreamSchema = Schema({
+  fields: {
+    sessionId: Field.STRING(),
+    userId: Field.STRING(),
+    pageUrl: Field.STRING(),
+    referrer: Field.STRING(),
+    userAgent: Field.STRING(),
+    clickTime: Field.TIMESTAMP(3),
+  },
+  watermark: { column: 'clickTime', expression: "clickTime - INTERVAL '5' SECOND" },
+});
+`,
+    },
+    {
+      // Row schema for the `lake.transactions` topic (source `transactions`).
+      // Single-export so `fr schema generate transactions --force` regenerates it cleanly.
+      path: "schemas/transactions.ts",
+      content: `import { Schema, Field } from '@flink-reactor/dsl';
+
+export const TransactionsSchema = Schema({
+  fields: {
+    txnId: Field.STRING(),
+    accountId: Field.STRING(),
+    amount: Field.DOUBLE(),
+    currency: Field.STRING(),
+    txnType: Field.STRING(),
+    txnTime: Field.TIMESTAMP(3),
+  },
+  watermark: { column: 'txnTime', expression: "txnTime - INTERVAL '5' SECOND" },
+});
+`,
+    },
+
+    // ── Pipeline: Multi-topic Kafka → Iceberg raw landing ───────────
+
+    {
+      path: "pipelines/lakehouse-ingest/index.tsx",
+      content: `import {
+  Pipeline,
+  KafkaSource,
+  IcebergCatalog,
+  IcebergSink,
+  StatementSet,
+} from '@flink-reactor/dsl';
+import { EventsSchema } from '@/schemas/events';
+import { ClickstreamSchema } from '@/schemas/clickstream';
+import { TransactionsSchema } from '@/schemas/transactions';
+
+// Iceberg REST catalog backed by SeaweedFS S3 storage
+const iceberg = IcebergCatalog({
+  name: "lakehouse",
+  catalogType: "rest",
+  uri: "http://lakekeeper.localtest.me:8181/catalog",
+  warehouse: "flink-warehouse",
+});
+
+export default (
+  <Pipeline
+    name="lakehouse-ingest"
+    mode="streaming"
+    parallelism={4}
+    stateBackend="rocksdb"
+    checkpoint={{ interval: "60s", mode: "exactly-once" }}
+    flinkConfig={{
+      "state.checkpoints.dir": "s3://flink-state/checkpoints/lakehouse-ingest",
+      "state.savepoints.dir": "s3://flink-state/savepoints/lakehouse-ingest",
+      "s3.endpoint": "http://seaweedfs.flink-demo.svc:8333",
+      "s3.path.style.access": "true",
+    }}
+  >
+    {iceberg.node}
+
+    <StatementSet>
+      {/* Events → Iceberg raw_events (append-only) */}
+      <KafkaSource
+        topic="lake.events"
+        schema={EventsSchema}
+        bootstrapServers="kafka:9092"
+        consumerGroup="lake-ingest-events"
+      />
+      <IcebergSink
+        catalog={iceberg.handle}
+        database="raw"
+        table="events"
+      />
+
+      {/* Clickstream → Iceberg raw_clickstream (append-only) */}
+      <KafkaSource
+        topic="lake.clickstream"
+        schema={ClickstreamSchema}
+        bootstrapServers="kafka:9092"
+        consumerGroup="lake-ingest-clicks"
+      />
+      <IcebergSink
+        catalog={iceberg.handle}
+        database="raw"
+        table="clickstream"
+      />
+
+      {/* Transactions → Iceberg raw_transactions (append-only) */}
+      <KafkaSource
+        topic="lake.transactions"
+        schema={TransactionsSchema}
+        bootstrapServers="kafka:9092"
+        consumerGroup="lake-ingest-txn"
+      />
+      <IcebergSink
+        catalog={iceberg.handle}
+        database="raw"
+        table="transactions"
+      />
+    </StatementSet>
+  </Pipeline>
+);
+`,
+    },
+
+    // ── Data Pump: DataGen → Kafka for all lakehouse topics ─────────
+
+    {
+      path: "pipelines/pump-lakehouse/index.tsx",
+      content: `import {
+  Pipeline,
+  DataGenSource,
+  KafkaSink,
+  StatementSet,
+} from '@flink-reactor/dsl';
+import { EventsSchema } from '@/schemas/events';
+import { ClickstreamSchema } from '@/schemas/clickstream';
+import { TransactionsSchema } from '@/schemas/transactions';
+
+export default (
+  <Pipeline
+    name="pump-lakehouse"
+    mode="streaming"
+    parallelism={2}
+    stateBackend="rocksdb"
+    checkpoint={{ interval: "60s", mode: "exactly-once" }}
+    flinkConfig={{
+      "state.checkpoints.dir": "s3://flink-state/checkpoints/pump-lakehouse",
+      "state.savepoints.dir": "s3://flink-state/savepoints/pump-lakehouse",
+      "s3.endpoint": "http://seaweedfs.flink-demo.svc:8333",
+      "s3.path.style.access": "true",
+    }}
+  >
+    <StatementSet>
+      <DataGenSource schema={EventsSchema} rowsPerSecond={3000} />
+      <KafkaSink topic="lake.events" bootstrapServers="kafka:9092" />
+
+      <DataGenSource schema={ClickstreamSchema} rowsPerSecond={5000} />
+      <KafkaSink topic="lake.clickstream" bootstrapServers="kafka:9092" />
+
+      <DataGenSource schema={TransactionsSchema} rowsPerSecond={1000} />
+      <KafkaSink topic="lake.transactions" bootstrapServers="kafka:9092" />
+    </StatementSet>
+  </Pipeline>
+);
+`,
+    },
+
+    // ── Per-pipeline READMEs ──────────────────────────────────────────
+
+    pipelineReadme({
+      pipelineName: "lakehouse-ingest",
+      tagline:
+        "Three Kafka topics (events, clickstream, transactions) ingested into three Iceberg raw-landing tables under one shared catalog.",
+      demonstrates: [
+        "`<IcebergCatalog>` declaration referencing a REST catalog backed by SeaweedFS S3 storage.",
+        "`<StatementSet>` running three `<KafkaSource>` → `<IcebergSink>` flows in a single Flink job — efficient when many lightweight ingest jobs would otherwise be deployed separately.",
+        "All three sinks land in `raw.<table>` (default Iceberg format v1, append-only — bronze layer).",
+      ],
+      topology: `IcebergCatalog (REST → SeaweedFS S3 warehouse)
+  └── StatementSet
+        ├── KafkaSource (lake.events)        ─► IcebergSink (raw.events)
+        ├── KafkaSource (lake.clickstream)   ─► IcebergSink (raw.clickstream)
+        └── KafkaSource (lake.transactions)  ─► IcebergSink (raw.transactions)`,
+      schemas: [
+        "`schemas/events.ts` — `EventsSchema`; `schemas/clickstream.ts` — `ClickstreamSchema`; `schemas/transactions.ts` — `TransactionsSchema` (each with their own watermark)",
+      ],
+      runCommand: `pnpm synth
+pnpm test`,
+    }),
+    pipelineReadme({
+      pipelineName: "pump-lakehouse",
+      tagline:
+        "Internal data-generator pipeline that pumps synthetic events, clickstream, and transactions into the corresponding Kafka topics.",
+      demonstrates: [
+        "Three `<DataGenSource>` driving three `<KafkaSink>` inside a single `<StatementSet>`.",
+        "Bundle-internal pump pattern (no upstream Apache Flink source — exists only to feed `lakehouse-ingest` on the local sim).",
+      ],
+      topology: `DataGenSource (Event)        ─► KafkaSink (lake.events)
+DataGenSource (Clickstream)  ─► KafkaSink (lake.clickstream)
+DataGenSource (Transaction)  ─► KafkaSink (lake.transactions)`,
+      schemas: [
+        "`schemas/events.ts`, `schemas/clickstream.ts`, `schemas/transactions.ts` — same schemas the consumer reads",
+      ],
+      runCommand: `pnpm synth
+pnpm test`,
+    }),
+
+    // ── Tests ─────────────────────────────────────────────────────────
+
+    templatePipelineTestStub({
+      pipelineName: "lakehouse-ingest",
+      loadBearingPatterns: [/iceberg/i, /INSERT INTO/i, /raw/i],
+    }),
+    templatePipelineTestStub({
+      pipelineName: "pump-lakehouse",
+      loadBearingPatterns: [/INSERT INTO/i, /datagen/i],
+    }),
+
+    // ── Project-root README ───────────────────────────────────────────
+
+    templateReadme({
+      templateName: "lakehouse-ingestion",
+      tagline:
+        "Multi-topic Kafka → Iceberg raw-landing pipeline plus an internal data pump. Three append-only ingest flows fan into one Flink job via `<StatementSet>`, all landing in the `raw` Iceberg database under a REST catalog backed by SeaweedFS S3 storage.",
+      pipelines: [
+        {
+          name: "lakehouse-ingest",
+          pitch:
+            "Three Kafka topics → three Iceberg `raw.<table>` sinks in one `<StatementSet>` Flink job.",
+        },
+        {
+          name: "pump-lakehouse",
+          pitch:
+            "Internal DataGen → Kafka pump for events, clickstream, and transactions topics.",
+        },
+      ],
+      prerequisites: [
+        "Deploy the Iceberg REST catalog: `kubectl apply -f deploy/minikube/07-iceberg-rest.yaml`",
+        "Create the Iceberg `raw` database via the Flink SQL Gateway (the README's Prerequisites section in the scaffolded project shows the exact `CREATE CATALOG ... CREATE DATABASE` block).",
+      ],
+      gettingStarted: [
+        "pnpm install",
+        "flink-reactor synth          # Preview generated SQL",
+        "flink-reactor deploy --env dev",
+        "# Optional: regenerate the source schemas from the seeded Kafka topics",
+        "pnpm fr cluster up",
+        "pnpm fr schema generate events",
+        "pnpm fr schema generate clickstream",
+        "pnpm fr schema generate transactions",
+      ],
+    }),
+  ]
+}

@@ -1,0 +1,19 @@
+# PostgreSQL sample database seeder for the sim stack.
+# Bakes pre-patched SQL dumps into a psql-capable image.
+#
+# Build (from flink-reactor-dsl repo root, inside minikube docker-env):
+#   eval $(minikube docker-env)
+#   docker build -t pg-init:latest -f src/cli/sim/Dockerfile.pg-init src/cli/cluster/init
+
+FROM timescale/timescaledb:latest-pg17
+
+COPY pagila.sql chinook.sql employees.sql /data/
+# tpch.sql ships gzipped (SF=0.1 ≈ 100MB uncompressed). The wildcard
+# tolerates either tpch.sql or tpch.sql.gz being present at build time
+# so an unzipped dev copy still works.
+COPY tpch.sql* /data/
+COPY pg-cdc-bootstrap.sql /data/
+COPY pg-seed.sh /scripts/seed.sh
+RUN chmod +x /scripts/seed.sh
+
+ENTRYPOINT ["/scripts/seed.sh"]

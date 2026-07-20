@@ -1,0 +1,606 @@
+{
+  "name": "flink-reactor",
+  "displayName": "FlinkReactor",
+  "version": "0.1.0",
+  "description": "VS Code support for FlinkReactor \u2014 synthesis-backed diagnostics, ts-plugin auto-configuration, and one-step onboarding for TSX Flink pipelines",
+  "license": "BSL-1.1",
+  "publisher": "flink-reactor",
+  "author": "Ahmed El.Hussaini <328866+sandboxws@users.noreply.github.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandboxws/flink-reactor-dsl.git",
+    "directory": "packages/vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/sandboxws/flink-reactor-dsl/issues"
+  },
+  "homepage": "https://github.com/sandboxws/flink-reactor-dsl/tree/main/packages/vscode-extension#readme",
+  "keywords": [
+    "flink",
+    "flink-reactor",
+    "lsp",
+    "tsx",
+    "streaming",
+    "kafka"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0",
+    "node": ">=20"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:typescriptreact",
+    "workspaceContains:flink-reactor.config.ts"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "flinkReactor.configureTsPlugin",
+        "title": "Configure ts-plugin in tsconfig.json",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.useWorkspaceTypeScript",
+        "title": "Use Workspace TypeScript Version",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.restartServer",
+        "title": "Restart Language Server",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.showOutput",
+        "title": "Show Output",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.openGraph",
+        "title": "Open Pipeline DAG",
+        "category": "FlinkReactor",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "flinkReactor.showSqlPreview",
+        "title": "Show SQL Preview",
+        "category": "FlinkReactor",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "flinkReactor.openCrdPreview",
+        "title": "Open CRD Preview",
+        "category": "FlinkReactor",
+        "icon": "$(symbol-namespace)"
+      },
+      {
+        "command": "flinkReactor.deepValidate",
+        "title": "Deep Validate Pipeline (SQL Gateway)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.refreshSchemaExplorer",
+        "title": "Refresh Schema Explorer",
+        "category": "FlinkReactor",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "flinkReactor.openTaps",
+        "title": "Open Pipeline Taps",
+        "category": "FlinkReactor",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "flinkReactor.toggleTapOverlay",
+        "title": "Toggle Tap Overlay on DAG",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.openDesigner",
+        "title": "Open Pipeline Designer",
+        "category": "FlinkReactor",
+        "icon": "$(layout)"
+      },
+      {
+        "command": "flinkReactor.synth",
+        "title": "Synth",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.validate",
+        "title": "Validate",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.graph",
+        "title": "Graph",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.schema",
+        "title": "Schema",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.deploy",
+        "title": "Deploy",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.up",
+        "title": "Up (start local cluster)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.down",
+        "title": "Down (stop local cluster)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.status",
+        "title": "Status",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.stop",
+        "title": "Stop Job",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.resume",
+        "title": "Resume Job",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.savepoint",
+        "title": "Savepoint",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.doctor",
+        "title": "Doctor",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.dev",
+        "title": "Dev (watch mode)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.stopDev",
+        "title": "Stop Dev",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.selectEnvironment",
+        "title": "Select Environment",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.runPipelineTests",
+        "title": "Run Pipeline Tests",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.updatePipelineSnapshots",
+        "title": "Update Pipeline Snapshots (vitest --update)",
+        "category": "FlinkReactor"
+      },
+      {
+        "command": "flinkReactor.openSqlGoldenDiff",
+        "title": "Open SQL Snapshot Golden Diff",
+        "category": "FlinkReactor"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "flink-reactor",
+        "required": [
+          "verb"
+        ],
+        "properties": {
+          "verb": {
+            "type": "string",
+            "description": "The flink-reactor CLI verb (synth, validate, deploy, dev, …)"
+          },
+          "pipeline": {
+            "type": "string",
+            "description": "Pipeline name passed as -p <pipeline>"
+          },
+          "env": {
+            "type": "string",
+            "description": "Environment passed as --env <env>"
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Extra flags appended verbatim"
+          }
+        }
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "flink-reactor",
+        "label": "FlinkReactor CLI diagnostics",
+        "owner": "flink-reactor-cli",
+        "source": "flink-reactor-cli",
+        "applyTo": "allDocuments",
+        "clear": true,
+        "fileLocation": [
+          "autoDetect",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^\\s*(.+?):(\\d+):(\\d+)\\s+(error|warning)\\s+(FR[A-Za-z0-9-]*)\\s+(.+)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "code": 5,
+          "message": 6
+        }
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "flinkReactor",
+          "title": "FlinkReactor",
+          "icon": "media/schema-explorer.svg"
+        }
+      ]
+    },
+    "views": {
+      "flinkReactor": [
+        {
+          "id": "flinkReactor.schemaExplorer",
+          "name": "Schema Explorer",
+          "contextualTitle": "FlinkReactor"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "flinkReactor.refreshSchemaExplorer",
+          "when": "view == flinkReactor.schemaExplorer",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "flinkReactor.openGraph",
+          "when": "flinkReactor.isPipeline",
+          "group": "navigation"
+        },
+        {
+          "command": "flinkReactor.showSqlPreview",
+          "when": "flinkReactor.isPipeline",
+          "group": "navigation"
+        },
+        {
+          "command": "flinkReactor.openCrdPreview",
+          "when": "flinkReactor.isPipeline",
+          "group": "navigation"
+        },
+        {
+          "command": "flinkReactor.openTaps",
+          "when": "flinkReactor.isPipeline",
+          "group": "navigation"
+        },
+        {
+          "command": "flinkReactor.openDesigner",
+          "when": "flinkReactor.isPipeline",
+          "group": "navigation"
+        }
+      ],
+      "testing/item/context": [
+        {
+          "command": "flinkReactor.updatePipelineSnapshots",
+          "when": "controllerId == 'flinkReactor.pipelineTests'"
+        },
+        {
+          "command": "flinkReactor.openSqlGoldenDiff",
+          "when": "controllerId == 'flinkReactor.pipelineTests'"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "flinkReactor.openGraph",
+          "when": "flinkReactor.isPipeline"
+        },
+        {
+          "command": "flinkReactor.showSqlPreview",
+          "when": "flinkReactor.isPipeline"
+        },
+        {
+          "command": "flinkReactor.openCrdPreview",
+          "when": "flinkReactor.isPipeline"
+        },
+        {
+          "command": "flinkReactor.deepValidate",
+          "when": "flinkReactor.isPipeline"
+        },
+        {
+          "command": "flinkReactor.openTaps",
+          "when": "flinkReactor.isPipeline"
+        },
+        {
+          "command": "flinkReactor.toggleTapOverlay"
+        },
+        {
+          "command": "flinkReactor.openDesigner",
+          "when": "flinkReactor.isPipeline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "FlinkReactor",
+      "properties": {
+        "flinkReactor.enable": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Master switch for the FlinkReactor language server. When disabled, the server publishes no diagnostics."
+        },
+        "flinkReactor.diagnostics.enable": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Publish synthesis-backed diagnostics (`FR*` codes) for pipeline files."
+        },
+        "flinkReactor.server.debounce": {
+          "type": "number",
+          "default": 300,
+          "minimum": 0,
+          "markdownDescription": "Debounce window (ms) after the last edit before re-synthesizing a pipeline."
+        },
+        "flinkReactor.server.timeout": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 100,
+          "markdownDescription": "Per-synthesis isolation timeout (ms)."
+        },
+        "flinkReactor.server.maxHeapMb": {
+          "type": "number",
+          "default": 512,
+          "minimum": 64,
+          "markdownDescription": "Heap ceiling (MB) for the synthesis isolation worker."
+        },
+        "flinkReactor.flinkVersion": {
+          "type": "string",
+          "enum": [
+            "1.18",
+            "1.19",
+            "1.20"
+          ],
+          "markdownDescription": "Target Flink version override. The DSL default applies when unset."
+        },
+        "flinkReactor.tsPlugin.autoConfigure": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "always",
+            "never"
+          ],
+          "default": "prompt",
+          "enumDescriptions": [
+            "Ask before editing tsconfig.json",
+            "Configure tsconfig.json automatically without asking",
+            "Never edit tsconfig.json (use the explicit command instead)"
+          ],
+          "markdownDescription": "How to ensure `@flink-reactor/ts-plugin` is configured in the project `tsconfig.json`."
+        },
+        "flinkReactor.cliPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the `flink-reactor` CLI. Resolved from the workspace when empty. Reserved for CLI-lifecycle integration."
+        },
+        "flinkReactor.sql.highlighting": {
+          "type": "string",
+          "enum": [
+            "semantic+textmate",
+            "textmate",
+            "semantic",
+            "off"
+          ],
+          "default": "semantic+textmate",
+          "enumDescriptions": [
+            "Both layers: the TextMate grammar colors instantly/offline and the language server's semantic tokens refine it (recommended).",
+            "TextMate grammar only \u2014 fast, offline, heuristic; no server semantic tokens for embedded SQL.",
+            "Language-server semantic tokens only \u2014 precise, synthesis-aware; the heuristic grammar coloring is suppressed.",
+            "No embedded-SQL coloring \u2014 fragments render as ordinary TypeScript string literals."
+          ],
+          "markdownDescription": "How to color the Flink SQL embedded in `.tsx` pipeline props (`Filter` `condition`, `Map`/`Aggregate` projections, join `on`, `Validate` rules, `Schema` watermark, `RawSQL` body). Two complementary layers \u2014 a TextMate injection grammar and language-server semantic tokens \u2014 that compose: semantic tokens override the grammar within the ranges the server reports."
+        },
+        "flinkReactor.inlayHints.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Master switch for FlinkReactor's synthesis-backed inlay hints. When off, no per-component schema/changelog/parallelism annotations are shown (TypeScript's own inlay hints are unaffected)."
+        },
+        "flinkReactor.inlayHints.schema": {
+          "type": "string",
+          "enum": [
+            "off",
+            "count",
+            "compact"
+          ],
+          "default": "count",
+          "enumDescriptions": [
+            "No schema fact in the hint.",
+            "The inferred output column count (e.g. `5 cols`).",
+            "An inline column-name list (e.g. `[user_id, amount, ts]`), falling back to a count for wide schemas."
+          ],
+          "markdownDescription": "How each component's inferred output schema renders in its inlay hint. Hovering the hint always expands to the full `column | TYPE` schema, regardless of mode."
+        },
+        "flinkReactor.inlayHints.changelogMode": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Show each component's resolved changelog mode (`append`/`retract`/`upsert`) in its inlay hint."
+        },
+        "flinkReactor.inlayHints.parallelism": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Show the resolved effective parallelism (`p=4`) in each component's inlay hint. The tooltip notes which cascade level set it (Pipeline prop > env override > config > default)."
+        },
+        "flinkReactor.inlayHints.windowColumns": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Annotate window components (`TumbleWindow`/`SlideWindow`/`SessionWindow`) with the `window_start`/`window_end` time columns windowing injects into the downstream schema."
+        },
+        "flinkReactor.inlayHints.joinColumns": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Annotate join components with the merged (deduplicated) resulting column count of their output schema."
+        },
+        "flinkReactor.gateway.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enable opt-in **deep validation** against a Flink SQL Gateway: the *Deep Validate Pipeline* command (and optionally save) submits the synthesized SQL via `EXPLAIN` and surfaces planner errors (missing catalog tables, type mismatches, unregistered UDFs) as `FR-GATEWAY-` diagnostics. Requires a reachable gateway \u2014 nothing connects while this is off."
+        },
+        "flinkReactor.gateway.endpoint": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Base URL of the Flink SQL Gateway REST endpoint (e.g. `http://localhost:8083`). Required when `flinkReactor.gateway.enabled` is on."
+        },
+        "flinkReactor.gateway.validateOnSave": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Run a deep-validation pass each time a pipeline `.tsx` is saved (never on keystrokes). The SQL-hash cache makes saves that don't change the generated SQL free."
+        },
+        "flinkReactor.gateway.timeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 1000,
+          "markdownDescription": "Wall-clock budget (ms) for one whole deep-validation pass; on expiry the pass is abandoned with a notice and authoring continues."
+        },
+        "flinkReactor.gateway.flinkVersion": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Optional hint of the gateway's Flink version. A mismatch with the pipeline's target logs a warning (EXPLAIN is generally forward-compatible); it never fails the pass."
+        },
+        "flinkReactor.consoleUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "FlinkReactor Console URL tap manifests push to (mirrors `fr synth --console-url`). Shown in the Pipeline Taps panel; leave empty when no console is configured."
+        },
+        "flinkReactor.synth.outDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Output directory passed to `flink-reactor synth` as `-o <outdir>`. The CLI default (`dist/`) applies when empty."
+        },
+        "flinkReactor.synth.deepValidate": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Pass `--deep-validate` to `flink-reactor synth` runs (dt-sql-parser + SQL Gateway `EXPLAIN` against a running cluster)."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "typescriptreact",
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "scopeName": "flinkreactor.sql.injection",
+        "path": "./syntaxes/flinkreactor-sql.injection.json",
+        "injectTo": [
+          "source.tsx"
+        ]
+      }
+    ],
+    "snippets": [
+      {
+        "language": "typescriptreact",
+        "path": "./snippets/flink-reactor.code-snippets"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "flinkReactor.gettingStarted",
+        "title": "Get Started with FlinkReactor",
+        "description": "Configure the ts-plugin, switch to your workspace TypeScript, and open your first pipeline.",
+        "steps": [
+          {
+            "id": "configureTsPlugin",
+            "title": "Configure the ts-plugin",
+            "description": "FlinkReactor's editor intelligence is delivered by `@flink-reactor/ts-plugin`. Add it to your `tsconfig.json`.\n[Configure ts-plugin](command:flinkReactor.configureTsPlugin)",
+            "media": {
+              "markdown": "media/walkthrough/configure-ts-plugin.md"
+            },
+            "completionEvents": [
+              "onCommand:flinkReactor.configureTsPlugin"
+            ]
+          },
+          {
+            "id": "useWorkspaceTypeScript",
+            "title": "Use your workspace TypeScript",
+            "description": "VS Code's bundled TypeScript will not load workspace plugins. Switch to the workspace version so the ts-plugin activates.\n[Use Workspace TypeScript](command:flinkReactor.useWorkspaceTypeScript)",
+            "media": {
+              "markdown": "media/walkthrough/use-workspace-typescript.md"
+            },
+            "completionEvents": [
+              "onCommand:typescript.selectTypeScriptVersion"
+            ]
+          },
+          {
+            "id": "openPipeline",
+            "title": "Open a pipeline",
+            "description": "Pipelines live in `pipelines/<name>/index.tsx`. Open one to see live diagnostics from the FlinkReactor language server.",
+            "media": {
+              "markdown": "media/walkthrough/open-pipeline.md"
+            }
+          },
+          {
+            "id": "nextSteps",
+            "title": "Next steps",
+            "description": "Synthesize SQL and CRDs from the terminal with `flink-reactor synth`, and explore the docs.",
+            "media": {
+              "markdown": "media/walkthrough/next-steps.md"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.mjs --production",
+    "dev": "node esbuild.mjs --watch",
+    "prepare-server": "node scripts/prepare-server.mjs",
+    "compile-tests": "tsc -p ./tsconfig.test.json",
+    "pretest": "pnpm run compile-tests && pnpm run build && pnpm run prepare-server",
+    "test:unit": "vitest run",
+    "test:e2e": "node ./dist-test/test/runTest.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && tsc -p src/graph/webview/tsconfig.json --noEmit && tsc -p src/preview/webview/tsconfig.json --noEmit && tsc -p src/preview/crd-webview/tsconfig.json --noEmit && tsc -p src/taps/webview/tsconfig.json --noEmit && tsc -p src/designer/webview/tsconfig.json --noEmit",
+    "package": "pnpm run build && pnpm run prepare-server && vsce package --no-dependencies",
+    "vscode:prepublish": "pnpm run build && pnpm run prepare-server"
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1",
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@flink-reactor/dsl": "workspace:*",
+    "@flink-reactor/language-server": "workspace:*",
+    "@flink-reactor/ts-plugin": "workspace:*",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.12.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.0",
+    "esbuild": "^0.25.0",
+    "glob": "^11.0.0",
+    "mocha": "^11.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

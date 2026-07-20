@@ -1,0 +1,31 @@
+# Bench Flink image for the sim lane — extends the S3-enabled base image with
+# the Apache Fluss + Paimon connector JARs. Used by minikube-deployed pipelines
+# that target Fluss/Paimon (e.g. the pg-fluss-paimon template).
+#
+# Build (from flink-reactor-dsl repo root, inside minikube docker-env):
+#   eval $(minikube docker-env)
+#   docker build -t flink-reactor:2.3.0 -f src/cli/cluster/Dockerfile.flink .
+#   docker build -t flink-reactor-s3:2.3.0 -f src/cli/sim/Dockerfile.flink-s3 .
+#   docker build -t flink-reactor-bench:2.3.0 -f src/cli/sim/Dockerfile.flink-bench .
+#
+# Multi-platform (Apple Silicon / x86_64) — pass --platform=linux/arm64 or amd64.
+
+FROM flink-reactor-s3:2.3.0
+
+# Apache Fluss 0.9.1-incubating Flink connector — `fluss-flink-2.2` reused on the
+# 2.3 base (no fluss-flink-2.3 published yet). Keep in lock-step with
+# `src/cli/cluster/Dockerfile.flink` and the registry pin in
+# `src/codegen/connector-registry.ts`.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/fluss/fluss-flink-2.2/0.9.1-incubating/fluss-flink-2.2-0.9.1-incubating.jar
+
+# Apache Paimon 1.4.2 Flink connector (paimon-flink-2.2, reused on the 2.3 base).
+# Keep this version in lock-step with `src/cli/cluster/Dockerfile.flink` and the
+# registry pin in `src/codegen/connector-registry.ts` to prevent runtime/sim drift.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/paimon/paimon-flink-2.2/1.4.2/paimon-flink-2.2-1.4.2.jar
+
+# Paimon S3 plugin — see `src/cli/cluster/Dockerfile.flink` for why this is
+# required for `s3a://`/`s3://` warehouse URIs.
+RUN wget -q -P /opt/flink/lib/ \
+  https://repo1.maven.org/maven2/org/apache/paimon/paimon-s3/1.4.2/paimon-s3-1.4.2.jar

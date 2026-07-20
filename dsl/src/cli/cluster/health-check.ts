@@ -1,0 +1,217 @@
+import * as clack from "@clack/prompts"
+import pc from "picocolors"
+
+export async function waitForServices(opts: {
+  flinkPort: number
+  sqlGatewayPort: number
+  kafkaPort?: number
+  schemaRegistryPort?: number
+  postgresPort?: number
+  seaweedfsPort?: number
+  icebergRestPort?: number
+  flussPort?: number
+  grafanaPort?: number
+  prometheusPort?: number
+  timeoutMs?: number
+  intervalMs?: number
+}): Promise<void> {
+  const timeout = opts.timeoutMs ?? 60_000
+  const interval = opts.intervalMs ?? 2_000
+
+  const spinner = clack.spinner()
+  spinner.start("Waiting for services to be ready...")
+
+  const deadline = Date.now() + timeout
+
+  const services: Array<{ name: string; check: () => Promise<boolean> }> = [
+    { name: "Flink JobManager", check: () => checkFlink(opts.flinkPort) },
+    { name: "SQL Gateway", check: () => checkSqlGateway(opts.sqlGatewayPort) },
+  ]
+  const {
+    kafkaPort,
+    schemaRegistryPort,
+    postgresPort,
+    seaweedfsPort,
+    icebergRestPort,
+    flussPort,
+    grafanaPort,
+    prometheusPort,
+  } = opts
+  if (kafkaPort !== undefined) {
+    services.push({ name: "Kafka", check: () => checkKafka(kafkaPort) })
+  }
+  if (schemaRegistryPort !== undefined) {
+    services.push({
+      name: "Schema Registry",
+      check: () => checkSchemaRegistry(schemaRegistryPort),
+    })
+  }
+  if (postgresPort !== undefined) {
+    services.push({ name: "PostgreSQL", check: () => checkTcp(postgresPort) })
+  }
+  if (seaweedfsPort !== undefined) {
+    services.push({
+      name: "SeaweedFS (S3)",
+      check: () => checkTcp(seaweedfsPort),
+    })
+  }
+  if (icebergRestPort !== undefined) {
+    services.push({
+      name: "Iceberg REST",
+      check: () => checkIcebergRest(icebergRestPort),
+    })
+  }
+  if (flussPort !== undefined) {
+    services.push({
+      name: "Fluss Coordinator",
+      check: () => checkTcp(flussPort),
+    })
+  }
+  if (prometheusPort !== undefined) {
+    services.push({
+      name: "Prometheus",
+      check: () => checkPrometheus(prometheusPort),
+    })
+  }
+  if (grafanaPort !== undefined) {
+    services.push({
+      name: "Grafana",
+      check: () => checkGrafana(grafanaPort),
+    })
+  }
+
+  const ready = new Set<string>()
+
+  while (Date.now() < deadline) {
+    for (const svc of services) {
+      if (ready.has(svc.name)) continue
+      try {
+        const ok = await svc.check()
+        if (ok) {
+          ready.add(svc.name)
+          spinner.message(
+            `${svc.name} ready (${ready.size}/${services.length})...`,
+          )
+        }
+      } catch {
+        // Not ready yet
+      }
+    }
+
+    if (ready.size === services.length) {
+      spinner.stop(pc.green("All services ready."))
+      return
+    }
+
+    await sleep(interval)
+  }
+
+  const notReady = services.filter((s) => !ready.has(s.name)).map((s) => s.name)
+  spinner.stop(pc.red(`Timed out waiting for: ${notReady.join(", ")}`))
+  throw new Error(
+    `Services not ready after ${timeout / 1000}s: ${notReady.join(", ")}`,
+  )
+}
+
+export async function isClusterRunning(flinkPort: number): Promise<boolean> {
+  return checkFlink(flinkPort)
+}
+
+async function checkFlink(port: number): Promise<boolean> {
+  try {
+    const res = await fetch(`http://localhost:${port}/overview`)
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+async function checkSqlGateway(port: number): Promise<boolean> {
+  try {
+    const res = await fetch(`http://localhost:${port}/info`)
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+async function checkIcebergRest(port: number): Promise<boolean> {
+  try {
+    const res = await fetch(`http://localhost:${port}/health`)
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+async function checkKafka(port: number): Promise<boolean> {
+  return checkTcp(port)
+}
+
+async function checkSchemaRegistry(port: number): Promise<boolean> {
+  // Write-readiness on Karapace is subtle. `GET /subjects` 200s in ~2s and
+  // `GET /_health` 200s in ~10s (schema reader healthy against an empty
+  // `_schemas`) — but on a cold single broker the Kafka-backed *master
+  // election* doesn't finish until ~60-70s later, and until it does every
+  // write returns `50003 forwarding to the master`. The only field that
+  // tracks election is `/_health`'s body `status.schema_registry_is_primary`.
+  // Gate on it: a true value means this node is the elected master, so the
+  // seeder's POSTs and `schema generate` registration will actually land.
+  try {
+    const res = await fetch(`http://localhost:${port}/_health`)
+    if (!res.ok) return false
+    const body = (await res.json()) as {
+      status?: { schema_registry_is_primary?: boolean }
+    }
+    return body.status?.schema_registry_is_primary === true
+  } catch {
+    return false
+  }
+}
+
+async function checkPrometheus(port: number): Promise<boolean> {
+  try {
+    const res = await fetch(`http://localhost:${port}/-/healthy`)
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+async function checkGrafana(port: number): Promise<boolean> {
+  // `/api/health` returns JSON like `{"database": "ok", "version": "..."}`.
+  // A 200 status is sufficient for "ready" — the body inspection is a
+  // belt-and-braces guard against the edge case where Grafana is up but
+  // its sqlite DB hasn't migrated yet.
+  try {
+    const res = await fetch(`http://localhost:${port}/api/health`)
+    if (!res.ok) return false
+    const body = (await res.json()) as { database?: string }
+    return body.database === "ok"
+  } catch {
+    return false
+  }
+}
+
+async function checkTcp(port: number): Promise<boolean> {
+  const { createConnection } = await import("node:net")
+
+  return new Promise<boolean>((resolve) => {
+    const socket = createConnection({ host: "localhost", port }, () => {
+      socket.destroy()
+      resolve(true)
+    })
+    socket.on("error", () => {
+      socket.destroy()
+      resolve(false)
+    })
+    socket.setTimeout(2000, () => {
+      socket.destroy()
+      resolve(false)
+    })
+  })
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}

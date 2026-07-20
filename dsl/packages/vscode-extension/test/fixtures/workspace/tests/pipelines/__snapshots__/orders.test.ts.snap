@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`orders pipeline > snapshots the deployment kind 1`] = `
+{
+  "kind": "StaleKind",
+}
+`;
+
+exports[`orders pipeline > synthesizes stable SQL 1`] = `"-- STALE SNAPSHOT: the committed value deliberately mismatches the generated SQL --"`;

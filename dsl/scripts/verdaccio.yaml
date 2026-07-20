@@ -1,0 +1,50 @@
+# Local development registry config
+# Used by `pnpm local:publish` — allows anonymous publish for the FlinkReactor
+# packages (`@flink-reactor/*` and the unscoped `flink-reactor` extension)
+
+storage: ../.verdaccio/storage
+plugins: ../.verdaccio/plugins
+
+web:
+  title: FlinkReactor Local Registry
+
+auth:
+  htpasswd:
+    file: ../.verdaccio/htpasswd
+    max_users: 100
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+packages:
+  '@flink-reactor/*':
+    access: $all
+    publish: $anonymous
+    unpublish: $anonymous
+
+  # The VS Code extension publishes under the unscoped name `flink-reactor`
+  # (vsce rejects scoped names). Grant it the same anonymous local access so
+  # `pnpm local:publish` doesn't fall through to the auth-required `**` rule.
+  'flink-reactor':
+    access: $all
+    publish: $anonymous
+    unpublish: $anonymous
+
+  '@*/*':
+    access: $all
+    proxy: npmjs
+
+  '**':
+    access: $all
+    proxy: npmjs
+
+server:
+  keepAliveTimeout: 60
+
+max_body_size: 100mb
+
+logs:
+  type: stdout
+  format: pretty
+  level: warn
