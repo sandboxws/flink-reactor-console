@@ -60,13 +60,12 @@ export default pipeline;
     expect(result).toBe(true)
   })
 
-  it(
-    "reports errors for an invalid pipeline with orphan source",
-    { timeout: 15_000 },
-    async () => {
-      writePipeline(
-        "invalid",
-        `
+  it("reports errors for an invalid pipeline with orphan source", {
+    timeout: 15_000,
+  }, async () => {
+    writePipeline(
+      "invalid",
+      `
 import { createElement } from '${jsxPath()}';
 
 const pipeline = createElement('Pipeline', { name: 'invalid-pipeline' },
@@ -83,16 +82,15 @@ const pipeline = createElement('Pipeline', { name: 'invalid-pipeline' },
 
 export default pipeline;
 `,
-      )
+    )
 
-      const result = await runValidate({
-        projectDir: tempDir,
-      })
+    const result = await runValidate({
+      projectDir: tempDir,
+    })
 
-      // Orphan source should cause validation failure
-      expect(result).toBe(false)
-    },
-  )
+    // Orphan source should cause validation failure
+    expect(result).toBe(false)
+  })
 
   it("returns true when no pipelines found", async () => {
     const result = await runValidate({
@@ -102,13 +100,12 @@ export default pipeline;
     expect(result).toBe(true)
   })
 
-  it(
-    "accepts sibling-chain: <Source/><Sink/> under <Pipeline>",
-    { timeout: 15_000 },
-    async () => {
-      writePipeline(
-        "sibling-direct",
-        `
+  it("accepts sibling-chain: <Source/><Sink/> under <Pipeline>", {
+    timeout: 15_000,
+  }, async () => {
+    writePipeline(
+      "sibling-direct",
+      `
 import { createElement } from '${jsxPath()}';
 
 const pipeline = createElement('Pipeline', { name: 'sibling-direct' },
@@ -130,20 +127,18 @@ const pipeline = createElement('Pipeline', { name: 'sibling-direct' },
 
 export default pipeline;
 `,
-      )
+    )
 
-      const result = await runValidate({ projectDir: tempDir })
-      expect(result).toBe(true)
-    },
-  )
+    const result = await runValidate({ projectDir: tempDir })
+    expect(result).toBe(true)
+  })
 
-  it(
-    "accepts sibling-chain with intermediate transform",
-    { timeout: 15_000 },
-    async () => {
-      writePipeline(
-        "sibling-transform",
-        `
+  it("accepts sibling-chain with intermediate transform", {
+    timeout: 15_000,
+  }, async () => {
+    writePipeline(
+      "sibling-transform",
+      `
 import { createElement } from '${jsxPath()}';
 
 const pipeline = createElement('Pipeline', { name: 'sibling-transform' },
@@ -166,20 +161,18 @@ const pipeline = createElement('Pipeline', { name: 'sibling-transform' },
 
 export default pipeline;
 `,
-      )
+    )
 
-      const result = await runValidate({ projectDir: tempDir })
-      expect(result).toBe(true)
-    },
-  )
+    const result = await runValidate({ projectDir: tempDir })
+    expect(result).toBe(true)
+  })
 
-  it(
-    "accepts StatementSet with multiple sibling source-sink pairs",
-    { timeout: 15_000 },
-    async () => {
-      writePipeline(
-        "statement-set",
-        `
+  it("accepts StatementSet with multiple sibling source-sink pairs", {
+    timeout: 15_000,
+  }, async () => {
+    writePipeline(
+      "statement-set",
+      `
 import { createElement } from '${jsxPath()}';
 
 const schema = { fields: { amount: 'BIGINT' }, metadataColumns: [] };
@@ -213,20 +206,18 @@ const pipeline = createElement('Pipeline', { name: 'statement-set' },
 
 export default pipeline;
 `,
-      )
+    )
 
-      const result = await runValidate({ projectDir: tempDir })
-      expect(result).toBe(true)
-    },
-  )
+    const result = await runValidate({ projectDir: tempDir })
+    expect(result).toBe(true)
+  })
 
-  it(
-    "flags a StatementSet Source with no matching sink as orphan",
-    { timeout: 15_000 },
-    async () => {
-      writePipeline(
-        "statement-set-orphan",
-        `
+  it("flags a StatementSet Source with no matching sink as orphan", {
+    timeout: 15_000,
+  }, async () => {
+    writePipeline(
+      "statement-set-orphan",
+      `
 import { createElement } from '${jsxPath()}';
 
 const pipeline = createElement('Pipeline', { name: 'statement-set-orphan' },
@@ -242,10 +233,9 @@ const pipeline = createElement('Pipeline', { name: 'statement-set-orphan' },
 
 export default pipeline;
 `,
-      )
+    )
 
-      const result = await runValidate({ projectDir: tempDir })
-      expect(result).toBe(false)
-    },
-  )
+    const result = await runValidate({ projectDir: tempDir })
+    expect(result).toBe(false)
+  })
 })

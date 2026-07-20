@@ -33,31 +33,29 @@ const TEMPLATES_TO_RUN: readonly TemplateCase[] = [
 
 describe("Scaffolded vitest run", () => {
   for (const { template, minPassed } of TEMPLATES_TO_RUN) {
-    it(
-      `${template} — vitest run passes in scaffolded project`,
-      { timeout: 60_000 },
-      async () => {
-        const result = await scaffoldAndRunVitest(template)
-        try {
-          expect(
-            result.exitCode,
-            `vitest exited ${result.exitCode}\n` +
-              `--- stdout ---\n${result.stdout}\n` +
-              `--- stderr ---\n${result.stderr}`,
-          ).toBe(0)
+    it(`${template} — vitest run passes in scaffolded project`, {
+      timeout: 60_000,
+    }, async () => {
+      const result = await scaffoldAndRunVitest(template)
+      try {
+        expect(
+          result.exitCode,
+          `vitest exited ${result.exitCode}\n` +
+            `--- stdout ---\n${result.stdout}\n` +
+            `--- stderr ---\n${result.stderr}`,
+        ).toBe(0)
 
-          if (minPassed > 0) {
-            const match = result.stdout.match(/Test Files\s+(\d+)\s+passed/)
-            expect(
-              match,
-              `expected "Test Files N passed" in stdout:\n${result.stdout}`,
-            ).not.toBeNull()
-            expect(Number(match?.[1])).toBeGreaterThanOrEqual(minPassed)
-          }
-        } finally {
-          rmSync(result.tempRoot, { recursive: true, force: true })
+        if (minPassed > 0) {
+          const match = result.stdout.match(/Test Files\s+(\d+)\s+passed/)
+          expect(
+            match,
+            `expected "Test Files N passed" in stdout:\n${result.stdout}`,
+          ).not.toBeNull()
+          expect(Number(match?.[1])).toBeGreaterThanOrEqual(minPassed)
         }
-      },
-    )
+      } finally {
+        rmSync(result.tempRoot, { recursive: true, force: true })
+      }
+    })
   }
 })

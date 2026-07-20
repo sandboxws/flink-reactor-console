@@ -164,40 +164,38 @@ describe.skipIf(!gatewayAvailable)("EXPLAIN Integration Tests", () => {
     })
   }
 
-  it(
-    "surfaces structured errors for invalid SQL",
-    { timeout: 30_000 },
-    async () => {
-      const session = await client.openSession()
+  it("surfaces structured errors for invalid SQL", {
+    timeout: 30_000,
+  }, async () => {
+    const session = await client.openSession()
+    try {
+      // Create a table so we have session state
+      await client.executeStatement(
+        session,
+        `CREATE TABLE test_err_source (id STRING) WITH ('connector' = 'blackhole')`,
+      )
+      // EXPLAIN a query referencing a non-existent column
+      await client.explainInSession(
+        session,
+        "INSERT INTO test_err_source SELECT nonexistent_col FROM test_err_source",
+      )
+      expect.unreachable("Should have thrown")
+    } catch (err) {
+      expect(err).toBeInstanceOf(StatementExecutionError)
+      const execErr = err as StatementExecutionError
+      expect(execErr.detail.statement).toContain("nonexistent_col")
+      expect(execErr.detail.message).toBeTruthy()
+      expect(execErr.detail.fullMessage).toBeTruthy()
+      // message should be more readable than the raw fullMessage
+      expect(execErr.detail.message.length).toBeLessThanOrEqual(
+        execErr.detail.fullMessage.length,
+      )
+    } finally {
       try {
-        // Create a table so we have session state
-        await client.executeStatement(
-          session,
-          `CREATE TABLE test_err_source (id STRING) WITH ('connector' = 'blackhole')`,
-        )
-        // EXPLAIN a query referencing a non-existent column
-        await client.explainInSession(
-          session,
-          "INSERT INTO test_err_source SELECT nonexistent_col FROM test_err_source",
-        )
-        expect.unreachable("Should have thrown")
-      } catch (err) {
-        expect(err).toBeInstanceOf(StatementExecutionError)
-        const execErr = err as StatementExecutionError
-        expect(execErr.detail.statement).toContain("nonexistent_col")
-        expect(execErr.detail.message).toBeTruthy()
-        expect(execErr.detail.fullMessage).toBeTruthy()
-        // message should be more readable than the raw fullMessage
-        expect(execErr.detail.message.length).toBeLessThanOrEqual(
-          execErr.detail.fullMessage.length,
-        )
-      } finally {
-        try {
-          await client.closeSession(session)
-        } catch {
-          // Best-effort cleanup
-        }
+        await client.closeSession(session)
+      } catch {
+        // Best-effort cleanup
       }
-    },
-  )
+    }
+  })
 })
