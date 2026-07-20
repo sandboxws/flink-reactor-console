@@ -10,8 +10,13 @@ Pre-extracted reference for every Flink REST endpoint the dashboard consumes. Co
 | `/jobs/overview` | GET | `/api/flink/jobs/overview` | All jobs with state, timestamps, task counts |
 | `/jobs/:jid` | GET | (aggregated) | Job detail: vertices, plan, timestamps, status-counts |
 | `/jobs/:jid/exceptions` | GET | (aggregated) | Exception history (Flink 1.20+: `exceptionHistory.entries[]`) |
-| `/jobs/:jid/checkpoints` | GET | (aggregated) | Checkpoint history + counts |
-| `/jobs/:jid/checkpoints/config` | GET | (aggregated) | Checkpoint mode, interval, timeout, concurrency |
+| `/jobs/:jid/checkpoints` | GET | (aggregated) | Checkpoint history + counts + summary + latest (incl. `failure_message`, `external_path`) |
+| `/jobs/:jid/checkpoints/config` | GET | (aggregated) | Checkpoint mode, interval, timeout, concurrency, state backend, storage, tolerable failures |
+| `/jobs/:jid/checkpoints/details/:cpid` | GET | GraphQL `checkpointDetail` | Single-checkpoint detail: type, external path, discarded, failure message, per-vertex `tasks` rollups |
+| `/jobs/:jid/checkpoints/details/:cpid/subtasks/:vid` | GET | GraphQL `checkpointSubtasks` | Per-subtask sync/async/alignment/start-delay stats + min/max/avg summary |
+| `/jobs/:jid/savepoints` | POST/GET | GraphQL `triggerSavepoint` / `savepoints` | Trigger savepoint; list savepoint operations |
+| `/jobs/:jid/savepoints/:triggerid` | GET | GraphQL `savepoint` | Poll savepoint trigger to COMPLETED/FAILED (location, error) |
+| `/jobs/:jid/stop` | POST | GraphQL `stopJobWithSavepoint` | Graceful stop with savepoint |
 | `/jobs/:jid/config` | GET | (aggregated) | Job config: execution-mode, restart-strategy, user-config |
 | `/jobs/:jid/vertices/:vid` | GET | (aggregated) | Per-vertex subtask detail |
 | `/jobs/:jid/vertices/:vid/watermarks` | GET | (aggregated) | Bare JSON array of `{id, value}` metrics |

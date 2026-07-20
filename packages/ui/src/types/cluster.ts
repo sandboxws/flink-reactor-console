@@ -115,6 +115,14 @@ export type Checkpoint = {
   /** Amount of data processed during checkpointing in bytes. */
   processedData: number
   isSavepoint: boolean
+  /** CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT. */
+  checkpointType?: string
+  /** Restore location; only present when externally addressable. */
+  externalPath?: string
+  /** Failure reason; only present when status is FAILED. */
+  failureMessage?: string
+  /** Failure time; only present when status is FAILED. */
+  failureTimestamp?: Date
 }
 
 /** Aggregate counts of checkpoints by status. */
@@ -125,6 +133,15 @@ export type CheckpointCounts = {
   total: number
   triggered?: number
   restored?: number
+}
+
+/** Job-level min/max/avg rollups across recent checkpoints. */
+export type CheckpointSummary = {
+  stateSize?: CheckpointMinMaxAvg
+  endToEndDuration?: CheckpointMinMaxAvg
+  checkpointedSize?: CheckpointMinMaxAvg
+  processedData?: CheckpointMinMaxAvg
+  persistedData?: CheckpointMinMaxAvg
 }
 
 /** Checkpoint configuration from the Flink job. */
@@ -142,6 +159,14 @@ export type CheckpointConfig = {
     deleteOnCancellation: boolean
   }
   unalignedCheckpoints?: boolean
+  /** State backend class name (e.g. HashMapStateBackend). Absent on older Flink. */
+  stateBackend?: string
+  /** Checkpoint storage (e.g. FileSystemCheckpointStorage). Absent on older Flink. */
+  checkpointStorage?: string
+  tolerableFailedCheckpoints?: number
+  /** Aligned checkpoint timeout in milliseconds. */
+  alignedCheckpointTimeout?: number
+  checkpointsAfterTasksFinish?: boolean
 }
 
 /** Per-subtask metrics for a vertex, used in data-skew analysis. */
@@ -289,6 +314,8 @@ export type FlinkJob = {
   checkpointCounts: CheckpointCounts | null
   checkpointConfig: CheckpointConfig | null
   checkpointLatest: CheckpointLatest | null
+  /** Job-level min/max/avg checkpoint rollups; null when unavailable. */
+  checkpointSummary: CheckpointSummary | null
   /** Per-vertex subtask metrics, keyed by vertex ID. */
   subtaskMetrics: Record<string, SubtaskMetrics[]>
   configuration: JobConfiguration[]
@@ -660,6 +687,10 @@ export type CheckpointDetail = {
   checkpointedSize?: number
   processedData?: number
   persistedData?: number
+  /** Failure reason; only present when status is FAILED. */
+  failureMessage?: string
+  /** Failure time; only present when status is FAILED. */
+  failureTimestamp?: Date
 }
 
 /** Per-subtask checkpoint statistics for detailed analysis. */

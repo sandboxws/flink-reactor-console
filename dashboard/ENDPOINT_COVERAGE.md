@@ -15,7 +15,7 @@
 | Job Configuration | 1 endpoint | Aggregated into detail (live) | **Full** |
 | Job Exceptions | 1 endpoint | Aggregated into detail (live) | **Full** |
 | Job Cancellation | 1 endpoint (GET `/yarn-cancel`) | Mock only | **Gap** |
-| Job Checkpoints | 4 endpoints | 2 aggregated (live), 2 missing | Partial |
+| Job Checkpoints | 4 endpoints | 2 aggregated + 2 GraphQL queries (live) | **Full** |
 | Job Vertices/Subtasks | 2 endpoints | 1 aggregated (live) | Partial |
 | Job Vertex Metrics | 3 endpoints | 0 | **Gap** |
 | Job Vertex Flamegraph | 2 endpoints | 0 | **Gap** |
@@ -68,6 +68,8 @@ These endpoints are proxied through our API routes and connected to real Flink R
 | `GET /jobs/:jid/exceptions` | (aggregated) | `mapExceptions()` | **Live** |
 | `GET /jobs/:jid/checkpoints` | (aggregated) | `mapCheckpoints()` | **Live** |
 | `GET /jobs/:jid/checkpoints/config` | (aggregated) | `mapCheckpointConfig()` | **Live** |
+| `GET /jobs/:jid/checkpoints/details/:cpid` | GraphQL `checkpointDetail` | `fetchCheckpointDetail()` | **Live** |
+| `GET /jobs/:jid/checkpoints/details/:cpid/subtasks/:vid` | GraphQL `checkpointSubtasks` | `fetchCheckpointSubtaskDetail()` | **Live** |
 | `GET /jobs/:jid/config` | (aggregated) | `mapJobConfiguration()` | **Live** |
 | `GET /jobs/:jid/vertices/:vid` | (aggregated, per vertex) | `mapSubtaskMetrics()` | **Live** |
 | `GET /jobs/:jid/vertices/:vid/watermarks` | (aggregated, per vertex) | `mapWatermarks()` | **Live** |
@@ -88,20 +90,18 @@ These endpoints are proxied through our API routes and connected to real Flink R
 - `concurrentExceptions` (exceptions that happened simultaneously)
 - `taskManagerId` / `endpoint` (we have `taskName` and `location` but not TM ID)
 
-**Fields we DROP from checkpoints**:
-- `counts` (restored/total/in_progress/completed/failed counts)
-- `summary` (percentile stats: min/max/avg/p50/p90/p95/p99/p999 for size/duration/data)
-- `latest` (latest completed/savepoint/failed/restored checkpoints)
+**Fields we DROP from checkpoints** (counts, summary min/max/avg, latest,
+per-checkpoint `num_subtasks`/`num_acknowledged_subtasks`, `tasks`,
+`external_path`, `failure_message`/`failure_timestamp` are all exposed now —
+failure fields also persist to the Postgres checkpoint history):
 - `savepointFormat` (checkpoint detail field)
-- `num_subtasks` / `num_acknowledged_subtasks` (per-checkpoint)
-- `tasks` map in checkpoint detail (per-vertex checkpoint stats)
+- summary percentiles beyond min/max/avg (`p50/p90/p95/p99/p999`)
+- `alignment_buffered` job-level rollup
 
-**Fields we DROP from checkpoint config**:
-- `externalization` (`enabled`, `delete_on_cancellation`)
-- `state_backend` name
-- `checkpoint_storage` name
-- `unaligned_checkpoints` (boolean)
-- `tolerable_failed_checkpoints` (number)
+**Fields we DROP from checkpoint config** (externalization, unaligned,
+`state_backend`, `checkpoint_storage`, `tolerable_failed_checkpoints`,
+`aligned_checkpoint_timeout`, `checkpoints_after_tasks_finish` are exposed now):
+- `changelog_storage` / changelog periodic-materialization fields
 
 **Fields we DROP from vertex detail**:
 - `aggregated` statistics (read/write bytes/records aggregates)
@@ -113,12 +113,13 @@ These endpoints are proxied through our API routes and connected to real Flink R
 ## II. Endpoints Partially Covered
 
 ### Checkpoint Detail Drill-Down
-| Flink Endpoint | Status | Gap |
+| Flink Endpoint | Status | Notes |
 |---|---|---|
-| `GET /jobs/:jid/checkpoints/details/:cpid` | **Missing** | Individual checkpoint detail with per-vertex task breakdown |
-| `GET /jobs/:jid/checkpoints/details/:cpid/subtasks/:vid` | **Missing** | Per-subtask checkpoint stats with percentile summary |
+| `GET /jobs/:jid/checkpoints/details/:cpid` | **Live** | GraphQL `checkpointDetail` — full detail incl. `tasks` per-vertex rollups, `checkpoint_type`, `external_path`, `discarded`, `failure_message` |
+| `GET /jobs/:jid/checkpoints/details/:cpid/subtasks/:vid` | **Live** | GraphQL `checkpointSubtasks` — per-subtask sync/async/alignment/start-delay + min/max/avg summary |
 
-We fetch checkpoint history via `/jobs/:jid/checkpoints` but don't support drilling into individual checkpoint details or subtask-level checkpoint data.
+The job Checkpoints tab drills from the history table into per-operator and
+per-subtask stats over these queries.
 
 ### Vertex Subtask Accumulators
 | Flink Endpoint | Status | Gap |
@@ -328,12 +329,12 @@ We fetch vertex-level accumulators but miss the per-subtask breakdown.
 | `timeout` | ✅ | ✅ | No |
 | `min_pause` | ✅ | ✅ (`minPause`) | No |
 | `max_concurrent` | ✅ | ✅ (`maxConcurrent`) | No |
-| `externalization.enabled` | ✅ | ❌ | Yes |
-| `externalization.delete_on_cancellation` | ✅ | ❌ | Yes |
-| `state_backend` | ✅ | ❌ | Yes — useful context |
-| `checkpoint_storage` | ✅ | ❌ | Yes — useful context |
-| `unaligned_checkpoints` | ✅ | ❌ | Yes |
-| `tolerable_failed_checkpoints` | ✅ | ❌ | Yes |
+| `externalization.enabled` | ✅ | ✅ | No |
+| `externalization.delete_on_cancellation` | ✅ | ✅ | No |
+| `state_backend` | ✅ | ✅ | No |
+| `checkpoint_storage` | ✅ | ✅ | No |
+| `unaligned_checkpoints` | ✅ | ✅ | No |
+| `tolerable_failed_checkpoints` | ✅ | ✅ | No |
 
 ---
 
@@ -354,7 +355,7 @@ We fetch vertex-level accumulators but miss the per-subtask breakdown.
 ### P1 — Important for Complete Job Monitoring
 11. **`GET /config`** — Feature flags control which actions to show
 12. **`GET /jobs/:jid/yarn-cancel`** — Job cancellation
-13. **`GET /jobs/:jid/checkpoints/details/:cpid`** — Checkpoint drill-down
+13. ~~`GET /jobs/:jid/checkpoints/details/:cpid`~~ — Done (GraphQL `checkpointDetail` + `checkpointSubtasks`)
 14. **`GET /jobs/:jid/vertices/:vid/metrics` + `?get=`** — Custom metric charting
 15. **`GET /jobs/:jid/vertices/:vid/subtasks/metrics?get=`** — Data skew with aggregates
 16. **`GET /jobs/:jid/vertices/:vid/subtasktimes`** — Subtask Gantt timeline

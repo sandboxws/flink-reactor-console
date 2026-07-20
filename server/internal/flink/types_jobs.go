@@ -27,19 +27,26 @@ type CheckpointMinMaxAvg struct {
 }
 
 // CheckpointHistoryEntry represents a single checkpoint in the history.
+// The payload is polymorphic: completed entries carry external_path/discarded,
+// failed entries carry failure_message/failure_timestamp.
 type CheckpointHistoryEntry struct {
-	ID                     int64  `json:"id"`
-	Status                 string `json:"status"`
-	IsSavepoint            bool   `json:"is_savepoint"`
-	TriggerTimestamp       int64  `json:"trigger_timestamp"`
-	LatestAckTimestamp     int64  `json:"latest_ack_timestamp"`
-	StateSize              int64  `json:"state_size"`
-	EndToEndDuration       int64  `json:"end_to_end_duration"`
-	ProcessedData          int64  `json:"processed_data"`
-	PersistedData          int64  `json:"persisted_data"`
-	NumSubtasks            int    `json:"num_subtasks"`
-	NumAcknowledgedSubtask int    `json:"num_acknowledged_subtasks"`
-	CheckpointedSize       *int64 `json:"checkpointed_size,omitempty"`
+	ID                     int64   `json:"id"`
+	Status                 string  `json:"status"`
+	IsSavepoint            bool    `json:"is_savepoint"`
+	CheckpointType         *string `json:"checkpoint_type,omitempty"`
+	TriggerTimestamp       int64   `json:"trigger_timestamp"`
+	LatestAckTimestamp     int64   `json:"latest_ack_timestamp"`
+	StateSize              int64   `json:"state_size"`
+	EndToEndDuration       int64   `json:"end_to_end_duration"`
+	ProcessedData          int64   `json:"processed_data"`
+	PersistedData          int64   `json:"persisted_data"`
+	NumSubtasks            int     `json:"num_subtasks"`
+	NumAcknowledgedSubtask int     `json:"num_acknowledged_subtasks"`
+	CheckpointedSize       *int64  `json:"checkpointed_size,omitempty"`
+	ExternalPath           *string `json:"external_path,omitempty"`
+	Discarded              *bool   `json:"discarded,omitempty"`
+	FailureMessage         *string `json:"failure_message,omitempty"`
+	FailureTimestamp       *int64  `json:"failure_timestamp,omitempty"`
 }
 
 // CheckpointRestoredInfo represents restored checkpoint info.
@@ -85,6 +92,7 @@ type CheckpointStats struct {
 }
 
 // CheckpointConfig represents the GET /jobs/:jobid/checkpoints/config response.
+// The trailing pointer fields are absent on older Flink versions.
 type CheckpointConfig struct {
 	Mode            string `json:"mode"`
 	Interval        int64  `json:"interval"`
@@ -95,12 +103,19 @@ type CheckpointConfig struct {
 		Enabled              bool `json:"enabled"`
 		DeleteOnCancellation bool `json:"delete_on_cancellation"`
 	} `json:"externalization"`
-	UnalignedCheckpoints bool `json:"unaligned_checkpoints"`
+	UnalignedCheckpoints        bool    `json:"unaligned_checkpoints"`
+	StateBackend                *string `json:"state_backend,omitempty"`
+	CheckpointStorage           *string `json:"checkpoint_storage,omitempty"`
+	TolerableFailedCheckpoints  *int    `json:"tolerable_failed_checkpoints,omitempty"`
+	AlignedCheckpointTimeout    *int64  `json:"aligned_checkpoint_timeout,omitempty"`
+	CheckpointsAfterTasksFinish *bool   `json:"checkpoints_after_tasks_finish,omitempty"`
 }
 
-// CheckpointTaskStats represents per-vertex checkpoint stats within the checkpoint detail.
+// CheckpointTaskStats represents per-vertex checkpoint stats within the
+// checkpoint detail. `id` echoes the checkpoint ID (a JSON number); the
+// vertex ID is the enclosing map key.
 type CheckpointTaskStats struct {
-	ID                     string `json:"id"`
+	ID                     int64  `json:"id"`
 	Status                 string `json:"status"`
 	LatestAckTimestamp     int64  `json:"latest_ack_timestamp"`
 	StateSize              int64  `json:"state_size"`
@@ -130,6 +145,74 @@ type CheckpointDetail struct {
 	CheckpointedSize       *int64                         `json:"checkpointed_size,omitempty"`
 	ProcessedData          *int64                         `json:"processed_data,omitempty"`
 	PersistedData          *int64                         `json:"persisted_data,omitempty"`
+	FailureMessage         *string                        `json:"failure_message,omitempty"`
+	FailureTimestamp       *int64                         `json:"failure_timestamp,omitempty"`
+}
+
+// CheckpointDurationSummary represents the sync/async duration stats within
+// a per-subtask summary.
+type CheckpointDurationSummary struct {
+	Sync  *CheckpointMinMaxAvg `json:"sync,omitempty"`
+	Async *CheckpointMinMaxAvg `json:"async,omitempty"`
+}
+
+// CheckpointAlignmentSummary represents the alignment stats within a
+// per-subtask summary.
+type CheckpointAlignmentSummary struct {
+	Buffered  *CheckpointMinMaxAvg `json:"buffered,omitempty"`
+	Processed *CheckpointMinMaxAvg `json:"processed,omitempty"`
+	Persisted *CheckpointMinMaxAvg `json:"persisted,omitempty"`
+	Duration  *CheckpointMinMaxAvg `json:"duration,omitempty"`
+}
+
+// CheckpointSubtaskSummary represents the summary block of the per-subtask
+// checkpoint stats response.
+type CheckpointSubtaskSummary struct {
+	StateSize          *CheckpointMinMaxAvg        `json:"state_size,omitempty"`
+	EndToEndDuration   *CheckpointMinMaxAvg        `json:"end_to_end_duration,omitempty"`
+	CheckpointedSize   *CheckpointMinMaxAvg        `json:"checkpointed_size,omitempty"`
+	CheckpointDuration *CheckpointDurationSummary  `json:"checkpoint_duration,omitempty"`
+	Alignment          *CheckpointAlignmentSummary `json:"alignment,omitempty"`
+	StartDelay         *CheckpointMinMaxAvg        `json:"start_delay,omitempty"`
+}
+
+// CheckpointSubtaskDuration represents the sync/async duration split for a
+// single subtask.
+type CheckpointSubtaskDuration struct {
+	Sync  int64 `json:"sync"`
+	Async int64 `json:"async"`
+}
+
+// CheckpointSubtaskAlignment represents alignment data for a single subtask.
+type CheckpointSubtaskAlignment struct {
+	Buffered  int64 `json:"buffered"`
+	Processed int64 `json:"processed"`
+	Persisted int64 `json:"persisted"`
+	Duration  int64 `json:"duration"`
+}
+
+// CheckpointSubtaskEntry represents a single subtask's checkpoint stats.
+// Subtasks that have not acknowledged carry only index and status.
+type CheckpointSubtaskEntry struct {
+	Index               int                         `json:"index"`
+	Status              string                      `json:"status"`
+	AckTimestamp        *int64                      `json:"ack_timestamp,omitempty"`
+	EndToEndDuration    *int64                      `json:"end_to_end_duration,omitempty"`
+	StateSize           *int64                      `json:"state_size,omitempty"`
+	CheckpointedSize    *int64                      `json:"checkpointed_size,omitempty"`
+	Checkpoint          *CheckpointSubtaskDuration  `json:"checkpoint,omitempty"`
+	Alignment           *CheckpointSubtaskAlignment `json:"alignment,omitempty"`
+	StartDelay          *int64                      `json:"start_delay,omitempty"`
+	UnalignedCheckpoint *bool                       `json:"unaligned_checkpoint,omitempty"`
+	Aborted             *bool                       `json:"aborted,omitempty"`
+}
+
+// CheckpointSubtaskDetail represents the
+// GET /jobs/:jid/checkpoints/details/:cpid/subtasks/:vid response.
+type CheckpointSubtaskDetail struct {
+	CheckpointTaskStats
+	Summary  *CheckpointSubtaskSummary `json:"summary,omitempty"`
+	Subtasks []CheckpointSubtaskEntry  `json:"subtasks"`
 }
 
 // JobConfig represents the GET /jobs/:jobid/config response.

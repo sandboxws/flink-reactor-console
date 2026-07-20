@@ -67,6 +67,12 @@ func dbCheckpointToStoredCheckpoint(c storage.DBCheckpoint) *model.StoredCheckpo
 		s := fmt.Sprintf("%d", *c.CheckpointedSize)
 		entry.CheckpointedSize = &s
 	}
+	entry.FailureMessage = c.FailureMessage
+	if c.FailureTimestamp != nil {
+		s := c.FailureTimestamp.Format(time.RFC3339)
+		entry.FailureTimestamp = &s
+	}
+	entry.ExternalPath = c.ExternalPath
 	return entry
 }
 

@@ -145,6 +145,12 @@ type StoredCheckpoint {
   numSubtasks: Int!
   numAckSubtasks: Int!
   checkpointedSize: String
+  """Failure reason. Null unless status is FAILED."""
+  failureMessage: String
+  """Failure time (RFC3339). Null unless status is FAILED."""
+  failureTimestamp: String
+  """Restore location. Null unless the checkpoint was externally addressable."""
+  externalPath: String
   capturedAt: String!
 }
 

@@ -145,7 +145,7 @@ func (r *subscriptionResolver) MetricStream(ctx context.Context, clusterID strin
 		return nil, fmt.Errorf("cluster manager not configured")
 	}
 	if !flink.IsKnownMetric(metric) {
-		return nil, fmt.Errorf("unknown metric %q (expected one of: throughput, watermarkLag, checkpointRate)", metric)
+		return nil, fmt.Errorf("unknown metric %q (expected one of: throughput, watermarkLag)", metric)
 	}
 
 	conn, err := r.Manager.Get(clusterID)

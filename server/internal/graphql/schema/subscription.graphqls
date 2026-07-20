@@ -29,8 +29,7 @@ type SQLResultBatch {
 """
 A sampled metric value published at ~1s cadence by the server's
 MetricSampler. `jobId` is null for cluster-wide aggregates.
-Supported `metric` values for v1: `throughput`, `watermarkLag`,
-`checkpointRate`.
+Supported `metric` values for v1: `throughput`, `watermarkLag`.
 """
 type MetricEvent {
   clusterID: String!

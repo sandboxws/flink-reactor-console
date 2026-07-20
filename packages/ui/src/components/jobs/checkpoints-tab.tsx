@@ -1,4 +1,13 @@
-/** Checkpoint history and metrics tab -- table of completed checkpoints with size, duration, and alignment. */
+/**
+ * Checkpoint history and metrics tab -- table of completed checkpoints with
+ * size, duration, and alignment.
+ *
+ * NOTE: this copy serves the fixture-driven templates/demos in this package
+ * only. The canonical, data-connected version lives at
+ * `dashboard/src/components/jobs/detail/checkpoints-tab.tsx` (GraphQL
+ * drill-down, failure messages, live polling, stored-history pagination) —
+ * apply feature work there.
+ */
 "use client"
 
 import { Badge } from "../../components/ui/badge"

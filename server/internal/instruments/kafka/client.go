@@ -5,13 +5,18 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/twmb/franz-go/pkg/kadm"
+	"github.com/twmb/franz-go/pkg/kerr"
 	"github.com/twmb/franz-go/pkg/kgo"
 	"github.com/twmb/franz-go/pkg/sasl/plain"
 	"github.com/twmb/franz-go/pkg/sasl/scram"
+
+	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/kafka/seed"
 )
 
 // Topic is a summary of a Kafka topic.
@@ -87,6 +92,48 @@ type PartitionOffset struct {
 	Lag             int64
 }
 
+// SeededTopic is the per-topic outcome of a seed operation. Existed and
+// ExistingRecords come from the upfront broker consultation, so dry and real
+// runs report the same plan.
+type SeededTopic struct {
+	Topic           string
+	Domain          string
+	Existed         bool
+	ExistingRecords int64
+	Created         bool
+	Skipped         bool
+	RecordsProduced int
+	// Error is the per-topic failure message; empty when the topic seeded
+	// cleanly. Seeding is best-effort per topic.
+	Error string
+}
+
+// SeedResult summarizes a Seed call.
+type SeedResult struct {
+	Topics          []SeededTopic
+	RecordsProduced int
+	Skipped         []string
+	DryRun          bool
+}
+
+// SeedOptions configures a Seed call.
+type SeedOptions struct {
+	// DryRun reports what would happen without creating topics or producing.
+	DryRun bool
+	// SkipNonEmpty skips subjects whose topic already holds records, making
+	// re-seeding idempotent (parity with `cluster up`'s guard).
+	SkipNonEmpty bool
+}
+
+// Message is a single Kafka record returned by a preview read.
+type Message struct {
+	Partition   int32
+	Offset      int64
+	TimestampMs int64
+	Key         string
+	Value       string
+}
+
 // ClientOption configures the Kafka client.
 type ClientOption func(*clientOptions)
 
@@ -123,6 +170,9 @@ func WithTLS(caCert, clientCert, clientKey string) ClientOption {
 type Client struct {
 	cl  *kgo.Client
 	adm *kadm.Client
+	// baseOpts are the seed-broker + SASL + TLS options used to build cl. A
+	// throwaway preview consumer reuses them so it inherits the same auth.
+	baseOpts []kgo.Opt
 }
 
 // NewClient creates a Kafka admin client connected to the given brokers.
@@ -188,8 +238,9 @@ func NewClient(brokers []string, opts ...ClientOption) (*Client, error) {
 	}
 
 	return &Client{
-		cl:  cl,
-		adm: kadm.NewClient(cl),
+		cl:       cl,
+		adm:      kadm.NewClient(cl),
+		baseOpts: kgoOpts,
 	}, nil
 }
 
@@ -205,6 +256,281 @@ func (c *Client) Ping(ctx context.Context) error {
 		return fmt.Errorf("kafka ping failed: %w", err)
 	}
 	return nil
+}
+
+// EnsureTopic creates the topic with a single partition and replication factor 1
+// (the local single-broker default). It reports whether the topic was created; an
+// already-existing topic is not an error.
+func (c *Client) EnsureTopic(ctx context.Context, name string) (bool, error) {
+	resp, err := c.adm.CreateTopics(ctx, 1, 1, nil, name)
+	if err != nil {
+		return false, fmt.Errorf("create topic %q failed: %w", name, err)
+	}
+	r, ok := resp[name]
+	if !ok {
+		return true, nil
+	}
+	if r.Err != nil {
+		if errors.Is(r.Err, kerr.TopicAlreadyExists) {
+			return false, nil
+		}
+		return false, fmt.Errorf("create topic %q failed: %w", name, r.Err)
+	}
+	return true, nil
+}
+
+// ProduceRecords synchronously produces the given JSON values to a topic and
+// returns the number of records written.
+func (c *Client) ProduceRecords(ctx context.Context, topic string, values [][]byte) (int, error) {
+	if len(values) == 0 {
+		return 0, nil
+	}
+	records := make([]*kgo.Record, 0, len(values))
+	for _, v := range values {
+		records = append(records, &kgo.Record{Topic: topic, Value: v})
+	}
+	if err := c.cl.ProduceSync(ctx, records...).FirstErr(); err != nil {
+		return 0, fmt.Errorf("produce to %q failed: %w", topic, err)
+	}
+	return len(records), nil
+}
+
+// Seed produces each subject's sample rows into its topic, best-effort per
+// topic. One upfront batched broker consultation (topic existence + current
+// record counts) feeds every row's Existed/ExistingRecords, so dry and real
+// runs report identical plans: what would be created, what already holds
+// records, what gets skipped under opts.SkipNonEmpty. A per-topic failure is
+// recorded on the row's Error without aborting the remaining topics; only a
+// failed consultation is a hard error. Subjects with no sample rows are
+// reported in Skipped names only (no per-topic row).
+func (c *Client) Seed(ctx context.Context, subjects []seed.Subject, opts SeedOptions) (*SeedResult, error) {
+	res := &SeedResult{DryRun: opts.DryRun}
+	if len(subjects) == 0 {
+		return res, nil
+	}
+
+	names := make([]string, 0, len(subjects))
+	for _, s := range subjects {
+		names = append(names, s.Topic)
+	}
+	existing := make(map[string]bool, len(names))
+	counts := make(map[string]int64, len(names))
+	details, err := c.adm.ListTopics(ctx, names...)
+	if err != nil {
+		return nil, fmt.Errorf("list topics failed: %w", err)
+	}
+	present := make([]string, 0, len(names))
+	for _, td := range details.Sorted() {
+		if td.Err != nil {
+			continue
+		}
+		existing[td.Topic] = true
+		present = append(present, td.Topic)
+	}
+	if len(present) > 0 {
+		ends, err := c.adm.ListEndOffsets(ctx, present...)
+		if err != nil {
+			return nil, fmt.Errorf("list end offsets failed: %w", err)
+		}
+		starts, err := c.adm.ListStartOffsets(ctx, present...)
+		if err != nil {
+			return nil, fmt.Errorf("list start offsets failed: %w", err)
+		}
+		ends.Each(func(o kadm.ListedOffset) {
+			if o.Err != nil {
+				return
+			}
+			start := int64(0)
+			if so, ok := starts.Lookup(o.Topic, o.Partition); ok {
+				start = so.Offset
+			}
+			counts[o.Topic] += o.Offset - start
+		})
+	}
+
+	for _, s := range subjects {
+		values := make([][]byte, 0, len(s.SampleRows))
+		for _, row := range s.SampleRows {
+			values = append(values, []byte(row))
+		}
+		if len(values) == 0 {
+			res.Skipped = append(res.Skipped, s.Topic)
+			continue
+		}
+
+		t := SeededTopic{
+			Topic:           s.Topic,
+			Domain:          s.Domain,
+			Existed:         existing[s.Topic],
+			ExistingRecords: counts[s.Topic],
+		}
+
+		if opts.SkipNonEmpty && t.ExistingRecords > 0 {
+			t.Skipped = true
+			res.Topics = append(res.Topics, t)
+			res.Skipped = append(res.Skipped, s.Topic)
+			continue
+		}
+
+		if opts.DryRun {
+			t.Created = !t.Existed
+			t.RecordsProduced = len(values)
+			res.Topics = append(res.Topics, t)
+			res.RecordsProduced += len(values)
+			continue
+		}
+
+		created, err := c.EnsureTopic(ctx, s.Topic)
+		if err != nil {
+			t.Error = err.Error()
+			res.Topics = append(res.Topics, t)
+			continue
+		}
+		t.Created = created
+		n, err := c.ProduceRecords(ctx, s.Topic, values)
+		if err != nil {
+			t.Error = err.Error()
+			res.Topics = append(res.Topics, t)
+			continue
+		}
+		t.RecordsProduced = n
+		res.Topics = append(res.Topics, t)
+		res.RecordsProduced += n
+	}
+	return res, nil
+}
+
+// PreviewMessages reads up to limit records from a topic using a throwaway
+// direct-partition consumer (no consumer group, so nothing is left behind in
+// the group listing). It captures each partition's [start,end) offsets, then
+// seeks per oldestFirst: false tails the stream (seek end−N, newest records
+// first — the live end); true reads from the earliest retained offsets
+// (oldest first — where the deterministic seed rows live). Best-effort under
+// a short deadline: a partition whose target offset never arrives
+// (compaction, gaps) simply contributes what it had.
+func (c *Client) PreviewMessages(ctx context.Context, topic string, limit int, oldestFirst bool) ([]Message, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	endOffsets, err := c.adm.ListEndOffsets(ctx, topic)
+	if err != nil {
+		return nil, fmt.Errorf("list end offsets failed: %w", err)
+	}
+	startOffsets, err := c.adm.ListStartOffsets(ctx, topic)
+	if err != nil {
+		return nil, fmt.Errorf("list start offsets failed: %w", err)
+	}
+
+	type partRange struct {
+		partition  int32
+		start, end int64
+	}
+	var parts []partRange
+	endOffsets.Each(func(o kadm.ListedOffset) {
+		if o.Err != nil {
+			return
+		}
+		start := int64(0)
+		if so, ok := startOffsets.Lookup(o.Topic, o.Partition); ok {
+			start = so.Offset
+		}
+		if o.Offset > start {
+			parts = append(parts, partRange{partition: o.Partition, start: start, end: o.Offset})
+		}
+	})
+	if len(parts) == 0 {
+		return []Message{}, nil
+	}
+
+	// Spread the limit across partitions so each end of the stream is
+	// represented, clamping every partition's window to its retained range.
+	perPart := (limit + len(parts) - 1) / len(parts)
+	offsets := make(map[int32]kgo.Offset, len(parts))
+	targets := make(map[int32]int64, len(parts))
+	for _, p := range parts {
+		var startAt, target int64
+		if oldestFirst {
+			startAt = p.start
+			target = min(p.start+int64(perPart), p.end) - 1
+		} else {
+			startAt = max(p.end-int64(perPart), p.start)
+			target = p.end - 1
+		}
+		offsets[p.partition] = kgo.NewOffset().At(startAt)
+		targets[p.partition] = target
+	}
+
+	consumeOpts := make([]kgo.Opt, 0, len(c.baseOpts)+1)
+	consumeOpts = append(consumeOpts, c.baseOpts...)
+	consumeOpts = append(consumeOpts, kgo.ConsumePartitions(map[string]map[int32]kgo.Offset{topic: offsets}))
+	cl, err := kgo.NewClient(consumeOpts...)
+	if err != nil {
+		return nil, fmt.Errorf("preview consumer init failed: %w", err)
+	}
+	defer cl.Close()
+
+	pctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	var out []Message
+	reached := make(map[int32]bool, len(parts))
+	collect := func(r *kgo.Record) {
+		out = append(out, Message{
+			Partition:   r.Partition,
+			Offset:      r.Offset,
+			TimestampMs: r.Timestamp.UnixMilli(),
+			Key:         string(r.Key),
+			Value:       string(r.Value),
+		})
+		if r.Offset >= targets[r.Partition] {
+			reached[r.Partition] = true
+		}
+	}
+	allReached := func() bool {
+		for _, p := range parts {
+			if !reached[p.partition] {
+				return false
+			}
+		}
+		return true
+	}
+
+	for pctx.Err() == nil {
+		fetches := cl.PollFetches(pctx)
+		if pctx.Err() != nil {
+			fetches.EachRecord(collect)
+			break
+		}
+		if errs := fetches.Errors(); len(errs) > 0 {
+			return nil, fmt.Errorf("preview fetch failed: %w", errs[0].Err)
+		}
+		fetches.EachRecord(collect)
+		if allReached() {
+			break
+		}
+	}
+
+	// Requested order, capped to limit.
+	sort.Slice(out, func(i, j int) bool {
+		if oldestFirst {
+			if out[i].TimestampMs != out[j].TimestampMs {
+				return out[i].TimestampMs < out[j].TimestampMs
+			}
+			return out[i].Offset < out[j].Offset
+		}
+		if out[i].TimestampMs != out[j].TimestampMs {
+			return out[i].TimestampMs > out[j].TimestampMs
+		}
+		return out[i].Offset > out[j].Offset
+	})
+	if len(out) > limit {
+		out = out[:limit]
+	}
+	return out, nil
 }
 
 // TopicNames returns a list of all topic names (for highlight matching).

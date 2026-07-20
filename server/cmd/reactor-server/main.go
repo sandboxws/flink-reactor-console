@@ -15,6 +15,7 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/config"
 	instruments "github.com/sandboxws/flink-reactor-console/server/internal/instruments"
 	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/factory"
+	kafkainst "github.com/sandboxws/flink-reactor-console/server/internal/instruments/kafka"
 	"github.com/sandboxws/flink-reactor-console/server/internal/manifests"
 	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
 	"github.com/sandboxws/flink-reactor-console/server/internal/server"
@@ -63,6 +64,13 @@ func run() int {
 		if err != nil {
 			logger.Warn("unknown instrument type", "type", instCfg.Type, "name", instCfg.Name)
 			continue
+		}
+		// Resolve the environment seeding policy once at registration: seeding is
+		// permitted only when both the server env and the instrument's env allow
+		// it (production on either side is an absolute block).
+		if ki, ok := inst.(*kafkainst.Instrument); ok {
+			instEnv := config.InferInstrumentEnv(instCfg.Name, instCfg.Environment, cfg.App.Environment)
+			ki.SetSeedingAllowed(config.SeedingAllowed(cfg.App.Environment, instEnv, cfg.Seeding.Enabled))
 		}
 		registry.Register(inst)
 	}

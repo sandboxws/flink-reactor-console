@@ -14,7 +14,13 @@
  */
 
 import type { FlinkJob, TapMetadata } from "@flink-reactor/ui"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flink-reactor/ui"
+import {
+  Spinner,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@flink-reactor/ui"
 import {
   lazy,
   Suspense,
@@ -24,6 +30,7 @@ import {
   useState,
 } from "react"
 import { TapPanel } from "@/components/tap/tap-panel"
+import { cn } from "@/lib/cn"
 import { hasTapManifest } from "@/lib/tap-manifest"
 import { useClusterStore } from "@/stores/cluster-store"
 import { useSqlGatewayStore } from "@/stores/sql-gateway-store"
@@ -78,7 +85,8 @@ export function JobDetail({
 }) {
   const fetchJobDetail = useClusterStore((s) => s.fetchJobDetail)
   const jobDetailLoading = useClusterStore((s) => s.jobDetailLoading)
-  const [savepointFeedback, setSavepointFeedback] = useState(false)
+  const savepointOp = useClusterStore((s) => s.savepointOp)
+  const dismissSavepointOp = useClusterStore((s) => s.dismissSavepointOp)
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedVertexId, setSelectedVertexId] = useState<string | undefined>()
 
@@ -100,8 +108,6 @@ export function JobDetail({
   }
 
   const handleSavepoint = async () => {
-    setSavepointFeedback(true)
-    setTimeout(() => setSavepointFeedback(false), 2000)
     await triggerSavepoint(job.id)
     onCreateSavepoint?.()
   }
@@ -193,9 +199,59 @@ export function JobDetail({
         isRefreshing={jobDetailLoading}
       />
 
-      {savepointFeedback && (
-        <div className="rounded-md bg-fr-amber/10 px-3 py-2 text-xs text-fr-amber">
-          Savepoint trigger sent. Check your savepoint directory for progress.
+      {savepointOp && savepointOp.jobId === job.id && (
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-md px-3 py-2 text-xs",
+            savepointOp.status === "IN_PROGRESS" &&
+              "bg-fr-amber/10 text-fr-amber",
+            savepointOp.status === "COMPLETED" &&
+              "bg-job-finished/10 text-job-finished",
+            savepointOp.status === "FAILED" &&
+              "bg-job-failed/10 text-job-failed",
+          )}
+        >
+          {savepointOp.status === "IN_PROGRESS" && (
+            <>
+              <Spinner size="sm" />
+              <span>
+                {savepointOp.kind === "stop-with-savepoint"
+                  ? "Stopping job with savepoint…"
+                  : "Savepoint in progress…"}
+              </span>
+            </>
+          )}
+          {savepointOp.status === "COMPLETED" && (
+            <span className="min-w-0 flex-1 truncate">
+              Savepoint completed
+              {savepointOp.location && (
+                <>
+                  {": "}
+                  <span
+                    className="font-mono text-zinc-300"
+                    title={savepointOp.location}
+                  >
+                    {savepointOp.location}
+                  </span>
+                </>
+              )}
+            </span>
+          )}
+          {savepointOp.status === "FAILED" && (
+            <span className="min-w-0 flex-1 truncate">
+              Savepoint failed
+              {savepointOp.error ? `: ${savepointOp.error}` : ""}
+            </span>
+          )}
+          {savepointOp.status !== "IN_PROGRESS" && (
+            <button
+              type="button"
+              onClick={dismissSavepointOp}
+              className="ml-auto shrink-0 text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              Dismiss
+            </button>
+          )}
         </div>
       )}
 
@@ -312,7 +368,9 @@ export function JobDetail({
             counts={job.checkpointCounts}
             config={job.checkpointConfig}
             checkpointLatest={job.checkpointLatest}
+            summary={job.checkpointSummary}
             vertexNames={vertexNames}
+            isJobActive={isRunning}
           />
         </TabsContent>
 

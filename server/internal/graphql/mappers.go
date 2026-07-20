@@ -79,6 +79,11 @@ func mapJobDetailAggregate(agg *flink.JobDetailAggregate) *model.JobDetail {
 			ExternalizedEnabled:              cc.Externalization.Enabled,
 			ExternalizedDeleteOnCancellation: cc.Externalization.DeleteOnCancellation,
 			UnalignedCheckpoints:             cc.UnalignedCheckpoints,
+			StateBackend:                     cc.StateBackend,
+			CheckpointStorage:                cc.CheckpointStorage,
+			TolerableFailedCheckpoints:       cc.TolerableFailedCheckpoints,
+			AlignedCheckpointTimeout:         i64p(cc.AlignedCheckpointTimeout),
+			CheckpointsAfterTasksFinish:      cc.CheckpointsAfterTasksFinish,
 		}
 	}
 
@@ -554,6 +559,7 @@ func mapCheckpointHistoryEntry(h *flink.CheckpointHistoryEntry) *model.Checkpoin
 		ID:                      i64(h.ID),
 		Status:                  h.Status,
 		IsSavepoint:             h.IsSavepoint,
+		CheckpointType:          h.CheckpointType,
 		TriggerTimestamp:        i64(h.TriggerTimestamp),
 		LatestAckTimestamp:      i64(h.LatestAckTimestamp),
 		StateSize:               i64(h.StateSize),
@@ -563,7 +569,116 @@ func mapCheckpointHistoryEntry(h *flink.CheckpointHistoryEntry) *model.Checkpoin
 		NumSubtasks:             h.NumSubtasks,
 		NumAcknowledgedSubtasks: h.NumAcknowledgedSubtask,
 		CheckpointedSize:        i64p(h.CheckpointedSize),
+		ExternalPath:            h.ExternalPath,
+		FailureMessage:          h.FailureMessage,
+		FailureTimestamp:        i64p(h.FailureTimestamp),
 	}
+}
+
+// mapCheckpointDetail converts a Flink CheckpointDetail to GraphQL. The tasks
+// map becomes a list sorted by vertex ID for a stable order.
+func mapCheckpointDetail(d *flink.CheckpointDetail) *model.CheckpointDetail {
+	tasks := make([]*model.CheckpointTaskDetail, 0, len(d.Tasks))
+	for vid, t := range d.Tasks {
+		tasks = append(tasks, &model.CheckpointTaskDetail{
+			VertexID:                vid,
+			Status:                  t.Status,
+			LatestAckTimestamp:      i64(t.LatestAckTimestamp),
+			StateSize:               i64(t.StateSize),
+			EndToEndDuration:        i64(t.EndToEndDuration),
+			NumSubtasks:             t.NumSubtasks,
+			NumAcknowledgedSubtasks: t.NumAcknowledgedSubtask,
+			CheckpointedSize:        i64p(t.CheckpointedSize),
+			ProcessedData:           i64p(t.ProcessedData),
+			PersistedData:           i64p(t.PersistedData),
+		})
+	}
+	sort.Slice(tasks, func(i, j int) bool { return tasks[i].VertexID < tasks[j].VertexID })
+
+	return &model.CheckpointDetail{
+		ID:                      i64(d.ID),
+		Status:                  d.Status,
+		IsSavepoint:             d.IsSavepoint,
+		CheckpointType:          d.CheckpointType,
+		TriggerTimestamp:        i64(d.TriggerTimestamp),
+		LatestAckTimestamp:      i64(d.LatestAckTimestamp),
+		StateSize:               i64(d.StateSize),
+		EndToEndDuration:        i64(d.EndToEndDuration),
+		NumSubtasks:             d.NumSubtasks,
+		NumAcknowledgedSubtasks: d.NumAcknowledgedSubtask,
+		CheckpointedSize:        i64p(d.CheckpointedSize),
+		ProcessedData:           i64p(d.ProcessedData),
+		PersistedData:           i64p(d.PersistedData),
+		ExternalPath:            d.ExternalPath,
+		Discarded:               d.Discarded,
+		FailureMessage:          d.FailureMessage,
+		FailureTimestamp:        i64p(d.FailureTimestamp),
+		Tasks:                   tasks,
+	}
+}
+
+// mapCheckpointSubtaskStats converts the per-subtask stats for one vertex.
+// The vertex ID comes from the request path — Flink's payload does not echo it.
+func mapCheckpointSubtaskStats(vertexID string, st *flink.CheckpointSubtaskDetail) *model.CheckpointSubtaskStats {
+	subtasks := make([]*model.CheckpointSubtaskEntry, len(st.Subtasks))
+	for i := range st.Subtasks {
+		s := &st.Subtasks[i]
+		e := &model.CheckpointSubtaskEntry{
+			Index:               s.Index,
+			Status:              s.Status,
+			AckTimestamp:        i64p(s.AckTimestamp),
+			EndToEndDuration:    i64p(s.EndToEndDuration),
+			StateSize:           i64p(s.StateSize),
+			CheckpointedSize:    i64p(s.CheckpointedSize),
+			StartDelay:          i64p(s.StartDelay),
+			UnalignedCheckpoint: s.UnalignedCheckpoint,
+			Aborted:             s.Aborted,
+		}
+		if s.Checkpoint != nil {
+			e.SyncDuration = i64ref(s.Checkpoint.Sync)
+			e.AsyncDuration = i64ref(s.Checkpoint.Async)
+		}
+		if s.Alignment != nil {
+			e.AlignmentBuffered = i64ref(s.Alignment.Buffered)
+			e.AlignmentProcessed = i64ref(s.Alignment.Processed)
+			e.AlignmentPersisted = i64ref(s.Alignment.Persisted)
+			e.AlignmentDuration = i64ref(s.Alignment.Duration)
+		}
+		subtasks[i] = e
+	}
+
+	result := &model.CheckpointSubtaskStats{
+		VertexID:                vertexID,
+		Status:                  st.Status,
+		LatestAckTimestamp:      i64(st.LatestAckTimestamp),
+		StateSize:               i64(st.StateSize),
+		EndToEndDuration:        i64(st.EndToEndDuration),
+		NumSubtasks:             st.NumSubtasks,
+		NumAcknowledgedSubtasks: st.NumAcknowledgedSubtask,
+		Subtasks:                subtasks,
+	}
+
+	if st.Summary != nil {
+		sum := &model.CheckpointSubtaskSummary{
+			StateSize:        mapMinMaxAvg(st.Summary.StateSize),
+			EndToEndDuration: mapMinMaxAvg(st.Summary.EndToEndDuration),
+			CheckpointedSize: mapMinMaxAvg(st.Summary.CheckpointedSize),
+			StartDelay:       mapMinMaxAvg(st.Summary.StartDelay),
+		}
+		if cd := st.Summary.CheckpointDuration; cd != nil {
+			sum.SyncDuration = mapMinMaxAvg(cd.Sync)
+			sum.AsyncDuration = mapMinMaxAvg(cd.Async)
+		}
+		if al := st.Summary.Alignment; al != nil {
+			sum.AlignmentBuffered = mapMinMaxAvg(al.Buffered)
+			sum.AlignmentProcessed = mapMinMaxAvg(al.Processed)
+			sum.AlignmentPersisted = mapMinMaxAvg(al.Persisted)
+			sum.AlignmentDuration = mapMinMaxAvg(al.Duration)
+		}
+		result.Summary = sum
+	}
+
+	return result
 }
 
 func mapMinMaxAvg(v *flink.CheckpointMinMaxAvg) *model.CheckpointMinMaxAvg {

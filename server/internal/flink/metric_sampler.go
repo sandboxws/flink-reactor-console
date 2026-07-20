@@ -14,16 +14,15 @@ const defaultMetricSamplerInterval = time.Second
 // V1 supported metric names. Subscribers may request any of these via the
 // metricStream subscription; the resolver rejects unknown metric names.
 const (
-	MetricThroughput     = "throughput"
-	MetricWatermarkLag   = "watermarkLag"
-	MetricCheckpointRate = "checkpointRate"
+	MetricThroughput   = "throughput"
+	MetricWatermarkLag = "watermarkLag"
 )
 
 // IsKnownMetric reports whether the metric name is one the sampler may
 // emit. The resolver calls this to validate the subscription parameter.
 func IsKnownMetric(metric string) bool {
 	switch metric {
-	case MetricThroughput, MetricWatermarkLag, MetricCheckpointRate:
+	case MetricThroughput, MetricWatermarkLag:
 		return true
 	default:
 		return false

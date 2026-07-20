@@ -20,7 +20,7 @@ func (r *Resolver) resolveCluster(clusterName *string) (*cluster.Connection, err
 	return r.Manager.Resolve(clusterName)
 }
 
-func (r *queryResolver) resolveKafkaInstrument(instrument string) (*kafkainst.Instrument, error) {
+func (r *Resolver) resolveKafkaInstrument(instrument string) (*kafkainst.Instrument, error) {
 	if r.InstrumentRegistry == nil {
 		return nil, fmt.Errorf("instruments not configured")
 	}
@@ -106,19 +106,17 @@ func f64(v float64) string {
 	return strconv.FormatInt(int64(v), 10)
 }
 
-// derefI64 converts an *int64 to string, returning "0" for nil.
-func derefI64(v *int64) string {
-	if v == nil {
-		return "0"
-	}
-	return strconv.FormatInt(*v, 10)
-}
-
 // i64p converts an *int64 to *string for GraphQL String fields.
 func i64p(v *int64) *string {
 	if v == nil {
 		return nil
 	}
 	s := strconv.FormatInt(*v, 10)
+	return &s
+}
+
+// i64ref converts an int64 to *string for GraphQL String fields.
+func i64ref(v int64) *string {
+	s := strconv.FormatInt(v, 10)
 	return &s
 }

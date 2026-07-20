@@ -24,9 +24,18 @@ type Config struct {
 	Flink       FlinkConfig                    `mapstructure:"flink"`
 	Health      HealthConfig                   `mapstructure:"health"`
 	Instruments []instruments.InstrumentConfig `mapstructure:"instruments"`
+	Seeding     SeedingConfig                  `mapstructure:"seeding"`
 	Log         LogConfig                      `mapstructure:"log"`
 	SPA         SPAConfig                      `mapstructure:"spa"`
 	Storage     StorageConfig                  `mapstructure:"storage"`
+}
+
+// SeedingConfig holds Kafka seed-data policy settings. Seeding is always
+// enabled in development and always blocked in production, regardless of this
+// flag; Enabled is the opt-in switch for every other environment (notably
+// staging). See internal/config/seeding.go for the policy.
+type SeedingConfig struct {
+	Enabled bool `mapstructure:"enabled"`
 }
 
 // StorageConfig holds PostgreSQL storage settings.
@@ -190,6 +199,12 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("loading clusters: %w", err)
 	}
 
+	// In development, auto-configure instruments for the local DSL stack when
+	// none are declared, mirroring the default-cluster synthesis above.
+	if cfg.IsDevelopment() && len(cfg.Instruments) == 0 {
+		cfg.Instruments = defaultDevelopmentInstruments()
+	}
+
 	return cfg, nil
 }
 
@@ -211,6 +226,8 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("flink.init_sql_path", "")
 
 	v.SetDefault("health.interval", "30s")
+
+	v.SetDefault("seeding.enabled", false)
 
 	v.SetDefault("log.level", "info")
 	v.SetDefault("log.format", "console")
@@ -283,6 +300,57 @@ func loadClusters(v *viper.Viper, cfg *Config) error {
 	}}
 
 	return nil
+}
+
+// defaultDevelopmentInstruments returns the instrument set auto-configured in
+// development when none are declared in YAML. Endpoints target the DSL's local
+// docker-compose stack via its host-published ports (flink-reactor-dsl
+// src/cli/cluster/docker-compose.yml). Each is tagged environment "development"
+// so the seeding policy treats them as seedable. Paimon is intentionally
+// omitted — its catalog client is filesystem-only while the local warehouse is
+// S3-backed, so a default would be permanently unhealthy (see server/CLAUDE.md).
+func defaultDevelopmentInstruments() []instruments.InstrumentConfig {
+	return []instruments.InstrumentConfig{
+		{
+			Type:        "kafka",
+			Name:        "local-kafka",
+			Environment: "development",
+			Config:      map[string]any{"brokers": []string{"localhost:9094"}},
+		},
+		{
+			Type:        "database",
+			Name:        "local-postgres",
+			Environment: "development",
+			Config: map[string]any{
+				"dsn":    "postgres://reactor:reactor@localhost:5433/postgres?sslmode=disable",
+				"driver": "postgres",
+			},
+		},
+		{
+			Type:        "schemaregistry",
+			Name:        "local-schema-registry",
+			Environment: "development",
+			Config: map[string]any{
+				"url":  "http://localhost:8082",
+				"auth": map[string]any{"type": "none"},
+			},
+		},
+		{
+			Type:        "fluss",
+			Name:        "local-fluss",
+			Environment: "development",
+			Config:      map[string]any{"bootstrapServers": "localhost:9123"},
+		},
+		{
+			Type:        "datalake",
+			Name:        "local-iceberg",
+			Environment: "development",
+			Config: map[string]any{
+				"catalogType": "iceberg-rest",
+				"endpoint":    "http://localhost:8181/catalog",
+			},
+		},
+	}
 }
 
 // durationDecodeHook returns a mapstructure decode hook that converts numeric

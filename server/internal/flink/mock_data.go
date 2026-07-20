@@ -233,6 +233,7 @@ func MockJobExceptions(_ string) JobExceptions {
 // MockCheckpointStats returns realistic checkpoint statistics for the given job ID.
 func MockCheckpointStats(_ string) CheckpointStats {
 	now := time.Now().UnixMilli()
+	checkpointType := "CHECKPOINT"
 	history := make([]CheckpointHistoryEntry, 10)
 	for i := range history {
 		stateSize := int64(500_000 + i*100_000)
@@ -245,6 +246,7 @@ func MockCheckpointStats(_ string) CheckpointStats {
 			ID:                     int64(i + 1),
 			Status:                 status,
 			IsSavepoint:            false,
+			CheckpointType:         &checkpointType,
 			TriggerTimestamp:       now - int64((10-i)*60_000),
 			LatestAckTimestamp:     now - int64((10-i)*60_000) + 2000,
 			StateSize:              stateSize,
@@ -255,10 +257,22 @@ func MockCheckpointStats(_ string) CheckpointStats {
 			NumAcknowledgedSubtask: 16,
 			CheckpointedSize:       &checkpointedSize,
 		}
+		if status == "COMPLETED" {
+			path := fmt.Sprintf("s3://flink/checkpoints/mock/chk-%d", i+1)
+			discarded := false
+			history[i].ExternalPath = &path
+			history[i].Discarded = &discarded
+		} else {
+			msg := "Checkpoint expired before completing. Checkpoint timeout: 600000ms"
+			failedAt := now - int64((10-i)*60_000) + 600_000
+			history[i].FailureMessage = &msg
+			history[i].FailureTimestamp = &failedAt
+		}
 	}
 
 	latestCompleted := history[9]
 	latestFailed := history[7]
+	restoredPath := "s3://flink/checkpoints/mock/chk-1"
 
 	return CheckpointStats{
 		Counts: CheckpointCounts{
@@ -281,6 +295,7 @@ func MockCheckpointStats(_ string) CheckpointStats {
 				ID:               1,
 				RestoreTimestamp: now - 600_000,
 				IsSavepoint:      false,
+				ExternalPath:     &restoredPath,
 			},
 		},
 	}
@@ -407,6 +422,11 @@ func MockJarList() JarList {
 
 // MockCheckpointConfig returns a realistic checkpoint config response.
 func MockCheckpointConfig() CheckpointConfig {
+	stateBackend := "HashMapStateBackend"
+	checkpointStorage := "FileSystemCheckpointStorage"
+	tolerable := 0
+	alignedTimeout := int64(0)
+	afterTasksFinish := true
 	return CheckpointConfig{
 		Mode:          "EXACTLY_ONCE",
 		Interval:      60000,
@@ -420,7 +440,145 @@ func MockCheckpointConfig() CheckpointConfig {
 			Enabled:              true,
 			DeleteOnCancellation: false,
 		},
-		UnalignedCheckpoints: false,
+		UnalignedCheckpoints:        false,
+		StateBackend:                &stateBackend,
+		CheckpointStorage:           &checkpointStorage,
+		TolerableFailedCheckpoints:  &tolerable,
+		AlignedCheckpointTimeout:    &alignedTimeout,
+		CheckpointsAfterTasksFinish: &afterTasksFinish,
+	}
+}
+
+// MockCheckpointDetail returns a realistic checkpoint detail response.
+// Checkpoint 8 mirrors the FAILED entry in MockCheckpointStats; every other
+// ID is a completed, externally addressable checkpoint.
+func MockCheckpointDetail(cpID int64) CheckpointDetail {
+	now := time.Now().UnixMilli()
+	checkpointType := "CHECKPOINT"
+	stateSize := int64(1_200_000)
+	checkpointedSize := int64(720_000)
+	processed := int64(400_000)
+	persisted := stateSize
+
+	detail := CheckpointDetail{
+		ID:                     cpID,
+		Status:                 "COMPLETED",
+		IsSavepoint:            false,
+		CheckpointType:         &checkpointType,
+		TriggerTimestamp:       now - 120_000,
+		LatestAckTimestamp:     now - 118_000,
+		StateSize:              stateSize,
+		EndToEndDuration:       2000,
+		NumSubtasks:            16,
+		NumAcknowledgedSubtask: 16,
+		CheckpointedSize:       &checkpointedSize,
+		ProcessedData:          &processed,
+		PersistedData:          &persisted,
+		Tasks: map[string]CheckpointTaskStats{
+			"vertex-source-1": {
+				ID:                     cpID,
+				Status:                 "COMPLETED",
+				LatestAckTimestamp:     now - 119_000,
+				StateSize:              800_000,
+				EndToEndDuration:       1500,
+				NumSubtasks:            8,
+				NumAcknowledgedSubtask: 8,
+				CheckpointedSize:       &checkpointedSize,
+				ProcessedData:          &processed,
+				PersistedData:          &persisted,
+			},
+			"vertex-sink-2": {
+				ID:                     cpID,
+				Status:                 "COMPLETED",
+				LatestAckTimestamp:     now - 118_000,
+				StateSize:              400_000,
+				EndToEndDuration:       2000,
+				NumSubtasks:            8,
+				NumAcknowledgedSubtask: 8,
+			},
+		},
+	}
+
+	if cpID == 8 {
+		msg := "Checkpoint expired before completing. Checkpoint timeout: 600000ms"
+		failedAt := now - 60_000
+		detail.Status = "FAILED"
+		detail.FailureMessage = &msg
+		detail.FailureTimestamp = &failedAt
+		detail.NumAcknowledgedSubtask = 11
+	} else {
+		path := fmt.Sprintf("s3://flink/checkpoints/mock/chk-%d", cpID)
+		discarded := false
+		detail.ExternalPath = &path
+		detail.Discarded = &discarded
+	}
+
+	return detail
+}
+
+// MockCheckpointSubtasks returns realistic per-subtask checkpoint stats for
+// one vertex. Subtask 3 is unacknowledged to exercise sparse entries.
+func MockCheckpointSubtasks(cpID int64, _ string) CheckpointSubtaskDetail {
+	now := time.Now().UnixMilli()
+	mma := func(minV, maxV, avgV int64) *CheckpointMinMaxAvg {
+		return &CheckpointMinMaxAvg{Min: minV, Max: maxV, Avg: avgV}
+	}
+
+	subtasks := make([]CheckpointSubtaskEntry, 4)
+	for i := range subtasks {
+		if i == 3 {
+			subtasks[i] = CheckpointSubtaskEntry{Index: i, Status: "pending_or_failed"}
+			continue
+		}
+		ack := now - 118_000 + int64(i*200)
+		e2e := int64(1200 + i*300)
+		stateSize := int64(180_000 + i*20_000)
+		checkpointed := stateSize * 6 / 10
+		startDelay := int64(20 + i*10)
+		unaligned := false
+		aborted := false
+		subtasks[i] = CheckpointSubtaskEntry{
+			Index:               i,
+			Status:              "completed",
+			AckTimestamp:        &ack,
+			EndToEndDuration:    &e2e,
+			StateSize:           &stateSize,
+			CheckpointedSize:    &checkpointed,
+			Checkpoint:          &CheckpointSubtaskDuration{Sync: int64(100 + i*50), Async: int64(800 + i*100)},
+			Alignment:           &CheckpointSubtaskAlignment{Buffered: 0, Processed: int64(90_000 + i*5_000), Persisted: 0, Duration: int64(40 + i*20)},
+			StartDelay:          &startDelay,
+			UnalignedCheckpoint: &unaligned,
+			Aborted:             &aborted,
+		}
+	}
+
+	return CheckpointSubtaskDetail{
+		CheckpointTaskStats: CheckpointTaskStats{
+			ID:                     cpID,
+			Status:                 "COMPLETED",
+			LatestAckTimestamp:     now - 117_400,
+			StateSize:              620_000,
+			EndToEndDuration:       2100,
+			NumSubtasks:            4,
+			NumAcknowledgedSubtask: 3,
+		},
+		Summary: &CheckpointSubtaskSummary{
+			StateSize:        mma(180_000, 220_000, 200_000),
+			EndToEndDuration: mma(1200, 1800, 1500),
+			CheckpointedSize: mma(108_000, 132_000, 120_000),
+			CheckpointDuration: &CheckpointDurationSummary{
+				Sync:  mma(100, 200, 150),
+				Async: mma(800, 1000, 900),
+			},
+			Alignment: &CheckpointAlignmentSummary{
+				Buffered:  mma(0, 0, 0),
+				Processed: mma(90_000, 100_000, 95_000),
+				Persisted: mma(0, 0, 0),
+				Duration:  mma(40, 80, 60),
+			},
+			StartDelay: mma(20, 40, 30),
+		},
+		Subtasks: subtasks,
 	}
 }
 

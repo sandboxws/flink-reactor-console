@@ -526,6 +526,21 @@ export interface KafkaConsumerGroupDetail {
   offsets: KafkaPartitionOffset[]
 }
 
+export interface KafkaMessage {
+  partition: number
+  offset: number
+  /** Record timestamp in epoch milliseconds. */
+  timestamp: number
+  key: string | null
+  value: string
+}
+
+/**
+ * Preview read order: NEWEST tails the live end of the stream, OLDEST reads
+ * from the earliest retained offsets (where the deterministic seed rows live).
+ */
+export type KafkaMessageOrder = "NEWEST" | "OLDEST"
+
 const KAFKA_TOPICS_QUERY = gql`
   query KafkaTopics($instrument: String!) {
     kafkaTopics(instrument: $instrument) {
@@ -555,6 +570,28 @@ const KAFKA_TOPIC_QUERY = gql`
         key
         value
       }
+    }
+  }
+`
+
+const KAFKA_TOPIC_MESSAGES_QUERY = gql`
+  query KafkaTopicMessages(
+    $instrument: String!
+    $topic: String!
+    $limit: Int
+    $order: KafkaMessageOrder
+  ) {
+    kafkaTopicMessages(
+      instrument: $instrument
+      topic: $topic
+      limit: $limit
+      order: $order
+    ) {
+      partition
+      offset
+      timestamp
+      key
+      value
     }
   }
 `
@@ -621,6 +658,24 @@ export async function fetchKafkaTopic(
   return data.kafkaTopic
 }
 
+/**
+ * Preview records from a topic (throwaway server-side consumer). Order
+ * defaults to NEWEST (live tail); pass "OLDEST" to read from the beginning.
+ */
+export async function fetchKafkaTopicMessages(
+  instrument: string,
+  topic: string,
+  limit?: number,
+  order?: KafkaMessageOrder,
+): Promise<KafkaMessage[]> {
+  const data = await query<{ kafkaTopicMessages: KafkaMessage[] }>(
+    KAFKA_TOPIC_MESSAGES_QUERY,
+    { instrument, topic, limit, order },
+    "network-only",
+  )
+  return data.kafkaTopicMessages ?? []
+}
+
 export async function fetchKafkaConsumerGroups(
   instrument: string,
 ): Promise<KafkaConsumerGroup[]> {
@@ -679,4 +734,98 @@ export async function testInstrumentConnection(
     { type, name, config },
   )
   return data.testInstrumentConnection
+}
+
+// ── Kafka seeding ───────────────────────────────────────────────────
+
+export interface KafkaSeededTopic {
+  topic: string
+  /** Template domain from the seed catalog (e.g. "ecommerce", "iot"). */
+  domain: string
+  /** Whether the topic already existed in the broker when the seed ran. */
+  existed: boolean
+  /** Records already in the topic; 0 when the topic is absent. */
+  existingRecords: number
+  /** Topic was created (real run) / would be created (dry run). */
+  created: boolean
+  /** Skipped because the topic already holds records and skipNonEmpty was set. */
+  skipped: boolean
+  /** Records produced (real run) / that would be produced (dry run). */
+  recordsProduced: number
+  /** Per-topic failure; null when the topic seeded cleanly. */
+  error: string | null
+}
+
+export interface KafkaSeedResult {
+  topics: KafkaSeededTopic[]
+  recordsProduced: number
+  skipped: string[]
+  dryRun: boolean
+}
+
+export interface SeedKafkaTopicsOptions {
+  /** Widen from this project's topics to the entire sample catalog. */
+  allTopics?: boolean
+  /** Consult the broker and report the plan without producing. */
+  dryRun?: boolean
+  /** Server default is TRUE — pass false to force-append into populated topics. */
+  skipNonEmpty?: boolean
+  /** Restrict the run to these catalog domains (with allTopics). */
+  domains?: string[]
+}
+
+const SEED_KAFKA_TOPICS_MUTATION = gql`
+  mutation SeedKafkaTopics(
+    $instrument: String!
+    $allTopics: Boolean
+    $dryRun: Boolean
+    $skipNonEmpty: Boolean
+    $domains: [String!]
+  ) {
+    seedKafkaTopics(
+      instrument: $instrument
+      allTopics: $allTopics
+      dryRun: $dryRun
+      skipNonEmpty: $skipNonEmpty
+      domains: $domains
+    ) {
+      topics {
+        topic
+        domain
+        existed
+        existingRecords
+        created
+        skipped
+        recordsProduced
+        error
+      }
+      recordsProduced
+      skipped
+      dryRun
+    }
+  }
+`
+
+/**
+ * Seed sample data into a Kafka instrument's topics. Governed server-side by
+ * the environment seeding policy (never permitted in production). By default
+ * only this project's topics (those already present in the broker) are seeded
+ * and already-populated topics are skipped; see SeedKafkaTopicsOptions for the
+ * dials. Dry runs consult the broker, so the reported plan matches a real run.
+ */
+export async function seedKafkaTopics(
+  instrument: string,
+  opts: SeedKafkaTopicsOptions = {},
+): Promise<KafkaSeedResult> {
+  const data = await mutate<{ seedKafkaTopics: KafkaSeedResult }>(
+    SEED_KAFKA_TOPICS_MUTATION,
+    {
+      instrument,
+      allTopics: opts.allTopics,
+      dryRun: opts.dryRun,
+      skipNonEmpty: opts.skipNonEmpty,
+      domains: opts.domains,
+    },
+  )
+  return data.seedKafkaTopics
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 )
 
@@ -37,6 +38,24 @@ func NewMockServer() *httptest.Server {
 
 	mux.HandleFunc("GET /jobs/{id}/checkpoints/config", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, MockCheckpointConfig())
+	})
+
+	mux.HandleFunc("GET /jobs/{id}/checkpoints/details/{cpid}", func(w http.ResponseWriter, r *http.Request) {
+		cpID, err := strconv.ParseInt(r.PathValue("cpid"), 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		writeJSON(w, MockCheckpointDetail(cpID))
+	})
+
+	mux.HandleFunc("GET /jobs/{id}/checkpoints/details/{cpid}/subtasks/{vid}", func(w http.ResponseWriter, r *http.Request) {
+		cpID, err := strconv.ParseInt(r.PathValue("cpid"), 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		writeJSON(w, MockCheckpointSubtasks(cpID, r.PathValue("vid")))
 	})
 
 	mux.HandleFunc("GET /jobs/{id}/config", func(w http.ResponseWriter, r *http.Request) {

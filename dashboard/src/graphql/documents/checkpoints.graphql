@@ -7,14 +7,102 @@ query CheckpointDetail($jobId: ID!, $checkpointId: String!, $cluster: String) {
     id
     status
     isSavepoint
+    checkpointType
     triggerTimestamp
     latestAckTimestamp
     stateSize
     endToEndDuration
-    processedData
-    persistedData
     numSubtasks
     numAcknowledgedSubtasks
     checkpointedSize
+    processedData
+    persistedData
+    externalPath
+    discarded
+    failureMessage
+    failureTimestamp
+    tasks {
+      vertexId
+      status
+      latestAckTimestamp
+      stateSize
+      endToEndDuration
+      numSubtasks
+      numAcknowledgedSubtasks
+      checkpointedSize
+      processedData
+      persistedData
+    }
+  }
+}
+
+query CheckpointSubtasks(
+  $jobId: ID!
+  $checkpointId: String!
+  $vertexId: ID!
+  $cluster: String
+) {
+  checkpointSubtasks(
+    jobId: $jobId
+    checkpointId: $checkpointId
+    vertexId: $vertexId
+    cluster: $cluster
+  ) {
+    vertexId
+    status
+    latestAckTimestamp
+    stateSize
+    endToEndDuration
+    numSubtasks
+    numAcknowledgedSubtasks
+    summary {
+      stateSize {
+        min
+        max
+        avg
+      }
+      endToEndDuration {
+        min
+        max
+        avg
+      }
+      syncDuration {
+        min
+        max
+        avg
+      }
+      asyncDuration {
+        min
+        max
+        avg
+      }
+      alignmentDuration {
+        min
+        max
+        avg
+      }
+      startDelay {
+        min
+        max
+        avg
+      }
+    }
+    subtasks {
+      index
+      status
+      ackTimestamp
+      endToEndDuration
+      stateSize
+      checkpointedSize
+      syncDuration
+      asyncDuration
+      alignmentBuffered
+      alignmentProcessed
+      alignmentPersisted
+      alignmentDuration
+      startDelay
+      unalignedCheckpoint
+      aborted
+    }
   }
 }

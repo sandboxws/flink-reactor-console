@@ -236,7 +236,7 @@ func (r *queryResolver) Flamegraph(ctx context.Context, jobID string, vertexID s
 }
 
 // CheckpointDetail is the resolver for the checkpointDetail field.
-func (r *queryResolver) CheckpointDetail(ctx context.Context, jobID string, checkpointID string, cluster *string) (*model.CheckpointHistoryEntry, error) {
+func (r *queryResolver) CheckpointDetail(ctx context.Context, jobID string, checkpointID string, cluster *string) (*model.CheckpointDetail, error) {
 	conn, err := r.resolveCluster(cluster)
 	if err != nil {
 		return nil, err
@@ -252,20 +252,27 @@ func (r *queryResolver) CheckpointDetail(ctx context.Context, jobID string, chec
 		return nil, err
 	}
 
-	return &model.CheckpointHistoryEntry{
-		ID:                      i64(detail.ID),
-		Status:                  detail.Status,
-		IsSavepoint:             detail.IsSavepoint,
-		TriggerTimestamp:        i64(detail.TriggerTimestamp),
-		LatestAckTimestamp:      i64(detail.LatestAckTimestamp),
-		StateSize:               i64(detail.StateSize),
-		EndToEndDuration:        i64(detail.EndToEndDuration),
-		ProcessedData:           derefI64(detail.ProcessedData),
-		PersistedData:           derefI64(detail.PersistedData),
-		NumSubtasks:             detail.NumSubtasks,
-		NumAcknowledgedSubtasks: detail.NumAcknowledgedSubtask,
-		CheckpointedSize:        i64p(detail.CheckpointedSize),
-	}, nil
+	return mapCheckpointDetail(detail), nil
+}
+
+// CheckpointSubtasks is the resolver for the checkpointSubtasks field.
+func (r *queryResolver) CheckpointSubtasks(ctx context.Context, jobID string, checkpointID string, vertexID string, cluster *string) (*model.CheckpointSubtaskStats, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	cpID, err := strconv.ParseInt(checkpointID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	st, err := conn.Service.GetCheckpointSubtasks(ctx, jobID, cpID, vertexID)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapCheckpointSubtaskStats(vertexID, st), nil
 }
 
 // Savepoints is the resolver for the savepoints field.

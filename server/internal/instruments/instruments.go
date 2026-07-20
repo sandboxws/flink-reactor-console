@@ -16,6 +16,7 @@ const (
 	CapabilitySample    Capability = "sample"
 	CapabilityMetrics   Capability = "metrics"
 	CapabilityHighlight Capability = "highlight"
+	CapabilitySeed      Capability = "seed"
 )
 
 // ResourceRef identifies an infrastructure resource referenced by a pipeline.

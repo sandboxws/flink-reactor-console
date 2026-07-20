@@ -1,0 +1,47 @@
+# Staging environment configuration.
+#
+# Selected when REACTOR_ENV=staging (or APP_ENV=staging). Without this file a
+# staging deployment falls through to hardcoded defaults (seeding off). Fill in
+# your staging Flink endpoint(s) and storage DSN; the commented blocks below are
+# examples.
+
+app:
+  debug: false
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+# flink:
+#   rest_url: "http://flink-staging:8081"
+#   sql_gateway_url: "http://sqlgw-staging:8083"
+
+# Multi-cluster example (overrides flink.* above):
+# clusters:
+#   - name: "staging"
+#     url: "http://flink-staging:8081"
+#     default: true
+
+health:
+  interval: "30s"
+
+log:
+  level: "info"
+  format: "json"
+
+# Kafka seeding is opt-in in staging (default off) and never allowed in
+# production. Flip enabled to true to allow it. Seeding is still refused for any
+# instrument whose environment resolves to production (explicit `environment`
+# tag, or a name containing "prod"), so tag production-facing instruments.
+seeding:
+  enabled: false
+
+# Instruments are auto-configured only in development. Declare staging
+# instruments here and tag each with the environment it connects to:
+# instruments:
+#   - name: "staging-kafka"
+#     type: "kafka"
+#     environment: "staging"
+#     config:
+#       brokers:
+#         - "kafka-staging:9092"

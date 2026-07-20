@@ -1,34 +1,43 @@
 /** Cluster overview and job fixture factories — the core building blocks for Flink test data. */
 
 import type {
+  Checkpoint,
+  CheckpointConfig,
+  CheckpointCounts,
   ClusterOverview,
+  FlinkFeatureFlags,
   FlinkJob,
-  JobStatus,
-  JobVertex,
-  JobVertexMetrics,
+  JobConnector,
   JobEdge,
   JobPlan,
+  JobVertex,
+  JobVertexMetrics,
   TaskCounts,
-  ShipStrategy,
-  JobConnector,
-  FlinkFeatureFlags,
-  Checkpoint,
-  CheckpointCounts,
-  CheckpointConfig,
 } from "../types"
 
 /** Monotonic counter for generating unique IDs within a session. */
 let counter = 0
 /** Generate a short unique ID from timestamp and counter. */
-function uid() { return `${Date.now().toString(36)}-${(counter++).toString(36)}` }
+function uid() {
+  return `${Date.now().toString(36)}-${(counter++).toString(36)}`
+}
 
 /** Create task counts with four running tasks by default. */
 export function createTaskCounts(overrides?: Partial<TaskCounts>): TaskCounts {
-  return { pending: 0, running: 4, finished: 0, canceling: 0, failed: 0, ...overrides }
+  return {
+    pending: 0,
+    running: 4,
+    finished: 0,
+    canceling: 0,
+    failed: 0,
+    ...overrides,
+  }
 }
 
 /** Create vertex metrics with throughput, busy time, and backpressure defaults. */
-export function createVertexMetrics(overrides?: Partial<JobVertexMetrics>): JobVertexMetrics {
+export function createVertexMetrics(
+  overrides?: Partial<JobVertexMetrics>,
+): JobVertexMetrics {
   return {
     recordsIn: 125_000,
     recordsOut: 124_800,
@@ -77,16 +86,20 @@ export function createJobPlan(vertexCount = 4): JobPlan {
     "Sink: Iceberg [order_summary]",
   ]
   for (let i = 0; i < vertexCount; i++) {
-    vertices.push(createJobVertex({
-      name: names[i % names.length],
-      id: `vertex-${i}`,
-    }))
+    vertices.push(
+      createJobVertex({
+        name: names[i % names.length],
+        id: `vertex-${i}`,
+      }),
+    )
     if (i > 0) {
-      edges.push(createJobEdge({
-        source: `vertex-${i - 1}`,
-        target: `vertex-${i}`,
-        shipStrategy: i === 1 ? "FORWARD" : "HASH",
-      }))
+      edges.push(
+        createJobEdge({
+          source: `vertex-${i - 1}`,
+          target: `vertex-${i}`,
+          shipStrategy: i === 1 ? "FORWARD" : "HASH",
+        }),
+      )
     }
   }
   return { vertices, edges }
@@ -107,12 +120,16 @@ export function createCheckpoint(overrides?: Partial<Checkpoint>): Checkpoint {
 }
 
 /** Create checkpoint counts with 142 completed and zero failures. */
-export function createCheckpointCounts(overrides?: Partial<CheckpointCounts>): CheckpointCounts {
+export function createCheckpointCounts(
+  overrides?: Partial<CheckpointCounts>,
+): CheckpointCounts {
   return { completed: 142, failed: 0, inProgress: 0, total: 142, ...overrides }
 }
 
 /** Create an EXACTLY_ONCE checkpoint config with 60s interval. */
-export function createCheckpointConfig(overrides?: Partial<CheckpointConfig>): CheckpointConfig {
+export function createCheckpointConfig(
+  overrides?: Partial<CheckpointConfig>,
+): CheckpointConfig {
   return {
     mode: "EXACTLY_ONCE",
     interval: 60_000,
@@ -124,7 +141,9 @@ export function createCheckpointConfig(overrides?: Partial<CheckpointConfig>): C
 }
 
 /** Create a Kafka source connector fixture with throughput metrics. */
-export function createConnector(overrides?: Partial<JobConnector>): JobConnector {
+export function createConnector(
+  overrides?: Partial<JobConnector>,
+): JobConnector {
   return {
     vertexId: "vertex-0",
     vertexName: "Source: Kafka [orders]",
@@ -133,7 +152,12 @@ export function createConnector(overrides?: Partial<JobConnector>): JobConnector
     resource: "orders",
     confidence: 1.0,
     detectionMethod: "manifest",
-    metrics: { recordsRead: 500_000, recordsWritten: 0, bytesRead: 200_000_000, bytesWritten: 0 },
+    metrics: {
+      recordsRead: 500_000,
+      recordsWritten: 0,
+      bytesRead: 200_000_000,
+      bytesWritten: 0,
+    },
     ...overrides,
   }
 }
@@ -157,6 +181,7 @@ export function createFlinkJob(overrides?: Partial<FlinkJob>): FlinkJob {
     checkpointCounts: createCheckpointCounts(),
     checkpointConfig: createCheckpointConfig(),
     checkpointLatest: null,
+    checkpointSummary: null,
     subtaskMetrics: {},
     configuration: [
       { key: "execution.runtime-mode", value: "STREAMING" },
@@ -175,7 +200,12 @@ export function createFlinkJob(overrides?: Partial<FlinkJob>): FlinkJob {
         connectorType: "iceberg",
         role: "sink",
         resource: "order_summary",
-        metrics: { recordsRead: 0, recordsWritten: 480_000, bytesRead: 0, bytesWritten: 190_000_000 },
+        metrics: {
+          recordsRead: 0,
+          recordsWritten: 480_000,
+          bytesRead: 0,
+          bytesWritten: 190_000_000,
+        },
       }),
     ],
     throughput: { recordsInPerSecond: 12_400, recordsOutPerSecond: 12_350 },
@@ -185,7 +215,9 @@ export function createFlinkJob(overrides?: Partial<FlinkJob>): FlinkJob {
 }
 
 /** Create a cluster overview with 3 TMs, 12 slots, and Flink 1.20.1. */
-export function createClusterOverview(overrides?: Partial<ClusterOverview>): ClusterOverview {
+export function createClusterOverview(
+  overrides?: Partial<ClusterOverview>,
+): ClusterOverview {
   return {
     flinkVersion: "1.20.1",
     flinkCommitId: "a1b2c3d",
@@ -202,7 +234,9 @@ export function createClusterOverview(overrides?: Partial<ClusterOverview>): Clu
 }
 
 /** Create Flink feature flags with submit, cancel, and history enabled. */
-export function createFeatureFlags(overrides?: Partial<FlinkFeatureFlags>): FlinkFeatureFlags {
+export function createFeatureFlags(
+  overrides?: Partial<FlinkFeatureFlags>,
+): FlinkFeatureFlags {
   return {
     webSubmit: true,
     webCancel: true,

@@ -11,7 +11,10 @@ import type {
   Checkpoint,
   CheckpointConfig,
   CheckpointCounts,
+  CheckpointDetail,
   CheckpointLatest,
+  CheckpointSubtaskStats,
+  CheckpointSummary,
   ClusterOverview,
   ConnectorRole,
   ConnectorType,
@@ -140,17 +143,26 @@ const JOB_DETAIL_QUERY = gql`
       exceptions { exceptionName stacktrace timestamp taskName endpoint taskManagerId }
       checkpoints {
         counts { completed inProgress failed total restored }
-        history { id status isSavepoint triggerTimestamp latestAckTimestamp stateSize endToEndDuration processedData persistedData numSubtasks numAcknowledgedSubtasks checkpointedSize }
+        history { id status isSavepoint checkpointType triggerTimestamp latestAckTimestamp stateSize endToEndDuration processedData persistedData numSubtasks numAcknowledgedSubtasks checkpointedSize externalPath failureMessage failureTimestamp }
+        summary {
+          stateSize { min max avg }
+          endToEndDuration { min max avg }
+          checkpointedSize { min max avg }
+          processedData { min max avg }
+          persistedData { min max avg }
+        }
         latest {
-          completed { id status triggerTimestamp stateSize endToEndDuration processedData persistedData isSavepoint }
-          failed { id status triggerTimestamp stateSize endToEndDuration processedData persistedData isSavepoint }
-          savepoint { id status triggerTimestamp stateSize endToEndDuration processedData persistedData isSavepoint }
+          completed { id status triggerTimestamp stateSize endToEndDuration processedData persistedData isSavepoint checkpointedSize externalPath }
+          failed { id status triggerTimestamp stateSize endToEndDuration processedData persistedData isSavepoint failureMessage failureTimestamp }
+          savepoint { id status triggerTimestamp stateSize endToEndDuration processedData persistedData isSavepoint externalPath }
           restored { id restoreTimestamp isSavepoint externalPath }
         }
       }
       checkpointConfig {
         mode interval timeout minPause maxConcurrent
         externalizedEnabled externalizedDeleteOnCancellation unalignedCheckpoints
+        stateBackend checkpointStorage tolerableFailedCheckpoints
+        alignedCheckpointTimeout checkpointsAfterTasksFinish
       }
       jobConfig {
         jid name executionMode restartStrategy jobParallelism objectReuseMode
@@ -287,6 +299,21 @@ const RESCALE_JOB_MUTATION = gql`
 const JOB_SAVEPOINTS_QUERY = gql`
   query JobSavepoints($jobId: ID!, $cluster: String) {
     savepoints(jobId: $jobId, cluster: $cluster) {
+      id
+      status
+      triggerType
+      location
+      sizeBytes
+      durationMs
+      triggeredAt
+      error
+    }
+  }
+`
+
+const SAVEPOINT_QUERY = gql`
+  query Savepoint($jobId: ID!, $savepointId: String!, $cluster: String) {
+    savepoint(jobId: $jobId, savepointId: $savepointId, cluster: $cluster) {
       id
       status
       triggerType
@@ -455,6 +482,7 @@ function mapJobOverview(j: any): FlinkJob {
     checkpointCounts: null,
     checkpointConfig: null,
     checkpointLatest: null,
+    checkpointSummary: null,
     subtaskMetrics: {},
     configuration: [],
     jobConfig: null,
@@ -848,6 +876,12 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
         : undefined,
       processedData: parseI64(cp.processedData),
       isSavepoint: cp.isSavepoint,
+      checkpointType: cp.checkpointType ?? undefined,
+      externalPath: cp.externalPath ?? undefined,
+      failureMessage: cp.failureMessage ?? undefined,
+      failureTimestamp: cp.failureTimestamp
+        ? epochToDate(cp.failureTimestamp)
+        : undefined,
     }),
   )
 
@@ -876,8 +910,33 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
         deleteOnCancellation: cc.externalizedDeleteOnCancellation,
       },
       unalignedCheckpoints: cc.unalignedCheckpoints,
+      stateBackend: cc.stateBackend ?? undefined,
+      checkpointStorage: cc.checkpointStorage ?? undefined,
+      tolerableFailedCheckpoints: cc.tolerableFailedCheckpoints ?? undefined,
+      alignedCheckpointTimeout:
+        cc.alignedCheckpointTimeout != null
+          ? parseI64(cc.alignedCheckpointTimeout)
+          : undefined,
+      checkpointsAfterTasksFinish: cc.checkpointsAfterTasksFinish ?? undefined,
     }
   }
+
+  // Map job-level checkpoint summary (min/max/avg rollups)
+  const mapMinMaxAvg = (
+    v: { min: string; max: string; avg: string } | null | undefined,
+  ) =>
+    v
+      ? { min: parseI64(v.min), max: parseI64(v.max), avg: parseI64(v.avg) }
+      : undefined
+  const checkpointSummary: CheckpointSummary | null = j.checkpoints?.summary
+    ? {
+        stateSize: mapMinMaxAvg(j.checkpoints.summary.stateSize),
+        endToEndDuration: mapMinMaxAvg(j.checkpoints.summary.endToEndDuration),
+        checkpointedSize: mapMinMaxAvg(j.checkpoints.summary.checkpointedSize),
+        processedData: mapMinMaxAvg(j.checkpoints.summary.processedData),
+        persistedData: mapMinMaxAvg(j.checkpoints.summary.persistedData),
+      }
+    : null
 
   // Map checkpoint latest
   let checkpointLatest: CheckpointLatest | null = null
@@ -891,8 +950,16 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
             triggerTimestamp: epochToDate(cp.triggerTimestamp),
             duration: parseI64(cp.endToEndDuration),
             size: parseI64(cp.stateSize),
+            checkpointedSize: cp.checkpointedSize
+              ? parseI64(cp.checkpointedSize)
+              : undefined,
             processedData: parseI64(cp.processedData),
             isSavepoint: cp.isSavepoint,
+            externalPath: cp.externalPath ?? undefined,
+            failureMessage: cp.failureMessage ?? undefined,
+            failureTimestamp: cp.failureTimestamp
+              ? epochToDate(cp.failureTimestamp)
+              : undefined,
           }
         : null
     checkpointLatest = {
@@ -1038,6 +1105,7 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
     checkpointCounts,
     checkpointConfig,
     checkpointLatest,
+    checkpointSummary,
     subtaskMetrics,
     configuration: [],
     jobConfig,
@@ -1288,6 +1356,29 @@ export async function fetchJobSavepoints(
       error: sp.error,
     }),
   )
+}
+
+/** Fetch a single savepoint operation by trigger request ID (status polling). */
+export async function fetchSavepoint(
+  jobId: string,
+  savepointId: string,
+): Promise<JobSavepoint> {
+  const data = await query<any>(
+    SAVEPOINT_QUERY,
+    { jobId, savepointId },
+    "network-only",
+  )
+  const sp = data.savepoint
+  return {
+    id: sp.id,
+    status: sp.status as SavepointStatus,
+    triggerType: sp.triggerType as SavepointTriggerType,
+    location: sp.location,
+    sizeBytes: sp.sizeBytes != null ? parseI64(sp.sizeBytes) : null,
+    durationMs: sp.durationMs != null ? parseI64(sp.durationMs) : null,
+    triggeredAt: new Date(parseI64(sp.triggeredAt)),
+    error: sp.error,
+  }
 }
 
 /** Run a JAR */
@@ -1722,39 +1813,124 @@ export async function fetchJobManagerThreadDump(): Promise<{
   return resp.json()
 }
 
-/** Fetch checkpoint detail. */
+const CHECKPOINT_DETAIL_QUERY = gql`
+  query CheckpointDetail($jobId: ID!, $checkpointId: String!, $cluster: String) {
+    checkpointDetail(jobId: $jobId, checkpointId: $checkpointId, cluster: $cluster) {
+      id status isSavepoint checkpointType triggerTimestamp latestAckTimestamp
+      stateSize endToEndDuration numSubtasks numAcknowledgedSubtasks
+      checkpointedSize processedData persistedData externalPath discarded
+      failureMessage failureTimestamp
+      tasks {
+        vertexId status latestAckTimestamp stateSize endToEndDuration
+        numSubtasks numAcknowledgedSubtasks checkpointedSize processedData persistedData
+      }
+    }
+  }
+`
+
+/** Fetch full checkpoint detail including per-operator rollups. */
 export async function fetchCheckpointDetail(
   jobId: string,
   checkpointId: number,
-): Promise<any> {
-  const baseUrl = (import.meta.env.VITE_GRAPHQL_URL ?? "").replace(
-    "/graphql",
-    "",
+): Promise<CheckpointDetail> {
+  const data = await query<any>(
+    CHECKPOINT_DETAIL_QUERY,
+    { jobId, checkpointId: String(checkpointId) },
+    "network-only",
   )
-  const resp = await fetch(
-    `${baseUrl}/api/flink/jobs/${jobId}/checkpoints/${checkpointId}/detail`,
-  )
-  if (!resp.ok)
-    throw new Error(`Failed to fetch checkpoint detail: ${resp.statusText}`)
-  return resp.json()
+  const d = data.checkpointDetail
+  const tasks: CheckpointDetail["tasks"] = {}
+  for (const t of d.tasks ?? []) {
+    tasks[t.vertexId] = {
+      vertexId: t.vertexId,
+      status: t.status,
+      latestAckTimestamp: parseI64(t.latestAckTimestamp),
+      stateSize: parseI64(t.stateSize),
+      endToEndDuration: parseI64(t.endToEndDuration),
+      numSubtasks: t.numSubtasks,
+      numAcknowledgedSubtasks: t.numAcknowledgedSubtasks,
+      checkpointedSize:
+        t.checkpointedSize != null ? parseI64(t.checkpointedSize) : undefined,
+      processedData:
+        t.processedData != null ? parseI64(t.processedData) : undefined,
+      persistedData:
+        t.persistedData != null ? parseI64(t.persistedData) : undefined,
+    }
+  }
+  return {
+    id: parseI64(d.id),
+    status: d.status as CheckpointDetail["status"],
+    isSavepoint: d.isSavepoint,
+    triggerTimestamp: epochToDate(d.triggerTimestamp),
+    latestAckTimestamp: epochToDate(d.latestAckTimestamp),
+    stateSize: parseI64(d.stateSize),
+    endToEndDuration: parseI64(d.endToEndDuration),
+    numSubtasks: d.numSubtasks,
+    numAcknowledgedSubtasks: d.numAcknowledgedSubtasks,
+    tasks,
+    checkpointType: d.checkpointType ?? undefined,
+    externalPath: d.externalPath ?? undefined,
+    discarded: d.discarded ?? undefined,
+    checkpointedSize:
+      d.checkpointedSize != null ? parseI64(d.checkpointedSize) : undefined,
+    processedData:
+      d.processedData != null ? parseI64(d.processedData) : undefined,
+    persistedData:
+      d.persistedData != null ? parseI64(d.persistedData) : undefined,
+    failureMessage: d.failureMessage ?? undefined,
+    failureTimestamp: d.failureTimestamp
+      ? epochToDate(d.failureTimestamp)
+      : undefined,
+  }
 }
 
-/** Fetch checkpoint subtask detail. */
+const CHECKPOINT_SUBTASKS_QUERY = gql`
+  query CheckpointSubtasks($jobId: ID!, $checkpointId: String!, $vertexId: ID!, $cluster: String) {
+    checkpointSubtasks(jobId: $jobId, checkpointId: $checkpointId, vertexId: $vertexId, cluster: $cluster) {
+      vertexId
+      status
+      subtasks {
+        index status ackTimestamp endToEndDuration stateSize checkpointedSize
+        syncDuration asyncDuration alignmentBuffered alignmentProcessed
+        alignmentPersisted alignmentDuration startDelay unalignedCheckpoint aborted
+      }
+    }
+  }
+`
+
+/**
+ * Fetch per-subtask checkpoint stats for one vertex of a checkpoint.
+ * Unacknowledged subtasks carry only index/status — numeric fields coerce to 0
+ * (`ackTimestamp === 0` marks them; summary math should skip those rows).
+ */
 export async function fetchCheckpointSubtaskDetail(
   jobId: string,
   checkpointId: number,
   vertexId: string,
-): Promise<any> {
-  const baseUrl = (import.meta.env.VITE_GRAPHQL_URL ?? "").replace(
-    "/graphql",
-    "",
+): Promise<CheckpointSubtaskStats[]> {
+  const data = await query<any>(
+    CHECKPOINT_SUBTASKS_QUERY,
+    { jobId, checkpointId: String(checkpointId), vertexId },
+    "network-only",
   )
-  const resp = await fetch(
-    `${baseUrl}/api/flink/jobs/${jobId}/checkpoints/${checkpointId}/subtasks/${vertexId}`,
+  const optI64 = (v: string | null | undefined) => (v != null ? parseI64(v) : 0)
+  return (data.checkpointSubtasks?.subtasks ?? []).map(
+    (s: any): CheckpointSubtaskStats => ({
+      subtaskIndex: s.index,
+      ackTimestamp: optI64(s.ackTimestamp),
+      endToEndDuration: optI64(s.endToEndDuration),
+      stateSize: optI64(s.stateSize),
+      checkpointedSize: optI64(s.checkpointedSize),
+      syncDuration: optI64(s.syncDuration),
+      asyncDuration: optI64(s.asyncDuration),
+      // The per-subtask "Data" column is alignment-processed bytes — the
+      // in-flight data processed during barrier alignment.
+      processedData: optI64(s.alignmentProcessed),
+      alignmentDuration: optI64(s.alignmentDuration),
+      startDelay: optI64(s.startDelay),
+      unalignedCheckpoint: s.unalignedCheckpoint ?? false,
+    }),
   )
-  if (!resp.ok)
-    throw new Error(`Failed to fetch subtask detail: ${resp.statusText}`)
-  return resp.json()
 }
 
 // ---------------------------------------------------------------------------
@@ -2039,6 +2215,9 @@ export type StoredCheckpoint = {
   numSubtasks: number
   numAckSubtasks: number
   checkpointedSize: string | null
+  failureMessage: string | null
+  failureTimestamp: string | null
+  externalPath: string | null
   capturedAt: string
 }
 
@@ -2065,6 +2244,9 @@ const CHECKPOINT_HISTORY_QUERY = gql`
           numSubtasks
           numAckSubtasks
           checkpointedSize
+          failureMessage
+          failureTimestamp
+          externalPath
           capturedAt
         }
       }

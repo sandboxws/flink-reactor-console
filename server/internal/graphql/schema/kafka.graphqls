@@ -89,6 +89,61 @@ type KafkaPartitionOffset {
   lag: Int!
 }
 
+"""
+A topic touched during a Kafka seed operation. Both dry and real runs consult
+the broker, so existed/existingRecords reflect actual broker state either way.
+"""
+type KafkaSeededTopic {
+  topic: String!
+  "Template domain from the seed catalog (e.g. ecommerce, iot)."
+  domain: String!
+  "Whether the topic already existed in the broker when the seed ran."
+  existed: Boolean!
+  "Records already in the topic (sum of partition end−start offsets); 0 when absent."
+  existingRecords: Int!
+  "Topic was created (real run) / would be created (dry run)."
+  created: Boolean!
+  "Skipped because the topic already holds records and skipNonEmpty was set."
+  skipped: Boolean!
+  "Records produced (real run) / that would be produced (dry run)."
+  recordsProduced: Int!
+  "Per-topic failure; null when the topic seeded cleanly. Seeding is best-effort per topic."
+  error: String
+}
+
+"""
+Result of seeding sample data into a Kafka instrument.
+"""
+type KafkaSeedResult {
+  topics: [KafkaSeededTopic!]!
+  recordsProduced: Int!
+  "Topic names skipped for any reason (no sample rows, or already populated with skipNonEmpty)."
+  skipped: [String!]!
+  dryRun: Boolean!
+}
+
+"""
+Read order for a topic preview.
+"""
+enum KafkaMessageOrder {
+  "Most recent records first (the live end of the stream)."
+  NEWEST
+  "Earliest retained records first (e.g. the deterministic seed rows)."
+  OLDEST
+}
+
+"""
+A single Kafka record returned by a topic preview read.
+"""
+type KafkaMessage {
+  partition: Int!
+  offset: Int!
+  "Record timestamp in epoch milliseconds."
+  timestamp: Int!
+  key: String
+  value: String!
+}
+
 extend type Query {
   """
   List topics for a Kafka instrument.
@@ -106,4 +161,28 @@ extend type Query {
   Get detailed information about a specific consumer group.
   """
   kafkaConsumerGroup(instrument: String!, groupId: String!): KafkaConsumerGroupDetail!
+  """
+  Preview records from a topic using a throwaway consumer (no consumer group
+  is left behind). limit defaults to 20, capped at 200. order defaults to
+  NEWEST (live tail); OLDEST reads from the beginning, where the deterministic
+  seed rows live.
+  """
+  kafkaTopicMessages(instrument: String!, topic: String!, limit: Int, order: KafkaMessageOrder): [KafkaMessage!]!
+}
+
+extend type Mutation {
+  """
+  Seed sample data into a Kafka instrument's topics. Governed by the
+  environment seeding policy: enabled by default in development, opt-in in
+  staging, and never permitted in production. By default only this project's
+  topics are seeded (catalog subjects whose topic already exists in the
+  broker — `cluster up` materializes every declared topic, so project scope
+  and declared scope coincide); allTopics: true widens to the entire sample
+  catalog, creating each missing topic. domains restricts the run to the given
+  catalog domains (e.g. ["ecommerce"]). skipNonEmpty defaults to TRUE when
+  omitted: topics that already hold records are reported as skipped instead of
+  appended to — pass skipNonEmpty: false to force append. dryRun consults the
+  broker and reports exactly what a real run would do, without producing.
+  """
+  seedKafkaTopics(instrument: String!, allTopics: Boolean, dryRun: Boolean, skipNonEmpty: Boolean, domains: [String!]): KafkaSeedResult!
 }

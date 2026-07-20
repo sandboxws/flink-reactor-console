@@ -1,4 +1,3 @@
-import { create } from "zustand"
 import type {
   ClusterOverview,
   FlinkFeatureFlags,
@@ -8,6 +7,7 @@ import type {
   TaskManager,
   UploadedJar,
 } from "@flink-reactor/ui"
+import { create } from "zustand"
 import {
   cancelJob as cancelJobApi,
   deleteJar as deleteJarApi,
@@ -16,6 +16,7 @@ import {
   fetchJobDetail,
   fetchJobManagerDetail,
   fetchOverviewPageData,
+  fetchSavepoint,
   fetchTapManifests,
   fetchTaskManagerDetail,
   fetchTaskManagers,
@@ -77,6 +78,19 @@ interface ClusterState {
   featureFlags: FlinkFeatureFlags | null
   /** Pipeline names that have tap manifests (support tapping). */
   tappablePipelines: Set<string>
+  /** In-flight or recently finished savepoint trigger, polled to completion. */
+  savepointOp: SavepointOperation | null
+}
+
+/** A savepoint trigger being tracked from request to terminal status. */
+export type SavepointOperation = {
+  jobId: string
+  requestId: string
+  kind: "savepoint" | "stop-with-savepoint"
+  status: "IN_PROGRESS" | "COMPLETED" | "FAILED"
+  /** Storage path; set once the operation completes successfully. */
+  location: string | null
+  error: string | null
 }
 
 interface ClusterActions {
@@ -108,10 +122,17 @@ interface ClusterActions {
   deleteJar: (jarId: string) => Promise<void>
   /** Re-fetch the list of uploaded JARs. */
   fetchJars: () => Promise<void>
-  /** Lazily fetch full job detail (vertices, plan, checkpoints, config). */
-  fetchJobDetail: (jobId: string) => Promise<void>
+  /** Lazily fetch full job detail (vertices, plan, checkpoints, config).
+   * `silent` refreshes in the background without toggling the loading flag. */
+  fetchJobDetail: (jobId: string, opts?: { silent?: boolean }) => Promise<void>
   /** Clear the lazily loaded job detail state. */
   clearJobDetail: () => void
+  /** Poll job detail (~10s) while a live view (e.g. Checkpoints tab) is open. */
+  startJobDetailPolling: (jobId: string) => void
+  /** Stop the job detail poll started by startJobDetailPolling. */
+  stopJobDetailPolling: () => void
+  /** Clear the tracked savepoint operation banner. */
+  dismissSavepointOp: () => void
   /** Lazily fetch full task manager detail (metrics, logs, thread dump). */
   fetchTaskManagerDetail: (tmId: string) => Promise<void>
   /** Clear the lazily loaded task manager detail state. */
@@ -121,7 +142,63 @@ interface ClusterActions {
 export type ClusterStore = ClusterState & ClusterActions
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
+let jobDetailPollInterval: ReturnType<typeof setInterval> | null = null
 let initialized = false
+
+const JOB_DETAIL_POLL_MS = 10_000
+
+/** Job states still in flux — worth polling while a live view is open. */
+const ACTIVE_JOB_STATES = new Set([
+  "RUNNING",
+  "CREATED",
+  "RESTARTING",
+  "RECONCILING",
+  "FAILING",
+  "CANCELLING",
+])
+
+const SAVEPOINT_POLL_MS = 2_000
+const SAVEPOINT_POLL_MAX_ATTEMPTS = 60
+
+/**
+ * Polls a triggered savepoint operation until it reaches a terminal status,
+ * updating `savepointOp` along the way. Stops silently when a newer trigger
+ * supersedes the tracked one.
+ */
+async function pollSavepointOperation(jobId: string, requestId: string) {
+  for (let attempt = 0; attempt < SAVEPOINT_POLL_MAX_ATTEMPTS; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, SAVEPOINT_POLL_MS))
+    const current = useClusterStore.getState().savepointOp
+    if (!current || current.requestId !== requestId) return
+    try {
+      const sp = await fetchSavepoint(jobId, requestId)
+      if (sp.status === "COMPLETED" || sp.status === "FAILED") {
+        useClusterStore.setState({
+          savepointOp: {
+            ...current,
+            status: sp.status,
+            location: sp.location,
+            error: sp.error,
+          },
+        })
+        return
+      }
+    } catch {
+      // Transient poll failure (job may be mid-shutdown for stop-with-savepoint)
+      // — keep trying until the attempt budget runs out.
+    }
+  }
+  const current = useClusterStore.getState().savepointOp
+  if (current?.requestId === requestId && current.status === "IN_PROGRESS") {
+    useClusterStore.setState({
+      savepointOp: {
+        ...current,
+        status: "FAILED",
+        error: "Timed out waiting for savepoint status",
+      },
+    })
+  }
+}
 
 export const useClusterStore = create<ClusterStore>((set, get) => ({
   overview: null,
@@ -144,6 +221,7 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
   taskManagerDetailError: null,
   featureFlags: null,
   tappablePipelines: new Set(),
+  savepointOp: null,
 
   initialize: async () => {
     if (initialized) return
@@ -278,7 +356,18 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
 
   triggerSavepoint: async (jobId) => {
     try {
-      await triggerSavepointApi(jobId)
+      const requestId = await triggerSavepointApi(jobId)
+      set({
+        savepointOp: {
+          jobId,
+          requestId,
+          kind: "savepoint",
+          status: "IN_PROGRESS",
+          location: null,
+          error: null,
+        },
+      })
+      void pollSavepointOperation(jobId, requestId)
     } catch (err) {
       set({
         fetchError:
@@ -289,13 +378,28 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
 
   stopWithSavepoint: async (jobId) => {
     try {
-      await stopJobWithSavepointApi(jobId)
+      const requestId = await stopJobWithSavepointApi(jobId)
+      set({
+        savepointOp: {
+          jobId,
+          requestId,
+          kind: "stop-with-savepoint",
+          status: "IN_PROGRESS",
+          location: null,
+          error: null,
+        },
+      })
+      void pollSavepointOperation(jobId, requestId)
       await Promise.all([get().refresh(), get().fetchJobDetail(jobId)])
     } catch (err) {
       set({
         fetchError: err instanceof Error ? err.message : "Failed to stop job",
       })
     }
+  },
+
+  dismissSavepointOp: () => {
+    set({ savepointOp: null })
   },
 
   stopAllJobs: async () => {
@@ -345,12 +449,16 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
     }
   },
 
-  fetchJobDetail: async (jobId) => {
-    set({ jobDetailLoading: true, jobDetailError: null })
+  fetchJobDetail: async (jobId, opts) => {
+    if (!opts?.silent) {
+      set({ jobDetailLoading: true, jobDetailError: null })
+    }
     try {
       const job = await fetchJobDetail(jobId)
       set({ jobDetail: job, jobDetailLoading: false, jobDetailError: null })
     } catch (err) {
+      // Background refreshes keep stale data visible and stay quiet.
+      if (opts?.silent) return
       set({
         jobDetailLoading: false,
         jobDetailError:
@@ -360,7 +468,32 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
   },
 
   clearJobDetail: () => {
+    get().stopJobDetailPolling()
     set({ jobDetail: null, jobDetailLoading: false, jobDetailError: null })
+  },
+
+  startJobDetailPolling: (jobId) => {
+    if (jobDetailPollInterval) clearInterval(jobDetailPollInterval)
+    jobDetailPollInterval = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return
+      const { jobDetail } = get()
+      if (
+        jobDetail &&
+        jobDetail.id === jobId &&
+        !ACTIVE_JOB_STATES.has(jobDetail.status)
+      ) {
+        get().stopJobDetailPolling()
+        return
+      }
+      void get().fetchJobDetail(jobId, { silent: true })
+    }, JOB_DETAIL_POLL_MS)
+  },
+
+  stopJobDetailPolling: () => {
+    if (jobDetailPollInterval) {
+      clearInterval(jobDetailPollInterval)
+      jobDetailPollInterval = null
+    }
   },
 
   fetchTaskManagerDetail: async (tmId) => {

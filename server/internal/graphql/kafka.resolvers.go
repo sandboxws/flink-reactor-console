@@ -7,9 +7,98 @@ package graphql
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
+	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/kafka"
+	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/kafka/seed"
 )
+
+// SeedKafkaTopics is the resolver for the seedKafkaTopics field.
+func (r *mutationResolver) SeedKafkaTopics(ctx context.Context, instrument string, allTopics *bool, dryRun *bool, skipNonEmpty *bool, domains []string) (*model.KafkaSeedResult, error) {
+	ki, err := r.resolveKafkaInstrument(instrument)
+	if err != nil {
+		return nil, err
+	}
+	// Authoritative server-side guard: never trust the client. The seed
+	// capability may be hidden in the UI, but this is the real enforcement point.
+	if !ki.SeedingAllowed() {
+		return nil, fmt.Errorf("seeding is not permitted for instrument %q in this environment", instrument)
+	}
+	cat := ki.SeedCatalog()
+	if cat == nil {
+		return nil, fmt.Errorf("seed catalog unavailable for instrument %q", instrument)
+	}
+
+	dry := dryRun != nil && *dryRun
+	all := allTopics != nil && *allTopics
+	// Nil means "not sent" and defaults to true: appending duplicates is the
+	// surprising outcome, so it must be asked for (skipNonEmpty: false).
+	skip := skipNonEmpty == nil || *skipNonEmpty
+
+	// Default (project) scope: only catalog subjects whose topic already exists
+	// in the broker — `cluster up` materializes every declared topic, so this
+	// coincides with the project's declared set. allTopics widens to every
+	// catalog subject, creating each missing topic.
+	subjects := cat.Subjects
+	if !all {
+		existing, err := ki.Client().ListTopics(ctx)
+		if err != nil {
+			return nil, err
+		}
+		names := make([]string, 0, len(existing))
+		for _, t := range existing {
+			if t.Internal {
+				continue
+			}
+			names = append(names, t.Name)
+		}
+		subjects = cat.ByTopics(names)
+	}
+	if len(domains) > 0 {
+		want := make(map[string]bool, len(domains))
+		for _, d := range domains {
+			want[d] = true
+		}
+		filtered := make([]seed.Subject, 0, len(subjects))
+		for _, s := range subjects {
+			if want[s.Domain] {
+				filtered = append(filtered, s)
+			}
+		}
+		subjects = filtered
+	}
+
+	res, err := ki.Client().Seed(ctx, subjects, kafka.SeedOptions{DryRun: dry, SkipNonEmpty: skip})
+	if err != nil {
+		return nil, err
+	}
+
+	topics := make([]*model.KafkaSeededTopic, len(res.Topics))
+	for i, t := range res.Topics {
+		var errMsg *string
+		if t.Error != "" {
+			e := t.Error
+			errMsg = &e
+		}
+		topics[i] = &model.KafkaSeededTopic{
+			Topic:           t.Topic,
+			Domain:          t.Domain,
+			Existed:         t.Existed,
+			ExistingRecords: int(t.ExistingRecords),
+			Created:         t.Created,
+			Skipped:         t.Skipped,
+			RecordsProduced: t.RecordsProduced,
+			Error:           errMsg,
+		}
+	}
+	return &model.KafkaSeedResult{
+		Topics:          topics,
+		RecordsProduced: res.RecordsProduced,
+		Skipped:         res.Skipped,
+		DryRun:          res.DryRun,
+	}, nil
+}
 
 // KafkaTopics is the resolver for the kafkaTopics field.
 func (r *queryResolver) KafkaTopics(ctx context.Context, instrument string) ([]*model.KafkaTopic, error) {
@@ -155,4 +244,40 @@ func (r *queryResolver) KafkaConsumerGroup(ctx context.Context, instrument strin
 		Members:      members,
 		Offsets:      offsets,
 	}, nil
+}
+
+// KafkaTopicMessages is the resolver for the kafkaTopicMessages field.
+func (r *queryResolver) KafkaTopicMessages(ctx context.Context, instrument string, topic string, limit *int, order *model.KafkaMessageOrder) ([]*model.KafkaMessage, error) {
+	ki, err := r.resolveKafkaInstrument(instrument)
+	if err != nil {
+		return nil, err
+	}
+
+	n := 20
+	if limit != nil {
+		n = *limit
+	}
+	oldest := order != nil && *order == model.KafkaMessageOrderOldest
+
+	msgs, err := ki.Client().PreviewMessages(ctx, topic, n, oldest)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.KafkaMessage, len(msgs))
+	for i, m := range msgs {
+		var key *string
+		if m.Key != "" {
+			k := m.Key
+			key = &k
+		}
+		result[i] = &model.KafkaMessage{
+			Partition: int(m.Partition),
+			Offset:    int(m.Offset),
+			Timestamp: int(m.TimestampMs),
+			Key:       key,
+			Value:     m.Value,
+		}
+	}
+	return result, nil
 }

@@ -15,6 +15,7 @@ import type {
   CheckpointLatest,
   CheckpointStatus,
   CheckpointSubtaskStats,
+  CheckpointSummary,
 } from "@flink-reactor/ui"
 import {
   Badge,
@@ -28,8 +29,10 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowUpDown,
+  Check,
   ChevronDown,
   ChevronRight,
+  Copy,
   Database,
   RotateCcw,
   Save,
@@ -39,8 +42,12 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import { cn } from "@/lib/cn"
 import {
   fetchCheckpointDetail,
+  fetchCheckpointHistory,
   fetchCheckpointSubtaskDetail,
+  type StoredCheckpoint,
 } from "@/lib/graphql-api-client"
+import { useClusterStore } from "@/stores/cluster-store"
+import { useConfigStore } from "@/stores/config-store"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -57,6 +64,58 @@ const checkpointStatusStyles: Record<CheckpointStatus, string> = {
   COMPLETED: "bg-job-finished/15 text-job-finished",
   IN_PROGRESS: "bg-job-running/15 text-job-running",
   FAILED: "bg-job-failed/15 text-job-failed",
+}
+
+/** Maps a stored (Postgres) checkpoint row to the live Checkpoint domain shape. */
+function storedToCheckpoint(r: StoredCheckpoint): Checkpoint {
+  return {
+    id: Number.parseInt(r.checkpointID, 10) || 0,
+    status:
+      r.status === "COMPLETED" || r.status === "FAILED"
+        ? r.status
+        : "IN_PROGRESS",
+    triggerTimestamp: r.triggerTimestamp
+      ? new Date(r.triggerTimestamp)
+      : new Date(0),
+    duration: Number.parseInt(r.endToEndDuration, 10) || 0,
+    size: Number.parseInt(r.stateSize, 10) || 0,
+    checkpointedSize:
+      r.checkpointedSize != null
+        ? Number.parseInt(r.checkpointedSize, 10) || 0
+        : undefined,
+    processedData: Number.parseInt(r.processedData, 10) || 0,
+    isSavepoint: r.isSavepoint,
+    externalPath: r.externalPath ?? undefined,
+    failureMessage: r.failureMessage ?? undefined,
+    failureTimestamp: r.failureTimestamp
+      ? new Date(r.failureTimestamp)
+      : undefined,
+  }
+}
+
+/** Copy-to-clipboard button for checkpoint/savepoint paths. */
+function CopyPathButton({ path }: { path: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        void navigator.clipboard.writeText(path).then(() => {
+          setCopied(true)
+          setTimeout(() => setCopied(false), 1500)
+        })
+      }}
+      className="shrink-0 text-zinc-500 transition-colors hover:text-zinc-300"
+      title="Copy path"
+    >
+      {copied ? (
+        <Check className="size-3 text-job-finished" />
+      ) : (
+        <Copy className="size-3" />
+      )}
+    </button>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -189,9 +248,13 @@ function ExpandableOperatorRow({
       ? Math.round((task.numAcknowledgedSubtasks / task.numSubtasks) * 100)
       : 0
 
-  // Compute min/avg/max from subtasks
+  // Compute min/avg/max from subtasks. Unacknowledged subtasks come back as
+  // zero-filled rows (ackTimestamp === 0) — exclude them so the rollups
+  // reflect real snapshots.
   const summary = useMemo(() => {
     if (!subtasks || subtasks.length === 0) return null
+    const acked = subtasks.filter((s) => s.ackTimestamp > 0)
+    const source = acked.length > 0 ? acked : subtasks
     function minMaxAvg(vals: number[]) {
       const min = Math.min(...vals)
       const max = Math.max(...vals)
@@ -199,14 +262,14 @@ function ExpandableOperatorRow({
       return { min, max, avg }
     }
     return {
-      endToEndDuration: minMaxAvg(subtasks.map((s) => s.endToEndDuration)),
-      checkpointedSize: minMaxAvg(subtasks.map((s) => s.checkpointedSize)),
-      stateSize: minMaxAvg(subtasks.map((s) => s.stateSize)),
-      syncDuration: minMaxAvg(subtasks.map((s) => s.syncDuration)),
-      asyncDuration: minMaxAvg(subtasks.map((s) => s.asyncDuration)),
-      processedData: minMaxAvg(subtasks.map((s) => s.processedData)),
-      alignmentDuration: minMaxAvg(subtasks.map((s) => s.alignmentDuration)),
-      startDelay: minMaxAvg(subtasks.map((s) => s.startDelay)),
+      endToEndDuration: minMaxAvg(source.map((s) => s.endToEndDuration)),
+      checkpointedSize: minMaxAvg(source.map((s) => s.checkpointedSize)),
+      stateSize: minMaxAvg(source.map((s) => s.stateSize)),
+      syncDuration: minMaxAvg(source.map((s) => s.syncDuration)),
+      asyncDuration: minMaxAvg(source.map((s) => s.asyncDuration)),
+      processedData: minMaxAvg(source.map((s) => s.processedData)),
+      alignmentDuration: minMaxAvg(source.map((s) => s.alignmentDuration)),
+      startDelay: minMaxAvg(source.map((s) => s.startDelay)),
     }
   }, [subtasks])
 
@@ -625,6 +688,24 @@ function CheckpointDetailView({
             )}
           </div>
         )}
+
+        {/* Failure reason (FAILED checkpoints only) */}
+        {detail.failureMessage && (
+          <div className="mt-3 rounded-md bg-job-failed/10 p-3 text-xs">
+            <div className="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-job-failed">
+              <AlertTriangle className="size-3" />
+              Failure Reason
+              {detail.failureTimestamp && (
+                <span className="ml-auto font-mono normal-case tracking-normal text-zinc-500">
+                  {format(detail.failureTimestamp, "HH:mm:ss")}
+                </span>
+              )}
+            </div>
+            <p className="break-words font-mono text-zinc-300">
+              {detail.failureMessage}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Per-operator breakdown */}
@@ -731,19 +812,73 @@ export function CheckpointsTab({
   counts,
   config,
   checkpointLatest,
+  summary,
   vertexNames,
+  isJobActive,
 }: {
   jobId: string
   checkpoints: Checkpoint[]
   counts: CheckpointCounts | null
   config: CheckpointConfig | null
   checkpointLatest?: CheckpointLatest | null
+  /** Job-level min/max/avg rollups across retained checkpoints. */
+  summary?: CheckpointSummary | null
   vertexNames?: Record<string, string>
+  /** When true, job detail is re-polled while this tab stays mounted. */
+  isJobActive?: boolean
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("id")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
   const [selectedCheckpoint, setSelectedCheckpoint] = useState<number | null>(
     null,
+  )
+  const [olderCheckpoints, setOlderCheckpoints] = useState<Checkpoint[] | null>(
+    null,
+  )
+  const [olderLoading, setOlderLoading] = useState(false)
+  const [olderError, setOlderError] = useState<string | null>(null)
+  const clusterID = useConfigStore((s) => s.config?.clusters?.[0] ?? null)
+
+  // Keep checkpoint data live during incidents: poll job detail while this
+  // tab is mounted and the job is still in an active state.
+  useEffect(() => {
+    if (!isJobActive) return
+    const { startJobDetailPolling, stopJobDetailPolling } =
+      useClusterStore.getState()
+    startJobDetailPolling(jobId)
+    return stopJobDetailPolling
+  }, [jobId, isJobActive])
+
+  // Pull older checkpoints from the Postgres-backed history — these survive
+  // Flink's retained-checkpoint cap.
+  const handleLoadOlder = useCallback(async () => {
+    setOlderLoading(true)
+    setOlderError(null)
+    try {
+      const records = await fetchCheckpointHistory({
+        clusterID: clusterID ?? "default",
+        jobID: jobId,
+        maxRecords: 500,
+      })
+      const liveIds = new Set(checkpoints.map((c) => c.id))
+      setOlderCheckpoints(
+        records
+          .map(storedToCheckpoint)
+          .filter((c) => c.id > 0 && !liveIds.has(c.id)),
+      )
+    } catch (err) {
+      setOlderError(
+        err instanceof Error ? err.message : "Failed to load history",
+      )
+    } finally {
+      setOlderLoading(false)
+    }
+  }, [clusterID, jobId, checkpoints])
+
+  const allCheckpoints = useMemo(
+    () =>
+      olderCheckpoints ? [...checkpoints, ...olderCheckpoints] : checkpoints,
+    [checkpoints, olderCheckpoints],
   )
 
   const handleSort = (key: SortKey) => {
@@ -761,10 +896,10 @@ export function CheckpointsTab({
 
   const sorted = useMemo(
     () =>
-      [...checkpoints].sort((a, b) =>
+      [...allCheckpoints].sort((a, b) =>
         compareCheckpoints(a, b, sortKey, sortDir),
       ),
-    [checkpoints, sortKey, sortDir],
+    [allCheckpoints, sortKey, sortDir],
   )
 
   const completed = checkpoints.filter((c) => c.status === "COMPLETED")
@@ -897,8 +1032,136 @@ export function CheckpointsTab({
               )}
             </div>
           )}
+          {/* Backend / storage / failure-tolerance settings */}
+          {(config.stateBackend ||
+            config.checkpointStorage ||
+            config.tolerableFailedCheckpoints !== undefined ||
+            config.checkpointsAfterTasksFinish !== undefined) && (
+            <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-2 border-t border-dash-border/50 pt-2 text-xs lg:grid-cols-5">
+              {config.stateBackend && (
+                <div>
+                  <span className="text-zinc-500">State Backend</span>
+                  <p className="font-medium text-zinc-200">
+                    {config.stateBackend}
+                  </p>
+                </div>
+              )}
+              {config.checkpointStorage && (
+                <div>
+                  <span className="text-zinc-500">Storage</span>
+                  <p className="font-medium text-zinc-200">
+                    {config.checkpointStorage}
+                  </p>
+                </div>
+              )}
+              {config.tolerableFailedCheckpoints !== undefined && (
+                <div>
+                  <span className="text-zinc-500">Tolerable Failures</span>
+                  <p className="font-medium tabular-nums text-zinc-200">
+                    {config.tolerableFailedCheckpoints}
+                  </p>
+                </div>
+              )}
+              {config.alignedCheckpointTimeout !== undefined &&
+                config.alignedCheckpointTimeout > 0 && (
+                  <div>
+                    <span className="text-zinc-500">Aligned Timeout</span>
+                    <p className="font-medium text-zinc-200">
+                      {formatInterval(config.alignedCheckpointTimeout)}
+                    </p>
+                  </div>
+                )}
+              {config.checkpointsAfterTasksFinish !== undefined && (
+                <div>
+                  <span className="text-zinc-500">After Tasks Finish</span>
+                  <p className="font-medium text-zinc-200">
+                    {config.checkpointsAfterTasksFinish ? "Yes" : "No"}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
+
+      {/* Job-level min/avg/max rollups across retained checkpoints */}
+      {summary &&
+        (summary.endToEndDuration ||
+          summary.stateSize ||
+          summary.checkpointedSize) && (
+          <div className="glass-card overflow-hidden">
+            <div className="border-b border-dash-border px-3 py-2">
+              <h3 className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+                Summary (Recent Checkpoints)
+              </h3>
+            </div>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-dash-border">
+                  <th className="px-3 py-2 text-left font-medium text-zinc-500">
+                    {""}
+                  </th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-500">
+                    Duration
+                  </th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-500">
+                    Checkpointed Size
+                  </th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-500">
+                    Full Size
+                  </th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-500">
+                    Processed Data
+                  </th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-500">
+                    Persisted Data
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {(["min", "avg", "max"] as const).map((stat) => (
+                  <tr
+                    key={stat}
+                    className="border-b border-dash-border/30 last:border-0"
+                  >
+                    <td className="px-3 py-2 font-medium text-zinc-500">
+                      {stat === "min"
+                        ? "Minimum"
+                        : stat === "avg"
+                          ? "Average"
+                          : "Maximum"}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+                      {summary.endToEndDuration
+                        ? formatDuration(summary.endToEndDuration[stat])
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+                      {summary.checkpointedSize
+                        ? formatBytes(summary.checkpointedSize[stat])
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+                      {summary.stateSize
+                        ? formatBytes(summary.stateSize[stat])
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+                      {summary.processedData
+                        ? formatBytes(summary.processedData[stat])
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+                      {summary.persistedData
+                        ? formatBytes(summary.persistedData[stat])
+                        : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
       {/* Latest completed checkpoint */}
       {checkpointLatest?.latestCompleted && (
@@ -962,6 +1225,21 @@ export function CheckpointsTab({
               </p>
             </div>
           </div>
+          {/* Restore path for the latest retained checkpoint */}
+          {checkpointLatest.latestCompleted.externalPath && (
+            <div className="mt-3 flex items-center gap-2 border-t border-dash-border/50 pt-2 text-xs">
+              <span className="shrink-0 text-zinc-500">Path</span>
+              <p
+                className="min-w-0 flex-1 truncate font-mono text-zinc-300"
+                title={checkpointLatest.latestCompleted.externalPath}
+              >
+                {checkpointLatest.latestCompleted.externalPath}
+              </p>
+              <CopyPathButton
+                path={checkpointLatest.latestCompleted.externalPath}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -1001,6 +1279,19 @@ export function CheckpointsTab({
               </p>
             </div>
           </div>
+          {/* Why the checkpoint failed — the first thing to read in an incident */}
+          {checkpointLatest.latestFailed.failureMessage && (
+            <div className="mt-3 rounded-md bg-job-failed/10 p-2.5 text-xs">
+              <span className="text-[10px] font-medium uppercase tracking-wide text-job-failed">
+                Failure Reason
+                {checkpointLatest.latestFailed.failureTimestamp &&
+                  ` · ${format(checkpointLatest.latestFailed.failureTimestamp, "HH:mm:ss")}`}
+              </span>
+              <p className="mt-1 break-words font-mono text-zinc-300">
+                {checkpointLatest.latestFailed.failureMessage}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -1084,15 +1375,30 @@ export function CheckpointsTab({
       )}
 
       {/* Checkpoint history table */}
-      {checkpoints.length > 0 && (
+      {allCheckpoints.length > 0 && (
         <div className="glass-card overflow-hidden">
           {counts && counts.total > checkpoints.length && (
             <div className="flex items-center justify-between border-b border-dash-border px-3 py-2">
               <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
                 Checkpoint History
               </span>
-              <span className="text-[10px] text-zinc-600">
-                Showing last {checkpoints.length} of {counts.total} total
+              <span className="flex items-center gap-2 text-[10px] text-zinc-600">
+                {olderCheckpoints
+                  ? `Showing ${allCheckpoints.length} of ${counts.total} total (incl. stored history)`
+                  : `Showing last ${checkpoints.length} of ${counts.total} total`}
+                {olderError && (
+                  <span className="text-job-failed">{olderError}</span>
+                )}
+                {!olderCheckpoints && (
+                  <button
+                    type="button"
+                    onClick={handleLoadOlder}
+                    disabled={olderLoading}
+                    className="text-fr-purple transition-colors hover:text-fr-purple/80 disabled:opacity-50"
+                  >
+                    {olderLoading ? "Loading…" : "Load older"}
+                  </button>
+                )}
               </span>
             </div>
           )}
@@ -1139,15 +1445,23 @@ export function CheckpointsTab({
                     )}
                   </td>
                   <td className="px-3 py-2">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "border-0 text-[10px]",
-                        checkpointStatusStyles[cp.status],
-                      )}
+                    <span
+                      className="inline-flex items-center gap-1"
+                      title={cp.failureMessage ?? undefined}
                     >
-                      {cp.status}
-                    </Badge>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "border-0 text-[10px]",
+                          checkpointStatusStyles[cp.status],
+                        )}
+                      >
+                        {cp.status}
+                      </Badge>
+                      {cp.failureMessage && (
+                        <AlertTriangle className="size-3 shrink-0 text-job-failed" />
+                      )}
+                    </span>
                   </td>
                   <td className="px-3 py-2 tabular-nums text-zinc-400">
                     {format(cp.triggerTimestamp, "HH:mm:ss")}

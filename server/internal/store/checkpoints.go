@@ -32,23 +32,24 @@ func (s *CheckpointStore) UpsertCheckpoints(ctx context.Context, checkpoints []s
 		return nil
 	}
 
-	const cols = 14
+	const cols = 17
 	args := make([]any, 0, len(checkpoints)*cols)
 	placeholders := make([]string, 0, len(checkpoints))
 
 	for i, c := range checkpoints {
 		base := i * cols
 		placeholders = append(placeholders, fmt.Sprintf(
-			"($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
+			"($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
 			base+1, base+2, base+3, base+4, base+5, base+6, base+7,
 			base+8, base+9, base+10, base+11, base+12, base+13, base+14,
+			base+15, base+16, base+17,
 		))
 		args = append(
 			args,
 			c.CheckpointID, c.JID, c.Cluster, c.Status, c.IsSavepoint,
 			c.TriggerTimestamp, c.LatestAck, c.StateSize, c.EndToEndDuration,
 			c.ProcessedData, c.PersistedData, c.NumSubtasks, c.NumAckSubtasks,
-			c.CheckpointedSize,
+			c.CheckpointedSize, c.FailureMessage, c.FailureTimestamp, c.ExternalPath,
 		)
 	}
 
@@ -56,7 +57,7 @@ func (s *CheckpointStore) UpsertCheckpoints(ctx context.Context, checkpoints []s
 		INSERT INTO checkpoints (checkpoint_id, jid, cluster, status, is_savepoint,
 			trigger_timestamp, latest_ack, state_size, end_to_end_duration,
 			processed_data, persisted_data, num_subtasks, num_ack_subtasks,
-			checkpointed_size)
+			checkpointed_size, failure_message, failure_timestamp, external_path)
 		VALUES %s
 		ON CONFLICT (checkpoint_id, jid, cluster) DO UPDATE SET
 			status             = EXCLUDED.status,
@@ -70,6 +71,9 @@ func (s *CheckpointStore) UpsertCheckpoints(ctx context.Context, checkpoints []s
 			num_subtasks       = EXCLUDED.num_subtasks,
 			num_ack_subtasks   = EXCLUDED.num_ack_subtasks,
 			checkpointed_size  = EXCLUDED.checkpointed_size,
+			failure_message    = EXCLUDED.failure_message,
+			failure_timestamp  = EXCLUDED.failure_timestamp,
+			external_path      = EXCLUDED.external_path,
 			captured_at        = now()
 	`, strings.Join(placeholders, ",\n\t\t"))
 
@@ -143,7 +147,8 @@ func (s *CheckpointStore) QueryCheckpoints(ctx context.Context, filter Checkpoin
 		SELECT checkpoint_id, jid, cluster, status, is_savepoint,
 			trigger_timestamp, latest_ack, state_size, end_to_end_duration,
 			processed_data, persisted_data, num_subtasks, num_ack_subtasks,
-			checkpointed_size, captured_at
+			checkpointed_size, failure_message, failure_timestamp, external_path,
+			captured_at
 		FROM checkpoints
 		%s
 		ORDER BY trigger_timestamp DESC, checkpoint_id DESC
@@ -164,7 +169,8 @@ func (s *CheckpointStore) QueryCheckpoints(ctx context.Context, filter Checkpoin
 			&c.CheckpointID, &c.JID, &c.Cluster, &c.Status, &c.IsSavepoint,
 			&c.TriggerTimestamp, &c.LatestAck, &c.StateSize, &c.EndToEndDuration,
 			&c.ProcessedData, &c.PersistedData, &c.NumSubtasks, &c.NumAckSubtasks,
-			&c.CheckpointedSize, &c.CapturedAt,
+			&c.CheckpointedSize, &c.FailureMessage, &c.FailureTimestamp, &c.ExternalPath,
+			&c.CapturedAt,
 		); err != nil {
 			return nil, "", fmt.Errorf("scan checkpoint row: %w", err)
 		}

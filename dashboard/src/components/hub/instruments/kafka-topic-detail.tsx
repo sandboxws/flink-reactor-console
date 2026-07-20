@@ -18,6 +18,7 @@ import {
   isUnderReplicated,
   underReplicatedCount,
 } from "./kafka-derive"
+import { KafkaMessagePreview } from "./kafka-message-preview"
 
 interface KafkaTopicDetailProps {
   instrument: string
@@ -184,6 +185,8 @@ export function KafkaTopicDetail({
           </div>
         </aside>
       </div>
+
+      <KafkaMessagePreview instrument={instrument} topic={detail.name} />
     </div>
   )
 }

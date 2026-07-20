@@ -111,6 +111,8 @@ type CheckpointHistoryEntry {
   id: String!
   status: String!
   isSavepoint: Boolean!
+  """CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT."""
+  checkpointType: String
   triggerTimestamp: String!
   latestAckTimestamp: String!
   stateSize: String!
@@ -120,6 +122,12 @@ type CheckpointHistoryEntry {
   numSubtasks: Int!
   numAcknowledgedSubtasks: Int!
   checkpointedSize: String
+  """Restore location. Null unless the checkpoint is externally addressable."""
+  externalPath: String
+  """Failure reason. Null unless status is FAILED."""
+  failureMessage: String
+  """Failure time (epoch millis). Null unless status is FAILED."""
+  failureTimestamp: String
 }
 
 type CheckpointSummary {
@@ -160,6 +168,108 @@ type CheckpointConfig {
   externalizedEnabled: Boolean!
   externalizedDeleteOnCancellation: Boolean!
   unalignedCheckpoints: Boolean!
+  """State backend class name, e.g. HashMapStateBackend. Absent on older Flink."""
+  stateBackend: String
+  """Checkpoint storage, e.g. FileSystemCheckpointStorage. Absent on older Flink."""
+  checkpointStorage: String
+  tolerableFailedCheckpoints: Int
+  alignedCheckpointTimeout: String
+  checkpointsAfterTasksFinish: Boolean
+}
+
+"""Per-vertex rollup within a checkpoint detail, keyed by the job vertex."""
+type CheckpointTaskDetail {
+  vertexId: String!
+  status: String!
+  latestAckTimestamp: String!
+  stateSize: String!
+  endToEndDuration: String!
+  numSubtasks: Int!
+  numAcknowledgedSubtasks: Int!
+  checkpointedSize: String
+  processedData: String
+  persistedData: String
+}
+
+"""
+Full detail for a single checkpoint
+(GET /jobs/:jid/checkpoints/details/:checkpointid).
+"""
+type CheckpointDetail {
+  id: String!
+  status: String!
+  isSavepoint: Boolean!
+  """CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT."""
+  checkpointType: String
+  triggerTimestamp: String!
+  latestAckTimestamp: String!
+  stateSize: String!
+  endToEndDuration: String!
+  numSubtasks: Int!
+  numAcknowledgedSubtasks: Int!
+  checkpointedSize: String
+  processedData: String
+  persistedData: String
+  """Restore location. Null unless the checkpoint is externally addressable."""
+  externalPath: String
+  discarded: Boolean
+  """Failure reason. Null unless status is FAILED."""
+  failureMessage: String
+  """Failure time (epoch millis). Null unless status is FAILED."""
+  failureTimestamp: String
+  tasks: [CheckpointTaskDetail!]!
+}
+
+"""Min/avg/max rollups for one vertex's subtask checkpoint stats."""
+type CheckpointSubtaskSummary {
+  stateSize: CheckpointMinMaxAvg
+  endToEndDuration: CheckpointMinMaxAvg
+  checkpointedSize: CheckpointMinMaxAvg
+  syncDuration: CheckpointMinMaxAvg
+  asyncDuration: CheckpointMinMaxAvg
+  alignmentBuffered: CheckpointMinMaxAvg
+  alignmentProcessed: CheckpointMinMaxAvg
+  alignmentPersisted: CheckpointMinMaxAvg
+  alignmentDuration: CheckpointMinMaxAvg
+  startDelay: CheckpointMinMaxAvg
+}
+
+"""
+One subtask's checkpoint stats. Subtasks that have not acknowledged carry
+only index and status.
+"""
+type CheckpointSubtaskEntry {
+  index: Int!
+  status: String!
+  ackTimestamp: String
+  endToEndDuration: String
+  stateSize: String
+  checkpointedSize: String
+  syncDuration: String
+  asyncDuration: String
+  alignmentBuffered: String
+  alignmentProcessed: String
+  alignmentPersisted: String
+  alignmentDuration: String
+  startDelay: String
+  unalignedCheckpoint: Boolean
+  aborted: Boolean
+}
+
+"""
+Per-subtask checkpoint stats for one vertex of a checkpoint
+(GET /jobs/:jid/checkpoints/details/:checkpointid/subtasks/:vertexid).
+"""
+type CheckpointSubtaskStats {
+  vertexId: String!
+  status: String!
+  latestAckTimestamp: String!
+  stateSize: String!
+  endToEndDuration: String!
+  numSubtasks: Int!
+  numAcknowledgedSubtasks: Int!
+  summary: CheckpointSubtaskSummary
+  subtasks: [CheckpointSubtaskEntry!]!
 }
 
 type SubtaskBackPressure {
@@ -413,8 +523,11 @@ extend type Query {
   """Get flamegraph for a vertex"""
   flamegraph(jobId: ID!, vertexId: ID!, type: String!, cluster: String): Flamegraph!
 
-  """Get checkpoint detail"""
-  checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointHistoryEntry!
+  """Get full checkpoint detail including per-task rollups"""
+  checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointDetail!
+
+  """Get per-subtask checkpoint stats for one vertex of a checkpoint"""
+  checkpointSubtasks(jobId: ID!, checkpointId: String!, vertexId: ID!, cluster: String): CheckpointSubtaskStats!
 
   """List savepoints for a job, ordered by triggeredAt descending."""
   savepoints(jobId: ID!, cluster: String): [Savepoint!]!

@@ -202,7 +202,9 @@ func TestIsKnownMetric(t *testing.T) {
 	}{
 		{MetricThroughput, true},
 		{MetricWatermarkLag, true},
-		{MetricCheckpointRate, true},
+		// checkpointRate was advertised but never emitted; it is no longer
+		// a known metric.
+		{"checkpointRate", false},
 		{"unknown", false},
 		{"", false},
 	}

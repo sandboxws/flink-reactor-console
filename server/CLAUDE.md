@@ -135,7 +135,33 @@ implements the 9-method `Instrument` interface (`Name`, `DisplayName`, `Version`
 `Type`, `Init`, `Shutdown`, `HealthCheck`, `Capabilities`, `HighlightResources`)
 and is registered in `instruments.Registry` from `main.go`. Health checks run on
 the same interval as cluster health checks. Instruments are optional — the server
-starts fine without any, and none are configured by default.
+starts fine without any. None are configured by default **except in
+development**, where a default set targeting the local DSL docker-compose stack
+(Kafka, Postgres, Schema Registry, Fluss, Iceberg) is synthesized when the YAML
+declares none (`defaultDevelopmentInstruments`, `internal/config/config.go`).
+Any explicit `instruments:` list suppresses the defaults.
+
+**Environment tag + Kafka seeding.** Each instrument config may carry an
+`environment` tag (`development` / `staging` / `production`); when omitted it is
+inferred from the instrument name and the server env (`InferInstrumentEnv`). It
+gates environment-sensitive operations — today, Kafka **seeding** (producing the
+DSL's sample fixtures into topics). Seeding is enabled by default in development,
+opt-in in staging via `seeding.enabled`, and hard-blocked in production on both
+the server env AND the instrument env (`internal/config/seeding.go`,
+`SeedingAllowed`). The Kafka instrument advertises a `seed` capability only when
+the policy permits, and the `seedKafkaTopics` mutation re-checks it server-side.
+By default that mutation seeds only this project's topics (catalog subjects
+whose topic already exists in the broker); `allTopics: true` seeds the entire
+sample catalog, creating each topic. The seed catalog is embedded from the DSL
+via `scripts/refresh-seeds.sh` (`internal/instruments/kafka/seed/`).
+
+Seeding is now primarily a **`cluster up` responsibility** in the DSL — it
+produces each declared source topic's sample rows automatically (idempotently),
+so topics show data in the console without any manual step. The console's
+`seedKafkaTopics` mutation is a manual re-seed / top-up on top of that. The
+`kafkaTopicMessages(instrument, topic, limit)` query previews the most recent
+records via a throwaway direct-partition consumer (`Client.PreviewMessages`,
+no consumer group is left behind).
 
 `HealthReporter` is injected into the registry via a functional option; the
 console supplies a Prometheus adapter (`observability.InstrumentHealthAdapter`).
@@ -217,9 +243,13 @@ log:
 spa:
   static_dir: ""
 
+seeding:
+  enabled: false   # opt-in for staging; ignored in dev (always on) and prod (always off)
+
 instruments:
   - type: "kafka"
     name: "local-kafka"
+    environment: "development"   # gates seeding; inferred from name/server env when omitted
     config:
       brokers: "localhost:9092"
 ```

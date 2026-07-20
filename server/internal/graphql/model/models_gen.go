@@ -154,6 +154,13 @@ type CheckpointConfig struct {
 	ExternalizedEnabled              bool   `json:"externalizedEnabled"`
 	ExternalizedDeleteOnCancellation bool   `json:"externalizedDeleteOnCancellation"`
 	UnalignedCheckpoints             bool   `json:"unalignedCheckpoints"`
+	// State backend class name, e.g. HashMapStateBackend. Absent on older Flink.
+	StateBackend *string `json:"stateBackend,omitempty"`
+	// Checkpoint storage, e.g. FileSystemCheckpointStorage. Absent on older Flink.
+	CheckpointStorage           *string `json:"checkpointStorage,omitempty"`
+	TolerableFailedCheckpoints  *int    `json:"tolerableFailedCheckpoints,omitempty"`
+	AlignedCheckpointTimeout    *string `json:"alignedCheckpointTimeout,omitempty"`
+	CheckpointsAfterTasksFinish *bool   `json:"checkpointsAfterTasksFinish,omitempty"`
 }
 
 type CheckpointCounts struct {
@@ -162,6 +169,33 @@ type CheckpointCounts struct {
 	Failed     int `json:"failed"`
 	Total      int `json:"total"`
 	Restored   int `json:"restored"`
+}
+
+// Full detail for a single checkpoint
+// (GET /jobs/:jid/checkpoints/details/:checkpointid).
+type CheckpointDetail struct {
+	ID          string `json:"id"`
+	Status      string `json:"status"`
+	IsSavepoint bool   `json:"isSavepoint"`
+	// CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT.
+	CheckpointType          *string `json:"checkpointType,omitempty"`
+	TriggerTimestamp        string  `json:"triggerTimestamp"`
+	LatestAckTimestamp      string  `json:"latestAckTimestamp"`
+	StateSize               string  `json:"stateSize"`
+	EndToEndDuration        string  `json:"endToEndDuration"`
+	NumSubtasks             int     `json:"numSubtasks"`
+	NumAcknowledgedSubtasks int     `json:"numAcknowledgedSubtasks"`
+	CheckpointedSize        *string `json:"checkpointedSize,omitempty"`
+	ProcessedData           *string `json:"processedData,omitempty"`
+	PersistedData           *string `json:"persistedData,omitempty"`
+	// Restore location. Null unless the checkpoint is externally addressable.
+	ExternalPath *string `json:"externalPath,omitempty"`
+	Discarded    *bool   `json:"discarded,omitempty"`
+	// Failure reason. Null unless status is FAILED.
+	FailureMessage *string `json:"failureMessage,omitempty"`
+	// Failure time (epoch millis). Null unless status is FAILED.
+	FailureTimestamp *string                 `json:"failureTimestamp,omitempty"`
+	Tasks            []*CheckpointTaskDetail `json:"tasks"`
 }
 
 // Connection type for paginated checkpoint history results.
@@ -181,9 +215,11 @@ type CheckpointHistoryEdge struct {
 }
 
 type CheckpointHistoryEntry struct {
-	ID                      string  `json:"id"`
-	Status                  string  `json:"status"`
-	IsSavepoint             bool    `json:"isSavepoint"`
+	ID          string `json:"id"`
+	Status      string `json:"status"`
+	IsSavepoint bool   `json:"isSavepoint"`
+	// CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT.
+	CheckpointType          *string `json:"checkpointType,omitempty"`
 	TriggerTimestamp        string  `json:"triggerTimestamp"`
 	LatestAckTimestamp      string  `json:"latestAckTimestamp"`
 	StateSize               string  `json:"stateSize"`
@@ -193,6 +229,12 @@ type CheckpointHistoryEntry struct {
 	NumSubtasks             int     `json:"numSubtasks"`
 	NumAcknowledgedSubtasks int     `json:"numAcknowledgedSubtasks"`
 	CheckpointedSize        *string `json:"checkpointedSize,omitempty"`
+	// Restore location. Null unless the checkpoint is externally addressable.
+	ExternalPath *string `json:"externalPath,omitempty"`
+	// Failure reason. Null unless status is FAILED.
+	FailureMessage *string `json:"failureMessage,omitempty"`
+	// Failure time (epoch millis). Null unless status is FAILED.
+	FailureTimestamp *string `json:"failureTimestamp,omitempty"`
 }
 
 // Filter criteria for historical checkpoint queries.
@@ -246,12 +288,74 @@ type CheckpointStats struct {
 	Latest  *CheckpointLatest         `json:"latest,omitempty"`
 }
 
+// One subtask's checkpoint stats. Subtasks that have not acknowledged carry
+// only index and status.
+type CheckpointSubtaskEntry struct {
+	Index               int     `json:"index"`
+	Status              string  `json:"status"`
+	AckTimestamp        *string `json:"ackTimestamp,omitempty"`
+	EndToEndDuration    *string `json:"endToEndDuration,omitempty"`
+	StateSize           *string `json:"stateSize,omitempty"`
+	CheckpointedSize    *string `json:"checkpointedSize,omitempty"`
+	SyncDuration        *string `json:"syncDuration,omitempty"`
+	AsyncDuration       *string `json:"asyncDuration,omitempty"`
+	AlignmentBuffered   *string `json:"alignmentBuffered,omitempty"`
+	AlignmentProcessed  *string `json:"alignmentProcessed,omitempty"`
+	AlignmentPersisted  *string `json:"alignmentPersisted,omitempty"`
+	AlignmentDuration   *string `json:"alignmentDuration,omitempty"`
+	StartDelay          *string `json:"startDelay,omitempty"`
+	UnalignedCheckpoint *bool   `json:"unalignedCheckpoint,omitempty"`
+	Aborted             *bool   `json:"aborted,omitempty"`
+}
+
+// Per-subtask checkpoint stats for one vertex of a checkpoint
+// (GET /jobs/:jid/checkpoints/details/:checkpointid/subtasks/:vertexid).
+type CheckpointSubtaskStats struct {
+	VertexID                string                    `json:"vertexId"`
+	Status                  string                    `json:"status"`
+	LatestAckTimestamp      string                    `json:"latestAckTimestamp"`
+	StateSize               string                    `json:"stateSize"`
+	EndToEndDuration        string                    `json:"endToEndDuration"`
+	NumSubtasks             int                       `json:"numSubtasks"`
+	NumAcknowledgedSubtasks int                       `json:"numAcknowledgedSubtasks"`
+	Summary                 *CheckpointSubtaskSummary `json:"summary,omitempty"`
+	Subtasks                []*CheckpointSubtaskEntry `json:"subtasks"`
+}
+
+// Min/avg/max rollups for one vertex's subtask checkpoint stats.
+type CheckpointSubtaskSummary struct {
+	StateSize          *CheckpointMinMaxAvg `json:"stateSize,omitempty"`
+	EndToEndDuration   *CheckpointMinMaxAvg `json:"endToEndDuration,omitempty"`
+	CheckpointedSize   *CheckpointMinMaxAvg `json:"checkpointedSize,omitempty"`
+	SyncDuration       *CheckpointMinMaxAvg `json:"syncDuration,omitempty"`
+	AsyncDuration      *CheckpointMinMaxAvg `json:"asyncDuration,omitempty"`
+	AlignmentBuffered  *CheckpointMinMaxAvg `json:"alignmentBuffered,omitempty"`
+	AlignmentProcessed *CheckpointMinMaxAvg `json:"alignmentProcessed,omitempty"`
+	AlignmentPersisted *CheckpointMinMaxAvg `json:"alignmentPersisted,omitempty"`
+	AlignmentDuration  *CheckpointMinMaxAvg `json:"alignmentDuration,omitempty"`
+	StartDelay         *CheckpointMinMaxAvg `json:"startDelay,omitempty"`
+}
+
 type CheckpointSummary struct {
 	StateSize        *CheckpointMinMaxAvg `json:"stateSize,omitempty"`
 	EndToEndDuration *CheckpointMinMaxAvg `json:"endToEndDuration,omitempty"`
 	CheckpointedSize *CheckpointMinMaxAvg `json:"checkpointedSize,omitempty"`
 	ProcessedData    *CheckpointMinMaxAvg `json:"processedData,omitempty"`
 	PersistedData    *CheckpointMinMaxAvg `json:"persistedData,omitempty"`
+}
+
+// Per-vertex rollup within a checkpoint detail, keyed by the job vertex.
+type CheckpointTaskDetail struct {
+	VertexID                string  `json:"vertexId"`
+	Status                  string  `json:"status"`
+	LatestAckTimestamp      string  `json:"latestAckTimestamp"`
+	StateSize               string  `json:"stateSize"`
+	EndToEndDuration        string  `json:"endToEndDuration"`
+	NumSubtasks             int     `json:"numSubtasks"`
+	NumAcknowledgedSubtasks int     `json:"numAcknowledgedSubtasks"`
+	CheckpointedSize        *string `json:"checkpointedSize,omitempty"`
+	ProcessedData           *string `json:"processedData,omitempty"`
+	PersistedData           *string `json:"persistedData,omitempty"`
 }
 
 // Information about a registered Flink cluster connection.
@@ -834,6 +938,16 @@ type KafkaGroupMember struct {
 	Assignments []*KafkaTopicPartition `json:"assignments"`
 }
 
+// A single Kafka record returned by a topic preview read.
+type KafkaMessage struct {
+	Partition int `json:"partition"`
+	Offset    int `json:"offset"`
+	// Record timestamp in epoch milliseconds.
+	Timestamp int     `json:"timestamp"`
+	Key       *string `json:"key,omitempty"`
+	Value     string  `json:"value"`
+}
+
 // A single partition within a Kafka topic.
 type KafkaPartition struct {
 	ID             int   `json:"id"`
@@ -849,6 +963,35 @@ type KafkaPartitionOffset struct {
 	CommittedOffset int    `json:"committedOffset"`
 	EndOffset       int    `json:"endOffset"`
 	Lag             int    `json:"lag"`
+}
+
+// Result of seeding sample data into a Kafka instrument.
+type KafkaSeedResult struct {
+	Topics          []*KafkaSeededTopic `json:"topics"`
+	RecordsProduced int                 `json:"recordsProduced"`
+	// Topic names skipped for any reason (no sample rows, or already populated with skipNonEmpty).
+	Skipped []string `json:"skipped"`
+	DryRun  bool     `json:"dryRun"`
+}
+
+// A topic touched during a Kafka seed operation. Both dry and real runs consult
+// the broker, so existed/existingRecords reflect actual broker state either way.
+type KafkaSeededTopic struct {
+	Topic string `json:"topic"`
+	// Template domain from the seed catalog (e.g. ecommerce, iot).
+	Domain string `json:"domain"`
+	// Whether the topic already existed in the broker when the seed ran.
+	Existed bool `json:"existed"`
+	// Records already in the topic (sum of partition end−start offsets); 0 when absent.
+	ExistingRecords int `json:"existingRecords"`
+	// Topic was created (real run) / would be created (dry run).
+	Created bool `json:"created"`
+	// Skipped because the topic already holds records and skipNonEmpty was set.
+	Skipped bool `json:"skipped"`
+	// Records produced (real run) / that would be produced (dry run).
+	RecordsProduced int `json:"recordsProduced"`
+	// Per-topic failure; null when the topic seeded cleanly. Seeding is best-effort per topic.
+	Error *string `json:"error,omitempty"`
 }
 
 // Summary of a Kafka topic.
@@ -925,8 +1068,7 @@ type MetricEntry struct {
 
 // A sampled metric value published at ~1s cadence by the server's
 // MetricSampler. `jobId` is null for cluster-wide aggregates.
-// Supported `metric` values for v1: `throughput`, `watermarkLag`,
-// `checkpointRate`.
+// Supported `metric` values for v1: `throughput`, `watermarkLag`.
 type MetricEvent struct {
 	ClusterID string  `json:"clusterID"`
 	JobID     *string `json:"jobId,omitempty"`
@@ -1346,7 +1488,13 @@ type StoredCheckpoint struct {
 	NumSubtasks      int     `json:"numSubtasks"`
 	NumAckSubtasks   int     `json:"numAckSubtasks"`
 	CheckpointedSize *string `json:"checkpointedSize,omitempty"`
-	CapturedAt       string  `json:"capturedAt"`
+	// Failure reason. Null unless status is FAILED.
+	FailureMessage *string `json:"failureMessage,omitempty"`
+	// Failure time (RFC3339). Null unless status is FAILED.
+	FailureTimestamp *string `json:"failureTimestamp,omitempty"`
+	// Restore location. Null unless the checkpoint was externally addressable.
+	ExternalPath *string `json:"externalPath,omitempty"`
+	CapturedAt   string  `json:"capturedAt"`
 }
 
 // A historical exception record from PostgreSQL.
@@ -2021,6 +2169,64 @@ func (e *JobHistoryOrderField) UnmarshalJSON(b []byte) error {
 }
 
 func (e JobHistoryOrderField) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Read order for a topic preview.
+type KafkaMessageOrder string
+
+const (
+	// Most recent records first (the live end of the stream).
+	KafkaMessageOrderNewest KafkaMessageOrder = "NEWEST"
+	// Earliest retained records first (e.g. the deterministic seed rows).
+	KafkaMessageOrderOldest KafkaMessageOrder = "OLDEST"
+)
+
+var AllKafkaMessageOrder = []KafkaMessageOrder{
+	KafkaMessageOrderNewest,
+	KafkaMessageOrderOldest,
+}
+
+func (e KafkaMessageOrder) IsValid() bool {
+	switch e {
+	case KafkaMessageOrderNewest, KafkaMessageOrderOldest:
+		return true
+	}
+	return false
+}
+
+func (e KafkaMessageOrder) String() string {
+	return string(e)
+}
+
+func (e *KafkaMessageOrder) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = KafkaMessageOrder(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid KafkaMessageOrder", str)
+	}
+	return nil
+}
+
+func (e KafkaMessageOrder) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *KafkaMessageOrder) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e KafkaMessageOrder) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

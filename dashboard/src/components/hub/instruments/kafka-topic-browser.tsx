@@ -13,14 +13,16 @@
 
 import { KpiCard, SevBadge } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   fetchKafkaConsumerGroups,
   fetchKafkaTopics,
   type KafkaConsumerGroup,
   type KafkaTopic,
 } from "@/lib/instruments-data"
+import { useInstrumentStore } from "@/stores/instruments-store"
 import { groupStateTone, topicKpis } from "./kafka-derive"
+import { KafkaSeedDialog } from "./kafka-seed-dialog"
 
 interface KafkaTopicBrowserProps {
   instrument: string
@@ -34,7 +36,21 @@ export function KafkaTopicBrowser({ instrument }: KafkaTopicBrowserProps) {
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<BrowserTab>("topics")
 
+  const fetchInstruments = useInstrumentStore((s) => s.fetchInstruments)
+  const canSeed = useInstrumentStore(
+    (s) =>
+      s.instruments
+        .find((i) => i.name === instrument)
+        ?.capabilities.includes("seed") ?? false,
+  )
   useEffect(() => {
+    void fetchInstruments()
+  }, [fetchInstruments])
+
+  // Load topics + consumer groups. The returned cleanup cancels in-flight
+  // state updates when the instrument changes; also invoked after a seed run
+  // to refetch the (now larger) topic list.
+  const loadKafkaData = useCallback(() => {
     let cancelled = false
     setTopics(null)
     setGroups(null)
@@ -60,6 +76,8 @@ export function KafkaTopicBrowser({ instrument }: KafkaTopicBrowserProps) {
     }
   }, [instrument])
 
+  useEffect(() => loadKafkaData(), [loadKafkaData])
+
   const kpis = useMemo(
     () => topicKpis(topics ?? [], groups ?? []),
     [topics, groups],
@@ -83,23 +101,33 @@ export function KafkaTopicBrowser({ instrument }: KafkaTopicBrowserProps) {
         <p className="text-[11.5px] text-fr-rose font-mono">{error}</p>
       ) : null}
 
-      <div className="flex items-center gap-1 border-b border-dash-border">
-        <button
-          type="button"
-          onClick={() => setTab("topics")}
-          className={`tab ${tab === "topics" ? "active" : ""}`}
-        >
-          Topics
-          {topics ? <span className="tab-count">{topics.length}</span> : null}
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("groups")}
-          className={`tab ${tab === "groups" ? "active" : ""}`}
-        >
-          Consumer groups
-          {groups ? <span className="tab-count">{groups.length}</span> : null}
-        </button>
+      <div className="flex items-center justify-between border-b border-dash-border">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setTab("topics")}
+            className={`tab ${tab === "topics" ? "active" : ""}`}
+          >
+            Topics
+            {topics ? <span className="tab-count">{topics.length}</span> : null}
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("groups")}
+            className={`tab ${tab === "groups" ? "active" : ""}`}
+          >
+            Consumer groups
+            {groups ? <span className="tab-count">{groups.length}</span> : null}
+          </button>
+        </div>
+        {canSeed ? (
+          <KafkaSeedDialog
+            instrument={instrument}
+            onSeeded={() => {
+              loadKafkaData()
+            }}
+          />
+        ) : null}
       </div>
 
       {tab === "topics" ? (

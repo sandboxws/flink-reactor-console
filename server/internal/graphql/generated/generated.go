@@ -151,13 +151,18 @@ type ComplexityRoot struct {
 	}
 
 	CheckpointConfig struct {
+		AlignedCheckpointTimeout         func(childComplexity int) int
+		CheckpointStorage                func(childComplexity int) int
+		CheckpointsAfterTasksFinish      func(childComplexity int) int
 		ExternalizedDeleteOnCancellation func(childComplexity int) int
 		ExternalizedEnabled              func(childComplexity int) int
 		Interval                         func(childComplexity int) int
 		MaxConcurrent                    func(childComplexity int) int
 		MinPause                         func(childComplexity int) int
 		Mode                             func(childComplexity int) int
+		StateBackend                     func(childComplexity int) int
 		Timeout                          func(childComplexity int) int
+		TolerableFailedCheckpoints       func(childComplexity int) int
 		UnalignedCheckpoints             func(childComplexity int) int
 	}
 
@@ -167,6 +172,27 @@ type ComplexityRoot struct {
 		InProgress func(childComplexity int) int
 		Restored   func(childComplexity int) int
 		Total      func(childComplexity int) int
+	}
+
+	CheckpointDetail struct {
+		CheckpointType          func(childComplexity int) int
+		CheckpointedSize        func(childComplexity int) int
+		Discarded               func(childComplexity int) int
+		EndToEndDuration        func(childComplexity int) int
+		ExternalPath            func(childComplexity int) int
+		FailureMessage          func(childComplexity int) int
+		FailureTimestamp        func(childComplexity int) int
+		ID                      func(childComplexity int) int
+		IsSavepoint             func(childComplexity int) int
+		LatestAckTimestamp      func(childComplexity int) int
+		NumAcknowledgedSubtasks func(childComplexity int) int
+		NumSubtasks             func(childComplexity int) int
+		PersistedData           func(childComplexity int) int
+		ProcessedData           func(childComplexity int) int
+		StateSize               func(childComplexity int) int
+		Status                  func(childComplexity int) int
+		Tasks                   func(childComplexity int) int
+		TriggerTimestamp        func(childComplexity int) int
 	}
 
 	CheckpointHistoryConnection struct {
@@ -180,8 +206,12 @@ type ComplexityRoot struct {
 	}
 
 	CheckpointHistoryEntry struct {
+		CheckpointType          func(childComplexity int) int
 		CheckpointedSize        func(childComplexity int) int
 		EndToEndDuration        func(childComplexity int) int
+		ExternalPath            func(childComplexity int) int
+		FailureMessage          func(childComplexity int) int
+		FailureTimestamp        func(childComplexity int) int
 		ID                      func(childComplexity int) int
 		IsSavepoint             func(childComplexity int) int
 		LatestAckTimestamp      func(childComplexity int) int
@@ -226,12 +256,68 @@ type ComplexityRoot struct {
 		Summary func(childComplexity int) int
 	}
 
+	CheckpointSubtaskEntry struct {
+		Aborted             func(childComplexity int) int
+		AckTimestamp        func(childComplexity int) int
+		AlignmentBuffered   func(childComplexity int) int
+		AlignmentDuration   func(childComplexity int) int
+		AlignmentPersisted  func(childComplexity int) int
+		AlignmentProcessed  func(childComplexity int) int
+		AsyncDuration       func(childComplexity int) int
+		CheckpointedSize    func(childComplexity int) int
+		EndToEndDuration    func(childComplexity int) int
+		Index               func(childComplexity int) int
+		StartDelay          func(childComplexity int) int
+		StateSize           func(childComplexity int) int
+		Status              func(childComplexity int) int
+		SyncDuration        func(childComplexity int) int
+		UnalignedCheckpoint func(childComplexity int) int
+	}
+
+	CheckpointSubtaskStats struct {
+		EndToEndDuration        func(childComplexity int) int
+		LatestAckTimestamp      func(childComplexity int) int
+		NumAcknowledgedSubtasks func(childComplexity int) int
+		NumSubtasks             func(childComplexity int) int
+		StateSize               func(childComplexity int) int
+		Status                  func(childComplexity int) int
+		Subtasks                func(childComplexity int) int
+		Summary                 func(childComplexity int) int
+		VertexID                func(childComplexity int) int
+	}
+
+	CheckpointSubtaskSummary struct {
+		AlignmentBuffered  func(childComplexity int) int
+		AlignmentDuration  func(childComplexity int) int
+		AlignmentPersisted func(childComplexity int) int
+		AlignmentProcessed func(childComplexity int) int
+		AsyncDuration      func(childComplexity int) int
+		CheckpointedSize   func(childComplexity int) int
+		EndToEndDuration   func(childComplexity int) int
+		StartDelay         func(childComplexity int) int
+		StateSize          func(childComplexity int) int
+		SyncDuration       func(childComplexity int) int
+	}
+
 	CheckpointSummary struct {
 		CheckpointedSize func(childComplexity int) int
 		EndToEndDuration func(childComplexity int) int
 		PersistedData    func(childComplexity int) int
 		ProcessedData    func(childComplexity int) int
 		StateSize        func(childComplexity int) int
+	}
+
+	CheckpointTaskDetail struct {
+		CheckpointedSize        func(childComplexity int) int
+		EndToEndDuration        func(childComplexity int) int
+		LatestAckTimestamp      func(childComplexity int) int
+		NumAcknowledgedSubtasks func(childComplexity int) int
+		NumSubtasks             func(childComplexity int) int
+		PersistedData           func(childComplexity int) int
+		ProcessedData           func(childComplexity int) int
+		StateSize               func(childComplexity int) int
+		Status                  func(childComplexity int) int
+		VertexID                func(childComplexity int) int
 	}
 
 	ClusterInfo struct {
@@ -677,6 +763,14 @@ type ComplexityRoot struct {
 		ClientID    func(childComplexity int) int
 	}
 
+	KafkaMessage struct {
+		Key       func(childComplexity int) int
+		Offset    func(childComplexity int) int
+		Partition func(childComplexity int) int
+		Timestamp func(childComplexity int) int
+		Value     func(childComplexity int) int
+	}
+
 	KafkaPartition struct {
 		ID             func(childComplexity int) int
 		InSyncReplicas func(childComplexity int) int
@@ -689,6 +783,24 @@ type ComplexityRoot struct {
 		EndOffset       func(childComplexity int) int
 		Lag             func(childComplexity int) int
 		Partition       func(childComplexity int) int
+		Topic           func(childComplexity int) int
+	}
+
+	KafkaSeedResult struct {
+		DryRun          func(childComplexity int) int
+		RecordsProduced func(childComplexity int) int
+		Skipped         func(childComplexity int) int
+		Topics          func(childComplexity int) int
+	}
+
+	KafkaSeededTopic struct {
+		Created         func(childComplexity int) int
+		Domain          func(childComplexity int) int
+		Error           func(childComplexity int) int
+		Existed         func(childComplexity int) int
+		ExistingRecords func(childComplexity int) int
+		RecordsProduced func(childComplexity int) int
+		Skipped         func(childComplexity int) int
 		Topic           func(childComplexity int) int
 	}
 
@@ -784,6 +896,7 @@ type ComplexityRoot struct {
 		ResumeMaterializedTable      func(childComplexity int, name string, catalog string, cluster *string) int
 		RunJar                       func(childComplexity int, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
 		RunSimulation                func(childComplexity int, input model.SimulationInput) int
+		SeedKafkaTopics              func(childComplexity int, instrument string, allTopics *bool, dryRun *bool, skipNonEmpty *bool, domains []string) int
 		SilenceAlert                 func(childComplexity int, id string) int
 		StopJobWithSavepoint         func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
 		StopSimulation               func(childComplexity int, runID string) int
@@ -863,6 +976,7 @@ type ComplexityRoot struct {
 		Catalogs                      func(childComplexity int, cluster *string) int
 		CheckpointDetail              func(childComplexity int, jobID string, checkpointID string, cluster *string) int
 		CheckpointHistory             func(childComplexity int, filter *model.CheckpointHistoryFilter, pagination *model.PaginationInput) int
+		CheckpointSubtasks            func(childComplexity int, jobID string, checkpointID string, vertexID string, cluster *string) int
 		ClusterOverviewHistory        func(childComplexity int, clusterID string, after *string, before *string) int
 		Clusters                      func(childComplexity int) int
 		DashboardConfig               func(childComplexity int) int
@@ -889,6 +1003,7 @@ type ComplexityRoot struct {
 		KafkaConsumerGroup            func(childComplexity int, instrument string, groupID string) int
 		KafkaConsumerGroups           func(childComplexity int, instrument string) int
 		KafkaTopic                    func(childComplexity int, instrument string, name string) int
+		KafkaTopicMessages            func(childComplexity int, instrument string, topic string, limit *int, order *model.KafkaMessageOrder) int
 		KafkaTopics                   func(childComplexity int, instrument string) int
 		LatestCompatibilityReport     func(childComplexity int, pipeline string, environment *string) int
 		MaterializedTable             func(childComplexity int, name string, catalog string, cluster *string) int
@@ -1142,6 +1257,9 @@ type ComplexityRoot struct {
 		CheckpointedSize func(childComplexity int) int
 		Cluster          func(childComplexity int) int
 		EndToEndDuration func(childComplexity int) int
+		ExternalPath     func(childComplexity int) int
+		FailureMessage   func(childComplexity int) int
+		FailureTimestamp func(childComplexity int) int
 		IsSavepoint      func(childComplexity int) int
 		Jid              func(childComplexity int) int
 		LatestAck        func(childComplexity int) int
@@ -1370,6 +1488,7 @@ type MutationResolver interface {
 	TriggerSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error)
 	StopJobWithSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error)
 	RescaleJob(ctx context.Context, jobID string, newParallelism int, cluster *string) (*model.RescaleResult, error)
+	SeedKafkaTopics(ctx context.Context, instrument string, allTopics *bool, dryRun *bool, skipNonEmpty *bool, domains []string) (*model.KafkaSeedResult, error)
 	SuspendMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
 	ResumeMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
 	RefreshMaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
@@ -1431,7 +1550,8 @@ type QueryResolver interface {
 	VertexDetail(ctx context.Context, jobID string, vertexID string, cluster *string) (*model.VertexDetail, error)
 	SubtaskTimes(ctx context.Context, jobID string, vertexID string, cluster *string) (*model.SubtaskTimes, error)
 	Flamegraph(ctx context.Context, jobID string, vertexID string, typeArg string, cluster *string) (*model.Flamegraph, error)
-	CheckpointDetail(ctx context.Context, jobID string, checkpointID string, cluster *string) (*model.CheckpointHistoryEntry, error)
+	CheckpointDetail(ctx context.Context, jobID string, checkpointID string, cluster *string) (*model.CheckpointDetail, error)
+	CheckpointSubtasks(ctx context.Context, jobID string, checkpointID string, vertexID string, cluster *string) (*model.CheckpointSubtaskStats, error)
 	Savepoints(ctx context.Context, jobID string, cluster *string) ([]*model.Savepoint, error)
 	Savepoint(ctx context.Context, jobID string, savepointID string, cluster *string) (*model.Savepoint, error)
 	RescaleHistory(ctx context.Context, jobID string, cluster *string) ([]*model.RescaleEvent, error)
@@ -1441,6 +1561,7 @@ type QueryResolver interface {
 	KafkaTopic(ctx context.Context, instrument string, name string) (*model.KafkaTopicDetail, error)
 	KafkaConsumerGroups(ctx context.Context, instrument string) ([]*model.KafkaConsumerGroup, error)
 	KafkaConsumerGroup(ctx context.Context, instrument string, groupID string) (*model.KafkaConsumerGroupDetail, error)
+	KafkaTopicMessages(ctx context.Context, instrument string, topic string, limit *int, order *model.KafkaMessageOrder) ([]*model.KafkaMessage, error)
 	MaterializedTables(ctx context.Context, cluster *string, catalog *string) ([]*model.MaterializedTable, error)
 	MaterializedTable(ctx context.Context, name string, catalog string, cluster *string) (*model.MaterializedTable, error)
 	RedisScan(ctx context.Context, instrument string, cursor *string, pattern *string, count *int) (*model.RedisScanResult, error)
@@ -1916,6 +2037,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CatalogTable.Name(childComplexity), true
 
+	case "CheckpointConfig.alignedCheckpointTimeout":
+		if e.ComplexityRoot.CheckpointConfig.AlignedCheckpointTimeout == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointConfig.AlignedCheckpointTimeout(childComplexity), true
+	case "CheckpointConfig.checkpointStorage":
+		if e.ComplexityRoot.CheckpointConfig.CheckpointStorage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointConfig.CheckpointStorage(childComplexity), true
+	case "CheckpointConfig.checkpointsAfterTasksFinish":
+		if e.ComplexityRoot.CheckpointConfig.CheckpointsAfterTasksFinish == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointConfig.CheckpointsAfterTasksFinish(childComplexity), true
 	case "CheckpointConfig.externalizedDeleteOnCancellation":
 		if e.ComplexityRoot.CheckpointConfig.ExternalizedDeleteOnCancellation == nil {
 			break
@@ -1952,12 +2091,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CheckpointConfig.Mode(childComplexity), true
+	case "CheckpointConfig.stateBackend":
+		if e.ComplexityRoot.CheckpointConfig.StateBackend == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointConfig.StateBackend(childComplexity), true
 	case "CheckpointConfig.timeout":
 		if e.ComplexityRoot.CheckpointConfig.Timeout == nil {
 			break
 		}
 
 		return e.ComplexityRoot.CheckpointConfig.Timeout(childComplexity), true
+	case "CheckpointConfig.tolerableFailedCheckpoints":
+		if e.ComplexityRoot.CheckpointConfig.TolerableFailedCheckpoints == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointConfig.TolerableFailedCheckpoints(childComplexity), true
 	case "CheckpointConfig.unalignedCheckpoints":
 		if e.ComplexityRoot.CheckpointConfig.UnalignedCheckpoints == nil {
 			break
@@ -1996,6 +2147,115 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CheckpointCounts.Total(childComplexity), true
 
+	case "CheckpointDetail.checkpointType":
+		if e.ComplexityRoot.CheckpointDetail.CheckpointType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.CheckpointType(childComplexity), true
+	case "CheckpointDetail.checkpointedSize":
+		if e.ComplexityRoot.CheckpointDetail.CheckpointedSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.CheckpointedSize(childComplexity), true
+	case "CheckpointDetail.discarded":
+		if e.ComplexityRoot.CheckpointDetail.Discarded == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.Discarded(childComplexity), true
+	case "CheckpointDetail.endToEndDuration":
+		if e.ComplexityRoot.CheckpointDetail.EndToEndDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.EndToEndDuration(childComplexity), true
+	case "CheckpointDetail.externalPath":
+		if e.ComplexityRoot.CheckpointDetail.ExternalPath == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.ExternalPath(childComplexity), true
+	case "CheckpointDetail.failureMessage":
+		if e.ComplexityRoot.CheckpointDetail.FailureMessage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.FailureMessage(childComplexity), true
+	case "CheckpointDetail.failureTimestamp":
+		if e.ComplexityRoot.CheckpointDetail.FailureTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.FailureTimestamp(childComplexity), true
+	case "CheckpointDetail.id":
+		if e.ComplexityRoot.CheckpointDetail.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.ID(childComplexity), true
+	case "CheckpointDetail.isSavepoint":
+		if e.ComplexityRoot.CheckpointDetail.IsSavepoint == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.IsSavepoint(childComplexity), true
+	case "CheckpointDetail.latestAckTimestamp":
+		if e.ComplexityRoot.CheckpointDetail.LatestAckTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.LatestAckTimestamp(childComplexity), true
+	case "CheckpointDetail.numAcknowledgedSubtasks":
+		if e.ComplexityRoot.CheckpointDetail.NumAcknowledgedSubtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.NumAcknowledgedSubtasks(childComplexity), true
+	case "CheckpointDetail.numSubtasks":
+		if e.ComplexityRoot.CheckpointDetail.NumSubtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.NumSubtasks(childComplexity), true
+	case "CheckpointDetail.persistedData":
+		if e.ComplexityRoot.CheckpointDetail.PersistedData == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.PersistedData(childComplexity), true
+	case "CheckpointDetail.processedData":
+		if e.ComplexityRoot.CheckpointDetail.ProcessedData == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.ProcessedData(childComplexity), true
+	case "CheckpointDetail.stateSize":
+		if e.ComplexityRoot.CheckpointDetail.StateSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.StateSize(childComplexity), true
+	case "CheckpointDetail.status":
+		if e.ComplexityRoot.CheckpointDetail.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.Status(childComplexity), true
+	case "CheckpointDetail.tasks":
+		if e.ComplexityRoot.CheckpointDetail.Tasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.Tasks(childComplexity), true
+	case "CheckpointDetail.triggerTimestamp":
+		if e.ComplexityRoot.CheckpointDetail.TriggerTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointDetail.TriggerTimestamp(childComplexity), true
+
 	case "CheckpointHistoryConnection.edges":
 		if e.ComplexityRoot.CheckpointHistoryConnection.Edges == nil {
 			break
@@ -2022,6 +2282,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CheckpointHistoryEdge.Node(childComplexity), true
 
+	case "CheckpointHistoryEntry.checkpointType":
+		if e.ComplexityRoot.CheckpointHistoryEntry.CheckpointType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryEntry.CheckpointType(childComplexity), true
 	case "CheckpointHistoryEntry.checkpointedSize":
 		if e.ComplexityRoot.CheckpointHistoryEntry.CheckpointedSize == nil {
 			break
@@ -2034,6 +2300,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CheckpointHistoryEntry.EndToEndDuration(childComplexity), true
+	case "CheckpointHistoryEntry.externalPath":
+		if e.ComplexityRoot.CheckpointHistoryEntry.ExternalPath == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryEntry.ExternalPath(childComplexity), true
+	case "CheckpointHistoryEntry.failureMessage":
+		if e.ComplexityRoot.CheckpointHistoryEntry.FailureMessage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryEntry.FailureMessage(childComplexity), true
+	case "CheckpointHistoryEntry.failureTimestamp":
+		if e.ComplexityRoot.CheckpointHistoryEntry.FailureTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointHistoryEntry.FailureTimestamp(childComplexity), true
 	case "CheckpointHistoryEntry.id":
 		if e.ComplexityRoot.CheckpointHistoryEntry.ID == nil {
 			break
@@ -2202,6 +2486,213 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CheckpointStats.Summary(childComplexity), true
 
+	case "CheckpointSubtaskEntry.aborted":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.Aborted == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.Aborted(childComplexity), true
+	case "CheckpointSubtaskEntry.ackTimestamp":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.AckTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.AckTimestamp(childComplexity), true
+	case "CheckpointSubtaskEntry.alignmentBuffered":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.AlignmentBuffered == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.AlignmentBuffered(childComplexity), true
+	case "CheckpointSubtaskEntry.alignmentDuration":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.AlignmentDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.AlignmentDuration(childComplexity), true
+	case "CheckpointSubtaskEntry.alignmentPersisted":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.AlignmentPersisted == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.AlignmentPersisted(childComplexity), true
+	case "CheckpointSubtaskEntry.alignmentProcessed":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.AlignmentProcessed == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.AlignmentProcessed(childComplexity), true
+	case "CheckpointSubtaskEntry.asyncDuration":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.AsyncDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.AsyncDuration(childComplexity), true
+	case "CheckpointSubtaskEntry.checkpointedSize":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.CheckpointedSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.CheckpointedSize(childComplexity), true
+	case "CheckpointSubtaskEntry.endToEndDuration":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.EndToEndDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.EndToEndDuration(childComplexity), true
+	case "CheckpointSubtaskEntry.index":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.Index == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.Index(childComplexity), true
+	case "CheckpointSubtaskEntry.startDelay":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.StartDelay == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.StartDelay(childComplexity), true
+	case "CheckpointSubtaskEntry.stateSize":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.StateSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.StateSize(childComplexity), true
+	case "CheckpointSubtaskEntry.status":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.Status(childComplexity), true
+	case "CheckpointSubtaskEntry.syncDuration":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.SyncDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.SyncDuration(childComplexity), true
+	case "CheckpointSubtaskEntry.unalignedCheckpoint":
+		if e.ComplexityRoot.CheckpointSubtaskEntry.UnalignedCheckpoint == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskEntry.UnalignedCheckpoint(childComplexity), true
+
+	case "CheckpointSubtaskStats.endToEndDuration":
+		if e.ComplexityRoot.CheckpointSubtaskStats.EndToEndDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.EndToEndDuration(childComplexity), true
+	case "CheckpointSubtaskStats.latestAckTimestamp":
+		if e.ComplexityRoot.CheckpointSubtaskStats.LatestAckTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.LatestAckTimestamp(childComplexity), true
+	case "CheckpointSubtaskStats.numAcknowledgedSubtasks":
+		if e.ComplexityRoot.CheckpointSubtaskStats.NumAcknowledgedSubtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.NumAcknowledgedSubtasks(childComplexity), true
+	case "CheckpointSubtaskStats.numSubtasks":
+		if e.ComplexityRoot.CheckpointSubtaskStats.NumSubtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.NumSubtasks(childComplexity), true
+	case "CheckpointSubtaskStats.stateSize":
+		if e.ComplexityRoot.CheckpointSubtaskStats.StateSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.StateSize(childComplexity), true
+	case "CheckpointSubtaskStats.status":
+		if e.ComplexityRoot.CheckpointSubtaskStats.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.Status(childComplexity), true
+	case "CheckpointSubtaskStats.subtasks":
+		if e.ComplexityRoot.CheckpointSubtaskStats.Subtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.Subtasks(childComplexity), true
+	case "CheckpointSubtaskStats.summary":
+		if e.ComplexityRoot.CheckpointSubtaskStats.Summary == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.Summary(childComplexity), true
+	case "CheckpointSubtaskStats.vertexId":
+		if e.ComplexityRoot.CheckpointSubtaskStats.VertexID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskStats.VertexID(childComplexity), true
+
+	case "CheckpointSubtaskSummary.alignmentBuffered":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.AlignmentBuffered == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.AlignmentBuffered(childComplexity), true
+	case "CheckpointSubtaskSummary.alignmentDuration":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.AlignmentDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.AlignmentDuration(childComplexity), true
+	case "CheckpointSubtaskSummary.alignmentPersisted":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.AlignmentPersisted == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.AlignmentPersisted(childComplexity), true
+	case "CheckpointSubtaskSummary.alignmentProcessed":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.AlignmentProcessed == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.AlignmentProcessed(childComplexity), true
+	case "CheckpointSubtaskSummary.asyncDuration":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.AsyncDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.AsyncDuration(childComplexity), true
+	case "CheckpointSubtaskSummary.checkpointedSize":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.CheckpointedSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.CheckpointedSize(childComplexity), true
+	case "CheckpointSubtaskSummary.endToEndDuration":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.EndToEndDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.EndToEndDuration(childComplexity), true
+	case "CheckpointSubtaskSummary.startDelay":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.StartDelay == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.StartDelay(childComplexity), true
+	case "CheckpointSubtaskSummary.stateSize":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.StateSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.StateSize(childComplexity), true
+	case "CheckpointSubtaskSummary.syncDuration":
+		if e.ComplexityRoot.CheckpointSubtaskSummary.SyncDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointSubtaskSummary.SyncDuration(childComplexity), true
+
 	case "CheckpointSummary.checkpointedSize":
 		if e.ComplexityRoot.CheckpointSummary.CheckpointedSize == nil {
 			break
@@ -2232,6 +2723,67 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CheckpointSummary.StateSize(childComplexity), true
+
+	case "CheckpointTaskDetail.checkpointedSize":
+		if e.ComplexityRoot.CheckpointTaskDetail.CheckpointedSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.CheckpointedSize(childComplexity), true
+	case "CheckpointTaskDetail.endToEndDuration":
+		if e.ComplexityRoot.CheckpointTaskDetail.EndToEndDuration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.EndToEndDuration(childComplexity), true
+	case "CheckpointTaskDetail.latestAckTimestamp":
+		if e.ComplexityRoot.CheckpointTaskDetail.LatestAckTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.LatestAckTimestamp(childComplexity), true
+	case "CheckpointTaskDetail.numAcknowledgedSubtasks":
+		if e.ComplexityRoot.CheckpointTaskDetail.NumAcknowledgedSubtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.NumAcknowledgedSubtasks(childComplexity), true
+	case "CheckpointTaskDetail.numSubtasks":
+		if e.ComplexityRoot.CheckpointTaskDetail.NumSubtasks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.NumSubtasks(childComplexity), true
+	case "CheckpointTaskDetail.persistedData":
+		if e.ComplexityRoot.CheckpointTaskDetail.PersistedData == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.PersistedData(childComplexity), true
+	case "CheckpointTaskDetail.processedData":
+		if e.ComplexityRoot.CheckpointTaskDetail.ProcessedData == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.ProcessedData(childComplexity), true
+	case "CheckpointTaskDetail.stateSize":
+		if e.ComplexityRoot.CheckpointTaskDetail.StateSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.StateSize(childComplexity), true
+	case "CheckpointTaskDetail.status":
+		if e.ComplexityRoot.CheckpointTaskDetail.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.Status(childComplexity), true
+	case "CheckpointTaskDetail.vertexId":
+		if e.ComplexityRoot.CheckpointTaskDetail.VertexID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckpointTaskDetail.VertexID(childComplexity), true
 
 	case "ClusterInfo.capabilities":
 		if e.ComplexityRoot.ClusterInfo.Capabilities == nil {
@@ -3905,6 +4457,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.KafkaGroupMember.ClientID(childComplexity), true
 
+	case "KafkaMessage.key":
+		if e.ComplexityRoot.KafkaMessage.Key == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaMessage.Key(childComplexity), true
+	case "KafkaMessage.offset":
+		if e.ComplexityRoot.KafkaMessage.Offset == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaMessage.Offset(childComplexity), true
+	case "KafkaMessage.partition":
+		if e.ComplexityRoot.KafkaMessage.Partition == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaMessage.Partition(childComplexity), true
+	case "KafkaMessage.timestamp":
+		if e.ComplexityRoot.KafkaMessage.Timestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaMessage.Timestamp(childComplexity), true
+	case "KafkaMessage.value":
+		if e.ComplexityRoot.KafkaMessage.Value == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaMessage.Value(childComplexity), true
+
 	case "KafkaPartition.id":
 		if e.ComplexityRoot.KafkaPartition.ID == nil {
 			break
@@ -3960,6 +4543,80 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.KafkaPartitionOffset.Topic(childComplexity), true
+
+	case "KafkaSeedResult.dryRun":
+		if e.ComplexityRoot.KafkaSeedResult.DryRun == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeedResult.DryRun(childComplexity), true
+	case "KafkaSeedResult.recordsProduced":
+		if e.ComplexityRoot.KafkaSeedResult.RecordsProduced == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeedResult.RecordsProduced(childComplexity), true
+	case "KafkaSeedResult.skipped":
+		if e.ComplexityRoot.KafkaSeedResult.Skipped == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeedResult.Skipped(childComplexity), true
+	case "KafkaSeedResult.topics":
+		if e.ComplexityRoot.KafkaSeedResult.Topics == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeedResult.Topics(childComplexity), true
+
+	case "KafkaSeededTopic.created":
+		if e.ComplexityRoot.KafkaSeededTopic.Created == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeededTopic.Created(childComplexity), true
+	case "KafkaSeededTopic.domain":
+		if e.ComplexityRoot.KafkaSeededTopic.Domain == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeededTopic.Domain(childComplexity), true
+	case "KafkaSeededTopic.error":
+		if e.ComplexityRoot.KafkaSeededTopic.Error == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeededTopic.Error(childComplexity), true
+	case "KafkaSeededTopic.existed":
+		if e.ComplexityRoot.KafkaSeededTopic.Existed == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeededTopic.Existed(childComplexity), true
+	case "KafkaSeededTopic.existingRecords":
+		if e.ComplexityRoot.KafkaSeededTopic.ExistingRecords == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeededTopic.ExistingRecords(childComplexity), true
+	case "KafkaSeededTopic.recordsProduced":
+		if e.ComplexityRoot.KafkaSeededTopic.RecordsProduced == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeededTopic.RecordsProduced(childComplexity), true
+	case "KafkaSeededTopic.skipped":
+		if e.ComplexityRoot.KafkaSeededTopic.Skipped == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeededTopic.Skipped(childComplexity), true
+	case "KafkaSeededTopic.topic":
+		if e.ComplexityRoot.KafkaSeededTopic.Topic == nil {
+			break
+		}
+
+		return e.ComplexityRoot.KafkaSeededTopic.Topic(childComplexity), true
 
 	case "KafkaTopic.internal":
 		if e.ComplexityRoot.KafkaTopic.Internal == nil {
@@ -4432,6 +5089,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RunSimulation(childComplexity, args["input"].(model.SimulationInput)), true
+	case "Mutation.seedKafkaTopics":
+		if e.ComplexityRoot.Mutation.SeedKafkaTopics == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_seedKafkaTopics_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SeedKafkaTopics(childComplexity, args["instrument"].(string), args["allTopics"].(*bool), args["dryRun"].(*bool), args["skipNonEmpty"].(*bool), args["domains"].([]string)), true
 	case "Mutation.silenceAlert":
 		if e.ComplexityRoot.Mutation.SilenceAlert == nil {
 			break
@@ -4919,6 +5587,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.CheckpointHistory(childComplexity, args["filter"].(*model.CheckpointHistoryFilter), args["pagination"].(*model.PaginationInput)), true
+	case "Query.checkpointSubtasks":
+		if e.ComplexityRoot.Query.CheckpointSubtasks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkpointSubtasks_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.CheckpointSubtasks(childComplexity, args["jobId"].(string), args["checkpointId"].(string), args["vertexId"].(string), args["cluster"].(*string)), true
 	case "Query.clusterOverviewHistory":
 		if e.ComplexityRoot.Query.ClusterOverviewHistory == nil {
 			break
@@ -5186,6 +5865,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.KafkaTopic(childComplexity, args["instrument"].(string), args["name"].(string)), true
+	case "Query.kafkaTopicMessages":
+		if e.ComplexityRoot.Query.KafkaTopicMessages == nil {
+			break
+		}
+
+		args, err := ec.field_Query_kafkaTopicMessages_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.KafkaTopicMessages(childComplexity, args["instrument"].(string), args["topic"].(string), args["limit"].(*int), args["order"].(*model.KafkaMessageOrder)), true
 	case "Query.kafkaTopics":
 		if e.ComplexityRoot.Query.KafkaTopics == nil {
 			break
@@ -6359,6 +7049,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.StoredCheckpoint.EndToEndDuration(childComplexity), true
+	case "StoredCheckpoint.externalPath":
+		if e.ComplexityRoot.StoredCheckpoint.ExternalPath == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.ExternalPath(childComplexity), true
+	case "StoredCheckpoint.failureMessage":
+		if e.ComplexityRoot.StoredCheckpoint.FailureMessage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.FailureMessage(childComplexity), true
+	case "StoredCheckpoint.failureTimestamp":
+		if e.ComplexityRoot.StoredCheckpoint.FailureTimestamp == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StoredCheckpoint.FailureTimestamp(childComplexity), true
 	case "StoredCheckpoint.isSavepoint":
 		if e.ComplexityRoot.StoredCheckpoint.IsSavepoint == nil {
 			break
@@ -8130,6 +8838,12 @@ type StoredCheckpoint {
   numSubtasks: Int!
   numAckSubtasks: Int!
   checkpointedSize: String
+  """Failure reason. Null unless status is FAILED."""
+  failureMessage: String
+  """Failure time (RFC3339). Null unless status is FAILED."""
+  failureTimestamp: String
+  """Restore location. Null unless the checkpoint was externally addressable."""
+  externalPath: String
   capturedAt: String!
 }
 
@@ -8560,6 +9274,8 @@ type CheckpointHistoryEntry {
   id: String!
   status: String!
   isSavepoint: Boolean!
+  """CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT."""
+  checkpointType: String
   triggerTimestamp: String!
   latestAckTimestamp: String!
   stateSize: String!
@@ -8569,6 +9285,12 @@ type CheckpointHistoryEntry {
   numSubtasks: Int!
   numAcknowledgedSubtasks: Int!
   checkpointedSize: String
+  """Restore location. Null unless the checkpoint is externally addressable."""
+  externalPath: String
+  """Failure reason. Null unless status is FAILED."""
+  failureMessage: String
+  """Failure time (epoch millis). Null unless status is FAILED."""
+  failureTimestamp: String
 }
 
 type CheckpointSummary {
@@ -8609,6 +9331,108 @@ type CheckpointConfig {
   externalizedEnabled: Boolean!
   externalizedDeleteOnCancellation: Boolean!
   unalignedCheckpoints: Boolean!
+  """State backend class name, e.g. HashMapStateBackend. Absent on older Flink."""
+  stateBackend: String
+  """Checkpoint storage, e.g. FileSystemCheckpointStorage. Absent on older Flink."""
+  checkpointStorage: String
+  tolerableFailedCheckpoints: Int
+  alignedCheckpointTimeout: String
+  checkpointsAfterTasksFinish: Boolean
+}
+
+"""Per-vertex rollup within a checkpoint detail, keyed by the job vertex."""
+type CheckpointTaskDetail {
+  vertexId: String!
+  status: String!
+  latestAckTimestamp: String!
+  stateSize: String!
+  endToEndDuration: String!
+  numSubtasks: Int!
+  numAcknowledgedSubtasks: Int!
+  checkpointedSize: String
+  processedData: String
+  persistedData: String
+}
+
+"""
+Full detail for a single checkpoint
+(GET /jobs/:jid/checkpoints/details/:checkpointid).
+"""
+type CheckpointDetail {
+  id: String!
+  status: String!
+  isSavepoint: Boolean!
+  """CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT."""
+  checkpointType: String
+  triggerTimestamp: String!
+  latestAckTimestamp: String!
+  stateSize: String!
+  endToEndDuration: String!
+  numSubtasks: Int!
+  numAcknowledgedSubtasks: Int!
+  checkpointedSize: String
+  processedData: String
+  persistedData: String
+  """Restore location. Null unless the checkpoint is externally addressable."""
+  externalPath: String
+  discarded: Boolean
+  """Failure reason. Null unless status is FAILED."""
+  failureMessage: String
+  """Failure time (epoch millis). Null unless status is FAILED."""
+  failureTimestamp: String
+  tasks: [CheckpointTaskDetail!]!
+}
+
+"""Min/avg/max rollups for one vertex's subtask checkpoint stats."""
+type CheckpointSubtaskSummary {
+  stateSize: CheckpointMinMaxAvg
+  endToEndDuration: CheckpointMinMaxAvg
+  checkpointedSize: CheckpointMinMaxAvg
+  syncDuration: CheckpointMinMaxAvg
+  asyncDuration: CheckpointMinMaxAvg
+  alignmentBuffered: CheckpointMinMaxAvg
+  alignmentProcessed: CheckpointMinMaxAvg
+  alignmentPersisted: CheckpointMinMaxAvg
+  alignmentDuration: CheckpointMinMaxAvg
+  startDelay: CheckpointMinMaxAvg
+}
+
+"""
+One subtask's checkpoint stats. Subtasks that have not acknowledged carry
+only index and status.
+"""
+type CheckpointSubtaskEntry {
+  index: Int!
+  status: String!
+  ackTimestamp: String
+  endToEndDuration: String
+  stateSize: String
+  checkpointedSize: String
+  syncDuration: String
+  asyncDuration: String
+  alignmentBuffered: String
+  alignmentProcessed: String
+  alignmentPersisted: String
+  alignmentDuration: String
+  startDelay: String
+  unalignedCheckpoint: Boolean
+  aborted: Boolean
+}
+
+"""
+Per-subtask checkpoint stats for one vertex of a checkpoint
+(GET /jobs/:jid/checkpoints/details/:checkpointid/subtasks/:vertexid).
+"""
+type CheckpointSubtaskStats {
+  vertexId: String!
+  status: String!
+  latestAckTimestamp: String!
+  stateSize: String!
+  endToEndDuration: String!
+  numSubtasks: Int!
+  numAcknowledgedSubtasks: Int!
+  summary: CheckpointSubtaskSummary
+  subtasks: [CheckpointSubtaskEntry!]!
 }
 
 type SubtaskBackPressure {
@@ -8862,8 +9686,11 @@ extend type Query {
   """Get flamegraph for a vertex"""
   flamegraph(jobId: ID!, vertexId: ID!, type: String!, cluster: String): Flamegraph!
 
-  """Get checkpoint detail"""
-  checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointHistoryEntry!
+  """Get full checkpoint detail including per-task rollups"""
+  checkpointDetail(jobId: ID!, checkpointId: String!, cluster: String): CheckpointDetail!
+
+  """Get per-subtask checkpoint stats for one vertex of a checkpoint"""
+  checkpointSubtasks(jobId: ID!, checkpointId: String!, vertexId: ID!, cluster: String): CheckpointSubtaskStats!
 
   """List savepoints for a job, ordered by triggeredAt descending."""
   savepoints(jobId: ID!, cluster: String): [Savepoint!]!
@@ -8994,6 +9821,61 @@ type KafkaPartitionOffset {
   lag: Int!
 }
 
+"""
+A topic touched during a Kafka seed operation. Both dry and real runs consult
+the broker, so existed/existingRecords reflect actual broker state either way.
+"""
+type KafkaSeededTopic {
+  topic: String!
+  "Template domain from the seed catalog (e.g. ecommerce, iot)."
+  domain: String!
+  "Whether the topic already existed in the broker when the seed ran."
+  existed: Boolean!
+  "Records already in the topic (sum of partition end−start offsets); 0 when absent."
+  existingRecords: Int!
+  "Topic was created (real run) / would be created (dry run)."
+  created: Boolean!
+  "Skipped because the topic already holds records and skipNonEmpty was set."
+  skipped: Boolean!
+  "Records produced (real run) / that would be produced (dry run)."
+  recordsProduced: Int!
+  "Per-topic failure; null when the topic seeded cleanly. Seeding is best-effort per topic."
+  error: String
+}
+
+"""
+Result of seeding sample data into a Kafka instrument.
+"""
+type KafkaSeedResult {
+  topics: [KafkaSeededTopic!]!
+  recordsProduced: Int!
+  "Topic names skipped for any reason (no sample rows, or already populated with skipNonEmpty)."
+  skipped: [String!]!
+  dryRun: Boolean!
+}
+
+"""
+Read order for a topic preview.
+"""
+enum KafkaMessageOrder {
+  "Most recent records first (the live end of the stream)."
+  NEWEST
+  "Earliest retained records first (e.g. the deterministic seed rows)."
+  OLDEST
+}
+
+"""
+A single Kafka record returned by a topic preview read.
+"""
+type KafkaMessage {
+  partition: Int!
+  offset: Int!
+  "Record timestamp in epoch milliseconds."
+  timestamp: Int!
+  key: String
+  value: String!
+}
+
 extend type Query {
   """
   List topics for a Kafka instrument.
@@ -9011,6 +9893,30 @@ extend type Query {
   Get detailed information about a specific consumer group.
   """
   kafkaConsumerGroup(instrument: String!, groupId: String!): KafkaConsumerGroupDetail!
+  """
+  Preview records from a topic using a throwaway consumer (no consumer group
+  is left behind). limit defaults to 20, capped at 200. order defaults to
+  NEWEST (live tail); OLDEST reads from the beginning, where the deterministic
+  seed rows live.
+  """
+  kafkaTopicMessages(instrument: String!, topic: String!, limit: Int, order: KafkaMessageOrder): [KafkaMessage!]!
+}
+
+extend type Mutation {
+  """
+  Seed sample data into a Kafka instrument's topics. Governed by the
+  environment seeding policy: enabled by default in development, opt-in in
+  staging, and never permitted in production. By default only this project's
+  topics are seeded (catalog subjects whose topic already exists in the
+  broker — ` + "`" + `cluster up` + "`" + ` materializes every declared topic, so project scope
+  and declared scope coincide); allTopics: true widens to the entire sample
+  catalog, creating each missing topic. domains restricts the run to the given
+  catalog domains (e.g. ["ecommerce"]). skipNonEmpty defaults to TRUE when
+  omitted: topics that already hold records are reported as skipped instead of
+  appended to — pass skipNonEmpty: false to force append. dryRun consults the
+  broker and reports exactly what a real run would do, without producing.
+  """
+  seedKafkaTopics(instrument: String!, allTopics: Boolean, dryRun: Boolean, skipNonEmpty: Boolean, domains: [String!]): KafkaSeedResult!
 }
 `, BuiltIn: false},
 	{Name: "../schema/materialized.graphqls", Input: `# Materialized table management via SQL Gateway
@@ -9499,8 +10405,7 @@ type SQLResultBatch {
 """
 A sampled metric value published at ~1s cadence by the server's
 MetricSampler. ` + "`" + `jobId` + "`" + ` is null for cluster-wide aggregates.
-Supported ` + "`" + `metric` + "`" + ` values for v1: ` + "`" + `throughput` + "`" + `, ` + "`" + `watermarkLag` + "`" + `,
-` + "`" + `checkpointRate` + "`" + `.
+Supported ` + "`" + `metric` + "`" + ` values for v1: ` + "`" + `throughput` + "`" + `, ` + "`" + `watermarkLag` + "`" + `.
 """
 type MetricEvent {
   clusterID: String!
@@ -10014,6 +10919,37 @@ func (ec *executionContext) field_Mutation_runSimulation_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_seedKafkaTopics_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "allTopics", ec.unmarshalOBoolean2ᚖbool)
+	if err != nil {
+		return nil, err
+	}
+	args["allTopics"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "dryRun", ec.unmarshalOBoolean2ᚖbool)
+	if err != nil {
+		return nil, err
+	}
+	args["dryRun"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "skipNonEmpty", ec.unmarshalOBoolean2ᚖbool)
+	if err != nil {
+		return nil, err
+	}
+	args["skipNonEmpty"] = arg3
+	arg4, err := graphql.ProcessArgField(ctx, rawArgs, "domains", ec.unmarshalOString2ᚕstringᚄ)
+	if err != nil {
+		return nil, err
+	}
+	args["domains"] = arg4
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_silenceAlert_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -10423,6 +11359,32 @@ func (ec *executionContext) field_Query_checkpointHistory_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_checkpointSubtasks_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "jobId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["jobId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "checkpointId", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["checkpointId"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "vertexId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["vertexId"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_clusterOverviewHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -10731,6 +11693,32 @@ func (ec *executionContext) field_Query_kafkaConsumerGroups_args(ctx context.Con
 		return nil, err
 	}
 	args["instrument"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_kafkaTopicMessages_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "instrument", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["instrument"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "topic", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["topic"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "order", ec.unmarshalOKafkaMessageOrder2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaMessageOrder)
+	if err != nil {
+		return nil, err
+	}
+	args["order"] = arg3
 	return args, nil
 }
 
@@ -13717,6 +14705,151 @@ func (ec *executionContext) fieldContext_CheckpointConfig_unalignedCheckpoints(_
 	return fc, nil
 }
 
+func (ec *executionContext) _CheckpointConfig_stateBackend(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointConfig_stateBackend,
+		func(ctx context.Context) (any, error) {
+			return obj.StateBackend, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointConfig_stateBackend(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointConfig_checkpointStorage(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointConfig_checkpointStorage,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointStorage, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointConfig_checkpointStorage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointConfig_tolerableFailedCheckpoints(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointConfig_tolerableFailedCheckpoints,
+		func(ctx context.Context) (any, error) {
+			return obj.TolerableFailedCheckpoints, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointConfig_tolerableFailedCheckpoints(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointConfig_alignedCheckpointTimeout(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointConfig_alignedCheckpointTimeout,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignedCheckpointTimeout, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointConfig_alignedCheckpointTimeout(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointConfig_checkpointsAfterTasksFinish(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointConfig_checkpointsAfterTasksFinish,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointsAfterTasksFinish, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointConfig_checkpointsAfterTasksFinish(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CheckpointCounts_completed(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointCounts) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -13862,6 +14995,550 @@ func (ec *executionContext) fieldContext_CheckpointCounts_restored(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _CheckpointDetail_id(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_status(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_isSavepoint(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_isSavepoint,
+		func(ctx context.Context) (any, error) {
+			return obj.IsSavepoint, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_isSavepoint(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_checkpointType(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_checkpointType,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointType, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_checkpointType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_triggerTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_triggerTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.TriggerTimestamp, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_triggerTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_latestAckTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_latestAckTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.LatestAckTimestamp, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_latestAckTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_stateSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_stateSize,
+		func(ctx context.Context) (any, error) {
+			return obj.StateSize, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_stateSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_endToEndDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_endToEndDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.EndToEndDuration, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_endToEndDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_numSubtasks(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_numSubtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.NumSubtasks, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_numSubtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_numAcknowledgedSubtasks(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_numAcknowledgedSubtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.NumAcknowledgedSubtasks, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_numAcknowledgedSubtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_checkpointedSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_checkpointedSize,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointedSize, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_checkpointedSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_processedData(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_processedData,
+		func(ctx context.Context) (any, error) {
+			return obj.ProcessedData, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_processedData(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_persistedData(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_persistedData,
+		func(ctx context.Context) (any, error) {
+			return obj.PersistedData, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_persistedData(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_externalPath(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_externalPath,
+		func(ctx context.Context) (any, error) {
+			return obj.ExternalPath, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_externalPath(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_discarded(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_discarded,
+		func(ctx context.Context) (any, error) {
+			return obj.Discarded, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_discarded(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_failureMessage(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_failureMessage,
+		func(ctx context.Context) (any, error) {
+			return obj.FailureMessage, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_failureMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_failureTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_failureTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.FailureTimestamp, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_failureTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointDetail_tasks(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointDetail_tasks,
+		func(ctx context.Context) (any, error) {
+			return obj.Tasks, nil
+		},
+		nil,
+		ec.marshalNCheckpointTaskDetail2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointTaskDetailᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointDetail_tasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vertexId":
+				return ec.fieldContext_CheckpointTaskDetail_vertexId(ctx, field)
+			case "status":
+				return ec.fieldContext_CheckpointTaskDetail_status(ctx, field)
+			case "latestAckTimestamp":
+				return ec.fieldContext_CheckpointTaskDetail_latestAckTimestamp(ctx, field)
+			case "stateSize":
+				return ec.fieldContext_CheckpointTaskDetail_stateSize(ctx, field)
+			case "endToEndDuration":
+				return ec.fieldContext_CheckpointTaskDetail_endToEndDuration(ctx, field)
+			case "numSubtasks":
+				return ec.fieldContext_CheckpointTaskDetail_numSubtasks(ctx, field)
+			case "numAcknowledgedSubtasks":
+				return ec.fieldContext_CheckpointTaskDetail_numAcknowledgedSubtasks(ctx, field)
+			case "checkpointedSize":
+				return ec.fieldContext_CheckpointTaskDetail_checkpointedSize(ctx, field)
+			case "processedData":
+				return ec.fieldContext_CheckpointTaskDetail_processedData(ctx, field)
+			case "persistedData":
+				return ec.fieldContext_CheckpointTaskDetail_persistedData(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointTaskDetail", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CheckpointHistoryConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryConnection) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -13984,6 +15661,12 @@ func (ec *executionContext) fieldContext_CheckpointHistoryEdge_node(_ context.Co
 				return ec.fieldContext_StoredCheckpoint_numAckSubtasks(ctx, field)
 			case "checkpointedSize":
 				return ec.fieldContext_StoredCheckpoint_checkpointedSize(ctx, field)
+			case "failureMessage":
+				return ec.fieldContext_StoredCheckpoint_failureMessage(ctx, field)
+			case "failureTimestamp":
+				return ec.fieldContext_StoredCheckpoint_failureTimestamp(ctx, field)
+			case "externalPath":
+				return ec.fieldContext_StoredCheckpoint_externalPath(ctx, field)
 			case "capturedAt":
 				return ec.fieldContext_StoredCheckpoint_capturedAt(ctx, field)
 			}
@@ -14104,6 +15787,35 @@ func (ec *executionContext) fieldContext_CheckpointHistoryEntry_isSavepoint(_ co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointHistoryEntry_checkpointType(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryEntry_checkpointType,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointType, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryEntry_checkpointType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14370,6 +16082,93 @@ func (ec *executionContext) fieldContext_CheckpointHistoryEntry_checkpointedSize
 	return fc, nil
 }
 
+func (ec *executionContext) _CheckpointHistoryEntry_externalPath(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryEntry_externalPath,
+		func(ctx context.Context) (any, error) {
+			return obj.ExternalPath, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryEntry_externalPath(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointHistoryEntry_failureMessage(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryEntry_failureMessage,
+		func(ctx context.Context) (any, error) {
+			return obj.FailureMessage, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryEntry_failureMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointHistoryEntry_failureTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointHistoryEntry_failureTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.FailureTimestamp, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointHistoryEntry_failureTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointHistoryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CheckpointHistoryPageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointHistoryPageInfo) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -14458,6 +16257,8 @@ func (ec *executionContext) fieldContext_CheckpointLatest_completed(_ context.Co
 				return ec.fieldContext_CheckpointHistoryEntry_status(ctx, field)
 			case "isSavepoint":
 				return ec.fieldContext_CheckpointHistoryEntry_isSavepoint(ctx, field)
+			case "checkpointType":
+				return ec.fieldContext_CheckpointHistoryEntry_checkpointType(ctx, field)
 			case "triggerTimestamp":
 				return ec.fieldContext_CheckpointHistoryEntry_triggerTimestamp(ctx, field)
 			case "latestAckTimestamp":
@@ -14476,6 +16277,12 @@ func (ec *executionContext) fieldContext_CheckpointLatest_completed(_ context.Co
 				return ec.fieldContext_CheckpointHistoryEntry_numAcknowledgedSubtasks(ctx, field)
 			case "checkpointedSize":
 				return ec.fieldContext_CheckpointHistoryEntry_checkpointedSize(ctx, field)
+			case "externalPath":
+				return ec.fieldContext_CheckpointHistoryEntry_externalPath(ctx, field)
+			case "failureMessage":
+				return ec.fieldContext_CheckpointHistoryEntry_failureMessage(ctx, field)
+			case "failureTimestamp":
+				return ec.fieldContext_CheckpointHistoryEntry_failureTimestamp(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CheckpointHistoryEntry", field.Name)
 		},
@@ -14513,6 +16320,8 @@ func (ec *executionContext) fieldContext_CheckpointLatest_failed(_ context.Conte
 				return ec.fieldContext_CheckpointHistoryEntry_status(ctx, field)
 			case "isSavepoint":
 				return ec.fieldContext_CheckpointHistoryEntry_isSavepoint(ctx, field)
+			case "checkpointType":
+				return ec.fieldContext_CheckpointHistoryEntry_checkpointType(ctx, field)
 			case "triggerTimestamp":
 				return ec.fieldContext_CheckpointHistoryEntry_triggerTimestamp(ctx, field)
 			case "latestAckTimestamp":
@@ -14531,6 +16340,12 @@ func (ec *executionContext) fieldContext_CheckpointLatest_failed(_ context.Conte
 				return ec.fieldContext_CheckpointHistoryEntry_numAcknowledgedSubtasks(ctx, field)
 			case "checkpointedSize":
 				return ec.fieldContext_CheckpointHistoryEntry_checkpointedSize(ctx, field)
+			case "externalPath":
+				return ec.fieldContext_CheckpointHistoryEntry_externalPath(ctx, field)
+			case "failureMessage":
+				return ec.fieldContext_CheckpointHistoryEntry_failureMessage(ctx, field)
+			case "failureTimestamp":
+				return ec.fieldContext_CheckpointHistoryEntry_failureTimestamp(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CheckpointHistoryEntry", field.Name)
 		},
@@ -14568,6 +16383,8 @@ func (ec *executionContext) fieldContext_CheckpointLatest_savepoint(_ context.Co
 				return ec.fieldContext_CheckpointHistoryEntry_status(ctx, field)
 			case "isSavepoint":
 				return ec.fieldContext_CheckpointHistoryEntry_isSavepoint(ctx, field)
+			case "checkpointType":
+				return ec.fieldContext_CheckpointHistoryEntry_checkpointType(ctx, field)
 			case "triggerTimestamp":
 				return ec.fieldContext_CheckpointHistoryEntry_triggerTimestamp(ctx, field)
 			case "latestAckTimestamp":
@@ -14586,6 +16403,12 @@ func (ec *executionContext) fieldContext_CheckpointLatest_savepoint(_ context.Co
 				return ec.fieldContext_CheckpointHistoryEntry_numAcknowledgedSubtasks(ctx, field)
 			case "checkpointedSize":
 				return ec.fieldContext_CheckpointHistoryEntry_checkpointedSize(ctx, field)
+			case "externalPath":
+				return ec.fieldContext_CheckpointHistoryEntry_externalPath(ctx, field)
+			case "failureMessage":
+				return ec.fieldContext_CheckpointHistoryEntry_failureMessage(ctx, field)
+			case "failureTimestamp":
+				return ec.fieldContext_CheckpointHistoryEntry_failureTimestamp(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CheckpointHistoryEntry", field.Name)
 		},
@@ -14906,6 +16729,8 @@ func (ec *executionContext) fieldContext_CheckpointStats_history(_ context.Conte
 				return ec.fieldContext_CheckpointHistoryEntry_status(ctx, field)
 			case "isSavepoint":
 				return ec.fieldContext_CheckpointHistoryEntry_isSavepoint(ctx, field)
+			case "checkpointType":
+				return ec.fieldContext_CheckpointHistoryEntry_checkpointType(ctx, field)
 			case "triggerTimestamp":
 				return ec.fieldContext_CheckpointHistoryEntry_triggerTimestamp(ctx, field)
 			case "latestAckTimestamp":
@@ -14924,6 +16749,12 @@ func (ec *executionContext) fieldContext_CheckpointStats_history(_ context.Conte
 				return ec.fieldContext_CheckpointHistoryEntry_numAcknowledgedSubtasks(ctx, field)
 			case "checkpointedSize":
 				return ec.fieldContext_CheckpointHistoryEntry_checkpointedSize(ctx, field)
+			case "externalPath":
+				return ec.fieldContext_CheckpointHistoryEntry_externalPath(ctx, field)
+			case "failureMessage":
+				return ec.fieldContext_CheckpointHistoryEntry_failureMessage(ctx, field)
+			case "failureTimestamp":
+				return ec.fieldContext_CheckpointHistoryEntry_failureTimestamp(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CheckpointHistoryEntry", field.Name)
 		},
@@ -15006,6 +16837,1126 @@ func (ec *executionContext) fieldContext_CheckpointStats_latest(_ context.Contex
 				return ec.fieldContext_CheckpointLatest_restored(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CheckpointLatest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_index(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_index,
+		func(ctx context.Context) (any, error) {
+			return obj.Index, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_index(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_status(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_ackTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_ackTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.AckTimestamp, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_ackTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_endToEndDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_endToEndDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.EndToEndDuration, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_endToEndDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_stateSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_stateSize,
+		func(ctx context.Context) (any, error) {
+			return obj.StateSize, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_stateSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_checkpointedSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_checkpointedSize,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointedSize, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_checkpointedSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_syncDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_syncDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.SyncDuration, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_syncDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_asyncDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_asyncDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.AsyncDuration, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_asyncDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_alignmentBuffered(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_alignmentBuffered,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignmentBuffered, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_alignmentBuffered(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_alignmentProcessed(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_alignmentProcessed,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignmentProcessed, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_alignmentProcessed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_alignmentPersisted(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_alignmentPersisted,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignmentPersisted, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_alignmentPersisted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_alignmentDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_alignmentDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignmentDuration, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_alignmentDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_startDelay(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_startDelay,
+		func(ctx context.Context) (any, error) {
+			return obj.StartDelay, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_startDelay(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_unalignedCheckpoint(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_unalignedCheckpoint,
+		func(ctx context.Context) (any, error) {
+			return obj.UnalignedCheckpoint, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_unalignedCheckpoint(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskEntry_aborted(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskEntry_aborted,
+		func(ctx context.Context) (any, error) {
+			return obj.Aborted, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskEntry_aborted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_vertexId(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_vertexId,
+		func(ctx context.Context) (any, error) {
+			return obj.VertexID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_vertexId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_status(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_latestAckTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_latestAckTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.LatestAckTimestamp, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_latestAckTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_stateSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_stateSize,
+		func(ctx context.Context) (any, error) {
+			return obj.StateSize, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_stateSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_endToEndDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_endToEndDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.EndToEndDuration, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_endToEndDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_numSubtasks(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_numSubtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.NumSubtasks, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_numSubtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_numAcknowledgedSubtasks(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_numAcknowledgedSubtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.NumAcknowledgedSubtasks, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_numAcknowledgedSubtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_summary(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_summary,
+		func(ctx context.Context) (any, error) {
+			return obj.Summary, nil
+		},
+		nil,
+		ec.marshalOCheckpointSubtaskSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskSummary,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_summary(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "stateSize":
+				return ec.fieldContext_CheckpointSubtaskSummary_stateSize(ctx, field)
+			case "endToEndDuration":
+				return ec.fieldContext_CheckpointSubtaskSummary_endToEndDuration(ctx, field)
+			case "checkpointedSize":
+				return ec.fieldContext_CheckpointSubtaskSummary_checkpointedSize(ctx, field)
+			case "syncDuration":
+				return ec.fieldContext_CheckpointSubtaskSummary_syncDuration(ctx, field)
+			case "asyncDuration":
+				return ec.fieldContext_CheckpointSubtaskSummary_asyncDuration(ctx, field)
+			case "alignmentBuffered":
+				return ec.fieldContext_CheckpointSubtaskSummary_alignmentBuffered(ctx, field)
+			case "alignmentProcessed":
+				return ec.fieldContext_CheckpointSubtaskSummary_alignmentProcessed(ctx, field)
+			case "alignmentPersisted":
+				return ec.fieldContext_CheckpointSubtaskSummary_alignmentPersisted(ctx, field)
+			case "alignmentDuration":
+				return ec.fieldContext_CheckpointSubtaskSummary_alignmentDuration(ctx, field)
+			case "startDelay":
+				return ec.fieldContext_CheckpointSubtaskSummary_startDelay(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointSubtaskSummary", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskStats_subtasks(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskStats) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskStats_subtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.Subtasks, nil
+		},
+		nil,
+		ec.marshalNCheckpointSubtaskEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskEntryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskStats_subtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "index":
+				return ec.fieldContext_CheckpointSubtaskEntry_index(ctx, field)
+			case "status":
+				return ec.fieldContext_CheckpointSubtaskEntry_status(ctx, field)
+			case "ackTimestamp":
+				return ec.fieldContext_CheckpointSubtaskEntry_ackTimestamp(ctx, field)
+			case "endToEndDuration":
+				return ec.fieldContext_CheckpointSubtaskEntry_endToEndDuration(ctx, field)
+			case "stateSize":
+				return ec.fieldContext_CheckpointSubtaskEntry_stateSize(ctx, field)
+			case "checkpointedSize":
+				return ec.fieldContext_CheckpointSubtaskEntry_checkpointedSize(ctx, field)
+			case "syncDuration":
+				return ec.fieldContext_CheckpointSubtaskEntry_syncDuration(ctx, field)
+			case "asyncDuration":
+				return ec.fieldContext_CheckpointSubtaskEntry_asyncDuration(ctx, field)
+			case "alignmentBuffered":
+				return ec.fieldContext_CheckpointSubtaskEntry_alignmentBuffered(ctx, field)
+			case "alignmentProcessed":
+				return ec.fieldContext_CheckpointSubtaskEntry_alignmentProcessed(ctx, field)
+			case "alignmentPersisted":
+				return ec.fieldContext_CheckpointSubtaskEntry_alignmentPersisted(ctx, field)
+			case "alignmentDuration":
+				return ec.fieldContext_CheckpointSubtaskEntry_alignmentDuration(ctx, field)
+			case "startDelay":
+				return ec.fieldContext_CheckpointSubtaskEntry_startDelay(ctx, field)
+			case "unalignedCheckpoint":
+				return ec.fieldContext_CheckpointSubtaskEntry_unalignedCheckpoint(ctx, field)
+			case "aborted":
+				return ec.fieldContext_CheckpointSubtaskEntry_aborted(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointSubtaskEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_stateSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_stateSize,
+		func(ctx context.Context) (any, error) {
+			return obj.StateSize, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_stateSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_endToEndDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_endToEndDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.EndToEndDuration, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_endToEndDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_checkpointedSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_checkpointedSize,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointedSize, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_checkpointedSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_syncDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_syncDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.SyncDuration, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_syncDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_asyncDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_asyncDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.AsyncDuration, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_asyncDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_alignmentBuffered(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_alignmentBuffered,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignmentBuffered, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_alignmentBuffered(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_alignmentProcessed(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_alignmentProcessed,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignmentProcessed, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_alignmentProcessed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_alignmentPersisted(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_alignmentPersisted,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignmentPersisted, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_alignmentPersisted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_alignmentDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_alignmentDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.AlignmentDuration, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_alignmentDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointSubtaskSummary_startDelay(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointSubtaskSummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointSubtaskSummary_startDelay,
+		func(ctx context.Context) (any, error) {
+			return obj.StartDelay, nil
+		},
+		nil,
+		ec.marshalOCheckpointMinMaxAvg2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointMinMaxAvg,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointSubtaskSummary_startDelay(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointSubtaskSummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "min":
+				return ec.fieldContext_CheckpointMinMaxAvg_min(ctx, field)
+			case "max":
+				return ec.fieldContext_CheckpointMinMaxAvg_max(ctx, field)
+			case "avg":
+				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
 		},
 	}
 	return fc, nil
@@ -15191,6 +18142,296 @@ func (ec *executionContext) fieldContext_CheckpointSummary_persistedData(_ conte
 				return ec.fieldContext_CheckpointMinMaxAvg_avg(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CheckpointMinMaxAvg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_vertexId(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_vertexId,
+		func(ctx context.Context) (any, error) {
+			return obj.VertexID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_vertexId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_status(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_latestAckTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_latestAckTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.LatestAckTimestamp, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_latestAckTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_stateSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_stateSize,
+		func(ctx context.Context) (any, error) {
+			return obj.StateSize, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_stateSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_endToEndDuration(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_endToEndDuration,
+		func(ctx context.Context) (any, error) {
+			return obj.EndToEndDuration, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_endToEndDuration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_numSubtasks(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_numSubtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.NumSubtasks, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_numSubtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_numAcknowledgedSubtasks(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_numAcknowledgedSubtasks,
+		func(ctx context.Context) (any, error) {
+			return obj.NumAcknowledgedSubtasks, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_numAcknowledgedSubtasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_checkpointedSize(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_checkpointedSize,
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointedSize, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_checkpointedSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_processedData(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_processedData,
+		func(ctx context.Context) (any, error) {
+			return obj.ProcessedData, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_processedData(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CheckpointTaskDetail_persistedData(ctx context.Context, field graphql.CollectedField, obj *model.CheckpointTaskDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CheckpointTaskDetail_persistedData,
+		func(ctx context.Context) (any, error) {
+			return obj.PersistedData, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CheckpointTaskDetail_persistedData(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CheckpointTaskDetail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -20840,6 +24081,16 @@ func (ec *executionContext) fieldContext_JobDetail_checkpointConfig(_ context.Co
 				return ec.fieldContext_CheckpointConfig_externalizedDeleteOnCancellation(ctx, field)
 			case "unalignedCheckpoints":
 				return ec.fieldContext_CheckpointConfig_unalignedCheckpoints(ctx, field)
+			case "stateBackend":
+				return ec.fieldContext_CheckpointConfig_stateBackend(ctx, field)
+			case "checkpointStorage":
+				return ec.fieldContext_CheckpointConfig_checkpointStorage(ctx, field)
+			case "tolerableFailedCheckpoints":
+				return ec.fieldContext_CheckpointConfig_tolerableFailedCheckpoints(ctx, field)
+			case "alignedCheckpointTimeout":
+				return ec.fieldContext_CheckpointConfig_alignedCheckpointTimeout(ctx, field)
+			case "checkpointsAfterTasksFinish":
+				return ec.fieldContext_CheckpointConfig_checkpointsAfterTasksFinish(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CheckpointConfig", field.Name)
 		},
@@ -23485,6 +26736,151 @@ func (ec *executionContext) fieldContext_KafkaGroupMember_assignments(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _KafkaMessage_partition(ctx context.Context, field graphql.CollectedField, obj *model.KafkaMessage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaMessage_partition,
+		func(ctx context.Context) (any, error) {
+			return obj.Partition, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaMessage_partition(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaMessage_offset(ctx context.Context, field graphql.CollectedField, obj *model.KafkaMessage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaMessage_offset,
+		func(ctx context.Context) (any, error) {
+			return obj.Offset, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaMessage_offset(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaMessage_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.KafkaMessage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaMessage_timestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.Timestamp, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaMessage_timestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaMessage_key(ctx context.Context, field graphql.CollectedField, obj *model.KafkaMessage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaMessage_key,
+		func(ctx context.Context) (any, error) {
+			return obj.Key, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaMessage_key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaMessage_value(ctx context.Context, field graphql.CollectedField, obj *model.KafkaMessage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaMessage_value,
+		func(ctx context.Context) (any, error) {
+			return obj.Value, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaMessage_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _KafkaPartition_id(ctx context.Context, field graphql.CollectedField, obj *model.KafkaPartition) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -23741,6 +27137,372 @@ func (ec *executionContext) fieldContext_KafkaPartitionOffset_lag(_ context.Cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeedResult_topics(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeedResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeedResult_topics,
+		func(ctx context.Context) (any, error) {
+			return obj.Topics, nil
+		},
+		nil,
+		ec.marshalNKafkaSeededTopic2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaSeededTopicᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeedResult_topics(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeedResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "topic":
+				return ec.fieldContext_KafkaSeededTopic_topic(ctx, field)
+			case "domain":
+				return ec.fieldContext_KafkaSeededTopic_domain(ctx, field)
+			case "existed":
+				return ec.fieldContext_KafkaSeededTopic_existed(ctx, field)
+			case "existingRecords":
+				return ec.fieldContext_KafkaSeededTopic_existingRecords(ctx, field)
+			case "created":
+				return ec.fieldContext_KafkaSeededTopic_created(ctx, field)
+			case "skipped":
+				return ec.fieldContext_KafkaSeededTopic_skipped(ctx, field)
+			case "recordsProduced":
+				return ec.fieldContext_KafkaSeededTopic_recordsProduced(ctx, field)
+			case "error":
+				return ec.fieldContext_KafkaSeededTopic_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type KafkaSeededTopic", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeedResult_recordsProduced(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeedResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeedResult_recordsProduced,
+		func(ctx context.Context) (any, error) {
+			return obj.RecordsProduced, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeedResult_recordsProduced(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeedResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeedResult_skipped(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeedResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeedResult_skipped,
+		func(ctx context.Context) (any, error) {
+			return obj.Skipped, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeedResult_skipped(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeedResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeedResult_dryRun(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeedResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeedResult_dryRun,
+		func(ctx context.Context) (any, error) {
+			return obj.DryRun, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeedResult_dryRun(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeedResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeededTopic_topic(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeededTopic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeededTopic_topic,
+		func(ctx context.Context) (any, error) {
+			return obj.Topic, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeededTopic_topic(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeededTopic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeededTopic_domain(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeededTopic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeededTopic_domain,
+		func(ctx context.Context) (any, error) {
+			return obj.Domain, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeededTopic_domain(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeededTopic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeededTopic_existed(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeededTopic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeededTopic_existed,
+		func(ctx context.Context) (any, error) {
+			return obj.Existed, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeededTopic_existed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeededTopic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeededTopic_existingRecords(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeededTopic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeededTopic_existingRecords,
+		func(ctx context.Context) (any, error) {
+			return obj.ExistingRecords, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeededTopic_existingRecords(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeededTopic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeededTopic_created(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeededTopic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeededTopic_created,
+		func(ctx context.Context) (any, error) {
+			return obj.Created, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeededTopic_created(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeededTopic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeededTopic_skipped(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeededTopic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeededTopic_skipped,
+		func(ctx context.Context) (any, error) {
+			return obj.Skipped, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeededTopic_skipped(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeededTopic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeededTopic_recordsProduced(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeededTopic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeededTopic_recordsProduced,
+		func(ctx context.Context) (any, error) {
+			return obj.RecordsProduced, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeededTopic_recordsProduced(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeededTopic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KafkaSeededTopic_error(ctx context.Context, field graphql.CollectedField, obj *model.KafkaSeededTopic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_KafkaSeededTopic_error,
+		func(ctx context.Context) (any, error) {
+			return obj.Error, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_KafkaSeededTopic_error(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KafkaSeededTopic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -25832,6 +29594,57 @@ func (ec *executionContext) fieldContext_Mutation_rescaleJob(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_rescaleJob_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_seedKafkaTopics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_seedKafkaTopics,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SeedKafkaTopics(ctx, fc.Args["instrument"].(string), fc.Args["allTopics"].(*bool), fc.Args["dryRun"].(*bool), fc.Args["skipNonEmpty"].(*bool), fc.Args["domains"].([]string))
+		},
+		nil,
+		ec.marshalNKafkaSeedResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaSeedResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_seedKafkaTopics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "topics":
+				return ec.fieldContext_KafkaSeedResult_topics(ctx, field)
+			case "recordsProduced":
+				return ec.fieldContext_KafkaSeedResult_recordsProduced(ctx, field)
+			case "skipped":
+				return ec.fieldContext_KafkaSeedResult_skipped(ctx, field)
+			case "dryRun":
+				return ec.fieldContext_KafkaSeedResult_dryRun(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type KafkaSeedResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_seedKafkaTopics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -30009,7 +33822,7 @@ func (ec *executionContext) _Query_checkpointDetail(ctx context.Context, field g
 			return ec.Resolvers.Query().CheckpointDetail(ctx, fc.Args["jobId"].(string), fc.Args["checkpointId"].(string), fc.Args["cluster"].(*string))
 		},
 		nil,
-		ec.marshalNCheckpointHistoryEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry,
+		ec.marshalNCheckpointDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointDetail,
 		true,
 		true,
 	)
@@ -30024,31 +33837,43 @@ func (ec *executionContext) fieldContext_Query_checkpointDetail(ctx context.Cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_CheckpointHistoryEntry_id(ctx, field)
+				return ec.fieldContext_CheckpointDetail_id(ctx, field)
 			case "status":
-				return ec.fieldContext_CheckpointHistoryEntry_status(ctx, field)
+				return ec.fieldContext_CheckpointDetail_status(ctx, field)
 			case "isSavepoint":
-				return ec.fieldContext_CheckpointHistoryEntry_isSavepoint(ctx, field)
+				return ec.fieldContext_CheckpointDetail_isSavepoint(ctx, field)
+			case "checkpointType":
+				return ec.fieldContext_CheckpointDetail_checkpointType(ctx, field)
 			case "triggerTimestamp":
-				return ec.fieldContext_CheckpointHistoryEntry_triggerTimestamp(ctx, field)
+				return ec.fieldContext_CheckpointDetail_triggerTimestamp(ctx, field)
 			case "latestAckTimestamp":
-				return ec.fieldContext_CheckpointHistoryEntry_latestAckTimestamp(ctx, field)
+				return ec.fieldContext_CheckpointDetail_latestAckTimestamp(ctx, field)
 			case "stateSize":
-				return ec.fieldContext_CheckpointHistoryEntry_stateSize(ctx, field)
+				return ec.fieldContext_CheckpointDetail_stateSize(ctx, field)
 			case "endToEndDuration":
-				return ec.fieldContext_CheckpointHistoryEntry_endToEndDuration(ctx, field)
-			case "processedData":
-				return ec.fieldContext_CheckpointHistoryEntry_processedData(ctx, field)
-			case "persistedData":
-				return ec.fieldContext_CheckpointHistoryEntry_persistedData(ctx, field)
+				return ec.fieldContext_CheckpointDetail_endToEndDuration(ctx, field)
 			case "numSubtasks":
-				return ec.fieldContext_CheckpointHistoryEntry_numSubtasks(ctx, field)
+				return ec.fieldContext_CheckpointDetail_numSubtasks(ctx, field)
 			case "numAcknowledgedSubtasks":
-				return ec.fieldContext_CheckpointHistoryEntry_numAcknowledgedSubtasks(ctx, field)
+				return ec.fieldContext_CheckpointDetail_numAcknowledgedSubtasks(ctx, field)
 			case "checkpointedSize":
-				return ec.fieldContext_CheckpointHistoryEntry_checkpointedSize(ctx, field)
+				return ec.fieldContext_CheckpointDetail_checkpointedSize(ctx, field)
+			case "processedData":
+				return ec.fieldContext_CheckpointDetail_processedData(ctx, field)
+			case "persistedData":
+				return ec.fieldContext_CheckpointDetail_persistedData(ctx, field)
+			case "externalPath":
+				return ec.fieldContext_CheckpointDetail_externalPath(ctx, field)
+			case "discarded":
+				return ec.fieldContext_CheckpointDetail_discarded(ctx, field)
+			case "failureMessage":
+				return ec.fieldContext_CheckpointDetail_failureMessage(ctx, field)
+			case "failureTimestamp":
+				return ec.fieldContext_CheckpointDetail_failureTimestamp(ctx, field)
+			case "tasks":
+				return ec.fieldContext_CheckpointDetail_tasks(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type CheckpointHistoryEntry", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointDetail", field.Name)
 		},
 	}
 	defer func() {
@@ -30059,6 +33884,67 @@ func (ec *executionContext) fieldContext_Query_checkpointDetail(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_checkpointDetail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_checkpointSubtasks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_checkpointSubtasks,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().CheckpointSubtasks(ctx, fc.Args["jobId"].(string), fc.Args["checkpointId"].(string), fc.Args["vertexId"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNCheckpointSubtaskStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskStats,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_checkpointSubtasks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vertexId":
+				return ec.fieldContext_CheckpointSubtaskStats_vertexId(ctx, field)
+			case "status":
+				return ec.fieldContext_CheckpointSubtaskStats_status(ctx, field)
+			case "latestAckTimestamp":
+				return ec.fieldContext_CheckpointSubtaskStats_latestAckTimestamp(ctx, field)
+			case "stateSize":
+				return ec.fieldContext_CheckpointSubtaskStats_stateSize(ctx, field)
+			case "endToEndDuration":
+				return ec.fieldContext_CheckpointSubtaskStats_endToEndDuration(ctx, field)
+			case "numSubtasks":
+				return ec.fieldContext_CheckpointSubtaskStats_numSubtasks(ctx, field)
+			case "numAcknowledgedSubtasks":
+				return ec.fieldContext_CheckpointSubtaskStats_numAcknowledgedSubtasks(ctx, field)
+			case "summary":
+				return ec.fieldContext_CheckpointSubtaskStats_summary(ctx, field)
+			case "subtasks":
+				return ec.fieldContext_CheckpointSubtaskStats_subtasks(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CheckpointSubtaskStats", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_checkpointSubtasks_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -30552,6 +34438,59 @@ func (ec *executionContext) fieldContext_Query_kafkaConsumerGroup(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_kafkaConsumerGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_kafkaTopicMessages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_kafkaTopicMessages,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().KafkaTopicMessages(ctx, fc.Args["instrument"].(string), fc.Args["topic"].(string), fc.Args["limit"].(*int), fc.Args["order"].(*model.KafkaMessageOrder))
+		},
+		nil,
+		ec.marshalNKafkaMessage2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaMessageᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_kafkaTopicMessages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "partition":
+				return ec.fieldContext_KafkaMessage_partition(ctx, field)
+			case "offset":
+				return ec.fieldContext_KafkaMessage_offset(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_KafkaMessage_timestamp(ctx, field)
+			case "key":
+				return ec.fieldContext_KafkaMessage_key(ctx, field)
+			case "value":
+				return ec.fieldContext_KafkaMessage_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type KafkaMessage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_kafkaTopicMessages_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -35706,6 +39645,93 @@ func (ec *executionContext) _StoredCheckpoint_checkpointedSize(ctx context.Conte
 }
 
 func (ec *executionContext) fieldContext_StoredCheckpoint_checkpointedSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_failureMessage(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_failureMessage,
+		func(ctx context.Context) (any, error) {
+			return obj.FailureMessage, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_failureMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_failureTimestamp(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_failureTimestamp,
+		func(ctx context.Context) (any, error) {
+			return obj.FailureTimestamp, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_failureTimestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StoredCheckpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StoredCheckpoint_externalPath(ctx context.Context, field graphql.CollectedField, obj *model.StoredCheckpoint) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StoredCheckpoint_externalPath,
+		func(ctx context.Context) (any, error) {
+			return obj.ExternalPath, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StoredCheckpoint_externalPath(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StoredCheckpoint",
 		Field:      field,
@@ -42947,6 +46973,16 @@ func (ec *executionContext) _CheckpointConfig(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "stateBackend":
+			out.Values[i] = ec._CheckpointConfig_stateBackend(ctx, field, obj)
+		case "checkpointStorage":
+			out.Values[i] = ec._CheckpointConfig_checkpointStorage(ctx, field, obj)
+		case "tolerableFailedCheckpoints":
+			out.Values[i] = ec._CheckpointConfig_tolerableFailedCheckpoints(ctx, field, obj)
+		case "alignedCheckpointTimeout":
+			out.Values[i] = ec._CheckpointConfig_alignedCheckpointTimeout(ctx, field, obj)
+		case "checkpointsAfterTasksFinish":
+			out.Values[i] = ec._CheckpointConfig_checkpointsAfterTasksFinish(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43003,6 +47039,106 @@ func (ec *executionContext) _CheckpointCounts(ctx context.Context, sel ast.Selec
 			}
 		case "restored":
 			out.Values[i] = ec._CheckpointCounts_restored(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var checkpointDetailImplementors = []string{"CheckpointDetail"}
+
+func (ec *executionContext) _CheckpointDetail(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointDetail) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkpointDetailImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckpointDetail")
+		case "id":
+			out.Values[i] = ec._CheckpointDetail_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._CheckpointDetail_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isSavepoint":
+			out.Values[i] = ec._CheckpointDetail_isSavepoint(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "checkpointType":
+			out.Values[i] = ec._CheckpointDetail_checkpointType(ctx, field, obj)
+		case "triggerTimestamp":
+			out.Values[i] = ec._CheckpointDetail_triggerTimestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "latestAckTimestamp":
+			out.Values[i] = ec._CheckpointDetail_latestAckTimestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stateSize":
+			out.Values[i] = ec._CheckpointDetail_stateSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endToEndDuration":
+			out.Values[i] = ec._CheckpointDetail_endToEndDuration(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "numSubtasks":
+			out.Values[i] = ec._CheckpointDetail_numSubtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "numAcknowledgedSubtasks":
+			out.Values[i] = ec._CheckpointDetail_numAcknowledgedSubtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "checkpointedSize":
+			out.Values[i] = ec._CheckpointDetail_checkpointedSize(ctx, field, obj)
+		case "processedData":
+			out.Values[i] = ec._CheckpointDetail_processedData(ctx, field, obj)
+		case "persistedData":
+			out.Values[i] = ec._CheckpointDetail_persistedData(ctx, field, obj)
+		case "externalPath":
+			out.Values[i] = ec._CheckpointDetail_externalPath(ctx, field, obj)
+		case "discarded":
+			out.Values[i] = ec._CheckpointDetail_discarded(ctx, field, obj)
+		case "failureMessage":
+			out.Values[i] = ec._CheckpointDetail_failureMessage(ctx, field, obj)
+		case "failureTimestamp":
+			out.Values[i] = ec._CheckpointDetail_failureTimestamp(ctx, field, obj)
+		case "tasks":
+			out.Values[i] = ec._CheckpointDetail_tasks(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -43143,6 +47279,8 @@ func (ec *executionContext) _CheckpointHistoryEntry(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "checkpointType":
+			out.Values[i] = ec._CheckpointHistoryEntry_checkpointType(ctx, field, obj)
 		case "triggerTimestamp":
 			out.Values[i] = ec._CheckpointHistoryEntry_triggerTimestamp(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -43185,6 +47323,12 @@ func (ec *executionContext) _CheckpointHistoryEntry(ctx context.Context, sel ast
 			}
 		case "checkpointedSize":
 			out.Values[i] = ec._CheckpointHistoryEntry_checkpointedSize(ctx, field, obj)
+		case "externalPath":
+			out.Values[i] = ec._CheckpointHistoryEntry_externalPath(ctx, field, obj)
+		case "failureMessage":
+			out.Values[i] = ec._CheckpointHistoryEntry_failureMessage(ctx, field, obj)
+		case "failureTimestamp":
+			out.Values[i] = ec._CheckpointHistoryEntry_failureTimestamp(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43439,6 +47583,206 @@ func (ec *executionContext) _CheckpointStats(ctx context.Context, sel ast.Select
 	return out
 }
 
+var checkpointSubtaskEntryImplementors = []string{"CheckpointSubtaskEntry"}
+
+func (ec *executionContext) _CheckpointSubtaskEntry(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointSubtaskEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkpointSubtaskEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckpointSubtaskEntry")
+		case "index":
+			out.Values[i] = ec._CheckpointSubtaskEntry_index(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._CheckpointSubtaskEntry_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ackTimestamp":
+			out.Values[i] = ec._CheckpointSubtaskEntry_ackTimestamp(ctx, field, obj)
+		case "endToEndDuration":
+			out.Values[i] = ec._CheckpointSubtaskEntry_endToEndDuration(ctx, field, obj)
+		case "stateSize":
+			out.Values[i] = ec._CheckpointSubtaskEntry_stateSize(ctx, field, obj)
+		case "checkpointedSize":
+			out.Values[i] = ec._CheckpointSubtaskEntry_checkpointedSize(ctx, field, obj)
+		case "syncDuration":
+			out.Values[i] = ec._CheckpointSubtaskEntry_syncDuration(ctx, field, obj)
+		case "asyncDuration":
+			out.Values[i] = ec._CheckpointSubtaskEntry_asyncDuration(ctx, field, obj)
+		case "alignmentBuffered":
+			out.Values[i] = ec._CheckpointSubtaskEntry_alignmentBuffered(ctx, field, obj)
+		case "alignmentProcessed":
+			out.Values[i] = ec._CheckpointSubtaskEntry_alignmentProcessed(ctx, field, obj)
+		case "alignmentPersisted":
+			out.Values[i] = ec._CheckpointSubtaskEntry_alignmentPersisted(ctx, field, obj)
+		case "alignmentDuration":
+			out.Values[i] = ec._CheckpointSubtaskEntry_alignmentDuration(ctx, field, obj)
+		case "startDelay":
+			out.Values[i] = ec._CheckpointSubtaskEntry_startDelay(ctx, field, obj)
+		case "unalignedCheckpoint":
+			out.Values[i] = ec._CheckpointSubtaskEntry_unalignedCheckpoint(ctx, field, obj)
+		case "aborted":
+			out.Values[i] = ec._CheckpointSubtaskEntry_aborted(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var checkpointSubtaskStatsImplementors = []string{"CheckpointSubtaskStats"}
+
+func (ec *executionContext) _CheckpointSubtaskStats(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointSubtaskStats) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkpointSubtaskStatsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckpointSubtaskStats")
+		case "vertexId":
+			out.Values[i] = ec._CheckpointSubtaskStats_vertexId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._CheckpointSubtaskStats_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "latestAckTimestamp":
+			out.Values[i] = ec._CheckpointSubtaskStats_latestAckTimestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stateSize":
+			out.Values[i] = ec._CheckpointSubtaskStats_stateSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endToEndDuration":
+			out.Values[i] = ec._CheckpointSubtaskStats_endToEndDuration(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "numSubtasks":
+			out.Values[i] = ec._CheckpointSubtaskStats_numSubtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "numAcknowledgedSubtasks":
+			out.Values[i] = ec._CheckpointSubtaskStats_numAcknowledgedSubtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "summary":
+			out.Values[i] = ec._CheckpointSubtaskStats_summary(ctx, field, obj)
+		case "subtasks":
+			out.Values[i] = ec._CheckpointSubtaskStats_subtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var checkpointSubtaskSummaryImplementors = []string{"CheckpointSubtaskSummary"}
+
+func (ec *executionContext) _CheckpointSubtaskSummary(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointSubtaskSummary) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkpointSubtaskSummaryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckpointSubtaskSummary")
+		case "stateSize":
+			out.Values[i] = ec._CheckpointSubtaskSummary_stateSize(ctx, field, obj)
+		case "endToEndDuration":
+			out.Values[i] = ec._CheckpointSubtaskSummary_endToEndDuration(ctx, field, obj)
+		case "checkpointedSize":
+			out.Values[i] = ec._CheckpointSubtaskSummary_checkpointedSize(ctx, field, obj)
+		case "syncDuration":
+			out.Values[i] = ec._CheckpointSubtaskSummary_syncDuration(ctx, field, obj)
+		case "asyncDuration":
+			out.Values[i] = ec._CheckpointSubtaskSummary_asyncDuration(ctx, field, obj)
+		case "alignmentBuffered":
+			out.Values[i] = ec._CheckpointSubtaskSummary_alignmentBuffered(ctx, field, obj)
+		case "alignmentProcessed":
+			out.Values[i] = ec._CheckpointSubtaskSummary_alignmentProcessed(ctx, field, obj)
+		case "alignmentPersisted":
+			out.Values[i] = ec._CheckpointSubtaskSummary_alignmentPersisted(ctx, field, obj)
+		case "alignmentDuration":
+			out.Values[i] = ec._CheckpointSubtaskSummary_alignmentDuration(ctx, field, obj)
+		case "startDelay":
+			out.Values[i] = ec._CheckpointSubtaskSummary_startDelay(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var checkpointSummaryImplementors = []string{"CheckpointSummary"}
 
 func (ec *executionContext) _CheckpointSummary(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointSummary) graphql.Marshaler {
@@ -43460,6 +47804,81 @@ func (ec *executionContext) _CheckpointSummary(ctx context.Context, sel ast.Sele
 			out.Values[i] = ec._CheckpointSummary_processedData(ctx, field, obj)
 		case "persistedData":
 			out.Values[i] = ec._CheckpointSummary_persistedData(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var checkpointTaskDetailImplementors = []string{"CheckpointTaskDetail"}
+
+func (ec *executionContext) _CheckpointTaskDetail(ctx context.Context, sel ast.SelectionSet, obj *model.CheckpointTaskDetail) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkpointTaskDetailImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckpointTaskDetail")
+		case "vertexId":
+			out.Values[i] = ec._CheckpointTaskDetail_vertexId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._CheckpointTaskDetail_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "latestAckTimestamp":
+			out.Values[i] = ec._CheckpointTaskDetail_latestAckTimestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "stateSize":
+			out.Values[i] = ec._CheckpointTaskDetail_stateSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endToEndDuration":
+			out.Values[i] = ec._CheckpointTaskDetail_endToEndDuration(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "numSubtasks":
+			out.Values[i] = ec._CheckpointTaskDetail_numSubtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "numAcknowledgedSubtasks":
+			out.Values[i] = ec._CheckpointTaskDetail_numAcknowledgedSubtasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "checkpointedSize":
+			out.Values[i] = ec._CheckpointTaskDetail_checkpointedSize(ctx, field, obj)
+		case "processedData":
+			out.Values[i] = ec._CheckpointTaskDetail_processedData(ctx, field, obj)
+		case "persistedData":
+			out.Values[i] = ec._CheckpointTaskDetail_persistedData(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46689,6 +51108,62 @@ func (ec *executionContext) _KafkaGroupMember(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var kafkaMessageImplementors = []string{"KafkaMessage"}
+
+func (ec *executionContext) _KafkaMessage(ctx context.Context, sel ast.SelectionSet, obj *model.KafkaMessage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, kafkaMessageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("KafkaMessage")
+		case "partition":
+			out.Values[i] = ec._KafkaMessage_partition(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "offset":
+			out.Values[i] = ec._KafkaMessage_offset(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "timestamp":
+			out.Values[i] = ec._KafkaMessage_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "key":
+			out.Values[i] = ec._KafkaMessage_key(ctx, field, obj)
+		case "value":
+			out.Values[i] = ec._KafkaMessage_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var kafkaPartitionImplementors = []string{"KafkaPartition"}
 
 func (ec *executionContext) _KafkaPartition(ctx context.Context, sel ast.SelectionSet, obj *model.KafkaPartition) graphql.Marshaler {
@@ -46779,6 +51254,131 @@ func (ec *executionContext) _KafkaPartitionOffset(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var kafkaSeedResultImplementors = []string{"KafkaSeedResult"}
+
+func (ec *executionContext) _KafkaSeedResult(ctx context.Context, sel ast.SelectionSet, obj *model.KafkaSeedResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, kafkaSeedResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("KafkaSeedResult")
+		case "topics":
+			out.Values[i] = ec._KafkaSeedResult_topics(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "recordsProduced":
+			out.Values[i] = ec._KafkaSeedResult_recordsProduced(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "skipped":
+			out.Values[i] = ec._KafkaSeedResult_skipped(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dryRun":
+			out.Values[i] = ec._KafkaSeedResult_dryRun(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var kafkaSeededTopicImplementors = []string{"KafkaSeededTopic"}
+
+func (ec *executionContext) _KafkaSeededTopic(ctx context.Context, sel ast.SelectionSet, obj *model.KafkaSeededTopic) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, kafkaSeededTopicImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("KafkaSeededTopic")
+		case "topic":
+			out.Values[i] = ec._KafkaSeededTopic_topic(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "domain":
+			out.Values[i] = ec._KafkaSeededTopic_domain(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "existed":
+			out.Values[i] = ec._KafkaSeededTopic_existed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "existingRecords":
+			out.Values[i] = ec._KafkaSeededTopic_existingRecords(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "created":
+			out.Values[i] = ec._KafkaSeededTopic_created(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "skipped":
+			out.Values[i] = ec._KafkaSeededTopic_skipped(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "recordsProduced":
+			out.Values[i] = ec._KafkaSeededTopic_recordsProduced(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "error":
+			out.Values[i] = ec._KafkaSeededTopic_error(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47464,6 +52064,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "rescaleJob":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_rescaleJob(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "seedKafkaTopics":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_seedKafkaTopics(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -48984,6 +53591,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "checkpointSubtasks":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkpointSubtasks(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "savepoints":
 			field := field
 
@@ -49170,6 +53799,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_kafkaConsumerGroup(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "kafkaTopicMessages":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_kafkaTopicMessages(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -51268,6 +55919,12 @@ func (ec *executionContext) _StoredCheckpoint(ctx context.Context, sel ast.Selec
 			}
 		case "checkpointedSize":
 			out.Values[i] = ec._StoredCheckpoint_checkpointedSize(ctx, field, obj)
+		case "failureMessage":
+			out.Values[i] = ec._StoredCheckpoint_failureMessage(ctx, field, obj)
+		case "failureTimestamp":
+			out.Values[i] = ec._StoredCheckpoint_failureTimestamp(ctx, field, obj)
+		case "externalPath":
+			out.Values[i] = ec._StoredCheckpoint_externalPath(ctx, field, obj)
 		case "capturedAt":
 			out.Values[i] = ec._StoredCheckpoint_capturedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -53376,6 +58033,20 @@ func (ec *executionContext) marshalNCheckpointCounts2ᚖgithubᚗcomᚋsandboxws
 	return ec._CheckpointCounts(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCheckpointDetail2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointDetail(ctx context.Context, sel ast.SelectionSet, v model.CheckpointDetail) graphql.Marshaler {
+	return ec._CheckpointDetail(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCheckpointDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointDetail(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointDetail) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CheckpointDetail(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNCheckpointHistoryConnection2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.CheckpointHistoryConnection) graphql.Marshaler {
 	return ec._CheckpointHistoryConnection(ctx, sel, &v)
 }
@@ -53416,10 +58087,6 @@ func (ec *executionContext) marshalNCheckpointHistoryEdge2ᚖgithubᚗcomᚋsand
 	return ec._CheckpointHistoryEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCheckpointHistoryEntry2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntry(ctx context.Context, sel ast.SelectionSet, v model.CheckpointHistoryEntry) graphql.Marshaler {
-	return ec._CheckpointHistoryEntry(ctx, sel, &v)
-}
-
 func (ec *executionContext) marshalNCheckpointHistoryEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointHistoryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CheckpointHistoryEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -53454,6 +58121,72 @@ func (ec *executionContext) marshalNCheckpointHistoryPageInfo2ᚖgithubᚗcomᚋ
 		return graphql.Null
 	}
 	return ec._CheckpointHistoryPageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCheckpointSubtaskEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CheckpointSubtaskEntry) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCheckpointSubtaskEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCheckpointSubtaskEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskEntry(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointSubtaskEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CheckpointSubtaskEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCheckpointSubtaskStats2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskStats(ctx context.Context, sel ast.SelectionSet, v model.CheckpointSubtaskStats) graphql.Marshaler {
+	return ec._CheckpointSubtaskStats(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCheckpointSubtaskStats2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskStats(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointSubtaskStats) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CheckpointSubtaskStats(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCheckpointTaskDetail2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointTaskDetailᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CheckpointTaskDetail) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCheckpointTaskDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointTaskDetail(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCheckpointTaskDetail2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointTaskDetail(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointTaskDetail) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CheckpointTaskDetail(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNClusterInfo2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐClusterInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClusterInfo) graphql.Marshaler {
@@ -54671,6 +59404,32 @@ func (ec *executionContext) marshalNKafkaGroupMember2ᚖgithubᚗcomᚋsandboxws
 	return ec._KafkaGroupMember(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNKafkaMessage2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaMessage) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNKafkaMessage2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaMessage(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNKafkaMessage2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaMessage(ctx context.Context, sel ast.SelectionSet, v *model.KafkaMessage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._KafkaMessage(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNKafkaPartition2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaPartitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaPartition) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -54721,6 +59480,46 @@ func (ec *executionContext) marshalNKafkaPartitionOffset2ᚖgithubᚗcomᚋsandb
 		return graphql.Null
 	}
 	return ec._KafkaPartitionOffset(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNKafkaSeedResult2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaSeedResult(ctx context.Context, sel ast.SelectionSet, v model.KafkaSeedResult) graphql.Marshaler {
+	return ec._KafkaSeedResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNKafkaSeedResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaSeedResult(ctx context.Context, sel ast.SelectionSet, v *model.KafkaSeedResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._KafkaSeedResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNKafkaSeededTopic2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaSeededTopicᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaSeededTopic) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNKafkaSeededTopic2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaSeededTopic(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNKafkaSeededTopic2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaSeededTopic(ctx context.Context, sel ast.SelectionSet, v *model.KafkaSeededTopic) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._KafkaSeededTopic(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNKafkaTopic2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaTopicᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KafkaTopic) graphql.Marshaler {
@@ -56459,6 +61258,13 @@ func (ec *executionContext) marshalOCheckpointStats2ᚖgithubᚗcomᚋsandboxws�
 	return ec._CheckpointStats(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOCheckpointSubtaskSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSubtaskSummary(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointSubtaskSummary) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CheckpointSubtaskSummary(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOCheckpointSummary2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐCheckpointSummary(ctx context.Context, sel ast.SelectionSet, v *model.CheckpointSummary) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -56687,6 +61493,22 @@ func (ec *executionContext) marshalOJobMetrics2ᚖgithubᚗcomᚋsandboxwsᚋfli
 		return graphql.Null
 	}
 	return ec._JobMetrics(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOKafkaMessageOrder2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaMessageOrder(ctx context.Context, v any) (*model.KafkaMessageOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.KafkaMessageOrder)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOKafkaMessageOrder2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐKafkaMessageOrder(ctx context.Context, sel ast.SelectionSet, v *model.KafkaMessageOrder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOMaterializedTable2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐMaterializedTable(ctx context.Context, sel ast.SelectionSet, v *model.MaterializedTable) graphql.Marshaler {

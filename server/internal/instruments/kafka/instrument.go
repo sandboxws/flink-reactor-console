@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	instruments "github.com/sandboxws/flink-reactor-console/server/internal/instruments"
+	"github.com/sandboxws/flink-reactor-console/server/internal/instruments/kafka/seed"
 )
 
 const instrumentVersion = "0.1.0"
@@ -34,8 +35,10 @@ type TLSConfig struct {
 
 // Instrument implements the instruments.Instrument interface for Kafka.
 type Instrument struct {
-	name   string
-	client *Client
+	name           string
+	client         *Client
+	seedingAllowed bool
+	catalog        *seed.Catalog
 }
 
 // NewInstrument creates a Kafka instrument with the given instance name.
@@ -55,13 +58,18 @@ func (i *Instrument) Version() string { return instrumentVersion }
 // Type returns the instrument type identifier.
 func (i *Instrument) Type() string { return "kafka" }
 
-// Capabilities returns the list of supported capabilities.
+// Capabilities returns the list of supported capabilities. The seed capability
+// is advertised only when the environment policy permits seeding this instrument.
 func (i *Instrument) Capabilities() []instruments.Capability {
-	return []instruments.Capability{
+	caps := []instruments.Capability{
 		instruments.CapabilityBrowse,
 		instruments.CapabilityMetrics,
 		instruments.CapabilityHighlight,
 	}
+	if i.seedingAllowed {
+		caps = append(caps, instruments.CapabilitySeed)
+	}
+	return caps
 }
 
 // Init parses the Kafka config and creates the admin client.
@@ -89,6 +97,12 @@ func (i *Instrument) Init(_ context.Context, cfg json.RawMessage) error {
 	}
 
 	i.client = client
+
+	cat, err := seed.Load()
+	if err != nil {
+		return fmt.Errorf("loading seed catalog: %w", err)
+	}
+	i.catalog = cat
 	return nil
 }
 
@@ -112,3 +126,13 @@ func (i *Instrument) HealthCheck(ctx context.Context) error {
 func (i *Instrument) Client() *Client {
 	return i.client
 }
+
+// SetSeedingAllowed records whether this instrument may be seeded, per the
+// environment policy resolved at registration time.
+func (i *Instrument) SetSeedingAllowed(v bool) { i.seedingAllowed = v }
+
+// SeedingAllowed reports whether seeding is permitted for this instrument.
+func (i *Instrument) SeedingAllowed() bool { return i.seedingAllowed }
+
+// SeedCatalog returns the embedded seed-data catalog (nil until Init runs).
+func (i *Instrument) SeedCatalog() *seed.Catalog { return i.catalog }

@@ -26,6 +26,14 @@ func ptrMsToTime(ms int64) *time.Time {
 	return &t
 }
 
+// msPtrToTime converts an optional epoch-millis value to *time.Time.
+func msPtrToTime(ms *int64) *time.Time {
+	if ms == nil {
+		return nil
+	}
+	return ptrMsToTime(*ms)
+}
+
 // DBCluster mirrors the clusters table.
 type DBCluster struct {
 	Name      string    `db:"name"`
@@ -130,6 +138,9 @@ type DBCheckpoint struct {
 	NumSubtasks      int        `db:"num_subtasks"`
 	NumAckSubtasks   int        `db:"num_ack_subtasks"`
 	CheckpointedSize *int64     `db:"checkpointed_size"`
+	FailureMessage   *string    `db:"failure_message"`
+	FailureTimestamp *time.Time `db:"failure_timestamp"`
+	ExternalPath     *string    `db:"external_path"`
 	CapturedAt       time.Time  `db:"captured_at"`
 }
 
@@ -150,6 +161,9 @@ func FromFlinkCheckpoint(c flink.CheckpointHistoryEntry, jid, cluster string) DB
 		NumSubtasks:      c.NumSubtasks,
 		NumAckSubtasks:   c.NumAcknowledgedSubtask,
 		CheckpointedSize: c.CheckpointedSize,
+		FailureMessage:   c.FailureMessage,
+		FailureTimestamp: msPtrToTime(c.FailureTimestamp),
+		ExternalPath:     c.ExternalPath,
 		CapturedAt:       time.Now(),
 	}
 }

@@ -345,9 +345,10 @@ func (s *Service) GetCheckpointDetail(ctx context.Context, jobID string, cpID in
 	return &result, nil
 }
 
-// GetCheckpointSubtasks returns per-vertex checkpoint stats for a specific checkpoint.
-func (s *Service) GetCheckpointSubtasks(ctx context.Context, jobID string, cpID int64, vertexID string) (*CheckpointTaskStats, error) {
-	var result CheckpointTaskStats
+// GetCheckpointSubtasks returns per-subtask checkpoint stats (summary +
+// individual subtasks) for one vertex of a specific checkpoint.
+func (s *Service) GetCheckpointSubtasks(ctx context.Context, jobID string, cpID int64, vertexID string) (*CheckpointSubtaskDetail, error) {
+	var result CheckpointSubtaskDetail
 	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/checkpoints/details/%d/subtasks/%s", jobID, cpID, vertexID), &result); err != nil {
 		return nil, err
 	}

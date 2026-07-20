@@ -196,13 +196,20 @@ export type CatalogTable = {
 
 export type CheckpointConfig = {
   __typename?: 'CheckpointConfig';
+  alignedCheckpointTimeout: Maybe<Scalars['String']['output']>;
+  /** Checkpoint storage, e.g. FileSystemCheckpointStorage. Absent on older Flink. */
+  checkpointStorage: Maybe<Scalars['String']['output']>;
+  checkpointsAfterTasksFinish: Maybe<Scalars['Boolean']['output']>;
   externalizedDeleteOnCancellation: Scalars['Boolean']['output'];
   externalizedEnabled: Scalars['Boolean']['output'];
   interval: Scalars['String']['output'];
   maxConcurrent: Scalars['Int']['output'];
   minPause: Scalars['String']['output'];
   mode: Scalars['String']['output'];
+  /** State backend class name, e.g. HashMapStateBackend. Absent on older Flink. */
+  stateBackend: Maybe<Scalars['String']['output']>;
   timeout: Scalars['String']['output'];
+  tolerableFailedCheckpoints: Maybe<Scalars['Int']['output']>;
   unalignedCheckpoints: Scalars['Boolean']['output'];
 };
 
@@ -213,6 +220,36 @@ export type CheckpointCounts = {
   inProgress: Scalars['Int']['output'];
   restored: Scalars['Int']['output'];
   total: Scalars['Int']['output'];
+};
+
+/**
+ * Full detail for a single checkpoint
+ * (GET /jobs/:jid/checkpoints/details/:checkpointid).
+ */
+export type CheckpointDetail = {
+  __typename?: 'CheckpointDetail';
+  /** CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT. */
+  checkpointType: Maybe<Scalars['String']['output']>;
+  checkpointedSize: Maybe<Scalars['String']['output']>;
+  discarded: Maybe<Scalars['Boolean']['output']>;
+  endToEndDuration: Scalars['String']['output'];
+  /** Restore location. Null unless the checkpoint is externally addressable. */
+  externalPath: Maybe<Scalars['String']['output']>;
+  /** Failure reason. Null unless status is FAILED. */
+  failureMessage: Maybe<Scalars['String']['output']>;
+  /** Failure time (epoch millis). Null unless status is FAILED. */
+  failureTimestamp: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  isSavepoint: Scalars['Boolean']['output'];
+  latestAckTimestamp: Scalars['String']['output'];
+  numAcknowledgedSubtasks: Scalars['Int']['output'];
+  numSubtasks: Scalars['Int']['output'];
+  persistedData: Maybe<Scalars['String']['output']>;
+  processedData: Maybe<Scalars['String']['output']>;
+  stateSize: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  tasks: Array<CheckpointTaskDetail>;
+  triggerTimestamp: Scalars['String']['output'];
 };
 
 /** Connection type for paginated checkpoint history results. */
@@ -235,8 +272,16 @@ export type CheckpointHistoryEdge = {
 
 export type CheckpointHistoryEntry = {
   __typename?: 'CheckpointHistoryEntry';
+  /** CHECKPOINT, UNALIGNED_CHECKPOINT, SAVEPOINT, or SYNC_SAVEPOINT. */
+  checkpointType: Maybe<Scalars['String']['output']>;
   checkpointedSize: Maybe<Scalars['String']['output']>;
   endToEndDuration: Scalars['String']['output'];
+  /** Restore location. Null unless the checkpoint is externally addressable. */
+  externalPath: Maybe<Scalars['String']['output']>;
+  /** Failure reason. Null unless status is FAILED. */
+  failureMessage: Maybe<Scalars['String']['output']>;
+  /** Failure time (epoch millis). Null unless status is FAILED. */
+  failureTimestamp: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   isSavepoint: Scalars['Boolean']['output'];
   latestAckTimestamp: Scalars['String']['output'];
@@ -305,6 +350,61 @@ export type CheckpointStats = {
   summary: Maybe<CheckpointSummary>;
 };
 
+/**
+ * One subtask's checkpoint stats. Subtasks that have not acknowledged carry
+ * only index and status.
+ */
+export type CheckpointSubtaskEntry = {
+  __typename?: 'CheckpointSubtaskEntry';
+  aborted: Maybe<Scalars['Boolean']['output']>;
+  ackTimestamp: Maybe<Scalars['String']['output']>;
+  alignmentBuffered: Maybe<Scalars['String']['output']>;
+  alignmentDuration: Maybe<Scalars['String']['output']>;
+  alignmentPersisted: Maybe<Scalars['String']['output']>;
+  alignmentProcessed: Maybe<Scalars['String']['output']>;
+  asyncDuration: Maybe<Scalars['String']['output']>;
+  checkpointedSize: Maybe<Scalars['String']['output']>;
+  endToEndDuration: Maybe<Scalars['String']['output']>;
+  index: Scalars['Int']['output'];
+  startDelay: Maybe<Scalars['String']['output']>;
+  stateSize: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  syncDuration: Maybe<Scalars['String']['output']>;
+  unalignedCheckpoint: Maybe<Scalars['Boolean']['output']>;
+};
+
+/**
+ * Per-subtask checkpoint stats for one vertex of a checkpoint
+ * (GET /jobs/:jid/checkpoints/details/:checkpointid/subtasks/:vertexid).
+ */
+export type CheckpointSubtaskStats = {
+  __typename?: 'CheckpointSubtaskStats';
+  endToEndDuration: Scalars['String']['output'];
+  latestAckTimestamp: Scalars['String']['output'];
+  numAcknowledgedSubtasks: Scalars['Int']['output'];
+  numSubtasks: Scalars['Int']['output'];
+  stateSize: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  subtasks: Array<CheckpointSubtaskEntry>;
+  summary: Maybe<CheckpointSubtaskSummary>;
+  vertexId: Scalars['String']['output'];
+};
+
+/** Min/avg/max rollups for one vertex's subtask checkpoint stats. */
+export type CheckpointSubtaskSummary = {
+  __typename?: 'CheckpointSubtaskSummary';
+  alignmentBuffered: Maybe<CheckpointMinMaxAvg>;
+  alignmentDuration: Maybe<CheckpointMinMaxAvg>;
+  alignmentPersisted: Maybe<CheckpointMinMaxAvg>;
+  alignmentProcessed: Maybe<CheckpointMinMaxAvg>;
+  asyncDuration: Maybe<CheckpointMinMaxAvg>;
+  checkpointedSize: Maybe<CheckpointMinMaxAvg>;
+  endToEndDuration: Maybe<CheckpointMinMaxAvg>;
+  startDelay: Maybe<CheckpointMinMaxAvg>;
+  stateSize: Maybe<CheckpointMinMaxAvg>;
+  syncDuration: Maybe<CheckpointMinMaxAvg>;
+};
+
 export type CheckpointSummary = {
   __typename?: 'CheckpointSummary';
   checkpointedSize: Maybe<CheckpointMinMaxAvg>;
@@ -312,6 +412,21 @@ export type CheckpointSummary = {
   persistedData: Maybe<CheckpointMinMaxAvg>;
   processedData: Maybe<CheckpointMinMaxAvg>;
   stateSize: Maybe<CheckpointMinMaxAvg>;
+};
+
+/** Per-vertex rollup within a checkpoint detail, keyed by the job vertex. */
+export type CheckpointTaskDetail = {
+  __typename?: 'CheckpointTaskDetail';
+  checkpointedSize: Maybe<Scalars['String']['output']>;
+  endToEndDuration: Scalars['String']['output'];
+  latestAckTimestamp: Scalars['String']['output'];
+  numAcknowledgedSubtasks: Scalars['Int']['output'];
+  numSubtasks: Scalars['Int']['output'];
+  persistedData: Maybe<Scalars['String']['output']>;
+  processedData: Maybe<Scalars['String']['output']>;
+  stateSize: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  vertexId: Scalars['String']['output'];
 };
 
 /** Information about a registered Flink cluster connection. */
@@ -987,6 +1102,17 @@ export type KafkaGroupMember = {
   clientId: Scalars['String']['output'];
 };
 
+/** A single Kafka record returned by a topic preview read. */
+export type KafkaMessage = {
+  __typename?: 'KafkaMessage';
+  key: Maybe<Scalars['String']['output']>;
+  offset: Scalars['Int']['output'];
+  partition: Scalars['Int']['output'];
+  /** Record timestamp in epoch milliseconds. */
+  timestamp: Scalars['Int']['output'];
+  value: Scalars['String']['output'];
+};
+
 /** A single partition within a Kafka topic. */
 export type KafkaPartition = {
   __typename?: 'KafkaPartition';
@@ -1003,6 +1129,23 @@ export type KafkaPartitionOffset = {
   endOffset: Scalars['Int']['output'];
   lag: Scalars['Int']['output'];
   partition: Scalars['Int']['output'];
+  topic: Scalars['String']['output'];
+};
+
+/** Result of seeding sample data into a Kafka instrument. */
+export type KafkaSeedResult = {
+  __typename?: 'KafkaSeedResult';
+  dryRun: Scalars['Boolean']['output'];
+  recordsProduced: Scalars['Int']['output'];
+  skipped: Array<Scalars['String']['output']>;
+  topics: Array<KafkaSeededTopic>;
+};
+
+/** A topic touched during a Kafka seed operation. */
+export type KafkaSeededTopic = {
+  __typename?: 'KafkaSeededTopic';
+  created: Scalars['Boolean']['output'];
+  recordsProduced: Scalars['Int']['output'];
   topic: Scalars['String']['output'];
 };
 
@@ -1039,9 +1182,22 @@ export type KeyFieldInput = {
   type: Scalars['String']['input'];
 };
 
+/** A column in a materialized table's schema (Flink 2.3+, from DESCRIBE). */
+export type MaterializedColumn = {
+  __typename?: 'MaterializedColumn';
+  name: Scalars['String']['output'];
+  nullable: Scalars['Boolean']['output'];
+  primaryKey: Scalars['Boolean']['output'];
+  type: Scalars['String']['output'];
+  /** Watermark expression when the column is a rowtime attribute, else null. */
+  watermark: Maybe<Scalars['String']['output']>;
+};
+
 export type MaterializedTable = {
   __typename?: 'MaterializedTable';
   catalog: Scalars['String']['output'];
+  /** Schema columns parsed from DESCRIBE MATERIALIZED TABLE (Flink 2.3+); empty on older clusters. */
+  columns: Array<MaterializedColumn>;
   database: Scalars['String']['output'];
   definingQuery: Maybe<Scalars['String']['output']>;
   freshness: Maybe<Scalars['String']['output']>;
@@ -1081,8 +1237,7 @@ export type MetricEntry = {
 /**
  * A sampled metric value published at ~1s cadence by the server's
  * MetricSampler. `jobId` is null for cluster-wide aggregates.
- * Supported `metric` values for v1: `throughput`, `watermarkLag`,
- * `checkpointRate`.
+ * Supported `metric` values for v1: `throughput`, `watermarkLag`.
  */
 export type MetricEvent = {
   __typename?: 'MetricEvent';
@@ -1169,6 +1324,15 @@ export type Mutation = {
   runJar: JarRunResult;
   /** Run a simulation scenario */
   runSimulation: SimulationRun;
+  /**
+   * Seed sample data into a Kafka instrument's topics. Governed by the
+   * environment seeding policy: enabled by default in development, opt-in in
+   * staging, and never permitted in production. By default only this project's
+   * topics are seeded (catalog subjects whose topic already exists in the
+   * broker); allTopics: true seeds the entire sample catalog, creating every
+   * topic. dryRun reports what would happen without producing records.
+   */
+  seedKafkaTopics: KafkaSeedResult;
   /** Mark an instance as SILENCED (suppresses repeat firings until resolved). */
   silenceAlert: AlertInstance;
   /** Stop a running job with a savepoint (graceful shutdown) */
@@ -1313,6 +1477,13 @@ export type MutationRunJarArgs = {
 
 export type MutationRunSimulationArgs = {
   input: SimulationInput;
+};
+
+
+export type MutationSeedKafkaTopicsArgs = {
+  allTopics: InputMaybe<Scalars['Boolean']['input']>;
+  dryRun: InputMaybe<Scalars['Boolean']['input']>;
+  instrument: Scalars['String']['input'];
 };
 
 
@@ -1495,10 +1666,12 @@ export type Query = {
   catalogTables: Array<CatalogTable>;
   /** List all registered Flink catalogs */
   catalogs: Array<CatalogInfo>;
-  /** Get checkpoint detail */
-  checkpointDetail: CheckpointHistoryEntry;
+  /** Get full checkpoint detail including per-task rollups */
+  checkpointDetail: CheckpointDetail;
   /** Returns paginated historical checkpoints with optional filtering. */
   checkpointHistory: CheckpointHistoryConnection;
+  /** Get per-subtask checkpoint stats for one vertex of a checkpoint */
+  checkpointSubtasks: CheckpointSubtaskStats;
   /** Returns historical cluster overview snapshots for capacity trend analysis. */
   clusterOverviewHistory: Array<ClusterOverviewSnapshot>;
   clusters: Array<ClusterInfo>;
@@ -1552,6 +1725,11 @@ export type Query = {
   kafkaConsumerGroups: Array<KafkaConsumerGroup>;
   /** Get detailed information about a specific Kafka topic. */
   kafkaTopic: KafkaTopicDetail;
+  /**
+   * Preview the most recent records from a topic using a throwaway consumer
+   * (no consumer group is left behind). limit defaults to 20, capped at 200.
+   */
+  kafkaTopicMessages: Array<KafkaMessage>;
   /** List topics for a Kafka instrument. */
   kafkaTopics: Array<KafkaTopic>;
   /** The most recent persisted compatibility report for a pipeline, if any. */
@@ -1730,6 +1908,14 @@ export type QueryCheckpointHistoryArgs = {
 };
 
 
+export type QueryCheckpointSubtasksArgs = {
+  checkpointId: Scalars['String']['input'];
+  cluster: InputMaybe<Scalars['String']['input']>;
+  jobId: Scalars['ID']['input'];
+  vertexId: Scalars['ID']['input'];
+};
+
+
 export type QueryClusterOverviewHistoryArgs = {
   after: InputMaybe<Scalars['String']['input']>;
   before: InputMaybe<Scalars['String']['input']>;
@@ -1854,6 +2040,13 @@ export type QueryKafkaConsumerGroupsArgs = {
 export type QueryKafkaTopicArgs = {
   instrument: Scalars['String']['input'];
   name: Scalars['String']['input'];
+};
+
+
+export type QueryKafkaTopicMessagesArgs = {
+  instrument: Scalars['String']['input'];
+  limit: InputMaybe<Scalars['Int']['input']>;
+  topic: Scalars['String']['input'];
 };
 
 
@@ -2400,6 +2593,12 @@ export type StoredCheckpoint = {
   checkpointedSize: Maybe<Scalars['String']['output']>;
   cluster: Scalars['String']['output'];
   endToEndDuration: Scalars['String']['output'];
+  /** Restore location. Null unless the checkpoint was externally addressable. */
+  externalPath: Maybe<Scalars['String']['output']>;
+  /** Failure reason. Null unless status is FAILED. */
+  failureMessage: Maybe<Scalars['String']['output']>;
+  /** Failure time (RFC3339). Null unless status is FAILED. */
+  failureTimestamp: Maybe<Scalars['String']['output']>;
   isSavepoint: Scalars['Boolean']['output'];
   jid: Scalars['String']['output'];
   latestAck: Maybe<Scalars['String']['output']>;
@@ -2776,7 +2975,17 @@ export type CheckpointDetailQueryVariables = Exact<{
 }>;
 
 
-export type CheckpointDetailQuery = { __typename?: 'Query', checkpointDetail: { __typename?: 'CheckpointHistoryEntry', id: string, status: string, isSavepoint: boolean, triggerTimestamp: string, latestAckTimestamp: string, stateSize: string, endToEndDuration: string, processedData: string, persistedData: string, numSubtasks: number, numAcknowledgedSubtasks: number, checkpointedSize: string | null } };
+export type CheckpointDetailQuery = { __typename?: 'Query', checkpointDetail: { __typename?: 'CheckpointDetail', id: string, status: string, isSavepoint: boolean, checkpointType: string | null, triggerTimestamp: string, latestAckTimestamp: string, stateSize: string, endToEndDuration: string, numSubtasks: number, numAcknowledgedSubtasks: number, checkpointedSize: string | null, processedData: string | null, persistedData: string | null, externalPath: string | null, discarded: boolean | null, failureMessage: string | null, failureTimestamp: string | null, tasks: Array<{ __typename?: 'CheckpointTaskDetail', vertexId: string, status: string, latestAckTimestamp: string, stateSize: string, endToEndDuration: string, numSubtasks: number, numAcknowledgedSubtasks: number, checkpointedSize: string | null, processedData: string | null, persistedData: string | null }> } };
+
+export type CheckpointSubtasksQueryVariables = Exact<{
+  jobId: Scalars['ID']['input'];
+  checkpointId: Scalars['String']['input'];
+  vertexId: Scalars['ID']['input'];
+  cluster: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CheckpointSubtasksQuery = { __typename?: 'Query', checkpointSubtasks: { __typename?: 'CheckpointSubtaskStats', vertexId: string, status: string, latestAckTimestamp: string, stateSize: string, endToEndDuration: string, numSubtasks: number, numAcknowledgedSubtasks: number, summary: { __typename?: 'CheckpointSubtaskSummary', stateSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, endToEndDuration: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, syncDuration: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, asyncDuration: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, alignmentDuration: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, startDelay: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null } | null, subtasks: Array<{ __typename?: 'CheckpointSubtaskEntry', index: number, status: string, ackTimestamp: string | null, endToEndDuration: string | null, stateSize: string | null, checkpointedSize: string | null, syncDuration: string | null, asyncDuration: string | null, alignmentBuffered: string | null, alignmentProcessed: string | null, alignmentPersisted: string | null, alignmentDuration: string | null, startDelay: string | null, unalignedCheckpoint: boolean | null, aborted: boolean | null }> } };
 
 export type ClusterOverviewQueryVariables = Exact<{
   cluster: InputMaybe<Scalars['String']['input']>;
@@ -2946,7 +3155,7 @@ export type JobDetailQueryVariables = Exact<{
 }>;
 
 
-export type JobDetailQuery = { __typename?: 'Query', job: { __typename?: 'JobDetail', id: string, name: string, state: string, startTime: string, endTime: string, duration: string, now: string, watermarkLag: string | null, vertices: Array<{ __typename?: 'JobVertex', id: string, name: string, maxParallelism: number, parallelism: number, status: string, startTime: string, endTime: string, duration: string, tasks: { __typename?: 'TaskCounts', created: number, scheduled: number, deploying: number, running: number, finished: number, canceling: number, canceled: number, failed: number, reconciling: number, initializing: number }, metrics: { __typename?: 'VertexMetrics', readBytes: string, readBytesComplete: boolean, writeBytes: string, writeBytesComplete: boolean, readRecords: string, readRecordsComplete: boolean, writeRecords: string, writeRecordsComplete: boolean, accumulatedBackpressured: string, accumulatedIdle: string, accumulatedBusy: string } }>, plan: { __typename?: 'JobPlan', jid: string, name: string, type: string, nodes: Array<{ __typename?: 'PlanNode', id: string, parallelism: number, operator: string, operatorStrategy: string, description: string, inputs: Array<{ __typename?: 'PlanNodeInput', num: number, id: string, shipStrategy: string, exchange: string }> | null }> }, exceptions: Array<{ __typename?: 'ExceptionEntry', exceptionName: string, stacktrace: string, timestamp: string, taskName: string | null, endpoint: string | null, taskManagerId: string | null }>, checkpoints: { __typename?: 'CheckpointStats', counts: { __typename?: 'CheckpointCounts', completed: number, inProgress: number, failed: number, total: number, restored: number }, history: Array<{ __typename?: 'CheckpointHistoryEntry', id: string, status: string, isSavepoint: boolean, triggerTimestamp: string, latestAckTimestamp: string, stateSize: string, endToEndDuration: string, processedData: string, persistedData: string, numSubtasks: number, numAcknowledgedSubtasks: number, checkpointedSize: string | null }>, summary: { __typename?: 'CheckpointSummary', stateSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, endToEndDuration: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, checkpointedSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null } | null, latest: { __typename?: 'CheckpointLatest', completed: { __typename?: 'CheckpointHistoryEntry', id: string, status: string, triggerTimestamp: string, stateSize: string, endToEndDuration: string } | null, restored: { __typename?: 'CheckpointRestoredInfo', id: string, restoreTimestamp: string, isSavepoint: boolean, externalPath: string | null } | null } | null } | null, checkpointConfig: { __typename?: 'CheckpointConfig', mode: string, interval: string, timeout: string, minPause: string, maxConcurrent: number, externalizedEnabled: boolean, externalizedDeleteOnCancellation: boolean, unalignedCheckpoints: boolean } | null, restartInfo: { __typename?: 'RestartInfo', numRestarts: number | null, fullRestarts: number | null, restartStrategy: string | null, uptimeMs: string | null, downtimeMs: string | null } | null, vertexDetails: Array<{ __typename?: 'VertexDetail', id: string, name: string, parallelism: number, now: string, subtasks: Array<{ __typename?: 'SubtaskInfo', subtask: number, status: string, attempt: number, endpoint: string, startTime: string, endTime: string, duration: string, taskManagerId: string, metrics: { __typename?: 'VertexMetrics', readBytes: string, readBytesComplete: boolean, writeBytes: string, writeBytesComplete: boolean, readRecords: string, readRecordsComplete: boolean, writeRecords: string, writeRecordsComplete: boolean, accumulatedBackpressured: string, accumulatedIdle: string, accumulatedBusy: string } }> }> | null, watermarks: Array<{ __typename?: 'VertexWatermarks', vertexId: string, watermarks: Array<{ __typename?: 'WatermarkEntry', id: string, value: string }> }> | null, backPressure: Array<{ __typename?: 'VertexBackPressure', vertexId: string, backPressure: { __typename?: 'BackPressureInfo', status: string, backpressureLevel: string, endTimestamp: string, subtasks: Array<{ __typename?: 'SubtaskBackPressure', subtask: number, attemptNumber: number, backpressureLevel: string, ratio: number, busyRatio: number, idleRatio: number }> } }> | null, accumulators: Array<{ __typename?: 'VertexAccumulators', vertexId: string, accumulators: Array<{ __typename?: 'UserAccumulator', name: string, type: string, value: string }> }> | null, metrics: { __typename?: 'JobMetrics', recordsInPerSecond: number, recordsOutPerSecond: number } | null } };
+export type JobDetailQuery = { __typename?: 'Query', job: { __typename?: 'JobDetail', id: string, name: string, state: string, startTime: string, endTime: string, duration: string, now: string, watermarkLag: string | null, vertices: Array<{ __typename?: 'JobVertex', id: string, name: string, maxParallelism: number, parallelism: number, status: string, startTime: string, endTime: string, duration: string, tasks: { __typename?: 'TaskCounts', created: number, scheduled: number, deploying: number, running: number, finished: number, canceling: number, canceled: number, failed: number, reconciling: number, initializing: number }, metrics: { __typename?: 'VertexMetrics', readBytes: string, readBytesComplete: boolean, writeBytes: string, writeBytesComplete: boolean, readRecords: string, readRecordsComplete: boolean, writeRecords: string, writeRecordsComplete: boolean, accumulatedBackpressured: string, accumulatedIdle: string, accumulatedBusy: string } }>, plan: { __typename?: 'JobPlan', jid: string, name: string, type: string, nodes: Array<{ __typename?: 'PlanNode', id: string, parallelism: number, operator: string, operatorStrategy: string, description: string, inputs: Array<{ __typename?: 'PlanNodeInput', num: number, id: string, shipStrategy: string, exchange: string }> | null }> }, exceptions: Array<{ __typename?: 'ExceptionEntry', exceptionName: string, stacktrace: string, timestamp: string, taskName: string | null, endpoint: string | null, taskManagerId: string | null }>, checkpoints: { __typename?: 'CheckpointStats', counts: { __typename?: 'CheckpointCounts', completed: number, inProgress: number, failed: number, total: number, restored: number }, history: Array<{ __typename?: 'CheckpointHistoryEntry', id: string, status: string, isSavepoint: boolean, checkpointType: string | null, triggerTimestamp: string, latestAckTimestamp: string, stateSize: string, endToEndDuration: string, processedData: string, persistedData: string, numSubtasks: number, numAcknowledgedSubtasks: number, checkpointedSize: string | null, externalPath: string | null, failureMessage: string | null, failureTimestamp: string | null }>, summary: { __typename?: 'CheckpointSummary', stateSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, endToEndDuration: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null, checkpointedSize: { __typename?: 'CheckpointMinMaxAvg', min: string, max: string, avg: string } | null } | null, latest: { __typename?: 'CheckpointLatest', completed: { __typename?: 'CheckpointHistoryEntry', id: string, status: string, triggerTimestamp: string, stateSize: string, endToEndDuration: string } | null, restored: { __typename?: 'CheckpointRestoredInfo', id: string, restoreTimestamp: string, isSavepoint: boolean, externalPath: string | null } | null } | null } | null, checkpointConfig: { __typename?: 'CheckpointConfig', mode: string, interval: string, timeout: string, minPause: string, maxConcurrent: number, externalizedEnabled: boolean, externalizedDeleteOnCancellation: boolean, unalignedCheckpoints: boolean, stateBackend: string | null, checkpointStorage: string | null, tolerableFailedCheckpoints: number | null, alignedCheckpointTimeout: string | null, checkpointsAfterTasksFinish: boolean | null } | null, restartInfo: { __typename?: 'RestartInfo', numRestarts: number | null, fullRestarts: number | null, restartStrategy: string | null, uptimeMs: string | null, downtimeMs: string | null } | null, vertexDetails: Array<{ __typename?: 'VertexDetail', id: string, name: string, parallelism: number, now: string, subtasks: Array<{ __typename?: 'SubtaskInfo', subtask: number, status: string, attempt: number, endpoint: string, startTime: string, endTime: string, duration: string, taskManagerId: string, metrics: { __typename?: 'VertexMetrics', readBytes: string, readBytesComplete: boolean, writeBytes: string, writeBytesComplete: boolean, readRecords: string, readRecordsComplete: boolean, writeRecords: string, writeRecordsComplete: boolean, accumulatedBackpressured: string, accumulatedIdle: string, accumulatedBusy: string } }> }> | null, watermarks: Array<{ __typename?: 'VertexWatermarks', vertexId: string, watermarks: Array<{ __typename?: 'WatermarkEntry', id: string, value: string }> }> | null, backPressure: Array<{ __typename?: 'VertexBackPressure', vertexId: string, backPressure: { __typename?: 'BackPressureInfo', status: string, backpressureLevel: string, endTimestamp: string, subtasks: Array<{ __typename?: 'SubtaskBackPressure', subtask: number, attemptNumber: number, backpressureLevel: string, ratio: number, busyRatio: number, idleRatio: number }> } }> | null, accumulators: Array<{ __typename?: 'VertexAccumulators', vertexId: string, accumulators: Array<{ __typename?: 'UserAccumulator', name: string, type: string, value: string }> }> | null, metrics: { __typename?: 'JobMetrics', recordsInPerSecond: number, recordsOutPerSecond: number } | null } };
 
 export type CancelJobMutationVariables = Exact<{
   id: Scalars['ID']['input'];
