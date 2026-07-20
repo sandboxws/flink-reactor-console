@@ -394,7 +394,7 @@ dashboard/.env.staging
 .npmrc
 
 ### Go ###
-bin/
+server/bin/
 server/dashboard/
 *.exe
 *.exe~

@@ -23,3 +23,9 @@ repos:
         language: system
         files: '(go\.mod|go\.sum)$'
         pass_filenames: false
+      - id: typecheck-dsl
+        name: tsc --noEmit (dsl)
+        entry: bash -c 'cd dsl && pnpm typecheck'
+        language: system
+        files: '^dsl/.*\.(ts|tsx)$'
+        pass_filenames: false
