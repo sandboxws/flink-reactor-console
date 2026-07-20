@@ -143,15 +143,24 @@ export async function publishPackage(
   pkg: PackageRef,
   opts: PublishOpts,
 ): Promise<void> {
-  const args = ["publish", "--registry", opts.registry, "--provenance=false"]
+  // pnpm (not npm) so workspace:* deps are rewritten to concrete versions
+  // in the published manifest; --no-git-checks because publishes may run
+  // from any branch of the monorepo.
+  const args = [
+    "publish",
+    "--registry",
+    opts.registry,
+    "--provenance=false",
+    "--no-git-checks",
+  ]
   if (opts.distTag) args.push("--tag", opts.distTag)
-  const { code, stdout, stderr } = await run("npm", args, {
+  const { code, stdout, stderr } = await run("pnpm", args, {
     cwd: pkg.dir,
     verbose: opts.verbose,
   })
   if (code !== 0) {
     throw new Error(
-      failureMessage(`npm publish ${pkg.name}`, code, stdout, stderr),
+      failureMessage(`pnpm publish ${pkg.name}`, code, stdout, stderr),
     )
   }
 }
