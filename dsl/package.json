@@ -52,15 +52,15 @@
   "publishConfig": {
     "access": "public"
   },
-  "packageManager": "pnpm@10.30.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sandboxws/flink-reactor-dsl.git"
+    "url": "https://github.com/sandboxws/flink-reactor-console.git",
+    "directory": "dsl"
   },
   "bugs": {
-    "url": "https://github.com/sandboxws/flink-reactor-dsl/issues"
+    "url": "https://github.com/sandboxws/flink-reactor-console/issues"
   },
-  "homepage": "https://github.com/sandboxws/flink-reactor-dsl#readme",
+  "homepage": "https://github.com/sandboxws/flink-reactor-console/tree/main/dsl#readme",
   "author": "Ahmed El.Hussaini <328866+sandboxws@users.noreply.github.com>",
   "scripts": {
     "build": "rm -rf dist && tsup && pnpm -r --filter './packages/*' run build",
@@ -77,9 +77,6 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "changeset publish && node scripts/publish-root.mjs",
     "local:publish": "tsx scripts/local-publish.ts",
     "local:publish:start": "tsx scripts/local-publish.ts verdaccio start",
     "local:publish:stop": "tsx scripts/local-publish.ts verdaccio stop",
@@ -120,7 +117,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.13",
-    "@changesets/cli": "^2.29.8",
     "@flink-reactor/ts-plugin": "workspace:*",
     "@types/node": "^22.12.0",
     "@types/pg": "^8.11.0",

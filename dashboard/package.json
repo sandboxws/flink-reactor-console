@@ -47,7 +47,7 @@
     "@codemirror/language": "^6.12.2",
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.40.0",
-    "@flink-reactor/dsl": "0.2.0",
+    "@flink-reactor/dsl": "workspace:*",
     "@flink-reactor/ui": "workspace:*",
     "@lezer/highlight": "^1.2.3",
     "@shikijs/core": "^4.0.2",

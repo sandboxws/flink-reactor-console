@@ -3,3 +3,10 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'tools/*'
+  - 'dsl'
+  - 'dsl/packages/*'
+
+# Pin to the resolution both repos shipped before the lockfile merge;
+# 3.2.7 peer-requires vitest 3.2.7 while the workspace resolves 3.2.4.
+overrides:
+  '@vitest/coverage-v8': 3.2.4

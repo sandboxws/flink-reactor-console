@@ -2,19 +2,20 @@
   "name": "flink-reactor",
   "displayName": "FlinkReactor",
   "version": "0.1.0",
+  "private": true,
   "description": "VS Code support for FlinkReactor \u2014 synthesis-backed diagnostics, ts-plugin auto-configuration, and one-step onboarding for TSX Flink pipelines",
   "license": "BSL-1.1",
   "publisher": "flink-reactor",
   "author": "Ahmed El.Hussaini <328866+sandboxws@users.noreply.github.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sandboxws/flink-reactor-dsl.git",
-    "directory": "packages/vscode-extension"
+    "url": "https://github.com/sandboxws/flink-reactor-console.git",
+    "directory": "dsl/packages/vscode-extension"
   },
   "bugs": {
-    "url": "https://github.com/sandboxws/flink-reactor-dsl/issues"
+    "url": "https://github.com/sandboxws/flink-reactor-console/issues"
   },
-  "homepage": "https://github.com/sandboxws/flink-reactor-dsl/tree/main/packages/vscode-extension#readme",
+  "homepage": "https://github.com/sandboxws/flink-reactor-console/tree/main/dsl/packages/vscode-extension#readme",
   "keywords": [
     "flink",
     "flink-reactor",

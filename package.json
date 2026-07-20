@@ -11,22 +11,30 @@
   "scripts": {
     "dev": "pnpm --filter dashboard dev",
     "dev:live": "FLINK_REST_URL=http://localhost:8081 pnpm --filter dashboard dev",
-    "build": "pnpm --filter @flink-reactor/ui build && pnpm --filter dashboard build",
+    "build": "pnpm --filter @flink-reactor/dashboard... build",
+    "build:dsl": "pnpm --filter @flink-reactor/dsl build",
     "test": "pnpm --filter @flink-reactor/dashboard test",
+    "test:dsl": "pnpm --filter @flink-reactor/dsl test",
+    "test:dsl:e2e": "pnpm --filter @flink-reactor/dsl test:e2e",
     "typecheck": "pnpm --filter dashboard typecheck",
+    "typecheck:dsl": "pnpm --filter @flink-reactor/dsl typecheck",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "changeset": "changeset",
     "version-packages": "changeset version",
+    "release": "changeset publish",
+    "local:publish": "pnpm --filter @flink-reactor/dsl local:publish",
+    "local:publish:stop": "pnpm --filter @flink-reactor/dsl local:publish:stop",
+    "local:publish:status": "pnpm --filter @flink-reactor/dsl local:publish:status",
     "ui:embed": "pnpm --filter @flink-reactor/ui-embeddings embed",
     "ui:search": "pnpm --filter @flink-reactor/ui-embeddings search",
     "ui:benchmark": "pnpm --filter @flink-reactor/ui-embeddings benchmark",
     "generate:completions": "npx tsx tools/generate-dsl-completions.ts"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.7",
