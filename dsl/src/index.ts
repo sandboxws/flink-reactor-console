@@ -290,10 +290,7 @@ export {
   SqlGenerationError,
   ValidationError,
 } from "./core/errors.js"
-export type {
-  FeatureGateError,
-  JdbcConnectorInfo,
-} from "./core/flink-compat.js"
+export type { FeatureGateError } from "./core/flink-compat.js"
 // Core: Flink version compat
 export { FlinkVersionCompat } from "./core/flink-compat.js"
 // Core: JSX runtime

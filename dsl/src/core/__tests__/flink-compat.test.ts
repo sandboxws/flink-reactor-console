@@ -74,30 +74,6 @@ describe("FlinkVersionCompat.checkFeature", () => {
   })
 })
 
-describe("FlinkVersionCompat.resolveJdbcConnector", () => {
-  it("returns single JAR for Flink 1.20", () => {
-    const result = FlinkVersionCompat.resolveJdbcConnector("1.20", "mysql")
-    expect(result.style).toBe("single")
-    expect(result.jars).toHaveLength(1)
-    expect(result.jars[0]).toContain("1.20")
-  })
-
-  it("returns modular JARs for Flink 2.0+", () => {
-    const result = FlinkVersionCompat.resolveJdbcConnector("2.0", "mysql")
-    expect(result.style).toBe("modular")
-    expect(result.jars).toHaveLength(2)
-    expect(result.jars[0]).toContain("2.0")
-    expect(result.jars[1]).toContain("mysql")
-  })
-
-  it("uses correct version in JAR names", () => {
-    const result = FlinkVersionCompat.resolveJdbcConnector("2.2", "postgres")
-    expect(result.jars[0]).toContain("2.2")
-    expect(result.jars[1]).toContain("postgres")
-    expect(result.jars[1]).toContain("2.2")
-  })
-})
-
 describe("FlinkVersionCompat.isVersionAtLeast", () => {
   it("compares versions correctly", () => {
     expect(FlinkVersionCompat.isVersionAtLeast("2.0", "1.20")).toBe(true)
