@@ -29,6 +29,7 @@ type Config struct {
 // Instrument implements the instruments.Instrument interface for databases.
 type Instrument struct {
 	name             string
+	instrumentType   string
 	logger           *slog.Logger
 	client           *Client
 	statementTimeout time.Duration
@@ -37,7 +38,21 @@ type Instrument struct {
 
 // NewInstrument creates a database instrument with the given instance name.
 func NewInstrument(name string, logger *slog.Logger) *Instrument {
-	return &Instrument{name: name, logger: logger}
+	return newInstrument(name, "database", logger)
+}
+
+// NewYugabyteInstrument creates a YugabyteDB instrument. YugabyteDB's YSQL API is
+// PostgreSQL-wire-compatible, so it reuses this instrument's Postgres engine
+// (schema browsing, query execution, DDL highlighting) verbatim and differs only
+// by the reported Type(). That lets the dashboard present YugabyteDB as its own
+// system while every database* GraphQL resolver keeps working — those resolvers
+// type-assert *database.Instrument, not the type string.
+func NewYugabyteInstrument(name string, logger *slog.Logger) *Instrument {
+	return newInstrument(name, "yugabyte", logger)
+}
+
+func newInstrument(name, instrumentType string, logger *slog.Logger) *Instrument {
+	return &Instrument{name: name, instrumentType: instrumentType, logger: logger}
 }
 
 // Name returns the unique instance name.
@@ -49,8 +64,8 @@ func (i *Instrument) DisplayName() string { return i.name }
 // Version returns the instrument version.
 func (i *Instrument) Version() string { return instrumentVersion }
 
-// Type returns the instrument type identifier.
-func (i *Instrument) Type() string { return "database" }
+// Type returns the instrument type identifier ("database" or "yugabyte").
+func (i *Instrument) Type() string { return i.instrumentType }
 
 // Capabilities returns the list of supported capabilities.
 func (i *Instrument) Capabilities() []instruments.Capability {
@@ -71,14 +86,20 @@ func (i *Instrument) Init(ctx context.Context, cfg json.RawMessage) error {
 		return fmt.Errorf("database config: dsn required")
 	}
 
+	// YugabyteDB speaks the PostgreSQL wire protocol (YSQL); when a yugabyte
+	// instrument omits an explicit driver, default it to the Postgres dialect.
+	if dc.Driver == "" && i.instrumentType == "yugabyte" {
+		dc.Driver = "yugabyte"
+	}
+
 	var driver Driver
 	switch dc.Driver {
-	case "postgres":
+	case "postgres", "yugabyte":
 		driver = &PostgresDriver{}
 	case "mysql":
 		driver = &MySQLDriver{}
 	default:
-		return fmt.Errorf("unsupported database driver: %q (supported: postgres, mysql)", dc.Driver)
+		return fmt.Errorf("unsupported database driver: %q (supported: postgres, yugabyte, mysql)", dc.Driver)
 	}
 
 	if err := driver.Connect(ctx, dc.DSN); err != nil {

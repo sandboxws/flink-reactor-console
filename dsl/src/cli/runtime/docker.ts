@@ -119,7 +119,13 @@ export const DockerAdapter: RuntimeAdapter = {
       }
 
       try {
-        const result = await client.submitSqlFile(sqlPath)
+        // Resolve `${env:VAR}` placeholders (e.g. a YugabyteCdcSource password
+        // secretRef) against the host env before submission — the SQL gateway
+        // does not expand them and Flink SQL WITH options are literal. No-op
+        // for the common case of a pipeline.sql with no placeholders.
+        const result = await client.submitSqlFile(
+          resolveSqlForSubmission(sqlPath, p.name),
+        )
         if (result.status === "ERROR") {
           const msg = result.errorMessage ?? "Unknown error"
           console.log(pc.red(`  ${p.name}: ${msg}`))
@@ -236,11 +242,32 @@ function resolveEnvPlaceholders(text: string): string {
     const value = process.env[name] ?? DEV_CLUSTER_ENV_FALLBACKS[name]
     if (value === undefined) {
       throw new Error(
-        `pipeline.yaml references \${env:${name}} but ${name} is not set in the host environment and has no dev-cluster default`,
+        `\${env:${name}} is referenced but ${name} is not set in the host environment and has no dev-cluster default`,
       )
     }
     return value
   })
+}
+
+// ── SQL-branch secret resolution ────────────────────────────────────
+//
+// SQL-branch pipelines (e.g. a YugabyteCdcSource) may carry `${env:VAR}`
+// placeholders in the generated pipeline.sql for `secretRef()` passwords. The
+// SQL gateway submits the file verbatim and Flink SQL does not expand env
+// placeholders inside WITH options, so we inline them here before submission —
+// mirroring `submitPipelineYaml`'s treatment of pipeline.yaml. Returns the
+// original path unchanged when the SQL has no placeholders (the common case).
+
+function resolveSqlForSubmission(
+  sqlPath: string,
+  pipelineName: string,
+): string {
+  const raw = readFileSync(sqlPath, "utf-8")
+  const resolved = resolveEnvPlaceholders(raw)
+  if (resolved === raw) return sqlPath
+  const tmpResolved = join(tmpdir(), `fr-${pipelineName}-resolved.sql`)
+  writeFileSync(tmpResolved, resolved, "utf-8")
+  return tmpResolved
 }
 
 function quoteShell(value: string): string {

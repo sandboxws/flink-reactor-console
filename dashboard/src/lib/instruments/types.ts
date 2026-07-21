@@ -5,6 +5,7 @@
 export type InstrumentType =
   | "kafka"
   | "database"
+  | "yugabyte"
   | "kubernetes"
   | "s3"
   | "prometheus"

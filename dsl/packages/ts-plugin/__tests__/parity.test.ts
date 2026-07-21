@@ -135,6 +135,6 @@ describe("rule parity with DSL component inventory", () => {
   it("DSL_COMPONENTS inventory matches expected count", () => {
     // This test serves as a tripwire: if someone adds a component to the
     // DSL inventory, this count changes and forces a review of rule coverage.
-    expect(DSL_COMPONENTS.size).toBe(48)
+    expect(DSL_COMPONENTS.size).toBe(49)
   })
 })

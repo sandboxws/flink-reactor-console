@@ -52,6 +52,8 @@ export function connectorTypeFor(component: string): string {
     case "FlussSink":
     case "FlussSource":
       return "fluss"
+    case "YugabyteCdcSource":
+      return "postgres-cdc"
     default:
       return component.toLowerCase().replace(/source$|sink$/i, "")
   }
@@ -129,6 +131,33 @@ export function buildSourceDetails(
       details.push({
         key: "url",
         value: redactUrlCredentials((props.url as string) ?? ""),
+      })
+      break
+    case "YugabyteCdcSource":
+      details.push({
+        key: "hostname",
+        value: (props.hostname as string) ?? "",
+      })
+      details.push({
+        key: "port",
+        value: String((props.port as number | undefined) ?? 5433),
+      })
+      details.push({
+        key: "database",
+        value: (props.database as string) ?? "",
+      })
+      details.push({
+        key: "schema",
+        value: (props.schemaName as string | undefined) ?? "public",
+      })
+      details.push({ key: "table", value: (props.table as string) ?? "" })
+      details.push({
+        key: "slot",
+        value: (props.slotName as string | undefined) ?? "flink",
+      })
+      details.push({
+        key: "plugin",
+        value: (props.decodingPluginName as string | undefined) ?? "pgoutput",
       })
       break
     case "FlussSource":

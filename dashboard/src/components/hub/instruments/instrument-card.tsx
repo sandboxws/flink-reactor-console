@@ -22,6 +22,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   redis: Database,
   schemaregistry: FileJson,
   database: HardDrive,
+  yugabyte: HardDrive,
   kafka: Radio,
 }
 
@@ -30,6 +31,7 @@ const TYPE_LABEL: Record<string, string> = {
   redis: "Redis",
   schemaregistry: "Schema registry",
   database: "Database",
+  yugabyte: "YugabyteDB",
   kafka: "Kafka",
 }
 
@@ -109,6 +111,8 @@ function instrumentIndexHref(instrument: InstrumentInfo): string | null {
     case "schemaregistry":
       return `/hub/instruments/${instrument.name}/schema-registry`
     case "database":
+    // YugabyteDB reuses the database Hub route (name-keyed, driver-agnostic).
+    case "yugabyte":
       return `/hub/instruments/${instrument.name}/database`
     case "kafka":
       return `/hub/instruments/${instrument.name}/kafka`

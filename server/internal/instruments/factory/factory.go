@@ -28,6 +28,8 @@ func New(typ, name string, logger *slog.Logger) (instruments.Instrument, error) 
 		return kafkainst.NewInstrument(name), nil
 	case "database":
 		return database.NewInstrument(name, logger), nil
+	case "yugabyte":
+		return database.NewYugabyteInstrument(name, logger), nil
 	case "redis":
 		return redisinst.NewInstrument(name), nil
 	case "schemaregistry":
@@ -46,6 +48,7 @@ func SupportedTypes() []string {
 	return []string{
 		"kafka",
 		"database",
+		"yugabyte",
 		"redis",
 		"schemaregistry",
 		"datalake",

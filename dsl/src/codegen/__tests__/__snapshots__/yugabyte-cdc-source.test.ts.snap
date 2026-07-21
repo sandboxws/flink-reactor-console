@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`YugabyteCdcSource SQL DDL (connector='postgres-cdc') > matches the full CREATE TABLE snapshot 1`] = `
+"CREATE TABLE \`shipments\` (
+  \`shipment_id\` INT,
+  \`order_id\` INT,
+  \`origin\` STRING,
+  \`destination\` STRING,
+  \`is_arrived\` BOOLEAN,
+  PRIMARY KEY (\`shipment_id\`) NOT ENFORCED
+) WITH (
+  'connector' = 'postgres-cdc',
+  'database-name' = 'yugabyte',
+  'decoding.plugin.name' = 'pgoutput',
+  'hostname' = 'yb-tserver',
+  'password' = '\${env:YB_CREDENTIALS}',
+  'port' = '5433',
+  'schema-name' = 'public',
+  'slot.name' = 'flink',
+  'table-name' = 'shipments',
+  'username' = 'yugabyte'
+);"
+`;

@@ -219,6 +219,39 @@ const CONNECTOR_REGISTRY: readonly ConnectorRegistryEntry[] = [
     ],
   },
 
+  // YugabyteDB CDC — Flink SQL `postgres-cdc` table connector (YugabyteDB fork).
+  // SQL-branch only. The fork (github.com/yugabyte/flink-cdc) reuses the
+  // Debezium Postgres connector to read YSQL logical replication and ships as
+  // the container image quay.io/yugabyte/ybdb-flink-cdc:fl.3.5.yb.2026.1.0
+  // (Flink CDC 3.5 base, Flink 1.20.1 runtime). `decoding.plugin.name=pgoutput`
+  // is required by the fork.
+  //
+  // TODO(yugabyte): confirm the PUBLISHED Maven coordinates for the forked SQL
+  // connector JAR — the groupId/artifactId/version below are PLACEHOLDERS
+  // derived from the image tag. If the fork ships only inside the YB image (not
+  // on Maven Central), bake the JAR into the Flink runtime image
+  // (Dockerfile.flink) and treat this entry as informational, or publish the
+  // fork to a mirror and pass `mavenMirror`. No Flink 2.x fork exists yet, so
+  // resolution intentionally returns empty (a clear "no connector" error) there.
+  {
+    connectorId: "postgres-cdc",
+    builtIn: false,
+    branchAffinity: "sql",
+    versions: [
+      {
+        minVersion: "1.20",
+        maxVersion: "1.20",
+        artifacts: [
+          {
+            groupId: "com.yugabyte", // TODO(yugabyte): confirm
+            artifactId: "flink-sql-connector-postgres-cdc", // TODO(yugabyte): confirm (upstream artifact name)
+            version: "3.5-yb-2026.1.0", // TODO(yugabyte): confirm (from image tag fl.3.5.yb.2026.1.0)
+          },
+        ],
+      },
+    ],
+  },
+
   // Fluss CDC Pipeline Connector (Flink CDC 3.6). Distinct from the Flink-SQL
   // Fluss connector below — Pipeline Connectors and SQL connectors are
   // separate artifacts under upstream Flink CDC's release model. Single
@@ -417,6 +450,24 @@ const JDBC_DIALECT_REGISTRY: readonly JdbcDialectEntry[] = [
       groupId: "org.postgresql",
       artifactId: "postgresql",
       version: "42.7.3",
+    },
+  },
+  {
+    dialect: "yugabyte",
+    urlPattern: "jdbc:yugabytedb:",
+    // YugabyteDB is Postgres-wire-compatible → reuse the Flink Postgres dialect
+    // module; only the driver differs (the YugabyteDB smart driver, which adds
+    // cluster-aware load balancing). Plain `jdbc:postgresql://` against Yugabyte
+    // still works via the `postgres` dialect above.
+    dialectArtifact: (v) => ({
+      groupId: "org.apache.flink",
+      artifactId: "flink-connector-jdbc-postgres",
+      version: versionGte(v, "2.0") ? "4.0.0-2.0" : `3.2.0-${v}`,
+    }),
+    driverArtifact: {
+      groupId: "com.yugabyte",
+      artifactId: "jdbc-yugabytedb",
+      version: "42.7.3-yb-1", // TODO(yugabyte): confirm smart-driver version
     },
   },
   {
@@ -729,6 +780,7 @@ export const CONNECTOR_TO_SERVICE: Readonly<Record<string, ServiceKind>> = {
   kafka: "kafka",
   jdbc: "postgres",
   "postgres-cdc-pipeline": "postgres",
+  "postgres-cdc": "postgres",
   iceberg: "iceberg",
   fluss: "fluss",
   "fluss-cdc-pipeline": "fluss",

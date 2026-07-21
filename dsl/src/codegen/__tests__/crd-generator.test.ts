@@ -9,7 +9,11 @@ import {
 import { IcebergCatalog } from "@/components/catalogs.js"
 import { Pipeline } from "@/components/pipeline.js"
 import { IcebergSink, KafkaSink } from "@/components/sinks.js"
-import { KafkaSource, PostgresCdcPipelineSource } from "@/components/sources.js"
+import {
+  KafkaSource,
+  PostgresCdcPipelineSource,
+  YugabyteCdcSource,
+} from "@/components/sources.js"
 import { resetNodeIdCounter } from "@/core/jsx-runtime.js"
 import { Field, Schema } from "@/core/schema.js"
 import { secretRef } from "@/core/secret-ref.js"
@@ -670,5 +674,74 @@ describe("toYaml: round-trips through parse", () => {
     const yaml = generateCrdYaml(pipeline, { flinkVersion: "2.0" })
     const reparsed = parse(yaml)
     expect(reparsed).toEqual(JSON.parse(JSON.stringify(crd)))
+  })
+})
+
+// ── SQL-branch secret wiring (YugabyteCdcSource) ────────────────────
+
+describe("CRD generation: SQL-branch secrets (YugabyteCdcSource)", () => {
+  const ShipmentsSchema = Schema({
+    fields: {
+      shipment_id: Field.INT(),
+      origin: Field.STRING(),
+    },
+    primaryKey: { columns: ["shipment_id"] },
+  })
+
+  it("binds a secretRef password as a secretKeyRef env on the main container", () => {
+    const source = YugabyteCdcSource({
+      hostname: "yb-tserver",
+      username: "yugabyte",
+      password: secretRef("yb-credentials"),
+      database: "yugabyte",
+      table: "shipments",
+      schema: ShipmentsSchema,
+    })
+    const sink = KafkaSink({ topic: "out", children: [source] })
+    const pipeline = Pipeline({ name: "yb-cdc", children: [sink] })
+
+    const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
+
+    // Stays on the SQL branch — not routed to the pipeline-connector CRD.
+    expect(crd.spec.job.jarURI).not.toContain("flink-cdc-cli")
+
+    const container = (
+      crd.spec.podTemplate as {
+        spec?: {
+          containers?: Array<{
+            name: string
+            env?: Array<{
+              name: string
+              valueFrom: { secretKeyRef: { name: string; key: string } }
+            }>
+          }>
+        }
+      }
+    ).spec?.containers?.[0]
+
+    expect(container?.name).toBe("flink-main-container")
+    expect(container?.env).toEqual([
+      {
+        name: "YB_CREDENTIALS",
+        valueFrom: {
+          secretKeyRef: { name: "yb-credentials", key: "password" },
+        },
+      },
+    ])
+  })
+
+  it("emits no podTemplate for a SQL pipeline with no secrets (regression-safe)", () => {
+    const source = KafkaSource({
+      topic: "orders",
+      format: "json",
+      schema: OrderSchema,
+    })
+    const sink = KafkaSink({ topic: "out", children: [source] })
+    const pipeline = Pipeline({ name: "plain", children: [sink] })
+
+    const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
+    expect(crd.spec.podTemplate).toBeUndefined()
   })
 })

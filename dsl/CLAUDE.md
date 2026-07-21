@@ -20,6 +20,12 @@ Core DSL library + CLI (`@flink-reactor/dsl`). React-style TSX DSL that synthesi
 - **Flink SQL is the target** — all components compile to Flink SQL (v0.1). No DataStream API.
 - **Invariant specs** — behavioral contracts live in [`docs/contributors/specs/`](docs/contributors/specs/README.md) with stable IDs (`ORD-`/`CLM-`/`NID-`/`TAP-`); cite the ID when changing statement ordering, changelog propagation, node-id assignment, or tap behavior.
 
+## YugabyteDB
+
+- **`YugabyteCdcSource`** — a **SQL-branch** CDC source emitting `CREATE TABLE … WITH ('connector'='postgres-cdc', …)` (YugabyteDB's fork of the Flink SQL postgres-cdc connector). YugabyteDB defaults: port `5433` (YSQL, not 5432) and `decoding.plugin.name='pgoutput'` (required). It carries ChangelogMode `retract` and requires a `PRIMARY KEY … NOT ENFORCED`. Distinct from `PostgresCdcPipelineSource`, which is a pipeline-YAML source. Fork JAR coordinates are a `TODO(yugabyte)` placeholder in `connector-registry.ts` (fork ships as image `quay.io/yugabyte/ybdb-flink-cdc`).
+- **`yugabyte` JDBC dialect** — `JdbcSource`/`JdbcSink`/`LookupJoin` recognize `jdbc:yugabytedb://` URLs and resolve the `com.yugabyte:jdbc-yugabytedb` smart driver (reusing the Flink Postgres dialect module). Plain `jdbc:postgresql://` against Yugabyte still works via the `postgres` dialect.
+- **SQL-branch secrets** — `secretRef()` passwords now resolve on the SQL branch (previously pipeline-YAML only). `YugabyteCdcSource` emits `${env:…}` in the WITH clause; the docker adapter inlines it via `resolveEnvPlaceholders` before `submitSqlFile`, and the k8s CRD binds a `secretKeyRef` env on the main container (`buildSqlPodTemplate` in `crd-generator.ts`). The `sql-runner` entrypoint must `envsubst` the SQL at runtime for the k8s lane to consume it.
+
 ## Code Conventions
 
 - TypeScript strict mode, no `any`

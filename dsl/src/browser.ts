@@ -159,9 +159,15 @@ export type {
   KafkaFormat,
   KafkaSourceProps,
   KafkaStartupMode,
+  YugabyteCdcSourceProps,
 } from "./components/sources.js"
 // Components: sources
-export { GenericSource, JdbcSource, KafkaSource } from "./components/sources.js"
+export {
+  GenericSource,
+  JdbcSource,
+  KafkaSource,
+  YugabyteCdcSource,
+} from "./components/sources.js"
 export type {
   AggregateProps,
   DeduplicateProps,

@@ -55,6 +55,9 @@ const COMPONENT_CONNECTOR_MAP: ReadonlyMap<string, readonly string[]> = new Map(
     ["GenericSource", ["__generic"]],
     ["GenericSink", ["__generic"]],
     ["PostgresCdcPipelineSource", ["postgres-cdc-pipeline"]],
+    // YugabyteDB CDC uses the Flink SQL `postgres-cdc` table connector (YB fork).
+    // It stays on the SQL branch — see PIPELINE_CONNECTOR_SOURCES in sql-generator.
+    ["YugabyteCdcSource", ["postgres-cdc"]],
     ["IcebergSink", ["iceberg"]],
     ["PaimonSink", ["paimon"]],
     // FlussSink renders on both branches: the Flink-SQL connector for the
@@ -152,6 +155,7 @@ function usageKey(usage: ConnectorUsage): string {
 
 function detectDialectFromUrl(url: string): string {
   if (url.startsWith("jdbc:mysql:")) return "mysql"
+  if (url.startsWith("jdbc:yugabytedb:")) return "yugabyte"
   if (url.startsWith("jdbc:postgresql:")) return "postgres"
   if (url.startsWith("jdbc:oracle:")) return "oracle"
   if (url.startsWith("jdbc:sqlserver:")) return "sqlserver"

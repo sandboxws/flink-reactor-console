@@ -1,4 +1,5 @@
 import type { SchemaDefinition } from "@/core/schema.js"
+import { isSecretRef, renderSecretPlaceholder } from "@/core/secret-ref.js"
 import type { ConstructNode } from "@/core/types.js"
 import {
   formatWithClause,
@@ -206,6 +207,34 @@ function generateSourceWithClause(node: ConstructNode): string {
         withProps["lookup.cache.ttl"] = cache.ttl
       }
       break
+    case "YugabyteCdcSource": {
+      // YugabyteDB CDC via the Flink SQL `postgres-cdc` table connector (YB
+      // fork). Defaults are YugabyteDB-specific: YSQL port 5433 (not 5432) and
+      // decoding plugin `pgoutput` (the fork rejects the upstream default).
+      withProps.connector = "postgres-cdc"
+      withProps.hostname = props.hostname as string
+      withProps.port = String((props.port as number | undefined) ?? 5433)
+      withProps.username = props.username as string
+      // Password is a SecretRef → `${env:...}` placeholder; the runtime adapter
+      // substitutes it before submission (docker inlines, k8s binds secretKeyRef).
+      withProps.password = isSecretRef(props.password)
+        ? renderSecretPlaceholder(props.password)
+        : String(props.password)
+      withProps["database-name"] = props.database as string
+      withProps["schema-name"] =
+        (props.schemaName as string | undefined) ?? "public"
+      withProps["table-name"] = props.table as string
+      withProps["slot.name"] = (props.slotName as string | undefined) ?? "flink"
+      withProps["decoding.plugin.name"] =
+        (props.decodingPluginName as string | undefined) ?? "pgoutput"
+      if (props.snapshotMode) {
+        withProps["debezium.snapshot.mode"] = props.snapshotMode as string
+      }
+      if (props.sslMode) {
+        withProps["debezium.database.sslmode"] = props.sslMode as string
+      }
+      break
+    }
     case "GenericSource":
     case "DataGenSource":
       withProps.connector = props.connector as string

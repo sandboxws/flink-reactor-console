@@ -24,6 +24,8 @@ function connectorTypeFor(component: string): string {
       return "iceberg"
     case "PaimonSink":
       return "paimon"
+    case "YugabyteCdcSource":
+      return "postgres-cdc"
     default:
       return component.toLowerCase().replace(/source$|sink$/i, "")
   }
@@ -112,6 +114,21 @@ function extractConnectorProperties(
 
     case "IcebergSink":
       result.connector = "iceberg"
+      break
+
+    case "YugabyteCdcSource":
+      // Topology-relevant metadata only — username/password are intentionally
+      // omitted from the manifest (identity/secret, not part of the resource graph).
+      result.connector = "postgres-cdc"
+      result.hostname = props.hostname as string
+      result.port = String((props.port as number | undefined) ?? 5433)
+      result["database-name"] = props.database as string
+      result["schema-name"] =
+        (props.schemaName as string | undefined) ?? "public"
+      result["table-name"] = props.table as string
+      result["slot.name"] = (props.slotName as string | undefined) ?? "flink"
+      result["decoding.plugin.name"] =
+        (props.decodingPluginName as string | undefined) ?? "pgoutput"
       break
   }
 

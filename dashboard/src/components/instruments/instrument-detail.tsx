@@ -82,7 +82,9 @@ export function InstrumentDetailRoute({
   const basePath = `/instruments/${instrumentName}`
   const tabs: { label: string; path: string }[] = []
 
-  if (instrument.type === "database") {
+  // YugabyteDB reuses the database schema-browser/query sub-routes — they key
+  // off the instrument name and the engine is Postgres-wire-compatible.
+  if (instrument.type === "database" || instrument.type === "yugabyte") {
     tabs.push(
       { label: "Schemas", path: `${basePath}/database` },
       { label: "Query", path: `${basePath}/database/query` },

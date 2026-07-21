@@ -19,7 +19,7 @@ is no `go.work`.
 - **GraphQL contract**: Schema lives in `server/internal/graphql/schema/`, codegen in `dashboard/codegen.ts`
 - **Docker build**: `just docker` builds the dashboard, rsyncs `dashboard/dist/` → `server/dashboard/`, and copies it into the image. The dashboard is served from disk, not `go:embed`.
 - **Proxy pattern**: All Flink REST calls go through the Go server (auth injection, aggregation, no CORS)
-- **Instruments**: connectors to the systems around a job (Kafka, database, Redis, Schema Registry, Fluss, datalake). Go side in `server/internal/instruments/`, UI in `dashboard/src/components/instruments/`.
+- **Instruments**: connectors to the systems around a job (Kafka, database, YugabyteDB, Redis, Schema Registry, Fluss, datalake). Go side in `server/internal/instruments/`, UI in `dashboard/src/components/instruments/`. YugabyteDB is a first-class instrument kind that reuses the Postgres engine of the `database` instrument (YSQL is Postgres-wire-compatible).
 
 ## Commands
 

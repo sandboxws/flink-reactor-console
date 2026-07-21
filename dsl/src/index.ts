@@ -163,6 +163,7 @@ export type {
   PostgresCdcPipelineSourceProps,
   PostgresCdcSnapshotMode,
   PostgresCdcStartupMode,
+  YugabyteCdcSourceProps,
 } from "./components/sources.js"
 // Components: sources
 export {
@@ -172,6 +173,7 @@ export {
   JdbcSource,
   KafkaSource,
   PostgresCdcPipelineSource,
+  YugabyteCdcSource,
 } from "./components/sources.js"
 export type { StatementSetProps } from "./components/statement-set.js"
 // Components: statement set

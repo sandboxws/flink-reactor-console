@@ -93,6 +93,17 @@ const CONNECTOR_REGISTRY: ReadonlyMap<string, readonly PropertyRule[]> =
       ],
     ],
     [
+      "YugabyteCdcSource",
+      [
+        { kind: "required", prop: "hostname" },
+        { kind: "required", prop: "username" },
+        { kind: "required", prop: "password" },
+        { kind: "required", prop: "database" },
+        { kind: "required", prop: "table" },
+        { kind: "required", prop: "schema" },
+      ],
+    ],
+    [
       "FlussSource",
       [
         // The CatalogHandle prop is destructured into `catalogName`+
@@ -486,6 +497,7 @@ function classifySourceChangelog(
   const declared = source.props.changelogMode as string | undefined
   if (declared === "retract") return "retract"
   if (source.component === "PostgresCdcPipelineSource") return "retract"
+  if (source.component === "YugabyteCdcSource") return "retract"
   if (source.component === "KafkaSource") {
     const schema = source.props.schema as
       | { primaryKey?: { columns?: readonly string[] } }

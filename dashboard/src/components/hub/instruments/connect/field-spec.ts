@@ -6,6 +6,7 @@
  * is valid to paste into `server/config/<env>.yml`:
  *   kafka          → server/internal/instruments/kafka/instrument.go
  *   database       → server/internal/instruments/database/instrument.go
+ *   yugabyte       → server/internal/instruments/database/instrument.go (Postgres-wire)
  *   redis          → server/internal/instruments/redis/instrument.go
  *   schemaregistry → server/internal/instruments/schemaregistry/{instrument,client}.go
  *   fluss          → server/internal/instruments/fluss/config.go
@@ -43,6 +44,11 @@ export interface InstrumentTypeOption {
 export const INSTRUMENT_TYPES: InstrumentTypeOption[] = [
   { value: "kafka", label: "Kafka", supported: true },
   { value: "database", label: "Database · Postgres / MySQL", supported: true },
+  {
+    value: "yugabyte",
+    label: "YugabyteDB · Postgres-compatible",
+    supported: true,
+  },
   { value: "redis", label: "Redis", supported: true },
   { value: "schemaregistry", label: "Schema Registry", supported: true },
   { value: "fluss", label: "Fluss", supported: true },
@@ -110,6 +116,31 @@ export const INSTRUMENT_FIELD_SPECS: Record<string, FieldDef[]> = {
       required: true,
       options: ["postgres", "mysql"],
     },
+    {
+      key: "statementTimeout",
+      label: "Statement timeout (ms)",
+      kind: "number",
+      help: "0 disables the timeout",
+    },
+    {
+      key: "maxRows",
+      label: "Max rows",
+      kind: "number",
+      help: "Result row cap",
+    },
+  ],
+  yugabyte: [
+    {
+      key: "dsn",
+      label: "DSN",
+      kind: "secret",
+      required: true,
+      help: "YSQL connection string (Postgres-wire; YugabyteDB defaults to port 5433)",
+      placeholder:
+        "postgres://yugabyte:yugabyte@host:5433/yugabyte?sslmode=disable",
+    },
+    // No `driver` field: the server defaults a yugabyte instrument to the
+    // Postgres dialect (YSQL is wire-compatible). See database/instrument.go.
     {
       key: "statementTimeout",
       label: "Statement timeout (ms)",

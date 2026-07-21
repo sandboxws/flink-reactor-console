@@ -342,6 +342,114 @@ export function PostgresCdcPipelineSource<T extends Record<string, FlinkType>>(
   )
 }
 
+// ── YugabyteCdcSource ───────────────────────────────────────────────
+
+export interface YugabyteCdcSourceProps<
+  T extends Record<string, FlinkType> = Record<string, FlinkType>,
+> extends BaseComponentProps {
+  /** Optional SQL table name. Defaults to the Yugabyte table name. */
+  readonly name?: string
+  readonly hostname: string
+  /** Defaults to `5433` — the YugabyteDB YSQL tserver port (NOT Postgres 5432). */
+  readonly port?: number
+  readonly username: string
+  /**
+   * Secret reference for the password. A plain string is rejected at compile
+   * time — use `secretRef(...)`. Rendered as a `${env:<envName>}` placeholder
+   * in the WITH clause; the runtime adapters substitute it before submission
+   * (the docker adapter inlines from the host env, the kubernetes adapter binds
+   * a `secretKeyRef` env in the FlinkDeployment podTemplate).
+   */
+  readonly password: SecretRef
+  /** Postgres database → `'database-name'`. */
+  readonly database: string
+  /** Postgres schema → `'schema-name'`. Defaults to `'public'`. */
+  readonly schemaName?: string
+  /** Postgres table → `'table-name'`. */
+  readonly table: string
+  /** The Flink table column schema (+ optional PK / watermark / metadata columns). */
+  readonly schema: SchemaDefinition<T>
+  /** Explicit PK hint; overrides `schema.primaryKey`. postgres-cdc requires a PK. */
+  readonly primaryKey?: readonly string[]
+  /** Logical replication slot → `'slot.name'`. Defaults to `'flink'`. */
+  readonly slotName?: string
+  /**
+   * Logical-decoding plugin → `'decoding.plugin.name'`. Defaults to `'pgoutput'`,
+   * which YugabyteDB requires — its CDC fork does not support the upstream
+   * default (`decoderbufs`).
+   */
+  readonly decodingPluginName?: string
+  /** Optional → `'debezium.snapshot.mode'` (e.g. `'never'` to skip the initial snapshot). */
+  readonly snapshotMode?: string
+  /** Optional → `'debezium.database.sslmode'` (e.g. `'require'` for TLS). */
+  readonly sslMode?: string
+  /** Enable operator tailing for this source. */
+  readonly tap?: boolean | TapConfig
+  readonly children?: ConstructNode | ConstructNode[]
+}
+
+/**
+ * YugabyteDB CDC source (Flink SQL `postgres-cdc` table connector).
+ *
+ * YugabyteDB's YSQL API is PostgreSQL-wire-compatible, and its Flink CDC fork
+ * (`github.com/yugabyte/flink-cdc`) reuses the Debezium Postgres connector to
+ * read the logical-replication stream. This component emits a single-table
+ * `CREATE TABLE … WITH ('connector' = 'postgres-cdc', …)` on the Flink **SQL**
+ * branch — unlike `PostgresCdcPipelineSource`, which emits a whole-database
+ * `pipeline.yaml`.
+ *
+ * Defaults are YugabyteDB-specific: `port` is `5433` (the YSQL tserver port, not
+ * Postgres's 5432) and `decodingPluginName` is `'pgoutput'` (required — the YB
+ * fork rejects the upstream default plugin).
+ *
+ * The resulting `Stream` carries ChangelogMode `'retract'` unconditionally, so
+ * downstream sinks must be upsert-capable. A `PRIMARY KEY … NOT ENFORCED` is
+ * mandatory (postgres-cdc emits a PK-keyed changelog) — declare it on `schema`
+ * or via `primaryKey`.
+ *
+ * The password must be a `secretRef(...)`; the emitted `${env:…}` placeholder is
+ * resolved by the runtime adapter at deploy time (see `password` above).
+ */
+export function YugabyteCdcSource<T extends Record<string, FlinkType>>(
+  props: YugabyteCdcSourceProps<T>,
+): ConstructNode {
+  requireProps("YugabyteCdcSource", props, [
+    "hostname",
+    "username",
+    "password",
+    "database",
+    "table",
+    "schema",
+  ])
+
+  // postgres-cdc emits a changelog keyed by the table's primary key, so a
+  // `PRIMARY KEY (...) NOT ENFORCED` is mandatory in the generated DDL — Flink
+  // rejects a keyless CDC source at planner time. Fail fast at synth with a
+  // clear message rather than deferring to an opaque planner error.
+  const schema = props.schema as SchemaDefinition
+  const hasPk =
+    (props.primaryKey?.length ?? 0) > 0 ||
+    (schema.primaryKey?.columns?.length ?? 0) > 0
+  if (!hasPk) {
+    throw new Error(
+      "YugabyteCdcSource: a primary key is required — declare it on `schema` or pass `primaryKey`. postgres-cdc emits a PK-keyed changelog.",
+    )
+  }
+
+  const { children, name, ...rest } = props
+  const childArray =
+    children == null ? [] : Array.isArray(children) ? children : [children]
+
+  const changelogMode: ChangelogMode = "retract"
+  const _nameHint = name ?? toSqlIdentifier(props.table)
+
+  return createElement(
+    "YugabyteCdcSource",
+    { ...rest, changelogMode, _nameHint },
+    ...childArray,
+  )
+}
+
 // ── DataGenSource ──────────────────────────────────────────────────
 
 export interface DataGenSourceProps<

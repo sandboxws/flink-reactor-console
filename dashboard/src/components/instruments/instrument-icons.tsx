@@ -14,6 +14,7 @@ import type { InstrumentType } from "@/lib/instruments/types"
 const INSTRUMENT_ICON_MAP: Record<InstrumentType, LucideIcon> = {
   kafka: Waves,
   database: Database,
+  yugabyte: Database,
   kubernetes: Container,
   s3: HardDrive,
   prometheus: Activity,

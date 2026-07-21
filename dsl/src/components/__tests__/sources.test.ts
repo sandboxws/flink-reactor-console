@@ -4,6 +4,7 @@ import {
   JdbcSource,
   KafkaSource,
   PostgresCdcPipelineSource,
+  YugabyteCdcSource,
 } from "@/components/sources.js"
 import { resetNodeIdCounter } from "@/core/jsx-runtime.js"
 import { Field, Schema } from "@/core/schema.js"
@@ -230,5 +231,108 @@ describe("PostgresCdcPipelineSource", () => {
     expect(node.props.slotDropOnStop).toBe(true)
     expect(node.props.heartbeatIntervalMs).toBe(30000)
     expect(node.props.decodingPluginName).toBe("wal2json")
+  })
+})
+
+const ShipmentsSchema = Schema({
+  fields: {
+    shipment_id: Field.INT(),
+    order_id: Field.INT(),
+    origin: Field.STRING(),
+    destination: Field.STRING(),
+    is_arrived: Field.BOOLEAN(),
+  },
+  primaryKey: { columns: ["shipment_id"] },
+})
+
+describe("YugabyteCdcSource", () => {
+  const base = {
+    hostname: "yb-tserver",
+    username: "yugabyte",
+    password: secretRef("yb-credentials"),
+    database: "yugabyte",
+    table: "shipments",
+    schema: ShipmentsSchema,
+  }
+
+  it("creates a retract Source node", () => {
+    const node = YugabyteCdcSource(base)
+
+    expect(node.kind).toBe("Source")
+    expect(node.component).toBe("YugabyteCdcSource")
+    expect(node.props.changelogMode).toBe("retract")
+    expect(node.props.hostname).toBe("yb-tserver")
+    expect(node.props.table).toBe("shipments")
+  })
+
+  it("derives the node id (SQL table name) from the table", () => {
+    const node = YugabyteCdcSource(base)
+    expect(node.id).toBe("shipments")
+  })
+
+  it("stores the SecretRef password unmodified on the node", () => {
+    const ref = secretRef("yb-credentials")
+    const node = YugabyteCdcSource({ ...base, password: ref })
+    expect(node.props.password).toBe(ref)
+  })
+
+  it("accepts a primaryKey prop when the schema has no PK", () => {
+    const node = YugabyteCdcSource({
+      ...base,
+      schema: EventSchema,
+      primaryKey: ["id"],
+    })
+    expect(node.props.primaryKey).toEqual(["id"])
+  })
+
+  it("throws when no primary key is declared (postgres-cdc requires one)", () => {
+    expect(() => YugabyteCdcSource({ ...base, schema: EventSchema })).toThrow(
+      /YugabyteCdcSource.*primary key/i,
+    )
+  })
+
+  it("throws when password is missing", () => {
+    expect(() =>
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately missing prop
+      YugabyteCdcSource({
+        hostname: "yb-tserver",
+        username: "yugabyte",
+        database: "yugabyte",
+        table: "shipments",
+        schema: ShipmentsSchema,
+      } as any),
+    ).toThrow(/YugabyteCdcSource.*password/)
+  })
+
+  it("throws when table is missing", () => {
+    expect(() =>
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately missing prop
+      YugabyteCdcSource({
+        hostname: "yb-tserver",
+        username: "yugabyte",
+        password: secretRef("yb-credentials"),
+        database: "yugabyte",
+        schema: ShipmentsSchema,
+      } as any),
+    ).toThrow(/YugabyteCdcSource.*table/)
+  })
+
+  it("preserves optional slot/plugin/port/ssl props", () => {
+    const node = YugabyteCdcSource({
+      ...base,
+      port: 5433,
+      schemaName: "public",
+      slotName: "flink",
+      decodingPluginName: "pgoutput",
+      snapshotMode: "never",
+      sslMode: "require",
+    })
+
+    expect(node.props.port).toBe(5433)
+    expect(node.props.schemaName).toBe("public")
+    expect(node.props.slotName).toBe("flink")
+    expect(node.props.decodingPluginName).toBe("pgoutput")
+    expect(node.props.snapshotMode).toBe("never")
+    expect(node.props.sslMode).toBe("require")
   })
 })

@@ -34,8 +34,8 @@ CREATE TABLE \`orders_filtered\` (
   PRIMARY KEY (\`order_id\`) NOT ENFORCED
 ) WITH (
   'connector' = 'jdbc',
-  'url' = 'jdbc:postgresql://db:5432/app',
-  'table-name' = 'orders_filtered'
+  'table-name' = 'orders_filtered',
+  'url' = 'jdbc:postgresql://db:5432/app'
 );
 
 INSERT INTO \`orders_filtered\`
@@ -65,10 +65,10 @@ CREATE TABLE \`orders\` (
   \`order_time\` TIMESTAMP(3)
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'orders',
   'format' = 'json',
   'properties.bootstrap.servers' = 'kafka:9092',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'topic' = 'orders'
 );
 \`\`\`
 

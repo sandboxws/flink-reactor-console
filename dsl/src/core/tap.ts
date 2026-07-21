@@ -392,6 +392,19 @@ function extractConnectorProperties(
     case "IcebergSink":
       result.connector = "iceberg"
       break
+
+    case "YugabyteCdcSource":
+      // connector "postgres-cdc" → resolveObservationStrategy → "unsupported":
+      // a CDC replication slot is exclusive, so it cannot be clone-tapped.
+      result.connector = "postgres-cdc"
+      result.hostname = props.hostname as string
+      result.port = String((props.port as number | undefined) ?? 5433)
+      result["database-name"] = props.database as string
+      result["schema-name"] =
+        (props.schemaName as string | undefined) ?? "public"
+      result["table-name"] = props.table as string
+      result["slot.name"] = (props.slotName as string | undefined) ?? "flink"
+      break
   }
 
   return result

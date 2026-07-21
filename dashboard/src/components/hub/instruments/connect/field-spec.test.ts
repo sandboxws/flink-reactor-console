@@ -119,3 +119,33 @@ describe("maskSecrets + toYaml", () => {
     expect(toYaml("redis", "r", config, false)).toContain('password: "p"')
   })
 })
+
+describe("yugabyte instrument", () => {
+  it("builds a config without a driver field (the server defaults it)", () => {
+    const config = buildConfig("yugabyte", {
+      dsn: "postgres://yugabyte:yugabyte@host:5433/yugabyte",
+      statementTimeout: "5000",
+      maxRows: "1000",
+    })
+    expect(config).toEqual({
+      dsn: "postgres://yugabyte:yugabyte@host:5433/yugabyte",
+      statementTimeout: 5000,
+      maxRows: 1000,
+    })
+    expect(config).not.toHaveProperty("driver")
+  })
+
+  it("reports a missing DSN as required", () => {
+    expect(requiredMissing("yugabyte", {})).toContain("DSN")
+  })
+
+  it("masks the DSN secret in emitted YAML", () => {
+    const config = buildConfig("yugabyte", {
+      dsn: "postgres://yugabyte:secretpw@host:5433/yugabyte",
+    })
+    const yaml = toYaml("yugabyte", "prod-yb", config)
+    expect(yaml).toContain('  - type: "yugabyte"')
+    expect(yaml).toContain(`dsn: "${SECRET_PLACEHOLDER}"`)
+    expect(yaml).not.toContain("secretpw")
+  })
+})

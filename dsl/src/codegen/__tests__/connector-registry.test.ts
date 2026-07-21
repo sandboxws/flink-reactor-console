@@ -131,6 +131,23 @@ describe("resolveConnectorArtifacts: postgres-cdc-pipeline", () => {
   })
 })
 
+// ── YugabyteDB CDC (SQL postgres-cdc fork) Resolution ───────────────
+
+describe("resolveConnectorArtifacts: postgres-cdc (YugabyteDB fork)", () => {
+  it("resolves the YugabyteDB fork coordinate at Flink 1.20", () => {
+    const artifacts = resolveConnectorArtifacts("postgres-cdc", "1.20")
+    expect(artifacts).toHaveLength(1)
+    // NOTE: placeholder coordinates — see TODO(yugabyte) in connector-registry.ts.
+    expect(artifacts[0].groupId).toBe("com.yugabyte")
+    expect(artifacts[0].artifactId).toBe("flink-sql-connector-postgres-cdc")
+  })
+
+  it("resolves empty at Flink 2.x (no YugabyteDB fork build exists yet)", () => {
+    expect(resolveConnectorArtifacts("postgres-cdc", "2.0")).toHaveLength(0)
+    expect(resolveConnectorArtifacts("postgres-cdc", "2.2")).toHaveLength(0)
+  })
+})
+
 // ── Iceberg Connector Resolution ────────────────────────────────────
 
 describe("resolveConnectorArtifacts: iceberg", () => {
@@ -196,6 +213,22 @@ describe("detectJdbcDialect", () => {
     expect(dialect?.dialect).toBe("db2")
   })
 
+  it("detects YugabyteDB from URL", () => {
+    const dialect = detectJdbcDialect(
+      "jdbc:yugabytedb://localhost:5433/yugabyte",
+    )
+    expect(dialect).toBeDefined()
+    expect(dialect?.dialect).toBe("yugabyte")
+  })
+
+  it("still detects PostgreSQL for a jdbc:postgresql Yugabyte URL", () => {
+    // jdbc:postgresql:// against Yugabyte keeps working via the postgres dialect.
+    const dialect = detectJdbcDialect(
+      "jdbc:postgresql://localhost:5433/yugabyte",
+    )
+    expect(dialect?.dialect).toBe("postgres")
+  })
+
   it("returns undefined for unknown URL", () => {
     expect(detectJdbcDialect("jdbc:h2:mem:test")).toBeUndefined()
   })
@@ -223,6 +256,28 @@ describe("resolveJdbcDialectArtifacts", () => {
     )
     expect(artifacts).toHaveLength(1)
     expect(artifacts[0].artifactId).toBe("postgresql")
+  })
+
+  it("resolves YugabyteDB: postgres dialect module + YB smart driver (2.0+)", () => {
+    const artifacts = resolveJdbcDialectArtifacts(
+      "jdbc:yugabytedb://localhost:5433/yugabyte",
+      "2.0",
+    )
+    expect(artifacts).toHaveLength(2)
+    // Reuses the Flink Postgres dialect module (YSQL is wire-compatible)...
+    expect(artifacts[0].artifactId).toBe("flink-connector-jdbc-postgres")
+    // ...only the driver differs (the YugabyteDB smart driver).
+    expect(artifacts[1].groupId).toBe("com.yugabyte")
+    expect(artifacts[1].artifactId).toBe("jdbc-yugabytedb")
+  })
+
+  it("resolves only the YB smart driver for Flink 1.20 (single JAR)", () => {
+    const artifacts = resolveJdbcDialectArtifacts(
+      "jdbc:yugabytedb://localhost:5433/yugabyte",
+      "1.20",
+    )
+    expect(artifacts).toHaveLength(1)
+    expect(artifacts[0].artifactId).toBe("jdbc-yugabytedb")
   })
 
   it("returns empty for unknown dialect URL", () => {

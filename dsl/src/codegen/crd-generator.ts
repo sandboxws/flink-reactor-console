@@ -565,6 +565,46 @@ function buildPipelineConnectorPodTemplate(
   }
 }
 
+/**
+ * SQL-branch podTemplate. Binds `secretRef()` passwords (e.g. from a
+ * YugabyteCdcSource) as `secretKeyRef` env on the main container so the SQL
+ * runner can `envsubst` the `${env:...}` placeholders in the generated SQL at
+ * runtime. Unlike the Pipeline-Connector template there is no pipeline.yaml
+ * volume — SQL is submitted through the gateway/jar, not a mounted ConfigMap.
+ *
+ * Returns `undefined` when there are neither secrets nor telemetry labels, so
+ * pipelines that use neither keep their previous (no podTemplate) shape. When
+ * only labels are present, keeps the metadata-only shape the operator merges.
+ */
+function buildSqlPodTemplate(
+  secretRefs: readonly SecretRef[],
+  podLabels?: Record<string, string>,
+): PodTemplate | undefined {
+  const hasLabels = podLabels !== undefined && Object.keys(podLabels).length > 0
+  if (secretRefs.length === 0 && !hasLabels) return undefined
+
+  if (secretRefs.length === 0) {
+    // Labels only — metadata-only pod template (operator merges it over the
+    // generated pod spec), matching the prior behaviour for label telemetry.
+    return {
+      metadata: { labels: { ...(podLabels as Record<string, string>) } },
+    }
+  }
+
+  const env = secretRefs.map((ref) => ({
+    name: ref.envName,
+    valueFrom: {
+      secretKeyRef: { name: ref.name, key: ref.key },
+    },
+  }))
+  const container: PodTemplateContainer = { name: FLINK_MAIN_CONTAINER, env }
+
+  return {
+    ...(hasLabels ? { metadata: { labels: { ...podLabels } } } : {}),
+    spec: { containers: [container] },
+  }
+}
+
 // ── CRD generation ──────────────────────────────────────────────────
 
 /**
@@ -596,7 +636,7 @@ export function generateCrd(
     return generatePipelineConnectorCrd(pipelineNode, props, options)
   }
 
-  return generateFlinkDeploymentCrd(props, options)
+  return generateFlinkDeploymentCrd(pipelineNode, props, options)
 }
 
 function generatePipelineConnectorCrd(
@@ -648,6 +688,7 @@ function generatePipelineConnectorCrd(
 }
 
 function generateFlinkDeploymentCrd(
+  pipelineNode: ConstructNode,
   props: PipelineProps,
   options: CrdGeneratorOptions,
 ): FlinkDeploymentCrd {
@@ -660,14 +701,12 @@ function generateFlinkDeploymentCrd(
     ...(options.annotations ? { annotations: options.annotations } : {}),
   }
 
-  // Telemetry labels also land on the pods (metadata-only pod template —
-  // the operator merges it) so Prometheus kubernetes_sd discovery sees
-  // them without scrape-config changes.
-  const podLabels = props.telemetry?.labels
-  const podTemplate: PodTemplate | undefined =
-    podLabels && Object.keys(podLabels).length > 0
-      ? { metadata: { labels: { ...podLabels } } }
-      : undefined
+  // SQL-branch secrets (e.g. a YugabyteCdcSource password secretRef) bind as
+  // secretKeyRef env on the main container. Telemetry labels also land on the
+  // pods (metadata-only pod template — the operator merges it) so Prometheus
+  // kubernetes_sd discovery sees them without scrape-config changes.
+  const secretRefs = collectSecretRefs(pipelineNode)
+  const podTemplate = buildSqlPodTemplate(secretRefs, props.telemetry?.labels)
 
   return {
     apiVersion: "flink.apache.org/v1beta1",

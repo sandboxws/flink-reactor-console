@@ -345,7 +345,7 @@ The features that matter at 5 jobs are table stakes. These are the ones that mat
 
 | Group | Components |
 | --- | --- |
-| **Sources** | `KafkaSource`, `JdbcSource`, `FlussSource`, `PostgresCdcPipelineSource`, `DataGenSource`, `CatalogSource`, `GenericSource` |
+| **Sources** | `KafkaSource`, `JdbcSource`, `FlussSource`, `PostgresCdcPipelineSource`, `YugabyteCdcSource`, `DataGenSource`, `CatalogSource`, `GenericSource` |
 | **Sinks** | `KafkaSink`, `JdbcSink`, `IcebergSink`, `PaimonSink`, `FlussSink`, `FileSystemSink`, `GenericSink` |
 | **Transforms** | `Filter`, `Map`, `FlatMap`, `Aggregate`, `Union`, `Deduplicate`, `TopN` |
 | **Field transforms** | `AddField`, `Cast`, `Coalesce`, `Drop`, `Rename` for column-level schema evolution |

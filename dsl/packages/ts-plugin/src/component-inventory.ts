@@ -33,6 +33,7 @@ export const DSL_COMPONENTS: ReadonlyMap<string, ComponentKind> = new Map([
   ["JdbcSource", "Source"],
   ["GenericSource", "Source"],
   ["CatalogSource", "Source"],
+  ["YugabyteCdcSource", "Source"],
   // Sinks
   ["KafkaSink", "Sink"],
   ["JdbcSink", "Sink"],
