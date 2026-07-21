@@ -15,6 +15,12 @@ import {
 } from "@/cli/runtime/container-engine.js"
 import { CliError } from "@/core/errors.js"
 
+/**
+ * Default Flink version installed when `--flink-version` is omitted. Shared by
+ * the `--help` text and the runtime resolver so they cannot drift apart.
+ */
+export const DEFAULT_FLINK_VERSION = "2.3"
+
 export type InstallMethod = "docker" | "homebrew" | "binary"
 
 export interface PlatformInfo {
@@ -43,7 +49,10 @@ export function registerInstallCommand(program: Command): void {
         "binary",
       ]),
     )
-    .option("--flink-version <version>", "Flink version (default: 1.20)")
+    .option(
+      "--flink-version <version>",
+      `Flink version (default: ${DEFAULT_FLINK_VERSION})`,
+    )
     .action(async (opts: Record<string, unknown>) => {
       await runCommand(
         Effect.tryPromise({
@@ -136,7 +145,7 @@ export async function runInstallFlink(
   opts: Record<string, unknown>,
 ): Promise<void> {
   const info = detectPlatform()
-  const flinkVersion = (opts.flinkVersion as string) ?? "2.3"
+  const flinkVersion = (opts.flinkVersion as string) ?? DEFAULT_FLINK_VERSION
 
   clack.intro(pc.bgCyan(pc.black(" flink-reactor install flink ")))
 
