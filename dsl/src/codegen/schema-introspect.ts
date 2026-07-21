@@ -375,11 +375,23 @@ export function resolveNodeSchema(
         ...temporalSchema.filter((c) => !streamNames.has(c.name)),
       ]
     }
-    // LookupJoin — only input schema (lookup table is external)
-    case "LookupJoin":
-      return node.children[0]
+    // LookupJoin — driving input columns plus dimension columns not already
+    // present. The dimension is attached as children[1].
+    case "LookupJoin": {
+      const inputSchema = node.children[0]
         ? resolveNodeSchema(node.children[0], nodeIndex)
         : null
+      const dimSchema = node.children[1]
+        ? resolveNodeSchema(node.children[1], nodeIndex)
+        : null
+      if (!inputSchema) return dimSchema
+      if (!dimSchema) return inputSchema
+      const inputNames = new Set(inputSchema.map((c) => c.name))
+      return [
+        ...inputSchema,
+        ...dimSchema.filter((c) => !inputNames.has(c.name)),
+      ]
+    }
 
     // MatchRecognize — output schema from PARTITION BY + MEASURES
     case "MatchRecognize": {

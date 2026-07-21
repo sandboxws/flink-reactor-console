@@ -169,8 +169,7 @@ const stats = Aggregate({
 
 const enriched = LookupJoin({
   input: stats,
-  table: "device_registry",
-  url: "jdbc:postgresql://postgres:5432/flink_sink",
+  dimension: devices,
   on: "deviceId = deviceId",
 });
 
@@ -189,7 +188,6 @@ export default (
     }}
   >
     {readings}
-    {devices}
     {enriched}
     <Route>
       <Route.Branch condition="stddevValue > thresholdTemp">

@@ -1,5 +1,6 @@
 import type { SchemaDefinition } from "@/core/schema.js"
 import type { ConstructNode } from "@/core/types.js"
+import { resolveNodeSchema } from "../schema-introspect.js"
 import type { BuildContext } from "./sql-build-context.js"
 import { quoteIdentifier as q } from "./sql-identifiers.js"
 import { sameNameJoinKeys } from "./sql-join-helpers.js"
@@ -145,49 +146,74 @@ export function buildLookupJoinQuery(
 ): string {
   const onCondition = node.props.on as string
   const inputId = node.props.input as string
-  const table = node.props.table as string
+  const dimId = node.props.dimension as string
   const select = node.props.select as Record<string, string> | undefined
 
   const input = resolveJoinOperand(ctx, inputId, ctx.buildQuery)
+  const dim = resolveJoinOperand(ctx, dimId, ctx.buildQuery)
 
   // Wrap the driving input in a CTE that adds PROCTIME() AS proc_time.
   // Lookup joins require a processing-time attribute on the left side;
   // keeping it local to this join avoids mutating every source's DDL.
   const procCteName = `_lookup_${node.id}`
   const procCte = `${q(procCteName)} AS (SELECT *, PROCTIME() AS proc_time FROM ${input.ref})`
-  const ctes = [input.cte, procCte].filter(Boolean)
+  const ctes = [input.cte, dim.cte, procCte].filter(Boolean)
   const ctePrefix = `WITH ${ctes.join(",\n")}\n`
 
   const leftRef = q(procCteName)
-  const rightRef = q(table)
+  const rightRef = dim.ref
 
-  // Disambiguate same-name join keys (BUG-017 pattern) — qualify with
-  // side refs and prune duplicate right columns from SELECT *.
-  const sharedKeys = sameNameJoinKeys(onCondition)
+  // A bare column (`"customer_id"`) is an equi-join on that shared key;
+  // otherwise accept the same-name forms, else emit the condition verbatim.
+  const bareKey = onCondition.match(/^\s*([A-Za-z_]\w*)\s*$/)
+  const sharedKeys = bareKey ? [bareKey[1]] : sameNameJoinKeys(onCondition)
   const qualifiedOn = sharedKeys
     ? sharedKeys
         .map((k) => `${leftRef}.${q(k)} = ${rightRef}.${q(k)}`)
         .join(" AND ")
     : onCondition
 
-  let projection: string
-  if (select) {
-    projection = Object.entries(select)
-      .map(([alias, expr]) => `${expr} AS ${q(alias)}`)
-      .join(", ")
-  } else if (sharedKeys) {
-    projection = buildJoinProjectionSkippingRightCols(
-      ctx,
-      leftRef,
-      rightRef,
-      table,
-      sharedKeys,
-    )
-  } else {
-    projection = "*"
-  }
+  const projection = select
+    ? Object.entries(select)
+        .map(([alias, expr]) => `${expr} AS ${q(alias)}`)
+        .join(", ")
+    : buildLookupProjection(ctx, leftRef, inputId, rightRef, dimId)
 
   return `${ctePrefix}SELECT ${projection} FROM ${leftRef} LEFT JOIN ${rightRef} FOR SYSTEM_TIME AS OF ${leftRef}.proc_time ON ${qualifiedOn}`
+}
+
+/**
+ * Project explicit input columns (from the input's resolved schema — so the
+ * synthetic `proc_time` never reaches the sink) followed by every dimension
+ * column not already carried by the input (which drops the duplicate join
+ * key). Falls back to `left.*` when the input schema isn't introspectable.
+ */
+function buildLookupProjection(
+  ctx: BuildContext,
+  leftRef: string,
+  inputId: string,
+  rightRef: string,
+  dimId: string,
+): string {
+  const inputNode = ctx.nodeIndex.get(inputId)
+  const dimNode = ctx.nodeIndex.get(dimId)
+  const inputSchema = inputNode
+    ? resolveNodeSchema(inputNode, ctx.nodeIndex)
+    : null
+  const dimSchema = dimNode ? resolveNodeSchema(dimNode, ctx.nodeIndex) : null
+  const dimNames = dimSchema?.map((c) => c.name) ?? []
+
+  if (!inputSchema) {
+    if (dimNames.length === 0) return `${leftRef}.*`
+    return `${leftRef}.*, ${dimNames.map((c) => `${rightRef}.${q(c)}`).join(", ")}`
+  }
+
+  const inputNames = new Set(inputSchema.map((c) => c.name))
+  const left = inputSchema.map((c) => `${leftRef}.${q(c.name)}`)
+  const right = dimNames
+    .filter((c) => !inputNames.has(c))
+    .map((c) => `${rightRef}.${q(c)}`)
+  return [...left, ...right].join(", ")
 }
 
 // ── Interval Join ───────────────────────────────────────────────────

@@ -416,11 +416,9 @@ export default (
     }}
   >
     {orders}
-    {customers}
     {LookupJoin({
       input: orders,
-      table: "customers",
-      url: "jdbc:postgresql://postgres:5432/flink_sink",
+      dimension: customers,
       on: "customerId = customerId",
     })}
     <SessionWindow gap="30 MINUTE" on="orderTime" />

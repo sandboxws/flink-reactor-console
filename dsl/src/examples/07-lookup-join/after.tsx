@@ -15,6 +15,16 @@ const ActionSchema = Schema({
   },
 })
 
+const UserProfileSchema = Schema({
+  fields: {
+    user_id: Field.STRING(),
+    user_name: Field.STRING(),
+    user_tier: Field.STRING(),
+    user_region: Field.STRING(),
+  },
+  primaryKey: { columns: ["user_id"] },
+})
+
 const actions = (
   <KafkaSource
     topic="user_actions"
@@ -29,6 +39,7 @@ export default (
       input={actions}
       table="user_profiles"
       url="jdbc:mysql://db:3306/users"
+      schema={UserProfileSchema}
       on="user_id"
       async={{ enabled: true, capacity: 100, timeout: "30s" }}
       cache={{ type: "lru", maxRows: 10000, ttl: "1m" }}

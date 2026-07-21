@@ -268,6 +268,13 @@ export function validateSchemaReferences(
         siblingSchema = resolveNodeSchema(child, nodeIndex)
       } else if (child.kind === "Transform" && siblingSchema) {
         siblingSchema = resolveTransformSchema(child, siblingSchema)
+      } else if (child.kind === "Join") {
+        // A join emits its combined output — the driving input plus the
+        // enriched/right-hand columns (e.g. a LookupJoin's dimension
+        // columns). Propagate that so downstream siblings validate against
+        // the joined schema, not just the pre-join input.
+        const joined = resolveNodeSchema(child, nodeIndex)
+        if (joined !== null) siblingSchema = joined
       }
     }
   }

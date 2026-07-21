@@ -21,6 +21,24 @@ const SalesSchema = Schema({
   },
 })
 
+const DimProductSchema = Schema({
+  fields: {
+    product_id: Field.STRING(),
+    product_name: Field.STRING(),
+    category: Field.STRING(),
+  },
+  primaryKey: { columns: ["product_id"] },
+})
+
+const DimStoreSchema = Schema({
+  fields: {
+    store_id: Field.STRING(),
+    store_name: Field.STRING(),
+    region: Field.STRING(),
+  },
+  primaryKey: { columns: ["store_id"] },
+})
+
 const sales = (
   <KafkaSource
     topic="sales_transactions"
@@ -35,6 +53,7 @@ const withProducts = (
     input={sales}
     table="dim_products"
     url="jdbc:mysql://db:3306/catalog"
+    schema={DimProductSchema}
     on="product_id"
     async={{ enabled: true, capacity: 200 }}
     cache={{ type: "lru", maxRows: 50000, ttl: "5m" }}
@@ -47,6 +66,7 @@ const enriched = (
     input={withProducts}
     table="dim_stores"
     url="jdbc:mysql://db:3306/catalog"
+    schema={DimStoreSchema}
     on="store_id"
     async={{ enabled: true, capacity: 100 }}
     cache={{ type: "lru", maxRows: 10000, ttl: "10m" }}

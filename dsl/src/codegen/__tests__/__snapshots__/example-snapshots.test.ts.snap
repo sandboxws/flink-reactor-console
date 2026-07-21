@@ -508,6 +508,29 @@ CREATE TABLE \`user_actions\` (
 );
 
 -- ====================================================================
+-- SOURCE TABLE
+-- --------------------------------------------------------------------
+-- id          : user_profiles
+-- type        : jdbc
+-- table       : user_profiles
+-- url         : jdbc:mysql://db:3306/users
+-- ====================================================================
+
+CREATE TABLE \`user_profiles\` (
+  \`user_id\` STRING,
+  \`user_name\` STRING,
+  \`user_tier\` STRING,
+  \`user_region\` STRING,
+  PRIMARY KEY (\`user_id\`) NOT ENFORCED
+) WITH (
+  'connector' = 'jdbc',
+  'lookup.cache.max-rows' = '10000',
+  'lookup.cache.ttl' = '1m',
+  'table-name' = 'user_profiles',
+  'url' = 'jdbc:mysql://db:3306/users'
+);
+
+-- ====================================================================
 -- SINK TABLE
 -- --------------------------------------------------------------------
 -- id          : premium_user_actions
@@ -521,7 +544,10 @@ CREATE TABLE \`premium_user_actions\` (
   \`user_id\` STRING,
   \`action_type\` STRING,
   \`action_time\` TIMESTAMP(3),
-  \`metadata\` STRING
+  \`metadata\` STRING,
+  \`user_name\` STRING,
+  \`user_tier\` STRING,
+  \`user_region\` STRING
 ) WITH (
   'connector' = 'kafka',
   'format' = 'json',
@@ -532,7 +558,7 @@ CREATE TABLE \`premium_user_actions\` (
 -- ====================================================================
 -- TRANSFORMATION
 -- --------------------------------------------------------------------
--- step        : Filter_2
+-- step        : Filter_3
 -- type        : Filter
 -- input       : user_actions
 -- output      : premium_user_actions
@@ -541,8 +567,8 @@ CREATE TABLE \`premium_user_actions\` (
 
 INSERT INTO \`premium_user_actions\`
 SELECT * FROM (
-WITH \`_lookup_LookupJoin_1\` AS (SELECT *, PROCTIME() AS proc_time FROM \`user_actions\`)
-SELECT * FROM \`_lookup_LookupJoin_1\` LEFT JOIN \`user_profiles\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_1\`.proc_time ON user_id
+WITH \`_lookup_LookupJoin_2\` AS (SELECT *, PROCTIME() AS proc_time FROM \`user_actions\`)
+SELECT \`_lookup_LookupJoin_2\`.\`action_id\`, \`_lookup_LookupJoin_2\`.\`user_id\`, \`_lookup_LookupJoin_2\`.\`action_type\`, \`_lookup_LookupJoin_2\`.\`action_time\`, \`_lookup_LookupJoin_2\`.\`metadata\`, \`user_profiles\`.\`user_name\`, \`user_profiles\`.\`user_tier\`, \`user_profiles\`.\`user_region\` FROM \`_lookup_LookupJoin_2\` LEFT JOIN \`user_profiles\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_2\`.proc_time ON \`_lookup_LookupJoin_2\`.\`user_id\` = \`user_profiles\`.\`user_id\`
 ) WHERE user_tier IN ('premium', 'enterprise');
 "
 `;
@@ -1442,6 +1468,50 @@ CREATE TABLE \`sales_transactions\` (
 );
 
 -- ====================================================================
+-- SOURCE TABLE
+-- --------------------------------------------------------------------
+-- id          : dim_products
+-- type        : jdbc
+-- table       : dim_products
+-- url         : jdbc:mysql://db:3306/catalog
+-- ====================================================================
+
+CREATE TABLE \`dim_products\` (
+  \`product_id\` STRING,
+  \`product_name\` STRING,
+  \`category\` STRING,
+  PRIMARY KEY (\`product_id\`) NOT ENFORCED
+) WITH (
+  'connector' = 'jdbc',
+  'lookup.cache.max-rows' = '50000',
+  'lookup.cache.ttl' = '5m',
+  'table-name' = 'dim_products',
+  'url' = 'jdbc:mysql://db:3306/catalog'
+);
+
+-- ====================================================================
+-- SOURCE TABLE
+-- --------------------------------------------------------------------
+-- id          : dim_stores
+-- type        : jdbc
+-- table       : dim_stores
+-- url         : jdbc:mysql://db:3306/catalog
+-- ====================================================================
+
+CREATE TABLE \`dim_stores\` (
+  \`store_id\` STRING,
+  \`store_name\` STRING,
+  \`region\` STRING,
+  PRIMARY KEY (\`store_id\`) NOT ENFORCED
+) WITH (
+  'connector' = 'jdbc',
+  'lookup.cache.max-rows' = '10000',
+  'lookup.cache.ttl' = '10m',
+  'table-name' = 'dim_stores',
+  'url' = 'jdbc:mysql://db:3306/catalog'
+);
+
+-- ====================================================================
 -- SINK TABLE
 -- --------------------------------------------------------------------
 -- id          : dashboard_top_categories_per_region
@@ -1469,7 +1539,7 @@ CREATE TABLE \`dashboard_top_categories_per_region\` (
 -- ====================================================================
 -- TRANSFORMATION
 -- --------------------------------------------------------------------
--- step        : TopN_5
+-- step        : TopN_7
 -- type        : TopN
 -- input       : sales_transactions
 -- output      : dashboard_top_categories_per_region
@@ -1480,12 +1550,12 @@ INSERT INTO \`dashboard_top_categories_per_region\`
 SELECT *, ROW_NUMBER() OVER (PARTITION BY \`window_start\`, \`region\` ORDER BY \`revenue\` DESC) AS rownum
 FROM (
 WITH \`_windowed_input\` AS (
-WITH \`LookupJoin_1\` AS (
-WITH \`_lookup_LookupJoin_1\` AS (SELECT *, PROCTIME() AS proc_time FROM \`sales_transactions\`)
-SELECT * FROM \`_lookup_LookupJoin_1\` LEFT JOIN \`dim_products\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_1\`.proc_time ON product_id
+WITH \`LookupJoin_2\` AS (
+WITH \`_lookup_LookupJoin_2\` AS (SELECT *, PROCTIME() AS proc_time FROM \`sales_transactions\`)
+SELECT \`_lookup_LookupJoin_2\`.\`transaction_id\`, \`_lookup_LookupJoin_2\`.\`store_id\`, \`_lookup_LookupJoin_2\`.\`product_id\`, \`_lookup_LookupJoin_2\`.\`quantity\`, \`_lookup_LookupJoin_2\`.\`unit_price\`, \`_lookup_LookupJoin_2\`.\`transaction_time\`, \`dim_products\`.\`product_name\`, \`dim_products\`.\`category\` FROM \`_lookup_LookupJoin_2\` LEFT JOIN \`dim_products\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_2\`.proc_time ON \`_lookup_LookupJoin_2\`.\`product_id\` = \`dim_products\`.\`product_id\`
 ),
-\`_lookup_LookupJoin_2\` AS (SELECT *, PROCTIME() AS proc_time FROM \`LookupJoin_1\`)
-SELECT * FROM \`_lookup_LookupJoin_2\` LEFT JOIN \`dim_stores\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_2\`.proc_time ON store_id
+\`_lookup_LookupJoin_4\` AS (SELECT *, PROCTIME() AS proc_time FROM \`LookupJoin_2\`)
+SELECT \`_lookup_LookupJoin_4\`.\`transaction_id\`, \`_lookup_LookupJoin_4\`.\`store_id\`, \`_lookup_LookupJoin_4\`.\`product_id\`, \`_lookup_LookupJoin_4\`.\`quantity\`, \`_lookup_LookupJoin_4\`.\`unit_price\`, \`_lookup_LookupJoin_4\`.\`transaction_time\`, \`_lookup_LookupJoin_4\`.\`product_name\`, \`_lookup_LookupJoin_4\`.\`category\`, \`dim_stores\`.\`store_name\`, \`dim_stores\`.\`region\` FROM \`_lookup_LookupJoin_4\` LEFT JOIN \`dim_stores\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_4\`.proc_time ON \`_lookup_LookupJoin_4\`.\`store_id\` = \`dim_stores\`.\`store_id\`
 )
 SELECT \`region\`, \`category\`, SUM(quantity * unit_price) AS \`revenue\`, SUM(quantity) AS \`units_sold\`, COUNT(*) AS \`transaction_count\`, window_start, window_end FROM TABLE(
   TUMBLE(TABLE \`_windowed_input\`, DESCRIPTOR(\`transaction_time\`), INTERVAL '1' MINUTE)
@@ -1688,6 +1758,28 @@ CREATE TABLE \`user_events\` (
 );
 
 -- ====================================================================
+-- SOURCE TABLE
+-- --------------------------------------------------------------------
+-- id          : user_profiles
+-- type        : jdbc
+-- table       : user_profiles
+-- url         : jdbc:postgresql://db:5432/users
+-- ====================================================================
+
+CREATE TABLE \`user_profiles\` (
+  \`user_id\` STRING,
+  \`user_name\` STRING,
+  \`user_tier\` STRING,
+  PRIMARY KEY (\`user_id\`) NOT ENFORCED
+) WITH (
+  'connector' = 'jdbc',
+  'lookup.cache.max-rows' = '50000',
+  'lookup.cache.ttl' = '5m',
+  'table-name' = 'user_profiles',
+  'url' = 'jdbc:postgresql://db:5432/users'
+);
+
+-- ====================================================================
 -- SINK TABLE
 -- --------------------------------------------------------------------
 -- id          : user_events_2
@@ -1773,7 +1865,7 @@ CREATE TABLE \`premium_user_conversions\` (
 -- ====================================================================
 -- TRANSFORMATION
 -- --------------------------------------------------------------------
--- step        : Filter_6
+-- step        : Filter_7
 -- type        : Filter
 -- input       : user_events
 -- output      : premium_user_conversions
@@ -1786,12 +1878,12 @@ SELECT *, CAST(\`event_time\` AS DATE) AS \`dt\` FROM (
 SELECT * FROM \`user_events\`
 );
 INSERT INTO \`enriched_user_events\`
-WITH \`_lookup_LookupJoin_1\` AS (SELECT *, PROCTIME() AS proc_time FROM \`user_events\`)
-SELECT * FROM \`_lookup_LookupJoin_1\` LEFT JOIN \`user_profiles\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_1\`.proc_time ON user_id;
+WITH \`_lookup_LookupJoin_2\` AS (SELECT *, PROCTIME() AS proc_time FROM \`user_events\`)
+SELECT \`_lookup_LookupJoin_2\`.\`event_id\`, \`_lookup_LookupJoin_2\`.\`user_id\`, \`_lookup_LookupJoin_2\`.\`event_type\`, \`_lookup_LookupJoin_2\`.\`event_data\`, \`_lookup_LookupJoin_2\`.\`event_time\`, \`_lookup_LookupJoin_2\`.\`processed_time\`, \`user_profiles\`.\`user_name\`, \`user_profiles\`.\`user_tier\` FROM \`_lookup_LookupJoin_2\` LEFT JOIN \`user_profiles\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_2\`.proc_time ON \`_lookup_LookupJoin_2\`.\`user_id\` = \`user_profiles\`.\`user_id\`;
 INSERT INTO \`premium_user_conversions\`
 SELECT * FROM (
-WITH \`_lookup_LookupJoin_1\` AS (SELECT *, PROCTIME() AS proc_time FROM \`user_events\`)
-SELECT * FROM \`_lookup_LookupJoin_1\` LEFT JOIN \`user_profiles\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_1\`.proc_time ON user_id
+WITH \`_lookup_LookupJoin_2\` AS (SELECT *, PROCTIME() AS proc_time FROM \`user_events\`)
+SELECT \`_lookup_LookupJoin_2\`.\`event_id\`, \`_lookup_LookupJoin_2\`.\`user_id\`, \`_lookup_LookupJoin_2\`.\`event_type\`, \`_lookup_LookupJoin_2\`.\`event_data\`, \`_lookup_LookupJoin_2\`.\`event_time\`, \`_lookup_LookupJoin_2\`.\`processed_time\`, \`user_profiles\`.\`user_name\`, \`user_profiles\`.\`user_tier\` FROM \`_lookup_LookupJoin_2\` LEFT JOIN \`user_profiles\` FOR SYSTEM_TIME AS OF \`_lookup_LookupJoin_2\`.proc_time ON \`_lookup_LookupJoin_2\`.\`user_id\` = \`user_profiles\`.\`user_id\`
 ) WHERE user_tier = 'premium' AND event_type IN ('purchase', 'subscription');
 END;
 "

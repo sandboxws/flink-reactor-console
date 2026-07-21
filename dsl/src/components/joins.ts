@@ -1,4 +1,6 @@
+import { JdbcSource } from "@/components/sources.js"
 import { createElement } from "@/core/jsx-runtime.js"
+import type { SchemaDefinition } from "@/core/schema.js"
 import type {
   BaseComponentProps,
   ConstructNode,
@@ -109,17 +111,29 @@ export interface LookupCacheConfig {
 export interface LookupJoinProps extends BaseComponentProps {
   /** The driving input stream */
   readonly input: ConstructNode
-  /** Dimension table name */
-  readonly table: string
-  /** JDBC connection URL for the dimension table */
-  readonly url: string
-  /** SQL join condition */
+  /**
+   * Dimension table as a source node (e.g. a `JdbcSource`). Provide this
+   * OR the inline `table` + `url` + `schema` props — the inline form is
+   * sugar that builds an equivalent `JdbcSource` for you.
+   */
+  readonly dimension?: ConstructNode
+  /** Dimension table name (inline form; ignored when `dimension` is set) */
+  readonly table?: string
+  /** JDBC connection URL for the dimension table (inline form) */
+  readonly url?: string
+  /** Dimension table schema — columns + primary key (inline form) */
+  readonly schema?: SchemaDefinition
+  /**
+   * Join key. A bare column name (`"customer_id"`) is treated as an
+   * equi-join on that column present on both sides; a full condition
+   * (`"o.customer_id = c.customer_id"`) is emitted verbatim.
+   */
   readonly on: string
   /** Output field mapping */
   readonly select?: Record<string, string>
   /** Async lookup configuration */
   readonly async?: LookupAsyncConfig
-  /** Lookup cache configuration */
+  /** Lookup cache configuration (inline form) */
   readonly cache?: LookupCacheConfig
   /** Enable operator tailing for this join */
   readonly tap?: boolean | TapConfig
@@ -129,18 +143,39 @@ export interface LookupJoinProps extends BaseComponentProps {
 /**
  * Lookup join: enriches a stream from an external dimension table.
  *
- * Auto-injects a `proc_time` processing-time metadata column
- * for the FOR SYSTEM_TIME AS OF proc_time clause.
+ * The dimension can be an explicit source node (`dimension`) or declared
+ * inline via `table` + `url` + `schema` (+ optional `cache`), which desugars
+ * to a `JdbcSource`. Either way the dimension is attached as a child so its
+ * DDL is emitted and its columns flow into the output schema.
+ *
+ * Auto-injects a `proc_time` processing-time column on the input for the
+ * `FOR SYSTEM_TIME AS OF proc_time` clause.
  */
 export function LookupJoin(props: LookupJoinProps): ConstructNode {
-  const { children, input, ...rest } = props
+  const { children, input, dimension, table, url, schema, cache, ...rest } =
+    props
   const childArray =
     children == null ? [] : Array.isArray(children) ? children : [children]
 
+  // Resolve the dimension: an explicit source node, or desugar the inline
+  // table/url/schema props into a JdbcSource.
+  let dim: ConstructNode
+  if (dimension) {
+    dim = dimension
+  } else {
+    if (!table || !url || !schema) {
+      throw new Error(
+        "LookupJoin requires either a `dimension` node or `table` + `url` + `schema`",
+      )
+    }
+    dim = JdbcSource({ table, url, schema, lookupCache: cache })
+  }
+
   return createElement(
     "LookupJoin",
-    { ...rest, input: input.id, procTime: true },
+    { ...rest, input: input.id, dimension: dim.id, procTime: true },
     input,
+    dim,
     ...childArray,
   )
 }

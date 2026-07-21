@@ -21,6 +21,15 @@ const EventSchema = Schema({
   },
 })
 
+const UserProfileSchema = Schema({
+  fields: {
+    user_id: Field.STRING(),
+    user_name: Field.STRING(),
+    user_tier: Field.STRING(),
+  },
+  primaryKey: { columns: ["user_id"] },
+})
+
 const events = (
   <KafkaSource
     topic="user_events"
@@ -35,6 +44,7 @@ const enriched = (
     input={events}
     table="user_profiles"
     url="jdbc:postgresql://db:5432/users"
+    schema={UserProfileSchema}
     on="user_id"
     async={{ enabled: true, capacity: 100 }}
     cache={{ type: "lru", maxRows: 50000, ttl: "5m" }}

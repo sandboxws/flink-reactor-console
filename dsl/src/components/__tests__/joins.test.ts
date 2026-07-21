@@ -6,6 +6,7 @@ import {
   TemporalJoin,
 } from "@/components/joins.js"
 import { createElement, resetNodeIdCounter } from "@/core/jsx-runtime.js"
+import { Field, Schema } from "@/core/schema.js"
 import { SynthContext } from "@/core/synth-context.js"
 
 beforeEach(() => {
@@ -163,13 +164,21 @@ describe("TemporalJoin", () => {
 // ── 4.4 LookupJoin stores async and cache config ────────────────────
 
 describe("LookupJoin", () => {
-  it("stores async and cache configuration", () => {
+  it("desugars inline table/url/schema into a JdbcSource dimension", () => {
     const input = makeSource("orders")
 
     const join = LookupJoin({
       input,
       table: "dim_products",
       url: "jdbc:postgresql://localhost:5432/db",
+      schema: Schema({
+        fields: {
+          id: Field.STRING(),
+          name: Field.STRING(),
+          price: Field.DOUBLE(),
+        },
+        primaryKey: { columns: ["id"] },
+      }),
       on: "orders.product_id = dim_products.id",
       select: {
         product_name: "dim_products.name",
@@ -181,18 +190,28 @@ describe("LookupJoin", () => {
 
     expect(join.kind).toBe("Join")
     expect(join.component).toBe("LookupJoin")
-    expect(join.props.table).toBe("dim_products")
-    expect(join.props.url).toBe("jdbc:postgresql://localhost:5432/db")
+    // async + select stay on the join node
     expect(join.props.async).toEqual({
       enabled: true,
       capacity: 100,
       timeout: "30s",
     })
-    expect(join.props.cache).toEqual({ type: "lru", maxRows: 10000, ttl: "1h" })
     expect(join.props.select).toEqual({
       product_name: "dim_products.name",
       price: "dim_products.price",
     })
+    // the inline dimension is desugared into a JdbcSource child carrying
+    // table / url / cache
+    const dim = join.children?.[1]
+    expect(dim?.component).toBe("JdbcSource")
+    expect(dim?.props.table).toBe("dim_products")
+    expect(dim?.props.url).toBe("jdbc:postgresql://localhost:5432/db")
+    expect(dim?.props.lookupCache).toEqual({
+      type: "lru",
+      maxRows: 10000,
+      ttl: "1h",
+    })
+    expect(join.props.dimension).toBe(dim?.id)
   })
 
   it("auto-injects proc_time metadata flag", () => {
@@ -202,11 +221,28 @@ describe("LookupJoin", () => {
       input,
       table: "dim_users",
       url: "jdbc:mysql://localhost:3306/db",
-      on: "events.user_id = dim_users.id",
+      schema: Schema({
+        fields: { id: Field.STRING(), name: Field.STRING() },
+        primaryKey: { columns: ["id"] },
+      }),
+      on: "user_id",
     })
 
     expect(join.props.procTime).toBe(true)
     expect(join.props.input).toBe(input.id)
+  })
+
+  it("accepts an explicit dimension source node", () => {
+    const input = makeSource("orders")
+    const dim = createElement("JdbcSource", {
+      table: "dim_products",
+      url: "jdbc:postgresql://localhost:5432/db",
+    })
+
+    const join = LookupJoin({ input, dimension: dim, on: "product_id" })
+
+    expect(join.props.dimension).toBe(dim.id)
+    expect(join.children?.[1]).toBe(dim)
   })
 })
 

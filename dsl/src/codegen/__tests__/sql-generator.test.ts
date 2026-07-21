@@ -509,7 +509,15 @@ describe("6.9: LookupJoin with async config", () => {
       input: stream,
       table: "dim_users",
       url: "jdbc:mysql://localhost:3306/mydb",
-      on: "`KafkaSource_0`.`user_id` = `dim_users`.`user_id`",
+      schema: Schema({
+        fields: {
+          user_id: Field.STRING(),
+          user_name: Field.STRING(),
+          user_tier: Field.STRING(),
+        },
+        primaryKey: { columns: ["user_id"] },
+      }),
+      on: "user_id",
       async: { enabled: true, capacity: 100, timeout: "10s" },
       cache: { type: "lru", maxRows: 10000, ttl: "1h" },
     })
