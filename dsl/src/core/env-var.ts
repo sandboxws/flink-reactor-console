@@ -78,7 +78,10 @@ export function resolveEnvVars<T>(obj: T, pathPrefix?: string): Resolved<T> {
 
 function walk(value: unknown, path: string): unknown {
   if (isEnvVarRef(value)) {
-    const envValue = process.env[value.varName]
+    // `process` is Node-only; the in-browser sandbox has no env to resolve.
+    const env: Record<string, string | undefined> =
+      typeof process !== "undefined" ? process.env : {}
+    const envValue = env[value.varName]
     if (envValue !== undefined) return envValue
     if (value.fallback !== undefined) return value.fallback
     throw new Error(

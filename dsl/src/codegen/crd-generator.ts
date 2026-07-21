@@ -290,6 +290,26 @@ function mergeGlobalJobParameters(
   return `${existing},${key}:${value}`
 }
 
+/**
+ * UTF-8 → base64 that works in both Node and the browser.
+ *
+ * `crd-generator` is shared by the Node CLI and the in-browser sandbox
+ * (`@flink-reactor/dsl/browser`), where `Buffer` does not exist. Both
+ * branches produce the identical base64 of the UTF-8 bytes, so CRD output is
+ * unchanged; the browser path just avoids the Node-only `Buffer` global.
+ */
+function utf8ToBase64(text: string): string {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(text, "utf-8").toString("base64")
+  }
+  const bytes = new TextEncoder().encode(text)
+  let binary = ""
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+  return btoa(binary)
+}
+
 // ── CRD generation ──────────────────────────────────────────────────
 
 // ── Shared CRD building helpers ─────────────────────────────────────
@@ -394,7 +414,7 @@ function buildInnerSpec(
     config["pipeline.global-job-parameters"] = mergeGlobalJobParameters(
       config["pipeline.global-job-parameters"],
       "pipeline.sql.b64",
-      Buffer.from(displaySql, "utf-8").toString("base64"),
+      utf8ToBase64(displaySql),
     )
   }
 

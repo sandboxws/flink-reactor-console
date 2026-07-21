@@ -59,7 +59,10 @@ const URL_CREDENTIAL_PARAM = /[?&;](?:password|sslpassword)=([^&;'"\s]*)/i
 
 function currentEnvValues(): ReadonlySet<string> {
   const values = new Set<string>()
-  for (const value of Object.values(process.env)) {
+  // `process` is Node-only; the in-browser sandbox has no env vars to scan.
+  const env: Record<string, string | undefined> =
+    typeof process !== "undefined" ? process.env : {}
+  for (const value of Object.values(env)) {
     // Skip very short values — "1", "on", "us" would false-match.
     if (typeof value === "string" && value.length >= 4) {
       values.add(value)
