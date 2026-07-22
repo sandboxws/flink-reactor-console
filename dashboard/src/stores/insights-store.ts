@@ -1,14 +1,10 @@
+import type { ClusterOverview, FlinkJob, TaskManager } from "@flink-reactor/ui"
 import { create } from "zustand"
 import {
   analyzeJob,
   type BottleneckScore,
   type Recommendation,
 } from "@/data/bottleneck-analyzer"
-import type {
-  ClusterOverview,
-  FlinkJob,
-  TaskManager,
-} from "@flink-reactor/ui"
 import { fetchJobDetail as fetchJobDetailApi } from "@/lib/graphql-api-client"
 import { useClusterStore } from "./cluster-store"
 import { useConfigStore } from "./config-store"
@@ -249,7 +245,50 @@ export function computeCheckpointHealthScore(jobs: FlinkJob[]): HealthSubScore {
   }
 }
 
-/** Compute the memory pressure sub-score from the worst-case TM heap utilization. */
+/**
+ * Per-TaskManager memory-headroom score (0–100; 100 = lots of headroom,
+ * 0 = at the ceiling). This is the heart of the OOMKill-awareness work.
+ *
+ * The old implementation looked ONLY at JVM heap, so a RocksDB / managed /
+ * off-heap climb toward the container limit produced no signal — the exact
+ * blind spot from the Confluent "Flink OOMKills" article ("metrics reported
+ * healthy numbers"). Everything you need to do better is already on the TM:
+ *
+ *   Live usage (bytes):
+ *     tm.metrics.heapUsed / heapMax
+ *     tm.metrics.managedMemoryUsed / managedMemoryTotal   ← RocksDB lives here
+ *     tm.metrics.directUsed / directMax                   ← network/shuffle
+ *     tm.metrics.metaspaceUsed / metaspaceMax
+ *     tm.metrics.nettyShuffleMemoryUsed
+ *   Configured budgets (bytes):
+ *     tm.memoryConfiguration.totalProcessMemory           ← container ceiling
+ *     tm.memoryConfiguration.{managedMemory, jvmMetaspace, networkMemory,
+ *                             taskHeap, frameworkHeap, jvmOverhead}
+ *
+ * ⚠️ The article's subtlety: summing the Flink-visible pools always falls short
+ * of totalProcessMemory, because native RocksDB memory is invisible to these
+ * gauges — so a naive `sumUsed / totalProcessMemory` still reads healthy right
+ * up to the OOMKill. A pool near *its own* configured budget (managedUsed vs
+ * managedMemory, metaspaceUsed vs jvmMetaspace) is usually the earlier tell.
+ * Phase 4 (K8s pod RSS) supplies the true container number later.
+ *
+ * Exported because it is the single source of truth for TM memory pressure:
+ * the health sub-score, the issue feed (below), and the Hub TM UI (list-row
+ * dot + memory-bar headroom pill) all derive from it. Tune it in one place.
+ */
+export function tmMemoryHeadroom(tm: TaskManager): number {
+  const m = tm.metrics
+  if (!m || m.heapMax === 0) return 100
+
+  // TODO(you): replace this heap-only placeholder with a native-aware score.
+  // See the docblock above for the fields available. Decisions to make:
+  //   • which pools to weigh (heap alone misses the RocksDB story),
+  //   • per-pool saturation vs summed-vs-ceiling,
+  //   • how hard pressure should pull the score toward 0.
+  return Math.round((1 - m.heapUsed / m.heapMax) * 100)
+}
+
+/** Compute the memory pressure sub-score from the worst-case TM headroom. */
 export function computeMemoryPressureScore(
   taskManagers: TaskManager[],
 ): HealthSubScore {
@@ -263,19 +302,16 @@ export function computeMemoryPressureScore(
     }
   }
 
-  const ratios = taskManagers.map((tm) => {
-    if (!tm.metrics || tm.metrics.heapMax === 0) return 100
-    return Math.round((1 - tm.metrics.heapUsed / tm.metrics.heapMax) * 100)
-  })
+  const headrooms = taskManagers.map(tmMemoryHeadroom)
 
   // Worst case across all TMs
-  const score = Math.min(...ratios)
-  const worstTm = taskManagers[ratios.indexOf(score)]
+  const score = Math.min(...headrooms)
+  const worstTm = taskManagers[headrooms.indexOf(score)]
   const usedPct = 100 - score
   const detail =
     score >= 80
-      ? `All TMs below 20% heap usage`
-      : `Worst: ${worstTm?.id?.slice(0, 8) ?? "unknown"} at ${usedPct}% heap`
+      ? `All TMs below 20% memory pressure`
+      : `Worst: ${worstTm?.id?.slice(0, 8) ?? "unknown"} at ${usedPct}% of budget`
 
   return {
     name: "Memory Pressure",
@@ -355,15 +391,17 @@ export function detectIssues(
   const issues: HealthIssue[] = []
   const now = new Date()
 
-  // Memory pressure: TM heap > 85%
+  // Memory pressure: TM using > 85% of its memory budget. Shares the
+  // native-aware tmMemoryHeadroom helper with computeMemoryPressureScore, so
+  // improving the score formula improves issue detection in lockstep.
   for (const tm of taskManagers) {
     if (!tm.metrics || tm.metrics.heapMax === 0) continue
-    const usedPct = Math.round((tm.metrics.heapUsed / tm.metrics.heapMax) * 100)
+    const usedPct = 100 - tmMemoryHeadroom(tm)
     if (usedPct > 85) {
       issues.push({
         id: `mem-${tm.id}`,
         severity: usedPct > 95 ? "critical" : "warning",
-        message: `TM ${tm.id.slice(0, 8)} heap at ${usedPct}%`,
+        message: `TM ${tm.id.slice(0, 8)} at ${usedPct}% of memory budget`,
         source: "memory",
         timestamp: now,
       })

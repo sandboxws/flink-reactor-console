@@ -20,6 +20,7 @@ import type {
   ConnectorType,
   FlinkFeatureFlags,
   FlinkJob,
+  GarbageCollectorInfo,
   JobConnector,
   JobEdge,
   JobException,
@@ -560,6 +561,37 @@ function parseMetrics(
   return m
 }
 
+/**
+ * Fold `Status.JVM.GarbageCollector.<name>.{Count,Time}` entries into a GC list.
+ *
+ * Collector-agnostic: groups by the `<name>` segment so it works for whatever
+ * collectors the server fetches (today G1 Young/Old; ZGC/Shenandoah/etc. if
+ * `aggregator.go tmMetricIDs` later adds them). Underscores in the Flink metric
+ * name are rendered back to spaces for display ("G1 Young Generation").
+ */
+function parseGarbageCollectors(
+  raw: Record<string, number>,
+): GarbageCollectorInfo[] {
+  const byName = new Map<string, { count: number; time: number }>()
+  for (const key of Object.keys(raw)) {
+    const match = /^Status\.JVM\.GarbageCollector\.(.+)\.(Count|Time)$/.exec(
+      key,
+    )
+    if (!match) continue
+    const [, rawName, field] = match
+    const name = rawName.replace(/_/g, " ")
+    const entry = byName.get(name) ?? { count: 0, time: 0 }
+    if (field === "Count") entry.count = raw[key]
+    else entry.time = raw[key]
+    byName.set(name, entry)
+  }
+  return Array.from(byName, ([name, { count, time }]) => ({
+    name,
+    count,
+    time,
+  }))
+}
+
 /** Convert raw metric key-value pairs to TaskManagerMetrics */
 function metricsToTMMetrics(raw: Record<string, number>): TaskManagerMetrics {
   return {
@@ -590,7 +622,7 @@ function metricsToTMMetrics(raw: Record<string, number>): TaskManagerMetrics {
     managedMemoryTotal: raw["Status.Flink.Memory.Managed.Total"] ?? 0,
     metaspaceUsed: raw["Status.JVM.Memory.Metaspace.Used"] ?? 0,
     metaspaceMax: raw["Status.JVM.Memory.Metaspace.Max"] ?? 0,
-    garbageCollectors: [],
+    garbageCollectors: parseGarbageCollectors(raw),
     threadCount: raw["Status.JVM.Threads.Count"] ?? 0,
   }
 }

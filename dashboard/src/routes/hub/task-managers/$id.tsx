@@ -78,6 +78,7 @@ function heapTone(pct: number): "running" | "warning" | "failed" {
 function HubTaskManagerDetail() {
   const { id } = useParams({ from: "/hub/task-managers/$id" })
   const fetchTm = useClusterStore((s) => s.fetchTaskManagerDetail)
+  const startTmPolling = useClusterStore((s) => s.startTaskManagerDetailPolling)
   const clearTm = useClusterStore((s) => s.clearTaskManagerDetail)
   const tm = useClusterStore((s) => s.taskManagerDetail)
   const tmLoading = useClusterStore((s) => s.taskManagerDetailLoading)
@@ -88,10 +89,14 @@ function HubTaskManagerDetail() {
   const [selectedLog, setSelectedLog] = useState<string | null>(null)
 
   useEffect(() => {
+    // Initial fetch + ~10s background poll so slow off-heap / managed growth
+    // (the OOMKill leak pattern) shows movement instead of a frozen snapshot.
+    // clearTm() also stops the poll on unmount.
     fetchTm(id)
+    startTmPolling(id)
     setSelectedLog(null)
     return () => clearTm()
-  }, [id, fetchTm, clearTm])
+  }, [id, fetchTm, startTmPolling, clearTm])
 
   if (tmLoading && !tm) {
     return (

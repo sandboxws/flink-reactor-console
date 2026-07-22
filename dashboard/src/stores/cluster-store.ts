@@ -134,7 +134,18 @@ interface ClusterActions {
   /** Clear the tracked savepoint operation banner. */
   dismissSavepointOp: () => void
   /** Lazily fetch full task manager detail (metrics, logs, thread dump). */
-  fetchTaskManagerDetail: (tmId: string) => Promise<void>
+  fetchTaskManagerDetail: (
+    tmId: string,
+    opts?: { silent?: boolean },
+  ) => Promise<void>
+  /**
+   * Poll TM detail (~10s) while the detail page is open, so slow off-heap /
+   * managed-memory growth (the OOMKill leak pattern) shows up as movement
+   * instead of a single frozen snapshot.
+   */
+  startTaskManagerDetailPolling: (tmId: string) => void
+  /** Stop the TM detail poll started by startTaskManagerDetailPolling. */
+  stopTaskManagerDetailPolling: () => void
   /** Clear the lazily loaded task manager detail state. */
   clearTaskManagerDetail: () => void
 }
@@ -143,9 +154,11 @@ export type ClusterStore = ClusterState & ClusterActions
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
 let jobDetailPollInterval: ReturnType<typeof setInterval> | null = null
+let taskManagerDetailPollInterval: ReturnType<typeof setInterval> | null = null
 let initialized = false
 
 const JOB_DETAIL_POLL_MS = 10_000
+const TM_DETAIL_POLL_MS = 10_000
 
 /** Job states still in flux — worth polling while a live view is open. */
 const ACTIVE_JOB_STATES = new Set([
@@ -496,8 +509,10 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
     }
   },
 
-  fetchTaskManagerDetail: async (tmId) => {
-    set({ taskManagerDetailLoading: true, taskManagerDetailError: null })
+  fetchTaskManagerDetail: async (tmId, opts) => {
+    if (!opts?.silent) {
+      set({ taskManagerDetailLoading: true, taskManagerDetailError: null })
+    }
     try {
       const tm = await fetchTaskManagerDetail(tmId)
       set({
@@ -506,6 +521,8 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
         taskManagerDetailError: null,
       })
     } catch (err) {
+      // Background refreshes keep stale data visible and stay quiet.
+      if (opts?.silent) return
       set({
         taskManagerDetailLoading: false,
         taskManagerDetailError:
@@ -517,10 +534,28 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
   },
 
   clearTaskManagerDetail: () => {
+    get().stopTaskManagerDetailPolling()
     set({
       taskManagerDetail: null,
       taskManagerDetailLoading: false,
       taskManagerDetailError: null,
     })
+  },
+
+  startTaskManagerDetailPolling: (tmId) => {
+    if (taskManagerDetailPollInterval) {
+      clearInterval(taskManagerDetailPollInterval)
+    }
+    taskManagerDetailPollInterval = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return
+      void get().fetchTaskManagerDetail(tmId, { silent: true })
+    }, TM_DETAIL_POLL_MS)
+  },
+
+  stopTaskManagerDetailPolling: () => {
+    if (taskManagerDetailPollInterval) {
+      clearInterval(taskManagerDetailPollInterval)
+      taskManagerDetailPollInterval = null
+    }
   },
 }))

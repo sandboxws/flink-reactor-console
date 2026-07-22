@@ -1,7 +1,11 @@
-import { create } from "zustand"
 import type { Checkpoint, FlinkJob } from "@flink-reactor/ui"
-import { fetchJobDetail as fetchJobDetailApi } from "@/lib/graphql-api-client"
+import { create } from "zustand"
+import {
+  fetchCheckpointHistory,
+  fetchJobDetail as fetchJobDetailApi,
+} from "@/lib/graphql-api-client"
 import { useClusterStore } from "./cluster-store"
+import { useConfigStore } from "./config-store"
 
 /**
  * Checkpoint analytics store — aggregates checkpoint metrics across all running
@@ -116,7 +120,10 @@ export function computeTrend(values: number[]): TrendDirection {
 // ---------------------------------------------------------------------------
 
 /** Compute a checkpoint summary for a single job, or null if no checkpoints exist. */
-function computeJobSummary(job: FlinkJob): JobCheckpointSummary | null {
+function computeJobSummary(
+  job: FlinkJob,
+  historySizes?: number[],
+): JobCheckpointSummary | null {
   if (!job.checkpoints || job.checkpoints.length === 0) return null
 
   const checkpoints = job.checkpoints
@@ -157,7 +164,14 @@ function computeJobSummary(job: FlinkJob): JobCheckpointSummary | null {
   const sizeValues = recentCompleted.map((c) => c.size)
 
   const durationTrend = computeTrend(durationValues)
-  const stateSizeTrend = computeTrend(sizeValues)
+  // Prefer the persisted 720h state-size series (which survives Flink's
+  // ~10-retained window) so slow RocksDB state growth — the leak proxy from the
+  // OOMKills article — is visible. Fall back to live checkpoints when the
+  // storage backend has no history yet.
+  const stateSizeTrend =
+    historySizes && historySizes.length >= 3
+      ? computeTrend(historySizes)
+      : computeTrend(sizeValues)
 
   // Last 20 checkpoints for sparkline (all statuses)
   const recentCheckpoints = checkpoints.slice(-20)
@@ -287,7 +301,31 @@ let unsubClusterStore: (() => void) | null = null
 let fetchQueue: string[] = []
 let fetchQueuePtr = 0
 const checkpointJobCache = new Map<string, FlinkJob>()
+/** jobId → persisted completed-checkpoint state-size series (oldest → newest). */
+const checkpointHistorySizeCache = new Map<string, number[]>()
 let initialFetchTriggered = false
+
+/** A single persisted checkpoint record (element type of the history query). */
+type StoredCheckpointRecord = Awaited<
+  ReturnType<typeof fetchCheckpointHistory>
+>[number]
+
+/** Current cluster id for storage-backed history queries. */
+function currentClusterID(): string {
+  return useConfigStore.getState().config?.clusters?.[0] ?? "default"
+}
+
+/** Ascending completed-checkpoint state-size series from persisted records. */
+function stateSizeSeries(records: StoredCheckpointRecord[]): number[] {
+  return records
+    .filter((r) => r.status === "COMPLETED")
+    .map((r) => ({
+      t: Date.parse(r.triggerTimestamp ?? r.capturedAt) || 0,
+      size: Number.parseInt(r.stateSize, 10) || 0,
+    }))
+    .sort((a, b) => a.t - b.t)
+    .map((r) => r.size)
+}
 
 /** Fetch detail for up to BATCH_SIZE running jobs per tick and cache the results. */
 async function staggeredFetchCheckpointJobs() {
@@ -298,6 +336,9 @@ async function staggeredFetchCheckpointJobs() {
   const runningSet = new Set(runningIds)
   for (const cachedId of checkpointJobCache.keys()) {
     if (!runningSet.has(cachedId)) checkpointJobCache.delete(cachedId)
+  }
+  for (const cachedId of checkpointHistorySizeCache.keys()) {
+    if (!runningSet.has(cachedId)) checkpointHistorySizeCache.delete(cachedId)
   }
 
   // Sync fetch queue
@@ -319,6 +360,26 @@ async function staggeredFetchCheckpointJobs() {
       checkpointJobCache.set(result.value.id, result.value)
     }
   }
+
+  // Also refresh the persisted state-size history for this batch so the growth
+  // trend spans the 720h retention window rather than Flink's ~10 retained
+  // checkpoints. Storage unavailable → empty series → live-checkpoint fallback.
+  const clusterID = currentClusterID()
+  const historyResults = await Promise.allSettled(
+    batch.map((id) =>
+      fetchCheckpointHistory({
+        clusterID,
+        jobID: id,
+        status: "COMPLETED",
+        maxRecords: 200,
+      }),
+    ),
+  )
+  historyResults.forEach((result, i) => {
+    if (result.status === "fulfilled") {
+      checkpointHistorySizeCache.set(batch[i], stateSizeSeries(result.value))
+    }
+  })
 }
 
 /** Recompute summaries, aggregates, and timeline from cached job data. */
@@ -329,7 +390,7 @@ function recompute(set: (partial: Partial<CheckpointAnalyticsState>) => void) {
   const enrichedJobs = runningJobs.map((j) => checkpointJobCache.get(j.id) ?? j)
 
   const summaries = enrichedJobs
-    .map(computeJobSummary)
+    .map((j) => computeJobSummary(j, checkpointHistorySizeCache.get(j.id)))
     .filter((s): s is JobCheckpointSummary => s !== null)
 
   const aggregates = computeAggregates(summaries)
@@ -414,6 +475,7 @@ export const useCheckpointAnalyticsStore = create<CheckpointAnalyticsState>(
         unsubClusterStore = null
       }
       checkpointJobCache.clear()
+      checkpointHistorySizeCache.clear()
       checkpointInitialized = false
       initialFetchTriggered = false
     },

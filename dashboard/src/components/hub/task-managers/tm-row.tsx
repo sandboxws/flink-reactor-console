@@ -2,13 +2,24 @@
  * TaskManager list row — one `.tm-row` per TM in `/hub/task-managers`.
  *
  * Memory breakdown via `.resource-bar` (heap / managed / network / free)
- * computed from `tm.metrics`. Heap-pressure ≥85% switches the live-dot
- * to amber and `.tm-row` border accent (handled in CSS).
+ * computed from `tm.metrics` as a fraction of the container ceiling (Total
+ * Process Memory), not the node's physical RAM. The live-dot goes amber when
+ * memory pressure crosses the shared `tmMemoryHeadroom` threshold — the same
+ * native-aware signal that drives the health score and the detail-page pill.
  */
 
 import { formatBytes, type TaskManager } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { MoreVertical } from "lucide-react"
+import { tmMemoryHeadroom } from "@/stores/insights-store"
+
+/** Container ceiling (Total Process Memory) with physical-RAM fallback. */
+function memoryCeiling(tm: TaskManager): number {
+  const cfg = tm.memoryConfiguration
+  return cfg.totalProcessMemory > 0
+    ? cfg.totalProcessMemory
+    : Math.max(1, tm.physicalMemory)
+}
 
 interface TmRowProps {
   tm: TaskManager
@@ -40,7 +51,7 @@ export function memorySegments(tm: TaskManager): {
   const heap = tm.metrics.heapUsed
   const managed = tm.metrics.managedMemoryUsed
   const network = tm.metrics.nettyShuffleMemoryUsed
-  const total = Math.max(1, tm.physicalMemory)
+  const total = memoryCeiling(tm)
 
   const heapPct = (heap / total) * 100
   const managedPct = (managed / total) * 100
@@ -50,10 +61,9 @@ export function memorySegments(tm: TaskManager): {
   return { heapPct, managedPct, networkPct, freePct, heap, managed, network }
 }
 
-/** Color the live-dot by heap pressure (amber when ≥85% of physical). */
+/** Color the live-dot by native-aware memory pressure (amber when ≥85% used). */
 export function tmAlertTone(tm: TaskManager): "sage" | "amber" {
-  const heapPct = (tm.metrics.heapUsed / Math.max(1, tm.physicalMemory)) * 100
-  return heapPct >= 85 ? "amber" : "sage"
+  return tmMemoryHeadroom(tm) <= 15 ? "amber" : "sage"
 }
 
 /** Color the slot-utilization sub-label by pressure threshold. */
