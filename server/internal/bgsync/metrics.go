@@ -186,6 +186,44 @@ func (s *Syncer) collectClusterMetrics(ctx context.Context, svc *flink.Service, 
 		return vertexGroup.Wait()
 	})
 
+	// Job-level reliability metrics (numRestarts, fullRestarts, uptime,
+	// downtime) for running jobs. Persisting these as a "job" source turns the
+	// restart counter into a queryable time-series (a restart *rate*/trend),
+	// where the live view only ever showed a point value.
+	g.Go(func() error {
+		jobs, err := svc.GetJobs(gctx)
+		if err != nil {
+			s.logger.Debug("sync: fetch jobs for job metrics failed", "cluster", cluster, "error", err)
+			return nil
+		}
+
+		jobGroup := new(errgroup.Group)
+		jobGroup.SetLimit(10)
+
+		for _, job := range jobs.Jobs {
+			if job.State != "RUNNING" {
+				continue
+			}
+			jobID := job.JID
+			jobGroup.Go(func() error {
+				items, err := svc.GetJobMetrics(gctx, jobID)
+				if err != nil {
+					s.logger.Debug("sync: fetch job metrics failed", "cluster", cluster, "jid", jobID, "error", err)
+					return nil
+				}
+				dbMetrics := make([]storage.DBMetric, 0, len(items))
+				for _, m := range items {
+					dbMetrics = append(dbMetrics, storage.FromFlinkMetricItem(m, "job", jobID, cluster))
+				}
+				mu.Lock()
+				allMetrics = append(allMetrics, dbMetrics...)
+				mu.Unlock()
+				return nil
+			})
+		}
+		return jobGroup.Wait()
+	})
+
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("collect metrics: %w", err)
 	}

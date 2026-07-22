@@ -325,6 +325,16 @@ func (s *Service) GetTaskManagerMetrics(ctx context.Context, tmID string) ([]Met
 	return metrics, nil
 }
 
+// GetJobMetrics returns job-level reliability metrics (numRestarts,
+// fullRestarts, uptime, downtime) for the pre-defined metric set.
+func (s *Service) GetJobMetrics(ctx context.Context, jobID string) ([]MetricItem, error) {
+	var metrics []MetricItem
+	if err := s.client.GetJSON(ctx, fmt.Sprintf("/jobs/%s/metrics?get=%s", jobID, JobMetricQuery), &metrics); err != nil {
+		return nil, err
+	}
+	return metrics, nil
+}
+
 // GetVertexMetrics returns vertex metrics for the pre-defined metric set.
 func (s *Service) GetVertexMetrics(ctx context.Context, jobID, vertexID string) ([]MetricItem, error) {
 	var metrics []MetricItem
