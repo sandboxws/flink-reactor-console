@@ -22,15 +22,22 @@ type Syncer struct {
 
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
+
+	// TM churn tracking: last-seen TaskManager id set per cluster, used to
+	// detect id-level replacement (an OOMKilled TM vanishing while a new one
+	// appears) even when the aggregate count stays flat.
+	churnMu   sync.Mutex
+	lastTMIDs map[string]map[string]struct{}
 }
 
 // New creates a Syncer that will sync data from the cluster manager to the stores.
 func New(manager *cluster.Manager, stores *store.Stores, cfg config.SyncConfig, logger *slog.Logger) *Syncer {
 	return &Syncer{
-		manager: manager,
-		stores:  stores,
-		config:  cfg,
-		logger:  logger,
+		manager:   manager,
+		stores:    stores,
+		config:    cfg,
+		logger:    logger,
+		lastTMIDs: make(map[string]map[string]struct{}),
 	}
 }
 
