@@ -209,6 +209,26 @@ function validatePipelineProps(props: PipelineProps): void {
       }
     }
   }
+
+  // State-heavy (RocksDB) jobs are the OOMKill risk surface. Nudge toward
+  // explicit pod sizing and bounded native memory — non-fatal warnings so
+  // prototypes still synth, surfaced by `synth` / `validate` (and the LSP).
+  if (props.stateBackend === "rocksdb") {
+    if (!props.resources?.taskManager?.memory) {
+      lastValidationWarnings.push({
+        level: "warning",
+        message:
+          "RocksDB state backend without an explicit taskManager memory: pods default to 1024m, which is too small for most stateful jobs and a common cause of TaskManager OOMKills. Set resources.taskManager.memory (and consider resources.managedMemoryFraction).",
+      })
+    }
+    if (props.rocksdb?.managed === false) {
+      lastValidationWarnings.push({
+        level: "warning",
+        message:
+          "rocksdb.managed = false lets RocksDB allocate native memory outside Flink's managed budget, which can grow into container RSS and trigger OOMKills. Prefer managed: true unless you are explicitly sizing block cache and write buffers.",
+      })
+    }
+  }
 }
 
 // ── Pipeline factory ────────────────────────────────────────────────
