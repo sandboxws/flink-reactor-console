@@ -178,6 +178,23 @@ func TestGCPressureFiresOnHighRate(t *testing.T) {
 	}
 }
 
+func TestCheckpointSizeGrowthFiresPerJob(t *testing.T) {
+	// job-1 grew 80% (over threshold), job-2 only 10% (under).
+	snap := ClusterSnapshot{
+		Cluster:          "primary",
+		CheckpointGrowth: map[string]float64{"job-1": 80, "job-2": 10},
+	}
+	results := EvaluateCondition(snap, storage.AlertConditionPayload{
+		Type: storage.AlertConditionCheckpointSizeGrowth, Threshold: 50,
+	})
+	if len(results) != 1 || !results[0].Fired {
+		t.Fatalf("expected exactly one job to fire, got %#v", results)
+	}
+	if results[0].DedupKey != "cluster:primary:job:job-1" {
+		t.Fatalf("wrong dedup key %q", results[0].DedupKey)
+	}
+}
+
 func TestUnknownConditionType(t *testing.T) {
 	if storage.IsValidAlertConditionType("MADE_UP") {
 		t.Fatal("MADE_UP should be rejected")

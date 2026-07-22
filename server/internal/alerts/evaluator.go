@@ -109,8 +109,26 @@ func (e *Evaluator) snapshot(ctx context.Context, clusterName string) ClusterSna
 		snap.Jobs = jobs.Jobs
 	}
 	snap.CheckpointSuccessRate = e.checkpointSuccessRate(ctx, conn, snap.Jobs)
+	snap.CheckpointGrowth = e.checkpointGrowth(ctx, clusterName)
 
 	return snap
+}
+
+// checkpointGrowthWindow is the lookback for CHECKPOINT_SIZE_GROWTH.
+const checkpointGrowthWindow = 6 * time.Hour
+
+// checkpointGrowth reads per-job completed-checkpoint state-size growth from the
+// store. Best-effort: nil on error or when storage is unavailable.
+func (e *Evaluator) checkpointGrowth(ctx context.Context, clusterName string) map[string]float64 {
+	if e.stores == nil || e.stores.Checkpoints == nil {
+		return nil
+	}
+	g, err := e.stores.Checkpoints.StateSizeGrowth(ctx, clusterName, checkpointGrowthWindow)
+	if err != nil {
+		e.logger.Warn("alerts: checkpoint growth failed", "cluster", clusterName, "error", err)
+		return nil
+	}
+	return g
 }
 
 // tmMemoryMetricIDs are the live TM gauges the evaluator reads from the metric

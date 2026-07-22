@@ -29,6 +29,7 @@ export type ConditionType =
   | "TM_LOST"
   | "PROCESS_MEMORY_HEADROOM"
   | "GC_PRESSURE"
+  | "CHECKPOINT_SIZE_GROWTH"
 
 export type AlertRule = {
   id: string
@@ -98,6 +99,11 @@ export const METRIC_DEFINITIONS: MetricDefinition[] = [
     id: "taskManagers.gcPressure",
     label: "TM GC Rate ms/s (GC pressure)",
     group: "Task Managers",
+  },
+  {
+    id: "checkpoints.stateSizeGrowth",
+    label: "Checkpoint State Growth % (unbounded state)",
+    group: "Checkpoints",
   },
 ]
 
@@ -182,6 +188,7 @@ const METRIC_TO_CONDITION_TYPE: Record<string, ConditionType> = {
   "taskManagers.activeCount": "TM_LOST",
   "taskManagers.processMemoryPercent": "PROCESS_MEMORY_HEADROOM",
   "taskManagers.gcPressure": "GC_PRESSURE",
+  "checkpoints.stateSizeGrowth": "CHECKPOINT_SIZE_GROWTH",
 }
 
 const CONDITION_TYPE_TO_METRIC: Record<ConditionType, string> = {
@@ -192,6 +199,7 @@ const CONDITION_TYPE_TO_METRIC: Record<ConditionType, string> = {
   TM_LOST: "taskManagers.activeCount",
   PROCESS_MEMORY_HEADROOM: "taskManagers.processMemoryPercent",
   GC_PRESSURE: "taskManagers.gcPressure",
+  CHECKPOINT_SIZE_GROWTH: "checkpoints.stateSizeGrowth",
 }
 
 // "Less is worse" condition types use < operator; "more is worse" use >.
@@ -203,6 +211,7 @@ const CONDITION_TYPE_TO_OPERATOR: Record<ConditionType, AlertCondition> = {
   TM_LOST: "<",
   PROCESS_MEMORY_HEADROOM: ">",
   GC_PRESSURE: ">",
+  CHECKPOINT_SIZE_GROWTH: ">",
 }
 
 function metricToConditionType(metric: string): ConditionType | null {

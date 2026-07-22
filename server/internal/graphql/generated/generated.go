@@ -8073,6 +8073,7 @@ enum AlertConditionType {
   TM_LOST
   PROCESS_MEMORY_HEADROOM
   GC_PRESSURE
+  CHECKPOINT_SIZE_GROWTH
 }
 
 enum AlertSeverity {

@@ -24,6 +24,10 @@ type ClusterSnapshot struct {
 	// CheckpointSuccessRate is computed from the most recent checkpoint
 	// statistics across all running jobs; in [0, 100]. -1 if unavailable.
 	CheckpointSuccessRate float64
+	// CheckpointGrowth maps jid -> percent change in completed-checkpoint state
+	// size over the lookback window, read from the checkpoint store. Used by
+	// CHECKPOINT_SIZE_GROWTH; nil/empty when the store is unavailable.
+	CheckpointGrowth map[string]float64
 }
 
 // EvalResult is the outcome of a single rule evaluation against a snapshot.

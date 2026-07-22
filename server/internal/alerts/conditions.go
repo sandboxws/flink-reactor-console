@@ -26,6 +26,8 @@ func EvaluateCondition(snap ClusterSnapshot, cond storage.AlertConditionPayload)
 		return evalProcessMemoryHeadroom(snap, cond)
 	case storage.AlertConditionGCPressure:
 		return evalGCPressure(snap, cond)
+	case storage.AlertConditionCheckpointSizeGrowth:
+		return evalCheckpointSizeGrowth(snap, cond)
 	}
 	return nil
 }
@@ -242,6 +244,33 @@ func evalGCPressure(snap ClusterSnapshot, cond storage.AlertConditionPayload) []
 			Context: map[string]any{
 				"taskManagerId": tm.ID,
 				"gcMsPerSecond": rate,
+			},
+		})
+	}
+	return out
+}
+
+// CHECKPOINT_SIZE_GROWTH fires once per job whose completed-checkpoint state
+// size has grown by more than the threshold percent over the lookback window
+// (from the checkpoint store). Unbounded state growth drives RocksDB memory up
+// and is a slow precursor to TaskManager OOMKills.
+func evalCheckpointSizeGrowth(snap ClusterSnapshot, cond storage.AlertConditionPayload) []EvalResult {
+	var out []EvalResult
+	for jid, growthPct := range snap.CheckpointGrowth {
+		if growthPct <= cond.Threshold {
+			continue
+		}
+		out = append(out, EvalResult{
+			Fired:        true,
+			DedupKey:     fmt.Sprintf("cluster:%s:job:%s", snap.Cluster, jid),
+			CurrentValue: growthPct,
+			Message: fmt.Sprintf(
+				"Job %s checkpoint state grew %.1f%% (threshold: > %.1f%%)",
+				jid, growthPct, cond.Threshold,
+			),
+			Context: map[string]any{
+				"jobId":     jid,
+				"growthPct": growthPct,
 			},
 		})
 	}

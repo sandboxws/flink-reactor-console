@@ -189,3 +189,58 @@ func (s *CheckpointStore) QueryCheckpoints(ctx context.Context, filter Checkpoin
 
 	return checkpoints, nextCursor, nil
 }
+
+// StateSizeGrowth returns, per job, the percent change in completed-checkpoint
+// state size across the lookback window (keyed jid -> growth percent). Unbounded
+// state growth is the RocksDB signal behind creeping memory use and eventual
+// OOMKills. Jobs with fewer than two completed checkpoints in the window, or a
+// zero starting size, are omitted.
+func (s *CheckpointStore) StateSizeGrowth(
+	ctx context.Context,
+	clusterID string,
+	within time.Duration,
+) (map[string]float64, error) {
+	// The explicit ROWS frame is required so last_value sees the whole partition
+	// (its default frame would stop at the current row).
+	query := `
+		WITH bounds AS (
+			SELECT jid,
+				first_value(state_size) OVER w AS first_size,
+				last_value(state_size)  OVER w AS last_size,
+				count(*)                OVER w AS n
+			FROM checkpoints
+			WHERE cluster = $1
+			  AND status = 'COMPLETED'
+			  AND state_size > 0
+			  AND trigger_timestamp >= $2
+			WINDOW w AS (
+				PARTITION BY jid ORDER BY trigger_timestamp
+				ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+			)
+		)
+		SELECT DISTINCT jid, first_size, last_size FROM bounds WHERE n >= 2
+	`
+
+	rows, err := s.pool.Query(ctx, query, clusterID, time.Now().Add(-within))
+	if err != nil {
+		return nil, fmt.Errorf("state size growth: %w", err)
+	}
+	defer rows.Close()
+
+	out := make(map[string]float64)
+	for rows.Next() {
+		var jid string
+		var first, last int64
+		if err := rows.Scan(&jid, &first, &last); err != nil {
+			return nil, fmt.Errorf("scan state size growth: %w", err)
+		}
+		if first > 0 {
+			out[jid] = float64(last-first) / float64(first) * 100.0
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate state size growth: %w", err)
+	}
+
+	return out, nil
+}

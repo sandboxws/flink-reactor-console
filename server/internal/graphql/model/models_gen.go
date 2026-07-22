@@ -1710,6 +1710,7 @@ const (
 	AlertConditionTypeTmLost                AlertConditionType = "TM_LOST"
 	AlertConditionTypeProcessMemoryHeadroom AlertConditionType = "PROCESS_MEMORY_HEADROOM"
 	AlertConditionTypeGcPressure            AlertConditionType = "GC_PRESSURE"
+	AlertConditionTypeCheckpointSizeGrowth  AlertConditionType = "CHECKPOINT_SIZE_GROWTH"
 )
 
 var AllAlertConditionType = []AlertConditionType{
@@ -1720,11 +1721,12 @@ var AllAlertConditionType = []AlertConditionType{
 	AlertConditionTypeTmLost,
 	AlertConditionTypeProcessMemoryHeadroom,
 	AlertConditionTypeGcPressure,
+	AlertConditionTypeCheckpointSizeGrowth,
 }
 
 func (e AlertConditionType) IsValid() bool {
 	switch e {
-	case AlertConditionTypeSlotExhaustion, AlertConditionTypeBackpressure, AlertConditionTypeCheckpointFailure, AlertConditionTypeTmMemory, AlertConditionTypeTmLost, AlertConditionTypeProcessMemoryHeadroom, AlertConditionTypeGcPressure:
+	case AlertConditionTypeSlotExhaustion, AlertConditionTypeBackpressure, AlertConditionTypeCheckpointFailure, AlertConditionTypeTmMemory, AlertConditionTypeTmLost, AlertConditionTypeProcessMemoryHeadroom, AlertConditionTypeGcPressure, AlertConditionTypeCheckpointSizeGrowth:
 		return true
 	}
 	return false
