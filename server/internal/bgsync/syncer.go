@@ -28,16 +28,23 @@ type Syncer struct {
 	// appears) even when the aggregate count stays flat.
 	churnMu   sync.Mutex
 	lastTMIDs map[string]map[string]struct{}
+
+	// OOM-kill tracking: last-seen restart count per (pod/container) per cluster,
+	// used to count only NEW container OOM kills rather than the same still-set
+	// terminated lastState on every poll.
+	oomMu          sync.Mutex
+	lastOOMRestart map[string]map[string]int
 }
 
 // New creates a Syncer that will sync data from the cluster manager to the stores.
 func New(manager *cluster.Manager, stores *store.Stores, cfg config.SyncConfig, logger *slog.Logger) *Syncer {
 	return &Syncer{
-		manager:   manager,
-		stores:    stores,
-		config:    cfg,
-		logger:    logger,
-		lastTMIDs: make(map[string]map[string]struct{}),
+		manager:        manager,
+		stores:         stores,
+		config:         cfg,
+		logger:         logger,
+		lastTMIDs:      make(map[string]map[string]struct{}),
+		lastOOMRestart: make(map[string]map[string]int),
 	}
 }
 
@@ -73,6 +80,14 @@ func (s *Syncer) Start(ctx context.Context) {
 	go func() {
 		defer s.wg.Done()
 		s.runTaskManagerSync(ctx)
+	}()
+
+	// OOM-kill domain (K8s pod terminations; no-op for clusters without a
+	// configured K8s service).
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.runOOMKillSync(ctx)
 	}()
 
 	// Job manager domain.

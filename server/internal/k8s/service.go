@@ -40,6 +40,17 @@ func (s *Service) ConfigDiff(ctx context.Context, name string) (*ConfigDiff, err
 	return s.client.BlueGreenConfigDiff(ctx, name)
 }
 
+// ListOOMKills lists TaskManager pods and returns any whose containers were
+// OOM-killed (reason "OOMKilled" or exit code 137). UNVERIFIED against a live
+// cluster — the pod listing has not been exercised against a real API server.
+func (s *Service) ListOOMKills(ctx context.Context) ([]OOMKill, error) {
+	pods, err := s.client.listTaskManagerPods(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return oomKillsFromPods(pods), nil
+}
+
 // EventBus returns the event bus for BG deployment state changes.
 func (s *Service) EventBus() *flink.EventBus[BlueGreenDeployment] {
 	return s.watcher.EventBus()
