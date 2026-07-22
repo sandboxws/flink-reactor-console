@@ -1,5 +1,5 @@
 import { Either } from "effect"
-import type { PipelineProps } from "@/components/pipeline.js"
+import type { PipelineProps, PodResources } from "@/components/pipeline.js"
 import { CrdGenerationError } from "@/core/errors.js"
 import { FlinkVersionCompat } from "@/core/flink-compat.js"
 import { isSecretRef, type SecretRef } from "@/core/secret-ref.js"
@@ -338,6 +338,21 @@ interface InnerSpec {
  * Build the inner Flink deployment spec (shared between FlinkDeployment
  * and FlinkBlueGreenDeployment CRDs).
  */
+/** Built-in pod resource when neither a CRD-gen option nor a DSL prop is set. */
+const DEFAULT_POD_RESOURCE: ResourceSpec = { cpu: "1", memory: "1024m" }
+
+/**
+ * Resolve a pod's resource spec with precedence: explicit CRD-generator option
+ * > the DSL `resources` prop > the built-in default. Specs are merged so a
+ * partial value (e.g. memory only) keeps the default CPU instead of dropping it.
+ */
+function resolvePodResource(
+  override: ResourceSpec | undefined,
+  prop: PodResources | undefined,
+): ResourceSpec {
+  return { ...DEFAULT_POD_RESOURCE, ...prop, ...override }
+}
+
 function buildInnerSpec(
   props: PipelineProps,
   options: CrdGeneratorOptions,
@@ -389,6 +404,31 @@ function buildInnerSpec(
     }
   }
 
+  // Memory / RocksDB config is deployment-level (read by the TaskManager at
+  // startup), so it belongs in flinkConfiguration — not the per-job SQL SET
+  // block. Emitted before flinkConfig so an explicit user override still wins.
+  if (props.resources?.managedMemoryFraction !== undefined) {
+    config["taskmanager.memory.managed.fraction"] = String(
+      props.resources.managedMemoryFraction,
+    )
+  }
+  if (props.rocksdb) {
+    const rdb = props.rocksdb
+    if (rdb.managed !== undefined) {
+      config["state.backend.rocksdb.memory.managed"] = String(rdb.managed)
+    }
+    if (rdb.writeBufferRatio !== undefined) {
+      config["state.backend.rocksdb.memory.write-buffer-ratio"] = String(
+        rdb.writeBufferRatio,
+      )
+    }
+    if (rdb.highPriorityPoolRatio !== undefined) {
+      config["state.backend.rocksdb.memory.high-prio-pool-ratio"] = String(
+        rdb.highPriorityPoolRatio,
+      )
+    }
+  }
+
   if (props.flinkConfig) {
     // Sort by key so output bytes don't depend on the user's
     // `{ ...defaults, ...overrides }` insertion order. Flink reads
@@ -427,12 +467,18 @@ function buildInnerSpec(
   const flinkVersionStr = FLINK_VERSION_MAP[flinkVersion]
 
   const jobManagerSpec = {
-    resource: options.jobManager?.resource ?? { cpu: "1", memory: "1024m" },
+    resource: resolvePodResource(
+      options.jobManager?.resource,
+      props.resources?.jobManager,
+    ),
     replicas: options.jobManager?.replicas ?? 1,
   }
 
   const taskManagerSpec = {
-    resource: options.taskManager?.resource ?? { cpu: "1", memory: "1024m" },
+    resource: resolvePodResource(
+      options.taskManager?.resource,
+      props.resources?.taskManager,
+    ),
     ...(options.taskManager?.replicas !== undefined
       ? { replicas: options.taskManager.replicas }
       : {}),

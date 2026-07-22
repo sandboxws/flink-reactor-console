@@ -61,6 +61,47 @@ export interface TelemetryConfig {
   readonly labels?: Readonly<Record<string, string>>
 }
 
+// ── Resource & memory types ──────────────────────────────────────────
+
+/** Kubernetes pod resource request (mirrors the CRD `resource` shape). */
+export interface PodResources {
+  /** CPU quantity, e.g. "1" or "500m". */
+  readonly cpu?: string
+  /** Memory quantity, e.g. "2048m" or "2Gi". */
+  readonly memory?: string
+}
+
+/**
+ * Compute resources for the pipeline's Flink pods. Without this, generated
+ * FlinkDeployments default to 1 CPU / 1024m per pod — too small for any
+ * stateful RocksDB job, and a direct route to container OOMKills.
+ */
+export interface PipelineResources {
+  readonly taskManager?: PodResources
+  readonly jobManager?: PodResources
+  /**
+   * `taskmanager.memory.managed.fraction` (0..1): the share of Flink memory
+   * reserved for managed memory, which the RocksDB state backend draws from.
+   * Raise it for large keyed state so RocksDB stays within a bounded budget.
+   */
+  readonly managedMemoryFraction?: number
+}
+
+/**
+ * RocksDB state-backend memory tuning (`state.backend.rocksdb.memory.*`).
+ * Keeping `managed: true` (the Flink default) bounds RocksDB inside managed
+ * memory so it can't grow unbounded into container RSS — the failure mode
+ * behind Flink TaskManager OOMKills.
+ */
+export interface RocksDbConfig {
+  /** `state.backend.rocksdb.memory.managed` — bound RocksDB within managed memory. */
+  readonly managed?: boolean
+  /** `state.backend.rocksdb.memory.write-buffer-ratio` (0..1). */
+  readonly writeBufferRatio?: number
+  /** `state.backend.rocksdb.memory.high-prio-pool-ratio` (0..1). */
+  readonly highPriorityPoolRatio?: number
+}
+
 export interface PipelineProps {
   readonly name: string
   readonly mode?: PipelineMode
@@ -72,6 +113,10 @@ export interface PipelineProps {
   readonly flinkConfig?: Record<string, string>
   readonly upgradeStrategy?: UpgradeStrategy
   readonly telemetry?: TelemetryConfig
+  /** Pod compute resources (cpu/memory) + managed-memory fraction. */
+  readonly resources?: PipelineResources
+  /** RocksDB state-backend memory tuning. */
+  readonly rocksdb?: RocksDbConfig
   readonly children?: ConstructNode | ConstructNode[]
 }
 
@@ -140,6 +185,28 @@ function validatePipelineProps(props: PipelineProps): void {
         message:
           "Blue-green upgrade strategy without checkpoint configuration is risky. Stateful blue-green transitions rely on savepoints, which require checkpointing to be enabled.",
       })
+    }
+  }
+
+  // Resource / memory fractions must be in [0, 1].
+  const managedFraction = props.resources?.managedMemoryFraction
+  if (
+    managedFraction !== undefined &&
+    (managedFraction < 0 || managedFraction > 1)
+  ) {
+    throw new Error(
+      `resources.managedMemoryFraction must be between 0 and 1, got ${managedFraction}`,
+    )
+  }
+  if (props.rocksdb) {
+    const ratios: readonly [string, number | undefined][] = [
+      ["writeBufferRatio", props.rocksdb.writeBufferRatio],
+      ["highPriorityPoolRatio", props.rocksdb.highPriorityPoolRatio],
+    ]
+    for (const [name, value] of ratios) {
+      if (value !== undefined && (value < 0 || value > 1)) {
+        throw new Error(`rocksdb.${name} must be between 0 and 1, got ${value}`)
+      }
     }
   }
 }

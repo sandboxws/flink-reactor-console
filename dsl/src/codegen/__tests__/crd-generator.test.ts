@@ -7,7 +7,7 @@ import {
   toMilliseconds,
 } from "@/codegen/crd-generator.js"
 import { IcebergCatalog } from "@/components/catalogs.js"
-import { Pipeline } from "@/components/pipeline.js"
+import { Pipeline, type PipelineProps } from "@/components/pipeline.js"
 import { IcebergSink, KafkaSink } from "@/components/sinks.js"
 import {
   KafkaSource,
@@ -743,5 +743,69 @@ describe("CRD generation: SQL-branch secrets (YugabyteCdcSource)", () => {
     const crd = generateCrd(pipeline, { flinkVersion: "2.0" })
     assertFlinkDeployment(crd)
     expect(crd.spec.podTemplate).toBeUndefined()
+  })
+})
+
+// ── 5.1: Pod resources + RocksDB memory config ──────────────────────
+
+describe("CRD generation: resources & RocksDB memory", () => {
+  const buildPipeline = (props: Partial<PipelineProps>) => {
+    const source = KafkaSource({
+      topic: "in",
+      format: "json",
+      schema: OrderSchema,
+    })
+    const sink = KafkaSink({ topic: "out", children: [source] })
+    return Pipeline({ name: "stateful", children: [sink], ...props })
+  }
+
+  it("defaults pods to 1 CPU / 1024m when no resources are set", () => {
+    const crd = generateCrd(buildPipeline({}), { flinkVersion: "2.0" })
+    assertFlinkDeployment(crd)
+    expect(crd.spec.taskManager.resource).toEqual({ cpu: "1", memory: "1024m" })
+    expect(crd.spec.jobManager.resource).toEqual({ cpu: "1", memory: "1024m" })
+  })
+
+  it("threads resources into TM/JM pod specs, merging partial values", () => {
+    const crd = generateCrd(
+      buildPipeline({
+        resources: {
+          taskManager: { cpu: "2", memory: "4096m" },
+          jobManager: { memory: "2048m" },
+        },
+      }),
+      { flinkVersion: "2.0" },
+    )
+    assertFlinkDeployment(crd)
+    expect(crd.spec.taskManager.resource).toEqual({ cpu: "2", memory: "4096m" })
+    // Partial spec keeps the default CPU.
+    expect(crd.spec.jobManager.resource).toEqual({ cpu: "1", memory: "2048m" })
+  })
+
+  it("emits managed-memory fraction and RocksDB memory keys", () => {
+    const crd = generateCrd(
+      buildPipeline({
+        stateBackend: "rocksdb",
+        resources: { managedMemoryFraction: 0.6 },
+        rocksdb: {
+          managed: true,
+          writeBufferRatio: 0.5,
+          highPriorityPoolRatio: 0.1,
+        },
+      }),
+      { flinkVersion: "2.0" },
+    )
+    assertFlinkDeployment(crd)
+    const cfg = crd.spec.flinkConfiguration
+    expect(cfg["taskmanager.memory.managed.fraction"]).toBe("0.6")
+    expect(cfg["state.backend.rocksdb.memory.managed"]).toBe("true")
+    expect(cfg["state.backend.rocksdb.memory.write-buffer-ratio"]).toBe("0.5")
+    expect(cfg["state.backend.rocksdb.memory.high-prio-pool-ratio"]).toBe("0.1")
+  })
+
+  it("rejects a managed-memory fraction outside 0..1", () => {
+    expect(() =>
+      buildPipeline({ resources: { managedMemoryFraction: 1.5 } }),
+    ).toThrow("managedMemoryFraction must be between 0 and 1")
   })
 })
