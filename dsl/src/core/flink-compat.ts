@@ -112,13 +112,6 @@ function versionGte(a: FlinkMajorVersion, b: FlinkMajorVersion): boolean {
   return versionIndex(a) >= versionIndex(b)
 }
 
-// ── JDBC connector structure ─────────────────────────────────────────
-
-export interface JdbcConnectorInfo {
-  readonly style: "single" | "modular"
-  readonly jars: readonly string[]
-}
-
 // ── FlinkVersionCompat ───────────────────────────────────────────────
 
 export interface FeatureGateError {
@@ -167,30 +160,6 @@ export const FlinkVersionCompat = {
       requiredVersion: feature.minVersion,
       currentVersion: version,
       message: `${feature.description} requires Flink ${feature.minVersion} or later (current: ${version})`,
-    }
-  },
-
-  /**
-   * Resolve JDBC connector JARs for the given Flink version.
-   * Flink 1.20 uses a single fat JAR; 2.0+ uses modular JARs.
-   */
-  resolveJdbcConnector(
-    version: FlinkMajorVersion,
-    dialect: string,
-  ): JdbcConnectorInfo {
-    if (!versionGte(version, "2.0")) {
-      return {
-        style: "single",
-        jars: [`flink-connector-jdbc-3.2.0-1.20.jar`],
-      }
-    }
-
-    return {
-      style: "modular",
-      jars: [
-        `flink-connector-jdbc-3.2.0-${version}.jar`,
-        `flink-connector-jdbc-${dialect}-3.2.0-${version}.jar`,
-      ],
     }
   },
 
