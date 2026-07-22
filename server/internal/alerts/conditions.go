@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/sandboxws/flink-reactor-console/server/internal/flink"
 	"github.com/sandboxws/flink-reactor-console/server/internal/storage"
 )
 
@@ -96,38 +97,73 @@ func evalCheckpointFailure(snap ClusterSnapshot, cond storage.AlertConditionPayl
 	}}
 }
 
-// TM_MEMORY fires once per task manager whose JVM heap usage exceeds the
-// threshold (as a percentage of total). Each TM has its own dedup_key so they
-// can be acknowledged independently.
+// TM_MEMORY fires once per task manager whose memory usage exceeds the
+// threshold (percent). It prefers the worst live pool saturation — heap /
+// managed / metaspace / network used vs each pool's configured budget, read
+// from the metric store — so a filling managed/RocksDB or off-heap pool is
+// caught, not just heap (the native-memory blind spot behind OOMKills). When
+// no live metrics are available it falls back to the heap-allocation proxy.
+// Each TM has its own dedup_key so they can be acknowledged independently.
 func evalTMMemory(snap ClusterSnapshot, cond storage.AlertConditionPayload) []EvalResult {
 	var out []EvalResult
 	for _, tm := range snap.TaskManagers {
-		total := tm.MemoryConfiguration.TaskHeap + tm.MemoryConfiguration.FrameworkHeap
-		if total <= 0 {
-			continue
-		}
-		// We don't have live used-heap in the TaskManagerList payload; use
-		// the proxy: allocated-vs-total managed memory as a stand-in.
-		used := total - tm.FreeResource.TaskHeapMemory
-		if used < 0 || used > total*2 {
-			continue
-		}
-		pct := (float64(used) / float64(total)) * 100.0
-		if pct <= cond.Threshold {
+		pct, ok := tmMemoryPercent(snap.TMMetrics[tm.ID], tm)
+		if !ok || pct <= cond.Threshold {
 			continue
 		}
 		out = append(out, EvalResult{
 			Fired:        true,
 			DedupKey:     fmt.Sprintf("cluster:%s:tm:%s", snap.Cluster, tm.ID),
 			CurrentValue: pct,
-			Message:      fmt.Sprintf("TM %s heap at %.1f%% (threshold: > %.1f%%)", tm.ID, pct, cond.Threshold),
+			Message:      fmt.Sprintf("TM %s memory at %.1f%% (threshold: > %.1f%%)", tm.ID, pct, cond.Threshold),
 			Context: map[string]any{
 				"taskManagerId": tm.ID,
-				"heapPercent":   pct,
+				"memoryPercent": pct,
 			},
 		})
 	}
 	return out
+}
+
+// tmMemoryPercent returns a TaskManager's memory-pressure percentage and whether
+// it could be computed. With live gauges present it reports the worst pool
+// saturation (used ÷ that pool's configured budget), surfacing managed/off-heap
+// growth that a heap-only check misses. Otherwise it falls back to the
+// allocated-vs-total task-heap proxy from the TaskManagerList payload.
+func tmMemoryPercent(live map[string]float64, tm flink.TaskManagerItem) (float64, bool) {
+	cfg := tm.MemoryConfiguration
+	if len(live) > 0 {
+		worst := 0.0
+		consider := func(metricID string, budget int64) {
+			if budget <= 0 {
+				return
+			}
+			if used, ok := live[metricID]; ok {
+				if r := used / float64(budget); r > worst {
+					worst = r
+				}
+			}
+		}
+		consider("Status.JVM.Memory.Heap.Used", cfg.TaskHeap+cfg.FrameworkHeap)
+		consider("Status.Flink.Memory.Managed.Used", cfg.ManagedMemory)
+		consider("Status.JVM.Memory.Metaspace.Used", cfg.JVMMetaspace)
+		consider("Status.Shuffle.Netty.UsedMemory", cfg.NetworkMemory)
+		if worst > 0 {
+			return worst * 100.0, true
+		}
+	}
+
+	// Fallback proxy: allocated-vs-total task heap (pre-2a behavior) when no
+	// live metrics are available (e.g. background metric sync disabled).
+	total := cfg.TaskHeap + cfg.FrameworkHeap
+	if total <= 0 {
+		return 0, false
+	}
+	used := total - tm.FreeResource.TaskHeapMemory
+	if used < 0 || used > total*2 {
+		return 0, false
+	}
+	return float64(used) / float64(total) * 100.0, true
 }
 
 // TM_LOST fires when the number of registered TMs drops below the threshold.

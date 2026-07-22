@@ -156,6 +156,60 @@ func (s *MetricStore) QueryMetrics(ctx context.Context, filter MetricFilter) ([]
 	return result, nil
 }
 
+// LatestMetricValues returns the most recent value of each requested metric id
+// per source, for a single source type, within the lookback window. The result
+// is keyed source_id -> metric_id -> value. An empty map (not an error) is
+// returned when nothing matches — e.g. background metric sync is disabled — so
+// callers can degrade gracefully rather than treat missing data as a failure.
+func (s *MetricStore) LatestMetricValues(
+	ctx context.Context,
+	clusterID, sourceType string,
+	metricIDs []string,
+	within time.Duration,
+) (map[string]map[string]float64, error) {
+	out := make(map[string]map[string]float64)
+	if len(metricIDs) == 0 {
+		return out, nil
+	}
+
+	// DISTINCT ON collapses to the newest row per (source_id, metric_id).
+	query := `
+		SELECT DISTINCT ON (source_id, metric_id)
+			source_id, metric_id, value
+		FROM metrics
+		WHERE cluster = $1
+		  AND source_type = $2
+		  AND metric_id = ANY($3)
+		  AND captured_at >= $4
+		ORDER BY source_id, metric_id, captured_at DESC
+	`
+
+	rows, err := s.pool.Query(ctx, query, clusterID, sourceType, metricIDs, time.Now().Add(-within))
+	if err != nil {
+		return nil, fmt.Errorf("latest metric values: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sourceID, metricID string
+		var value float64
+		if err := rows.Scan(&sourceID, &metricID, &value); err != nil {
+			return nil, fmt.Errorf("scan latest metric: %w", err)
+		}
+		byMetric := out[sourceID]
+		if byMetric == nil {
+			byMetric = make(map[string]float64)
+			out[sourceID] = byMetric
+		}
+		byMetric[metricID] = value
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate latest metrics: %w", err)
+	}
+
+	return out, nil
+}
+
 // QueryMetricCatalog returns distinct metric identifiers that have data within the last hour.
 func (s *MetricStore) QueryMetricCatalog(ctx context.Context, clusterID string) ([]MetricCatalogEntry, error) {
 	query := `

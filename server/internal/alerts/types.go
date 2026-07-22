@@ -15,7 +15,12 @@ type ClusterSnapshot struct {
 	Cluster      string
 	Overview     *flink.ClusterOverview
 	TaskManagers []flink.TaskManagerItem
-	Jobs         []flink.JobOverview
+	// TMMetrics maps TaskManager id -> metric id -> latest persisted value,
+	// read from the metric store so TM_MEMORY can judge managed/off-heap
+	// pressure and not just heap. Nil/empty when the store is unavailable; in
+	// that case evaluators fall back to config/resource-profile proxies.
+	TMMetrics map[string]map[string]float64
+	Jobs      []flink.JobOverview
 	// CheckpointSuccessRate is computed from the most recent checkpoint
 	// statistics across all running jobs; in [0, 100]. -1 if unavailable.
 	CheckpointSuccessRate float64

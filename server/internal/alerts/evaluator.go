@@ -104,12 +104,38 @@ func (e *Evaluator) snapshot(ctx context.Context, clusterName string) ClusterSna
 	if tms, err := conn.Service.GetTaskManagers(ctx); err == nil {
 		snap.TaskManagers = tms.TaskManagers
 	}
+	snap.TMMetrics = e.tmMemoryMetrics(ctx, clusterName)
 	if jobs, err := conn.Service.GetJobs(ctx); err == nil {
 		snap.Jobs = jobs.Jobs
 	}
 	snap.CheckpointSuccessRate = e.checkpointSuccessRate(ctx, conn, snap.Jobs)
 
 	return snap
+}
+
+// tmMemoryMetricIDs are the live TM memory gauges the evaluator reads from the
+// metric store so TM_MEMORY can see managed/off-heap/metaspace pressure — the
+// native-memory blind spot behind OOMKills — not just heap.
+var tmMemoryMetricIDs = []string{
+	"Status.JVM.Memory.Heap.Used",
+	"Status.Flink.Memory.Managed.Used",
+	"Status.JVM.Memory.Metaspace.Used",
+	"Status.Shuffle.Netty.UsedMemory",
+}
+
+// tmMemoryMetrics reads the latest persisted memory gauges per TM (keyed
+// tmID -> metricID -> value). Best-effort: returns nil on error or when the
+// store has no recent data, so evalTMMemory falls back to the heap proxy.
+func (e *Evaluator) tmMemoryMetrics(ctx context.Context, clusterName string) map[string]map[string]float64 {
+	if e.stores == nil || e.stores.Metrics == nil {
+		return nil
+	}
+	m, err := e.stores.Metrics.LatestMetricValues(ctx, clusterName, "task_manager", tmMemoryMetricIDs, 2*time.Minute)
+	if err != nil {
+		e.logger.Warn("alerts: latest TM memory metrics failed", "cluster", clusterName, "error", err)
+		return nil
+	}
+	return m
 }
 
 // checkpointSuccessRate looks at the most recent checkpoints across running

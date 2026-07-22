@@ -73,6 +73,41 @@ func TestTMMemoryFiresPerTM(t *testing.T) {
 	}
 }
 
+// TestTMMemoryFiresOnManagedPressure is the 2a regression: heap is calm but the
+// managed (RocksDB) pool is nearly full. The old heap-only proxy stayed silent;
+// the live per-pool check must fire.
+func TestTMMemoryFiresOnManagedPressure(t *testing.T) {
+	snap := ClusterSnapshot{
+		Cluster: "primary",
+		TaskManagers: []flink.TaskManagerItem{
+			{
+				ID: "tm-rocks",
+				MemoryConfiguration: flink.TaskManagerMemory{
+					TaskHeap:      1000,
+					ManagedMemory: 1000,
+				},
+				// ~5% heap allocation — the fallback proxy would be quiet here.
+				FreeResource: flink.TaskManagerResourceProfile{TaskHeapMemory: 950},
+			},
+		},
+		TMMetrics: map[string]map[string]float64{
+			"tm-rocks": {
+				"Status.JVM.Memory.Heap.Used":      200, // 20% of heap budget
+				"Status.Flink.Memory.Managed.Used": 950, // 95% of managed budget
+			},
+		},
+	}
+	results := EvaluateCondition(snap, storage.AlertConditionPayload{
+		Type: storage.AlertConditionTMMemory, Threshold: 90,
+	})
+	if len(results) != 1 || !results[0].Fired {
+		t.Fatalf("expected fire on managed pressure, got %#v", results)
+	}
+	if results[0].CurrentValue < 90 {
+		t.Fatalf("expected pct >= 90 (managed at 95%%), got %.1f", results[0].CurrentValue)
+	}
+}
+
 func TestUnknownConditionType(t *testing.T) {
 	if storage.IsValidAlertConditionType("MADE_UP") {
 		t.Fatal("MADE_UP should be rejected")
