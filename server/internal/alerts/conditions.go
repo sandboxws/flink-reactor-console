@@ -22,6 +22,8 @@ func EvaluateCondition(snap ClusterSnapshot, cond storage.AlertConditionPayload)
 		return evalTMMemory(snap, cond)
 	case storage.AlertConditionTMLost:
 		return evalTMLost(snap, cond)
+	case storage.AlertConditionProcessMemoryHeadroom:
+		return evalProcessMemoryHeadroom(snap, cond)
 	}
 	return nil
 }
@@ -164,6 +166,46 @@ func tmMemoryPercent(live map[string]float64, tm flink.TaskManagerItem) (float64
 		return 0, false
 	}
 	return float64(used) / float64(total) * 100.0, true
+}
+
+// PROCESS_MEMORY_HEADROOM fires once per task manager whose Flink-visible memory
+// (heap + managed + metaspace + network used, from the metric store) exceeds the
+// threshold percent of Total Process Memory — the container ceiling the
+// OOMKiller enforces. Where TM_MEMORY asks "is any one pool near its budget?",
+// this asks "is the whole process near the container limit?". It needs live
+// metrics, so TMs without persisted gauges are skipped (there is no config-only
+// proxy for the aggregate).
+func evalProcessMemoryHeadroom(snap ClusterSnapshot, cond storage.AlertConditionPayload) []EvalResult {
+	var out []EvalResult
+	for _, tm := range snap.TaskManagers {
+		live := snap.TMMetrics[tm.ID]
+		ceiling := float64(tm.MemoryConfiguration.TotalProcessMemory)
+		if len(live) == 0 || ceiling <= 0 {
+			continue
+		}
+		used := live["Status.JVM.Memory.Heap.Used"] +
+			live["Status.Flink.Memory.Managed.Used"] +
+			live["Status.JVM.Memory.Metaspace.Used"] +
+			live["Status.Shuffle.Netty.UsedMemory"]
+		pct := used / ceiling * 100.0
+		if pct <= cond.Threshold {
+			continue
+		}
+		out = append(out, EvalResult{
+			Fired:        true,
+			DedupKey:     fmt.Sprintf("cluster:%s:tm:%s", snap.Cluster, tm.ID),
+			CurrentValue: pct,
+			Message: fmt.Sprintf(
+				"TM %s process memory at %.1f%% of limit (threshold: > %.1f%%)",
+				tm.ID, pct, cond.Threshold,
+			),
+			Context: map[string]any{
+				"taskManagerId":  tm.ID,
+				"processPercent": pct,
+			},
+		})
+	}
+	return out
 }
 
 // TM_LOST fires when the number of registered TMs drops below the threshold.

@@ -1703,11 +1703,12 @@ type WatermarkEntry struct {
 type AlertConditionType string
 
 const (
-	AlertConditionTypeSlotExhaustion    AlertConditionType = "SLOT_EXHAUSTION"
-	AlertConditionTypeBackpressure      AlertConditionType = "BACKPRESSURE"
-	AlertConditionTypeCheckpointFailure AlertConditionType = "CHECKPOINT_FAILURE"
-	AlertConditionTypeTmMemory          AlertConditionType = "TM_MEMORY"
-	AlertConditionTypeTmLost            AlertConditionType = "TM_LOST"
+	AlertConditionTypeSlotExhaustion        AlertConditionType = "SLOT_EXHAUSTION"
+	AlertConditionTypeBackpressure          AlertConditionType = "BACKPRESSURE"
+	AlertConditionTypeCheckpointFailure     AlertConditionType = "CHECKPOINT_FAILURE"
+	AlertConditionTypeTmMemory              AlertConditionType = "TM_MEMORY"
+	AlertConditionTypeTmLost                AlertConditionType = "TM_LOST"
+	AlertConditionTypeProcessMemoryHeadroom AlertConditionType = "PROCESS_MEMORY_HEADROOM"
 )
 
 var AllAlertConditionType = []AlertConditionType{
@@ -1716,11 +1717,12 @@ var AllAlertConditionType = []AlertConditionType{
 	AlertConditionTypeCheckpointFailure,
 	AlertConditionTypeTmMemory,
 	AlertConditionTypeTmLost,
+	AlertConditionTypeProcessMemoryHeadroom,
 }
 
 func (e AlertConditionType) IsValid() bool {
 	switch e {
-	case AlertConditionTypeSlotExhaustion, AlertConditionTypeBackpressure, AlertConditionTypeCheckpointFailure, AlertConditionTypeTmMemory, AlertConditionTypeTmLost:
+	case AlertConditionTypeSlotExhaustion, AlertConditionTypeBackpressure, AlertConditionTypeCheckpointFailure, AlertConditionTypeTmMemory, AlertConditionTypeTmLost, AlertConditionTypeProcessMemoryHeadroom:
 		return true
 	}
 	return false

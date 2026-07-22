@@ -8,11 +8,12 @@ import (
 // Alert condition type constants. The set of accepted condition `type` values is
 // a fixed enum chosen to match parity with the legacy client-side alerts engine.
 const (
-	AlertConditionSlotExhaustion    = "SLOT_EXHAUSTION"
-	AlertConditionBackpressure      = "BACKPRESSURE"
-	AlertConditionCheckpointFailure = "CHECKPOINT_FAILURE"
-	AlertConditionTMMemory          = "TM_MEMORY"
-	AlertConditionTMLost            = "TM_LOST"
+	AlertConditionSlotExhaustion        = "SLOT_EXHAUSTION"
+	AlertConditionBackpressure          = "BACKPRESSURE"
+	AlertConditionCheckpointFailure     = "CHECKPOINT_FAILURE"
+	AlertConditionTMMemory              = "TM_MEMORY"
+	AlertConditionTMLost                = "TM_LOST"
+	AlertConditionProcessMemoryHeadroom = "PROCESS_MEMORY_HEADROOM"
 )
 
 // AlertSeverity values.
@@ -46,7 +47,8 @@ func IsValidAlertConditionType(t string) bool {
 		AlertConditionBackpressure,
 		AlertConditionCheckpointFailure,
 		AlertConditionTMMemory,
-		AlertConditionTMLost:
+		AlertConditionTMLost,
+		AlertConditionProcessMemoryHeadroom:
 		return true
 	}
 	return false

@@ -8071,6 +8071,7 @@ enum AlertConditionType {
   CHECKPOINT_FAILURE
   TM_MEMORY
   TM_LOST
+  PROCESS_MEMORY_HEADROOM
 }
 
 enum AlertSeverity {

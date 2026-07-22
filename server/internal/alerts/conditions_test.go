@@ -108,6 +108,53 @@ func TestTMMemoryFiresOnManagedPressure(t *testing.T) {
 	}
 }
 
+func TestProcessMemoryHeadroomFires(t *testing.T) {
+	// heap 400 + managed 400 + metaspace 50 + network 50 = 900 of the 1000
+	// Total Process Memory ceiling = 90%, over the 85% threshold.
+	snap := ClusterSnapshot{
+		Cluster: "primary",
+		TaskManagers: []flink.TaskManagerItem{
+			{
+				ID:                  "tm-1",
+				MemoryConfiguration: flink.TaskManagerMemory{TotalProcessMemory: 1000},
+			},
+		},
+		TMMetrics: map[string]map[string]float64{
+			"tm-1": {
+				"Status.JVM.Memory.Heap.Used":      400,
+				"Status.Flink.Memory.Managed.Used": 400,
+				"Status.JVM.Memory.Metaspace.Used": 50,
+				"Status.Shuffle.Netty.UsedMemory":  50,
+			},
+		},
+	}
+	results := EvaluateCondition(snap, storage.AlertConditionPayload{
+		Type: storage.AlertConditionProcessMemoryHeadroom, Threshold: 85,
+	})
+	if len(results) != 1 || !results[0].Fired {
+		t.Fatalf("expected fire at 90%% of limit, got %#v", results)
+	}
+}
+
+func TestProcessMemoryHeadroomSkipsWithoutLiveMetrics(t *testing.T) {
+	snap := ClusterSnapshot{
+		Cluster: "primary",
+		TaskManagers: []flink.TaskManagerItem{
+			{
+				ID:                  "tm-1",
+				MemoryConfiguration: flink.TaskManagerMemory{TotalProcessMemory: 1000},
+			},
+		},
+		// No TMMetrics → no aggregate proxy → skip rather than false-alarm.
+	}
+	results := EvaluateCondition(snap, storage.AlertConditionPayload{
+		Type: storage.AlertConditionProcessMemoryHeadroom, Threshold: 85,
+	})
+	if len(results) != 0 {
+		t.Fatalf("expected no fire without live metrics, got %#v", results)
+	}
+}
+
 func TestUnknownConditionType(t *testing.T) {
 	if storage.IsValidAlertConditionType("MADE_UP") {
 		t.Fatal("MADE_UP should be rejected")
