@@ -18,6 +18,7 @@ import { useMemo } from "react"
 import { TmAdvancedStatsGrid } from "./tm-advanced-stats-grid"
 import { TmMemoryBar } from "./tm-memory-bar"
 import { TmMemoryModelCard } from "./tm-memory-model-card"
+import { TmMemoryTrend } from "./tm-memory-trend"
 import { TmResourcesSection } from "./tm-resources-section"
 
 interface TmOverviewTabHubProps {
@@ -47,6 +48,9 @@ export function TmOverviewTabHub({
 
       {/* ── Row 2: Memory model (full width) ─────────────────────────── */}
       <TmMemoryModelCard tm={tm} />
+
+      {/* ── Row 2.5: Memory trend over time (full width) ─────────────── */}
+      <TmMemoryTrend tm={tm} />
 
       {/* ── Row 3: Advanced (full width) ─────────────────────────────── */}
       <section>
