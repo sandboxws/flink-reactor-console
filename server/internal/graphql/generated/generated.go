@@ -8072,6 +8072,7 @@ enum AlertConditionType {
   TM_MEMORY
   TM_LOST
   PROCESS_MEMORY_HEADROOM
+  GC_PRESSURE
 }
 
 enum AlertSeverity {

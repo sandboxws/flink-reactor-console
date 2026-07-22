@@ -1709,6 +1709,7 @@ const (
 	AlertConditionTypeTmMemory              AlertConditionType = "TM_MEMORY"
 	AlertConditionTypeTmLost                AlertConditionType = "TM_LOST"
 	AlertConditionTypeProcessMemoryHeadroom AlertConditionType = "PROCESS_MEMORY_HEADROOM"
+	AlertConditionTypeGcPressure            AlertConditionType = "GC_PRESSURE"
 )
 
 var AllAlertConditionType = []AlertConditionType{
@@ -1718,11 +1719,12 @@ var AllAlertConditionType = []AlertConditionType{
 	AlertConditionTypeTmMemory,
 	AlertConditionTypeTmLost,
 	AlertConditionTypeProcessMemoryHeadroom,
+	AlertConditionTypeGcPressure,
 }
 
 func (e AlertConditionType) IsValid() bool {
 	switch e {
-	case AlertConditionTypeSlotExhaustion, AlertConditionTypeBackpressure, AlertConditionTypeCheckpointFailure, AlertConditionTypeTmMemory, AlertConditionTypeTmLost, AlertConditionTypeProcessMemoryHeadroom:
+	case AlertConditionTypeSlotExhaustion, AlertConditionTypeBackpressure, AlertConditionTypeCheckpointFailure, AlertConditionTypeTmMemory, AlertConditionTypeTmLost, AlertConditionTypeProcessMemoryHeadroom, AlertConditionTypeGcPressure:
 		return true
 	}
 	return false

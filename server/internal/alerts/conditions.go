@@ -24,6 +24,8 @@ func EvaluateCondition(snap ClusterSnapshot, cond storage.AlertConditionPayload)
 		return evalTMLost(snap, cond)
 	case storage.AlertConditionProcessMemoryHeadroom:
 		return evalProcessMemoryHeadroom(snap, cond)
+	case storage.AlertConditionGCPressure:
+		return evalGCPressure(snap, cond)
 	}
 	return nil
 }
@@ -202,6 +204,44 @@ func evalProcessMemoryHeadroom(snap ClusterSnapshot, cond storage.AlertCondition
 			Context: map[string]any{
 				"taskManagerId":  tm.ID,
 				"processPercent": pct,
+			},
+		})
+	}
+	return out
+}
+
+// GC_PRESSURE fires once per task manager whose garbage-collection rate (total
+// young + old TimeMsPerSecond, from the metric store) exceeds the threshold in
+// milliseconds of GC per wall-clock second. Sustained high GC time is the
+// cheapest leading indicator of memory pressure — often visible before any pool
+// nears its limit. Needs live metrics, so TMs without them are skipped.
+func evalGCPressure(snap ClusterSnapshot, cond storage.AlertConditionPayload) []EvalResult {
+	var out []EvalResult
+	for _, tm := range snap.TaskManagers {
+		live := snap.TMMetrics[tm.ID]
+		if len(live) == 0 {
+			continue
+		}
+		young, hasYoung := live["Status.JVM.GarbageCollector.G1_Young_Generation.TimeMsPerSecond"]
+		old, hasOld := live["Status.JVM.GarbageCollector.G1_Old_Generation.TimeMsPerSecond"]
+		if !hasYoung && !hasOld {
+			continue
+		}
+		rate := young + old
+		if rate <= cond.Threshold {
+			continue
+		}
+		out = append(out, EvalResult{
+			Fired:        true,
+			DedupKey:     fmt.Sprintf("cluster:%s:tm:%s", snap.Cluster, tm.ID),
+			CurrentValue: rate,
+			Message: fmt.Sprintf(
+				"TM %s GC at %.0f ms/s (threshold: > %.0f ms/s)",
+				tm.ID, rate, cond.Threshold,
+			),
+			Context: map[string]any{
+				"taskManagerId": tm.ID,
+				"gcMsPerSecond": rate,
 			},
 		})
 	}

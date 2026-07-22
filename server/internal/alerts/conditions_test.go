@@ -155,6 +155,29 @@ func TestProcessMemoryHeadroomSkipsWithoutLiveMetrics(t *testing.T) {
 	}
 }
 
+func TestGCPressureFiresOnHighRate(t *testing.T) {
+	// young 180 + old 60 = 240 ms of GC per second, over the 200 threshold.
+	snap := ClusterSnapshot{
+		Cluster:      "primary",
+		TaskManagers: []flink.TaskManagerItem{{ID: "tm-1"}},
+		TMMetrics: map[string]map[string]float64{
+			"tm-1": {
+				"Status.JVM.GarbageCollector.G1_Young_Generation.TimeMsPerSecond": 180,
+				"Status.JVM.GarbageCollector.G1_Old_Generation.TimeMsPerSecond":   60,
+			},
+		},
+	}
+	results := EvaluateCondition(snap, storage.AlertConditionPayload{
+		Type: storage.AlertConditionGCPressure, Threshold: 200,
+	})
+	if len(results) != 1 || !results[0].Fired {
+		t.Fatalf("expected fire at 240 ms/s, got %#v", results)
+	}
+	if results[0].CurrentValue != 240 {
+		t.Fatalf("expected rate 240, got %.1f", results[0].CurrentValue)
+	}
+}
+
 func TestUnknownConditionType(t *testing.T) {
 	if storage.IsValidAlertConditionType("MADE_UP") {
 		t.Fatal("MADE_UP should be rejected")

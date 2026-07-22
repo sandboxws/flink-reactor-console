@@ -10,7 +10,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// TM metric IDs fetched in a single call (28 metrics).
+// TM metric IDs fetched in a single call (30 metrics).
 var tmMetricIDs = []string{
 	"Status.JVM.CPU.Load",
 	"Status.JVM.Memory.Heap.Used",
@@ -40,6 +40,10 @@ var tmMetricIDs = []string{
 	"Status.JVM.GarbageCollector.G1_Young_Generation.Time",
 	"Status.JVM.GarbageCollector.G1_Old_Generation.Count",
 	"Status.JVM.GarbageCollector.G1_Old_Generation.Time",
+	// Instantaneous GC rate (ms of GC per wall-clock second) — a leading
+	// indicator of memory pressure, consumed by the GC_PRESSURE alert.
+	"Status.JVM.GarbageCollector.G1_Young_Generation.TimeMsPerSecond",
+	"Status.JVM.GarbageCollector.G1_Old_Generation.TimeMsPerSecond",
 }
 
 // TMMetricQuery is the pre-joined query string for TM metrics.

@@ -14,6 +14,7 @@ const (
 	AlertConditionTMMemory              = "TM_MEMORY"
 	AlertConditionTMLost                = "TM_LOST"
 	AlertConditionProcessMemoryHeadroom = "PROCESS_MEMORY_HEADROOM"
+	AlertConditionGCPressure            = "GC_PRESSURE"
 )
 
 // AlertSeverity values.
@@ -48,7 +49,8 @@ func IsValidAlertConditionType(t string) bool {
 		AlertConditionCheckpointFailure,
 		AlertConditionTMMemory,
 		AlertConditionTMLost,
-		AlertConditionProcessMemoryHeadroom:
+		AlertConditionProcessMemoryHeadroom,
+		AlertConditionGCPressure:
 		return true
 	}
 	return false

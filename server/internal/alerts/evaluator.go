@@ -113,14 +113,17 @@ func (e *Evaluator) snapshot(ctx context.Context, clusterName string) ClusterSna
 	return snap
 }
 
-// tmMemoryMetricIDs are the live TM memory gauges the evaluator reads from the
-// metric store so TM_MEMORY can see managed/off-heap/metaspace pressure — the
-// native-memory blind spot behind OOMKills — not just heap.
+// tmMemoryMetricIDs are the live TM gauges the evaluator reads from the metric
+// store so memory conditions can see managed/off-heap/metaspace pressure — the
+// native-memory blind spot behind OOMKills — not just heap, plus the GC rate
+// used by GC_PRESSURE.
 var tmMemoryMetricIDs = []string{
 	"Status.JVM.Memory.Heap.Used",
 	"Status.Flink.Memory.Managed.Used",
 	"Status.JVM.Memory.Metaspace.Used",
 	"Status.Shuffle.Netty.UsedMemory",
+	"Status.JVM.GarbageCollector.G1_Young_Generation.TimeMsPerSecond",
+	"Status.JVM.GarbageCollector.G1_Old_Generation.TimeMsPerSecond",
 }
 
 // tmMemoryMetrics reads the latest persisted memory gauges per TM (keyed
