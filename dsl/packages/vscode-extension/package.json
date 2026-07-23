@@ -3,7 +3,7 @@
   "displayName": "FlinkReactor",
   "version": "0.1.0",
   "private": true,
-  "description": "VS Code support for FlinkReactor \u2014 synthesis-backed diagnostics, ts-plugin auto-configuration, and one-step onboarding for TSX Flink pipelines",
+  "description": "VS Code support for FlinkReactor — synthesis-backed diagnostics, ts-plugin auto-configuration, and one-step onboarding for TSX Flink pipelines",
   "license": "BSL-1.1",
   "publisher": "flink-reactor",
   "author": "Ahmed El.Hussaini <328866+sandboxws@users.noreply.github.com>",
@@ -414,11 +414,11 @@
           "default": "semantic+textmate",
           "enumDescriptions": [
             "Both layers: the TextMate grammar colors instantly/offline and the language server's semantic tokens refine it (recommended).",
-            "TextMate grammar only \u2014 fast, offline, heuristic; no server semantic tokens for embedded SQL.",
-            "Language-server semantic tokens only \u2014 precise, synthesis-aware; the heuristic grammar coloring is suppressed.",
-            "No embedded-SQL coloring \u2014 fragments render as ordinary TypeScript string literals."
+            "TextMate grammar only — fast, offline, heuristic; no server semantic tokens for embedded SQL.",
+            "Language-server semantic tokens only — precise, synthesis-aware; the heuristic grammar coloring is suppressed.",
+            "No embedded-SQL coloring — fragments render as ordinary TypeScript string literals."
           ],
-          "markdownDescription": "How to color the Flink SQL embedded in `.tsx` pipeline props (`Filter` `condition`, `Map`/`Aggregate` projections, join `on`, `Validate` rules, `Schema` watermark, `RawSQL` body). Two complementary layers \u2014 a TextMate injection grammar and language-server semantic tokens \u2014 that compose: semantic tokens override the grammar within the ranges the server reports."
+          "markdownDescription": "How to color the Flink SQL embedded in `.tsx` pipeline props (`Filter` `condition`, `Map`/`Aggregate` projections, join `on`, `Validate` rules, `Schema` watermark, `RawSQL` body). Two complementary layers — a TextMate injection grammar and language-server semantic tokens — that compose: semantic tokens override the grammar within the ranges the server reports."
         },
         "flinkReactor.inlayHints.enabled": {
           "type": "boolean",
@@ -463,7 +463,7 @@
         "flinkReactor.gateway.enabled": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Enable opt-in **deep validation** against a Flink SQL Gateway: the *Deep Validate Pipeline* command (and optionally save) submits the synthesized SQL via `EXPLAIN` and surfaces planner errors (missing catalog tables, type mismatches, unregistered UDFs) as `FR-GATEWAY-` diagnostics. Requires a reachable gateway \u2014 nothing connects while this is off."
+          "markdownDescription": "Enable opt-in **deep validation** against a Flink SQL Gateway: the *Deep Validate Pipeline* command (and optionally save) submits the synthesized SQL via `EXPLAIN` and surfaces planner errors (missing catalog tables, type mismatches, unregistered UDFs) as `FR-GATEWAY-` diagnostics. Requires a reachable gateway — nothing connects while this is off."
         },
         "flinkReactor.gateway.endpoint": {
           "type": "string",

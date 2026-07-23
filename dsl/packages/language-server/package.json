@@ -1,6 +1,6 @@
 {
   "name": "@flink-reactor/language-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Language Server Protocol backend for FlinkReactor — synthesis-backed validation, completions, hover, code actions, and source-position mapping for any LSP client",
   "type": "module",
   "license": "BSL-1.1",
