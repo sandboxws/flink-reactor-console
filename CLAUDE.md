@@ -1,6 +1,6 @@
 # flink-reactor-console
 
-Dashboard + Server + DSL for FlinkReactor. A combined repo containing the React dashboard, the Go GraphQL server, and the TSX DSL + CLI.
+**The FlinkReactor monorepo** — the single source of truth for the React dashboard, the Go GraphQL server, and the TSX DSL + CLI, all built, versioned, and released together from here. FlinkReactor no longer lives in separate repos: the formerly standalone `flink-reactor-dsl` and `flink-reactor-instruments` projects were merged in, and their old repos/checkouts are now **archived and read-only** (see **Related Repositories** at the bottom).
 
 ## What This Repo Contains
 
@@ -11,7 +11,9 @@ Dashboard + Server + DSL for FlinkReactor. A combined repo containing the React 
 - `tools/ui-embeddings/` — LanceDB embeddings for UI component search
 
 The repo is self-contained: no sibling checkout is needed to build it, and there
-is no `go.work`.
+is no `go.work`. All work happens in this monorepo — the archived
+`flink-reactor-dsl/` and `flink-reactor-instruments/` sibling directories are
+read-only history, never build or edit targets.
 
 ## Architecture
 
@@ -78,10 +80,19 @@ Specs for this project live in a separate repository at `~/Development/reactors/
 | `flink-reactor-platform` | Docs + orchestration | BSL 1.1 |
 | `flink-reactor-specs` | Specifications | BSL 1.1 |
 
-`flink-reactor-instruments` was merged into this repo and retired. Its Go
-packages live in `server/internal/instruments/` and its UI in
-`dashboard/src/components/instruments/`.
+### Archived, read-only (merged into this monorepo)
 
-`flink-reactor-dsl` was merged into this repo and retired. The DSL + CLI live
-in `dsl/` with full git history; its npm packages publish from here via the
-root changesets pipeline.
+Both projects below were merged in **with full git history**; their standalone
+repos and local checkouts are now **archived and read-only**. Never edit, build,
+run, or publish from them — every change happens in this monorepo.
+
+- **`flink-reactor-dsl`** → now lives here as [`dsl/`](dsl/); its npm packages
+  publish from this repo via the root changesets pipeline. The old repo
+  (`github.com/sandboxws/flink-reactor-dsl`) and its local checkout at
+  `~/Development/reactors/flink/flink-reactor-dsl/` are frozen — reference-only
+  history, not a working tree. If you land a DSL change there by mistake, it is
+  lost: redo it under `dsl/`.
+- **`flink-reactor-instruments`** → now `server/internal/instruments/` (Go) and
+  `dashboard/src/components/instruments/` (UI). Its old repo and the
+  `~/Development/reactors/flink/flink-reactor-instruments/` checkout are likewise
+  archived and read-only.
