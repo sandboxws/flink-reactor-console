@@ -214,6 +214,8 @@ func MockJobExceptions(_ string) JobExceptions {
 	taskName := stringPtr("Source: KafkaSource (2/4)#0")
 	endpoint := stringPtr("taskmanager-0:6121")
 
+	concurrentTaskName := stringPtr("Aggregate (3/4)#0")
+
 	var exc JobExceptions
 	exc.ExceptionHistory.Truncated = false
 	exc.ExceptionHistory.Entries = []ExceptionHistoryEntry{
@@ -224,7 +226,20 @@ func MockJobExceptions(_ string) JobExceptions {
 			TaskName:      taskName,
 			Endpoint:      endpoint,
 			TaskManagerID: nil,
-			FailureLabels: map[string]string{},
+			// FLIP-304 enricher classification: this is a user-code fault.
+			FailureLabels: map[string]string{"type": "USER"},
+			// A second subtask failed at the same time under a different cause.
+			ConcurrentExceptions: []ExceptionHistoryEntry{
+				{
+					ExceptionName: "java.lang.OutOfMemoryError",
+					Stacktrace:    "java.lang.OutOfMemoryError: Java heap space\n\tat org.apache.flink.table.runtime.operators.aggregate.GroupAggFunction.processElement(GroupAggFunction.java:162)",
+					Timestamp:     now - 120_000,
+					TaskName:      concurrentTaskName,
+					Endpoint:      endpoint,
+					TaskManagerID: nil,
+					FailureLabels: map[string]string{"type": "SYSTEM"},
+				},
+			},
 		},
 	}
 	return exc

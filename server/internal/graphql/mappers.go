@@ -48,15 +48,9 @@ func mapJobDetailAggregate(agg *flink.JobDetailAggregate) *model.JobDetail {
 	// Map exceptions.
 	var exceptions []*model.ExceptionEntry
 	if agg.Exceptions != nil {
-		for _, e := range agg.Exceptions.ExceptionHistory.Entries {
-			exceptions = append(exceptions, &model.ExceptionEntry{
-				ExceptionName: e.ExceptionName,
-				Stacktrace:    e.Stacktrace,
-				Timestamp:     i64(e.Timestamp),
-				TaskName:      e.TaskName,
-				Endpoint:      e.Endpoint,
-				TaskManagerID: e.TaskManagerID,
-			})
+		entries := agg.Exceptions.ExceptionHistory.Entries
+		for i := range entries {
+			exceptions = append(exceptions, mapExceptionEntry(entries[i]))
 		}
 	}
 
@@ -174,6 +168,47 @@ func mapJobDetailAggregate(agg *flink.JobDetailAggregate) *model.JobDetail {
 		Accumulators:     accumulators,
 		Metrics:          computeJobMetrics(agg),
 		WatermarkLag:     computeWatermarkLag(agg),
+	}
+}
+
+// mapFailureLabels converts Flink's failureLabels map (FLIP-304) into a slice
+// of FailureLabel sorted by key for deterministic output. Returns a non-nil
+// empty slice when there are no labels, so the GraphQL field serializes as an
+// empty list (not null) and the UI renders no chips rather than a missing field.
+func mapFailureLabels(labels map[string]string) []*model.FailureLabel {
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	out := make([]*model.FailureLabel, 0, len(labels))
+	for _, k := range keys {
+		out = append(out, &model.FailureLabel{Key: k, Value: labels[k]})
+	}
+	return out
+}
+
+// mapExceptionEntry converts a Flink ExceptionHistoryEntry to a GraphQL
+// ExceptionEntry, including FLIP-304 failure labels and any concurrent
+// exceptions. Concurrent exceptions are mapped recursively, but Flink nests
+// them only one level deep so the recursion terminates immediately in practice.
+// Both list fields are always non-nil (empty when absent) so an unenriched
+// entry serializes as [] rather than null.
+func mapExceptionEntry(e flink.ExceptionHistoryEntry) *model.ExceptionEntry {
+	concurrent := make([]*model.ExceptionEntry, 0, len(e.ConcurrentExceptions))
+	for i := range e.ConcurrentExceptions {
+		concurrent = append(concurrent, mapExceptionEntry(e.ConcurrentExceptions[i]))
+	}
+	return &model.ExceptionEntry{
+		ExceptionName:        e.ExceptionName,
+		Stacktrace:           e.Stacktrace,
+		Timestamp:            i64(e.Timestamp),
+		TaskName:             e.TaskName,
+		Endpoint:             e.Endpoint,
+		TaskManagerID:        e.TaskManagerID,
+		FailureLabels:        mapFailureLabels(e.FailureLabels),
+		ConcurrentExceptions: concurrent,
 	}
 }
 

@@ -457,12 +457,14 @@ type ComplexityRoot struct {
 	}
 
 	ExceptionEntry struct {
-		Endpoint      func(childComplexity int) int
-		ExceptionName func(childComplexity int) int
-		Stacktrace    func(childComplexity int) int
-		TaskManagerID func(childComplexity int) int
-		TaskName      func(childComplexity int) int
-		Timestamp     func(childComplexity int) int
+		ConcurrentExceptions func(childComplexity int) int
+		Endpoint             func(childComplexity int) int
+		ExceptionName        func(childComplexity int) int
+		FailureLabels        func(childComplexity int) int
+		Stacktrace           func(childComplexity int) int
+		TaskManagerID        func(childComplexity int) int
+		TaskName             func(childComplexity int) int
+		Timestamp            func(childComplexity int) int
 	}
 
 	ExceptionHistoryConnection struct {
@@ -478,6 +480,11 @@ type ComplexityRoot struct {
 	ExceptionHistoryPageInfo struct {
 		EndCursor   func(childComplexity int) int
 		HasNextPage func(childComplexity int) int
+	}
+
+	FailureLabel struct {
+		Key   func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	Flamegraph struct {
@@ -3278,6 +3285,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.DeleteResult.Success(childComplexity), true
 
+	case "ExceptionEntry.concurrentExceptions":
+		if e.ComplexityRoot.ExceptionEntry.ConcurrentExceptions == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ExceptionEntry.ConcurrentExceptions(childComplexity), true
 	case "ExceptionEntry.endpoint":
 		if e.ComplexityRoot.ExceptionEntry.Endpoint == nil {
 			break
@@ -3290,6 +3303,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ExceptionEntry.ExceptionName(childComplexity), true
+	case "ExceptionEntry.failureLabels":
+		if e.ComplexityRoot.ExceptionEntry.FailureLabels == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ExceptionEntry.FailureLabels(childComplexity), true
 	case "ExceptionEntry.stacktrace":
 		if e.ComplexityRoot.ExceptionEntry.Stacktrace == nil {
 			break
@@ -3353,6 +3372,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ExceptionHistoryPageInfo.HasNextPage(childComplexity), true
+
+	case "FailureLabel.key":
+		if e.ComplexityRoot.FailureLabel.Key == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FailureLabel.Key(childComplexity), true
+	case "FailureLabel.value":
+		if e.ComplexityRoot.FailureLabel.Value == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FailureLabel.Value(childComplexity), true
 
 	case "Flamegraph.data":
 		if e.ComplexityRoot.Flamegraph.Data == nil {
@@ -9257,6 +9289,15 @@ type JobPlan {
   nodes: [PlanNode!]!
 }
 
+"""
+A single FLIP-304 failure label: a machine-readable classification attached to
+an exception by a pluggable failure enricher (e.g. ` + "`" + `key: "type", value: "SYSTEM"` + "`" + `).
+"""
+type FailureLabel {
+  key: String!
+  value: String!
+}
+
 type ExceptionEntry {
   exceptionName: String!
   stacktrace: String!
@@ -9264,6 +9305,17 @@ type ExceptionEntry {
   taskName: String
   endpoint: String
   taskManagerId: String
+  """
+  FLIP-304 failure labels (Flink 1.19+), sorted by key. Empty on older clusters
+  or unclassified failures.
+  """
+  failureLabels: [FailureLabel!]
+  """
+  Other failures Flink grouped with this root cause (subtasks that failed
+  simultaneously). Each carries its own fields and labels; empty for a single
+  failure.
+  """
+  concurrentExceptions: [ExceptionEntry!]
 }
 
 type CheckpointMinMaxAvg {
@@ -20975,6 +21027,88 @@ func (ec *executionContext) fieldContext_ExceptionEntry_taskManagerId(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _ExceptionEntry_failureLabels(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ExceptionEntry_failureLabels,
+		func(ctx context.Context) (any, error) {
+			return obj.FailureLabels, nil
+		},
+		nil,
+		ec.marshalOFailureLabel2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFailureLabelᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ExceptionEntry_failureLabels(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExceptionEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_FailureLabel_key(ctx, field)
+			case "value":
+				return ec.fieldContext_FailureLabel_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FailureLabel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExceptionEntry_concurrentExceptions(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ExceptionEntry_concurrentExceptions,
+		func(ctx context.Context) (any, error) {
+			return obj.ConcurrentExceptions, nil
+		},
+		nil,
+		ec.marshalOExceptionEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntryᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ExceptionEntry_concurrentExceptions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExceptionEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "exceptionName":
+				return ec.fieldContext_ExceptionEntry_exceptionName(ctx, field)
+			case "stacktrace":
+				return ec.fieldContext_ExceptionEntry_stacktrace(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ExceptionEntry_timestamp(ctx, field)
+			case "taskName":
+				return ec.fieldContext_ExceptionEntry_taskName(ctx, field)
+			case "endpoint":
+				return ec.fieldContext_ExceptionEntry_endpoint(ctx, field)
+			case "taskManagerId":
+				return ec.fieldContext_ExceptionEntry_taskManagerId(ctx, field)
+			case "failureLabels":
+				return ec.fieldContext_ExceptionEntry_failureLabels(ctx, field)
+			case "concurrentExceptions":
+				return ec.fieldContext_ExceptionEntry_concurrentExceptions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExceptionEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ExceptionHistoryConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.ExceptionHistoryConnection) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -21173,6 +21307,64 @@ func (ec *executionContext) _ExceptionHistoryPageInfo_endCursor(ctx context.Cont
 func (ec *executionContext) fieldContext_ExceptionHistoryPageInfo_endCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ExceptionHistoryPageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FailureLabel_key(ctx context.Context, field graphql.CollectedField, obj *model.FailureLabel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FailureLabel_key,
+		func(ctx context.Context) (any, error) {
+			return obj.Key, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FailureLabel_key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FailureLabel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FailureLabel_value(ctx context.Context, field graphql.CollectedField, obj *model.FailureLabel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_FailureLabel_value,
+		func(ctx context.Context) (any, error) {
+			return obj.Value, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_FailureLabel_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FailureLabel",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -24014,6 +24206,10 @@ func (ec *executionContext) fieldContext_JobDetail_exceptions(_ context.Context,
 				return ec.fieldContext_ExceptionEntry_endpoint(ctx, field)
 			case "taskManagerId":
 				return ec.fieldContext_ExceptionEntry_taskManagerId(ctx, field)
+			case "failureLabels":
+				return ec.fieldContext_ExceptionEntry_failureLabels(ctx, field)
+			case "concurrentExceptions":
+				return ec.fieldContext_ExceptionEntry_concurrentExceptions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ExceptionEntry", field.Name)
 		},
@@ -48979,6 +49175,10 @@ func (ec *executionContext) _ExceptionEntry(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ExceptionEntry_endpoint(ctx, field, obj)
 		case "taskManagerId":
 			out.Values[i] = ec._ExceptionEntry_taskManagerId(ctx, field, obj)
+		case "failureLabels":
+			out.Values[i] = ec._ExceptionEntry_failureLabels(ctx, field, obj)
+		case "concurrentExceptions":
+			out.Values[i] = ec._ExceptionEntry_concurrentExceptions(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -49108,6 +49308,50 @@ func (ec *executionContext) _ExceptionHistoryPageInfo(ctx context.Context, sel a
 			}
 		case "endCursor":
 			out.Values[i] = ec._ExceptionHistoryPageInfo_endCursor(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var failureLabelImplementors = []string{"FailureLabel"}
+
+func (ec *executionContext) _FailureLabel(ctx context.Context, sel ast.SelectionSet, obj *model.FailureLabel) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, failureLabelImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FailureLabel")
+		case "key":
+			out.Values[i] = ec._FailureLabel_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._FailureLabel_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -58702,6 +58946,16 @@ func (ec *executionContext) marshalNExceptionHistoryPageInfo2ᚖgithubᚗcomᚋs
 	return ec._ExceptionHistoryPageInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNFailureLabel2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFailureLabel(ctx context.Context, sel ast.SelectionSet, v *model.FailureLabel) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FailureLabel(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNFlamegraph2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraph(ctx context.Context, sel ast.SelectionSet, v model.Flamegraph) graphql.Marshaler {
 	return ec._Flamegraph(ctx, sel, &v)
 }
@@ -61318,12 +61572,50 @@ func (ec *executionContext) marshalOConnectorMetrics2ᚖgithubᚗcomᚋsandboxws
 	return ec._ConnectorMetrics(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOExceptionEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExceptionEntry) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNExceptionEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOExceptionHistoryFilter2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐExceptionHistoryFilter(ctx context.Context, v any) (*model.ExceptionHistoryFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputExceptionHistoryFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFailureLabel2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFailureLabelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FailureLabel) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFailureLabel2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFailureLabel(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOFlamegraphNode2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐFlamegraphNodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlamegraphNode) graphql.Marshaler {

@@ -84,6 +84,15 @@ type JobPlan {
   nodes: [PlanNode!]!
 }
 
+"""
+A single FLIP-304 failure label: a machine-readable classification attached to
+an exception by a pluggable failure enricher (e.g. `key: "type", value: "SYSTEM"`).
+"""
+type FailureLabel {
+  key: String!
+  value: String!
+}
+
 type ExceptionEntry {
   exceptionName: String!
   stacktrace: String!
@@ -91,6 +100,17 @@ type ExceptionEntry {
   taskName: String
   endpoint: String
   taskManagerId: String
+  """
+  FLIP-304 failure labels (Flink 1.19+), sorted by key. Empty on older clusters
+  or unclassified failures.
+  """
+  failureLabels: [FailureLabel!]
+  """
+  Other failures Flink grouped with this root cause (subtasks that failed
+  simultaneously). Each carries its own fields and labels; empty for a single
+  failure.
+  """
+  concurrentExceptions: [ExceptionEntry!]
 }
 
 type CheckpointMinMaxAvg {

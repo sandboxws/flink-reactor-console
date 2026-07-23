@@ -541,6 +541,13 @@ type ExceptionEntry struct {
 	TaskName      *string `json:"taskName,omitempty"`
 	Endpoint      *string `json:"endpoint,omitempty"`
 	TaskManagerID *string `json:"taskManagerId,omitempty"`
+	// FLIP-304 failure labels (Flink 1.19+), sorted by key. Empty on older clusters
+	// or unclassified failures.
+	FailureLabels []*FailureLabel `json:"failureLabels,omitempty"`
+	// Other failures Flink grouped with this root cause (subtasks that failed
+	// simultaneously). Each carries its own fields and labels; empty for a single
+	// failure.
+	ConcurrentExceptions []*ExceptionEntry `json:"concurrentExceptions,omitempty"`
 }
 
 // Connection type for paginated exception history results.
@@ -579,6 +586,13 @@ type ExceptionHistoryPageInfo struct {
 	HasNextPage bool `json:"hasNextPage"`
 	// Cursor for fetching the next page.
 	EndCursor *string `json:"endCursor,omitempty"`
+}
+
+// A single FLIP-304 failure label: a machine-readable classification attached to
+// an exception by a pluggable failure enricher (e.g. `key: "type", value: "SYSTEM"`).
+type FailureLabel struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type Flamegraph struct {

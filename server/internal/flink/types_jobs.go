@@ -2,13 +2,20 @@ package flink
 
 // ExceptionHistoryEntry represents a single exception in the exception history.
 type ExceptionHistoryEntry struct {
-	ExceptionName string            `json:"exceptionName"`
-	Stacktrace    string            `json:"stacktrace"`
-	Timestamp     int64             `json:"timestamp"`
-	TaskName      *string           `json:"taskName"`
-	Endpoint      *string           `json:"endpoint"`
-	TaskManagerID *string           `json:"taskManagerId"`
+	ExceptionName string  `json:"exceptionName"`
+	Stacktrace    string  `json:"stacktrace"`
+	Timestamp     int64   `json:"timestamp"`
+	TaskName      *string `json:"taskName"`
+	Endpoint      *string `json:"endpoint"`
+	TaskManagerID *string `json:"taskManagerId"`
+	// FailureLabels are FLIP-304 machine-readable classifications attached by
+	// pluggable failure enrichers (e.g. {"type": "SYSTEM"}). Empty on pre-1.19
+	// clusters or unclassified failures.
 	FailureLabels map[string]string `json:"failureLabels"`
+	// ConcurrentExceptions are the other failures Flink grouped with this root
+	// cause (subtasks that failed simultaneously). Flink does not nest these
+	// further, so each concurrent entry carries an empty ConcurrentExceptions.
+	ConcurrentExceptions []ExceptionHistoryEntry `json:"concurrentExceptions"`
 }
 
 // JobExceptions represents the GET /jobs/:jobid/exceptions response.

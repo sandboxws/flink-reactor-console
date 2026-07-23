@@ -122,14 +122,21 @@ func mapDBVertex(v *storage.DBVertex) *model.JobVertex {
 }
 
 // mapDBException converts a DB exception to a GraphQL ExceptionEntry.
+//
+// The exceptions table does not persist failure labels or concurrent exceptions
+// yet (no column), so this fallback path emits empty lists — matching the live
+// path's representation for an unenriched entry, so the UI renders no chips
+// either way. Persisting labels is a follow-up migration (see the change tasks).
 func mapDBException(e *storage.DBException) *model.ExceptionEntry {
 	return &model.ExceptionEntry{
-		ExceptionName: e.ExceptionName,
-		Stacktrace:    e.Stacktrace,
-		Timestamp:     i64(e.Timestamp.UnixMilli()),
-		TaskName:      e.TaskName,
-		Endpoint:      e.Endpoint,
-		TaskManagerID: e.TaskManagerID,
+		ExceptionName:        e.ExceptionName,
+		Stacktrace:           e.Stacktrace,
+		Timestamp:            i64(e.Timestamp.UnixMilli()),
+		TaskName:             e.TaskName,
+		Endpoint:             e.Endpoint,
+		TaskManagerID:        e.TaskManagerID,
+		FailureLabels:        mapFailureLabels(nil),
+		ConcurrentExceptions: []*model.ExceptionEntry{},
 	}
 }
 
