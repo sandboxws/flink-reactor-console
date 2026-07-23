@@ -402,3 +402,6 @@ server/dashboard/
 *.so
 *.dylib
 coverage.out
+
+## Temp docs
+docs/
