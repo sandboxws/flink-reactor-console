@@ -334,8 +334,8 @@ const DELETE_JAR_MUTATION = gql`
 `
 
 const RUN_JAR_MUTATION = gql`
-  mutation RunJar($id: ID!, $entryClass: String, $programArgs: String, $parallelism: Int, $savepointPath: String, $allowNonRestoredState: Boolean, $cluster: String) {
-    runJar(id: $id, entryClass: $entryClass, programArgs: $programArgs, parallelism: $parallelism, savepointPath: $savepointPath, allowNonRestoredState: $allowNonRestoredState, cluster: $cluster) { jobId }
+  mutation RunJar($id: ID!, $entryClass: String, $programArgs: String, $programArgsList: [String!], $parallelism: Int, $savepointPath: String, $allowNonRestoredState: Boolean, $cluster: String) {
+    runJar(id: $id, entryClass: $entryClass, programArgs: $programArgs, programArgsList: $programArgsList, parallelism: $parallelism, savepointPath: $savepointPath, allowNonRestoredState: $allowNonRestoredState, cluster: $cluster) { jobId }
   }
 `
 
@@ -1095,7 +1095,8 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
     ? {
         jid: j.jobConfig.jid,
         name: j.jobConfig.name,
-        executionMode: j.jobConfig.executionMode,
+        // Null on Flink 2.0+ (execution-mode removed from /jobs/:id/config).
+        executionMode: j.jobConfig.executionMode ?? null,
         restartStrategy: j.jobConfig.restartStrategy,
         jobParallelism: j.jobConfig.jobParallelism,
         objectReuseMode: j.jobConfig.objectReuseMode,
@@ -1419,7 +1420,10 @@ export async function runJar(
   opts: {
     entryClass?: string
     parallelism?: number
+    /** Legacy single tokenized string (Flink 1.x). Ignored when a non-empty list is given. */
     programArgs?: string
+    /** Program arguments as a token list (Flink 2.0+). Preferred; the server sends only this when non-empty. */
+    programArgsList?: string[]
     savepointPath?: string | null
     allowNonRestoredState?: boolean
   },
@@ -1428,6 +1432,7 @@ export async function runJar(
     id: jarId,
     entryClass: opts.entryClass,
     programArgs: opts.programArgs,
+    programArgsList: opts.programArgsList,
     parallelism: opts.parallelism,
     savepointPath: opts.savepointPath,
     allowNonRestoredState: opts.allowNonRestoredState,

@@ -34,11 +34,18 @@ extend type Mutation {
   """Delete an uploaded JAR"""
   deleteJar(id: ID!, cluster: String): DeleteResult!
 
-  """Run an uploaded JAR to submit a job"""
+  """
+  Run an uploaded JAR to submit a job.
+
+  Program arguments may be given as `programArgsList` (an array — the form Flink
+  2.0+ expects) or the legacy `programArgs` string (deprecated on 2.0). When
+  `programArgsList` is non-empty it takes precedence and `programArgs` is ignored.
+  """
   runJar(
     id: ID!
     entryClass: String
     programArgs: String
+    programArgsList: [String!]
     parallelism: Int
     savepointPath: String
     allowNonRestoredState: Boolean

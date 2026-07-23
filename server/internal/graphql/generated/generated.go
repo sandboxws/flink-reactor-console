@@ -894,7 +894,7 @@ type ComplexityRoot struct {
 		RescaleJob                   func(childComplexity int, jobID string, newParallelism int, cluster *string) int
 		ResolveAlert                 func(childComplexity int, id string) int
 		ResumeMaterializedTable      func(childComplexity int, name string, catalog string, cluster *string) int
-		RunJar                       func(childComplexity int, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
+		RunJar                       func(childComplexity int, id string, entryClass *string, programArgs *string, programArgsList []string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) int
 		RunSimulation                func(childComplexity int, input model.SimulationInput) int
 		SeedKafkaTopics              func(childComplexity int, instrument string, allTopics *bool, dryRun *bool, skipNonEmpty *bool, domains []string) int
 		SilenceAlert                 func(childComplexity int, id string) int
@@ -1483,7 +1483,7 @@ type MutationResolver interface {
 	ExecuteDatabaseQuery(ctx context.Context, instrument string, sql string) (*model.DatabaseQueryResult, error)
 	TestInstrumentConnection(ctx context.Context, typeArg string, name string, config map[string]any) (*model.InstrumentTestResult, error)
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
-	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
+	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, programArgsList []string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
 	CancelJob(ctx context.Context, id string, cluster *string) (*model.CancelJobResult, error)
 	TriggerSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error)
 	StopJobWithSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error)
@@ -5077,7 +5077,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Mutation.RunJar(childComplexity, args["id"].(string), args["entryClass"].(*string), args["programArgs"].(*string), args["parallelism"].(*int), args["savepointPath"].(*string), args["allowNonRestoredState"].(*bool), args["cluster"].(*string)), true
+		return e.ComplexityRoot.Mutation.RunJar(childComplexity, args["id"].(string), args["entryClass"].(*string), args["programArgs"].(*string), args["programArgsList"].([]string), args["parallelism"].(*int), args["savepointPath"].(*string), args["allowNonRestoredState"].(*bool), args["cluster"].(*string)), true
 	case "Mutation.runSimulation":
 		if e.ComplexityRoot.Mutation.RunSimulation == nil {
 			break
@@ -9103,11 +9103,18 @@ extend type Mutation {
   """Delete an uploaded JAR"""
   deleteJar(id: ID!, cluster: String): DeleteResult!
 
-  """Run an uploaded JAR to submit a job"""
+  """
+  Run an uploaded JAR to submit a job.
+
+  Program arguments may be given as ` + "`" + `programArgsList` + "`" + ` (an array — the form Flink
+  2.0+ expects) or the legacy ` + "`" + `programArgs` + "`" + ` string (deprecated on 2.0). When
+  ` + "`" + `programArgsList` + "`" + ` is non-empty it takes precedence and ` + "`" + `programArgs` + "`" + ` is ignored.
+  """
   runJar(
     id: ID!
     entryClass: String
     programArgs: String
+    programArgsList: [String!]
     parallelism: Int
     savepointPath: String
     allowNonRestoredState: Boolean
@@ -9523,7 +9530,11 @@ type ConfigEntry {
 type JobConfig {
   jid: String!
   name: String!
-  executionMode: String!
+  """
+  Execution mode (e.g. PIPELINED / BATCH). Nullable: Flink 2.0 removed
+  execution-mode from /jobs/:jid/config, so this is null on 2.0+ clusters.
+  """
+  executionMode: String
   restartStrategy: String!
   jobParallelism: Int!
   objectReuseMode: Boolean!
@@ -10888,26 +10899,31 @@ func (ec *executionContext) field_Mutation_runJar_args(ctx context.Context, rawA
 		return nil, err
 	}
 	args["programArgs"] = arg2
-	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "parallelism", ec.unmarshalOInt2ᚖint)
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "programArgsList", ec.unmarshalOString2ᚕstringᚄ)
 	if err != nil {
 		return nil, err
 	}
-	args["parallelism"] = arg3
-	arg4, err := graphql.ProcessArgField(ctx, rawArgs, "savepointPath", ec.unmarshalOString2ᚖstring)
+	args["programArgsList"] = arg3
+	arg4, err := graphql.ProcessArgField(ctx, rawArgs, "parallelism", ec.unmarshalOInt2ᚖint)
 	if err != nil {
 		return nil, err
 	}
-	args["savepointPath"] = arg4
-	arg5, err := graphql.ProcessArgField(ctx, rawArgs, "allowNonRestoredState", ec.unmarshalOBoolean2ᚖbool)
+	args["parallelism"] = arg4
+	arg5, err := graphql.ProcessArgField(ctx, rawArgs, "savepointPath", ec.unmarshalOString2ᚖstring)
 	if err != nil {
 		return nil, err
 	}
-	args["allowNonRestoredState"] = arg5
-	arg6, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	args["savepointPath"] = arg5
+	arg6, err := graphql.ProcessArgField(ctx, rawArgs, "allowNonRestoredState", ec.unmarshalOBoolean2ᚖbool)
 	if err != nil {
 		return nil, err
 	}
-	args["cluster"] = arg6
+	args["allowNonRestoredState"] = arg6
+	arg7, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg7
 	return args, nil
 }
 
@@ -23286,9 +23302,9 @@ func (ec *executionContext) _JobConfig_executionMode(ctx context.Context, field 
 			return obj.ExecutionMode, nil
 		},
 		nil,
-		ec.marshalNString2string,
+		ec.marshalOString2ᚖstring,
 		true,
-		true,
+		false,
 	)
 }
 
@@ -29386,7 +29402,7 @@ func (ec *executionContext) _Mutation_runJar(ctx context.Context, field graphql.
 		ec.fieldContext_Mutation_runJar,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Mutation().RunJar(ctx, fc.Args["id"].(string), fc.Args["entryClass"].(*string), fc.Args["programArgs"].(*string), fc.Args["parallelism"].(*int), fc.Args["savepointPath"].(*string), fc.Args["allowNonRestoredState"].(*bool), fc.Args["cluster"].(*string))
+			return ec.Resolvers.Mutation().RunJar(ctx, fc.Args["id"].(string), fc.Args["entryClass"].(*string), fc.Args["programArgs"].(*string), fc.Args["programArgsList"].([]string), fc.Args["parallelism"].(*int), fc.Args["savepointPath"].(*string), fc.Args["allowNonRestoredState"].(*bool), fc.Args["cluster"].(*string))
 		},
 		nil,
 		ec.marshalNJarRunResult2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐJarRunResult,
@@ -50074,9 +50090,6 @@ func (ec *executionContext) _JobConfig(ctx context.Context, sel ast.SelectionSet
 			}
 		case "executionMode":
 			out.Values[i] = ec._JobConfig_executionMode(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "restartStrategy":
 			out.Values[i] = ec._JobConfig_restartStrategy(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

@@ -507,7 +507,10 @@ function HubJobDetail() {
         {/* Config tab */}
         <TabsContent value="config" className="mt-6 outline-none">
           <div className="glass-card-static p-5">
-            <ConfigurationTab configuration={job.configuration} />
+            <ConfigurationTab
+              configuration={job.configuration}
+              jobConfig={job.jobConfig}
+            />
           </div>
         </TabsContent>
 

@@ -334,7 +334,7 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
       await runJarApi(request.jarId, {
         entryClass: request.entryClass,
         parallelism: request.parallelism,
-        programArgs: request.programArgs || undefined,
+        programArgsList: request.programArgsList,
         savepointPath: request.savepointPath,
         allowNonRestoredState: request.allowNonRestoredState,
       })

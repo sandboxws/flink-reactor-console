@@ -11,6 +11,7 @@ import type { UploadedJar } from "@flink-reactor/ui"
 import { Loader2, Upload } from "lucide-react"
 import { useState } from "react"
 import { runJar, uploadJar } from "@/lib/graphql-api-client"
+import { parseProgramArgs } from "@/lib/program-args"
 
 interface SubmitJarFormProps {
   onSubmitted: (jobId: string) => void
@@ -54,7 +55,7 @@ export function SubmitJarForm({ onSubmitted }: SubmitJarFormProps) {
       await runJar(jar.id, {
         entryClass: entryClass || undefined,
         parallelism,
-        programArgs: programArgs || undefined,
+        programArgsList: parseProgramArgs(programArgs),
         savepointPath: savepointPath || undefined,
         allowNonRestoredState,
       })
@@ -161,16 +162,21 @@ export function SubmitJarForm({ onSubmitted }: SubmitJarFormProps) {
                 htmlFor="program-args"
                 className="block text-[11px] font-mono uppercase tracking-wider text-fg-faint mb-1"
               >
-                Program args
+                Program args{" "}
+                <span className="text-fg-faint/70 normal-case">
+                  · one per line
+                </span>
               </label>
               <textarea
                 id="program-args"
                 value={programArgs}
                 onChange={(e) => setProgramArgs(e.target.value)}
-                rows={3}
+                rows={4}
                 className="form-input mono w-full"
                 style={{ fontSize: 12 }}
-                placeholder="--input s3://... --output s3://..."
+                placeholder={
+                  "--input\ns3://bucket/in\n--query\nSELECT * FROM t"
+                }
               />
             </div>
           </div>

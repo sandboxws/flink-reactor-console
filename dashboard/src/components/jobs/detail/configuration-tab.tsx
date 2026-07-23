@@ -6,6 +6,7 @@
  * click-to-copy on values. Groups are collapsible and sorted alphabetically.
  */
 
+import type { JobConfiguration, JobUserConfig } from "@flink-reactor/ui"
 import {
   Collapsible,
   CollapsibleContent,
@@ -21,7 +22,6 @@ import {
   Settings,
 } from "lucide-react"
 import { useMemo, useState } from "react"
-import type { JobConfiguration } from "@flink-reactor/ui"
 
 // ---------------------------------------------------------------------------
 // Copy-on-click value
@@ -108,18 +108,55 @@ function ConfigGroup({
 }
 
 // ---------------------------------------------------------------------------
+// Job metadata (execution-config summary)
+// ---------------------------------------------------------------------------
+
+/**
+ * Compact summary of the job's execution config from `/jobs/:id/config`.
+ * `executionMode` is null on Flink 2.0+ (the field was removed there) and
+ * renders as "—".
+ */
+function JobMetadata({ jobConfig }: { jobConfig: JobUserConfig }) {
+  const items: { label: string; value: string }[] = [
+    { label: "Execution mode", value: jobConfig.executionMode ?? "—" },
+    { label: "Restart strategy", value: jobConfig.restartStrategy || "—" },
+    { label: "Parallelism", value: String(jobConfig.jobParallelism) },
+    {
+      label: "Object reuse",
+      value: jobConfig.objectReuseMode ? "enabled" : "disabled",
+    },
+  ]
+
+  return (
+    <dl className="glass-card grid grid-cols-2 gap-x-6 gap-y-3 p-4 sm:grid-cols-4">
+      {items.map((it) => (
+        <div key={it.label} className="flex flex-col gap-1">
+          <dt className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+            {it.label}
+          </dt>
+          <dd className="font-mono text-xs text-zinc-200">{it.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // ConfigurationTab
 // ---------------------------------------------------------------------------
 
 /**
- * Searchable, grouped display of all job configuration key-value pairs.
- * Groups entries by their first dotted prefix (e.g. "state", "execution")
- * into collapsible sections. Each value is click-to-copy.
+ * Job execution-config summary plus a searchable, grouped display of all job
+ * configuration key-value pairs. Groups entries by their first dotted prefix
+ * (e.g. "state", "execution") into collapsible sections. Each value is
+ * click-to-copy.
  */
 export function ConfigurationTab({
   configuration,
+  jobConfig,
 }: {
   configuration: JobConfiguration[]
+  jobConfig?: JobUserConfig | null
 }) {
   const [search, setSearch] = useState("")
 
@@ -155,46 +192,55 @@ export function ConfigurationTab({
     }
   }, [configuration, search])
 
-  if (configuration.length === 0) {
+  // Nothing to show at all: no execution-config summary and no entries.
+  if (!jobConfig && configuration.length === 0) {
     return <EmptyState icon={Settings} message="No configuration available" />
   }
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-500" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search configuration..."
-          className="h-8 w-full rounded-md border border-dash-border bg-dash-surface pl-9 pr-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-fr-purple focus:outline-none"
-        />
-        {search && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] tabular-nums text-zinc-600">
-            {filteredCount} / {configuration.length}
-          </span>
-        )}
-      </div>
+      {jobConfig && <JobMetadata jobConfig={jobConfig} />}
 
-      {/* Grouped config */}
-      <div className="glass-card divide-y divide-dash-border/50 overflow-hidden">
-        {groups.length > 0 ? (
-          groups.map(([prefix, entries]) => (
-            <ConfigGroup
-              key={prefix}
-              prefix={prefix}
-              entries={entries}
-              defaultOpen
+      {configuration.length === 0 ? (
+        <EmptyState icon={Settings} message="No configuration entries" />
+      ) : (
+        <>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search configuration..."
+              className="h-8 w-full rounded-md border border-dash-border bg-dash-surface pl-9 pr-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-fr-purple focus:outline-none"
             />
-          ))
-        ) : (
-          <div className="px-3 py-8 text-center text-xs text-zinc-500">
-            No matching configuration entries
+            {search && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] tabular-nums text-zinc-600">
+                {filteredCount} / {configuration.length}
+              </span>
+            )}
           </div>
-        )}
-      </div>
+
+          {/* Grouped config */}
+          <div className="glass-card divide-y divide-dash-border/50 overflow-hidden">
+            {groups.length > 0 ? (
+              groups.map(([prefix, entries]) => (
+                <ConfigGroup
+                  key={prefix}
+                  prefix={prefix}
+                  entries={entries}
+                  defaultOpen
+                />
+              ))
+            ) : (
+              <div className="px-3 py-8 text-center text-xs text-zinc-500">
+                No matching configuration entries
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }

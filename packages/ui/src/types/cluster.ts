@@ -242,7 +242,8 @@ export type JobConfiguration = {
 export type JobUserConfig = {
   jid: string
   name: string
-  executionMode: string
+  /** Execution mode (PIPELINED / BATCH). Null on Flink 2.0+, which removed execution-mode from /jobs/:id/config. */
+  executionMode: string | null
   restartStrategy: string
   jobParallelism: number
   objectReuseMode: boolean
@@ -622,7 +623,12 @@ export type SubmitJobRequest = {
   jarId: string
   entryClass: string
   parallelism: number
-  programArgs: string
+  /**
+   * Program arguments as a token list (one per element). Sent to Flink via
+   * `programArgsList` — the form Flink 2.0+ expects, which avoids the ambiguous
+   * re-tokenization of the deprecated single `programArgs` string.
+   */
+  programArgsList: string[]
   /** Savepoint path to restore from, or null for a fresh start. */
   savepointPath: string | null
   allowNonRestoredState: boolean

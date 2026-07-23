@@ -20,6 +20,7 @@ mutation RunJar(
   $id: ID!
   $entryClass: String
   $programArgs: String
+  $programArgsList: [String!]
   $parallelism: Int
   $savepointPath: String
   $allowNonRestoredState: Boolean
@@ -29,6 +30,7 @@ mutation RunJar(
     id: $id
     entryClass: $entryClass
     programArgs: $programArgs
+    programArgsList: $programArgsList
     parallelism: $parallelism
     savepointPath: $savepointPath
     allowNonRestoredState: $allowNonRestoredState

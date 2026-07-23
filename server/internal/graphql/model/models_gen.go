@@ -722,9 +722,11 @@ type JarUploadResult struct {
 }
 
 type JobConfig struct {
-	Jid             string         `json:"jid"`
-	Name            string         `json:"name"`
-	ExecutionMode   string         `json:"executionMode"`
+	Jid  string `json:"jid"`
+	Name string `json:"name"`
+	// Execution mode (e.g. PIPELINED / BATCH). Nullable: Flink 2.0 removed
+	// execution-mode from /jobs/:jid/config, so this is null on 2.0+ clusters.
+	ExecutionMode   *string        `json:"executionMode,omitempty"`
 	RestartStrategy string         `json:"restartStrategy"`
 	JobParallelism  int            `json:"jobParallelism"`
 	ObjectReuseMode bool           `json:"objectReuseMode"`

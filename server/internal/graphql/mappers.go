@@ -323,10 +323,12 @@ func mapJobConfig(jc *flink.JobConfig) *model.JobConfig {
 	for i, k := range keys {
 		entries[i] = &model.ConfigEntry{Key: k, Value: uc[k]}
 	}
+	// ExecutionMode is nil when absent: Flink 2.0 removed execution-mode from
+	// /jobs/:jid/config, and nilIfEmpty maps the resulting empty string to null.
 	return &model.JobConfig{
 		Jid:             jc.JID,
 		Name:            jc.Name,
-		ExecutionMode:   jc.ExecutionConfig.ExecutionMode,
+		ExecutionMode:   nilIfEmpty(jc.ExecutionConfig.ExecutionMode),
 		RestartStrategy: jc.ExecutionConfig.RestartStrategy,
 		JobParallelism:  jc.ExecutionConfig.JobParallelism,
 		ObjectReuseMode: jc.ExecutionConfig.ObjectReuseMode,

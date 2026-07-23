@@ -43,6 +43,9 @@ export type AlertConditionInput = {
 export type AlertConditionType =
   | 'BACKPRESSURE'
   | 'CHECKPOINT_FAILURE'
+  | 'CHECKPOINT_SIZE_GROWTH'
+  | 'GC_PRESSURE'
+  | 'PROCESS_MEMORY_HEADROOM'
   | 'SLOT_EXHAUSTION'
   | 'TM_LOST'
   | 'TM_MEMORY';
@@ -860,7 +863,11 @@ export type JarUploadResult = {
 
 export type JobConfig = {
   __typename?: 'JobConfig';
-  executionMode: Scalars['String']['output'];
+  /**
+   * Execution mode (e.g. PIPELINED / BATCH). Nullable: Flink 2.0 removed
+   * execution-mode from /jobs/:jid/config, so this is null on 2.0+ clusters.
+   */
+  executionMode: Maybe<Scalars['String']['output']>;
   jid: Scalars['String']['output'];
   jobParallelism: Scalars['Int']['output'];
   name: Scalars['String']['output'];
@@ -1113,6 +1120,13 @@ export type KafkaMessage = {
   value: Scalars['String']['output'];
 };
 
+/** Read order for a topic preview. */
+export type KafkaMessageOrder =
+  /** Most recent records first (the live end of the stream). */
+  | 'NEWEST'
+  /** Earliest retained records first (e.g. the deterministic seed rows). */
+  | 'OLDEST';
+
 /** A single partition within a Kafka topic. */
 export type KafkaPartition = {
   __typename?: 'KafkaPartition';
@@ -1137,15 +1151,31 @@ export type KafkaSeedResult = {
   __typename?: 'KafkaSeedResult';
   dryRun: Scalars['Boolean']['output'];
   recordsProduced: Scalars['Int']['output'];
+  /** Topic names skipped for any reason (no sample rows, or already populated with skipNonEmpty). */
   skipped: Array<Scalars['String']['output']>;
   topics: Array<KafkaSeededTopic>;
 };
 
-/** A topic touched during a Kafka seed operation. */
+/**
+ * A topic touched during a Kafka seed operation. Both dry and real runs consult
+ * the broker, so existed/existingRecords reflect actual broker state either way.
+ */
 export type KafkaSeededTopic = {
   __typename?: 'KafkaSeededTopic';
+  /** Topic was created (real run) / would be created (dry run). */
   created: Scalars['Boolean']['output'];
+  /** Template domain from the seed catalog (e.g. ecommerce, iot). */
+  domain: Scalars['String']['output'];
+  /** Per-topic failure; null when the topic seeded cleanly. Seeding is best-effort per topic. */
+  error: Maybe<Scalars['String']['output']>;
+  /** Whether the topic already existed in the broker when the seed ran. */
+  existed: Scalars['Boolean']['output'];
+  /** Records already in the topic (sum of partition end−start offsets); 0 when absent. */
+  existingRecords: Scalars['Int']['output'];
+  /** Records produced (real run) / that would be produced (dry run). */
   recordsProduced: Scalars['Int']['output'];
+  /** Skipped because the topic already holds records and skipNonEmpty was set. */
+  skipped: Scalars['Boolean']['output'];
   topic: Scalars['String']['output'];
 };
 
@@ -1320,7 +1350,13 @@ export type Mutation = {
   resolveAlert: AlertInstance;
   /** Resume a materialized table's refresh */
   resumeMaterializedTable: MaterializedTable;
-  /** Run an uploaded JAR to submit a job */
+  /**
+   * Run an uploaded JAR to submit a job.
+   *
+   * Program arguments may be given as `programArgsList` (an array — the form Flink
+   * 2.0+ expects) or the legacy `programArgs` string (deprecated on 2.0). When
+   * `programArgsList` is non-empty it takes precedence and `programArgs` is ignored.
+   */
   runJar: JarRunResult;
   /** Run a simulation scenario */
   runSimulation: SimulationRun;
@@ -1329,8 +1365,13 @@ export type Mutation = {
    * environment seeding policy: enabled by default in development, opt-in in
    * staging, and never permitted in production. By default only this project's
    * topics are seeded (catalog subjects whose topic already exists in the
-   * broker); allTopics: true seeds the entire sample catalog, creating every
-   * topic. dryRun reports what would happen without producing records.
+   * broker — `cluster up` materializes every declared topic, so project scope
+   * and declared scope coincide); allTopics: true widens to the entire sample
+   * catalog, creating each missing topic. domains restricts the run to the given
+   * catalog domains (e.g. ["ecommerce"]). skipNonEmpty defaults to TRUE when
+   * omitted: topics that already hold records are reported as skipped instead of
+   * appended to — pass skipNonEmpty: false to force append. dryRun consults the
+   * broker and reports exactly what a real run would do, without producing.
    */
   seedKafkaTopics: KafkaSeedResult;
   /** Mark an instance as SILENCED (suppresses repeat firings until resolved). */
@@ -1471,6 +1512,7 @@ export type MutationRunJarArgs = {
   id: Scalars['ID']['input'];
   parallelism: InputMaybe<Scalars['Int']['input']>;
   programArgs: InputMaybe<Scalars['String']['input']>;
+  programArgsList: InputMaybe<Array<Scalars['String']['input']>>;
   savepointPath: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1482,8 +1524,10 @@ export type MutationRunSimulationArgs = {
 
 export type MutationSeedKafkaTopicsArgs = {
   allTopics: InputMaybe<Scalars['Boolean']['input']>;
+  domains: InputMaybe<Array<Scalars['String']['input']>>;
   dryRun: InputMaybe<Scalars['Boolean']['input']>;
   instrument: Scalars['String']['input'];
+  skipNonEmpty: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1726,8 +1770,10 @@ export type Query = {
   /** Get detailed information about a specific Kafka topic. */
   kafkaTopic: KafkaTopicDetail;
   /**
-   * Preview the most recent records from a topic using a throwaway consumer
-   * (no consumer group is left behind). limit defaults to 20, capped at 200.
+   * Preview records from a topic using a throwaway consumer (no consumer group
+   * is left behind). limit defaults to 20, capped at 200. order defaults to
+   * NEWEST (live tail); OLDEST reads from the beginning, where the deterministic
+   * seed rows live.
    */
   kafkaTopicMessages: Array<KafkaMessage>;
   /** List topics for a Kafka instrument. */
@@ -2046,6 +2092,7 @@ export type QueryKafkaTopicArgs = {
 export type QueryKafkaTopicMessagesArgs = {
   instrument: Scalars['String']['input'];
   limit: InputMaybe<Scalars['Int']['input']>;
+  order: InputMaybe<KafkaMessageOrder>;
   topic: Scalars['String']['input'];
 };
 
@@ -3112,6 +3159,7 @@ export type RunJarMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   entryClass: InputMaybe<Scalars['String']['input']>;
   programArgs: InputMaybe<Scalars['String']['input']>;
+  programArgsList: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
   parallelism: InputMaybe<Scalars['Int']['input']>;
   savepointPath: InputMaybe<Scalars['String']['input']>;
   allowNonRestoredState: InputMaybe<Scalars['Boolean']['input']>;

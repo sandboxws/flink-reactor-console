@@ -26,7 +26,7 @@ func (r *mutationResolver) DeleteJar(ctx context.Context, id string, cluster *st
 }
 
 // RunJar is the resolver for the runJar field.
-func (r *mutationResolver) RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error) {
+func (r *mutationResolver) RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, programArgsList []string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error) {
 	conn, err := r.resolveCluster(cluster)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,12 @@ func (r *mutationResolver) RunJar(ctx context.Context, id string, entryClass *st
 	if entryClass != nil {
 		opts.EntryClass = *entryClass
 	}
-	if programArgs != nil {
+	// Flink 2.0+ prefers programArgsList (array) over the deprecated programArgs
+	// (single tokenized string). Send exactly one: the list when non-empty,
+	// otherwise the legacy string for 1.x clusters.
+	if len(programArgsList) > 0 {
+		opts.ProgramArgsList = programArgsList
+	} else if programArgs != nil {
 		opts.ProgramArgs = *programArgs
 	}
 	if parallelism != nil {

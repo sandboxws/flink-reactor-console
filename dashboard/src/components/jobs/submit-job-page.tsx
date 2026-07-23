@@ -10,6 +10,8 @@
  *
  * Subscribes to {@link useClusterStore} for JAR CRUD and job submission actions.
  */
+
+import type { SubmitJobRequest, UploadedJar } from "@flink-reactor/ui"
 import { Spinner } from "@flink-reactor/ui"
 import { format } from "date-fns"
 import {
@@ -22,8 +24,8 @@ import {
   Upload,
 } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
-import type { SubmitJobRequest, UploadedJar } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
+import { parseProgramArgs } from "@/lib/program-args"
 import { useClusterStore } from "@/stores/cluster-store"
 
 // ---------------------------------------------------------------------------
@@ -95,11 +97,7 @@ function JarListSection({
           disabled={uploading}
           className="flex items-center gap-2 rounded-md bg-fr-coral/10 px-3 py-1.5 text-xs font-medium text-fr-coral transition-colors hover:bg-fr-coral/20 disabled:opacity-50"
         >
-          {uploading ? (
-            <Spinner size="sm" />
-          ) : (
-            <Upload className="size-3.5" />
-          )}
+          {uploading ? <Spinner size="sm" /> : <Upload className="size-3.5" />}
           {uploading ? "Uploading…" : "Upload JAR"}
         </button>
       </div>
@@ -196,7 +194,7 @@ function SubmitForm({
         jarId: jar.id,
         entryClass,
         parallelism,
-        programArgs,
+        programArgsList: parseProgramArgs(programArgs),
         savepointPath: savepointPath || null,
         allowNonRestoredState,
       })
@@ -262,18 +260,25 @@ function SubmitForm({
           />
         </div>
 
-        {/* Program Arguments */}
+        {/* Program Arguments — one per line (sent as programArgsList) */}
         <div className="flex flex-col gap-1.5">
           <label className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
             Program Arguments
+            <span className="ml-1.5 lowercase text-zinc-600">
+              (one per line)
+            </span>
           </label>
-          <input
-            type="text"
+          <textarea
             value={programArgs}
             onChange={(e) => setProgramArgs(e.target.value)}
-            placeholder="--key value --flag"
+            rows={4}
+            placeholder={"--input\ns3://bucket/in\n--query\nSELECT * FROM t"}
             className="rounded-md border border-dash-border bg-dash-panel px-3 py-1.5 font-mono text-xs text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-fr-coral"
           />
+          <p className="text-[10px] text-zinc-600">
+            Each line is one argument, verbatim — a value with spaces (SQL, a
+            path) needs no quoting.
+          </p>
         </div>
 
         {/* Savepoint Path */}
@@ -307,11 +312,7 @@ function SubmitForm({
           disabled={submitting || !entryClass}
           className="flex w-fit items-center gap-2 rounded-md bg-job-running/15 px-4 py-2 text-xs font-medium text-job-running transition-colors hover:bg-job-running/25 disabled:opacity-50"
         >
-          {submitting ? (
-            <Spinner size="sm" />
-          ) : (
-            <Play className="size-3.5" />
-          )}
+          {submitting ? <Spinner size="sm" /> : <Play className="size-3.5" />}
           {submitting ? "Submitting…" : "Submit Job"}
         </button>
       </form>

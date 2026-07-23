@@ -28,12 +28,19 @@ func capStdio(s string) string {
 }
 
 // JarRunRequest holds parameters for running a JAR.
+//
+// Program arguments can be supplied two ways. ProgramArgsList (an array) is the
+// form Flink 2.0+ expects; the single tokenized ProgramArgs string is deprecated
+// there and unreliable/removed. Callers should populate exactly one — set
+// ProgramArgsList for 2.0+, or ProgramArgs for legacy 1.x clusters. Both carry
+// omitempty so only the populated field is serialized.
 type JarRunRequest struct {
-	EntryClass       string `json:"entryClass,omitempty"`
-	ProgramArgs      string `json:"programArgs,omitempty"`
-	Parallelism      *int   `json:"parallelism,omitempty"`
-	SavepointPath    string `json:"savepointPath,omitempty"`
-	AllowNonRestored bool   `json:"allowNonRestoredState,omitempty"`
+	EntryClass       string   `json:"entryClass,omitempty"`
+	ProgramArgs      string   `json:"programArgs,omitempty"`
+	ProgramArgsList  []string `json:"programArgsList,omitempty"`
+	Parallelism      *int     `json:"parallelism,omitempty"`
+	SavepointPath    string   `json:"savepointPath,omitempty"`
+	AllowNonRestored bool     `json:"allowNonRestoredState,omitempty"`
 }
 
 // Service provides domain-level operations on a Flink cluster.

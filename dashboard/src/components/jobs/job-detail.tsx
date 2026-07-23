@@ -391,7 +391,10 @@ export function JobDetail({
           value="configuration"
           className="mt-4 flex-1 overflow-auto"
         >
-          <ConfigurationTab configuration={job.configuration} />
+          <ConfigurationTab
+            configuration={job.configuration}
+            jobConfig={job.jobConfig}
+          />
         </TabsContent>
 
         {tapAvailable && (

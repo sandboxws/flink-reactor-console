@@ -44,6 +44,23 @@ func TestMapJobConfig_EmptyUserConfig(t *testing.T) {
 	}
 }
 
+func TestMapJobConfig_ExecutionModeNullable(t *testing.T) {
+	t.Parallel()
+
+	// Flink 1.x: execution-mode present -> non-nil pointer to the value.
+	present := &flink.JobConfig{}
+	present.ExecutionConfig.ExecutionMode = "PIPELINED"
+	if got := mapJobConfig(present).ExecutionMode; got == nil || *got != "PIPELINED" {
+		t.Errorf("present execution-mode: got %v, want PIPELINED", got)
+	}
+
+	// Flink 2.0: execution-mode removed from /jobs/:jid/config -> nil, no panic.
+	absent := &flink.JobConfig{}
+	if got := mapJobConfig(absent).ExecutionMode; got != nil {
+		t.Errorf("absent execution-mode: got %q, want nil", *got)
+	}
+}
+
 func TestMapJobConfig_SortedKeys(t *testing.T) {
 	t.Parallel()
 

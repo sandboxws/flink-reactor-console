@@ -2,6 +2,7 @@ package flink_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -187,5 +188,85 @@ func TestService_ErrorPropagation(t *testing.T) {
 	_, err = svc.GetTaskManagers(context.Background())
 	if err == nil {
 		t.Fatal("expected error from failing server")
+	}
+}
+
+// TestService_RunJar_ProgramArgs verifies that RunJar serializes exactly one of
+// programArgsList / programArgs onto the wire, driven by which field is set.
+// programArgsList is the Flink 2.0+ form; programArgs is the deprecated 1.x
+// string. omitempty guarantees the unset field never appears in the payload.
+func TestService_RunJar_ProgramArgs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		req           *flink.JarRunRequest
+		wantHasList   bool
+		wantHasString bool
+	}{
+		{
+			name:          "non-empty list sends programArgsList and omits programArgs",
+			req:           &flink.JarRunRequest{ProgramArgsList: []string{"--input", "s3://x", "--rate", "10"}},
+			wantHasList:   true,
+			wantHasString: false,
+		},
+		{
+			name:          "legacy string sends programArgs and omits programArgsList",
+			req:           &flink.JarRunRequest{ProgramArgs: "--input s3://x --rate 10"},
+			wantHasList:   false,
+			wantHasString: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var (
+				gotPath string
+				body    map[string]any
+			)
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				gotPath = r.URL.Path
+				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+					t.Errorf("decode request body: %v", err)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"jobid":"job-123"}`))
+			}))
+			defer srv.Close()
+
+			svc := flink.NewService(flink.NewClient(flink.WithBaseURL(srv.URL)))
+			resp, err := svc.RunJar(context.Background(), "my-jar", tt.req)
+			if err != nil {
+				t.Fatalf("RunJar: %v", err)
+			}
+			if resp.JobID != "job-123" {
+				t.Errorf("jobID = %q, want job-123", resp.JobID)
+			}
+			if gotPath != "/jars/my-jar/run" {
+				t.Errorf("path = %q, want /jars/my-jar/run", gotPath)
+			}
+
+			if _, has := body["programArgsList"]; has != tt.wantHasList {
+				t.Errorf("programArgsList present = %v, want %v (body=%v)", has, tt.wantHasList, body)
+			}
+			if _, has := body["programArgs"]; has != tt.wantHasString {
+				t.Errorf("programArgs present = %v, want %v (body=%v)", has, tt.wantHasString, body)
+			}
+
+			// When the list form is used, its elements must round-trip intact.
+			if tt.wantHasList {
+				raw, ok := body["programArgsList"].([]any)
+				if !ok || len(raw) != len(tt.req.ProgramArgsList) {
+					t.Fatalf("programArgsList = %v, want %v", body["programArgsList"], tt.req.ProgramArgsList)
+				}
+				for i, want := range tt.req.ProgramArgsList {
+					if raw[i] != want {
+						t.Errorf("arg[%d] = %v, want %q", i, raw[i], want)
+					}
+				}
+			}
+		})
 	}
 }
