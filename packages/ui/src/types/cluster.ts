@@ -86,6 +86,15 @@ export type JobPlan = {
   edges: JobEdge[]
 }
 
+/**
+ * A machine-readable failure classification (FLIP-304) attached to an exception
+ * by a pluggable failure enricher, e.g. `{ key: "type", value: "SYSTEM" }`.
+ */
+export type FailureLabel = {
+  key: string
+  value: string
+}
+
 /** A root-cause exception thrown by a Flink job. */
 export type JobException = {
   timestamp: Date
@@ -96,6 +105,17 @@ export type JobException = {
   taskName: string | null
   /** Host/location where the exception occurred. */
   location: string | null
+  /**
+   * FLIP-304 failure labels (Flink 1.19+), sorted by key. Absent/empty on older
+   * clusters or unclassified failures.
+   */
+  failureLabels?: FailureLabel[]
+  /**
+   * Other failures Flink grouped with this root cause (subtasks that failed
+   * simultaneously). Each carries its own fields and labels; absent/empty for a
+   * single failure.
+   */
+  concurrentExceptions?: JobException[]
 }
 
 /** Lifecycle status of a single checkpoint. */

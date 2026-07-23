@@ -18,6 +18,7 @@ import type {
   ClusterOverview,
   ConnectorRole,
   ConnectorType,
+  FailureLabel,
   FlinkFeatureFlags,
   FlinkJob,
   GarbageCollectorInfo,
@@ -63,6 +64,26 @@ function epochToDate(s: string): Date {
 function epochToDateOrNull(s: string): Date | null {
   const ms = parseI64(s)
   return ms <= 0 ? null : new Date(ms)
+}
+
+/**
+ * Map a raw GraphQL ExceptionEntry → domain {@link JobException}, recursively
+ * mapping any concurrent exceptions. Flink nests concurrent exceptions only one
+ * level deep, so the recursion bottoms out immediately in practice.
+ */
+function mapJobException(e: any): JobException {
+  return {
+    timestamp: epochToDate(e.timestamp),
+    name: e.exceptionName,
+    message: e.exceptionName,
+    stacktrace: e.stacktrace,
+    taskName: e.taskName ?? null,
+    location: e.endpoint ?? null,
+    failureLabels: (e.failureLabels ?? []).map(
+      (l: any): FailureLabel => ({ key: l.key, value: l.value }),
+    ),
+    concurrentExceptions: (e.concurrentExceptions ?? []).map(mapJobException),
+  }
 }
 
 /** Collapse Flink's 10 task states → 5 domain states */
@@ -141,7 +162,14 @@ const JOB_DETAIL_QUERY = gql`
         jid name type
         nodes { id parallelism operator operatorStrategy description inputs { num id shipStrategy exchange } }
       }
-      exceptions { exceptionName stacktrace timestamp taskName endpoint taskManagerId }
+      exceptions {
+        exceptionName stacktrace timestamp taskName endpoint taskManagerId
+        failureLabels { key value }
+        concurrentExceptions {
+          exceptionName stacktrace timestamp taskName endpoint taskManagerId
+          failureLabels { key value }
+        }
+      }
       checkpoints {
         counts { completed inProgress failed total restored }
         history { id status isSavepoint checkpointType triggerTimestamp latestAckTimestamp stateSize endToEndDuration processedData persistedData numSubtasks numAcknowledgedSubtasks checkpointedSize externalPath failureMessage failureTimestamp }
@@ -885,15 +913,8 @@ export async function fetchJobDetail(jobId: string): Promise<FlinkJob> {
 
   const plan: JobPlan = { vertices, edges }
 
-  // Map exceptions
-  const exceptions: JobException[] = (j.exceptions ?? []).map((e: any) => ({
-    timestamp: epochToDate(e.timestamp),
-    name: e.exceptionName,
-    message: e.exceptionName,
-    stacktrace: e.stacktrace,
-    taskName: e.taskName ?? null,
-    location: e.endpoint ?? null,
-  }))
+  // Map exceptions (incl. FLIP-304 failure labels + concurrent exceptions)
+  const exceptions: JobException[] = (j.exceptions ?? []).map(mapJobException)
 
   // Map checkpoints
   const checkpoints: Checkpoint[] = (j.checkpoints?.history ?? []).map(

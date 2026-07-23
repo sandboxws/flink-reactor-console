@@ -94,6 +94,22 @@ query JobDetail($id: ID!, $cluster: String) {
       taskName
       endpoint
       taskManagerId
+      failureLabels {
+        key
+        value
+      }
+      concurrentExceptions {
+        exceptionName
+        stacktrace
+        timestamp
+        taskName
+        endpoint
+        taskManagerId
+        failureLabels {
+          key
+          value
+        }
+      }
     }
     checkpoints {
       counts {

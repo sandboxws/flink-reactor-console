@@ -7,6 +7,7 @@
  * {@link StackTrace} component.
  */
 
+import type { JobException } from "@flink-reactor/ui"
 import {
   Collapsible,
   CollapsibleContent,
@@ -21,8 +22,8 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useState } from "react"
+import { FailureLabelChips } from "@/components/errors/failure-label-chips"
 import { StackTrace } from "@/components/errors/stack-trace"
-import type { JobException } from "@flink-reactor/ui"
 import { cn } from "@/lib/cn"
 
 // ---------------------------------------------------------------------------
@@ -60,7 +61,7 @@ function StacktraceViewer({
 // Exception card
 // ---------------------------------------------------------------------------
 
-/** Card displaying exception name, message, timestamp, location, and collapsible stacktrace. */
+/** Card displaying exception name, message, timestamp, failure labels, location, stacktrace, and any concurrent failures. */
 function ExceptionCard({
   exception,
   isRootCause,
@@ -68,6 +69,8 @@ function ExceptionCard({
   exception: JobException
   isRootCause?: boolean
 }) {
+  const concurrent = exception.concurrentExceptions ?? []
+
   return (
     <div
       className={cn(
@@ -92,6 +95,13 @@ function ExceptionCard({
         </span>
       </div>
 
+      {/* FLIP-304 failure labels */}
+      {exception.failureLabels && exception.failureLabels.length > 0 && (
+        <div className="mt-2">
+          <FailureLabelChips labels={exception.failureLabels} />
+        </div>
+      )}
+
       {/* Task attribution */}
       {exception.location && (
         <div className="mt-2 text-[10px] text-zinc-500">
@@ -102,7 +112,43 @@ function ExceptionCard({
       <div className="mt-3">
         <StacktraceViewer exception={exception} defaultOpen={isRootCause} />
       </div>
+
+      {/* Concurrent failures Flink grouped under this root cause */}
+      {concurrent.length > 0 && (
+        <ConcurrentExceptions exceptions={concurrent} />
+      )}
     </div>
+  )
+}
+
+/**
+ * Collapsible "N concurrent failures" group. Flink groups failures that happened
+ * at the same time as a root cause under `concurrentExceptions`; each is a full
+ * exception (with its own failure labels), rendered here as a nested card.
+ */
+function ConcurrentExceptions({ exceptions }: { exceptions: JobException[] }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mt-3">
+      <CollapsibleTrigger className="flex w-full items-center gap-1.5 text-[11px] text-zinc-500 transition-colors hover:text-zinc-300">
+        {open ? (
+          <ChevronDown className="size-3 shrink-0" />
+        ) : (
+          <ChevronRight className="size-3 shrink-0" />
+        )}
+        {exceptions.length} concurrent{" "}
+        {exceptions.length === 1 ? "failure" : "failures"}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2 flex flex-col gap-2 pl-3">
+        {exceptions.map((ex, i) => (
+          <ExceptionCard
+            key={`${ex.timestamp.getTime()}-${i}`}
+            exception={ex}
+          />
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
 

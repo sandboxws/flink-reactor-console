@@ -1,5 +1,7 @@
 /** Log entry and error grouping types for the Log Explorer and Error Explorer. */
 
+import type { FailureLabel } from "./cluster"
+
 /** Flink log severity level. */
 export type LogLevel = "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR"
 
@@ -30,6 +32,11 @@ export type LogEntry = {
   stackTrace: string | null
   /** Whether this entry contains an exception stack trace. */
   isException: boolean
+  /**
+   * FLIP-304 failure labels, present only when this entry was derived from a
+   * Flink job exception (never on log-parsed lines).
+   */
+  failureLabels?: FailureLabel[]
 }
 
 /** A group of related errors aggregated by exception class. */

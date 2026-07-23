@@ -6,11 +6,12 @@
  * the sample stack trace, and a link to view related log entries.
  */
 
+import type { ErrorGroup } from "@flink-reactor/ui"
+import { SourceBadge } from "@flink-reactor/ui"
 import { Link } from "@tanstack/react-router"
 import { format, formatDistanceToNow } from "date-fns"
 import { ExternalLink } from "lucide-react"
-import { SourceBadge } from "@flink-reactor/ui"
-import type { ErrorGroup } from "@flink-reactor/ui"
+import { FailureLabelChips } from "./failure-label-chips"
 import { StackTrace } from "./stack-trace"
 
 /** Label-value pair rendered as a flex row, shared layout pattern with log-detail-panel. */
@@ -76,6 +77,12 @@ export function ErrorDetail({ group }: { group: ErrorGroup }) {
             ))}
           </div>
         </Field>
+        {group.sampleEntry.failureLabels &&
+          group.sampleEntry.failureLabels.length > 0 && (
+            <Field label="Labels">
+              <FailureLabelChips labels={group.sampleEntry.failureLabels} />
+            </Field>
+          )}
       </div>
 
       {/* Stack trace */}

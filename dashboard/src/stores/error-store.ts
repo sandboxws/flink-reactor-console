@@ -169,6 +169,7 @@ function jobExceptionToLogEntry(exc: JobException, jobId: string): LogEntry {
     raw: exc.stacktrace,
     stackTrace: exc.stacktrace,
     isException: true,
+    failureLabels: exc.failureLabels,
   }
 }
 
