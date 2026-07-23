@@ -20,4 +20,7 @@ type Info struct {
 	Status        Status     `json:"status"`
 	LastCheckTime *time.Time `json:"lastCheckTime,omitempty"`
 	Version       *string    `json:"version,omitempty"`
+	// ProfilingEnabled mirrors the cluster's `rest.profiling.enabled` config,
+	// used with Version to gate the ASYNC_PROFILER capability.
+	ProfilingEnabled bool `json:"profilingEnabled"`
 }

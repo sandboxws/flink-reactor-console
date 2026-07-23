@@ -95,6 +95,10 @@ func NewMockServer() *httptest.Server {
 		writeJSON(w, MockTMMetrics())
 	})
 
+	mux.HandleFunc("GET /taskmanagers/{id}/thread-dump", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, MockThreadDump())
+	})
+
 	mux.HandleFunc("GET /taskmanagers/{id}", func(w http.ResponseWriter, r *http.Request) {
 		tmID := r.PathValue("id")
 		writeJSON(w, MockTaskManagerDetail(tmID))
@@ -110,6 +114,10 @@ func NewMockServer() *httptest.Server {
 
 	mux.HandleFunc("GET /jobmanager/metrics", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, MockJMMetrics())
+	})
+
+	mux.HandleFunc("GET /jobmanager/thread-dump", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, MockThreadDump())
 	})
 
 	mux.HandleFunc("GET /config", func(w http.ResponseWriter, _ *http.Request) {

@@ -283,7 +283,7 @@ export function TaskManagerDetail({ tm }: { tm: TaskManager }) {
           )}
         </TabsContent>
         <TabsContent value="profiler">
-          <TmProfilerTab />
+          <TmProfilerTab tmId={tm.id} />
         </TabsContent>
       </Tabs>
     </div>

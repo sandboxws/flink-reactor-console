@@ -910,7 +910,9 @@ type ComplexityRoot struct {
 		SubmitStatement              func(childComplexity int, sessionHandle string, statement string, cluster *string) int
 		SuspendMaterializedTable     func(childComplexity int, name string, catalog string, cluster *string) int
 		TestInstrumentConnection     func(childComplexity int, typeArg string, name string, config map[string]any) int
+		TriggerJobManagerProfiler    func(childComplexity int, mode model.ProfilerMode, duration int, cluster *string) int
 		TriggerSavepoint             func(childComplexity int, jobID string, targetDirectory *string, cluster *string) int
+		TriggerTaskManagerProfiler   func(childComplexity int, id string, mode model.ProfilerMode, duration int, cluster *string) int
 		UpdateAlertRule              func(childComplexity int, id string, input model.UpdateAlertRuleInput) int
 	}
 
@@ -966,6 +968,16 @@ type ComplexityRoot struct {
 		Status   func(childComplexity int) int
 	}
 
+	ProfilerInstance struct {
+		DownloadURL func(childComplexity int) int
+		Duration    func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Message     func(childComplexity int) int
+		Mode        func(childComplexity int) int
+		OutputFile  func(childComplexity int) int
+		Status      func(childComplexity int) int
+	}
+
 	Query struct {
 		ActiveAlerts                  func(childComplexity int) int
 		AlertHistory                  func(childComplexity int, filter *model.AlertHistoryFilterInput) int
@@ -1004,8 +1016,10 @@ type ComplexityRoot struct {
 		Job                           func(childComplexity int, id string, cluster *string) int
 		JobHistory                    func(childComplexity int, filter *model.JobHistoryFilter, pagination *model.PaginationInput, orderBy *model.OrderByInput) int
 		JobManager                    func(childComplexity int, cluster *string) int
+		JobManagerProfilerInstances   func(childComplexity int, cluster *string) int
 		JobManagerStderr              func(childComplexity int, cluster *string) int
 		JobManagerStdout              func(childComplexity int, cluster *string) int
+		JobManagerThreadDump          func(childComplexity int, cluster *string) int
 		Jobs                          func(childComplexity int, cluster *string) int
 		KafkaConsumerGroup            func(childComplexity int, instrument string, groupID string) int
 		KafkaConsumerGroups           func(childComplexity int, instrument string) int
@@ -1044,6 +1058,7 @@ type ComplexityRoot struct {
 		TapManifests                  func(childComplexity int) int
 		TaskManager                   func(childComplexity int, id string, cluster *string) int
 		TaskManagerLogs               func(childComplexity int, id string, cluster *string) int
+		TaskManagerProfilerInstances  func(childComplexity int, id string, cluster *string) int
 		TaskManagerStderr             func(childComplexity int, id string, cluster *string) int
 		TaskManagerStdout             func(childComplexity int, id string, cluster *string) int
 		TaskManagerThreadDump         func(childComplexity int, id string, cluster *string) int
@@ -1491,6 +1506,7 @@ type MutationResolver interface {
 	TestInstrumentConnection(ctx context.Context, typeArg string, name string, config map[string]any) (*model.InstrumentTestResult, error)
 	DeleteJar(ctx context.Context, id string, cluster *string) (*model.DeleteResult, error)
 	RunJar(ctx context.Context, id string, entryClass *string, programArgs *string, programArgsList []string, parallelism *int, savepointPath *string, allowNonRestoredState *bool, cluster *string) (*model.JarRunResult, error)
+	TriggerJobManagerProfiler(ctx context.Context, mode model.ProfilerMode, duration int, cluster *string) (*model.ProfilerInstance, error)
 	CancelJob(ctx context.Context, id string, cluster *string) (*model.CancelJobResult, error)
 	TriggerSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error)
 	StopJobWithSavepoint(ctx context.Context, jobID string, targetDirectory *string, cluster *string) (*model.SavepointTriggerResult, error)
@@ -1507,6 +1523,7 @@ type MutationResolver interface {
 	FetchSQLResults(ctx context.Context, sessionHandle string, operationHandle string, token *string, cluster *string) (*model.SQLFetchResult, error)
 	CloseSQLSession(ctx context.Context, sessionHandle string, cluster *string) (*model.SQLCloseResult, error)
 	ExplainStatement(ctx context.Context, sessionHandle string, statement string, cluster *string) (*model.SQLExplainResult, error)
+	TriggerTaskManagerProfiler(ctx context.Context, id string, mode model.ProfilerMode, duration int, cluster *string) (*model.ProfilerInstance, error)
 }
 type QueryResolver interface {
 	Health(ctx context.Context) (bool, error)
@@ -1552,6 +1569,8 @@ type QueryResolver interface {
 	JobManager(ctx context.Context, cluster *string) (*model.JobManagerDetail, error)
 	JobManagerStdout(ctx context.Context, cluster *string) (string, error)
 	JobManagerStderr(ctx context.Context, cluster *string) (string, error)
+	JobManagerThreadDump(ctx context.Context, cluster *string) ([]*model.ThreadDumpEntry, error)
+	JobManagerProfilerInstances(ctx context.Context, cluster *string) ([]*model.ProfilerInstance, error)
 	Jobs(ctx context.Context, cluster *string) ([]*model.JobOverview, error)
 	Job(ctx context.Context, id string, cluster *string) (*model.JobDetail, error)
 	VertexDetail(ctx context.Context, jobID string, vertexID string, cluster *string) (*model.VertexDetail, error)
@@ -1591,6 +1610,7 @@ type QueryResolver interface {
 	TaskManagerThreadDump(ctx context.Context, id string, cluster *string) ([]*model.ThreadDumpEntry, error)
 	TaskManagerStdout(ctx context.Context, id string, cluster *string) (string, error)
 	TaskManagerStderr(ctx context.Context, id string, cluster *string) (string, error)
+	TaskManagerProfilerInstances(ctx context.Context, id string, cluster *string) ([]*model.ProfilerInstance, error)
 }
 type SubscriptionResolver interface {
 	AlertFired(ctx context.Context) (<-chan *model.AlertInstance, error)
@@ -5198,6 +5218,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.TestInstrumentConnection(childComplexity, args["type"].(string), args["name"].(string), args["config"].(map[string]any)), true
+	case "Mutation.triggerJobManagerProfiler":
+		if e.ComplexityRoot.Mutation.TriggerJobManagerProfiler == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_triggerJobManagerProfiler_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.TriggerJobManagerProfiler(childComplexity, args["mode"].(model.ProfilerMode), args["duration"].(int), args["cluster"].(*string)), true
 	case "Mutation.triggerSavepoint":
 		if e.ComplexityRoot.Mutation.TriggerSavepoint == nil {
 			break
@@ -5209,6 +5240,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.TriggerSavepoint(childComplexity, args["jobId"].(string), args["targetDirectory"].(*string), args["cluster"].(*string)), true
+	case "Mutation.triggerTaskManagerProfiler":
+		if e.ComplexityRoot.Mutation.TriggerTaskManagerProfiler == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_triggerTaskManagerProfiler_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.TriggerTaskManagerProfiler(childComplexity, args["id"].(string), args["mode"].(model.ProfilerMode), args["duration"].(int), args["cluster"].(*string)), true
 	case "Mutation.updateAlertRule":
 		if e.ComplexityRoot.Mutation.UpdateAlertRule == nil {
 			break
@@ -5447,6 +5489,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PreflightCheck.Status(childComplexity), true
+
+	case "ProfilerInstance.downloadUrl":
+		if e.ComplexityRoot.ProfilerInstance.DownloadURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ProfilerInstance.DownloadURL(childComplexity), true
+	case "ProfilerInstance.duration":
+		if e.ComplexityRoot.ProfilerInstance.Duration == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ProfilerInstance.Duration(childComplexity), true
+	case "ProfilerInstance.id":
+		if e.ComplexityRoot.ProfilerInstance.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ProfilerInstance.ID(childComplexity), true
+	case "ProfilerInstance.message":
+		if e.ComplexityRoot.ProfilerInstance.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ProfilerInstance.Message(childComplexity), true
+	case "ProfilerInstance.mode":
+		if e.ComplexityRoot.ProfilerInstance.Mode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ProfilerInstance.Mode(childComplexity), true
+	case "ProfilerInstance.outputFile":
+		if e.ComplexityRoot.ProfilerInstance.OutputFile == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ProfilerInstance.OutputFile(childComplexity), true
+	case "ProfilerInstance.status":
+		if e.ComplexityRoot.ProfilerInstance.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ProfilerInstance.Status(childComplexity), true
 
 	case "Query.activeAlerts":
 		if e.ComplexityRoot.Query.ActiveAlerts == nil {
@@ -5831,6 +5916,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.JobManager(childComplexity, args["cluster"].(*string)), true
+	case "Query.jobManagerProfilerInstances":
+		if e.ComplexityRoot.Query.JobManagerProfilerInstances == nil {
+			break
+		}
+
+		args, err := ec.field_Query_jobManagerProfilerInstances_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.JobManagerProfilerInstances(childComplexity, args["cluster"].(*string)), true
 	case "Query.jobManagerStderr":
 		if e.ComplexityRoot.Query.JobManagerStderr == nil {
 			break
@@ -5853,6 +5949,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.JobManagerStdout(childComplexity, args["cluster"].(*string)), true
+	case "Query.jobManagerThreadDump":
+		if e.ComplexityRoot.Query.JobManagerThreadDump == nil {
+			break
+		}
+
+		args, err := ec.field_Query_jobManagerThreadDump_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.JobManagerThreadDump(childComplexity, args["cluster"].(*string)), true
 	case "Query.jobs":
 		if e.ComplexityRoot.Query.Jobs == nil {
 			break
@@ -6246,6 +6353,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.TaskManagerLogs(childComplexity, args["id"].(string), args["cluster"].(*string)), true
+	case "Query.taskManagerProfilerInstances":
+		if e.ComplexityRoot.Query.TaskManagerProfilerInstances == nil {
+			break
+		}
+
+		args, err := ec.field_Query_taskManagerProfilerInstances_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.TaskManagerProfilerInstances(childComplexity, args["id"].(string), args["cluster"].(*string)), true
 	case "Query.taskManagerStderr":
 		if e.ComplexityRoot.Query.TaskManagerStderr == nil {
 			break
@@ -9201,6 +9319,24 @@ extend type Query {
 
   """Get job manager process stderr (tail-truncated to last 1 MB)"""
   jobManagerStderr(cluster: String): String!
+
+  """Get job manager thread dump (live snapshot; empty when unavailable)"""
+  jobManagerThreadDump(cluster: String): [ThreadDumpEntry!]!
+
+  """List async-profiler runs for the job manager (FLIP-375). Empty when
+  profiling is unsupported or disabled on the cluster.
+  ` + "`" + `ProfilerInstance` + "`" + ` is defined in taskmanagers.graphqls."""
+  jobManagerProfilerInstances(cluster: String): [ProfilerInstance!]!
+}
+
+extend type Mutation {
+  """Start an async-profiler run on the job manager (FLIP-375). Requires the
+  ASYNC_PROFILER capability (Flink >= 1.19 with rest.profiling.enabled)."""
+  triggerJobManagerProfiler(
+    mode: ProfilerMode!
+    duration: Int!
+    cluster: String
+  ): ProfilerInstance!
 }
 `, BuiltIn: false},
 	{Name: "../schema/jobs.graphqls", Input: `# Job types and queries for the Flink dashboard
@@ -10604,6 +10740,44 @@ type TaskManagerDetail {
   metrics: [MetricEntry!]!
 }
 
+"""Async-profiler event mode (FLIP-375). Mirrors Flink's ProfilingMode."""
+enum ProfilerMode {
+  ITIMER
+  CPU
+  ALLOC
+  LOCK
+  WALL
+}
+
+"""Lifecycle status of an async-profiler run."""
+enum ProfilerStatus {
+  RUNNING
+  FINISHED
+  FAILED
+}
+
+"""
+A single async-profiler run on a TaskManager or the JobManager (FLIP-375,
+Flink 1.19+). This is Flink's built-in JVM profiler and is deliberately
+distinct from the operator flame graph: it profiles the whole JVM — CPU,
+allocation pressure, lock contention, or wall-clock — rather than one
+operator's on/off-CPU stacks.
+"""
+type ProfilerInstance {
+  """Stable id for the run — the output file name, assigned at trigger time."""
+  id: ID!
+  status: ProfilerStatus!
+  mode: ProfilerMode!
+  """Requested profiling window, in seconds."""
+  duration: Int!
+  """Failure reason; set when status is FAILED."""
+  message: String
+  """Flame-graph output file name; set when status is FINISHED."""
+  outputFile: String
+  """Console-proxied URL to open the flame graph; set when status is FINISHED."""
+  downloadUrl: String
+}
+
 extend type Query {
   """List all task managers in a cluster"""
   taskManagers(cluster: String): [TaskManagerOverview!]!
@@ -10622,6 +10796,21 @@ extend type Query {
 
   """Get task manager process stderr (tail-truncated to last 1 MB)"""
   taskManagerStderr(id: ID!, cluster: String): String!
+
+  """List async-profiler runs for a task manager (FLIP-375). Empty when
+  profiling is unsupported or disabled on the cluster."""
+  taskManagerProfilerInstances(id: ID!, cluster: String): [ProfilerInstance!]!
+}
+
+extend type Mutation {
+  """Start an async-profiler run on a task manager (FLIP-375). Requires the
+  ASYNC_PROFILER capability (Flink >= 1.19 with rest.profiling.enabled)."""
+  triggerTaskManagerProfiler(
+    id: ID!
+    mode: ProfilerMode!
+    duration: Int!
+    cluster: String
+  ): ProfilerInstance!
 }
 `, BuiltIn: false},
 }
@@ -11127,6 +11316,27 @@ func (ec *executionContext) field_Mutation_testInstrumentConnection_args(ctx con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_triggerJobManagerProfiler_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "mode", ec.unmarshalNProfilerMode2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerMode)
+	if err != nil {
+		return nil, err
+	}
+	args["mode"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "duration", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["duration"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_triggerSavepoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -11145,6 +11355,32 @@ func (ec *executionContext) field_Mutation_triggerSavepoint_args(ctx context.Con
 		return nil, err
 	}
 	args["cluster"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_triggerTaskManagerProfiler_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "mode", ec.unmarshalNProfilerMode2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerMode)
+	if err != nil {
+		return nil, err
+	}
+	args["mode"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "duration", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["duration"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg3
 	return args, nil
 }
 
@@ -11680,6 +11916,17 @@ func (ec *executionContext) field_Query_jobHistory_args(ctx context.Context, raw
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_jobManagerProfilerInstances_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_jobManagerStderr_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -11692,6 +11939,17 @@ func (ec *executionContext) field_Query_jobManagerStderr_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Query_jobManagerStdout_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_jobManagerThreadDump_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
@@ -12231,6 +12489,22 @@ func (ec *executionContext) field_Query_subtaskTimes_args(ctx context.Context, r
 }
 
 func (ec *executionContext) field_Query_taskManagerLogs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "cluster", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_taskManagerProfilerInstances_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -29635,6 +29909,63 @@ func (ec *executionContext) fieldContext_Mutation_runJar(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_triggerJobManagerProfiler(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_triggerJobManagerProfiler,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().TriggerJobManagerProfiler(ctx, fc.Args["mode"].(model.ProfilerMode), fc.Args["duration"].(int), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNProfilerInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerInstance,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_triggerJobManagerProfiler(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfilerInstance_id(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfilerInstance_status(ctx, field)
+			case "mode":
+				return ec.fieldContext_ProfilerInstance_mode(ctx, field)
+			case "duration":
+				return ec.fieldContext_ProfilerInstance_duration(ctx, field)
+			case "message":
+				return ec.fieldContext_ProfilerInstance_message(ctx, field)
+			case "outputFile":
+				return ec.fieldContext_ProfilerInstance_outputFile(ctx, field)
+			case "downloadUrl":
+				return ec.fieldContext_ProfilerInstance_downloadUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfilerInstance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_triggerJobManagerProfiler_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_cancelJob(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -30433,6 +30764,63 @@ func (ec *executionContext) fieldContext_Mutation_explainStatement(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_explainStatement_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_triggerTaskManagerProfiler(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_triggerTaskManagerProfiler,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().TriggerTaskManagerProfiler(ctx, fc.Args["id"].(string), fc.Args["mode"].(model.ProfilerMode), fc.Args["duration"].(int), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNProfilerInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerInstance,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_triggerTaskManagerProfiler(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfilerInstance_id(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfilerInstance_status(ctx, field)
+			case "mode":
+				return ec.fieldContext_ProfilerInstance_mode(ctx, field)
+			case "duration":
+				return ec.fieldContext_ProfilerInstance_duration(ctx, field)
+			case "message":
+				return ec.fieldContext_ProfilerInstance_message(ctx, field)
+			case "outputFile":
+				return ec.fieldContext_ProfilerInstance_outputFile(ctx, field)
+			case "downloadUrl":
+				return ec.fieldContext_ProfilerInstance_downloadUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfilerInstance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_triggerTaskManagerProfiler_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -31517,6 +31905,209 @@ func (ec *executionContext) fieldContext_PreflightCheck_required(_ context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfilerInstance_id(ctx context.Context, field graphql.CollectedField, obj *model.ProfilerInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ProfilerInstance_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ProfilerInstance_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfilerInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfilerInstance_status(ctx context.Context, field graphql.CollectedField, obj *model.ProfilerInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ProfilerInstance_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNProfilerStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ProfilerInstance_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfilerInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProfilerStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfilerInstance_mode(ctx context.Context, field graphql.CollectedField, obj *model.ProfilerInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ProfilerInstance_mode,
+		func(ctx context.Context) (any, error) {
+			return obj.Mode, nil
+		},
+		nil,
+		ec.marshalNProfilerMode2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerMode,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ProfilerInstance_mode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfilerInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProfilerMode does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfilerInstance_duration(ctx context.Context, field graphql.CollectedField, obj *model.ProfilerInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ProfilerInstance_duration,
+		func(ctx context.Context) (any, error) {
+			return obj.Duration, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ProfilerInstance_duration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfilerInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfilerInstance_message(ctx context.Context, field graphql.CollectedField, obj *model.ProfilerInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ProfilerInstance_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ProfilerInstance_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfilerInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfilerInstance_outputFile(ctx context.Context, field graphql.CollectedField, obj *model.ProfilerInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ProfilerInstance_outputFile,
+		func(ctx context.Context) (any, error) {
+			return obj.OutputFile, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ProfilerInstance_outputFile(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfilerInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfilerInstance_downloadUrl(ctx context.Context, field graphql.CollectedField, obj *model.ProfilerInstance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ProfilerInstance_downloadUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.DownloadURL, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ProfilerInstance_downloadUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfilerInstance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -33721,6 +34312,110 @@ func (ec *executionContext) fieldContext_Query_jobManagerStderr(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_jobManagerThreadDump(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_jobManagerThreadDump,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().JobManagerThreadDump(ctx, fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNThreadDumpEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_jobManagerThreadDump(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "threadName":
+				return ec.fieldContext_ThreadDumpEntry_threadName(ctx, field)
+			case "stringifiedThreadInfo":
+				return ec.fieldContext_ThreadDumpEntry_stringifiedThreadInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ThreadDumpEntry", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_jobManagerThreadDump_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_jobManagerProfilerInstances(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_jobManagerProfilerInstances,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().JobManagerProfilerInstances(ctx, fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNProfilerInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerInstanceᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_jobManagerProfilerInstances(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfilerInstance_id(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfilerInstance_status(ctx, field)
+			case "mode":
+				return ec.fieldContext_ProfilerInstance_mode(ctx, field)
+			case "duration":
+				return ec.fieldContext_ProfilerInstance_duration(ctx, field)
+			case "message":
+				return ec.fieldContext_ProfilerInstance_message(ctx, field)
+			case "outputFile":
+				return ec.fieldContext_ProfilerInstance_outputFile(ctx, field)
+			case "downloadUrl":
+				return ec.fieldContext_ProfilerInstance_downloadUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfilerInstance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_jobManagerProfilerInstances_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -35830,6 +36525,63 @@ func (ec *executionContext) fieldContext_Query_taskManagerStderr(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_taskManagerStderr_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_taskManagerProfilerInstances(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_taskManagerProfilerInstances,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().TaskManagerProfilerInstances(ctx, fc.Args["id"].(string), fc.Args["cluster"].(*string))
+		},
+		nil,
+		ec.marshalNProfilerInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerInstanceᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_taskManagerProfilerInstances(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfilerInstance_id(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfilerInstance_status(ctx, field)
+			case "mode":
+				return ec.fieldContext_ProfilerInstance_mode(ctx, field)
+			case "duration":
+				return ec.fieldContext_ProfilerInstance_duration(ctx, field)
+			case "message":
+				return ec.fieldContext_ProfilerInstance_message(ctx, field)
+			case "outputFile":
+				return ec.fieldContext_ProfilerInstance_outputFile(ctx, field)
+			case "downloadUrl":
+				return ec.fieldContext_ProfilerInstance_downloadUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfilerInstance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_taskManagerProfilerInstances_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -52300,6 +53052,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "triggerJobManagerProfiler":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_triggerJobManagerProfiler(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cancelJob":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_cancelJob(ctx, field)
@@ -52408,6 +53167,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "explainStatement":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_explainStatement(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "triggerTaskManagerProfiler":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_triggerTaskManagerProfiler(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -52743,6 +53509,66 @@ func (ec *executionContext) _PreflightCheck(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var profilerInstanceImplementors = []string{"ProfilerInstance"}
+
+func (ec *executionContext) _ProfilerInstance(ctx context.Context, sel ast.SelectionSet, obj *model.ProfilerInstance) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, profilerInstanceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProfilerInstance")
+		case "id":
+			out.Values[i] = ec._ProfilerInstance_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._ProfilerInstance_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mode":
+			out.Values[i] = ec._ProfilerInstance_mode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "duration":
+			out.Values[i] = ec._ProfilerInstance_duration(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._ProfilerInstance_message(ctx, field, obj)
+		case "outputFile":
+			out.Values[i] = ec._ProfilerInstance_outputFile(ctx, field, obj)
+		case "downloadUrl":
+			out.Values[i] = ec._ProfilerInstance_downloadUrl(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -53719,6 +54545,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "jobManagerThreadDump":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_jobManagerThreadDump(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "jobManagerProfilerInstances":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_jobManagerProfilerInstances(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "jobs":
 			field := field
 
@@ -54559,6 +55429,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_taskManagerStderr(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "taskManagerProfilerInstances":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_taskManagerProfilerInstances(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -60229,6 +61121,56 @@ func (ec *executionContext) marshalNPreflightCheck2ᚖgithubᚗcomᚋsandboxws�
 		return graphql.Null
 	}
 	return ec._PreflightCheck(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNProfilerInstance2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerInstance(ctx context.Context, sel ast.SelectionSet, v model.ProfilerInstance) graphql.Marshaler {
+	return ec._ProfilerInstance(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProfilerInstance2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerInstanceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ProfilerInstance) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNProfilerInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerInstance(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNProfilerInstance2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerInstance(ctx context.Context, sel ast.SelectionSet, v *model.ProfilerInstance) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ProfilerInstance(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNProfilerMode2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerMode(ctx context.Context, v any) (model.ProfilerMode, error) {
+	var res model.ProfilerMode
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNProfilerMode2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerMode(ctx context.Context, sel ast.SelectionSet, v model.ProfilerMode) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNProfilerStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerStatus(ctx context.Context, v any) (model.ProfilerStatus, error) {
+	var res model.ProfilerStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNProfilerStatus2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐProfilerStatus(ctx context.Context, sel ast.SelectionSet, v model.ProfilerStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNRedisHashEntry2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐRedisHashEntry(ctx context.Context, sel ast.SelectionSet, v *model.RedisHashEntry) graphql.Marshaler {

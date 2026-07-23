@@ -32,6 +32,38 @@ var gatedCapabilities = []gatedCapability{
 	{Name: "APPLICATION_MODE", MinMajor: 2, MinMinor: 3},
 }
 
+// asyncProfilerMinMajor / asyncProfilerMinMinor gate ASYNC_PROFILER on the
+// Flink release that added the built-in async profiler (FLIP-375, Flink 1.19).
+const (
+	asyncProfilerMinMajor = 1
+	asyncProfilerMinMinor = 19
+)
+
+// CapabilitiesForVersionAndConfig returns CapabilitiesForVersion plus any
+// capability that additionally depends on cluster configuration. Today that is
+// only ASYNC_PROFILER, which requires both Flink >= 1.19 and
+// `rest.profiling.enabled` (profilingEnabled). Keeping it separate from the
+// pure version gates lets the resolver feed in the config signal without every
+// capability having to know about config.
+func CapabilitiesForVersionAndConfig(version string, profilingEnabled bool) []string {
+	caps := CapabilitiesForVersion(version)
+	if profilingEnabled && supportsAsyncProfiler(version) {
+		caps = append(caps, "ASYNC_PROFILER")
+	}
+	return caps
+}
+
+// supportsAsyncProfiler reports whether the version is >= 1.19, the release
+// that introduced the built-in profiler.
+func supportsAsyncProfiler(version string) bool {
+	major, minor, ok := parseVersion(version)
+	if !ok {
+		return false
+	}
+	return major > asyncProfilerMinMajor ||
+		(major == asyncProfilerMinMajor && minor >= asyncProfilerMinMinor)
+}
+
 // CapabilitiesForVersion returns the list of SQL feature strings available
 // for the given Flink version string (e.g. "2.0.0", "1.20.1", "2.2").
 func CapabilitiesForVersion(version string) []string {

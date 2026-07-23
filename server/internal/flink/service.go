@@ -457,3 +457,63 @@ func (s *Service) GetTaskManagerStderr(ctx context.Context, tmID string) (string
 	}
 	return capStdio(body), nil
 }
+
+// --- Async profiler (FLIP-375, Flink 1.19+) ---
+
+// TriggerTaskManagerProfiler starts an async-profiler run on a TaskManager via
+// POST /taskmanagers/:id/profiler. duration is in seconds; mode is one of
+// ITIMER, CPU, ALLOC, LOCK, WALL. It returns the created (RUNNING) instance.
+// A 404 is mapped to ErrProfilingUnsupported so callers can distinguish
+// "profiling off" from a transport failure.
+func (s *Service) TriggerTaskManagerProfiler(ctx context.Context, tmID, mode string, duration int) (*ProfilingInfo, error) {
+	var info ProfilingInfo
+	req := ProfilingRequest{Duration: duration, Mode: mode}
+	if err := s.client.PostJSON(ctx, "/taskmanagers/"+url.PathEscape(tmID)+"/profiler", req, &info); err != nil {
+		if IsNotFound(err) {
+			return nil, ErrProfilingUnsupported
+		}
+		return nil, err
+	}
+	return &info, nil
+}
+
+// TriggerJobManagerProfiler starts an async-profiler run on the JobManager via
+// POST /jobmanager/profiler. See TriggerTaskManagerProfiler for semantics.
+func (s *Service) TriggerJobManagerProfiler(ctx context.Context, mode string, duration int) (*ProfilingInfo, error) {
+	var info ProfilingInfo
+	req := ProfilingRequest{Duration: duration, Mode: mode}
+	if err := s.client.PostJSON(ctx, "/jobmanager/profiler", req, &info); err != nil {
+		if IsNotFound(err) {
+			return nil, ErrProfilingUnsupported
+		}
+		return nil, err
+	}
+	return &info, nil
+}
+
+// ListTaskManagerProfilerInstances returns the profiling history for a
+// TaskManager via GET /taskmanagers/:id/profiler. A 404 (profiling
+// unsupported/disabled) yields an empty list so callers can feature-detect.
+func (s *Service) ListTaskManagerProfilerInstances(ctx context.Context, tmID string) ([]ProfilingInfo, error) {
+	var list ProfilingInfoList
+	if err := s.client.GetJSON(ctx, "/taskmanagers/"+url.PathEscape(tmID)+"/profiler", &list); err != nil {
+		if IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return list.ProfilingList, nil
+}
+
+// ListJobManagerProfilerInstances returns the JobManager profiling history via
+// GET /jobmanager/profiler. A 404 yields an empty list.
+func (s *Service) ListJobManagerProfilerInstances(ctx context.Context) ([]ProfilingInfo, error) {
+	var list ProfilingInfoList
+	if err := s.client.GetJSON(ctx, "/jobmanager/profiler", &list); err != nil {
+		if IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return list.ProfilingList, nil
+}

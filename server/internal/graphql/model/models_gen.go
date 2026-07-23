@@ -1217,6 +1217,26 @@ type PreflightCheck struct {
 	Required bool    `json:"required"`
 }
 
+// A single async-profiler run on a TaskManager or the JobManager (FLIP-375,
+// Flink 1.19+). This is Flink's built-in JVM profiler and is deliberately
+// distinct from the operator flame graph: it profiles the whole JVM — CPU,
+// allocation pressure, lock contention, or wall-clock — rather than one
+// operator's on/off-CPU stacks.
+type ProfilerInstance struct {
+	// Stable id for the run — the output file name, assigned at trigger time.
+	ID     string         `json:"id"`
+	Status ProfilerStatus `json:"status"`
+	Mode   ProfilerMode   `json:"mode"`
+	// Requested profiling window, in seconds.
+	Duration int `json:"duration"`
+	// Failure reason; set when status is FAILED.
+	Message *string `json:"message,omitempty"`
+	// Flame-graph output file name; set when status is FINISHED.
+	OutputFile *string `json:"outputFile,omitempty"`
+	// Console-proxied URL to open the flame graph; set when status is FINISHED.
+	DownloadURL *string `json:"downloadUrl,omitempty"`
+}
+
 type Query struct {
 }
 
@@ -2362,6 +2382,126 @@ func (e *OrderDirection) UnmarshalJSON(b []byte) error {
 }
 
 func (e OrderDirection) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Async-profiler event mode (FLIP-375). Mirrors Flink's ProfilingMode.
+type ProfilerMode string
+
+const (
+	ProfilerModeItimer ProfilerMode = "ITIMER"
+	ProfilerModeCPU    ProfilerMode = "CPU"
+	ProfilerModeAlloc  ProfilerMode = "ALLOC"
+	ProfilerModeLock   ProfilerMode = "LOCK"
+	ProfilerModeWall   ProfilerMode = "WALL"
+)
+
+var AllProfilerMode = []ProfilerMode{
+	ProfilerModeItimer,
+	ProfilerModeCPU,
+	ProfilerModeAlloc,
+	ProfilerModeLock,
+	ProfilerModeWall,
+}
+
+func (e ProfilerMode) IsValid() bool {
+	switch e {
+	case ProfilerModeItimer, ProfilerModeCPU, ProfilerModeAlloc, ProfilerModeLock, ProfilerModeWall:
+		return true
+	}
+	return false
+}
+
+func (e ProfilerMode) String() string {
+	return string(e)
+}
+
+func (e *ProfilerMode) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProfilerMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ProfilerMode", str)
+	}
+	return nil
+}
+
+func (e ProfilerMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ProfilerMode) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ProfilerMode) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Lifecycle status of an async-profiler run.
+type ProfilerStatus string
+
+const (
+	ProfilerStatusRunning  ProfilerStatus = "RUNNING"
+	ProfilerStatusFinished ProfilerStatus = "FINISHED"
+	ProfilerStatusFailed   ProfilerStatus = "FAILED"
+)
+
+var AllProfilerStatus = []ProfilerStatus{
+	ProfilerStatusRunning,
+	ProfilerStatusFinished,
+	ProfilerStatusFailed,
+}
+
+func (e ProfilerStatus) IsValid() bool {
+	switch e {
+	case ProfilerStatusRunning, ProfilerStatusFinished, ProfilerStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e ProfilerStatus) String() string {
+	return string(e)
+}
+
+func (e *ProfilerStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProfilerStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ProfilerStatus", str)
+	}
+	return nil
+}
+
+func (e ProfilerStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ProfilerStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ProfilerStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

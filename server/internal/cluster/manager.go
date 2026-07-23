@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +14,22 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/observability"
 	"golang.org/x/sync/errgroup"
 )
+
+// restProfilingEnabledKey is the Flink config key that enables the built-in
+// async profiler REST endpoints (FLIP-375).
+const restProfilingEnabledKey = "rest.profiling.enabled"
+
+// profilingEnabledFromConfig reports whether rest.profiling.enabled is truthy
+// in a /jobmanager/config key/value listing.
+func profilingEnabledFromConfig(cfg flink.JMConfig) bool {
+	for _, e := range cfg {
+		if e.Key == restProfilingEnabledKey {
+			v, _ := strconv.ParseBool(strings.TrimSpace(e.Value))
+			return v
+		}
+	}
+	return false
+}
 
 const defaultHealthCheckInterval = 30 * time.Second
 
@@ -188,6 +206,7 @@ func (m *Manager) List() []Info {
 			v := v // copy for pointer
 			info.Version = &v
 		}
+		info.ProfilingEnabled = conn.ProfilingEnabled()
 		infos = append(infos, info)
 	}
 	return infos
@@ -220,6 +239,11 @@ func (m *Manager) HealthCheck(ctx context.Context) {
 				)
 			} else {
 				conn.setHealthy(overview.FlinkVersion)
+				// Best-effort refresh of the async-profiler gate. A config-fetch
+				// failure leaves the previously cached value untouched.
+				if cfg, cErr := conn.Service.GetJobManagerConfig(ctx); cErr == nil {
+					conn.setProfilingEnabled(profilingEnabledFromConfig(cfg))
+				}
 			}
 			return nil // never fail the errgroup — health checks are best-effort
 		})

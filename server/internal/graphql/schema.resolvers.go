@@ -42,7 +42,7 @@ func (r *queryResolver) Clusters(ctx context.Context) ([]*model.ClusterInfo, err
 		}
 		if info.Version != nil {
 			ci.Version = info.Version
-			ci.Capabilities = cluster.CapabilitiesForVersion(*info.Version)
+			ci.Capabilities = cluster.CapabilitiesForVersionAndConfig(*info.Version, info.ProfilingEnabled)
 		}
 		if ci.Capabilities == nil {
 			ci.Capabilities = []string{}

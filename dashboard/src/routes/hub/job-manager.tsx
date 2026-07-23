@@ -12,6 +12,7 @@ import {
   formatBytes,
   HubBreadcrumb,
   TextViewer,
+  type ThreadDumpInfo,
   ThreadDumpViewer,
 } from "@flink-reactor/ui"
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
@@ -23,8 +24,12 @@ import {
   type JmTab,
   JmTabsHub,
 } from "@/components/hub/job-manager/jm-tabs-hub"
-import { ProfilerPicker } from "@/components/hub/tools/flamegraph/profiler-picker"
-import { fetchJobManagerStdout } from "@/lib/graphql-api-client"
+import { HubProfilerSurface } from "@/components/hub/tools/flamegraph/hub-profiler-surface"
+import { parseThreadInfos } from "@/data/thread-dump-parser"
+import {
+  fetchJobManagerStdout,
+  fetchJobManagerThreadDump,
+} from "@/lib/graphql-api-client"
 import { HubAppShell } from "@/lib/hub/hub-app-shell"
 import { HubLink } from "@/lib/hub/hub-link"
 import { useClusterStore } from "@/stores/cluster-store"
@@ -122,9 +127,9 @@ function Tab({ tab, jobManager }: TabProps) {
     case "stdout":
       return <JmStdoutTab />
     case "threads":
-      return <ThreadDumpViewer dump={jobManager.threadDump} />
+      return <JmThreadsTab />
     case "profiler":
-      return <ProfilerPicker />
+      return <HubProfilerSurface />
   }
 }
 
@@ -196,6 +201,54 @@ function JmStdoutTab() {
     return <p className="text-[12px] text-fg-muted">No stdout output.</p>
   }
   return <TextViewer text={text} maxHeight={500} />
+}
+
+function JmThreadsTab() {
+  const [dump, setDump] = useState<ThreadDumpInfo | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchJobManagerThreadDump()
+      .then((d) => {
+        if (!cancelled) {
+          setDump(d)
+          setError(null)
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Failed to load")
+          setDump({ threadInfos: [] })
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (dump === null) {
+    return <p className="text-[11px] font-mono text-fg-faint">Loading…</p>
+  }
+  if (error) {
+    return <p className="text-[12px] text-fr-rose">{error}</p>
+  }
+
+  const threads = parseThreadInfos(dump.threadInfos)
+  if (threads.length === 0) {
+    return (
+      <p className="text-[12px] text-fg-muted">Thread dump not available.</p>
+    )
+  }
+
+  const handleCopyAll = () => {
+    const raw = dump.threadInfos
+      .map((info) => info.stringifiedThreadInfo)
+      .join("\n\n")
+    navigator.clipboard.writeText(raw)
+  }
+
+  return <ThreadDumpViewer threads={threads} onCopyAll={handleCopyAll} />
 }
 
 function KvCard({ label, value }: { label: string; value: string }) {

@@ -105,7 +105,7 @@ Schema-first approach: 24 `.graphqls` files in `internal/graphql/schema/` define
 - `instruments.graphqls` — Instrument registry query + connection-test mutation
 - `database.graphqls` — Database schema browsing, table detail, query execution, query history
 - `taskmanagers.graphqls` — Task manager overview, detail, logs, thread dump
-- `jobmanager.graphqls` — Job manager config, environment, metrics, HA status
+- `jobmanager.graphqls` — Job manager config, environment, metrics, HA status, thread dump
 - `tap.graphqls` — Tap manifest query
 - `applications.graphqls` — Flink 2.3 application mode (FLIP-549)
 - `alerts.graphqls` — Alert rules, active alerts, history, fired/resolved subscriptions

@@ -42,6 +42,24 @@ Capabilities are surfaced on `ClusterInfo.capabilities`; the dashboard hides gat
 
 `ADAPTIVE_PARTITIONING` (Flink 2.3 adaptive data partitioning for Rebalance/Rescale partitioners) is a **TaskManager network config** (`taskmanager.network.adaptive-partitioner.max-traverse-size`, default 4) with **no per-job/vertex REST surface** — verified against a live 2.3 JobManager. It remains a reserved capability flag, observable only via cluster config, not per-job telemetry.
 
+## Async Profiler (FLIP-375, Flink 1.19+)
+
+Flink's built-in JVM async profiler (async-profiler under the hood). Served by the Go server (`server/internal/flink/service.go`, `types_profiler.go`) over GraphQL, with the flame-graph file proxied through `internal/logs`. Gated on the `ASYNC_PROFILER` capability. **Distinct from the operator flame graph** (`/jobs/:jid/vertices/:vid/flamegraph`, FLIP-165): the async profiler samples the whole JVM (CPU / allocation / lock / wall-clock), not one operator's stacks.
+
+| Endpoint | Method | GraphQL | Capability | Purpose |
+|----------|--------|---------|------------|---------|
+| `/taskmanagers/:id/profiler` | POST | `triggerTaskManagerProfiler` | `ASYNC_PROFILER` | Start a TM profiler run (`{duration, mode}`) |
+| `/jobmanager/profiler` | POST | `triggerJobManagerProfiler` | `ASYNC_PROFILER` | Start a JM profiler run |
+| `/taskmanagers/:id/profiler` | GET | `taskManagerProfilerInstances` | `ASYNC_PROFILER` | List TM profiler instances (`{profilingList:[...]}`) |
+| `/jobmanager/profiler` | GET | `jobManagerProfilerInstances` | `ASYNC_PROFILER` | List JM profiler instances |
+| `/taskmanagers/:id/profiler/:fileName` | GET | (proxied `downloadUrl`) | `ASYNC_PROFILER` | Download TM flame-graph HTML |
+| `/jobmanager/profiler/:fileName` | GET | (proxied `downloadUrl`) | `ASYNC_PROFILER` | Download JM flame-graph HTML |
+
+- **Request body**: `{ "duration": <seconds>, "mode": "ITIMER|CPU|ALLOC|LOCK|WALL" }`.
+- **`ProfilingInfo` fields**: `status` (RUNNING/FINISHED/FAILED), `mode`, `triggerTime`, `finishedTime`, `duration`, `message` (on FAILED), `outputFile` (on FINISHED). The list endpoint wraps them in `{"profilingList": [...]}`.
+- **Download proxy**: the finished HTML is served via `/api/logs/{taskmanagers/:id|jobmanager}/profiler/:fileName` as `text/html`; a `FINISHED` instance exposes a Console-proxied `downloadUrl` the browser opens in a new tab. An upstream 404 is treated as "result not retrievable" (never crashes the poll).
+- **`ASYNC_PROFILER` capability**: true only when the cluster reports Flink ≥ 1.19 **and** `rest.profiling.enabled` (read from `/jobmanager/config`, cached on the connection during health checks). A `POST` that 404s (profiling off) surfaces as `ErrProfilingUnsupported`. Paths and response shapes were modeled against FLIP-375 + Flink source and are **pending verification against a live 1.19+ cluster with profiling enabled**.
+
 ## Two-Phase Fetch Strategy
 
 The job detail proxy route (`src/app/api/flink/jobs/[jobId]/detail/route.ts`) uses two phases:

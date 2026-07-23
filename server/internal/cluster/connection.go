@@ -28,6 +28,10 @@ type Connection struct {
 	status        Status
 	lastCheckTime time.Time
 	version       string
+	// profilingEnabled mirrors the cluster's `rest.profiling.enabled` config,
+	// refreshed on each successful health check. It gates the ASYNC_PROFILER
+	// capability alongside the reported version.
+	profilingEnabled bool
 }
 
 // Status returns the current health status (thread-safe).
@@ -49,6 +53,23 @@ func (c *Connection) Version() string {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.version
+}
+
+// ProfilingEnabled reports whether the cluster has `rest.profiling.enabled` set,
+// as observed on the last successful health check (thread-safe).
+func (c *Connection) ProfilingEnabled() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.profilingEnabled
+}
+
+// setProfilingEnabled caches the async-profiler config gate. It is updated
+// independently of setHealthy so a transient config-fetch failure leaves the
+// last known value intact.
+func (c *Connection) setProfilingEnabled(enabled bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.profilingEnabled = enabled
 }
 
 // setHealthy updates the connection to healthy status with version and timestamp.

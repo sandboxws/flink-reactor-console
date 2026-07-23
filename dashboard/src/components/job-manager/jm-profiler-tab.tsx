@@ -1,19 +1,29 @@
 /**
  * @module jm-profiler-tab
  *
- * Placeholder tab for the Job Manager CPU/memory profiler. Currently
- * renders an empty state; will be wired to a profiling backend in a
- * future iteration.
+ * JobManager JVM async-profiler tab (FLIP-375). Delegates to the shared
+ * AsyncProfilerPanel, wired to the JobManager profiler endpoints and gated on
+ * the cluster's ASYNC_PROFILER capability.
  */
 
-import { Activity } from "lucide-react"
-import { EmptyState } from "@flink-reactor/ui"
+import { AsyncProfilerPanel } from "@/components/shared/async-profiler-panel"
+import {
+  listJobManagerProfilerInstances,
+  triggerJobManagerProfiler,
+} from "@/lib/profiler-data"
+import { useClusterStore } from "@/stores/cluster-store"
 
-/** Profiler tab placeholder showing a "not yet available" empty state. */
+/** Async-profiler tab for the JobManager. */
 export function JmProfilerTab() {
+  const capabilities = useClusterStore((s) => s.overview?.capabilities)
+  const enabled = (capabilities ?? []).includes("ASYNC_PROFILER")
+
   return (
-    <div className="pt-4">
-      <EmptyState icon={Activity} message="Profiler not yet available" />
-    </div>
+    <AsyncProfilerPanel
+      targetLabel="JobManager"
+      enabled={enabled}
+      onTrigger={(mode, duration) => triggerJobManagerProfiler(mode, duration)}
+      onList={() => listJobManagerProfilerInstances()}
+    />
   )
 }

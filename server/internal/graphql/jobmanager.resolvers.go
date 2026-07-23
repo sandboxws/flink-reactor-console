@@ -13,6 +13,20 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 )
 
+// TriggerJobManagerProfiler is the resolver for the triggerJobManagerProfiler field.
+func (r *mutationResolver) TriggerJobManagerProfiler(ctx context.Context, mode model.ProfilerMode, duration int, cluster *string) (*model.ProfilerInstance, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := conn.Service.TriggerJobManagerProfiler(ctx, string(mode), duration)
+	if err != nil {
+		return nil, err
+	}
+	return mapProfilerInstance(*info, jobManagerProfilerDownloadURL(conn.Name)), nil
+}
+
 // JobManager is the resolver for the jobManager field.
 func (r *queryResolver) JobManager(ctx context.Context, cluster *string) (*model.JobManagerDetail, error) {
 	conn, err := r.resolveCluster(cluster)
@@ -76,4 +90,51 @@ func (r *queryResolver) JobManagerStderr(ctx context.Context, cluster *string) (
 		return "", nil
 	}
 	return out, err
+}
+
+// JobManagerThreadDump is the resolver for the jobManagerThreadDump field.
+func (r *queryResolver) JobManagerThreadDump(ctx context.Context, cluster *string) ([]*model.ThreadDumpEntry, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	// Same payload as the TaskManager thread dump, so reuse flink.TMThreadDump.
+	var dump flink.TMThreadDump
+	if err := conn.Service.Client().GetJSON(ctx, "/jobmanager/thread-dump", &dump); err != nil {
+		if flink.IsNotFound(err) {
+			slog.Default().Info("flink jobmanager thread-dump endpoint not available", slog.String("cluster", conn.Name))
+			return []*model.ThreadDumpEntry{}, nil
+		}
+		return nil, err
+	}
+
+	result := make([]*model.ThreadDumpEntry, len(dump.ThreadInfos))
+	for i, t := range dump.ThreadInfos {
+		result[i] = &model.ThreadDumpEntry{
+			ThreadName:            t.ThreadName,
+			StringifiedThreadInfo: t.StringifiedThreadInfo,
+		}
+	}
+	return result, nil
+}
+
+// JobManagerProfilerInstances is the resolver for the jobManagerProfilerInstances field.
+func (r *queryResolver) JobManagerProfilerInstances(ctx context.Context, cluster *string) ([]*model.ProfilerInstance, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	infos, err := conn.Service.ListJobManagerProfilerInstances(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	dl := jobManagerProfilerDownloadURL(conn.Name)
+	out := make([]*model.ProfilerInstance, len(infos))
+	for i, info := range infos {
+		out[i] = mapProfilerInstance(info, dl)
+	}
+	return out, nil
 }

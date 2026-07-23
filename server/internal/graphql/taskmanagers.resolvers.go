@@ -13,6 +13,20 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/graphql/model"
 )
 
+// TriggerTaskManagerProfiler is the resolver for the triggerTaskManagerProfiler field.
+func (r *mutationResolver) TriggerTaskManagerProfiler(ctx context.Context, id string, mode model.ProfilerMode, duration int, cluster *string) (*model.ProfilerInstance, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := conn.Service.TriggerTaskManagerProfiler(ctx, id, string(mode), duration)
+	if err != nil {
+		return nil, err
+	}
+	return mapProfilerInstance(*info, taskManagerProfilerDownloadURL(conn.Name, id)), nil
+}
+
 // TaskManagers is the resolver for the taskManagers field.
 func (r *queryResolver) TaskManagers(ctx context.Context, cluster *string) ([]*model.TaskManagerOverview, error) {
 	conn, err := r.resolveCluster(cluster)
@@ -150,4 +164,24 @@ func (r *queryResolver) TaskManagerStderr(ctx context.Context, id string, cluste
 		return "", nil
 	}
 	return out, err
+}
+
+// TaskManagerProfilerInstances is the resolver for the taskManagerProfilerInstances field.
+func (r *queryResolver) TaskManagerProfilerInstances(ctx context.Context, id string, cluster *string) ([]*model.ProfilerInstance, error) {
+	conn, err := r.resolveCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	infos, err := conn.Service.ListTaskManagerProfilerInstances(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	dl := taskManagerProfilerDownloadURL(conn.Name, id)
+	out := make([]*model.ProfilerInstance, len(infos))
+	for i, info := range infos {
+		out[i] = mapProfilerInstance(info, dl)
+	}
+	return out, nil
 }

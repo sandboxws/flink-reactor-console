@@ -790,6 +790,28 @@ func MockJMMetrics() []MetricItem {
 	}
 }
 
+// MockThreadDump returns a realistic Flink thread-dump response. The JobManager
+// and TaskManager thread-dump endpoints share an identical payload shape, so
+// both mock routes serve this fixture.
+func MockThreadDump() TMThreadDump {
+	return TMThreadDump{
+		ThreadInfos: []TMThreadDumpEntry{
+			{
+				ThreadName: "main",
+				StringifiedThreadInfo: "\"main\" #1 prio=5 os_prio=0 nid=0x1 waiting on condition\n" +
+					"   java.lang.Thread.State: WAITING (parking)\n" +
+					"\tat jdk.internal.misc.Unsafe.park(Native Method)",
+			},
+			{
+				ThreadName: "flink-pekko.actor.default-dispatcher-3",
+				StringifiedThreadInfo: "\"flink-pekko.actor.default-dispatcher-3\" #42 daemon prio=5 os_prio=0 nid=0x2a runnable\n" +
+					"   java.lang.Thread.State: RUNNABLE\n" +
+					"\tat sun.nio.ch.EPoll.wait(Native Method)",
+			},
+		},
+	}
+}
+
 // MockClusterConfig returns a realistic Flink cluster config response.
 func MockClusterConfig() ClusterConfig {
 	return ClusterConfig{

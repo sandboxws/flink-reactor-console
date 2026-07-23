@@ -286,6 +286,24 @@ const TASK_MANAGER_STDOUT_QUERY = gql`
   }
 `
 
+const TASK_MANAGER_THREAD_DUMP_QUERY = gql`
+  query TaskManagerThreadDump($id: ID!, $cluster: String) {
+    taskManagerThreadDump(id: $id, cluster: $cluster) {
+      threadName
+      stringifiedThreadInfo
+    }
+  }
+`
+
+const JOB_MANAGER_THREAD_DUMP_QUERY = gql`
+  query JobManagerThreadDump($cluster: String) {
+    jobManagerThreadDump(cluster: $cluster) {
+      threadName
+      stringifiedThreadInfo
+    }
+  }
+`
+
 const FLINK_CONFIG_QUERY = gql`
   query FlinkConfig($cluster: String) {
     flinkConfig(cluster: $cluster) {
@@ -1802,19 +1820,17 @@ export async function fetchTaskManagerStdout(tmId: string): Promise<string> {
   return data.taskManagerStdout
 }
 
-/** Fetch TM thread dump. */
+/** Fetch TM thread dump via the dedicated GraphQL query. */
 export async function fetchTaskManagerThreadDump(tmId: string): Promise<{
   threadInfos: Array<{ threadName: string; stringifiedThreadInfo: string }>
 }> {
-  const baseUrl = (import.meta.env.VITE_GRAPHQL_URL ?? "").replace(
-    "/graphql",
-    "",
-  )
-  const resp = await fetch(
-    `${baseUrl}/api/flink/taskmanagers/${tmId}/thread-dump`,
-  )
-  if (!resp.ok) return { threadInfos: [] }
-  return resp.json()
+  const data = await query<{
+    taskManagerThreadDump: Array<{
+      threadName: string
+      stringifiedThreadInfo: string
+    }>
+  }>(TASK_MANAGER_THREAD_DUMP_QUERY, { id: tmId }, "network-only")
+  return { threadInfos: data.taskManagerThreadDump ?? [] }
 }
 
 /** Fetch JM log file list. */
@@ -1858,17 +1874,17 @@ export async function fetchJobManagerStdout(): Promise<string> {
   return data.jobManagerStdout
 }
 
-/** Fetch JM thread dump. */
+/** Fetch JM thread dump via the dedicated GraphQL query. */
 export async function fetchJobManagerThreadDump(): Promise<{
   threadInfos: Array<{ threadName: string; stringifiedThreadInfo: string }>
 }> {
-  const baseUrl = (import.meta.env.VITE_GRAPHQL_URL ?? "").replace(
-    "/graphql",
-    "",
-  )
-  const resp = await fetch(`${baseUrl}/api/flink/jobmanager/thread-dump`)
-  if (!resp.ok) return { threadInfos: [] }
-  return resp.json()
+  const data = await query<{
+    jobManagerThreadDump: Array<{
+      threadName: string
+      stringifiedThreadInfo: string
+    }>
+  }>(JOB_MANAGER_THREAD_DUMP_QUERY, {}, "network-only")
+  return { threadInfos: data.jobManagerThreadDump ?? [] }
 }
 
 const CHECKPOINT_DETAIL_QUERY = gql`

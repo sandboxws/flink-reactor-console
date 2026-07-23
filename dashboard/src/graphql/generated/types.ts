@@ -1412,8 +1412,18 @@ export type Mutation = {
    * outcome. The `config` is the same free-form object used in YAML config.
    */
   testInstrumentConnection: InstrumentTestResult;
+  /**
+   * Start an async-profiler run on the job manager (FLIP-375). Requires the
+   * ASYNC_PROFILER capability (Flink >= 1.19 with rest.profiling.enabled).
+   */
+  triggerJobManagerProfiler: ProfilerInstance;
   /** Trigger a savepoint for a running job */
   triggerSavepoint: SavepointTriggerResult;
+  /**
+   * Start an async-profiler run on a task manager (FLIP-375). Requires the
+   * ASYNC_PROFILER capability (Flink >= 1.19 with rest.profiling.enabled).
+   */
+  triggerTaskManagerProfiler: ProfilerInstance;
   updateAlertRule: AlertRule;
 };
 
@@ -1590,10 +1600,25 @@ export type MutationTestInstrumentConnectionArgs = {
 };
 
 
+export type MutationTriggerJobManagerProfilerArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  duration: Scalars['Int']['input'];
+  mode: ProfilerMode;
+};
+
+
 export type MutationTriggerSavepointArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
   jobId: Scalars['ID']['input'];
   targetDirectory: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationTriggerTaskManagerProfilerArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  duration: Scalars['Int']['input'];
+  id: Scalars['ID']['input'];
+  mode: ProfilerMode;
 };
 
 
@@ -1704,6 +1729,43 @@ export type PreflightCheck = {
   status: Scalars['String']['output'];
 };
 
+/**
+ * A single async-profiler run on a TaskManager or the JobManager (FLIP-375,
+ * Flink 1.19+). This is Flink's built-in JVM profiler and is deliberately
+ * distinct from the operator flame graph: it profiles the whole JVM — CPU,
+ * allocation pressure, lock contention, or wall-clock — rather than one
+ * operator's on/off-CPU stacks.
+ */
+export type ProfilerInstance = {
+  __typename?: 'ProfilerInstance';
+  /** Console-proxied URL to open the flame graph; set when status is FINISHED. */
+  downloadUrl: Maybe<Scalars['String']['output']>;
+  /** Requested profiling window, in seconds. */
+  duration: Scalars['Int']['output'];
+  /** Stable id for the run — the output file name, assigned at trigger time. */
+  id: Scalars['ID']['output'];
+  /** Failure reason; set when status is FAILED. */
+  message: Maybe<Scalars['String']['output']>;
+  mode: ProfilerMode;
+  /** Flame-graph output file name; set when status is FINISHED. */
+  outputFile: Maybe<Scalars['String']['output']>;
+  status: ProfilerStatus;
+};
+
+/** Async-profiler event mode (FLIP-375). Mirrors Flink's ProfilingMode. */
+export type ProfilerMode =
+  | 'ALLOC'
+  | 'CPU'
+  | 'ITIMER'
+  | 'LOCK'
+  | 'WALL';
+
+/** Lifecycle status of an async-profiler run. */
+export type ProfilerStatus =
+  | 'FAILED'
+  | 'FINISHED'
+  | 'RUNNING';
+
 export type Query = {
   __typename?: 'Query';
   /** All currently FIRING or ACKNOWLEDGED instances. */
@@ -1778,10 +1840,18 @@ export type Query = {
   jobHistory: JobHistoryConnection;
   /** Get job manager config, environment, and metrics */
   jobManager: JobManagerDetail;
+  /**
+   * List async-profiler runs for the job manager (FLIP-375). Empty when
+   * profiling is unsupported or disabled on the cluster.
+   * `ProfilerInstance` is defined in taskmanagers.graphqls.
+   */
+  jobManagerProfilerInstances: Array<ProfilerInstance>;
   /** Get job manager process stderr (tail-truncated to last 1 MB) */
   jobManagerStderr: Scalars['String']['output'];
   /** Get job manager process stdout (tail-truncated to last 1 MB) */
   jobManagerStdout: Scalars['String']['output'];
+  /** Get job manager thread dump (live snapshot; empty when unavailable) */
+  jobManagerThreadDump: Array<ThreadDumpEntry>;
   /** List all jobs in a cluster */
   jobs: Array<JobOverview>;
   /** Get detailed information about a specific consumer group. */
@@ -1869,6 +1939,11 @@ export type Query = {
   taskManager: TaskManagerDetail;
   /** Get task manager logs list */
   taskManagerLogs: Array<TmLogEntry>;
+  /**
+   * List async-profiler runs for a task manager (FLIP-375). Empty when
+   * profiling is unsupported or disabled on the cluster.
+   */
+  taskManagerProfilerInstances: Array<ProfilerInstance>;
   /** Get task manager process stderr (tail-truncated to last 1 MB) */
   taskManagerStderr: Scalars['String']['output'];
   /** Get task manager process stdout (tail-truncated to last 1 MB) */
@@ -2078,12 +2153,22 @@ export type QueryJobManagerArgs = {
 };
 
 
+export type QueryJobManagerProfilerInstancesArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryJobManagerStderrArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type QueryJobManagerStdoutArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryJobManagerThreadDumpArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -2282,6 +2367,12 @@ export type QueryTaskManagerArgs = {
 
 
 export type QueryTaskManagerLogsArgs = {
+  cluster: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryTaskManagerProfilerInstancesArgs = {
   cluster: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
 };

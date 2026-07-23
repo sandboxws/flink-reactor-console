@@ -40,7 +40,7 @@ import {
 import { useCallback, useEffect, useState } from "react"
 import { TmLogListTabHub } from "@/components/hub/task-managers/tm-log-list-tab-hub"
 import { TmOverviewTabHub } from "@/components/hub/task-managers/tm-overview-tab-hub"
-import { ProfilerPicker } from "@/components/hub/tools/flamegraph/profiler-picker"
+import { HubProfilerSurface } from "@/components/hub/tools/flamegraph/hub-profiler-surface"
 import { TmLogsTab } from "@/components/task-managers/tm-logs-tab"
 import { TmMetricsTab } from "@/components/task-managers/tm-metrics-tab"
 import { TmStdoutTab } from "@/components/task-managers/tm-stdout-tab"
@@ -333,7 +333,8 @@ function HubTmContent({
 
         <TabsContent value="profiler" className="mt-6 outline-none">
           <div className="glass-card-static p-5">
-            <ProfilerPicker
+            <HubProfilerSurface
+              taskManagerId={tm.id}
               vertexFilter={(vid) => {
                 const ids = new Set(
                   tm.allocatedSlots

@@ -45,4 +45,22 @@ extend type Query {
 
   """Get job manager process stderr (tail-truncated to last 1 MB)"""
   jobManagerStderr(cluster: String): String!
+
+  """Get job manager thread dump (live snapshot; empty when unavailable)"""
+  jobManagerThreadDump(cluster: String): [ThreadDumpEntry!]!
+
+  """List async-profiler runs for the job manager (FLIP-375). Empty when
+  profiling is unsupported or disabled on the cluster.
+  `ProfilerInstance` is defined in taskmanagers.graphqls."""
+  jobManagerProfilerInstances(cluster: String): [ProfilerInstance!]!
+}
+
+extend type Mutation {
+  """Start an async-profiler run on the job manager (FLIP-375). Requires the
+  ASYNC_PROFILER capability (Flink >= 1.19 with rest.profiling.enabled)."""
+  triggerJobManagerProfiler(
+    mode: ProfilerMode!
+    duration: Int!
+    cluster: String
+  ): ProfilerInstance!
 }
