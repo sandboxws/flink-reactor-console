@@ -897,6 +897,7 @@ type ComplexityRoot struct {
 		ExecuteDatabaseQuery         func(childComplexity int, instrument string, sql string) int
 		ExplainStatement             func(childComplexity int, sessionHandle string, statement string, cluster *string) int
 		FetchSQLResults              func(childComplexity int, sessionHandle string, operationHandle string, token *string, cluster *string) int
+		InstantiateTemplate          func(childComplexity int, name string, params map[string]any) int
 		RefreshMaterializedTable     func(childComplexity int, name string, catalog string, cluster *string) int
 		RescaleJob                   func(childComplexity int, jobID string, newParallelism int, cluster *string) int
 		ResolveAlert                 func(childComplexity int, id string) int
@@ -1063,6 +1064,8 @@ type ComplexityRoot struct {
 		TaskManagerStdout             func(childComplexity int, id string, cluster *string) int
 		TaskManagerThreadDump         func(childComplexity int, id string, cluster *string) int
 		TaskManagers                  func(childComplexity int, cluster *string) int
+		Template                      func(childComplexity int, name string) int
+		Templates                     func(childComplexity int, category *model.TemplateCategory) int
 		VertexDetail                  func(childComplexity int, jobID string, vertexID string, cluster *string) int
 	}
 
@@ -1434,6 +1437,38 @@ type ComplexityRoot struct {
 		TaskOffHeapMemory func(childComplexity int) int
 	}
 
+	Template struct {
+		Category         func(childComplexity int) int
+		Description      func(childComplexity int) int
+		Name             func(childComplexity int) int
+		Params           func(childComplexity int) int
+		Pipelines        func(childComplexity int) int
+		RequiredServices func(childComplexity int) int
+	}
+
+	TemplateFile struct {
+		Content func(childComplexity int) int
+		Path    func(childComplexity int) int
+	}
+
+	TemplateInstantiation struct {
+		Files       func(childComplexity int) int
+		PipelineTsx func(childComplexity int) int
+	}
+
+	TemplateParam struct {
+		Default     func(childComplexity int) int
+		Description func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Options     func(childComplexity int) int
+		Required    func(childComplexity int) int
+		Type        func(childComplexity int) int
+	}
+
+	TemplatePipeline struct {
+		Name func(childComplexity int) int
+	}
+
 	ThreadDumpEntry struct {
 		StringifiedThreadInfo func(childComplexity int) int
 		ThreadName            func(childComplexity int) int
@@ -1524,6 +1559,7 @@ type MutationResolver interface {
 	CloseSQLSession(ctx context.Context, sessionHandle string, cluster *string) (*model.SQLCloseResult, error)
 	ExplainStatement(ctx context.Context, sessionHandle string, statement string, cluster *string) (*model.SQLExplainResult, error)
 	TriggerTaskManagerProfiler(ctx context.Context, id string, mode model.ProfilerMode, duration int, cluster *string) (*model.ProfilerInstance, error)
+	InstantiateTemplate(ctx context.Context, name string, params map[string]any) (*model.TemplateInstantiation, error)
 }
 type QueryResolver interface {
 	Health(ctx context.Context) (bool, error)
@@ -1611,6 +1647,8 @@ type QueryResolver interface {
 	TaskManagerStdout(ctx context.Context, id string, cluster *string) (string, error)
 	TaskManagerStderr(ctx context.Context, id string, cluster *string) (string, error)
 	TaskManagerProfilerInstances(ctx context.Context, id string, cluster *string) ([]*model.ProfilerInstance, error)
+	Templates(ctx context.Context, category *model.TemplateCategory) ([]*model.Template, error)
+	Template(ctx context.Context, name string) (*model.Template, error)
 }
 type SubscriptionResolver interface {
 	AlertFired(ctx context.Context) (<-chan *model.AlertInstance, error)
@@ -5075,6 +5113,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.FetchSQLResults(childComplexity, args["sessionHandle"].(string), args["operationHandle"].(string), args["token"].(*string), args["cluster"].(*string)), true
+	case "Mutation.instantiateTemplate":
+		if e.ComplexityRoot.Mutation.InstantiateTemplate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_instantiateTemplate_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.InstantiateTemplate(childComplexity, args["name"].(string), args["params"].(map[string]any)), true
 	case "Mutation.refreshMaterializedTable":
 		if e.ComplexityRoot.Mutation.RefreshMaterializedTable == nil {
 			break
@@ -6408,6 +6457,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.TaskManagers(childComplexity, args["cluster"].(*string)), true
+	case "Query.template":
+		if e.ComplexityRoot.Query.Template == nil {
+			break
+		}
+
+		args, err := ec.field_Query_template_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.Template(childComplexity, args["name"].(string)), true
+	case "Query.templates":
+		if e.ComplexityRoot.Query.Templates == nil {
+			break
+		}
+
+		args, err := ec.field_Query_templates_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.Templates(childComplexity, args["category"].(*model.TemplateCategory)), true
 	case "Query.vertexDetail":
 		if e.ComplexityRoot.Query.VertexDetail == nil {
 			break
@@ -7899,6 +7970,113 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.TaskManagerResourceProfile.TaskOffHeapMemory(childComplexity), true
+
+	case "Template.category":
+		if e.ComplexityRoot.Template.Category == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Template.Category(childComplexity), true
+	case "Template.description":
+		if e.ComplexityRoot.Template.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Template.Description(childComplexity), true
+	case "Template.name":
+		if e.ComplexityRoot.Template.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Template.Name(childComplexity), true
+	case "Template.params":
+		if e.ComplexityRoot.Template.Params == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Template.Params(childComplexity), true
+	case "Template.pipelines":
+		if e.ComplexityRoot.Template.Pipelines == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Template.Pipelines(childComplexity), true
+	case "Template.requiredServices":
+		if e.ComplexityRoot.Template.RequiredServices == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Template.RequiredServices(childComplexity), true
+
+	case "TemplateFile.content":
+		if e.ComplexityRoot.TemplateFile.Content == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateFile.Content(childComplexity), true
+	case "TemplateFile.path":
+		if e.ComplexityRoot.TemplateFile.Path == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateFile.Path(childComplexity), true
+
+	case "TemplateInstantiation.files":
+		if e.ComplexityRoot.TemplateInstantiation.Files == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateInstantiation.Files(childComplexity), true
+	case "TemplateInstantiation.pipelineTsx":
+		if e.ComplexityRoot.TemplateInstantiation.PipelineTsx == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateInstantiation.PipelineTsx(childComplexity), true
+
+	case "TemplateParam.default":
+		if e.ComplexityRoot.TemplateParam.Default == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateParam.Default(childComplexity), true
+	case "TemplateParam.description":
+		if e.ComplexityRoot.TemplateParam.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateParam.Description(childComplexity), true
+	case "TemplateParam.name":
+		if e.ComplexityRoot.TemplateParam.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateParam.Name(childComplexity), true
+	case "TemplateParam.options":
+		if e.ComplexityRoot.TemplateParam.Options == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateParam.Options(childComplexity), true
+	case "TemplateParam.required":
+		if e.ComplexityRoot.TemplateParam.Required == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateParam.Required(childComplexity), true
+	case "TemplateParam.type":
+		if e.ComplexityRoot.TemplateParam.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplateParam.Type(childComplexity), true
+
+	case "TemplatePipeline.name":
+		if e.ComplexityRoot.TemplatePipeline.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TemplatePipeline.Name(childComplexity), true
 
 	case "ThreadDumpEntry.stringifiedThreadInfo":
 		if e.ComplexityRoot.ThreadDumpEntry.StringifiedThreadInfo == nil {
@@ -10813,6 +10991,77 @@ extend type Mutation {
   ): ProfilerInstance!
 }
 `, BuiltIn: false},
+	{Name: "../schema/templates.graphqls", Input: `# Project templates projected from the DSL scaffolder registry.
+# Served from the embedded templates.generated.json (flows-01/flows-02) — the
+# server never runs the DSL/Node toolchain.
+
+"""A project template projected from the DSL scaffolder registry."""
+type Template {
+  """Unique template name, e.g. "lakehouse-analytics"."""
+  name: ID!
+  """Gallery grouping."""
+  category: TemplateCategory!
+  """One-line human description."""
+  description: String!
+  """The pipelines this template ships."""
+  pipelines: [TemplatePipeline!]!
+  """Infra services the template depends on (kafka, postgres, iceberg, …)."""
+  requiredServices: [String!]!
+  """Scaffold-form inputs (v0.1 surfaces the shared scaffold options)."""
+  params: [TemplateParam!]!
+}
+
+"""Gallery grouping for a template."""
+enum TemplateCategory {
+  LAKEHOUSE
+  CDC
+  ANALYTICS
+  SHOWCASE
+  STARTER
+}
+
+"""A pipeline shipped by a template."""
+type TemplatePipeline {
+  name: String!
+}
+
+"""A scaffold-form input for a template."""
+type TemplateParam {
+  name: String!
+  type: String!
+  required: Boolean!
+  default: String
+  options: [String!]
+  description: String
+}
+
+"""One materialised file from instantiating a template."""
+type TemplateFile {
+  path: String!
+  content: String!
+}
+
+"""The result of instantiating a template into source (no deploy)."""
+type TemplateInstantiation {
+  files: [TemplateFile!]!
+  pipelineTsx: String!
+}
+
+extend type Query {
+  """List project templates, optionally filtered by category."""
+  templates(category: TemplateCategory): [Template!]!
+  """Fetch a single template by name."""
+  template(name: ID!): Template
+}
+
+extend type Mutation {
+  """
+  Materialise a template into source files + top-level pipeline TSX for the
+  Workspace. Does NOT deploy or touch any cluster, SQL Gateway, or operator.
+  """
+  instantiateTemplate(name: ID!, params: JSON): TemplateInstantiation!
+}
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -11045,6 +11294,22 @@ func (ec *executionContext) field_Mutation_fetchSQLResults_args(ctx context.Cont
 		return nil, err
 	}
 	args["cluster"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_instantiateTemplate_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "params", ec.unmarshalOJSON2map)
+	if err != nil {
+		return nil, err
+	}
+	args["params"] = arg1
 	return args, nil
 }
 
@@ -12592,6 +12857,28 @@ func (ec *executionContext) field_Query_taskManagers_args(ctx context.Context, r
 		return nil, err
 	}
 	args["cluster"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_template_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_templates_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "category", ec.unmarshalOTemplateCategory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateCategory)
+	if err != nil {
+		return nil, err
+	}
+	args["category"] = arg0
 	return args, nil
 }
 
@@ -30827,6 +31114,53 @@ func (ec *executionContext) fieldContext_Mutation_triggerTaskManagerProfiler(ctx
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_instantiateTemplate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_instantiateTemplate,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().InstantiateTemplate(ctx, fc.Args["name"].(string), fc.Args["params"].(map[string]any))
+		},
+		nil,
+		ec.marshalNTemplateInstantiation2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateInstantiation,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_instantiateTemplate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "files":
+				return ec.fieldContext_TemplateInstantiation_files(ctx, field)
+			case "pipelineTsx":
+				return ec.fieldContext_TemplateInstantiation_pipelineTsx(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TemplateInstantiation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_instantiateTemplate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PipelineManifestVersion_id(ctx context.Context, field graphql.CollectedField, obj *model.PipelineManifestVersion) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -36582,6 +36916,116 @@ func (ec *executionContext) fieldContext_Query_taskManagerProfilerInstances(ctx 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_taskManagerProfilerInstances_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_templates(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_templates,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().Templates(ctx, fc.Args["category"].(*model.TemplateCategory))
+		},
+		nil,
+		ec.marshalNTemplate2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_templates(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Template_name(ctx, field)
+			case "category":
+				return ec.fieldContext_Template_category(ctx, field)
+			case "description":
+				return ec.fieldContext_Template_description(ctx, field)
+			case "pipelines":
+				return ec.fieldContext_Template_pipelines(ctx, field)
+			case "requiredServices":
+				return ec.fieldContext_Template_requiredServices(ctx, field)
+			case "params":
+				return ec.fieldContext_Template_params(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Template", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_templates_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_template(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_template,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().Template(ctx, fc.Args["name"].(string))
+		},
+		nil,
+		ec.marshalOTemplate2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplate,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_template(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Template_name(ctx, field)
+			case "category":
+				return ec.fieldContext_Template_category(ctx, field)
+			case "description":
+				return ec.fieldContext_Template_description(ctx, field)
+			case "pipelines":
+				return ec.fieldContext_Template_pipelines(ctx, field)
+			case "requiredServices":
+				return ec.fieldContext_Template_requiredServices(ctx, field)
+			case "params":
+				return ec.fieldContext_Template_params(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Template", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_template_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -43896,6 +44340,523 @@ func (ec *executionContext) _TaskManagerResourceProfile_networkMemory(ctx contex
 func (ec *executionContext) fieldContext_TaskManagerResourceProfile_networkMemory(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "TaskManagerResourceProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Template_name(ctx context.Context, field graphql.CollectedField, obj *model.Template) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Template_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Template_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Template",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Template_category(ctx context.Context, field graphql.CollectedField, obj *model.Template) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Template_category,
+		func(ctx context.Context) (any, error) {
+			return obj.Category, nil
+		},
+		nil,
+		ec.marshalNTemplateCategory2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateCategory,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Template_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Template",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type TemplateCategory does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Template_description(ctx context.Context, field graphql.CollectedField, obj *model.Template) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Template_description,
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Template_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Template",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Template_pipelines(ctx context.Context, field graphql.CollectedField, obj *model.Template) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Template_pipelines,
+		func(ctx context.Context) (any, error) {
+			return obj.Pipelines, nil
+		},
+		nil,
+		ec.marshalNTemplatePipeline2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplatePipelineᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Template_pipelines(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Template",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_TemplatePipeline_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TemplatePipeline", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Template_requiredServices(ctx context.Context, field graphql.CollectedField, obj *model.Template) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Template_requiredServices,
+		func(ctx context.Context) (any, error) {
+			return obj.RequiredServices, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Template_requiredServices(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Template",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Template_params(ctx context.Context, field graphql.CollectedField, obj *model.Template) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Template_params,
+		func(ctx context.Context) (any, error) {
+			return obj.Params, nil
+		},
+		nil,
+		ec.marshalNTemplateParam2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateParamᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Template_params(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Template",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_TemplateParam_name(ctx, field)
+			case "type":
+				return ec.fieldContext_TemplateParam_type(ctx, field)
+			case "required":
+				return ec.fieldContext_TemplateParam_required(ctx, field)
+			case "default":
+				return ec.fieldContext_TemplateParam_default(ctx, field)
+			case "options":
+				return ec.fieldContext_TemplateParam_options(ctx, field)
+			case "description":
+				return ec.fieldContext_TemplateParam_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TemplateParam", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateFile_path(ctx context.Context, field graphql.CollectedField, obj *model.TemplateFile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateFile_path,
+		func(ctx context.Context) (any, error) {
+			return obj.Path, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateFile_path(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateFile_content(ctx context.Context, field graphql.CollectedField, obj *model.TemplateFile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateFile_content,
+		func(ctx context.Context) (any, error) {
+			return obj.Content, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateFile_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateInstantiation_files(ctx context.Context, field graphql.CollectedField, obj *model.TemplateInstantiation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateInstantiation_files,
+		func(ctx context.Context) (any, error) {
+			return obj.Files, nil
+		},
+		nil,
+		ec.marshalNTemplateFile2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateFileᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateInstantiation_files(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateInstantiation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "path":
+				return ec.fieldContext_TemplateFile_path(ctx, field)
+			case "content":
+				return ec.fieldContext_TemplateFile_content(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TemplateFile", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateInstantiation_pipelineTsx(ctx context.Context, field graphql.CollectedField, obj *model.TemplateInstantiation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateInstantiation_pipelineTsx,
+		func(ctx context.Context) (any, error) {
+			return obj.PipelineTsx, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateInstantiation_pipelineTsx(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateInstantiation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateParam_name(ctx context.Context, field graphql.CollectedField, obj *model.TemplateParam) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateParam_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateParam_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateParam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateParam_type(ctx context.Context, field graphql.CollectedField, obj *model.TemplateParam) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateParam_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateParam_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateParam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateParam_required(ctx context.Context, field graphql.CollectedField, obj *model.TemplateParam) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateParam_required,
+		func(ctx context.Context) (any, error) {
+			return obj.Required, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateParam_required(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateParam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateParam_default(ctx context.Context, field graphql.CollectedField, obj *model.TemplateParam) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateParam_default,
+		func(ctx context.Context) (any, error) {
+			return obj.Default, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateParam_default(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateParam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateParam_options(ctx context.Context, field graphql.CollectedField, obj *model.TemplateParam) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateParam_options,
+		func(ctx context.Context) (any, error) {
+			return obj.Options, nil
+		},
+		nil,
+		ec.marshalOString2ᚕstringᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateParam_options(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateParam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplateParam_description(ctx context.Context, field graphql.CollectedField, obj *model.TemplateParam) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplateParam_description,
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplateParam_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplateParam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TemplatePipeline_name(ctx context.Context, field graphql.CollectedField, obj *model.TemplatePipeline) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TemplatePipeline_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TemplatePipeline_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TemplatePipeline",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -53178,6 +54139,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "instantiateTemplate":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_instantiateTemplate(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55454,6 +56422,47 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "templates":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_templates(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "template":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_template(ctx, field)
 				return res
 			}
 
@@ -57996,6 +59005,252 @@ func (ec *executionContext) _TaskManagerResourceProfile(ctx context.Context, sel
 			}
 		case "networkMemory":
 			out.Values[i] = ec._TaskManagerResourceProfile_networkMemory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var templateImplementors = []string{"Template"}
+
+func (ec *executionContext) _Template(ctx context.Context, sel ast.SelectionSet, obj *model.Template) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, templateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Template")
+		case "name":
+			out.Values[i] = ec._Template_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "category":
+			out.Values[i] = ec._Template_category(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Template_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pipelines":
+			out.Values[i] = ec._Template_pipelines(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "requiredServices":
+			out.Values[i] = ec._Template_requiredServices(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "params":
+			out.Values[i] = ec._Template_params(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var templateFileImplementors = []string{"TemplateFile"}
+
+func (ec *executionContext) _TemplateFile(ctx context.Context, sel ast.SelectionSet, obj *model.TemplateFile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, templateFileImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TemplateFile")
+		case "path":
+			out.Values[i] = ec._TemplateFile_path(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "content":
+			out.Values[i] = ec._TemplateFile_content(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var templateInstantiationImplementors = []string{"TemplateInstantiation"}
+
+func (ec *executionContext) _TemplateInstantiation(ctx context.Context, sel ast.SelectionSet, obj *model.TemplateInstantiation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, templateInstantiationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TemplateInstantiation")
+		case "files":
+			out.Values[i] = ec._TemplateInstantiation_files(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pipelineTsx":
+			out.Values[i] = ec._TemplateInstantiation_pipelineTsx(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var templateParamImplementors = []string{"TemplateParam"}
+
+func (ec *executionContext) _TemplateParam(ctx context.Context, sel ast.SelectionSet, obj *model.TemplateParam) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, templateParamImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TemplateParam")
+		case "name":
+			out.Values[i] = ec._TemplateParam_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._TemplateParam_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "required":
+			out.Values[i] = ec._TemplateParam_required(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "default":
+			out.Values[i] = ec._TemplateParam_default(ctx, field, obj)
+		case "options":
+			out.Values[i] = ec._TemplateParam_options(ctx, field, obj)
+		case "description":
+			out.Values[i] = ec._TemplateParam_description(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var templatePipelineImplementors = []string{"TemplatePipeline"}
+
+func (ec *executionContext) _TemplatePipeline(ctx context.Context, sel ast.SelectionSet, obj *model.TemplatePipeline) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, templatePipelineImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TemplatePipeline")
+		case "name":
+			out.Values[i] = ec._TemplatePipeline_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -62041,6 +63296,134 @@ func (ec *executionContext) marshalNTaskManagerResourceProfile2ᚖgithubᚗcom�
 	return ec._TaskManagerResourceProfile(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNTemplate2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Template) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNTemplate2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplate(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTemplate2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplate(ctx context.Context, sel ast.SelectionSet, v *model.Template) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Template(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTemplateCategory2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateCategory(ctx context.Context, v any) (model.TemplateCategory, error) {
+	var res model.TemplateCategory
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTemplateCategory2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateCategory(ctx context.Context, sel ast.SelectionSet, v model.TemplateCategory) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNTemplateFile2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TemplateFile) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNTemplateFile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateFile(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTemplateFile2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateFile(ctx context.Context, sel ast.SelectionSet, v *model.TemplateFile) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TemplateFile(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTemplateInstantiation2githubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateInstantiation(ctx context.Context, sel ast.SelectionSet, v model.TemplateInstantiation) graphql.Marshaler {
+	return ec._TemplateInstantiation(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTemplateInstantiation2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateInstantiation(ctx context.Context, sel ast.SelectionSet, v *model.TemplateInstantiation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TemplateInstantiation(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTemplateParam2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateParamᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TemplateParam) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNTemplateParam2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateParam(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTemplateParam2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateParam(ctx context.Context, sel ast.SelectionSet, v *model.TemplateParam) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TemplateParam(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTemplatePipeline2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplatePipelineᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TemplatePipeline) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNTemplatePipeline2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplatePipeline(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTemplatePipeline2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplatePipeline(ctx context.Context, sel ast.SelectionSet, v *model.TemplatePipeline) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TemplatePipeline(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNThreadDumpEntry2ᚕᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐThreadDumpEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ThreadDumpEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -62937,6 +64320,29 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTemplate2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplate(ctx context.Context, sel ast.SelectionSet, v *model.Template) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Template(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTemplateCategory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateCategory(ctx context.Context, v any) (*model.TemplateCategory, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.TemplateCategory)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTemplateCategory2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTemplateCategory(ctx context.Context, sel ast.SelectionSet, v *model.TemplateCategory) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOTimeRange2ᚖgithubᚗcomᚋsandboxwsᚋflinkᚑreactorᚑconsoleᚋserverᚋinternalᚋgraphqlᚋmodelᚐTimeRange(ctx context.Context, v any) (*model.TimeRange, error) {

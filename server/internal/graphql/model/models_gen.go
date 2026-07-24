@@ -1668,6 +1668,49 @@ type TaskManagerResourceProfile struct {
 	NetworkMemory     string  `json:"networkMemory"`
 }
 
+// A project template projected from the DSL scaffolder registry.
+type Template struct {
+	// Unique template name, e.g. "lakehouse-analytics".
+	Name string `json:"name"`
+	// Gallery grouping.
+	Category TemplateCategory `json:"category"`
+	// One-line human description.
+	Description string `json:"description"`
+	// The pipelines this template ships.
+	Pipelines []*TemplatePipeline `json:"pipelines"`
+	// Infra services the template depends on (kafka, postgres, iceberg, …).
+	RequiredServices []string `json:"requiredServices"`
+	// Scaffold-form inputs (v0.1 surfaces the shared scaffold options).
+	Params []*TemplateParam `json:"params"`
+}
+
+// One materialised file from instantiating a template.
+type TemplateFile struct {
+	Path    string `json:"path"`
+	Content string `json:"content"`
+}
+
+// The result of instantiating a template into source (no deploy).
+type TemplateInstantiation struct {
+	Files       []*TemplateFile `json:"files"`
+	PipelineTsx string          `json:"pipelineTsx"`
+}
+
+// A scaffold-form input for a template.
+type TemplateParam struct {
+	Name        string   `json:"name"`
+	Type        string   `json:"type"`
+	Required    bool     `json:"required"`
+	Default     *string  `json:"default,omitempty"`
+	Options     []string `json:"options,omitempty"`
+	Description *string  `json:"description,omitempty"`
+}
+
+// A pipeline shipped by a template.
+type TemplatePipeline struct {
+	Name string `json:"name"`
+}
+
 type ThreadDumpEntry struct {
 	ThreadName            string `json:"threadName"`
 	StringifiedThreadInfo string `json:"stringifiedThreadInfo"`
@@ -2743,6 +2786,68 @@ func (e *SimulationStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e SimulationStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Gallery grouping for a template.
+type TemplateCategory string
+
+const (
+	TemplateCategoryLakehouse TemplateCategory = "LAKEHOUSE"
+	TemplateCategoryCdc       TemplateCategory = "CDC"
+	TemplateCategoryAnalytics TemplateCategory = "ANALYTICS"
+	TemplateCategoryShowcase  TemplateCategory = "SHOWCASE"
+	TemplateCategoryStarter   TemplateCategory = "STARTER"
+)
+
+var AllTemplateCategory = []TemplateCategory{
+	TemplateCategoryLakehouse,
+	TemplateCategoryCdc,
+	TemplateCategoryAnalytics,
+	TemplateCategoryShowcase,
+	TemplateCategoryStarter,
+}
+
+func (e TemplateCategory) IsValid() bool {
+	switch e {
+	case TemplateCategoryLakehouse, TemplateCategoryCdc, TemplateCategoryAnalytics, TemplateCategoryShowcase, TemplateCategoryStarter:
+		return true
+	}
+	return false
+}
+
+func (e TemplateCategory) String() string {
+	return string(e)
+}
+
+func (e *TemplateCategory) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TemplateCategory(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TemplateCategory", str)
+	}
+	return nil
+}
+
+func (e TemplateCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *TemplateCategory) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e TemplateCategory) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

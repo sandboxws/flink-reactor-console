@@ -88,6 +88,18 @@ describe("templates.generated.json", () => {
     }
   })
 
+  it("instantiation sources have unique file paths (parity with on-disk scaffold)", () => {
+    // `flink-reactor new` writes files to disk, so a repeated path collapses to
+    // one file. The sources artifact must too, or an instantiation diverges.
+    const artifact = buildTemplatesArtifact()
+    for (const [name, source] of Object.entries(artifact.sources)) {
+      const paths = source.files.map((f) => f.path)
+      expect(new Set(paths).size, `duplicate file paths in ${name}`).toBe(
+        paths.length,
+      )
+    }
+  })
+
   it("serialises and re-parses identically in memory", () => {
     const roundTripped = JSON.parse(
       JSON.stringify(buildTemplatesArtifact()),

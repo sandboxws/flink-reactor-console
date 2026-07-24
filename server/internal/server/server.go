@@ -32,6 +32,7 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/spa"
 	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 	"github.com/sandboxws/flink-reactor-console/server/internal/tap"
+	"github.com/sandboxws/flink-reactor-console/server/internal/templates"
 )
 
 // Config holds server configuration options.
@@ -195,6 +196,17 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 	}
 
 	catalogService := catalogs.NewService(logger, catalogProviders...)
+
+	// Load the embedded template registry (projected from the DSL scaffolder via
+	// scripts/refresh-templates.sh). A parse failure is non-fatal — the templates
+	// API just serves nothing — but drift is a hard, logged signal (G1 contract).
+	templateRegistry, tmplErr := templates.Load()
+	if tmplErr != nil {
+		logger.Error("failed to load embedded template registry", "error", tmplErr)
+	} else if templateRegistry.Drift {
+		logger.Error("template registry drift detected", "detail", templateRegistry.DriftMsg)
+	}
+
 	resolver := &graphql.Resolver{
 		Manager:            manager,
 		InstrumentRegistry: registry,
@@ -207,6 +219,7 @@ func New(addr string, logger *slog.Logger, manager *cluster.Manager, registry *i
 		SimulationEngine:   cfg.SimulationEngine,
 		SavepointTriggers:  savepoints.NewTriggerTypeCache(),
 		AlertEngine:        cfg.AlertEngine,
+		TemplateRegistry:   templateRegistry,
 	}
 	gqlSrv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,

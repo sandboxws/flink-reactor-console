@@ -1,0 +1,70 @@
+# Project templates projected from the DSL scaffolder registry.
+# Served from the embedded templates.generated.json (flows-01/flows-02) — the
+# server never runs the DSL/Node toolchain.
+
+"""A project template projected from the DSL scaffolder registry."""
+type Template {
+  """Unique template name, e.g. "lakehouse-analytics"."""
+  name: ID!
+  """Gallery grouping."""
+  category: TemplateCategory!
+  """One-line human description."""
+  description: String!
+  """The pipelines this template ships."""
+  pipelines: [TemplatePipeline!]!
+  """Infra services the template depends on (kafka, postgres, iceberg, …)."""
+  requiredServices: [String!]!
+  """Scaffold-form inputs (v0.1 surfaces the shared scaffold options)."""
+  params: [TemplateParam!]!
+}
+
+"""Gallery grouping for a template."""
+enum TemplateCategory {
+  LAKEHOUSE
+  CDC
+  ANALYTICS
+  SHOWCASE
+  STARTER
+}
+
+"""A pipeline shipped by a template."""
+type TemplatePipeline {
+  name: String!
+}
+
+"""A scaffold-form input for a template."""
+type TemplateParam {
+  name: String!
+  type: String!
+  required: Boolean!
+  default: String
+  options: [String!]
+  description: String
+}
+
+"""One materialised file from instantiating a template."""
+type TemplateFile {
+  path: String!
+  content: String!
+}
+
+"""The result of instantiating a template into source (no deploy)."""
+type TemplateInstantiation {
+  files: [TemplateFile!]!
+  pipelineTsx: String!
+}
+
+extend type Query {
+  """List project templates, optionally filtered by category."""
+  templates(category: TemplateCategory): [Template!]!
+  """Fetch a single template by name."""
+  template(name: ID!): Template
+}
+
+extend type Mutation {
+  """
+  Materialise a template into source files + top-level pipeline TSX for the
+  Workspace. Does NOT deploy or touch any cluster, SQL Gateway, or operator.
+  """
+  instantiateTemplate(name: ID!, params: JSON): TemplateInstantiation!
+}

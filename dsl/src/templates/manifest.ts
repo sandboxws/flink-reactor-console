@@ -214,6 +214,19 @@ function effectiveConfig(files: TemplateFile[]): string {
   return configs.at(-1)?.content ?? ""
 }
 
+// Deduplicate files by path, keeping each path's *last* occurrence — matching
+// `scaffoldProject`, which writes the array to disk in order so a repeated path
+// (a shared default the template later overrides) collapses to one file. Without
+// this, an instantiation would carry two `flink-reactor.config.ts` entries and
+// diverge from what `flink-reactor new <name>` scaffolds.
+function dedupeByPath(files: TemplateFile[]): TemplateFile[] {
+  const lastIndex = new Map<string, number>()
+  files.forEach((f, i) => {
+    lastIndex.set(f.path, i)
+  })
+  return files.filter((f, i) => lastIndex.get(f.path) === i)
+}
+
 // The first `pipelines/<name>/index.tsx` (sorted) — a convenience entry point.
 function primaryPipelineTsx(files: TemplateFile[]): string {
   const entries = files
@@ -273,7 +286,9 @@ export function buildTemplatesArtifact(): TemplatesArtifact {
 
   const sources: Record<string, TemplateSource> = {}
   for (const name of names) {
-    const files = TEMPLATE_FACTORIES[name](canonicalScaffoldOptions(name))
+    const files = dedupeByPath(
+      TEMPLATE_FACTORIES[name](canonicalScaffoldOptions(name)),
+    )
     sources[name] = { files, pipelineTsx: primaryPipelineTsx(files) }
   }
 

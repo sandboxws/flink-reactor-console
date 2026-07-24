@@ -12,6 +12,7 @@ import (
 	"github.com/sandboxws/flink-reactor-console/server/internal/simulation"
 	"github.com/sandboxws/flink-reactor-console/server/internal/store"
 	"github.com/sandboxws/flink-reactor-console/server/internal/tap"
+	"github.com/sandboxws/flink-reactor-console/server/internal/templates"
 )
 
 //go:generate go run github.com/99designs/gqlgen generate
@@ -28,5 +29,6 @@ type Resolver struct {
 	StorageConfig      config.StorageConfig
 	SimulationEngine   *simulation.Engine // nil when storage disabled
 	SavepointTriggers  *savepoints.TriggerTypeCache
-	AlertEngine        *alerts.Engine // nil when storage disabled
+	AlertEngine        *alerts.Engine      // nil when storage disabled
+	TemplateRegistry   *templates.Registry // nil only if the embedded manifest failed to load
 }
