@@ -83,7 +83,7 @@ export interface TemplateFile {
 
 type TemplateFactory = (opts: ScaffoldOptions) => TemplateFile[]
 
-const TEMPLATE_FACTORIES: Record<TemplateName, TemplateFactory> = {
+export const TEMPLATE_FACTORIES: Record<TemplateName, TemplateFactory> = {
   starter: getStarterTemplates,
   minimal: getMinimalTemplates,
   "cdc-lakehouse": getCdcLakehouseTemplates,
@@ -104,7 +104,7 @@ const TEMPLATE_FACTORIES: Record<TemplateName, TemplateFactory> = {
   "stock-temporal-topn": getStockTemporalTopnTemplates,
 }
 
-const TEMPLATE_DESCRIPTIONS: Record<TemplateName, string> = {
+export const TEMPLATE_DESCRIPTIONS: Record<TemplateName, string> = {
   starter: "Kafka source → transform → Kafka sink",
   minimal: "Empty project structure",
   "cdc-lakehouse": "Debezium CDC → Iceberg lakehouse (upsert)",

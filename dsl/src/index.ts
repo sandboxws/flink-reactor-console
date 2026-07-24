@@ -416,3 +416,16 @@ export type {
   TypedConstructNode,
 } from "./core/types.js"
 export { createStream } from "./core/types.js"
+// Template manifest: the serialisable *types* of the scaffolder-registry
+// projection. Types only — the `templateManifest()` / `buildTemplatesArtifact()`
+// implementations reach into the CLI scaffolder (commander, clack, all 18
+// template factories), so they stay off the library entry (which users' config
+// files import) and are consumed internally by the CLI + build script via the
+// `@/` alias. Type re-exports are erased at build time, so this costs nothing.
+export type {
+  TemplateCategory,
+  TemplateManifest,
+  TemplateParam,
+  TemplateSource,
+  TemplatesArtifact,
+} from "./templates/manifest.js"

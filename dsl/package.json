@@ -63,7 +63,7 @@
   "homepage": "https://github.com/sandboxws/flink-reactor-console/tree/main/dsl#readme",
   "author": "Ahmed El.Hussaini <328866+sandboxws@users.noreply.github.com>",
   "scripts": {
-    "build": "rm -rf dist && tsup && pnpm -r --filter './packages/*' run build",
+    "build": "rm -rf dist && tsup && tsx scripts/export-templates.ts && pnpm -r --filter './packages/*' run build",
     "dev": "tsup --watch",
     "package:vscode": "pnpm --filter @flink-reactor/dsl --filter @flink-reactor/ts-plugin --filter @flink-reactor/language-server build && pnpm --filter flink-reactor package",
     "test": "vitest run",
@@ -85,6 +85,7 @@
     "rewrite-imports": "node scripts/rewrite-imports.mjs",
     "tpch:gen": "tsx scripts/generate-tpch.ts",
     "seeds:export": "tsx scripts/export-seeds.ts",
+    "templates:export": "tsx scripts/export-templates.ts",
     "prepublishOnly": "pnpm build"
   },
   "keywords": [

@@ -18,6 +18,7 @@ import { registerSimCommand } from "./commands/sim.js"
 import { registerStatusCommand } from "./commands/status.js"
 import { registerStopCommand } from "./commands/stop.js"
 import { registerSynthCommand } from "./commands/synth.js"
+import { registerTemplatesCommand } from "./commands/templates.js"
 import { registerUpCommand } from "./commands/up.js"
 import { registerUpgradeCommand } from "./commands/upgrade.js"
 import { registerValidateCommand } from "./commands/validate.js"
@@ -78,6 +79,7 @@ export function createProgram(): Command {
 
   // Scaffold commands
   registerNewCommand(program)
+  registerTemplatesCommand(program)
   registerDoctorCommand(program)
   registerInstallCommand(program)
   registerConnectorsCommand(program)
